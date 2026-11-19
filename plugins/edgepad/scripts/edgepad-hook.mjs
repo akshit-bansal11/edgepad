@@ -55,8 +55,19 @@ const cut = (value, n) => {
     return value.slice(0, code >= 0xd800 && code <= 0xdbff ? n - 1 : n)
 }
 
+// A tool_input field: a string cut to INPUT_CAP; for Codex's `command` also its array form, a list of strings (sent as is
+// unless joined it passes INPUT_CAP, then as the cut joined string, which the laptop then offers Deny-only).
+const MAX_PARTS = 1024
+const field = (agent, key, value) => {
+    if (typeof value === 'string' || agent !== 'codex' || key !== 'command') return cut(value, INPUT_CAP)
+    if (!Array.isArray(value) || value.length === 0 || value.length > MAX_PARTS) return undefined
+    if (!value.every(part => typeof part === 'string')) return undefined
+    const joined = value.join(' ')
+    return joined.length > INPUT_CAP ? cut(joined, INPUT_CAP) : value
+}
+
 // The request's `d` for a hook payload, or null when this event is not sent.
-const buildData =(kind, hook) => {
+const buildData = (agent, kind, hook) => {
     if (hook === null || typeof hook !== 'object' || Array.isArray(hook)) return null
     if (kind === 'perm') {
         const tool = cut(hook.tool_name, 64)
@@ -65,7 +76,7 @@ const buildData =(kind, hook) => {
         const raw = hook.tool_input
         if (raw !== null && typeof raw === 'object' && !Array.isArray(raw)) {
             for (const key of INPUT_FIELDS) {
-                const value = cut(raw[key], INPUT_CAP)
+                const value = field(agent, key, raw[key])
                 if (value !== undefined) input[key] = value
             }
         }
@@ -197,7 +208,7 @@ const main = async () => {
     if (kind === 'perm' || kind === 'session') {
         const text = await readStdin()
         if (text === null) return
-        d = buildData(kind, parse(text))
+        d = buildData(agent, kind, parse(text))
     } else {
         if (typeof arg !== 'string' || Buffer.byteLength(arg) > ARG_CAP) return
         d = parse(arg)

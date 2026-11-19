@@ -1,0 +1,84 @@
+# Local hook channel vectors (laptop only, not the phone link). Read by plugins/test/hook.test.mjs (CLIENT lines),
+# shared/Edgepad.Core.Tests/HookProtocolTests.cs and the Swift HookProtocolTests (SERVER lines).
+#
+# Lines starting with # and blank lines are ignored. A line is cut at the FIRST " => ". No escapes beyond JSON's own: every
+# JSON value below is read by a JSON parser exactly as written, so "\n" inside a JSON string is a line feed.
+#
+#   CLIENT <agent> <kind> <input> => <request JSON without "token"> | NONE
+#       The hook client run as `edgepad-hook.mjs <agent> <kind>`, with <input> on stdin for perm and session, or as the fourth
+#       argument for usage and spend. NONE: nothing is sent.
+#
+#   SERVER <request line> => <parse JSON> | NONE
+#       The laptop's HookProtocol.TryParse of the request line. NONE: not a request; the connection closes with no reply.
+#       The parse is compared as JSON (key order free):
+#         perm     {"kind":"perm","agent","token","session","cwd","tool","command","file_path","url","command_safe"}
+#         session  {"kind":"session","agent","token","session","event","cwd","notification_type"}
+#         usage    {"kind":"usage","agent","token","windows":[{"window","pct","resets_at"}],"context"}
+#         spend    {"kind":"spend","agent","token","today":[tok,cents],"week":[tok,cents],"month":[tok,cents]}
+#       Absent optional values are null. session and cwd are "" when absent. command_safe is false only for a Codex
+#       array-form command with a control character inside an element (the laptop then offers Deny only).
+#       Limits: tool_name 1..24 of A-Za-z0-9_.-; JSON depth <= 8; line <= 64 KiB (tested in code); v must be the number 1.
+
+# ---- client ----
+CLIENT codex perm {"session_id":"c1","cwd":"/w","tool_name":"shell","tool_input":{"command":["bash","-lc","ls -la"]}} => {"v":1,"agent":"codex","kind":"perm","d":{"session_id":"c1","cwd":"/w","tool_name":"shell","tool_input":{"command":["bash","-lc","ls -la"]}}}
+CLIENT claude perm {"tool_name":"Bash","tool_input":{"command":["ls","-la"]}} => {"v":1,"agent":"claude","kind":"perm","d":{"session_id":"","cwd":"","tool_name":"Bash","tool_input":{}}}
+CLIENT codex perm {"tool_name":"shell","tool_input":{"command":["ls",7]}} => {"v":1,"agent":"codex","kind":"perm","d":{"session_id":"","cwd":"","tool_name":"shell","tool_input":{}}}
+CLIENT claude perm {"session_id":"s","cwd":"/p","tool_name":"Edit","tool_input":{"file_path":"/p/a.txt","old_string":"x","new_string":"y"}} => {"v":1,"agent":"claude","kind":"perm","d":{"session_id":"s","cwd":"/p","tool_name":"Edit","tool_input":{"file_path":"/p/a.txt"}}}
+CLIENT claude session {"hook_event_name":"Notification","session_id":"s","cwd":"/p","notification_type":"idle_prompt","message":"m"} => {"v":1,"agent":"claude","kind":"session","d":{"hook_event_name":"Notification","session_id":"s","cwd":"/p","notification_type":"idle_prompt"}}
+CLIENT claude session {"hook_event_name":"UserPromptSubmit","session_id":"s","cwd":"/p","prompt":"secret words"} => {"v":1,"agent":"claude","kind":"session","d":{"hook_event_name":"UserPromptSubmit","session_id":"s","cwd":"/p"}}
+CLIENT claude session {"hook_event_name":"PreToolUse","session_id":"s"} => NONE
+CLIENT claude usage {"limits":[{"kind":"five_hour","percentUsed":12.5,"resetsAt":"2026-11-19T17:00:00Z"}],"context":{"percent":40}} => {"v":1,"agent":"claude","kind":"usage","d":{"limits":[{"kind":"five_hour","percentUsed":12.5,"resetsAt":"2026-11-19T17:00:00Z"}],"context":{"percent":40}}}
+CLIENT claude spend {"today":{"tok":10,"cents":2},"week":{"tok":20,"cents":4},"month":{"tok":30,"cents":6},"unpriced":false} => {"v":1,"agent":"claude","kind":"spend","d":{"today":{"tok":10,"cents":2},"week":{"tok":20,"cents":4},"month":{"tok":30,"cents":6},"unpriced":false}}
+
+# ---- server: accepted ----
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"session_id":"s1","cwd":"/w","tool_name":"Bash","tool_input":{"command":"ls -la"}}} => {"kind":"perm","agent":"claude","token":"T","session":"s1","cwd":"/w","tool":"Bash","command":"ls -la","file_path":null,"url":null,"command_safe":true}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":{"command":"echo a\necho b"}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"Bash","command":"echo a\necho b","file_path":null,"url":null,"command_safe":true}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"WebFetch","tool_input":{"url":"https://x.test/a"}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"WebFetch","command":null,"file_path":null,"url":"https://x.test/a","command_safe":true}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash"}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"Bash","command":null,"file_path":null,"url":null,"command_safe":true}
+SERVER {"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"shell","tool_input":{"command":["bash","-lc","ls -la"]}}} => {"kind":"perm","agent":"codex","token":"T","session":"","cwd":"","tool":"shell","command":"bash -lc ls -la","file_path":null,"url":null,"command_safe":true}
+SERVER {"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"shell","tool_input":{"command":["bash","-lc","rm -rf x\necho ok"]}}} => {"kind":"perm","agent":"codex","token":"T","session":"","cwd":"","tool":"shell","command":"bash -lc rm -rf x\necho ok","file_path":null,"url":null,"command_safe":false}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"mcp.x_y-1","session_id":null,"cwd":null,"extra":{"a":[1,2]}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"mcp.x_y-1","command":null,"file_path":null,"url":null,"command_safe":true}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"session","d":{"hook_event_name":"Notification","session_id":"s","cwd":"/p","notification_type":"idle_prompt"}} => {"kind":"session","agent":"claude","token":"T","session":"s","event":"Notification","cwd":"/p","notification_type":"idle_prompt"}
+SERVER {"v":1,"token":"T","agent":"codex","kind":"session","d":{"hook_event_name":"SessionStart","session_id":"c","cwd":"C:\\w"}} => {"kind":"session","agent":"codex","token":"T","session":"c","event":"SessionStart","cwd":"C:\\w","notification_type":null}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"session","d":{"hook_event_name":"Stop","notification_type":"idle_prompt"}} => {"kind":"session","agent":"claude","token":"T","session":"","event":"Stop","cwd":"","notification_type":null}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"usage","d":{"limits":[{"kind":"five_hour","percentUsed":12.5,"resetsAt":"2026-11-19T17:00:00Z"},{"kind":"seven_day","percentUsed":40,"resetsAt":1787897318},{"kind":"spend_limit","percentUsed":0}],"context":{"percent":7}}} => {"kind":"usage","agent":"claude","token":"T","windows":[{"window":"five_hour","pct":12.5,"resets_at":"2026-11-19T17:00:00Z"},{"window":"seven_day","pct":40,"resets_at":"1787897318"},{"window":"spend_limit","pct":0,"resets_at":null}],"context":7}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"usage","d":{"context":{"percent":null}}} => {"kind":"usage","agent":"claude","token":"T","windows":[],"context":null}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"usage","d":{}} => {"kind":"usage","agent":"claude","token":"T","windows":[],"context":null}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"spend","d":{"today":{"tok":10,"cents":2},"week":{"tok":20,"cents":4},"month":{"tok":30,"cents":6},"unpriced":true}} => {"kind":"spend","agent":"claude","token":"T","today":[10,2],"week":[20,4],"month":[30,6]}
+
+# ---- server: refused ----
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash tool"}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"mcp__a_very_long_server__tool"}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":""}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"B\u202Eash"}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":7}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":{"command":7}}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":{"command":[]}}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":{"command":["ls",1]}}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":"ls"}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","session_id":5}} => NONE
+SERVER {"v":1,"token":"T","agent":"gemini","kind":"perm","d":{"tool_name":"Bash"}} => NONE
+SERVER {"v":1,"token":"T","agent":"Claude","kind":"perm","d":{"tool_name":"Bash"}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"shell","d":{}} => NONE
+SERVER {"v":2,"token":"T","agent":"claude","kind":"session","d":{"hook_event_name":"Stop"}} => NONE
+SERVER {"v":"1","token":"T","agent":"claude","kind":"session","d":{"hook_event_name":"Stop"}} => NONE
+SERVER {"token":"T","agent":"claude","kind":"session","d":{"hook_event_name":"Stop"}} => NONE
+SERVER {"v":1,"agent":"claude","kind":"session","d":{"hook_event_name":"Stop"}} => NONE
+SERVER {"v":1,"token":"","agent":"claude","kind":"session","d":{"hook_event_name":"Stop"}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"session","d":[]} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"session"} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"session","d":{}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"session","d":{"hook_event_name":"Stop","cwd":7}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"usage","d":{"limits":[{"kind":"five_hour","percentUsed":"12"}]}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"usage","d":{"limits":[{"kind":"","percentUsed":12}]}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"usage","d":{"limits":[{"kind":"five_hour","percentUsed":12,"resetsAt":true}]}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"usage","d":{"limits":{"kind":"five_hour"}}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"usage","d":{"context":"7"}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"spend","d":{"today":{"tok":10,"cents":2},"week":{"tok":20,"cents":4}}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"spend","d":{"today":{"tok":1.5,"cents":2},"week":{"tok":20,"cents":4},"month":{"tok":30,"cents":6}}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"spend","d":{"today":{"tok":1,"cents":2},"week":{"tok":2,"cents":4},"month":{"tok":3,"cents":6},"unpriced":"no"}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"session","d":{"hook_event_name":"Stop","x":[[[[[[[[1]]]]]]]]}} => NONE
+SERVER [] => NONE
+SERVER null => NONE
+SERVER not json => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"session","d":{"hook_event_name":"Stop"}} trailing => NONE
