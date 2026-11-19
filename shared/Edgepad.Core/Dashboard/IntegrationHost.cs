@@ -39,8 +39,9 @@ internal sealed class DashboardParts
 /// <summary>
 /// One phone link's side of the dashboard; a platform session makes one per link and disposes it when the link ends. Nothing runs
 /// until the phone asks: <see cref="OnWatch"/> (DASH_WATCH) starts the stats reporter for bits 0 and 1, the weather for bit 2 (asked
-/// again every 30 min while it stays set; the client caches), sends limit and spend snapshots for bit 3 and then their changes, and
-/// refreshes GitHub for bit 4 (at most once a minute) and sends BLOB GITHUB after each refresh that changed it. Sessions are sent on
+/// again every 30 min while it stays set, and once more 2 min after a failed fetch; the client caches), sends limit and spend snapshots for bit 3 and then their changes, and
+/// refreshes GitHub for bit 4 (at most once a minute) and sends BLOB GITHUB whenever it differs from what this phone was last sent,
+/// and TEXT UNAVAILABLE again when GitHub refuses the token or first accepts a new one. Sessions are sent on
 /// every change whatever the mask. Approvals go out as urgent BLOB PERM_ASK, their end as TEXT PERM_GONE. Blob sends and network
 /// calls never run on the caller's thread (the session's read thread calls <see cref="OnWatch"/>). A send that fails because the
 /// link died is dropped; the session notices the dead link itself.
@@ -57,6 +58,9 @@ internal sealed class IntegrationHost : IDisposable
     // The last MaxGone ask ids that ended, so a PERM_ASK blob still queued for one is never sent.
     private const int MaxGone = 64;
 
+    // What a phone that has been sent no GitHub lines holds.
+    private static readonly string NothingSent = GitHubBlob.Encode([]);
+
     private readonly Action<Frame> send;
     private readonly BlobSender blobs;
     private readonly IntegrationSettings settings;
@@ -64,6 +68,7 @@ internal sealed class IntegrationHost : IDisposable
     private readonly IStatsSource? stats;
     private readonly Func<DateTimeOffset> clock;
     private readonly Func<Action, TimeSpan, IDisposable> startTimer;
+    private readonly Func<Action, TimeSpan, IDisposable> startOnce;
     private readonly Action<Action> run;
     private readonly Lock gate = new();
     private readonly CancellationTokenSource ended = new();
@@ -74,8 +79,11 @@ internal sealed class IntegrationHost : IDisposable
 
     private StatsReporter? reporter;
     private IDisposable? weatherTimer;
+    private IDisposable? weatherRetry;
     private IDisposable? githubTimer;
     private DateTimeOffset? githubLast;
+    private string githubSent = NothingSent;
+    private bool githubRefused;
     private string? weatherSent;
     private int watch;
     private volatile bool disposed;
@@ -85,6 +93,7 @@ internal sealed class IntegrationHost : IDisposable
     /// <param name="stats">The laptop's numbers, when this platform has a source.</param>
     /// <param name="startTimer">Runs the action now and then every interval on another thread until disposed. Tests pass their own.</param>
     /// <param name="run">Runs blocking work (a blob, a network call) off the caller's thread. Tests run it inline.</param>
+    /// <param name="startOnce">Runs the action once after the delay on another thread, unless disposed first. Tests pass their own.</param>
     public IntegrationHost(
         Action<Frame> send,
         BlobSender blobs,
@@ -93,7 +102,8 @@ internal sealed class IntegrationHost : IDisposable
         IStatsSource? stats = null,
         Func<DateTimeOffset>? clock = null,
         Func<Action, TimeSpan, IDisposable>? startTimer = null,
-        Action<Action>? run = null)
+        Action<Action>? run = null,
+        Func<Action, TimeSpan, IDisposable>? startOnce = null)
     {
         this.send = send;
         this.blobs = blobs;
@@ -102,6 +112,7 @@ internal sealed class IntegrationHost : IDisposable
         this.stats = stats;
         this.clock = clock ?? (() => DateTimeOffset.UtcNow);
         this.startTimer = startTimer ?? ((action, every) => new Timer(_ => action(), null, TimeSpan.Zero, every));
+        this.startOnce = startOnce ?? ((action, due) => new Timer(_ => action(), null, due, Timeout.InfiniteTimeSpan));
         this.run = run ?? (work => Task.Run(work));
 
         if (parts.Sessions is { } sessions)
@@ -219,6 +230,7 @@ internal sealed class IntegrationHost : IDisposable
             else if ((mask & WeatherBit) == 0)
             {
                 Stop(ref weatherTimer);
+                Stop(ref weatherRetry);
                 weatherSent = null;
             }
 
@@ -229,6 +241,7 @@ internal sealed class IntegrationHost : IDisposable
             else if ((mask & GitHubBit) == 0)
             {
                 Stop(ref githubTimer);
+                githubSent = NothingSent;
             }
         }
 
@@ -259,6 +272,7 @@ internal sealed class IntegrationHost : IDisposable
             reporter?.Dispose();
             reporter = null;
             Stop(ref weatherTimer);
+            Stop(ref weatherRetry);
             Stop(ref githubTimer);
         }
 
@@ -416,7 +430,19 @@ internal sealed class IntegrationHost : IDisposable
         var text = DashWire.EncodeWeather(info);
         lock (gate)
         {
-            if (text == weatherSent || disposed)
+            if (disposed)
+            {
+                return;
+            }
+
+            // A failed fetch is asked once more when the client allows it again, not only at the next 30 min tick.
+            Stop(ref weatherRetry);
+            if (info is null && (watch & WeatherBit) != 0 && WeatherClient.CityFrom(settings.Text(IntegrationSettings.City)) is not null)
+            {
+                weatherRetry = startOnce(() => run(RefreshWeather), WeatherClient.RetryAfter);
+            }
+
+            if (text == weatherSent)
             {
                 return;
             }
@@ -454,7 +480,23 @@ internal sealed class IntegrationHost : IDisposable
             return;
         }
 
-        if (result.Changed && Watching(GitHubBit))
+        // A revoked token says so at once (the phone shows its sign-in note); the first good refresh after it takes the note away.
+        bool resendUnavailable;
+        lock (gate)
+        {
+            var refused = result.Result == GitHubResult.NoPermission;
+            resendUnavailable = !disposed && (refused ? !githubRefused : githubRefused && result.Result == GitHubResult.Ok);
+            githubRefused = refused || (githubRefused && result.Result != GitHubResult.Ok);
+        }
+
+        if (resendUnavailable)
+        {
+            Push(new Text((byte)TextKind.Unavailable, string.Join('/', Unavailable())));
+        }
+
+        // Compared with what this phone was sent, not with the shared client's last refresh: another phone's refresh may have
+        // fetched the change, leaving Changed false here.
+        if (Watching(GitHubBit))
         {
             SendGitHub();
         }
@@ -464,7 +506,18 @@ internal sealed class IntegrationHost : IDisposable
     {
         if (parts.GitHub is { } github)
         {
-            var body = Encoding.UTF8.GetBytes(GitHubBlob.Encode(github.Lines));
+            var text = GitHubBlob.Encode(github.Lines);
+            lock (gate)
+            {
+                if (text == githubSent || disposed)
+                {
+                    return;
+                }
+
+                githubSent = text;
+            }
+
+            var body = Encoding.UTF8.GetBytes(text);
             Guard(() => blobs.Send(BlobKind.Github, "gh", body));
         }
     }

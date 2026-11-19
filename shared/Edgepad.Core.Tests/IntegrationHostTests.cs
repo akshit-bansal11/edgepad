@@ -21,12 +21,15 @@ public sealed class IntegrationHostTests : IDisposable
     private readonly SessionBoard sessions;
     private readonly UsageStore usage;
     private readonly PermissionBroker broker;
-    private readonly FakeHttp github = new(_ => FakeHttp.Status(HttpStatusCode.InternalServerError));
+    private readonly List<FakeTimer> onces = [];
+    private readonly FakeHttp github;
     private readonly FakeHttp weather = new(_ => FakeHttp.Status(HttpStatusCode.InternalServerError));
     private readonly Secrets secrets = new();
+    private Func<SeenRequest, HttpResponseMessage> githubReply = _ => FakeHttp.Status(HttpStatusCode.InternalServerError);
 
     public IntegrationHostTests()
     {
+        github = new FakeHttp(seen => githubReply(seen));
         settings = new IntegrationSettings(Path.Combine(dir.FullName, IntegrationSettings.FileName));
         sessions = new SessionBoard(() => clock.Now);
         usage = new UsageStore(Path.Combine(dir.FullName, UsageStore.FileName), clock.Now);
@@ -48,23 +51,34 @@ public sealed class IntegrationHostTests : IDisposable
         settings.Set(IntegrationSettings.City, "Delhi");
     }
 
-    private IntegrationHost New(bool withParts = true, bool withStats = true)
+    private IntegrationHost New(bool withParts = true, bool withStats = true, DashboardParts? shared = null, Action<Frame>? to = null)
     {
-        var parts = withParts
-            ? new DashboardParts
-            {
-                Sessions = sessions,
-                Limits = new LimitsBoard(usage),
-                Spend = new SpendBoard(usage),
-                Broker = broker,
-                Weather = new WeatherClient(weather, () => clock.Now),
-                GitHub = new GitHubApi(secrets, github, () => clock.Now),
-                GitHubSignedIn = () => GitHubApp.IsToken(secrets.Get(GitHubApp.TokenName)),
-            }
-            : new DashboardParts();
-        var blobs = new BlobSender(Record, LinkKind.Bluetooth, () => 0, Ct, () => long.MaxValue, _ => true);
-        return new IntegrationHost(Record, blobs, settings, parts, withStats ? new Source() : null, () => clock.Now, StartTimer, work => work());
+        var parts = shared ?? (withParts ? NewParts() : new DashboardParts());
+        var sink = to ?? Record;
+        var blobs = new BlobSender(sink, LinkKind.Bluetooth, () => 0, Ct, () => long.MaxValue, _ => true);
+        return new IntegrationHost(sink, blobs, settings, parts, withStats ? new Source() : null, () => clock.Now, StartTimer, work => work(), StartOnce);
     }
+
+    private DashboardParts NewParts() => new()
+    {
+        Sessions = sessions,
+        Limits = new LimitsBoard(usage),
+        Spend = new SpendBoard(usage),
+        Broker = broker,
+        Weather = new WeatherClient(weather, () => clock.Now),
+        GitHub = new GitHubApi(secrets, github, () => clock.Now),
+        GitHubSignedIn = () => GitHubApp.IsToken(secrets.Get(GitHubApp.TokenName)),
+    };
+
+    private IDisposable StartOnce(Action action, TimeSpan due)
+    {
+        var timer = new FakeTimer(action, due);
+        onces.Add(timer);
+        return timer;
+    }
+
+    private HttpResponseMessage GitHubOk(SeenRequest seen) =>
+        FakeHttp.Json(seen.Method == HttpMethod.Post ? GitHubParseTests.Normal : """[{"id":"1"}]""");
 
     private void Record(Frame frame)
     {
@@ -259,6 +273,79 @@ public sealed class IntegrationHostTests : IDisposable
         queued[0]();
         Assert.Empty(Blobs(BlobKind.PermAsk));
         Assert.Equal(id, Assert.Single(Texts(TextKind.PermGone)).Value);
+    }
+
+    [Fact]
+    public async Task AFailedWeatherFetchIsAskedOnceMoreAfterTwoMinutes()
+    {
+        AllOn();
+        using var host = New();
+        host.OnWatch(IntegrationHost.WeatherBit);
+        await Task.Run(Assert.Single(timers, t => t.Every == IntegrationHost.WeatherEvery).Fire, Ct);
+        var asked = weather.Seen.Count;
+
+        var retry = Assert.Single(onces);
+        Assert.Equal(WeatherClient.RetryAfter, retry.Every);
+
+        clock.Advance(WeatherClient.RetryAfter);
+        await Task.Run(retry.Fire, Ct);
+        Assert.True(weather.Seen.Count > asked);
+        Assert.True(retry.Disposed);
+        Assert.Equal(2, onces.Count);
+
+        host.OnWatch(0);
+        Assert.All(onces, t => Assert.True(t.Disposed));
+    }
+
+    [Fact]
+    public async Task ARevokedTokenSaysNoPermissionAtOnceAndASignInTakesItBack()
+    {
+        AllOn();
+        using var host = New();
+        githubReply = _ => FakeHttp.Status(HttpStatusCode.Unauthorized);
+        host.OnWatch(IntegrationHost.GitHubBit);
+        var tick = Assert.Single(timers, t => t.Every == GitHubRefresh.Every);
+        await Task.Run(tick.Fire, Ct);
+
+        Assert.Equal($"{Feature.GitHub}:{UnavailableReason.NoPermission}", Assert.Single(Texts(TextKind.Unavailable)).Value);
+
+        clock.Advance(GitHubRefresh.Every);
+        await Task.Run(tick.Fire, Ct);
+        Assert.Single(Texts(TextKind.Unavailable));
+
+        secrets.Set(GitHubApp.TokenName, GitHubToken);
+        githubReply = GitHubOk;
+        clock.Advance(GitHubRefresh.Every);
+        await Task.Run(tick.Fire, Ct);
+        Assert.Equal(string.Empty, Texts(TextKind.Unavailable)[^1].Value);
+        Assert.Equal(2, Texts(TextKind.Unavailable).Count);
+        Assert.Single(Blobs(BlobKind.Github));
+    }
+
+    [Fact]
+    public async Task ASecondPhoneGetsWhatAnotherPhonesRefreshFetched()
+    {
+        AllOn();
+        githubReply = GitHubOk;
+        var parts = NewParts();
+        var second = new List<Frame>();
+        using var first = New(shared: parts);
+        using var other = New(shared: parts, to: f =>
+        {
+            lock (second)
+            {
+                second.Add(f);
+            }
+        });
+
+        // Both watch before either refreshes: the second refresh finds nothing new in the shared client.
+        first.OnWatch(IntegrationHost.GitHubBit);
+        other.OnWatch(IntegrationHost.GitHubBit);
+        await Task.Run(timers[^2].Fire, Ct);
+        await Task.Run(timers[^1].Fire, Ct);
+
+        Assert.Single(Blobs(BlobKind.Github));
+        Assert.Single(second.OfType<BlobBegin>(), b => b.Kind == (byte)BlobKind.Github);
     }
 
     private sealed class FakeTimer(Action action, TimeSpan every) : IDisposable

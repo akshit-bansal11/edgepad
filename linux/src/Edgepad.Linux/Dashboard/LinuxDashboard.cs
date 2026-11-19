@@ -446,6 +446,9 @@ internal sealed class DashboardLink : IDisposable
     private readonly Lock gate = new();
     private IntegrationHost host;
     private int watch;
+
+    // The session's own UNAVAILABLE entries as last annotated, so one the host sends again (GitHub refused or accepted a token) keeps them.
+    private string unavailableBase = string.Empty;
     private bool disposed;
 
     /// <param name="send">Writes a frame to the phone unchanged (not through <see cref="Annotate"/>).</param>
@@ -455,7 +458,7 @@ internal sealed class DashboardLink : IDisposable
         this.send = send;
         this.blobs = blobs;
         dashboard.PhoneUp();
-        host = dashboard.NewHost(send, blobs);
+        host = dashboard.NewHost(FromHost, blobs);
         dashboard.Changed += Rebuild;
     }
 
@@ -471,12 +474,23 @@ internal sealed class DashboardLink : IDisposable
     }
 
     /// <summary>The frame with the dashboard's FEATURES and UNAVAILABLE entries added; any other frame as it is.</summary>
-    public Frame Annotate(Frame frame) => frame switch
+    public Frame Annotate(Frame frame)
     {
-        Text { Kind: (byte)TextKind.Features } t => t with { Value = Join(t.Value, Host.Features()) },
-        Text { Kind: (byte)TextKind.Unavailable } t => t with { Value = Join(t.Value, [.. Host.Unavailable(), .. dashboard.Unsupported()]) },
-        _ => frame,
-    };
+        switch (frame)
+        {
+            case Text { Kind: (byte)TextKind.Features } t:
+                return t with { Value = Join(t.Value, Host.Features()) };
+            case Text { Kind: (byte)TextKind.Unavailable } t:
+                lock (gate)
+                {
+                    unavailableBase = t.Value;
+                }
+
+                return t with { Value = Join(t.Value, [.. Host.Unavailable(), .. dashboard.Unsupported()]) };
+            default:
+                return frame;
+        }
+    }
 
     /// <summary>Once FEATURES has gone out.</summary>
     public void Start() => Host.Start();
@@ -518,6 +532,23 @@ internal sealed class DashboardLink : IDisposable
         current.Dispose();
     }
 
+    // The host's own UNAVAILABLE carries only its entries: sent as the whole list, with the session's and the agents' added.
+    private void FromHost(Frame frame)
+    {
+        if (frame is Text { Kind: (byte)TextKind.Unavailable })
+        {
+            string session;
+            lock (gate)
+            {
+                session = unavailableBase;
+            }
+
+            frame = Annotate(new Text((byte)TextKind.Unavailable, session));
+        }
+
+        send(frame);
+    }
+
     internal static string Join(string text, IEnumerable<string> more) =>
         string.Join('/', more.Prepend(text).Where(entry => entry.Length > 0));
 
@@ -534,7 +565,7 @@ internal sealed class DashboardLink : IDisposable
             }
 
             old = host;
-            next = host = dashboard.NewHost(send, blobs);
+            next = host = dashboard.NewHost(FromHost, blobs);
             mask = watch;
         }
 
