@@ -168,6 +168,12 @@ enum class ControlId(
 
     /** Whether this link hears the app in front ([TextKind.FOREGROUND_APP]), 1 or 0. Forgotten at session end. */
     FOREGROUND_WATCH(11),
+
+    /**
+     * A bitmask of what this phone draws right now: bit 0 (1) system-number widgets, bit 1 (2) the System screen, bit 2 (4) the weather
+     * widget, bit 3 (8) an AI widget or screen, bit 4 (16) the GitHub screen. 0 to 31; the laptop drops more and forgets it at session end.
+     */
+    DASH_WATCH(12),
     ;
 
     fun set(value: Int): Frame = Frame.SetValue(id, value)
@@ -292,6 +298,33 @@ enum class TextKind(
 
     /** Laptop to phone: the title line before it is cleaned for [NOW_PLAYING], sent only when it differs from that text. */
     NOW_PLAYING_FULL(26),
+
+    /** Laptop to phone: "cpu/ram/gpu/vram/down/up/ping/loss/ctemp/gtemp/gpower", -1 unknown. Once a second while [ControlId.DASH_WATCH] has bit 0 or 1. */
+    STATS(27),
+
+    /** Laptop to phone: "cpuName|ramMiB|gpuName|vramMiB|netName". Sent when a watch starts and when it changes. */
+    STATS_INFO(28),
+
+    /** Laptop to phone: "label:usedPct:totalGiB:freeGiB" entries joined by "|", at most 6. */
+    DISKS(29),
+
+    /** Laptop to phone: "agent:state:title" entries joined by "|", newest first, at most 8. Empty means none. */
+    SESSIONS(30),
+
+    /** Phone to laptop: exactly "id/a" or "id/d", the id 12 lowercase hex digits. */
+    PERM_ANSWER(31),
+
+    /** Laptop to phone: "id" of an approval that was answered elsewhere, timed out or died. */
+    PERM_GONE(32),
+
+    /** Laptop to phone: "agent:window:pct:resetAtMin:measuredAtMin" entries joined by "|"; the window is minutes, [LimitWindow.CONTEXT] or "~name". */
+    LIMITS(33),
+
+    /** Laptop to phone: "agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth" entries joined by "|". */
+    SPEND(34),
+
+    /** Laptop to phone: "tempTenthsC/wmoCode/city". Empty means none. */
+    WEATHER(35),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -387,12 +420,81 @@ enum class Feature(
 
     /** The laptop can say which app is in front, in [TextKind.FOREGROUND_APP], once watched. */
     FOREGROUND("foreground"),
+
+    /** The laptop sends [TextKind.STATS], [TextKind.STATS_INFO] and [TextKind.DISKS]. */
+    STATS("stats"),
+
+    /** The laptop sends [TextKind.WEATHER]. */
+    WEATHER("weather"),
+
+    /** The laptop's Claude Code integration is on and usable. */
+    CLAUDE("claude"),
+
+    /** The laptop's Codex integration is on and usable. */
+    CODEX("codex"),
+
+    /** The laptop is signed in to GitHub and sends [BlobKind.GITHUB]. */
+    GITHUB("github"),
     ;
 
     companion object {
         /** Null for a token this build does not know: a feature it cannot offer is simply not there. */
         fun of(token: String): Feature? = entries.firstOrNull { it.token == token }
     }
+}
+
+/** The agent of a sessions, limits, spend or approval entry. Mirrors the AGENT rows of protocol/actions.txt. */
+enum class AgentToken(
+    val token: String,
+) {
+    CLAUDE("claude"),
+    CODEX("codex"),
+    ;
+
+    companion object {
+        /** Null for a token this build does not know: the entry is dropped. */
+        fun of(token: String): AgentToken? = entries.firstOrNull { it.token == token }
+    }
+}
+
+/** The state in a [TextKind.SESSIONS] entry. Mirrors the SESSION_STATE rows of protocol/actions.txt. */
+enum class SessionStateToken(
+    val token: String,
+) {
+    BUSY("busy"),
+    WAIT("wait"),
+    IDLE("idle"),
+    ;
+
+    companion object {
+        /** Null for a token this build does not know: the entry is dropped. */
+        fun of(token: String): SessionStateToken? = entries.firstOrNull { it.token == token }
+    }
+}
+
+/** The CI field of a [BlobKind.GITHUB] line. Mirrors the CI rows of protocol/actions.txt. */
+enum class CiToken(
+    val token: String,
+) {
+    OK("ok"),
+    FAIL("fail"),
+    PENDING("pending"),
+    NONE("none"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [NONE]. */
+        fun of(token: String): CiToken = entries.firstOrNull { it.token == token } ?: NONE
+    }
+}
+
+/** The non-minute forms of a [TextKind.LIMITS] window. Mirrors the LIMIT_WINDOW rows of protocol/actions.txt. */
+object LimitWindow {
+    /** The context window of a session, not a time window. */
+    const val CONTEXT = "ctx"
+
+    /** A limit with no duration is this character and a name, such as "~spend_limit". */
+    const val NAMED_PREFIX = "~"
 }
 
 /**
@@ -611,6 +713,12 @@ enum class BlobKind(
     APP_ICON(3),
     MEDIA_ICON(4),
     NOTIFICATION(5),
+
+    /** Laptop to phone: an approval request. The label is "id/f"; the body is UTF-8 agent, tool and text joined by line feeds. */
+    PERM_ASK(6),
+
+    /** Laptop to phone: GitHub pull requests and the notification count. The label is "gh"; the body is tab-separated lines. */
+    GITHUB(7),
     ;
 
     companion object {

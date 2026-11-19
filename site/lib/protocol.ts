@@ -307,6 +307,8 @@ const CONTROL_DOCS: Record<string, string> = {
     "SET 1 lets this link hear which app is in front (TEXT 21), 0 stops it. Forgotten when the session ends; any other value is dropped and counted. The phone offers it only for a laptop that names foreground.",
   PEN_OPACITY:
     "SET sets the opacity of new strokes in percent, 10 to 100. The highlighter multiplies its own 35% by it. Anything else is dropped and counted. Forgotten when the session ends.",
+  DASH_WATCH:
+    "SET is a bitmask of what the phone draws right now: 1 widgets that need system numbers, 2 the System screen, 4 the weather widget, 8 an AI widget or screen, 16 the GitHub screen. 0 to 31; more is dropped and counted. Forgotten when the session ends. It is the only thing that makes the laptop sample, read usage files or poll.",
 };
 
 const TEXT_DOCS: Record<string, string> = {
@@ -346,6 +348,24 @@ const TEXT_DOCS: Record<string, string> = {
     "The title line of what is playing before it is cleaned for TEXT 0, sent only when it differs from TEXT 0. Laptop to phone.",
   PEN_RGB:
     "A stroke colour as exactly six hex digits, RRGGBB, either case. Anything else, a leading # included, is dropped and counted. It sets the colour until the next PEN_COLOR or PEN_RGB. Phone to laptop.",
+  STATS:
+    "System numbers as cpu/ram/gpu/vram/down/up/ping/loss/ctemp/gtemp/gpower: percents, KiB/s, milliseconds, degrees C and watts, -1 for unknown. Once a second while the phone watches them; not re-sent when identical. Laptop to phone.",
+  STATS_INFO:
+    "Names for the numbers as cpuName|ramMiB|gpuName|vramMiB|netName. Sent when a watch starts and when it changes. Laptop to phone.",
+  DISKS:
+    "Up to six disks as label:usedPct:totalGiB:freeGiB, joined by a bar. Sent while the System screen is open, when changed. Laptop to phone.",
+  SESSIONS:
+    "Up to eight AI sessions as agent:state:title joined by a bar, newest first; the agent is claude or codex and the state busy, wait or idle. Empty means none. Laptop to phone.",
+  PERM_ANSWER:
+    "The answer to an approval as id/a (allow) or id/d (deny), the id being 12 lowercase hex digits. Anything else, or an unknown or already answered id, is dropped and counted. Phone to laptop.",
+  PERM_GONE:
+    "An approval was answered elsewhere, timed out or died, so the phone dismisses its sheet. The payload is the id. Laptop to phone.",
+  LIMITS:
+    "Usage limits as agent:window:pct:resetAtMin:measuredAtMin joined by a bar. The window is minutes (300 is five hours, 10080 a week), ctx for the context window, or a tilde and a name for a limit with no duration. Times are UTC minutes since the Unix epoch, -1 unknown. Laptop to phone.",
+  SPEND:
+    "Estimated spend at API list prices as agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth joined by a bar. Tokens are uncached input plus output. Laptop to phone.",
+  WEATHER:
+    "The weather as tempTenthsC/wmoCode/city. Empty means none. Laptop to phone.",
 };
 
 const PAD_BUTTON_DOCS: Record<string, string> = {
@@ -382,6 +402,13 @@ const FEATURE_DOCS: Record<string, string> = {
   NOTIFY: "The laptop can forward its notifications once CONTROL 10 is 1.",
   FOREGROUND:
     "The laptop can say which app is in front, in TEXT 21, once CONTROL 11 is 1. A Linux Wayland session cannot.",
+  STATS: "The laptop sends system numbers (TEXT 27 to 29). Named only while its stats switch is on and usable.",
+  WEATHER: "The laptop sends the weather (TEXT 35). Named only while its weather switch is on.",
+  CLAUDE:
+    "The laptop’s Claude Code integration is on and usable: sessions, limits, spend and approvals.",
+  CODEX:
+    "The laptop’s Codex integration is on and usable: sessions, limits, spend and approvals.",
+  GITHUB: "The laptop is signed in to GitHub and sends pull requests and notifications (BLOB 7).",
   ANNOTATE:
     "The laptop can show the annotation overlay and a signing surface. The phone shows an Annotate tile only for a laptop that names this.",
   CAPTURE:

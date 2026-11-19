@@ -66,9 +66,61 @@ public sealed partial class IdsFixtureTests
             ["END_ACTION"] = Feature.EndAction,
             ["NOTIFY"] = Feature.Notify,
             ["FOREGROUND"] = Feature.Foreground,
+            ["STATS"] = Feature.Stats,
+            ["WEATHER"] = Feature.Weather,
+            ["CLAUDE"] = Feature.Claude,
+            ["CODEX"] = Feature.Codex,
+            ["GITHUB"] = Feature.GitHub,
         };
 
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void DashboardTokenClassesMatchTheSharedTable()
+    {
+        Assert.Equal(
+            new SortedDictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["CLAUDE"] = AgentToken.Claude,
+                ["CODEX"] = AgentToken.Codex,
+            },
+            Tokens("AGENT"));
+        Assert.Equal(
+            new SortedDictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["BUSY"] = SessionStateToken.Busy,
+                ["WAIT"] = SessionStateToken.Wait,
+                ["IDLE"] = SessionStateToken.Idle,
+            },
+            Tokens("SESSION_STATE"));
+        Assert.Equal(
+            new SortedDictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["OK"] = CiToken.Ok,
+                ["FAIL"] = CiToken.Fail,
+                ["PENDING"] = CiToken.Pending,
+                ["NONE"] = CiToken.None,
+            },
+            Tokens("CI"));
+        Assert.Equal(
+            new SortedDictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["CONTEXT"] = LimitWindow.Context,
+                ["NAMED_PREFIX"] = LimitWindow.NamedPrefix.ToString(),
+            },
+            Tokens("LIMIT_WINDOW"));
+    }
+
+    private static SortedDictionary<string, string> Tokens(string kind)
+    {
+        var table = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var parts in Rows(kind))
+        {
+            table.Add(parts[2], parts[1]);
+        }
+
+        return table;
     }
 
     [Fact]

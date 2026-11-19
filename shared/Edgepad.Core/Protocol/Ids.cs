@@ -243,6 +243,39 @@ internal enum TextKind : byte
     /// differs from that text.
     /// </summary>
     NowPlayingFull = 26,
+
+    /// <summary>
+    /// Laptop to phone: "cpu/ram/gpu/vram/down/up/ping/loss/ctemp/gtemp/gpower", percents 0..100, down and up in KiB/s, ping in ms,
+    /// temperatures in C, power in W, -1 unknown. Once a second while <see cref="ControlId.DashWatch"/> has bit 0 or 1, not re-sent when identical.
+    /// </summary>
+    Stats = 27,
+
+    /// <summary>Laptop to phone: "cpuName|ramMiB|gpuName|vramMiB|netName", names cleaned to 30 code points. Sent when a watch starts and when it changes.</summary>
+    StatsInfo = 28,
+
+    /// <summary>Laptop to phone: "label:usedPct:totalGiB:freeGiB" entries joined by "|", at most 6. Sent while bit 1 of <see cref="ControlId.DashWatch"/> is set, on change.</summary>
+    Disks = 29,
+
+    /// <summary>Laptop to phone: "agent:state:title" entries joined by "|", newest first, at most 8, agent an <see cref="AgentToken"/> and state a <see cref="SessionStateToken"/>. Empty means none.</summary>
+    Sessions = 30,
+
+    /// <summary>Phone to laptop: exactly "id/a" or "id/d", the id 12 lowercase hex digits. Anything else, or an unknown or answered id, is dropped and counted.</summary>
+    PermAnswer = 31,
+
+    /// <summary>Laptop to phone: "id" of an approval that was answered elsewhere, timed out or died, so the phone dismisses its sheet.</summary>
+    PermGone = 32,
+
+    /// <summary>
+    /// Laptop to phone: "agent:window:pct:resetAtMin:measuredAtMin" entries joined by "|". The window is decimal minutes (1..525600),
+    /// <see cref="LimitWindow.Context"/>, or <see cref="LimitWindow.NamedPrefix"/> and a name for a limit with no duration. See protocol/actions.txt.
+    /// </summary>
+    Limits = 33,
+
+    /// <summary>Laptop to phone: "agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth" entries joined by "|". Cents are estimates at API list prices.</summary>
+    Spend = 34,
+
+    /// <summary>Laptop to phone: "tempTenthsC/wmoCode/city", city cleaned to 24 code points. Empty means none.</summary>
+    Weather = 35,
 }
 
 /// <summary>
@@ -330,6 +363,63 @@ internal static class Feature
 
     /// <summary>This laptop can say which app is in front, in <see cref="TextKind.ForegroundApp"/>, once <see cref="ControlId.ForegroundWatch"/> is 1.</summary>
     public const string Foreground = "foreground";
+
+    /// <summary>This laptop can send <see cref="TextKind.Stats"/>, <see cref="TextKind.StatsInfo"/> and <see cref="TextKind.Disks"/>; named only while its stats switch is on and usable.</summary>
+    public const string Stats = "stats";
+
+    /// <summary>This laptop can send <see cref="TextKind.Weather"/>; named only while its weather switch is on.</summary>
+    public const string Weather = "weather";
+
+    /// <summary>This laptop's Claude Code integration is on and usable: <see cref="TextKind.Limits"/>, <see cref="TextKind.Spend"/>, <see cref="TextKind.Sessions"/> and approvals.</summary>
+    public const string Claude = "claude";
+
+    /// <summary>This laptop's Codex integration is on and usable, as <see cref="Claude"/> is for Claude Code.</summary>
+    public const string Codex = "codex";
+
+    /// <summary>This laptop is signed in to GitHub and can send <see cref="BlobKind.Github"/>.</summary>
+    public const string GitHub = "github";
+}
+
+/// <summary>The agent of a <see cref="TextKind.Sessions"/>, <see cref="TextKind.Limits"/>, <see cref="TextKind.Spend"/> or <see cref="BlobKind.PermAsk"/> entry. Tokens, never prose. Mirrors protocol/actions.txt.</summary>
+internal static class AgentToken
+{
+    public const string Claude = "claude";
+    public const string Codex = "codex";
+}
+
+/// <summary>The state in a <see cref="TextKind.Sessions"/> entry. Mirrors protocol/actions.txt.</summary>
+internal static class SessionStateToken
+{
+    /// <summary>The agent is working.</summary>
+    public const string Busy = "busy";
+
+    /// <summary>The agent waits for the person (an approval or a question).</summary>
+    public const string Wait = "wait";
+
+    /// <summary>The agent is idle.</summary>
+    public const string Idle = "idle";
+}
+
+/// <summary>The CI field of a <see cref="BlobKind.Github"/> line. Mirrors protocol/actions.txt.</summary>
+internal static class CiToken
+{
+    public const string Ok = "ok";
+    public const string Fail = "fail";
+    public const string Pending = "pending";
+    public const string None = "none";
+}
+
+/// <summary>
+/// The window field of a <see cref="TextKind.Limits"/> entry is decimal minutes (1..525600, so 300 is five hours, 10080 a week and
+/// 43200 thirty days), or one of these two forms. Mirrors the LIMIT_WINDOW rows of protocol/actions.txt.
+/// </summary>
+internal static class LimitWindow
+{
+    /// <summary>The context window of a session, not a time window.</summary>
+    public const string Context = "ctx";
+
+    /// <summary>A limit with no duration is this character and a name, such as "~spend_limit".</summary>
+    public const char NamedPrefix = '~';
 }
 
 /// <summary>What a SET_VALUE frame may set and a STATE frame reports. Mirrors protocol/actions.txt.</summary>
@@ -379,6 +469,13 @@ internal enum ControlId : byte
 
     /// <summary>Whether this link hears which app is in front, 1 or 0, phone to laptop. Forgotten when the session ends. Anything else is dropped and counted.</summary>
     ForegroundWatch = 11,
+
+    /// <summary>
+    /// Phone to laptop: a bitmask of what the phone draws right now: bit 0 (1) widgets needing system numbers, bit 1 (2) the System
+    /// screen, bit 2 (4) the weather widget, bit 3 (8) an AI widget or the AI screen, bit 4 (16) the GitHub screen. 0..31; larger is
+    /// dropped and counted. Forgotten when the session ends. The only thing that makes the laptop sample, read usage files or poll.
+    /// </summary>
+    DashWatch = 12,
 }
 
 /// <summary>
@@ -592,6 +689,15 @@ internal enum BlobKind : byte
 
     /// <summary>Laptop to phone: "app\ntitle\nbody" in UTF-8. The label is the notification's id.</summary>
     Notification = 5,
+
+    /// <summary>
+    /// Laptop to phone: an approval request. The label is "id/f", id 12 lowercase hex and f 1 when the text is complete or 0 when it was over the
+    /// 4096-byte cap. The body is UTF-8 "agent", "tool" and "text" joined by line feeds. Sent urgently. Answered by <see cref="TextKind.PermAnswer"/>.
+    /// </summary>
+    PermAsk = 6,
+
+    /// <summary>Laptop to phone: GitHub pull requests and the notification count. The label is "gh"; the body is tab-separated lines, see protocol/actions.txt.</summary>
+    Github = 7,
 }
 
 /// <summary>

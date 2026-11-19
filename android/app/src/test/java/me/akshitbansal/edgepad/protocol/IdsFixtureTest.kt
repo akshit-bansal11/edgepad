@@ -45,6 +45,26 @@ class IdsFixtureTest {
     }
 
     @Test
+    fun dashboardTokenClassesMatchTheSharedTable() {
+        assertEquals(
+            rows("AGENT").associate { it[2] to it[1] },
+            AgentToken.entries.associate { it.name to it.token },
+        )
+        assertEquals(
+            rows("SESSION_STATE").associate { it[2] to it[1] },
+            SessionStateToken.entries.associate { it.name to it.token },
+        )
+        assertEquals(
+            rows("CI").associate { it[2] to it[1] },
+            CiToken.entries.associate { it.name to it.token },
+        )
+        assertEquals(
+            rows("LIMIT_WINDOW").associate { it[2] to it[1] },
+            mapOf("CONTEXT" to LimitWindow.CONTEXT, "NAMED_PREFIX" to LimitWindow.NAMED_PREFIX),
+        )
+    }
+
+    @Test
     fun signStatusTokensMatchTheSharedTable() {
         assertEquals(
             rows("SIGN_STATUS").associate { it[2] to it[1] },

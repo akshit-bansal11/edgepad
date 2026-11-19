@@ -101,6 +101,10 @@ public enum ControlId: UInt8, CaseIterable {
     /// Whether this link hears the app in front (`TextKind.foregroundApp`), 1 or 0, phone to computer. Anything above 1 is
     /// dropped and counted. Forgotten when the session ends.
     case foregroundWatch = 11
+    /// Phone to computer: a bitmask of what the phone draws right now: bit 0 (1) system-number widgets, bit 1 (2) the System
+    /// screen, bit 2 (4) the weather widget, bit 3 (8) an AI widget or screen, bit 4 (16) the GitHub screen. 0 to 31; more is
+    /// dropped and counted. Forgotten when the session ends.
+    case dashWatch = 12
 }
 
 /// What a TEXT frame carries. Only `type` goes phone to computer; the rest go the other way.
@@ -163,6 +167,24 @@ public enum TextKind: UInt8, CaseIterable {
     case endAction = 25
     /// Computer to phone: the title line before it is cleaned for `nowPlaying`, sent only when it differs from that text.
     case nowPlayingFull = 26
+    /// Computer to phone: "cpu/ram/gpu/vram/down/up/ping/loss/ctemp/gtemp/gpower", -1 unknown. Once a second while `ControlId.dashWatch` has bit 0 or 1.
+    case stats = 27
+    /// Computer to phone: "cpuName|ramMiB|gpuName|vramMiB|netName". Sent when a watch starts and when it changes.
+    case statsInfo = 28
+    /// Computer to phone: "label:usedPct:totalGiB:freeGiB" entries joined by "|", at most 6.
+    case disks = 29
+    /// Computer to phone: "agent:state:title" entries joined by "|", newest first, at most 8. Empty means none.
+    case sessions = 30
+    /// Phone to computer: exactly "id/a" or "id/d", the id 12 lowercase hex digits.
+    case permAnswer = 31
+    /// Computer to phone: "id" of an approval answered elsewhere, timed out or dead.
+    case permGone = 32
+    /// Computer to phone: "agent:window:pct:resetAtMin:measuredAtMin" entries joined by "|"; the window is minutes, `LimitWindow.context` or "~name".
+    case limits = 33
+    /// Computer to phone: "agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth" entries joined by "|".
+    case spend = 34
+    /// Computer to phone: "tempTenthsC/wmoCode/city". Empty means none.
+    case weather = 35
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
@@ -176,6 +198,11 @@ public enum Feature: String, CaseIterable {
     case endAction = "endaction"
     case notify = "notify"
     case foreground = "foreground"
+    case stats = "stats"
+    case weather = "weather"
+    case claude = "claude"
+    case codex = "codex"
+    case github = "github"
 }
 
 /// The whole vocabulary of `TextKind.padStatus`: a token the phone matches on, never prose, so the wording
@@ -334,6 +361,10 @@ public enum BlobKind: UInt8, CaseIterable {
     case appIcon = 3
     case mediaIcon = 4
     case notification = 5
+    /// Computer to phone: an approval request. The label is "id/f"; the body is UTF-8 agent, tool and text joined by line feeds.
+    case permAsk = 6
+    /// Computer to phone: GitHub pull requests and the notification count. The label is "gh"; the body is tab-separated lines.
+    case github = 7
 }
 
 /// The reason token of `TextKind.unavailable`: a token the phone matches on, never prose. The raw value is literally
@@ -356,4 +387,33 @@ public enum EndActionToken: String, CaseIterable {
 public enum CaptureStateToken: String, CaseIterable {
     case idle = "idle"
     case recording = "recording"
+}
+
+/// The agent of a sessions, limits, spend or approval entry. The raw value is literally the bytes that cross the wire.
+public enum AgentToken: String, CaseIterable {
+    case claude = "claude"
+    case codex = "codex"
+}
+
+/// The state in a `TextKind.sessions` entry. The raw value is literally the bytes that cross the wire.
+public enum SessionStateToken: String, CaseIterable {
+    case busy = "busy"
+    case wait = "wait"
+    case idle = "idle"
+}
+
+/// The CI field of a `BlobKind.github` line. The raw value is literally the bytes that cross the wire.
+public enum CiToken: String, CaseIterable {
+    case ok = "ok"
+    case fail = "fail"
+    case pending = "pending"
+    case none = "none"
+}
+
+/// The non-minute forms of a `TextKind.limits` window. Mirrors the LIMIT_WINDOW rows of `protocol/actions.txt`.
+public enum LimitWindow {
+    /// The context window of a session, not a time window.
+    public static let context = "ctx"
+    /// A limit with no duration is this character and a name, such as "~spend_limit".
+    public static let namedPrefix = "~"
 }

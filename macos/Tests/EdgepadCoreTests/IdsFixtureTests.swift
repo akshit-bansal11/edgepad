@@ -41,6 +41,10 @@ final class IdsFixtureTests: XCTestCase {
             "END_ACTION_TOKEN",
             "CAPTURE_STATE_TOKEN",
             "HANDSHAKE",
+            "AGENT",
+            "SESSION_STATE",
+            "CI",
+            "LIMIT_WINDOW",
         ]
         let kinds = try Fixtures.lines("actions.txt")
             .map { $0.split(separator: " ").map(String.init) }
@@ -73,6 +77,28 @@ final class IdsFixtureTests: XCTestCase {
             uniqueKeysWithValues: Feature.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
 
         XCTAssertEqual(table, enumTable)
+    }
+
+    func testDashboardTokenClassesMatchTheSharedTable() throws {
+        func table(_ kind: String) throws -> [String: String] {
+            var out: [String: String] = [:]
+            for parts in try rows(kind) {
+                out[parts[1]] = normalised(parts[2])
+            }
+            return out
+        }
+        func names<T: CaseIterable & RawRepresentable>(_ type: T.Type) -> [String: String]
+        where T.RawValue == String {
+            Dictionary(
+                uniqueKeysWithValues: T.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
+        }
+
+        XCTAssertEqual(try table("AGENT"), names(AgentToken.self))
+        XCTAssertEqual(try table("SESSION_STATE"), names(SessionStateToken.self))
+        XCTAssertEqual(try table("CI"), names(CiToken.self))
+        XCTAssertEqual(
+            try table("LIMIT_WINDOW"),
+            [LimitWindow.context: "context", LimitWindow.namedPrefix: "namedprefix"])
     }
 
     func testSignStatusTokensMatchTheSharedTable() throws {

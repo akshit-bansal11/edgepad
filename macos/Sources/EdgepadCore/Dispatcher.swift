@@ -392,6 +392,9 @@ public final class Dispatcher {
             guard let foregroundWatch, value <= 1 else { return false }
             foregroundWatch(value == 1)
             return true
+        case .dashWatch:
+            // The dashboard is not built on the Mac yet, so it is dropped and counted.
+            return false
         }
     }
 }
