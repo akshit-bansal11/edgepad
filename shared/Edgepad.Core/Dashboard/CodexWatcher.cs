@@ -22,6 +22,9 @@ internal sealed class CodexWatcher : IDisposable
     public const int AiBit = 8;
     public static readonly TimeSpan Every = TimeSpan.FromSeconds(5);
     public static readonly TimeSpan Fresh = TimeSpan.FromMinutes(10);
+
+    /// <summary>A rollout written this recently with no task marker in its tail is taken as working.</summary>
+    public static readonly TimeSpan JustWritten = TimeSpan.FromSeconds(30);
     public const string CacheName = "dashboard-codex-cache.json";
 
     private const int UsageEvery = 12;
@@ -222,9 +225,23 @@ internal sealed class CodexWatcher : IDisposable
                 continue;
             }
 
+            // A long turn can push every task marker out of the tail: keep what was known, and a file still being written is
+            // working. Never idle by default.
+            var state = tail.State
+                ?? before?.State
+                ?? (nowUtc - file.LastWriteTimeUtc <= JustWritten ? SessionStateToken.Busy : null);
+            if (state is null)
+            {
+                continue;
+            }
+
             var id = Path.GetFileNameWithoutExtension(file.Name);
-            sessions.Apply(new HookEvent(AgentToken.Codex, id, tail.State == SessionStateToken.Busy ? SessionEvent.Prompt : SessionEvent.Stop, tail.Cwd));
-            tracked[file.FullName] = new Tracked(size, ticks, tail.State, id);
+            if (tail.State is not null || before is null)
+            {
+                sessions.Apply(new HookEvent(AgentToken.Codex, id, state == SessionStateToken.Busy ? SessionEvent.Prompt : SessionEvent.Stop, tail.Cwd));
+            }
+
+            tracked[file.FullName] = new Tracked(size, ticks, state, id);
         }
 
         foreach (var (path, old) in tracked.ToList())
@@ -259,7 +276,7 @@ internal sealed class CodexWatcher : IDisposable
                         w.Pct,
                         w.ResetsAtSec >= 0 ? w.ResetsAtSec.ToString(CultureInfo.InvariantCulture) : null)),
                     null,
-                    clock());
+                    MeasuredAt(file));
                 return;
             }
         }
@@ -350,7 +367,8 @@ internal sealed class CodexWatcher : IDisposable
         try
         {
             using var stream = open(file.FullName);
-            totals = CodexRollout.Totals(stream);
+            // The model this file ran last time it was read, so a grown file needs only its end read.
+            totals = CodexRollout.Totals(stream, hit?.Model);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
@@ -392,6 +410,14 @@ internal sealed class CodexWatcher : IDisposable
     }
 
     private DateOnly Today() => DateOnly.FromDateTime(clock().ToLocalTime().DateTime);
+
+    /// <summary>When Codex wrote the limits: the file's last write, never later than now (a clock ahead of ours).</summary>
+    private DateTimeOffset MeasuredAt(FileInfo file)
+    {
+        var written = new DateTimeOffset(file.LastWriteTimeUtc, TimeSpan.Zero);
+        var now = clock();
+        return written < now ? written : now;
+    }
 
     private string DayDir(DateOnly day) =>
         Path.Combine(

@@ -6,8 +6,11 @@ namespace Edgepad.Dashboard;
 /// <summary>One rate-limit window of a Codex rollout. <paramref name="ResetsAtSec"/> is epoch seconds, -1 unknown.</summary>
 internal sealed record RolloutWindow(int Minutes, int Pct, long ResetsAtSec);
 
-/// <summary>What the end of a rollout says: working or idle, the newest limits, and what the first line says about the session.</summary>
-internal sealed record RolloutTail(string State, IReadOnlyList<RolloutWindow> Limits, string Cwd, string CliVersion);
+/// <summary>
+/// What the end of a rollout says: working or idle (null when the tail holds no task_started, task_complete or turn_aborted), the
+/// newest limits, and what the first line says about the session.
+/// </summary>
+internal sealed record RolloutTail(string? State, IReadOnlyList<RolloutWindow> Limits, string Cwd, string CliVersion);
 
 /// <summary>The cumulative usage a rollout reports last, and the model it last ran. Input includes the cached part.</summary>
 internal readonly record struct RolloutTotals(string? Model, long Input, long CachedInput, long Output)
@@ -31,6 +34,9 @@ internal static class CodexRollout
 
     /// <summary>The first line holds session_meta; it is read only if it fits this.</summary>
     public const int HeadBytes = 64 * 1024;
+
+    /// <summary>How much of the end of a file is read first for the newest total usage.</summary>
+    public const int TotalsTailBytes = 1024 * 1024;
 
     private const int MaxLine = 1024 * 1024;
     private const int MaxMinutes = 525_600;
@@ -63,12 +69,37 @@ internal static class CodexRollout
         return scan.Result();
     }
 
-    /// <summary>The last cumulative usage and the last model of the whole file.</summary>
-    public static RolloutTotals Totals(Stream stream)
+    /// <summary>
+    /// The last cumulative usage and the last model of the file. The last <see cref="TotalsTailBytes"/> are read first; the whole
+    /// file is read only when they hold no total, or no model and <paramref name="knownModel"/> (the model this file was last seen
+    /// with) is null.
+    /// </summary>
+    public static RolloutTotals Totals(Stream stream, string? knownModel = null)
+    {
+        if (stream.CanSeek && stream.Length > TotalsTailBytes)
+        {
+            var start = stream.Length - TotalsTailBytes;
+            stream.Seek(start, SeekOrigin.Begin);
+            var (tailModel, tailUsage) = ScanTotals(stream, dropFirst: true);
+
+            // ponytail: a model switch before the tail but after the last full read is missed until the file is read whole again.
+            if (tailUsage is { } found && (tailModel ?? knownModel) is { } model)
+            {
+                return found with { Model = model };
+            }
+
+            stream.Seek(0, SeekOrigin.Begin);
+        }
+
+        var (lastModel, usage) = ScanTotals(stream, dropFirst: false);
+        return (usage ?? default) with { Model = lastModel };
+    }
+
+    private static (string? Model, RolloutTotals? Usage) ScanTotals(Stream stream, bool dropFirst)
     {
         string? model = null;
-        long input = 0, cached = 0, output = 0;
-        ForEachLine(stream, dropFirst: false, line =>
+        RolloutTotals? usage = null;
+        ForEachLine(stream, dropFirst, line =>
         {
             if (!Has(line, "turn_context"u8) && !Has(line, "total_token_usage"u8))
             {
@@ -85,14 +116,12 @@ internal static class CodexRollout
             {
                 model = Short(m.GetString());
             }
-            else if (type == "token_count" && Child(payload, "info", out var info) && Child(info, "total_token_usage", out var usage))
+            else if (type == "token_count" && Child(payload, "info", out var info) && Child(info, "total_token_usage", out var total))
             {
-                input = Count(usage, "input_tokens");
-                cached = Count(usage, "cached_input_tokens");
-                output = Count(usage, "output_tokens");
+                usage = new RolloutTotals(null, Count(total, "input_tokens"), Count(total, "cached_input_tokens"), Count(total, "output_tokens"));
             }
         });
-        return new RolloutTotals(model, input, cached, output);
+        return (model, usage);
     }
 
     /// <summary>The window of a rate-limit object (<c>used_percent</c>, <c>window_minutes</c>, <c>resets_at</c>), or null when it does not read.</summary>
@@ -213,7 +242,7 @@ internal static class CodexRollout
 
     private sealed class TailScan
     {
-        private string state = SessionStateToken.Idle;
+        private string? state;
         private string cwd = string.Empty;
         private string version = string.Empty;
         private IReadOnlyList<RolloutWindow>? preferred;

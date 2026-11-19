@@ -68,7 +68,7 @@ public sealed class CodexRolloutTests
         Assert.Equal(SessionStateToken.Busy, CodexRollout.ParseTail(RolloutText.Stream(RolloutText.Join(RolloutText.Meta, RolloutText.Started))).State);
         Assert.Equal(SessionStateToken.Idle, CodexRollout.ParseTail(RolloutText.Stream(RolloutText.Join(RolloutText.Started, RolloutText.Aborted))).State);
         Assert.Equal(SessionStateToken.Busy, CodexRollout.ParseTail(RolloutText.Stream(RolloutText.Join(RolloutText.Started, RolloutText.Complete, RolloutText.Started))).State);
-        Assert.Equal(SessionStateToken.Idle, CodexRollout.ParseTail(RolloutText.Stream(string.Empty)).State);
+        Assert.Null(CodexRollout.ParseTail(RolloutText.Stream(string.Empty)).State);
     }
 
     [Fact]
@@ -203,6 +203,26 @@ public sealed class CodexRolloutTests
         var text = RolloutText.Join(RolloutText.Count("null", -5, 0, 7));
         Assert.Equal(7, CodexRollout.Totals(RolloutText.Stream(text)).Tokens);
         Assert.Equal(7, new RolloutTotals("m", 10, 50, 7).Tokens);
+    }
+
+    [Fact]
+    public void ALongFileIsReadFromItsEndWhenTheModelIsKnown()
+    {
+        var filler = string.Concat(Enumerable.Repeat("""{"type":"response_item","payload":{"output":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}}""" + "\n", 40_000));
+        var text = RolloutText.Join(RolloutText.Context("gpt-5.4"), RolloutText.Count("null", 100, 10, 5)) + filler + RolloutText.Join(RolloutText.Count("null", 300, 100, 20));
+        Assert.True(text.Length > CodexRollout.TotalsTailBytes);
+
+        // The model given back is the known one: only the end was read, where no turn_context is.
+        Assert.Equal(new RolloutTotals("gpt-5.5", 300, 100, 20), CodexRollout.Totals(RolloutText.Stream(text), "gpt-5.5"));
+
+        // No model known: the whole file is read for it.
+        Assert.Equal(new RolloutTotals("gpt-5.4", 300, 100, 20), CodexRollout.Totals(RolloutText.Stream(text)));
+    }
+
+    [Fact]
+    public void ATailWithoutATaskMarkerHasNoState()
+    {
+        Assert.Null(CodexRollout.ParseTail(RolloutText.Stream(RolloutText.Join(RolloutText.Meta, RolloutText.Count("null", 1, 0, 1)))).State);
     }
 
     [Fact]

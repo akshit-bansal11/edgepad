@@ -150,6 +150,43 @@ public sealed class CodexWatcherTests : IDisposable
     }
 
     [Fact]
+    public void ATailWithNoTaskMarkerIsNeverIdleByDefault()
+    {
+        var noMarker = RolloutText.Join(RolloutText.Meta, RolloutText.Count("null", 1, 0, 1));
+        Today("rollout-old.jsonl", noMarker, TimeSpan.FromMinutes(5));
+        Watcher.Poll();
+        Assert.Empty(Sessions.Snapshot());
+
+        Today("rollout-new.jsonl", noMarker, TimeSpan.FromSeconds(10));
+        Watcher.Poll();
+        Assert.Equal(SessionStateToken.Busy, Assert.Single(Sessions.Snapshot()).State);
+    }
+
+    [Fact]
+    public void ATrackedStateIsKeptWhenTheMarkersLeaveTheTail()
+    {
+        var path = Today("rollout-a.jsonl", RolloutText.Join(RolloutText.Meta, RolloutText.Started));
+        Watcher.Poll();
+
+        File.WriteAllText(path, RolloutText.Join(RolloutText.Meta, RolloutText.Count("null", 1, 0, 1), RolloutText.Count("null", 2, 0, 2)));
+        File.SetLastWriteTimeUtc(path, now.UtcDateTime - TimeSpan.FromMinutes(2));
+        Watcher.Poll();
+
+        Assert.Equal(SessionStateToken.Busy, Assert.Single(Sessions.Snapshot()).State);
+    }
+
+    [Fact]
+    public void LimitsAreMeasuredWhenTheRolloutWasWritten()
+    {
+        Today("rollout-a.jsonl", RolloutText.Join(RolloutText.Meta, RolloutText.Count(RolloutText.Limits("codex", "40", 300, 1))), TimeSpan.FromMinutes(7));
+        Watcher.SetWatch(CodexWatcher.AiBit);
+
+        Watcher.Poll();
+
+        Assert.Equal((now - TimeSpan.FromMinutes(7)).ToUnixTimeSeconds() / 60, Assert.Single(Limits.Snapshot()).MeasuredAtMin);
+    }
+
+    [Fact]
     public void AnUnchangedFileIsNotReadAgain()
     {
         Today("rollout-a.jsonl", RolloutText.Join(RolloutText.Meta, RolloutText.Started));
