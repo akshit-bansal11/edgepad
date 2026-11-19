@@ -25,6 +25,7 @@
 - [Install](#install)
 - [Quick start](#quick-start)
 - [How it works](#how-it-works)
+- [Integrations and widgets](#integrations-and-widgets)
 - [Languages](#languages)
 - [Security](#security)
 - [Develop](#develop)
@@ -158,6 +159,32 @@ sequenceDiagram
 ```
 
 Read more: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the apps, their threads and the trust model, [docs/PROTOCOL.md](docs/PROTOCOL.md) for the wire format, and the [online documentation](https://edgepad.akshitbansal.dev/docs).
+
+## Integrations and widgets
+
+Everything here is off until you turn it on. In the laptop app, open the menu and choose **Integrations…**. Nothing is assumed to be installed.
+
+- **Widgets on the phone.** Clock, weather, system numbers, network and AI usage, drawn behind the trackpad. Move them in the layout editor.
+- **System, AI and GitHub screens.** Reached from the Controls popup on the phone.
+- **Claude Code and Codex.** Approve their requests from the phone, and see their sessions, limits and spend. Needs Claude Code, or Codex 0.159 or newer. The approval hooks and the Claude spend scanner need Node.js 20.1 or newer. If Node.js is missing, the Integrations window says so and links to https://nodejs.org.
+- **GitHub.** Sign in with a GitHub account to see review requests, your pull requests with their checks, and notifications. Private repositories are included only if you tick **Include private repositories**.
+
+What leaves the laptop:
+
+- The city name, sent to open-meteo.com for the weather widget. Weather data by Open-Meteo.com.
+- GitHub API calls, made with your own GitHub sign-in, when GitHub is on.
+- Nothing else. There is no server and no telemetry.
+
+What the laptop reads locally:
+
+- Claude Code transcripts, to count tokens.
+- Codex `sessions` files, for its state, tokens and limits. Codex's `auth.json` is never opened.
+
+Dollar amounts are estimates at API list prices, and the screens say so. A model with no price yet counts as $0, and the screen says "Some models have no price yet".
+
+Codex must trust the Edgepad plugin before its approvals work. This is a step inside Codex, not in Edgepad. In the Codex CLI, type `/hooks` and trust Edgepad. In the Codex desktop app, go to Settings > Hooks > Review hooks. The Integrations window waits until the first event arrives.
+
+Before you uninstall Edgepad, press **Disconnect** for Claude Code and Codex in the Integrations window. Otherwise a leftover entry stays in each tool. To revoke GitHub access, open https://github.com/settings/applications, find Edgepad, and choose **Revoke**.
 
 ## Languages
 
