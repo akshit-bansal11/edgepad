@@ -196,8 +196,8 @@ final class CodexRolloutTests: XCTestCase {
     }
 
     func testAnOverlongLineIsSkippedWithoutBeingHeld() throws {
-        let huge = #"{"type":"response_item","payload":{"output":""# + String(repeating: "b", count: 2 * 1024 * 1024)
-            + #""}}"#
+        let filler = String(repeating: "b", count: 2 * 1024 * 1024)
+        let huge = #"{"type":"response_item","payload":{"output":""# + filler + #""}}"#
         let text = RolloutText.join(
             RolloutText.context("gpt-5.5"), huge, RolloutText.count("null", input: 1000, cached: 400, output: 50))
 

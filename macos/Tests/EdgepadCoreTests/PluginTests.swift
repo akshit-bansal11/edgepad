@@ -119,7 +119,7 @@ final class PluginStampTests: XCTestCase {
         let hook = try firstHook(try hooks(folder), "PermissionRequest")
         XCTAssertEqual(hook["command"] as? String, appPath)
         let args = try XCTUnwrap(hook["args"] as? [String])
-        XCTAssertEqual(args.first, PluginStamp.rootOf(folder) + "/scripts/edgepad-hook.mjs")
+        XCTAssertEqual(args, ["--hook", "claude", "perm"])
         XCTAssertTrue(PluginStamp.rootOf(folder).hasPrefix("/"))
 
         let relay = try String(
@@ -138,7 +138,7 @@ final class PluginStampTests: XCTestCase {
             version: "5.0.0")
 
         let hook = try firstHook(try hooks(folder), "PermissionRequest")
-        let expected = "\"\(appPath)\" \"\(PluginStamp.rootOf(folder))/scripts/edgepad-hook.mjs\" codex perm"
+        let expected = "\"\(appPath)\" --hook codex perm"
         XCTAssertEqual(hook["command"] as? String, expected)
     }
 
@@ -149,7 +149,7 @@ final class PluginStampTests: XCTestCase {
             for file in files(folder) {
                 let path = (folder as NSString).appendingPathComponent(file)
                 let text = try String(contentsOfFile: path, encoding: .utf8)
-                for placeholder in [PluginStamp.app, PluginStamp.node, PluginStamp.root, PluginStamp.version] {
+                for placeholder in [PluginStamp.app, PluginStamp.root, PluginStamp.version, "__NODE__"] {
                     XCTAssertFalse(text.contains(placeholder), "\(agent) \(file)")
                 }
             }

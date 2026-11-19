@@ -176,6 +176,10 @@ final class MacDashboard {
             let server = HookServer(
                 listener: listener, token: { endpoint.token }, broker: broker, sessions: sessions, limits: limits,
                 spend: spend, usage: usage, settings: settings)
+            // The person trusted the hooks in Codex: an open Integrations window drops its "trust the hooks" step.
+            server.codexTrusted = { [weak self] in
+                DispatchQueue.main.async { self?.window?.refresh() }
+            }
             server.start()
             return Agents(
                 sessions: sessions, limits: limits, spend: spend, broker: broker, endpoint: endpoint, server: server)

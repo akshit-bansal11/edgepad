@@ -84,11 +84,15 @@ public enum ClaudePrices {
 ///
 /// It reads only while the Claude Code integration is on, a phone is linked AND the phone draws the AI widget or screen
 /// (DASH_WATCH bit 3): then once a minute, with each file's sums cached by size and modification time, so an unchanged
-/// month costs stats only. Nothing from a transcript leaves this class but numbers; the cache holds message ids, days
-/// and numbers. The Mac twin of CodexWatcher's spend half.
+/// month costs stats only. A tick (every 5 s) parses at most `bytesPerTick` of changed files (at least one file); the
+/// totals reach the board only after a scan that had every file in hand, so a first scan of a large folder spreads over
+/// ticks instead of sending a partial sum. Nothing from a transcript leaves this class but numbers; the cache holds
+/// message ids, days and numbers. The Mac twin of the core's ClaudeSpendWatcher.
 public final class ClaudeSpend {
     public static let aiBit = CodexWatcher.aiBit
+    public static let tick: TimeInterval = 5
     public static let every: TimeInterval = 60
+    public static let bytesPerTick: Int64 = 32 * 1024 * 1024
     public static let cacheName = "dashboard-claude-cache.json"
     /// A file last written longer ago than this holds nothing for this week or month.
     static let windowDays = 40
@@ -126,6 +130,8 @@ public final class ClaudeSpend {
     private var timer: Stoppable?
     private var watch = 0
     private var unpriced = false
+    // When the last scan that had every file in hand finished.
+    private var lastDone: Date?
 
     /// - Parameters:
     ///   - root: Claude Code's folder, `defaultRoot()` in the app.
@@ -178,7 +184,9 @@ public final class ClaudeSpend {
         defer { gate.unlock() }
         let wanted = watch & Self.aiBit != 0 && settingsOn() && phoneLinked()
         if wanted && timer == nil {
-            timer = startTimer({ [weak self] in self?.poll() }, Self.every)
+            // A watch gained afresh scans on the first tick.
+            lastDone = nil
+            timer = startTimer({ [weak self] in self?.poll() }, Self.tick)
         } else if !wanted, let running = timer {
             running.stop()
             timer = nil
@@ -200,16 +208,24 @@ public final class ClaudeSpend {
         timer = nil
     }
 
-    /// One scan, sent to the board. Internal to the timer and to tests; never overlaps itself.
-    func poll() {
+    /// One tick: a scan when the last whole one is a minute old (or none was), its totals sent to the board once it had
+    /// every file in hand. Internal to the timer and to tests; never overlaps itself.
+    func poll(budget: Int64 = ClaudeSpend.bytesPerTick) {
         guard pollGate.try() else { return }
         defer { pollGate.unlock() }
         guard settingsOn(), phoneLinked() else { return }
-        let found = scan()
+        let now = clock()
+        gate.lock()
+        let due = lastDone.map { now.timeIntervalSince($0) >= Self.every || now < $0 } ?? true
+        gate.unlock()
+        guard due else { return }
+        let found = scan(budget: budget)
+        guard found.complete else { return }
         gate.lock()
         unpriced = found.unpriced
+        lastDone = now
         gate.unlock()
-        spend.update(AgentToken.claude.rawValue, found.totals, now: clock())
+        spend.update(AgentToken.claude.rawValue, found.totals, now: now)
     }
 
     /// The first day of each period in local time, and `from`, the earliest of them (a week can start last month).
@@ -230,8 +246,10 @@ public final class ClaudeSpend {
         return String(format: "%04ld-%02ld-%02ld", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
     }
 
-    /// The totals for the transcripts under `projects`, with the cache read and saved around it.
-    func scan() -> (totals: SpendTotals, unpriced: Bool) {
+    /// The totals for the transcripts under `projects`, with the cache read and saved around it. At most `budget` bytes
+    /// of changed files are parsed (at least one file); `complete` is false when a changed file was left for the next
+    /// tick, and the totals are then partial.
+    func scan(budget: Int64 = ClaudeSpend.bytesPerTick) -> (totals: SpendTotals, unpriced: Bool, complete: Bool) {
         let now = clock()
         let (today, weekStart, monthStart, from) = Self.periods(now)
         let calendar = Calendar.current
@@ -243,18 +261,28 @@ public final class ClaudeSpend {
 
         var kept: [String: CacheEntry] = [:]
         var byId: [String: Row] = [:]
+        var left = budget
+        var complete = true
         for file in transcripts() where file.mtime >= oldest {
             let stamp = Int64((file.mtime.timeIntervalSince1970 * 1000).rounded(.down))
             let rows: [String: Row]
             if let hit = cache[file.key], hit.size == file.size, hit.stamp == stamp, hit.from <= from {
                 rows = hit.rows
+            } else if left <= 0 {
+                complete = false
+                continue
             } else if let summed = Self.sumFile(file.path, from: from) {
+                left -= file.size
                 rows = summed
             } else {
                 continue  // removed or unreadable mid-scan
             }
             kept[file.key] = CacheEntry(size: file.size, stamp: stamp, from: from, rows: rows)
             byId.merge(rows) { _, new in new }
+        }
+        if !complete {
+            // A file left for later keeps what it had; only a whole scan drops the files that went.
+            kept.merge(cache) { new, _ in new }
         }
         let changed = kept.count != cache.count || kept.contains { key, entry in
             guard let old = cache[key] else { return true }
@@ -286,7 +314,7 @@ public final class ClaudeSpend {
         let totals = SpendTotals(
             tokToday: tok(sums.today), centsToday: cents(sums.today), tokWeek: tok(sums.week),
             centsWeek: cents(sums.week), tokMonth: tok(sums.month), centsMonth: cents(sums.month))
-        return (totals, anyUnpriced)
+        return (totals, anyUnpriced, complete)
     }
 
     /// One transcript's responses on or after `from`, by message id; nil when it cannot be read.

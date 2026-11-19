@@ -53,7 +53,7 @@ public final class DirectoryPluginSource: PluginSource {
 /// Writes the per-agent copy of the plugin that Connect points the vendor CLI at, `<plugins>/<agent>/`: `edgepad/` with
 /// the agent's hooks template as `hooks/hooks.json` and only the files that agent uses, plus
 /// `.claude-plugin/marketplace.json` beside it. Always deleted and written fresh, so a tampered copy reverts. The
-/// placeholders `__APP__` (this app executable; `__NODE__` too, for older templates), `__ROOT__` (the copy's own
+/// placeholders `__APP__` (this app executable), `__ROOT__` (the copy's own
 /// folder) and `__VERSION__` are replaced by values escaped by the JSON encoder, never pasted in raw, which is also a
 /// valid escape inside relay.ts's double-quoted string. An entry whose path would leave the folder, or one over 1 MiB,
 /// stops the stamp with `PluginBundleError`. The twin of the core's PluginStamp.
@@ -63,8 +63,6 @@ public enum PluginStamp {
     public static let marketplace = ".claude-plugin/marketplace.json"
     /// The app executable the hooks run (`"__APP__" --hook <agent> <kind>`).
     public static let app = "__APP__"
-    /// Older templates ran Node; it is stamped with the app path too, so no copy ever names a Node.
-    public static let node = "__NODE__"
     public static let root = "__ROOT__"
     public static let version = "__VERSION__"
 
@@ -73,12 +71,8 @@ public enum PluginStamp {
     private static let codexHooks = "hooks/hooks.codex.json"
     private static let hooks = "hooks/hooks.json"
 
-    // Files only Claude Code loads: its manifest, the usage mod and the spend scanner. Codex has its own manifest
-    // folder.
-    private static let claudeOnly = [
-        ".claude-plugin/", "hooks/relay.ts", "scripts/scan-claude.mjs", "scripts/cache.mjs", "scripts/prices.mjs",
-        "types/",
-    ]
+    // Files only Claude Code loads: its manifest and the usage mod. Codex has its own manifest folder.
+    private static let claudeOnly = [".claude-plugin/", "hooks/relay.ts", "types/"]
     private static let codexOnly = [".codex-plugin/"]
 
     /// The `__ROOT__` value for a stamp in `folder`: its `edgepad` folder, absolute.
@@ -103,8 +97,7 @@ public enum PluginStamp {
         let full = (folder as NSString).standardizingPath
         let edgepad = (full as NSString).appendingPathComponent(pluginFolder)
         let values = [
-            (app, jsonEscaped(appPath)), (node, jsonEscaped(appPath)), (root, jsonEscaped(rootOf(full))),
-            (Self.version, jsonEscaped(version)),
+            (app, jsonEscaped(appPath)), (root, jsonEscaped(rootOf(full))), (Self.version, jsonEscaped(version)),
         ]
 
         // Read and check everything before the old copy goes.

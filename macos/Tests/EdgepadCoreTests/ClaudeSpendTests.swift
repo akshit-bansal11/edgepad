@@ -156,6 +156,26 @@ final class ClaudeSpendTests: XCTestCase {
         XCTAssertFalse(alone.running)
     }
 
+    func testATickReadsOnlyItsBudgetAndTheBoardWaitsForTheWholeScan() {
+        write("a.jsonl", [row("m1", "claude-sonnet-4-5", 100, 50, at: Date())])
+        write("b.jsonl", [row("m2", "claude-sonnet-4-5", 10, 5, at: Date())])
+        let reader = newSpend()
+
+        let first = reader.scan(budget: 1)
+        XCTAssertFalse(first.complete)
+        XCTAssertTrue([150, 15].contains(first.totals.tokToday))
+        let second = reader.scan(budget: 1)
+        XCTAssertTrue(second.complete)
+        XCTAssertEqual(second.totals.tokToday, 165)
+
+        let polled = newSpend()
+        try? FileManager.default.removeItem(atPath: root + "/cache.json")
+        polled.poll(budget: 1)
+        XCTAssertNil(spend.snapshot().first { $0.agent == AgentToken.claude.rawValue })
+        polled.poll(budget: 1)
+        XCTAssertEqual(spend.snapshot().first { $0.agent == AgentToken.claude.rawValue }?.tokToday, 165)
+    }
+
     func testAPollPutsTheTotalsOnTheBoard() {
         write("a.jsonl", [row("m1", "claude-sonnet-4-5", 100, 50, at: Date())])
         newSpend().poll()

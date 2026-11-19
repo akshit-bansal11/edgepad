@@ -150,7 +150,7 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
 
     // ---- showing
 
-    fileprivate func refresh() {
+    func refresh() {
         let settings = hooks.settings
         stats.state = settings.flag(IntegrationSettings.stats) ? .on : .off
         weather.state = settings.flag(IntegrationSettings.weather) ? .on : .off
