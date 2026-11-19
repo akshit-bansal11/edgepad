@@ -291,7 +291,7 @@ public final class CodexWatcher {
         }
         let totals = SpendTotals(
             tokToday: tokDay, centsToday: centsDay, tokWeek: tokWeek, centsWeek: centsWeek, tokMonth: tokMonth,
-            centsMonth: centsMonth)
+            centsMonth: centsMonth, unpriced: anyUnpriced)
         spend.update(codex, totals, now: clock())
     }
 

@@ -94,7 +94,7 @@ public struct LimitEntry: Equatable {
     }
 }
 
-/// One agent of TEXT SPEND. Cents are estimates at API list prices.
+/// One agent of TEXT SPEND. Cents are estimates at API list prices; `unpriced` marks them a lower bound.
 public struct SpendEntry: Equatable {
     public let agent: String
     public let measuredAtMin: Int64
@@ -104,10 +104,11 @@ public struct SpendEntry: Equatable {
     public let centsWeek: Int64
     public let tokMonth: Int64
     public let centsMonth: Int64
+    public let unpriced: Bool
 
     public init(
         agent: String, measuredAtMin: Int64, tokToday: Int64, centsToday: Int64, tokWeek: Int64, centsWeek: Int64,
-        tokMonth: Int64, centsMonth: Int64
+        tokMonth: Int64, centsMonth: Int64, unpriced: Bool = false
     ) {
         self.agent = agent
         self.measuredAtMin = measuredAtMin
@@ -117,6 +118,7 @@ public struct SpendEntry: Equatable {
         self.centsWeek = centsWeek
         self.tokMonth = tokMonth
         self.centsMonth = centsMonth
+        self.unpriced = unpriced
     }
 }
 
@@ -381,15 +383,14 @@ public enum DashWire {
     }
 
     // ---- SPEND
-    // TODO(unpriced): mirror the "unpriced" field the core agent adds to the SPEND wire (DashWire.cs,
-    // protocol/dashboard-vectors.txt) into SpendEntry, encodeSpend, SpendBoard and IntegrationHost once it lands.
-
-    /// "agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth" entries joined by "|".
+    /// "agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth/unpriced" entries joined by "|";
+    /// unpriced is 1 or 0.
     public static func encodeSpend(_ spend: [SpendEntry]) -> String {
         let parts = spend.filter { isAgent($0.agent) }.map { s -> String in
             let today = [big(s.tokToday, 0), big(s.centsToday, 0)]
             let later = [big(s.tokWeek, 0), big(s.centsWeek, 0), big(s.tokMonth, 0), big(s.centsMonth, 0)]
-            return ([s.agent, big(s.measuredAtMin, -1)] + today + later).joined(separator: "/")
+            return ([s.agent, big(s.measuredAtMin, -1)] + today + later + [s.unpriced ? "1" : "0"])
+                .joined(separator: "/")
         }
         return fit255(parts, "|")
     }
@@ -397,15 +398,15 @@ public enum DashWire {
     public static func parseSpend(_ wire: String) -> [SpendEntry] {
         entries(wire) { entry in
             let p = split(entry, "/")
-            guard p.count == 8, isAgent(p[0]) else { return nil }
+            guard p.count == 9, isAgent(p[0]), p[8] == "0" || p[8] == "1" else { return nil }
             var n: [Int64] = []
-            for part in p.dropFirst() {
+            for part in p[1..<8] {
                 guard let value = long(part) else { return nil }
                 n.append(value)
             }
             return SpendEntry(
                 agent: p[0], measuredAtMin: n[0], tokToday: n[1], centsToday: n[2], tokWeek: n[3], centsWeek: n[4],
-                tokMonth: n[5], centsMonth: n[6])
+                tokMonth: n[5], centsMonth: n[6], unpriced: p[8] == "1")
         }
     }
 

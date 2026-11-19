@@ -327,7 +327,8 @@ public final class ClaudeSpend {
         func cents(_ sum: (Double, Double)) -> Int64 { Int64((sum.1 * 100).rounded()) }
         let totals = SpendTotals(
             tokToday: tok(sums.today), centsToday: cents(sums.today), tokWeek: tok(sums.week),
-            centsWeek: cents(sums.week), tokMonth: tok(sums.month), centsMonth: cents(sums.month))
+            centsWeek: cents(sums.week), tokMonth: tok(sums.month), centsMonth: cents(sums.month),
+            unpriced: anyUnpriced)
         return (totals, anyUnpriced, complete)
     }
 

@@ -285,12 +285,14 @@ public enum HookProtocol {
         guard let today = period(d, "today"), let week = period(d, "week"), let month = period(d, "month") else {
             return nil
         }
-        if let unpriced = d["unpriced"] {
-            guard let flag = unpriced as? NSNumber, CFGetTypeID(flag) == CFBooleanGetTypeID() else { return nil }
+        var unpriced = false
+        if let raw = d["unpriced"] {
+            guard let flag = raw as? NSNumber, CFGetTypeID(flag) == CFBooleanGetTypeID() else { return nil }
+            unpriced = flag.boolValue
         }
         let totals = SpendTotals(
             tokToday: today.tok, centsToday: today.cents, tokWeek: week.tok, centsWeek: week.cents,
-            tokMonth: month.tok, centsMonth: month.cents)
+            tokMonth: month.tok, centsMonth: month.cents, unpriced: unpriced)
         return SpendRequest(token: token, agent: agent, totals: totals)
     }
 

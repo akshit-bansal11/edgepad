@@ -461,6 +461,22 @@ final class SpendBoardTests: XCTestCase {
         XCTAssertEqual(raised, 2)
     }
 
+    func testUnpricedSurvivesClampingSaveAndLoad() {
+        let dir = (NSTemporaryDirectory() as NSString).appendingPathComponent("edgepad-spend-\(UUID().uuidString)")
+        addTeardownBlock { try? FileManager.default.removeItem(atPath: dir) }
+        let path = (dir as NSString).appendingPathComponent(UsageStore.fileName)
+        let board = SpendBoard(store: UsageStore(path: path, now: start))
+        board.update(
+            claude,
+            SpendTotals(
+                tokToday: 1, centsToday: 2, tokWeek: 3, centsWeek: 4, tokMonth: 5, centsMonth: 6, unpriced: true),
+            now: start)
+        board.update(codex, totals(1, 1, 1, 1, 1, 1), now: start)
+
+        let again = SpendBoard(store: UsageStore(path: path, now: start))
+        XCTAssertEqual(again.snapshot().map(\.unpriced), [true, false])
+    }
+
     func testAnUnknownAgentIsIgnored() {
         let board = newBoard()
         board.update("gemini", totals(1, 1, 1, 1, 1, 1), now: start)

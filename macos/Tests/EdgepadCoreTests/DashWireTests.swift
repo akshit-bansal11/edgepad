@@ -158,10 +158,11 @@ final class DashWireTests: XCTestCase {
         case "LIMITSPARSE":
             return DashWire.encodeLimits(DashWire.parseLimits(field(args)))
         case "SPEND":
-            let spend = entries(args).map { fields($0, 8) }.map { f in
+            let spend = entries(args).map { fields($0, 9) }.map { f in
                 SpendEntry(
                     agent: field(f[0]), measuredAtMin: long(f[1]), tokToday: long(f[2]), centsToday: long(f[3]),
-                    tokWeek: long(f[4]), centsWeek: long(f[5]), tokMonth: long(f[6]), centsMonth: long(f[7]))
+                    tokWeek: long(f[4]), centsWeek: long(f[5]), tokMonth: long(f[6]), centsMonth: long(f[7]),
+                    unpriced: field(f[8]) == "1")
             }
             return DashWire.encodeSpend(spend)
         case "SPENDPARSE":

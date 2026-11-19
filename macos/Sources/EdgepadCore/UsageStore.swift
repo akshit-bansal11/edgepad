@@ -9,6 +9,7 @@ public struct LimitRow: Equatable {
 }
 
 /// Token and cent totals of one agent. Tokens are uncached input plus output; cents are estimates at API list prices.
+/// `unpriced` means some tokens came from a model with no price, so the cents are a lower bound.
 public struct SpendTotals: Equatable {
     public let tokToday: Int64
     public let centsToday: Int64
@@ -16,9 +17,11 @@ public struct SpendTotals: Equatable {
     public let centsWeek: Int64
     public let tokMonth: Int64
     public let centsMonth: Int64
+    public let unpriced: Bool
 
     public init(
-        tokToday: Int64, centsToday: Int64, tokWeek: Int64, centsWeek: Int64, tokMonth: Int64, centsMonth: Int64
+        tokToday: Int64, centsToday: Int64, tokWeek: Int64, centsWeek: Int64, tokMonth: Int64, centsMonth: Int64,
+        unpriced: Bool = false
     ) {
         self.tokToday = tokToday
         self.centsToday = centsToday
@@ -26,6 +29,7 @@ public struct SpendTotals: Equatable {
         self.centsWeek = centsWeek
         self.tokMonth = tokMonth
         self.centsMonth = centsMonth
+        self.unpriced = unpriced
     }
 
     var all: [Int64] {
@@ -100,7 +104,11 @@ public final class UsageStore {
             ["a": key.agent, "w": key.window, "p": row.pct, "r": row.resetAtMin, "m": row.measuredAtMin]
         }
         let spendItems: [[String: Any]] = spend.map { agent, row in
-            ["a": agent, "m": row.measuredAtMin, "t": row.totals.all]
+            var item: [String: Any] = ["a": agent, "m": row.measuredAtMin, "t": row.totals.all]
+            if row.totals.unpriced {
+                item["u"] = true
+            }
+            return item
         }
         let root: [String: Any] = ["v": Self.version, "limits": limitItems, "spend": spendItems, "heard": heard]
         guard
@@ -144,7 +152,8 @@ public final class UsageStore {
             spend[agent] = SpendRow(
                 measuredAtMin: measured,
                 totals: SpendTotals(
-                    tokToday: n[0], centsToday: n[1], tokWeek: n[2], centsWeek: n[3], tokMonth: n[4], centsMonth: n[5]))
+                    tokToday: n[0], centsToday: n[1], tokWeek: n[2], centsWeek: n[3], tokMonth: n[4], centsMonth: n[5],
+                    unpriced: item["u"] as? Bool == true))
         }
         if let heardItems = root["heard"] as? [String: Any] {
             for (agent, value) in heardItems where DashWire.isAgent(agent) {

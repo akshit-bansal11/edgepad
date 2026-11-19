@@ -34,7 +34,8 @@ public final class SpendBoard {
         func cents(_ v: Int64) -> Int64 { min(max(v, 0), Self.maxCents) }
         let clamped = SpendTotals(
             tokToday: tokens(totals.tokToday), centsToday: cents(totals.centsToday), tokWeek: tokens(totals.tokWeek),
-            centsWeek: cents(totals.centsWeek), tokMonth: tokens(totals.tokMonth), centsMonth: cents(totals.centsMonth))
+            centsWeek: cents(totals.centsWeek), tokMonth: tokens(totals.tokMonth), centsMonth: cents(totals.centsMonth),
+            unpriced: totals.unpriced)
         store.gate.lock()
         let changed = store.spend[agent]?.totals != clamped
         store.spend[agent] = SpendRow(measuredAtMin: UsageStore.minutes(now), totals: clamped)
@@ -56,7 +57,8 @@ public final class SpendBoard {
             let t = row.totals
             return SpendEntry(
                 agent: agent, measuredAtMin: row.measuredAtMin, tokToday: t.tokToday, centsToday: t.centsToday,
-                tokWeek: t.tokWeek, centsWeek: t.centsWeek, tokMonth: t.tokMonth, centsMonth: t.centsMonth)
+                tokWeek: t.tokWeek, centsWeek: t.centsWeek, tokMonth: t.tokMonth, centsMonth: t.centsMonth,
+                unpriced: t.unpriced)
         }
     }
 }
