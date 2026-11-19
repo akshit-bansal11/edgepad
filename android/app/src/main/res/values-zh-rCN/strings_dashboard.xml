@@ -29,7 +29,6 @@
   <string name="sys_free">剩余 %1$s</string>
   <string name="sys_off">在笔记本电脑的 Edgepad 菜单中开启系统统计。</string>
   <!-- Not translated: a dash in every locale. -->
-  <string name="sys_none" translatable="false">—</string>
   <string name="wx_clear">晴</string>
   <string name="wx_cloudy">多云</string>
   <string name="wx_fog">雾</string>
@@ -65,8 +64,6 @@
   <string name="dur_hr">%1$d 小时</string>
   <string name="dur_day">%1$d 天</string>
   <!-- Not translated: product names. -->
-  <string name="agent_claude" translatable="false">Claude</string>
-  <string name="agent_codex" translatable="false">Codex</string>
   <string name="gh_title">GitHub</string>
   <string name="gh_review">请求审查</string>
   <string name="gh_mine">你的拉取请求</string>

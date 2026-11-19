@@ -29,7 +29,6 @@
   <string name="sys_free">%1$s frei</string>
   <string name="sys_off">Schalte die System-Statistiken im Edgepad-Menü auf deinem Laptop ein.</string>
   <!-- Not translated: a dash in every locale. -->
-  <string name="sys_none" translatable="false">—</string>
   <string name="wx_clear">Klar</string>
   <string name="wx_cloudy">Bewölkt</string>
   <string name="wx_fog">Nebel</string>
@@ -65,8 +64,6 @@
   <string name="dur_hr">%1$d Std.</string>
   <string name="dur_day">%1$d T.</string>
   <!-- Not translated: product names. -->
-  <string name="agent_claude" translatable="false">Claude</string>
-  <string name="agent_codex" translatable="false">Codex</string>
   <string name="gh_title">GitHub</string>
   <string name="gh_review">Review angefragt</string>
   <string name="gh_mine">Deine Pull Requests</string>
