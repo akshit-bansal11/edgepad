@@ -24,7 +24,6 @@
   <string name="sys_up">Отправка</string>
   <string name="sys_ping">Пинг</string>
   <string name="sys_loss">Потери пакетов</string>
-  <string name="sys_power">Мощность</string>
   <string name="sys_free">свободно: %1$s</string>
   <string name="sys_off">Включите статистику системы в меню Edgepad на ноутбуке.</string>
   <!-- Not translated: a dash in every locale. -->

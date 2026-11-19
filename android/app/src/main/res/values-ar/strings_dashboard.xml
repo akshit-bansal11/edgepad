@@ -24,7 +24,6 @@
   <string name="sys_up">الرفع</string>
   <string name="sys_ping">Ping</string>
   <string name="sys_loss">فقدان الحزم</string>
-  <string name="sys_power">الطاقة</string>
   <string name="sys_free">%1$s متاحة</string>
   <string name="sys_off">فعّل إحصاءات النظام من قائمة Edgepad على الحاسوب المحمول.</string>
   <!-- Not translated: a dash in every locale. -->
