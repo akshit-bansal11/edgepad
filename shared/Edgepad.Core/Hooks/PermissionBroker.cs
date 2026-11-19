@@ -23,7 +23,8 @@ internal sealed record PermPrompt(string Id, bool Complete, string Body);
 /// a replay or a guessed id is refused. No phone, 8 asks already waiting, or 20 asks in the last minute: deferred at once, so
 /// the agent's own prompt shows and nothing piles up. An ask nobody answers in 30 s, or whose hook went away first, is deferred
 /// and announced <see cref="Gone"/>, so every phone drops its sheet. The text shown is built here from a whitelist of tool fields,
-/// never from anything else the hook sent. While an ask waits its session reads as waiting on the board.
+/// never from anything else the hook sent; a tool with nothing to show is deferred without asking. While an ask waits its session
+/// reads as waiting on the board.
 /// </summary>
 internal sealed class PermissionBroker(SessionBoard board, Func<bool> phoneLinked, Func<DateTimeOffset>? clock = null, TimeSpan? wait = null)
 {
@@ -55,8 +56,13 @@ internal sealed class PermissionBroker(SessionBoard board, Func<bool> phoneLinke
         }
     }
 
-    /// <summary>The text an approval shows for this tool: Bash's command, the file of an edit or read, WebFetch's URL; for Codex, whose tool names are not documented, the first of command, file and URL it sent; nothing for any other tool.</summary>
-    public static string TextFor(PermRequest request)
+    /// <summary>
+    /// The text an approval shows for this tool: Bash's command, the file of an edit or read, WebFetch's URL; for Codex, whose tool
+    /// names are not documented, the first of command, file and URL it sent. Null (nothing to show, so the phone is not asked) for
+    /// any other tool (MCP tools, Task, ExitPlanMode, WebSearch, an unknown one) and when that field is missing or empty: a person
+    /// must never approve what they cannot read.
+    /// </summary>
+    public static string? TextFor(PermRequest request)
     {
         var input = request.Input;
         var text = request.Tool switch
@@ -67,7 +73,7 @@ internal sealed class PermissionBroker(SessionBoard board, Func<bool> phoneLinke
             _ when request.Agent == AgentToken.Codex => input.Command ?? input.FilePath ?? input.Url,
             _ => null,
         };
-        return text ?? string.Empty;
+        return string.IsNullOrEmpty(text) ? null : text;
     }
 
     /// <summary>
@@ -76,13 +82,12 @@ internal sealed class PermissionBroker(SessionBoard board, Func<bool> phoneLinke
     /// </summary>
     public async Task<PermDecision> RequestAsync(PermRequest request, CancellationToken cancellationToken)
     {
-        if (!phoneLinked())
+        if (!phoneLinked() || TextFor(request) is not { } text)
         {
             return PermDecision.Defer;
         }
 
-        var text = TextFor(request);
-        var body = PermAskBody.Encode(request.Agent, request.Tool, text, out var complete);
+        var body = PermAskBody.Encode(request.Agent, request.Tool, text, out var complete, request.Input.Truncated);
         if (complete && !request.Input.CommandSafe && request.Input.Command is { } command && text == command)
         {
             body = PermAskBody.Encode(request.Agent, request.Tool, string.Empty, out _);

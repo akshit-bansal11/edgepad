@@ -241,6 +241,26 @@ public sealed class IntegrationHostTests : IDisposable
         Assert.Equal(PermDecision.Defer, await request);
     }
 
+    [Fact]
+    public async Task AnAskThatEndedBeforeItsBlobWentOutIsNeverSent()
+    {
+        AllOn();
+        var queued = new List<Action>();
+        var id = string.Empty;
+        broker.Asked += p => id = p.Id;
+        var blobs = new BlobSender(Record, LinkKind.Bluetooth, () => 0, Ct, () => long.MaxValue, _ => true);
+        using var host = new IntegrationHost(Record, blobs, settings, new DashboardParts { Sessions = sessions, Broker = broker }, null, () => clock.Now, StartTimer, queued.Add);
+
+        var request = broker.RequestAsync(new PermRequest("T", AgentToken.Claude, "s1", "/w", "Bash", new ToolInput("ls", null, null)), Ct);
+        Assert.Single(queued);
+        Assert.True(broker.Answer(id, false));
+        Assert.Equal(PermDecision.Deny, await request);
+
+        queued[0]();
+        Assert.Empty(Blobs(BlobKind.PermAsk));
+        Assert.Equal(id, Assert.Single(Texts(TextKind.PermGone)).Value);
+    }
+
     private sealed class FakeTimer(Action action, TimeSpan every) : IDisposable
     {
         public TimeSpan Every { get; } = every;

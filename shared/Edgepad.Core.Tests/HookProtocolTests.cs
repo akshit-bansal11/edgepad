@@ -49,6 +49,46 @@ public sealed class HookProtocolTests
         Assert.Null(HookProtocol.TryParse(Encoding.UTF8.GetBytes(head + new string('x', fill + 1) + tail)));
     }
 
+    [Theory]
+    [InlineData("command")]
+    [InlineData("file_path")]
+    [InlineData("url")]
+    public void AFieldCutAt16KIsMarkedTruncated(string field)
+    {
+        string Line(int n) => $$"""{"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":{"{{field}}":"{{new string('x', n)}}"}}}""";
+
+        var exact = Assert.IsType<PermRequest>(HookProtocol.TryParse(Encoding.UTF8.GetBytes(Line(HookProtocol.MaxTextLength))));
+        Assert.False(exact.Input.Truncated);
+        var cut = Assert.IsType<PermRequest>(HookProtocol.TryParse(Encoding.UTF8.GetBytes(Line(HookProtocol.MaxTextLength + 1))));
+        Assert.True(cut.Input.Truncated);
+    }
+
+    [Fact]
+    public void AnArrayCommandJoinedPast16KIsMarkedTruncated()
+    {
+        var part = new string('x', 1000);
+        var parts = string.Join(',', Enumerable.Repeat($"\"{part}\"", 17));
+        var line = $$"""{"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"shell","tool_input":{"command":[{{parts}}]}}}""";
+        var request = Assert.IsType<PermRequest>(HookProtocol.TryParse(Encoding.UTF8.GetBytes(line)));
+        Assert.True(request.Input.Truncated);
+        Assert.Equal(HookProtocol.MaxTextLength, request.Input.Command!.Length);
+    }
+
+    [Theory]
+    [InlineData("ls", "ls")]
+    [InlineData("-la", "-la")]
+    [InlineData("", "''")]
+    [InlineData("a b", "'a b'")]
+    [InlineData("a\tb", "'a\tb'")]
+    [InlineData("it's", "'it'\\''s'")]
+    [InlineData("say \"hi\"", "'say \"hi\"'")]
+    [InlineData("$HOME;rm", "$HOME;rm")]
+    public void AnArrayElementIsQuotedOnlyWhenItWouldNotReadBack(string part, string shown) => Assert.Equal(shown, HookProtocol.Quote(part));
+
+    [Fact]
+    public void TheClientCapIsAboveTheApprovalCapSoAClientCutIsNeverComplete() =>
+        Assert.InRange(Dashboard.PermAskBody.MaxBytes, 0, HookClient.InputCap - 2);
+
     [Fact]
     public void InvalidUtf8AndAnEmptyLineAreNoRequest()
     {
@@ -77,6 +117,8 @@ public sealed class HookProtocolTests
             ["file_path"] = p.Input.FilePath,
             ["url"] = p.Input.Url,
             ["command_safe"] = p.Input.CommandSafe,
+            ["truncated"] = p.Input.Truncated,
+            ["text"] = PermissionBroker.TextFor(p),
         },
         SessionRequest s => new JsonObject
         {

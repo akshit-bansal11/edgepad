@@ -210,8 +210,24 @@ public sealed class HookClientTests : IDisposable
         var part = new string('a', 3000);
         var server = new FakeServer("""{"v":1,"decision":"defer"}""");
         HookClient.Run(["--hook", "codex", "perm"], new StringReader($$$"""{"tool_name":"shell","tool_input":{"command":["{{{part}}}","{{{part}}}"]}}"""), new StringWriter(), server.Options(HookFile()));
-        var command = JsonNode.Parse(Assert.Single(server.Requests))!["d"]!["tool_input"]!["command"]!.GetValue<string>();
-        Assert.Equal(HookClient.InputCap, command.Length);
+        var d = JsonNode.Parse(Assert.Single(server.Requests))!["d"]!;
+        Assert.Equal(HookClient.InputCap, d["tool_input"]!["command"]!.GetValue<string>().Length);
+        Assert.True(d["truncated"]!.GetValue<bool>());
+    }
+
+    [Fact]
+    public void ACutStringIsMarkedTruncatedAndAnUncutOneIsNot()
+    {
+        var server = new FakeServer("""{"v":1,"decision":"defer"}""");
+        foreach (var n in new[] { HookClient.InputCap, HookClient.InputCap + 1 })
+        {
+            HookClient.Run(["--hook", "claude", "perm"], new StringReader($$"""{"tool_name":"Bash","tool_input":{"command":"{{new string('a', n)}}"}}"""), new StringWriter(), server.Options(HookFile()));
+        }
+
+        var requests = server.Requests.ToList();
+        Assert.Equal(2, requests.Count);
+        Assert.Null(JsonNode.Parse(requests[0])!["d"]!["truncated"]);
+        Assert.True(JsonNode.Parse(requests[1])!["d"]!["truncated"]!.GetValue<bool>());
     }
 
     [Fact]

@@ -179,6 +179,7 @@ internal static class HookClient
                 w.WriteString("session_id", session);
                 w.WriteString("cwd", cwd);
                 w.WriteString("tool_name", tool);
+                var truncated = false;
                 w.WriteStartObject("tool_input");
                 if (hook.TryGetProperty("tool_input", out var raw) && raw.ValueKind == JsonValueKind.Object)
                 {
@@ -186,12 +187,19 @@ internal static class HookClient
                     {
                         if (raw.TryGetProperty(key, out var value))
                         {
-                            WriteField(w, agent, key, value);
+                            truncated |= WriteField(w, agent, key, value);
                         }
                     }
                 }
 
                 w.WriteEndObject();
+
+                // Only when a field was cut, so the laptop offers Deny only: what it would show is not all that runs.
+                if (truncated)
+                {
+                    w.WriteBoolean("truncated", true);
+                }
+
                 w.WriteEndObject();
             });
         }
@@ -222,33 +230,34 @@ internal static class HookClient
         });
     }
 
-    // A string cut to InputCap; for Codex's `command` also its array form, a list of strings sent as is unless joined it passes
-    // InputCap, then as the cut joined string. Anything else is left out.
-    private static void WriteField(Utf8JsonWriter w, string agent, string key, JsonElement value)
+    // A string cut to InputCap; for Codex's `command` also its array form, a list of strings sent as is unless joined for display
+    // (HookProtocol.Quote) it passes InputCap, then as the cut joined string. Anything else is left out. True when it was cut.
+    private static bool WriteField(Utf8JsonWriter w, string agent, string key, JsonElement value)
     {
         if (value.ValueKind == JsonValueKind.String)
         {
-            w.WriteString(key, Cut(value.GetString(), InputCap));
-            return;
+            var text = value.GetString()!;
+            w.WriteString(key, Cut(text, InputCap));
+            return text.Length > InputCap;
         }
 
         if (agent != "codex" || key != "command" || value.ValueKind != JsonValueKind.Array)
         {
-            return;
+            return false;
         }
 
         var count = value.GetArrayLength();
         if (count is 0 or > MaxParts || value.EnumerateArray().Any(p => p.ValueKind != JsonValueKind.String))
         {
-            return;
+            return false;
         }
 
         var parts = value.EnumerateArray().Select(p => p.GetString()!).ToList();
-        var joined = string.Join(' ', parts);
+        var joined = string.Join(' ', parts.Select(HookProtocol.Quote));
         if (joined.Length > InputCap)
         {
             w.WriteString(key, Cut(joined, InputCap));
-            return;
+            return true;
         }
 
         w.WriteStartArray(key);
@@ -258,6 +267,7 @@ internal static class HookClient
         }
 
         w.WriteEndArray();
+        return false;
     }
 
     // { endpoint, token } from hook.json, or null. On Unix the file must have no group or other permission bits; since it could be

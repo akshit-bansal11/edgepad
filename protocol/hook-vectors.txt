@@ -12,12 +12,20 @@
 #   SERVER <request line> => <parse JSON> | NONE
 #       The laptop's HookProtocol.TryParse of the request line. NONE: not a request; the connection closes with no reply.
 #       The parse is compared as JSON (key order free):
-#         perm     {"kind":"perm","agent","token","session","cwd","tool","command","file_path","url","command_safe"}
+#         perm     {"kind":"perm","agent","token","session","cwd","tool","command","file_path","url","command_safe","truncated","text"}
 #         session  {"kind":"session","agent","token","session","event","cwd","notification_type"}
 #         usage    {"kind":"usage","agent","token","windows":[{"window","pct","resets_at"}],"context"}
 #         spend    {"kind":"spend","agent","token","today":[tok,cents],"week":[tok,cents],"month":[tok,cents]}
 #       Absent optional values are null. session and cwd are "" when absent. command_safe is false only for a Codex
-#       array-form command with a control character inside an element (the laptop then offers Deny only).
+#       array-form command with a control character inside an element (the laptop then offers Deny only). An array command
+#       is joined with spaces, each element that is empty or holds whitespace, ' or " written in POSIX single quotes with
+#       every ' inside as '\'' (so ["sh","-c","a b"] is sh -c 'a b').
+#       text is PermissionBroker.TextFor: what the phone would show. Claude: Bash command; Edit, Write, MultiEdit, Read,
+#       NotebookEdit file_path; WebFetch url; any other tool null. Codex: the first of command, file_path, url. null too when
+#       that field is absent or "". A null text is deferred at once: the phone is never asked to approve what it cannot show.
+#       truncated: the hook client sent "truncated":true in d (it cut a field to 5000 characters; it sends the key only then;
+#       any non-boolean value is NONE), or the laptop cut a field to 16384 characters (tested in code). A truncated request
+#       is Deny only on the phone.
 #       Limits: tool_name 1..24 of A-Za-z0-9_.-; JSON depth <= 8; line <= 64 KiB (tested in code); v must be the number 1.
 
 # ---- client ----
@@ -32,13 +40,23 @@ CLIENT claude usage {"limits":[{"kind":"five_hour","percentUsed":12.5,"resetsAt"
 CLIENT claude spend {"today":{"tok":10,"cents":2},"week":{"tok":20,"cents":4},"month":{"tok":30,"cents":6},"unpriced":false} => {"v":1,"agent":"claude","kind":"spend","d":{"today":{"tok":10,"cents":2},"week":{"tok":20,"cents":4},"month":{"tok":30,"cents":6},"unpriced":false}}
 
 # ---- server: accepted ----
-SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"session_id":"s1","cwd":"/w","tool_name":"Bash","tool_input":{"command":"ls -la"}}} => {"kind":"perm","agent":"claude","token":"T","session":"s1","cwd":"/w","tool":"Bash","command":"ls -la","file_path":null,"url":null,"command_safe":true}
-SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":{"command":"echo a\necho b"}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"Bash","command":"echo a\necho b","file_path":null,"url":null,"command_safe":true}
-SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"WebFetch","tool_input":{"url":"https://x.test/a"}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"WebFetch","command":null,"file_path":null,"url":"https://x.test/a","command_safe":true}
-SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash"}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"Bash","command":null,"file_path":null,"url":null,"command_safe":true}
-SERVER {"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"shell","tool_input":{"command":["bash","-lc","ls -la"]}}} => {"kind":"perm","agent":"codex","token":"T","session":"","cwd":"","tool":"shell","command":"bash -lc ls -la","file_path":null,"url":null,"command_safe":true}
-SERVER {"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"shell","tool_input":{"command":["bash","-lc","rm -rf x\necho ok"]}}} => {"kind":"perm","agent":"codex","token":"T","session":"","cwd":"","tool":"shell","command":"bash -lc rm -rf x\necho ok","file_path":null,"url":null,"command_safe":false}
-SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"mcp.x_y-1","session_id":null,"cwd":null,"extra":{"a":[1,2]}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"mcp.x_y-1","command":null,"file_path":null,"url":null,"command_safe":true}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"session_id":"s1","cwd":"/w","tool_name":"Bash","tool_input":{"command":"ls -la"}}} => {"kind":"perm","agent":"claude","token":"T","session":"s1","cwd":"/w","tool":"Bash","command":"ls -la","file_path":null,"url":null,"command_safe":true,"truncated":false,"text":"ls -la"}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":{"command":"echo a\necho b"}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"Bash","command":"echo a\necho b","file_path":null,"url":null,"command_safe":true,"truncated":false,"text":"echo a\necho b"}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"WebFetch","tool_input":{"url":"https://x.test/a"}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"WebFetch","command":null,"file_path":null,"url":"https://x.test/a","command_safe":true,"truncated":false,"text":"https://x.test/a"}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash"}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"Bash","command":null,"file_path":null,"url":null,"command_safe":true,"truncated":false,"text":null}
+SERVER {"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"shell","tool_input":{"command":["bash","-lc","ls -la"]}}} => {"kind":"perm","agent":"codex","token":"T","session":"","cwd":"","tool":"shell","command":"bash -lc 'ls -la'","file_path":null,"url":null,"command_safe":true,"truncated":false,"text":"bash -lc 'ls -la'"}
+SERVER {"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"shell","tool_input":{"command":["bash","-lc","rm -rf x\necho ok"]}}} => {"kind":"perm","agent":"codex","token":"T","session":"","cwd":"","tool":"shell","command":"bash -lc 'rm -rf x\necho ok'","file_path":null,"url":null,"command_safe":false,"truncated":false,"text":"bash -lc 'rm -rf x\necho ok'"}
+SERVER {"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"shell","tool_input":{"command":["sh","-c","echo 'hi'",""]}}} => {"kind":"perm","agent":"codex","token":"T","session":"","cwd":"","tool":"shell","command":"sh -c 'echo '\\''hi'\\''' ''","file_path":null,"url":null,"command_safe":true,"truncated":false,"text":"sh -c 'echo '\\''hi'\\''' ''"}
+SERVER {"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"shell","tool_input":{"command":["echo","say \"x\"","a\tb"]}}} => {"kind":"perm","agent":"codex","token":"T","session":"","cwd":"","tool":"shell","command":"echo 'say \"x\"' 'a\tb'","file_path":null,"url":null,"command_safe":false,"truncated":false,"text":"echo 'say \"x\"' 'a\tb'"}
+SERVER {"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"apply_patch","tool_input":{}}} => {"kind":"perm","agent":"codex","token":"T","session":"","cwd":"","tool":"apply_patch","command":null,"file_path":null,"url":null,"command_safe":true,"truncated":false,"text":null}
+SERVER {"v":1,"token":"T","agent":"codex","kind":"perm","d":{"tool_name":"apply_patch","tool_input":{"file_path":"/w/a.txt"}}} => {"kind":"perm","agent":"codex","token":"T","session":"","cwd":"","tool":"apply_patch","command":null,"file_path":"/w/a.txt","url":null,"command_safe":true,"truncated":false,"text":"/w/a.txt"}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":{"command":""}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"Bash","command":"","file_path":null,"url":null,"command_safe":true,"truncated":false,"text":null}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Task","tool_input":{"command":"x","file_path":"/p","url":"https://x.test"}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"Task","command":"x","file_path":"/p","url":"https://x.test","command_safe":true,"truncated":false,"text":null}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"ExitPlanMode","tool_input":{}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"ExitPlanMode","command":null,"file_path":null,"url":null,"command_safe":true,"truncated":false,"text":null}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Edit","tool_input":{"command":"x"}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"Edit","command":"x","file_path":null,"url":null,"command_safe":true,"truncated":false,"text":null}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","truncated":true,"tool_input":{"command":"ls"}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"Bash","command":"ls","file_path":null,"url":null,"command_safe":true,"truncated":true,"text":"ls"}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","truncated":false,"tool_input":{"command":"ls"}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"Bash","command":"ls","file_path":null,"url":null,"command_safe":true,"truncated":false,"text":"ls"}
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"mcp.x_y-1","session_id":null,"cwd":null,"extra":{"a":[1,2]}}} => {"kind":"perm","agent":"claude","token":"T","session":"","cwd":"","tool":"mcp.x_y-1","command":null,"file_path":null,"url":null,"command_safe":true,"truncated":false,"text":null}
 SERVER {"v":1,"token":"T","agent":"claude","kind":"session","d":{"hook_event_name":"Notification","session_id":"s","cwd":"/p","notification_type":"idle_prompt"}} => {"kind":"session","agent":"claude","token":"T","session":"s","event":"Notification","cwd":"/p","notification_type":"idle_prompt"}
 SERVER {"v":1,"token":"T","agent":"codex","kind":"session","d":{"hook_event_name":"SessionStart","session_id":"c","cwd":"C:\\w"}} => {"kind":"session","agent":"codex","token":"T","session":"c","event":"SessionStart","cwd":"C:\\w","notification_type":null}
 SERVER {"v":1,"token":"T","agent":"claude","kind":"session","d":{"hook_event_name":"Stop","notification_type":"idle_prompt"}} => {"kind":"session","agent":"claude","token":"T","session":"","event":"Stop","cwd":"","notification_type":null}
@@ -57,6 +75,8 @@ SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash"
 SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":{"command":[]}}} => NONE
 SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":{"command":["ls",1]}}} => NONE
 SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","tool_input":"ls"}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","truncated":1,"tool_input":{"command":"ls"}}} => NONE
+SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","truncated":"true","tool_input":{"command":"ls"}}} => NONE
 SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","session_id":5}} => NONE
 SERVER {"v":1,"token":"T","agent":"gemini","kind":"perm","d":{"tool_name":"Bash"}} => NONE
 SERVER {"v":1,"token":"T","agent":"Claude","kind":"perm","d":{"tool_name":"Bash"}} => NONE

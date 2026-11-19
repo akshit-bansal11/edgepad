@@ -95,8 +95,10 @@ internal static class DashWire
     }
 
     /// <summary>
-    /// For an approval's text: keeps line feeds and tabs, drops every other control character, and shows a bidi or zero-width
-    /// character as <c>&lt;U+XXXX&gt;</c> so it can be read but never takes effect (Trojan Source). No trim and no cut.
+    /// For an approval's text: keeps line feeds and tabs, and shows every other control character (Cc: U+0000-001F, U+007F-009F,
+    /// so a carriage return or U+0085 too) and every bidi or zero-width character as <c>&lt;U+XXXX&gt;</c>, so it can be read but
+    /// never takes effect (Trojan Source). Nothing is deleted, so the shown text is never shorter than what runs. No trim and no
+    /// cut. Idempotent: a marker is plain text.
     /// </summary>
     public static string CleanText(string text)
     {
@@ -107,11 +109,11 @@ internal static class DashWire
             {
                 clean.Append(rune.ToString());
             }
-            else if (IsBidi(rune.Value))
+            else if (IsBidi(rune.Value) || Rune.IsControl(rune))
             {
                 clean.Append("<U+").Append(rune.Value.ToString("X4", CultureInfo.InvariantCulture)).Append('>');
             }
-            else if (!Rune.IsControl(rune))
+            else
             {
                 clean.Append(rune.ToString());
             }
@@ -481,13 +483,18 @@ internal static class PermAskBody
 
     /// <summary>
     /// The body for an approval. The text is cleaned with <see cref="DashWire.CleanText"/> and the tool name reduced to A-Za-z0-9_.-.
-    /// When the body would pass 4096 bytes the text is left out and <paramref name="complete"/> is false, so the phone offers Deny only.
+    /// Complete only when nothing was cut on the way (<paramref name="truncated"/> false), the head plus the RAW text fit 4096 bytes,
+    /// and the cleaned body fits too: the raw text is measured, never only the cleaned one, so cleaning can never hide a cut. A
+    /// client or server cut always leaves at least 4999 characters (<see cref="Edgepad.Hooks.HookClient.InputCap"/>), so it fails the raw
+    /// size test by itself. Otherwise the text is left out and <paramref name="complete"/> is false, so the phone offers Deny only.
     /// </summary>
-    public static string Encode(string agent, string tool, string text, out bool complete)
+    public static string Encode(string agent, string tool, string text, out bool complete, bool truncated = false)
     {
         var head = $"{agent}\n{Tool(tool)}\n";
         var body = head + DashWire.CleanText(text);
-        complete = Encoding.UTF8.GetByteCount(body) <= MaxBytes;
+        complete = !truncated
+            && Encoding.UTF8.GetByteCount(head) + Encoding.UTF8.GetByteCount(text) <= MaxBytes
+            && Encoding.UTF8.GetByteCount(body) <= MaxBytes;
         return complete ? body : head;
     }
 

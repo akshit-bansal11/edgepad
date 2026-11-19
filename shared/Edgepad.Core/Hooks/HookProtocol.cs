@@ -12,9 +12,11 @@ internal abstract record HookRequest(string Token, string Agent);
 /// <summary>
 /// The tool fields a permission request may carry, as received (the hook client already whitelisted them). <paramref name="CommandSafe"/>
 /// is false when <paramref name="Command"/> was a list (Codex's array form) with a control character inside one element: joined
-/// with spaces it would not show what runs, so the broker offers Deny only.
+/// with spaces it would not show what runs, so the broker offers Deny only. <paramref name="Truncated"/> is true when a field was cut
+/// on the way, by the hook client (<c>"truncated":true</c> in <c>d</c>) or here to <see cref="HookProtocol.MaxTextLength"/>: the
+/// text shown would not be all that runs, so the broker offers Deny only.
 /// </summary>
-internal sealed record ToolInput(string? Command, string? FilePath, string? Url, bool CommandSafe = true);
+internal sealed record ToolInput(string? Command, string? FilePath, string? Url, bool CommandSafe = true, bool Truncated = false);
 
 /// <summary>A PermissionRequest: <paramref name="Tool"/> is 1..24 of A-Za-z0-9_.-.</summary>
 internal sealed record PermRequest(string Token, string Agent, string Session, string Cwd, string Tool, ToolInput Input) : HookRequest(Token, Agent);
@@ -118,28 +120,42 @@ internal static class HookProtocol
             return null;
         }
 
-        var input = new ToolInput(null, null, null);
+        // The hook client's own mark that it cut a field: a boolean when present.
+        var truncated = false;
+        if (d.TryGetProperty("truncated", out var mark))
+        {
+            if (mark.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+            {
+                return null;
+            }
+
+            truncated = mark.GetBoolean();
+        }
+
+        var input = new ToolInput(null, null, null, Truncated: truncated);
         if (d.TryGetProperty("tool_input", out var raw))
         {
             if (raw.ValueKind != JsonValueKind.Object
                 || OptStr(raw, "file_path", MaxTextLength, out var file) is false
                 || OptStr(raw, "url", MaxTextLength, out var url) is false
-                || ReadCommand(raw, out var command, out var safe) is false)
+                || ReadCommand(raw, out var command, out var safe, out var cut) is false)
             {
                 return null;
             }
 
-            input = new ToolInput(command, file, url, safe);
+            input = new ToolInput(command, file, url, safe, truncated || cut || Long(raw, "file_path") || Long(raw, "url"));
         }
 
         return new PermRequest(token, agent, session ?? string.Empty, cwd ?? string.Empty, tool, input);
     }
 
-    // A string, or (Codex's array form) a list of strings joined with spaces. False on anything else.
-    private static bool ReadCommand(JsonElement input, out string? command, out bool safe)
+    // A string, or (Codex's array form) a list of strings joined with spaces, each element that is empty or holds whitespace or a
+    // quote shown in POSIX single quotes (see Quote). False on anything else. cut: the command was longer than MaxTextLength.
+    private static bool ReadCommand(JsonElement input, out string? command, out bool safe, out bool cut)
     {
         command = null;
         safe = true;
+        cut = false;
         if (!input.TryGetProperty("command", out var value))
         {
             return true;
@@ -147,7 +163,9 @@ internal static class HookProtocol
 
         if (value.ValueKind == JsonValueKind.String)
         {
-            command = Cut(value.GetString()!, MaxTextLength);
+            var whole = value.GetString()!;
+            cut = whole.Length > MaxTextLength;
+            command = Cut(whole, MaxTextLength);
             return true;
         }
 
@@ -166,12 +184,26 @@ internal static class HookProtocol
 
             var text = part.GetString()!;
             safe &= !text.Any(char.IsControl);
-            parts.Add(text);
+            parts.Add(Quote(text));
         }
 
-        command = Cut(string.Join(' ', parts), MaxTextLength);
+        var joined = string.Join(' ', parts);
+        cut = joined.Length > MaxTextLength;
+        command = Cut(joined, MaxTextLength);
         return true;
     }
+
+    /// <summary>
+    /// One element of an array command as a POSIX shell would need it written: as is when it is not empty and holds no whitespace
+    /// and no quote (' or "); otherwise in single quotes, each ' inside written as '\''. So ["sh","-c","a b"] shows as sh -c 'a b'.
+    /// </summary>
+    internal static string Quote(string part) =>
+        part.Length > 0 && !part.Any(c => char.IsWhiteSpace(c) || c is '\'' or '"')
+            ? part
+            : "'" + part.Replace("'", "'\\''", StringComparison.Ordinal) + "'";
+
+    private static bool Long(JsonElement obj, string name) =>
+        obj.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String && value.GetString()!.Length > MaxTextLength;
 
     private static SessionRequest? ReadSession(string token, string agent, JsonElement d)
     {

@@ -54,6 +54,9 @@ internal sealed class IntegrationHost : IDisposable
     public const int GitHubBit = 16;
     public static readonly TimeSpan WeatherEvery = WeatherClient.ForecastFor;
 
+    // The last MaxGone ask ids that ended, so a PERM_ASK blob still queued for one is never sent.
+    private const int MaxGone = 64;
+
     private readonly Action<Frame> send;
     private readonly BlobSender blobs;
     private readonly IntegrationSettings settings;
@@ -64,6 +67,10 @@ internal sealed class IntegrationHost : IDisposable
     private readonly Action<Action> run;
     private readonly Lock gate = new();
     private readonly CancellationTokenSource ended = new();
+
+    // The last MaxGone ask ids that ended, so a PERM_ASK blob still queued for one is never sent.
+    private readonly HashSet<string> gone = [];
+    private readonly Queue<string> goneOrder = new();
 
     private StatsReporter? reporter;
     private IDisposable? weatherTimer;
@@ -352,10 +359,42 @@ internal sealed class IntegrationHost : IDisposable
 
         var body = Encoding.UTF8.GetBytes(prompt.Body);
         var label = DashWire.PermLabel(prompt.Id, prompt.Complete);
-        run(() => Guard(() => blobs.Send(BlobKind.PermAsk, label, body, urgent: true)));
+        var id = prompt.Id;
+
+        // An ask that ended before (or while) its blob went out is never completed: the phone would show a sheet nobody waits on.
+        run(() => Guard(() =>
+        {
+            if (!Ended(id))
+            {
+                blobs.Send(BlobKind.PermAsk, label, body, abandoned: () => Ended(id), urgent: true);
+            }
+        }));
     }
 
-    private void Gone(string id) => Push(new Text((byte)TextKind.PermGone, id));
+    private void Gone(string id)
+    {
+        lock (gate)
+        {
+            if (gone.Add(id))
+            {
+                goneOrder.Enqueue(id);
+                while (goneOrder.Count > MaxGone)
+                {
+                    gone.Remove(goneOrder.Dequeue());
+                }
+            }
+        }
+
+        Push(new Text((byte)TextKind.PermGone, id));
+    }
+
+    private bool Ended(string id)
+    {
+        lock (gate)
+        {
+            return gone.Contains(id);
+        }
+    }
 
     private void RefreshWeather()
     {
