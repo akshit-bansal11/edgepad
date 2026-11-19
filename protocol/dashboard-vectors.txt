@@ -49,7 +49,8 @@
 #                             Lines are joined by line feeds, fields by tabs.
 
 # ---- CLEAN
-CLEAN 10 hello world => hello world
+CLEAN 11 hello world => hello world
+CLEAN 10 hello world => hello worl
 CLEAN 10 \u{20}\u{20}a\u{20}\u{20}b\u{20} => a b
 CLEAN 30 a|b/c:d => a b c d
 CLEAN 30 tab\there\nnl => tab here nl

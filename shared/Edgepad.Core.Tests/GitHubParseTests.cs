@@ -62,7 +62,7 @@ public sealed class GitHubParseTests
         var body = Mine("""{"number":1,"title":"TITLE","isDraft":false,"repository":{"nameWithOwner":"a/b"}}""".Replace("TITLE", title, StringComparison.Ordinal));
 
         var line = Assert.Single(GitHubParse.Pulls(Bytes(body))!);
-        Assert.False(line.Title.Any(c => char.IsControl(c) || c == (char)0x202E));
+        Assert.DoesNotContain(line.Title, c => char.IsControl(c) || c == (char)0x202E);
         Assert.StartsWith("Tab here [31mred [0m new line evil", line.Title, StringComparison.Ordinal);
         Assert.Equal(GitHubParse.MaxTitle, line.Title.Length);
         Assert.Equal(CiToken.None, line.Ci);

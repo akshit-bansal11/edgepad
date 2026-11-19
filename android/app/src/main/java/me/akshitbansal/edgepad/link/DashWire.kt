@@ -193,8 +193,7 @@ object DashWire {
                 } else {
                     DiskEntry(p[0], if (used < 0) -1 else minOf(used, PERCENT_MAX), maxOf(total, -1), maxOf(free, -1))
                 }
-            }
-            .take(MAX_DISKS)
+            }.take(MAX_DISKS)
 
     fun sessions(text: String): List<SessionEntry> =
         entries(text)
@@ -203,8 +202,7 @@ object DashWire {
                 val agent = AgentToken.of(p[0])
                 val state = p.getOrNull(1)?.let(SessionStateToken::of)
                 if (p.size != 3 || agent == null || state == null) null else SessionEntry(agent, state, p[2])
-            }
-            .take(MAX_SESSIONS)
+            }.take(MAX_SESSIONS)
 
     /** Null for an unknown form: zero, past a year, a leading zero or sign, a fraction, `5h`, an empty `~` name. */
     fun limitWindow(text: String): LimitWindow? =
