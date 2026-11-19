@@ -303,7 +303,7 @@ internal static class HookProtocol
             return null;
         }
 
-        return new SpendRequest(token, agent, new SpendTotals(tokToday, centsToday, tokWeek, centsWeek, tokMonth, centsMonth));
+        return new SpendRequest(token, agent, new SpendTotals(tokToday, centsToday, tokWeek, centsWeek, tokMonth, centsMonth, unpriced.ValueKind == JsonValueKind.True));
     }
 
     private static bool Period(JsonElement d, string name, out long tok, out long cents)

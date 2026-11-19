@@ -332,7 +332,7 @@ internal sealed class CodexWatcher : IDisposable
             return; // no rollout was ever seen: nothing to show, rather than a row of zeros
         }
 
-        spend.Update(AgentToken.Codex, new SpendTotals(tokDay, centsDay, tokWeek, centsWeek, tokMonth, centsMonth), clock());
+        spend.Update(AgentToken.Codex, new SpendTotals(tokDay, centsDay, tokWeek, centsWeek, tokMonth, centsMonth, anyUnpriced), clock());
     }
 
     private RolloutTotals TotalsOf(FileInfo file, HashSet<string> live)

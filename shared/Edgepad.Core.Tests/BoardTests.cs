@@ -413,13 +413,14 @@ public sealed class LimitsBoardTests : IDisposable
         var limits = NewBoard(out var store);
         var spend = new SpendBoard(store);
         limits.Update(AgentToken.Claude, [new("five_hour", 42, "1787897318")], 7, start);
-        spend.Update(AgentToken.Codex, new SpendTotals(1, 2, 3, 4, 5, 6), start);
+        spend.Update(AgentToken.Codex, new SpendTotals(1, 2, 3, 4, 5, 6, Unpriced: true), start);
         store.Touch(AgentToken.Codex, start);
 
         var again = new UsageStore(UsagePath, start);
 
         Assert.Equal(limits.Snapshot(), new LimitsBoard(again).Snapshot());
         Assert.Equal(spend.Snapshot(), new SpendBoard(again).Snapshot());
+        Assert.True(Assert.Single(new SpendBoard(again).Snapshot()).Unpriced);
         Assert.Equal(start.ToUnixTimeSeconds() / 60, again.LastHeard(AgentToken.Codex));
         Assert.Equal(-1, again.LastHeard(AgentToken.Claude));
     }

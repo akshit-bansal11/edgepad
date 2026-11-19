@@ -73,9 +73,15 @@ data class LimitEntry(
     val pct: Int,
     val resetAtMin: Long,
     val measuredAtMin: Long,
-)
+) {
+    /** [pct] while it can still be true; -1 (drawn as a dash) once the window reset before [nowMin], so the old use is stale. */
+    fun pctAt(nowMin: Long): Int = if (resetAtMin in 0 until nowMin) -1 else pct
+}
 
-/** One TEXT SPEND entry: tokens (uncached input plus output) and estimated cents, by period. */
+/**
+ * One TEXT SPEND entry: tokens (uncached input plus output) and estimated cents, by period. [unpriced]: some tokens came from
+ * a model with no price, so the cents are a lower bound.
+ */
 data class SpendEntry(
     val agent: AgentToken,
     val measuredAtMin: Long,
@@ -85,6 +91,7 @@ data class SpendEntry(
     val centsWeek: Long,
     val tokMonth: Long,
     val centsMonth: Long,
+    val unpriced: Boolean = false,
 )
 
 /** TEXT WEATHER. [wmoCode] -1 is unknown. */
@@ -137,7 +144,8 @@ object DashWire {
     private const val INFO_FIELDS = 5
     private const val DISK_FIELDS = 4
     private const val LIMIT_FIELDS = 5
-    private const val SPEND_FIELDS = 8
+    private const val SPEND_FIELDS = 9
+    private val UNPRICED_FLAGS = setOf("0", "1")
     private const val WEATHER_FIELDS = 3
     private const val GITHUB_FIELDS = 6
     private const val PERM_PARTS = 3
@@ -242,7 +250,7 @@ object DashWire {
             val p = entry.split('/')
             val agent = AgentToken.of(p[0])
             val n = p.drop(1).map { it.toLongOrNull() }
-            if (p.size != SPEND_FIELDS || agent == null || n.any { it == null }) {
+            if (p.size != SPEND_FIELDS || agent == null || n.any { it == null } || p.last() !in UNPRICED_FLAGS) {
                 null
             } else {
                 val v = n.filterNotNull()
@@ -255,6 +263,7 @@ object DashWire {
                     maxOf(v[4], 0L),
                     maxOf(v[5], 0L),
                     maxOf(v[6], 0L),
+                    p.last() == "1",
                 )
             }
         }

@@ -185,7 +185,7 @@ public sealed class DashWireTests
             case "LIMITSPARSE":
                 return DashWire.EncodeLimits([.. DashWire.ParseLimits(Field(args))]);
             case "SPEND":
-                return DashWire.EncodeSpend([.. Entries(args).Select(e => Fields(e, 8)).Select(f => new SpendEntry(Field(f[0]), Long(f[1]), Long(f[2]), Long(f[3]), Long(f[4]), Long(f[5]), Long(f[6]), Long(f[7])))]);
+                return DashWire.EncodeSpend([.. Entries(args).Select(e => Fields(e, 9)).Select(f => new SpendEntry(Field(f[0]), Long(f[1]), Long(f[2]), Long(f[3]), Long(f[4]), Long(f[5]), Long(f[6]), Long(f[7]), Field(f[8]) == "1"))]);
             case "SPENDPARSE":
                 return DashWire.EncodeSpend([.. DashWire.ParseSpend(Field(args))]);
             case "WEATHER":

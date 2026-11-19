@@ -130,7 +130,7 @@ class AiScreen(
         }
         if (spend != null) {
             footnote(ui.string(R.string.ai_estimate))
-            if (unpriced(spend)) footnote(ui.string(R.string.ai_unpriced))
+            if (spend.unpriced) footnote(ui.string(R.string.ai_unpriced))
         }
     }
 
@@ -179,7 +179,8 @@ class AiScreen(
             val reset = limit.resetAtMin - now
             val known = limit.resetAtMin >= 0 && reset > 0
             val resets = if (known) ui.string(R.string.ai_resets, durationText(reset)) else ""
-            val ring = RingGauge(ui.context).apply { set(limit.pct, labelText(limit.window), resets) }
+            // A window that reset since it was measured shows a dash: its old use is no longer true.
+            val ring = RingGauge(ui.context).apply { set(limit.pctAt(now), labelText(limit.window), resets) }
             val slot = FrameLayout(ui.context)
             val params = FrameLayout.LayoutParams(side, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL)
             slot.addView(ring, params)
@@ -201,12 +202,6 @@ class AiScreen(
             add(ui.field(ui.string(label), ui.secondary("$count · ~${money.format(cents / CENTS)}", Type.VALUE)))
         }
     }
-
-    /** A period with tokens and no price: a model the laptop has no price for. */
-    private fun unpriced(spend: SpendEntry): Boolean =
-        (spend.tokToday > 0 && spend.centsToday == 0L) ||
-            (spend.tokWeek > 0 && spend.centsWeek == 0L) ||
-            (spend.tokMonth > 0 && spend.centsMonth == 0L)
 
     private fun labelText(window: LimitWindow): String = LimitWindowLabel.of(window).words(ui.context)
 

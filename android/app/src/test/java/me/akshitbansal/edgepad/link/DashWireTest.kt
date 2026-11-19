@@ -114,7 +114,7 @@ class DashWireTest {
     private fun LimitEntry.wire() = "${agent.token}:${window.text}:$pct:$resetAtMin:$measuredAtMin"
 
     private fun SpendEntry.wire() =
-        listOf(measuredAtMin, tokToday, centsToday, tokWeek, centsWeek, tokMonth, centsMonth)
+        listOf(measuredAtMin, tokToday, centsToday, tokWeek, centsWeek, tokMonth, centsMonth, if (unpriced) 1 else 0)
             .joinToString("/", prefix = agent.token + "/")
 
     private fun GithubRow.wire(): String {
@@ -137,6 +137,21 @@ class DashWireTest {
         ring.clear()
         assertEquals(0, ring.size)
         assertEquals(-1, ring.latest(StatsRing.GPU_POWER))
+    }
+
+    @Test
+    fun aWindowThatResetBeforeNowHasNoPercent() {
+        val limit = LimitEntry(AgentToken.CODEX, LimitWindow.Minutes(300), 42, 1000, 900)
+        assertEquals(42, limit.pctAt(999))
+        assertEquals(42, limit.pctAt(1000))
+        assertEquals(-1, limit.pctAt(1001))
+        assertEquals(42, limit.copy(resetAtMin = -1).pctAt(5000))
+    }
+
+    @Test
+    fun theUnpricedFlagIsRead() {
+        assertTrue(DashWire.spend("codex/1/2/3/4/5/6/7/1").single().unpriced)
+        assertEquals(false, DashWire.spend("codex/1/2/3/4/5/6/7/0").single().unpriced)
     }
 
     @Test

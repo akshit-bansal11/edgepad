@@ -259,7 +259,7 @@ internal sealed class ClaudeSpendWatcher : IDisposable
             return true; // no transcript was ever seen: nothing to show, rather than a row of zeros
         }
 
-        spend.Update(AgentToken.Claude, totals, now);
+        spend.Update(AgentToken.Claude, totals with { Unpriced = anyUnpriced }, now);
         return true;
     }
 

@@ -42,8 +42,10 @@
 #   LIMITS agent @ window @ pct @ resetAtMin @ measuredAtMin ;; ...   window: canonical decimal 1..525600, "ctx", or "~" and a
 #                             name (Clean(16), not empty); anything else drops the entry. pct (a decimal) clamps 0..100 and
 #                             rounds half up. A negative time is -1. Trailing entries dropped until 255 bytes.
-#   SPEND agent @ measuredAtMin @ tokToday @ centsToday @ tokWeek @ centsWeek @ tokMonth @ centsMonth ;; ...   64-bit
-#                             integers; measuredAtMin negative is -1, the rest negative is 0. Trailing entries dropped to 255.
+#   SPEND agent @ measuredAtMin @ tokToday @ centsToday @ tokWeek @ centsWeek @ tokMonth @ centsMonth @ unpriced ;; ...   64-bit
+#                             integers; measuredAtMin negative is -1, the rest negative is 0. unpriced is 1 (some tokens had no
+#                             price: the cents are a lower bound) or 0; SPENDPARSE drops an entry whose flag is anything else or
+#                             that has not exactly 9 fields. Trailing entries dropped to 255.
 #   WEATHER tempTenthsC @ wmoCode @ city   temp clamps -999..999, a wmo outside 0..99 is -1, city Clean(24). "WEATHER none" is
 #                             the empty payload.
 #   GITHUB section @ repo @ number @ title @ flags @ ci ;; ...   section R|M|N (else dropped). For R and M the repo must be
@@ -234,16 +236,20 @@ LIMITSPARSE claude:300:x:1:1 => <empty>
 LIMITSPARSE gemini:300:1:1:1|codex:300:2:3:4 => codex:300:2:3:4
 
 # ---- SPEND
-SPEND claude @ 29499900 @ 120000 @ 310 @ 800000 @ 2100 @ 3000000 @ 9000 => claude/29499900/120000/310/800000/2100/3000000/9000
-SPEND codex @ -4 @ -1 @ -2 @ 5 @ 0 @ 7 @ -9 => codex/-1/0/0/5/0/7/0
-SPEND claude @ 1 @ 9999999999 @ 1 @ 1 @ 1 @ 1 @ 1 => claude/1/9999999999/1/1/1/1/1
-SPEND gemini @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 => <empty>
+SPEND claude @ 29499900 @ 120000 @ 310 @ 800000 @ 2100 @ 3000000 @ 9000 @ 0 => claude/29499900/120000/310/800000/2100/3000000/9000/0
+SPEND codex @ -4 @ -1 @ -2 @ 5 @ 0 @ 7 @ -9 @ 1 => codex/-1/0/0/5/0/7/0/1
+SPEND claude @ 1 @ 9999999999 @ 1 @ 1 @ 1 @ 1 @ 1 @ 0 => claude/1/9999999999/1/1/1/1/1/0
+SPEND gemini @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 0 => <empty>
 SPEND <empty> => <empty>
-SPEND claude @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 ;; codex @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 => claude/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807
-SPENDPARSE claude/29499900/120000/310/800000/2100/3000000/9000|codex/1/2/3/4/5/6/7 => claude/29499900/120000/310/800000/2100/3000000/9000|codex/1/2/3/4/5/6/7
+SPEND claude @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 1 ;; codex @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 1 => claude/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/1
+SPENDPARSE claude/29499900/120000/310/800000/2100/3000000/9000/0|codex/1/2/3/4/5/6/7/1 => claude/29499900/120000/310/800000/2100/3000000/9000/0|codex/1/2/3/4/5/6/7/1
 SPENDPARSE claude/1/2/3 => <empty>
-SPENDPARSE claude/1/x/3/4/5/6/7 => <empty>
-SPENDPARSE gemini/1/2/3/4/5/6/7 => <empty>
+SPENDPARSE claude/1/x/3/4/5/6/7/0 => <empty>
+SPENDPARSE gemini/1/2/3/4/5/6/7/0 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7/2 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7/1/0 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7/x|codex/1/2/3/4/5/6/7/1 => codex/1/2/3/4/5/6/7/1
 
 # ---- WEATHER
 WEATHER 185 @ 3 @ Oslo => 185/3/Oslo

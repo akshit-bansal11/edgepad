@@ -151,7 +151,7 @@ public sealed class ClaudeSpendTests : IDisposable
         watcher.Poll();
 
         var entry = Assert.Single(Spend.Snapshot());
-        Assert.Equal(new SpendEntry(AgentToken.Claude, entry.MeasuredAtMin, 110000, 45, 220000, 90, 221000, 90), entry);
+        Assert.Equal(new SpendEntry(AgentToken.Claude, entry.MeasuredAtMin, 110000, 45, 220000, 90, 221000, 90, Unpriced: true), entry);
         Assert.True(watcher.HasUnpriced);
     }
 

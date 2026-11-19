@@ -303,6 +303,7 @@ public sealed class CodexWatcherTests : IDisposable
         var spend = Assert.Single(Spend.Snapshot());
         Assert.Equal((900L, 0L), (spend.TokToday, spend.CentsToday));
         Assert.True(Watcher.HasUnpriced);
+        Assert.True(spend.Unpriced);
     }
 
     [Fact]

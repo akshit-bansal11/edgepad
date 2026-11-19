@@ -6,8 +6,11 @@ namespace Edgepad.Dashboard;
 /// <summary>The last-known value of one limit window. Pct is rounded 0..100; the times are UTC minutes since the Unix epoch, -1 unknown.</summary>
 internal sealed record LimitRow(long Pct, long ResetAtMin, long MeasuredAtMin);
 
-/// <summary>Token and cent totals of one agent. Tokens are uncached input plus output; cents are estimates at API list prices.</summary>
-internal readonly record struct SpendTotals(long TokToday, long CentsToday, long TokWeek, long CentsWeek, long TokMonth, long CentsMonth);
+/// <summary>
+/// Token and cent totals of one agent. Tokens are uncached input plus output; cents are estimates at API list prices.
+/// <paramref name="Unpriced"/>: some tokens came from a model with no price, so the cents are a lower bound.
+/// </summary>
+internal readonly record struct SpendTotals(long TokToday, long CentsToday, long TokWeek, long CentsWeek, long TokMonth, long CentsMonth, bool Unpriced = false);
 
 /// <summary>The last-known spend of one agent and when it was measured.</summary>
 internal sealed record SpendRow(long MeasuredAtMin, SpendTotals Totals);
@@ -113,6 +116,11 @@ internal sealed class UsageStore
                         }
 
                         json.WriteEndArray();
+                        if (row.Totals.Unpriced)
+                        {
+                            json.WriteBoolean("u", true);
+                        }
+
                         json.WriteEndObject();
                     }
 
@@ -176,7 +184,9 @@ internal sealed class UsageStore
                     var n = t.EnumerateArray().Select(e => e.ValueKind == JsonValueKind.Number && e.TryGetInt64(out var x) && x >= 0 ? x : -1).ToArray();
                     if (n.All(x => x >= 0))
                     {
-                        Spend[agent] = new SpendRow(measured, new SpendTotals(n[0], n[1], n[2], n[3], n[4], n[5]));
+                        // "u" is absent in files saved before the flag, and when false.
+                        var unpriced = item.TryGetProperty("u", out var u) && u.ValueKind == JsonValueKind.True;
+                        Spend[agent] = new SpendRow(measured, new SpendTotals(n[0], n[1], n[2], n[3], n[4], n[5], unpriced));
                     }
                 }
             }
