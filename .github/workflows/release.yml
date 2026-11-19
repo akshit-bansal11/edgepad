@@ -161,6 +161,15 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
+      # The plugin travels inside the app, so a tag cannot ship broken templates.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Test the plugin
+        shell: bash
+        run: |
+          test -f plugins/edgepad/hooks/hooks.claude.json || { echo "::error::plugins/edgepad/hooks/hooks.claude.json is missing."; exit 1; }
+          node --test plugins/test/*.test.mjs
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only windows
       # The quality gate has restored every package into the cache; the exe embeds the file.
@@ -190,6 +199,15 @@ jobs:
       # The lproj folders are generated, not committed: the script checks the resx files, then writes them.
       - name: Generate the Mac strings
         run: pwsh scripts/resx-to-lproj.ps1
+      # The plugin travels inside the app, so a tag cannot ship broken templates.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Test the plugin
+        shell: bash
+        run: |
+          test -f plugins/edgepad/hooks/hooks.claude.json || { echo "::error::plugins/edgepad/hooks/hooks.claude.json is missing."; exit 1; }
+          node --test plugins/test/*.test.mjs
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only macos
       # Ad hoc signed, not notarised: there is no Apple Developer ID behind this project, so no key reaches
@@ -213,6 +231,15 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
+      # The plugin travels inside the app, so a tag cannot ship broken templates.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Test the plugin
+        shell: bash
+        run: |
+          test -f plugins/edgepad/hooks/hooks.claude.json || { echo "::error::plugins/edgepad/hooks/hooks.claude.json is missing."; exit 1; }
+          node --test plugins/test/*.test.mjs
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only linux
       - name: Publish the app
