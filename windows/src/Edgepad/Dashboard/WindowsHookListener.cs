@@ -28,6 +28,10 @@ internal sealed class WindowsHookListener : IHookListener
     private readonly string name;
     private readonly PipeSecurity security;
     private readonly Lock gate = new();
+
+    // Under gate. Instances handed out, until their user closes them: while one is open the name is still ours.
+    private readonly List<NamedPipeServerStream> served = [];
+
     private NamedPipeServerStream? waiting;
     private bool disposed;
     private bool warned;
@@ -114,6 +118,7 @@ internal sealed class WindowsHookListener : IHookListener
                     return null;
                 }
 
+                served.Add(server);
                 waiting = TryCreate();
             }
 
@@ -152,12 +157,15 @@ internal sealed class WindowsHookListener : IHookListener
         server.Dispose();
     }
 
-    // Null when every instance is taken (ERROR_PIPE_BUSY); anything else is logged by type and also gives null, retried later.
+    // Under gate. Null when every instance is taken (ERROR_PIPE_BUSY); anything else is logged by type and also gives null, retried
+    // later. With no instance of ours left open the name is free for anyone, so the new one must again be the first instance: a
+    // pipe another process made in the gap then makes this throw instead of being shared.
     private NamedPipeServerStream? TryCreate()
     {
         try
         {
-            return Create(first: false);
+            _ = served.RemoveAll(IsClosed);
+            return Create(first: served.Count == 0);
         }
         catch (IOException)
         {
@@ -172,6 +180,18 @@ internal sealed class WindowsHookListener : IHookListener
             }
 
             return null;
+        }
+    }
+
+    private static bool IsClosed(NamedPipeServerStream stream)
+    {
+        try
+        {
+            return stream.SafePipeHandle.IsClosed;
+        }
+        catch (Exception e) when (e is ObjectDisposedException or InvalidOperationException or IOException)
+        {
+            return true;
         }
     }
 

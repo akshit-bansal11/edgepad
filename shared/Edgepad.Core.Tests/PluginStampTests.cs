@@ -187,6 +187,32 @@ public sealed class PluginStampTests : IDisposable
         Assert.Equal("5.0.0 \"beta\"", hooks.GetProperty("v").GetString());
     }
 
+    [Theory]
+    [InlineData(@"C:\Users\me\AppData\Local\Edgepad\Edgepad.exe", null, @"C:\Users\me\AppData\Local\Edgepad\Edgepad.exe")]
+    [InlineData(@"C:\Program Files\Edgepad\Edgepad.exe", @"C:\PROGRA~1\Edgepad\Edgepad.exe", @"C:\PROGRA~1\Edgepad\Edgepad.exe")]
+    [InlineData(@"C:\Program Files\Edgepad\Edgepad.exe", null, null)]
+    [InlineData(@"C:\Program Files\Edgepad\Edgepad.exe", @"C:\Program Files\Edgepad\Edgepad.exe", null)]
+    [InlineData(@"C:\a&b\Edgepad.exe", null, null)]
+    [InlineData(@"C:\Users\Zoë\Edgepad.exe", null, null)]
+    public void OnWindowsCodexGetsABarePathOnlyWhenNoShellWouldReadItDifferently(string app, string? shortForm, string? bare) =>
+        Assert.Equal(bare, PluginStamp.BareCodexApp(app, _ => shortForm));
+
+    [Fact]
+    public void WithoutAShortPathSeamTheCodexCommandStaysQuoted() =>
+        Assert.Null(PluginStamp.BareCodexApp(@"C:\x\Edgepad.exe", null));
+
+    [Fact]
+    public void ABareCodexAppReplacesTheQuotedPlaceholder()
+    {
+        var bundle = new MemorySource(new() { ["hooks/hooks.codex.json"] = Encoding.UTF8.GetBytes("""{"command":"\"__APP__\" --hook codex perm","n":"__APP__"}""") });
+        var folder = Folder(AgentToken.Codex);
+        PluginStamp.Write(bundle, AgentToken.Codex, folder, AppPath, "5.0.0", @"C:\PROGRA~1\Edgepad\Edgepad.exe");
+
+        var hooks = Hooks(folder);
+        Assert.Equal(@"C:\PROGRA~1\Edgepad\Edgepad.exe --hook codex perm", hooks.GetProperty("command").GetString());
+        Assert.Equal(AppPath, hooks.GetProperty("n").GetString());
+    }
+
     internal sealed class MemorySource(Dictionary<string, byte[]> files) : IPluginSource
     {
         public IReadOnlyList<string> Entries() => [.. files.Keys];

@@ -69,19 +69,22 @@ internal sealed partial class PluginInstaller
     private readonly string appPath;
     private readonly IProcessRunner runner;
     private readonly Func<string?> path;
+    private readonly Func<string, string?>? shortPath;
 
     /// <param name="pluginsRoot">The folder holding the per-agent copies; <see cref="DefaultRoot"/> in the apps.</param>
     /// <param name="version">This app's version, stamped as the plugin's and stored to notice an update.</param>
     /// <param name="path">For tests: the PATH value. The process's PATH by default.</param>
     /// <param name="appPath">For tests: this app's own executable, which the hooks run as <c>"__APP__" --hook &lt;agent&gt; &lt;kind&gt;</c>
     /// and which is stored to notice a moved app. <see cref="Environment.ProcessPath"/> by default.</param>
-    public PluginInstaller(IPluginSource bundle, IntegrationSettings settings, string pluginsRoot, string version, IProcessRunner? runner = null, Func<string?>? path = null, string? appPath = null)
+    /// <param name="shortPath">Windows only: the 8.3 short form of a path, or null (see <see cref="PluginStamp.BareCodexApp"/>).</param>
+    public PluginInstaller(IPluginSource bundle, IntegrationSettings settings, string pluginsRoot, string version, IProcessRunner? runner = null, Func<string?>? path = null, string? appPath = null, Func<string, string?>? shortPath = null)
     {
         this.bundle = bundle;
         this.settings = settings;
         this.pluginsRoot = pluginsRoot;
         this.version = version;
         this.appPath = appPath ?? Environment.ProcessPath ?? string.Empty;
+        this.shortPath = shortPath;
         this.runner = runner ?? new ProcessRunner();
         this.path = path ?? (() => Environment.GetEnvironmentVariable("PATH"));
     }
@@ -334,7 +337,7 @@ internal sealed partial class PluginInstaller
     {
         try
         {
-            PluginStamp.Write(bundle, agent, FolderOf(agent), appPath, version);
+            PluginStamp.Write(bundle, agent, FolderOf(agent), appPath, version, PluginStamp.BareCodexApp(appPath, shortPath));
             return true;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)

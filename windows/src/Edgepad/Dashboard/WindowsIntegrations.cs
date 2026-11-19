@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.InteropServices;
 using Edgepad.Blob;
 using Edgepad.Hooks;
 using Edgepad.Protocol;
@@ -18,7 +19,7 @@ namespace Edgepad.Dashboard;
 /// Every switch turned on makes a new hook token.
 /// </para>
 /// </summary>
-internal sealed class WindowsIntegrations : IDisposable
+internal sealed partial class WindowsIntegrations : IDisposable
 {
     private static readonly string[] FlagKeys =
     [
@@ -31,6 +32,9 @@ internal sealed class WindowsIntegrations : IDisposable
 
     // What Connect, Disconnect or a re-stamp last said per agent, for the parts of a row the saved switches cannot tell. Under gate.
     private readonly Dictionary<string, AgentStatus> last = [];
+
+    // Under gate. Every live phone link, so an agent switch can move them to new hosts.
+    private readonly List<DashboardLink> links = [];
 
     // Under gate. Made when first needed and kept: none holds a thread or a handle.
     private UsageStore? usage;
@@ -58,7 +62,7 @@ internal sealed class WindowsIntegrations : IDisposable
         Settings = new IntegrationSettings(Path.Combine(folder, IntegrationSettings.FileName));
         Secrets = new WindowsSecretStore();
         SignIn = new GitHubSignIn(Secrets);
-        installer = new PluginInstaller(new ResourcePluginSource(typeof(WindowsIntegrations).Assembly), Settings, PluginInstaller.DefaultRoot(), version);
+        installer = new PluginInstaller(new ResourcePluginSource(typeof(WindowsIntegrations).Assembly), Settings, PluginInstaller.DefaultRoot(), version, shortPath: ShortPath);
     }
 
     /// <summary>Codex's first hook arrived after Connect: the owner trusted the plugin. Raised on a hook thread.</summary>
@@ -87,6 +91,7 @@ internal sealed class WindowsIntegrations : IDisposable
     public void Changed(string key)
     {
         CodexWatcher? watcher;
+        List<DashboardLink> live;
         lock (gate)
         {
             if (disposed)
@@ -105,20 +110,26 @@ internal sealed class WindowsIntegrations : IDisposable
 
             Apply(rotate: FlagKeys.Contains(key) && Settings.Flag(key));
             watcher = codex;
+            live = key is IntegrationSettings.Claude or IntegrationSettings.Codex ? [.. links] : [];
+        }
+
+        foreach (var link in live)
+        {
+            Rebuild(link);
         }
 
         watcher?.Evaluate();
     }
 
     /// <summary>
-    /// One phone's dashboard, or null while every switch is off. The phone counts as linked from here until the link is disposed,
-    /// which stops counting it before the host goes, so the host's last word to the broker sees the phone gone.
+    /// One phone's dashboard, or null while every switch is off. The phone counts as linked for approvals only while its host has
+    /// the broker (an agent on, the hook channel open), so no ask waits on a phone that cannot see it; turning an agent on or
+    /// off moves every live link to a new host. Disposing stops counting it before the host goes, so the host's last word to the
+    /// broker sees the phone gone.
     /// </summary>
     /// <param name="send">Writes a frame to this phone; must not throw for a dead link.</param>
     public DashboardLink? Attach(Action<Frame> send, BlobSender blobs)
     {
-        DashboardParts parts;
-        WindowsStats? stats;
         lock (gate)
         {
             if (disposed || !FlagKeys.Any(Settings.Flag))
@@ -126,24 +137,17 @@ internal sealed class WindowsIntegrations : IDisposable
                 return null;
             }
 
-            var agents = AgentsOn && broker is not null;
-            parts = new DashboardParts
+            var stats = Settings.Flag(IntegrationSettings.Stats) ? new WindowsStats() : null;
+            var parts = Parts();
+            if (parts.Broker is not null)
             {
-                Sessions = agents ? sessions : null,
-                Limits = agents ? limits : null,
-                Spend = agents ? spend : null,
-                Broker = agents ? broker : null,
-                Codex = codex,
-                Claude = claude,
-                Weather = Settings.Flag(IntegrationSettings.Weather) ? weather : null,
-                GitHub = Settings.Flag(IntegrationSettings.GitHub) ? github : null,
-                GitHubSignedIn = () => SignIn.IsSignedIn,
-            };
-            stats = Settings.Flag(IntegrationSettings.Stats) ? new WindowsStats() : null;
-            Interlocked.Increment(ref phones);
-        }
+                Interlocked.Increment(ref phones);
+            }
 
-        return new DashboardLink(this, new IntegrationHost(send, blobs, Settings, parts, stats), parts.Broker, stats);
+            var link = new DashboardLink(this, send, blobs, stats, new IntegrationHost(send, blobs, Settings, parts, stats), parts.Broker);
+            links.Add(link);
+            return link;
+        }
     }
 
     /// <summary>The row's state: the saved switch, refined by what the last Connect, Disconnect or re-stamp reported.</summary>
@@ -247,6 +251,17 @@ internal sealed class WindowsIntegrations : IDisposable
         _ => new AgentStatus(AgentState.NotConnected),
     };
 
+    /// <summary>The 8.3 short form of an existing path, or null when Windows has none for it (8.3 names off on that volume).</summary>
+    internal static string? ShortPath(string path)
+    {
+        var buffer = new char[1024];
+        var length = GetShortPathNameW(path, buffer, (uint)buffer.Length);
+        return length is > 0 and < 1024 ? new string(buffer, 0, (int)length) : null;
+    }
+
+    [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+    private static partial uint GetShortPathNameW(string longPath, [Out] char[] shortPath, uint length);
+
     private void Remember(string agent, AgentStatus status)
     {
         lock (gate)
@@ -324,6 +339,56 @@ internal sealed class WindowsIntegrations : IDisposable
         github = Settings.Flag(IntegrationSettings.GitHub) ? github ?? new GitHubApi(Secrets) : null;
     }
 
+    // Under gate. The pieces a host gets now; the broker only while an agent is on and its channel is open.
+    private DashboardParts Parts()
+    {
+        var agents = AgentsOn && broker is not null && server is not null;
+        return new DashboardParts
+        {
+            Sessions = agents ? sessions : null,
+            Limits = agents ? limits : null,
+            Spend = agents ? spend : null,
+            Broker = agents ? broker : null,
+            Codex = codex,
+            Claude = claude,
+            Weather = Settings.Flag(IntegrationSettings.Weather) ? weather : null,
+            GitHub = Settings.Flag(IntegrationSettings.GitHub) ? github : null,
+            GitHubSignedIn = () => SignIn.IsSignedIn,
+        };
+    }
+
+    // A live link moves to a host on the current pieces, so an agent switched on while a phone is linked reaches it (PERM_ASK
+    // and PERM_ANSWER) and one switched off stops counting it. The phone stops being counted before its old host goes.
+    private void Rebuild(DashboardLink link)
+    {
+        IntegrationHost old;
+        IntegrationHost next;
+        int mask;
+        lock (gate)
+        {
+            if (disposed || !links.Contains(link))
+            {
+                return;
+            }
+
+            var parts = Parts();
+            (old, mask) = link.Swap(new IntegrationHost(link.Send, link.Blobs, Settings, parts, link.Stats), parts.Broker, out var hadBroker);
+            next = link.Host;
+            if (parts.Broker is not null && !hadBroker)
+            {
+                Interlocked.Increment(ref phones);
+            }
+            else if (parts.Broker is null && hadBroker)
+            {
+                Interlocked.Decrement(ref phones);
+            }
+        }
+
+        old.Dispose();
+        next.Start();
+        next.OnWatch(mask);
+    }
+
     // Under gate. The pipe first, then hook.json naming it, then the accept loop. A pipe that cannot be made leaves the agents
     // on their own prompts (no hook.json, so the hook client finds nothing) and is logged; turning a switch on again retries.
     private void StartHooks()
@@ -397,11 +462,23 @@ internal sealed class WindowsIntegrations : IDisposable
 
     private void Detach(DashboardLink link)
     {
-        // Not counted first, so the host's goodbye to the broker and the Codex watcher sees this phone gone.
-        Interlocked.Decrement(ref phones);
+        IntegrationHost host;
+        lock (gate)
+        {
+            _ = links.Remove(link);
+            host = link.Host;
+
+            // Not counted first, so the host's goodbye to the broker and the Codex watcher sees this phone gone. A phone whose
+            // host had no broker was never counted.
+            if (link.Broker is not null)
+            {
+                Interlocked.Decrement(ref phones);
+            }
+        }
+
         try
         {
-            link.Host.Dispose();
+            host.Dispose();
         }
         finally
         {
@@ -410,16 +487,34 @@ internal sealed class WindowsIntegrations : IDisposable
         }
     }
 
-    /// <summary>One phone's dashboard: its host and, while Claude or Codex is on, the broker its PERM_ANSWERs go to.</summary>
-    internal sealed class DashboardLink(WindowsIntegrations owner, IntegrationHost host, PermissionBroker? broker, WindowsStats? stats) : IDisposable
+    /// <summary>
+    /// One phone's dashboard: its current host (built again when an agent switch moves) and, while Claude or Codex is on, the
+    /// broker its PERM_ANSWERs go to. Host and Broker change only under the owner's gate.
+    /// </summary>
+    internal sealed class DashboardLink(WindowsIntegrations owner, Action<Frame> send, BlobSender blobs, WindowsStats? stats, IntegrationHost host, PermissionBroker? broker) : IDisposable
     {
         private int disposed;
+        private int watch;
 
-        public IntegrationHost Host { get; } = host;
+        public IntegrationHost Host { get; private set; } = host;
 
-        public PermissionBroker? Broker { get; } = broker;
+        public PermissionBroker? Broker { get; private set; } = broker;
 
         public WindowsStats? Stats { get; } = stats;
+
+        public Action<Frame> Send { get; } = send;
+
+        public BlobSender Blobs { get; } = blobs;
+
+        /// <summary>The phone's DASH_WATCH, kept so a rebuilt host starts where this one was.</summary>
+        public void OnWatch(int mask)
+        {
+            Volatile.Write(ref watch, mask);
+            Host.OnWatch(mask);
+        }
+
+        /// <summary>The phone's PERM_ANSWER, to whichever broker this link has now. False when none.</summary>
+        public bool Answer(string wire) => Broker?.Answer(wire) ?? false;
 
         public void Dispose()
         {
@@ -427,6 +522,16 @@ internal sealed class WindowsIntegrations : IDisposable
             {
                 owner.Detach(this);
             }
+        }
+
+        // Under the owner's gate: the new host and broker in, the old host (and its watch mask) out.
+        internal (IntegrationHost Old, int Mask) Swap(IntegrationHost next, PermissionBroker? nextBroker, out bool hadBroker)
+        {
+            var old = Host;
+            hadBroker = Broker is not null;
+            Host = next;
+            Broker = nextBroker;
+            return (old, Volatile.Read(ref watch));
         }
     }
 }

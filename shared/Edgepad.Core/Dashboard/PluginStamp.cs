@@ -65,8 +65,30 @@ internal static class PluginStamp
     private static readonly string[] ClaudeOnly = [".claude-plugin/", "hooks/relay.ts", "types/"];
     private static readonly string[] CodexOnly = [".codex-plugin/"];
 
-    /// <summary>Deletes <paramref name="folder"/> and writes the agent's copy there. Throws what the disk threw, or <see cref="InvalidDataException"/> for a bad bundle.</summary>
-    public static void Write(IPluginSource bundle, string agent, string folder, string appPath, string version)
+    /// <summary>
+    /// The app path to stamp WITHOUT quotes in Codex's one-string hook command, or null to keep <c>"__APP__"</c> quoted. Only on
+    /// Windows (<paramref name="shortPath"/> given): Codex's shell there is unknown, and a quoted program path followed by
+    /// arguments is a parse error in PowerShell. A path with spaces is replaced by its 8.3 short form when that has none. Bare
+    /// only when every character is one no shell treats specially (A-Z a-z 0-9 \ : . _ - ~); otherwise quoted as before.
+    /// </summary>
+    public static string? BareCodexApp(string appPath, Func<string, string?>? shortPath)
+    {
+        if (shortPath is null)
+        {
+            return null;
+        }
+
+        var candidate = appPath.Contains(' ', StringComparison.Ordinal) ? shortPath(appPath) : appPath;
+        return candidate is { Length: > 0 } && candidate.All(c => char.IsAsciiLetterOrDigit(c) || c is '\\' or ':' or '.' or '_' or '-' or '~')
+            ? candidate
+            : null;
+    }
+
+    /// <summary>
+    /// Deletes <paramref name="folder"/> and writes the agent's copy there. Throws what the disk threw, or <see cref="InvalidDataException"/>
+    /// for a bad bundle. <paramref name="bareCodexApp"/> (<see cref="BareCodexApp"/>) replaces the quoted <c>"__APP__"</c> in Codex's hooks.
+    /// </summary>
+    public static void Write(IPluginSource bundle, string agent, string folder, string appPath, string version, string? bareCodexApp = null)
     {
         if (!DashWire.IsAgent(agent))
         {
@@ -100,7 +122,14 @@ internal static class PluginStamp
             var bytes = Read(bundle, raw);
             if (relative.EndsWith(".json", StringComparison.Ordinal) || relative.EndsWith(".ts", StringComparison.Ordinal))
             {
-                bytes = Encoding.UTF8.GetBytes(Fill(Encoding.UTF8.GetString(bytes), values));
+                var text = Encoding.UTF8.GetString(bytes);
+                if (entry == CodexHooks && bareCodexApp is not null)
+                {
+                    // In the JSON file the quoted form is \"__APP__\".
+                    text = text.Replace("\\\"" + App + "\\\"", JsonEncodedText.Encode(bareCodexApp).ToString(), StringComparison.Ordinal);
+                }
+
+                bytes = Encoding.UTF8.GetBytes(Fill(text, values));
             }
 
             files.Add((target, bytes));

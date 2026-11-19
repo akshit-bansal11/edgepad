@@ -406,11 +406,9 @@ internal sealed class Session(
         if (dash is not null)
         {
             Keep(dash);
-            dispatcher.DashWatch = dash.Host.OnWatch;
-            if (dash.Broker is { } broker)
-            {
-                dispatcher.PermAnswer = broker.Answer;
-            }
+            // Through the link, not its current host or broker: an agent switched on or off while linked moves it to new ones.
+            dispatcher.DashWatch = dash.OnWatch;
+            dispatcher.PermAnswer = dash.Answer;
 
             features.AddRange(dash.Host.Features());
             unavailable = dash.Host.Unavailable();
