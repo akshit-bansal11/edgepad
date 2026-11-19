@@ -12,9 +12,17 @@ internal interface IStatsSource
     /// <summary>Names and memory sizes; read at start and rarely after.</summary>
     StatsInfo ReadInfo();
 
-    /// <summary>The mounted disks.</summary>
+    /// <summary>The mounted disks. Read on a worker thread, possibly while <see cref="ReadFast"/> runs.</summary>
     IReadOnlyList<DiskEntry> ReadDisks();
 
     /// <summary>Round trip to the default gateway in milliseconds, or -1 when it did not answer.</summary>
     ValueTask<int> PingAsync(CancellationToken cancel);
+
+    /// <summary>
+    /// The phone stopped watching: release what reading holds (counter queries, driver libraries). Never called while
+    /// <see cref="ReadFast"/> or <see cref="ReadInfo"/> runs; the next read sets them up again. Default: nothing held.
+    /// </summary>
+    void Idle()
+    {
+    }
 }

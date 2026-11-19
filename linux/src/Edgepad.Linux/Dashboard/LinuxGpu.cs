@@ -16,6 +16,7 @@ internal sealed unsafe class LinuxGpu(string drm = "/sys/class/drm") : IDisposab
         "/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1",
         "/usr/lib64/libnvidia-ml.so.1",
         "/usr/lib/aarch64-linux-gnu/libnvidia-ml.so.1",
+        "/usr/lib/libnvidia-ml.so.1",
     ];
 
     private readonly Lock gate = new();
@@ -93,6 +94,21 @@ internal sealed unsafe class LinuxGpu(string drm = "/sys/class/drm") : IDisposab
             disposed = true;
             nvml?.Dispose();
             nvml = null;
+        }
+    }
+
+    /// <summary>Nobody is watching: shuts NVML down and unloads it; the next <see cref="Read"/> or <see cref="Info"/> opens it again.</summary>
+    public void Idle()
+    {
+        lock (gate)
+        {
+            // Only a library that opened is tried again; a machine without one is not searched on every start.
+            if (nvml is not null)
+            {
+                nvml.Dispose();
+                nvml = null;
+                nvmlTried = false;
+            }
         }
     }
 
@@ -244,7 +260,7 @@ internal sealed unsafe class LinuxGpu(string drm = "/sys/class/drm") : IDisposab
             return new Reading(
                 utilization(device, u) == Success ? (int)Math.Min(u[0], 100u) : -1,
                 memory(device, m) == Success ? ProcParsers.Percent((long)m[2], (long)m[0]) : -1,
-                temperature(device, TemperatureGpu, &temp) == Success ? (int)Math.Min(temp, 1000u) : -1,
+                temperature(device, TemperatureGpu, &temp) == Success ? (int)Math.Min(temp, 200u) : -1,
                 powerUsage(device, &milliwatts) == Success ? (int)Math.Round(milliwatts / 1000.0, MidpointRounding.AwayFromZero) : -1);
         }
 

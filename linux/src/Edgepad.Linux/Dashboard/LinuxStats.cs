@@ -69,15 +69,19 @@ internal sealed class LinuxStats(string proc = "/proc", string sys = "/sys") : I
 
     public IReadOnlyList<DiskEntry> ReadDisks()
     {
+        // From the mount table, filtered BEFORE any size query: a network or FUSE mount whose server is gone blocks statvfs.
         var mounts = new List<(string Mount, string Format, long Total, long Free)>();
-        foreach (var drive in DriveInfo.GetDrives())
+        foreach (var (mount, format) in ProcParsers.Mounts(Read("self/mounts") ?? string.Empty))
         {
+            if (!ProcParsers.IsRealFilesystem(format) || IsHidden(mount))
+            {
+                continue;
+            }
+
             try
             {
-                if (drive.IsReady)
-                {
-                    mounts.Add((drive.Name, drive.DriveFormat, drive.TotalSize, drive.AvailableFreeSpace));
-                }
+                var drive = new DriveInfo(mount);
+                mounts.Add((mount, format, drive.TotalSize, drive.AvailableFreeSpace));
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
@@ -108,6 +112,9 @@ internal sealed class LinuxStats(string proc = "/proc", string sys = "/sys") : I
         }
     }
 
+    /// <summary>The phone stopped watching: NVML is let go until the next reading.</summary>
+    public void Idle() => gpu.Idle();
+
     public void Dispose() => gpu.Dispose();
 
     /// <summary>
@@ -128,7 +135,7 @@ internal sealed class LinuxStats(string proc = "/proc", string sys = "/sys") : I
             var path = mount.Length > 1 ? mount.TrimEnd('/') : mount;
             if (total <= 0
                 || !ProcParsers.IsRealFilesystem(format)
-                || Hidden.Any(h => path == h || path.StartsWith(h + "/", StringComparison.Ordinal))
+                || IsHidden(path)
                 || !seen.Add((total, free)))
             {
                 continue;
@@ -140,6 +147,12 @@ internal sealed class LinuxStats(string proc = "/proc", string sys = "/sys") : I
         }
 
         return disks;
+    }
+
+    private static bool IsHidden(string mount)
+    {
+        var path = mount.Length > 1 ? mount.TrimEnd('/') : mount;
+        return Hidden.Any(h => path == h || path.StartsWith(h + "/", StringComparison.Ordinal));
     }
 
     private static string? FindCpuSensor(string hwmon)

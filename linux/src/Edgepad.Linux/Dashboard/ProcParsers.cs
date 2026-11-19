@@ -12,6 +12,15 @@ internal static class ProcParsers
 {
     private static readonly char[] Blank = [' ', '\t'];
 
+    // Interface name prefixes of container and VPN adapters (see IsCounted).
+    private static readonly string[] Virtual = ["docker", "veth", "br-", "tun", "tap", "wg", "tailscale", "virbr"];
+
+    // Network filesystems: never asked for their size, a dead server would hang the read.
+    private static readonly HashSet<string> Remote = new(StringComparer.Ordinal)
+    {
+        "nfs", "nfs4", "cifs", "smb3", "smbfs", "9p", "afs", "ceph", "glusterfs", "lustre", "davfs", "sshfs", "ncpfs", "coda", "gfs2", "ocfs2",
+    };
+
     // Pseudo and in-memory filesystems that are never a disk the owner thinks of as one.
     private static readonly HashSet<string> NotDisks = new(StringComparer.Ordinal)
     {
@@ -89,13 +98,12 @@ internal static class ProcParsers
         return (total, Math.Clamp(available, 0, total));
     }
 
-    /// <summary>True for an interface whose traffic is the laptop's own: not loopback, not a container bridge or veth pair.</summary>
+    /// <summary>
+    /// True for an interface whose traffic is the laptop's own: not loopback, not a container bridge or veth pair, and not a
+    /// VPN or virtual adapter (tun, tap, WireGuard, Tailscale, libvirt), whose bytes the real interface carries again.
+    /// </summary>
     public static bool IsCounted(string name) =>
-        name.Length > 0
-        && name != "lo"
-        && !name.StartsWith("docker", StringComparison.Ordinal)
-        && !name.StartsWith("veth", StringComparison.Ordinal)
-        && !name.StartsWith("br-", StringComparison.Ordinal);
+        name.Length > 0 && name != "lo" && !Virtual.Any(prefix => name.StartsWith(prefix, StringComparison.Ordinal));
 
     /// <summary>Received and sent bytes summed over the counted interfaces of <c>/proc/net/dev</c>.</summary>
     public static (long Rx, long Tx) NetBytes(string netdev)
@@ -206,6 +214,61 @@ internal static class ProcParsers
     public static int Percent(long used, long total) =>
         total <= 0 ? -1 : (int)Math.Clamp(Math.Round(100.0 * used / total, MidpointRounding.AwayFromZero), 0, 100);
 
-    /// <summary>True for a filesystem type that is a real disk (ext4, btrfs, xfs, vfat, ntfs ...), not a pseudo or in-memory one.</summary>
-    public static bool IsRealFilesystem(string format) => format.Length > 0 && !NotDisks.Contains(format);
+    /// <summary>
+    /// True for a filesystem type that is a real local disk (ext4, btrfs, xfs, vfat, ntfs, fuseblk ...), not a pseudo or in-memory
+    /// one, and not a network or FUSE mount (<see cref="IsRemote"/>), whose size query can hang.
+    /// </summary>
+    public static bool IsRealFilesystem(string format) => format.Length > 0 && !NotDisks.Contains(format) && !IsRemote(format);
+
+    /// <summary>
+    /// A network or user-space filesystem: nfs, cifs, smb3, 9p, afs, ceph and the like, sshfs, and every <c>fuse.*</c> (rclone,
+    /// sshfs, gvfs). fuseblk (ntfs-3g, exFAT on a local disk) is not one.
+    /// </summary>
+    public static bool IsRemote(string format) =>
+        format.StartsWith("fuse.", StringComparison.Ordinal) || format == "fuse" || Remote.Contains(format);
+
+    /// <summary>
+    /// Mount point and filesystem type of each line of <c>/proc/self/mounts</c>, in order. The kernel writes a space, tab, newline
+    /// or backslash in a path as a three-digit octal escape; those are decoded. Lines of any other shape are skipped.
+    /// </summary>
+    public static List<(string Mount, string Format)> Mounts(string text)
+    {
+        var mounts = new List<(string, string)>();
+        foreach (var line in text.Split('\n'))
+        {
+            var fields = line.Split(' ');
+            if (fields.Length >= 3 && fields[1].Length > 0 && fields[2].Length > 0)
+            {
+                mounts.Add((Unescape(fields[1]), fields[2]));
+            }
+        }
+
+        return mounts;
+    }
+
+    private static string Unescape(string field)
+    {
+        if (!field.Contains('\\', StringComparison.Ordinal))
+        {
+            return field;
+        }
+
+        var text = new System.Text.StringBuilder(field.Length);
+        for (var i = 0; i < field.Length; i++)
+        {
+            if (field[i] == '\\' && i + 3 < field.Length && IsOctal(field[i + 1]) && IsOctal(field[i + 2]) && IsOctal(field[i + 3]))
+            {
+                text.Append((char)(((field[i + 1] - '0') * 64) + ((field[i + 2] - '0') * 8) + (field[i + 3] - '0')));
+                i += 3;
+            }
+            else
+            {
+                text.Append(field[i]);
+            }
+        }
+
+        return text.ToString();
+    }
+
+    private static bool IsOctal(char c) => c is >= '0' and <= '7';
 }

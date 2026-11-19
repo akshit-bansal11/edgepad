@@ -1,12 +1,15 @@
+using System.Diagnostics;
 using Edgepad.Protocol;
 
 namespace Edgepad.Dashboard;
 
 /// <summary>
 /// Sends the phone the laptop's numbers, and only while the phone draws them. <see cref="SetWatch"/> takes DASH_WATCH: bit 0
-/// (widgets) or bit 1 (System screen) starts a one-second timer, a mask with neither stops it, and with the timer stopped nothing
-/// is read, pinged or sent. Ping runs every third tick (never two at once, a stuck one is cancelled after 2 s), disks every tenth
-/// and only for bit 1, names every thirtieth. A text identical to the last one sent is not sent again. Nothing a source or the
+/// (widgets) or bit 1 (System screen) starts a one-second timer, a mask with neither stops it (and lets the source release what it
+/// holds, <see cref="IStatsSource.Idle"/>), and with the timer stopped nothing is read, pinged or sent. Ping runs every third tick
+/// (never two at once, a stuck one is cancelled after 2 s), disks every tenth and only for bit 1, on a worker (never two at once,
+/// a reading that took over 2 s is dropped), names every thirtieth. Readings are taken outside the lock, and a tick that finds the
+/// previous one still running does nothing. A text identical to the last one sent is not sent again. Nothing a source or the
 /// socket throws escapes: an unreadable source publishes unknowns and is logged once.
 /// </summary>
 internal sealed class StatsReporter : IDisposable
@@ -18,11 +21,16 @@ internal sealed class StatsReporter : IDisposable
     private const int DisksEvery = 10;
     private const int InfoEvery = 30;
     private static readonly TimeSpan PingLimit = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan DisksLimit = TimeSpan.FromSeconds(2);
 
     private readonly IStatsSource source;
     private readonly Action<Text> send;
     private readonly Func<Action, IDisposable> startTimer;
+    private readonly Action<Action> worker;
     private readonly Lock gate = new();
+
+    // Held for a whole tick; Idle takes it too, so the source is never released under a reading. Taken before gate, never after.
+    private readonly Lock tickGate = new();
     private readonly LossMeter loss = new();
     private IDisposable? timer;
     private CancellationTokenSource? pingCancel;
@@ -33,6 +41,8 @@ internal sealed class StatsReporter : IDisposable
     private int infoIn;
     private int lastPing = -1;
     private bool pingRunning;
+    private bool disksRunning;
+    private bool idlePending;
     private bool logged;
     private bool disposed;
     private string? lastStats;
@@ -40,11 +50,13 @@ internal sealed class StatsReporter : IDisposable
     private string? lastDisks;
 
     /// <param name="startTimer">Runs the action every second until disposed, on another thread, never inline. Tests pass their own.</param>
-    public StatsReporter(IStatsSource source, Action<Text> send, Func<Action, IDisposable>? startTimer = null)
+    /// <param name="worker">Runs the disk reading off the tick. Tests run it inline.</param>
+    public StatsReporter(IStatsSource source, Action<Text> send, Func<Action, IDisposable>? startTimer = null, Action<Action>? worker = null)
     {
         this.source = source;
         this.send = send;
         this.startTimer = startTimer ?? (action => new Timer(_ => action(), null, TimeSpan.Zero, TimeSpan.FromSeconds(1)));
+        this.worker = worker ?? (work => Task.Run(work));
     }
 
     /// <summary>True while the one-second timer exists.</summary>
@@ -75,12 +87,11 @@ internal sealed class StatsReporter : IDisposable
             if (wanted == 0)
             {
                 Stop();
-                return;
             }
-
-            if (timer is null)
+            else if (timer is null)
             {
                 generation++;
+                idlePending = false;
                 (pingIn, disksIn, infoIn) = (0, 0, 0);
                 (lastStats, lastInfo, lastDisks) = (null, null, null);
                 timer = startTimer(Tick);
@@ -91,6 +102,8 @@ internal sealed class StatsReporter : IDisposable
                 lastDisks = null;
             }
         }
+
+        IdleIfStopped();
     }
 
     public void Dispose()
@@ -100,49 +113,115 @@ internal sealed class StatsReporter : IDisposable
             disposed = true;
             Stop();
         }
+
+        IdleIfStopped();
     }
 
     /// <summary>One second's work. Public to the timer and to tests.</summary>
     internal void Tick()
     {
-        lock (gate)
+        if (!tickGate.TryEnter())
         {
-            if (disposed || mask == 0)
+            return; // the previous tick is still reading
+        }
+
+        try
+        {
+            int mine;
+            int ping;
+            int lossPct;
+            bool info;
+            bool disks;
+            lock (gate)
             {
-                return;
+                if (disposed || mask == 0)
+                {
+                    return;
+                }
+
+                StartPingIfDue();
+                mine = generation;
+                ping = lastPing;
+                lossPct = loss.Percent;
+                info = --infoIn <= 0;
+                if (info)
+                {
+                    infoIn = InfoEvery;
+                }
+
+                // A reading still running (a slow network mount) is waited for: tried again on the next tick.
+                disks = (mask & ScreenBit) != 0 && --disksIn <= 0 && !disksRunning;
+                if (disks)
+                {
+                    disksIn = DisksEvery;
+                    disksRunning = true;
+                }
             }
 
-            StartPingIfDue();
-            SendIfChanged(TextKind.Stats, ReadStats(), ref lastStats);
-            if (--infoIn <= 0)
+            var stats = ReadStats(ping, lossPct);
+            var infoText = info ? Read(() => DashWire.EncodeStatsInfo(source.ReadInfo())) : null;
+            lock (gate)
             {
-                infoIn = InfoEvery;
-                Guard(() => SendIfChanged(TextKind.StatsInfo, DashWire.EncodeStatsInfo(source.ReadInfo()), ref lastInfo));
+                if (!disposed && mine == generation)
+                {
+                    SendIfChanged(TextKind.Stats, stats, ref lastStats);
+                    if (infoText is not null)
+                    {
+                        SendIfChanged(TextKind.StatsInfo, infoText, ref lastInfo);
+                    }
+                }
             }
 
-            if ((mask & ScreenBit) != 0 && --disksIn <= 0)
+            if (disks)
             {
-                disksIn = DisksEvery;
-                Guard(() => SendIfChanged(TextKind.Disks, DashWire.EncodeDisks(source.ReadDisks()), ref lastDisks));
+                StartDisks(mine);
             }
+        }
+        finally
+        {
+            tickGate.Exit();
         }
     }
 
     private void Stop()
     {
         generation++;
+        idlePending |= timer is not null;
         timer?.Dispose();
         timer = null;
         pingCancel?.Cancel();
         pingCancel = null;
     }
 
-    private string ReadStats()
+    // Outside gate: waits for a running tick, then lets the source let go while the timer is still stopped.
+    private void IdleIfStopped()
+    {
+        lock (tickGate)
+        {
+            lock (gate)
+            {
+                if (!idlePending || timer is not null)
+                {
+                    return;
+                }
+
+                idlePending = false;
+            }
+
+            Read(() =>
+            {
+                source.Idle();
+                return string.Empty;
+            });
+        }
+    }
+
+    private string ReadStats(int ping, int lossPct)
     {
         StatsSample sample;
         try
         {
-            sample = source.ReadFast() with { Ping = lastPing, Loss = loss.Percent };
+            sample = source.ReadFast() with { Ping = ping, Loss = lossPct };
         }
         catch (Exception)
         {
@@ -151,6 +230,24 @@ internal sealed class StatsReporter : IDisposable
         }
 
         return DashWire.EncodeStats(sample);
+    }
+
+    private void StartDisks(int mine)
+    {
+        var started = Stopwatch.GetTimestamp();
+        worker(() =>
+        {
+            var text = Read(() => DashWire.EncodeDisks(source.ReadDisks()));
+            lock (gate)
+            {
+                disksRunning = false;
+                if (text is not null && !disposed && mine == generation && (mask & ScreenBit) != 0
+                    && Stopwatch.GetElapsedTime(started) <= DisksLimit)
+                {
+                    SendIfChanged(TextKind.Disks, text, ref lastDisks);
+                }
+            }
+        });
     }
 
     private void StartPingIfDue()
@@ -219,15 +316,17 @@ internal sealed class StatsReporter : IDisposable
         }
     }
 
-    private void Guard(Action read)
+    // The reading's text, or null (logged once) when the source threw.
+    private string? Read(Func<string> read)
     {
         try
         {
-            read();
+            return read();
         }
         catch (Exception)
         {
             LogOnce();
+            return null;
         }
     }
 

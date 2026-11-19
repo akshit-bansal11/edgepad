@@ -77,6 +77,11 @@ public sealed class ProcParsersTests
     [InlineData("docker0", false)]
     [InlineData("veth9f", false)]
     [InlineData("br-abc", false)]
+    [InlineData("tun0", false)]
+    [InlineData("tap1", false)]
+    [InlineData("wg0", false)]
+    [InlineData("tailscale0", false)]
+    [InlineData("virbr0", false)]
     [InlineData("wlan0", true)]
     [InlineData("enp3s0", true)]
     [InlineData("bridge0", true)]
@@ -117,7 +122,27 @@ public sealed class ProcParsersTests
     [InlineData("proc", false)]
     [InlineData("sysfs", false)]
     [InlineData("devtmpfs", false)]
+    [InlineData("nfs4", false)]
+    [InlineData("cifs", false)]
+    [InlineData("smb3", false)]
+    [InlineData("9p", false)]
+    [InlineData("fuse.sshfs", false)]
+    [InlineData("fuse.rclone", false)]
+    [InlineData("fuseblk", true)]
     public void RealFilesystems(string format, bool real) => Assert.Equal(real, ProcParsers.IsRealFilesystem(format));
+
+    [Fact]
+    public void MountsAreReadWithTheirEscapesDecoded()
+    {
+        const string Text = "/dev/nvme0n1p2 / ext4 rw,relatime 0 0\n"
+            + "server:/export /mnt/nas nfs4 rw 0 0\n"
+            + "/dev/sdb1 /media/My\\040Disk vfat rw 0 0\n"
+            + "short line\n";
+
+        Assert.Equal(
+            new List<(string, string)> { ("/", "ext4"), ("/mnt/nas", "nfs4"), ("/media/My Disk", "vfat") },
+            ProcParsers.Mounts(Text));
+    }
 
     [Fact]
     public void DisksAreShaped()

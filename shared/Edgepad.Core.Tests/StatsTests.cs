@@ -247,11 +247,50 @@ public sealed class StatsTests
         Assert.Empty(rig.Sent);
     }
 
+    [Fact]
+    public void TheSourceIsIdledWhenTheWatchStopsAndOnlyThen()
+    {
+        using var rig = new Rig();
+        rig.Reporter.SetWatch(0);
+        Assert.Equal(0, rig.Source.Idles);
+
+        rig.Reporter.SetWatch(StatsReporter.WidgetsBit);
+        rig.Reporter.Tick();
+        rig.Reporter.SetWatch(StatsReporter.WidgetsBit | StatsReporter.ScreenBit);
+        Assert.Equal(0, rig.Source.Idles);
+
+        rig.Reporter.SetWatch(0);
+        rig.Reporter.SetWatch(0);
+        Assert.Equal(1, rig.Source.Idles);
+
+        rig.Reporter.SetWatch(StatsReporter.WidgetsBit);
+        rig.Reporter.Tick();
+        Assert.Equal(2, rig.Source.FastReads);
+    }
+
+    [Fact]
+    public async Task ATickWhileTheLastIsStillReadingDoesNothing()
+    {
+        using var rig = new Rig();
+        using var hold = new ManualResetEventSlim();
+        rig.Source.FastGate = hold;
+        rig.Reporter.SetWatch(StatsReporter.WidgetsBit);
+
+        var slow = Task.Run(rig.Reporter.Tick, TestContext.Current.CancellationToken);
+        Assert.True(SpinWait.SpinUntil(() => rig.Source.FastReads == 1, TimeSpan.FromSeconds(5)));
+        rig.Reporter.Tick();
+        Assert.Equal(1, rig.Source.FastReads);
+
+        hold.Set();
+        await slow;
+        Assert.Single(rig.Sent, t => t.Kind == (byte)TextKind.Stats);
+    }
+
     private sealed class Rig : IDisposable
     {
         public Rig()
         {
-            Reporter = new StatsReporter(Source, Send, Start);
+            Reporter = new StatsReporter(Source, Send, Start, work => work());
         }
 
         public FakeSource Source { get; } = new();
@@ -306,9 +345,16 @@ public sealed class StatsTests
 
         public TaskCompletionSource<int>? PingGate { get; set; }
 
+        public int Idles { get; private set; }
+
+        public ManualResetEventSlim? FastGate { get; set; }
+
+        public void Idle() => Idles++;
+
         public StatsSample ReadFast()
         {
             FastReads++;
+            FastGate?.Wait(TimeSpan.FromSeconds(10));
             return Throws ? throw new InvalidOperationException("counter missing") : new StatsSample(Cpu, 20, 30, 40, 50, 60, -1, -1, 70, 80, 90);
         }
 
