@@ -722,9 +722,6 @@ Wi-Fi 및 USB 페어링을 등록 해제하지 못했어요. 파일을 삭제하
   <data name="Integrations_NotFound" xml:space="preserve">
     <value>이 컴퓨터에서 {0}을(를) 찾을 수 없어요</value>
   </data>
-  <data name="Integrations_NodeMissing" xml:space="preserve">
-    <value>Node.js 20.1 이상이 필요해요. nodejs.org에서 받으세요</value>
-  </data>
   <data name="Integrations_RunYourself" xml:space="preserve">
     <value>Edgepad가 대신 실행하지 못했어요. 터미널에서 다음 명령을 실행하세요:</value>
   </data>

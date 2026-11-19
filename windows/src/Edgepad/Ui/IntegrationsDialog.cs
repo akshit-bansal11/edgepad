@@ -12,9 +12,6 @@ internal enum AgentState
     /// <summary>The agent's command-line tool is not on this computer.</summary>
     NotFound,
 
-    /// <summary>No Node.js 20.1 or newer, which the hooks run on.</summary>
-    NodeMissing,
-
     /// <summary>Codex older than 0.159.</summary>
     UpdateCodex,
 
@@ -65,7 +62,6 @@ internal sealed class IntegrationsWindow : Form
     private const int Pad = 24;
     private const int Box = 36;
     private const int RowHeight = 28;
-    private const string NodePage = "https://nodejs.org";
 
     private readonly IntegrationActions actions;
     private readonly Palette palette = Palette.Current;
@@ -143,7 +139,6 @@ internal sealed class IntegrationsWindow : Form
         {
             row.Action.Click += (_, _) => Run(row);
             row.Copy.Click += (_, _) => actions.Copy(row.Status.Commands);
-            row.Node.Click += (_, _) => actions.Open(NodePage, "the Node.js site");
         }
 
         signIn.Click += (_, _) =>
@@ -196,7 +191,6 @@ internal sealed class IntegrationsWindow : Form
     {
         AgentState.Connected => Strings.Integrations_Connected.Fill(Heard(heardMinute, now)),
         AgentState.NotFound => Strings.Integrations_NotFound.Fill(name),
-        AgentState.NodeMissing => Strings.Integrations_NodeMissing,
         AgentState.UpdateCodex => Strings.Integrations_UpdateCodex,
         AgentState.AwaitingTrust => Strings.Integrations_WaitingTrust,
         AgentState.ManualSteps => Strings.Integrations_RunYourself,
@@ -561,12 +555,6 @@ internal sealed class IntegrationsWindow : Form
                 Buttons(row.Copy);
             }
 
-            row.Node.Visible = !row.Busy && row.Status.State == AgentState.NodeMissing;
-            if (row.Node.Visible)
-            {
-                Buttons(row.Node);
-            }
-
             y += S(10);
         }
 
@@ -643,7 +631,6 @@ internal sealed class IntegrationsWindow : Form
             Commands = new Label { AutoSize = false, UseMnemonic = false, BackColor = palette.Card };
             Frame = new Framed(Commands, palette, radius: 8, inset: 12) { Visible = false };
             Copy = new FlatButton(Strings.Integrations_Copy, ButtonKind.Outline, palette) { Visible = false, AccessibleDescription = name };
-            Node = new FlatButton("nodejs.org", ButtonKind.Ghost, palette) { Visible = false };
         }
 
         public string Agent { get; }
@@ -664,12 +651,10 @@ internal sealed class IntegrationsWindow : Form
 
         public FlatButton Copy { get; }
 
-        public FlatButton Node { get; }
-
         public AgentStatus Status { get; set; } = new(AgentState.NotConnected);
 
         public bool Busy { get; set; }
 
-        public Control[] Controls => [Title, Action, Line, Extra, Frame, Copy, Node];
+        public Control[] Controls => [Title, Action, Line, Extra, Frame, Copy];
     }
 }

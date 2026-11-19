@@ -22,10 +22,6 @@ public sealed class WindowsIntegrationsTests : IDisposable
     [InlineData("hooks/hooks.codex.json")]
     [InlineData("hooks/relay.ts")]
     [InlineData("marketplace.template.json")]
-    [InlineData("scripts/edgepad-hook.mjs")]
-    [InlineData("scripts/scan-claude.mjs")]
-    [InlineData("scripts/cache.mjs")]
-    [InlineData("scripts/prices.mjs")]
     public void EveryPluginTemplateIsEmbedded(string entry) =>
         Assert.Contains(entry, new ResourcePluginSource(typeof(WindowsIntegrations).Assembly).Entries());
 
@@ -75,7 +71,6 @@ public sealed class WindowsIntegrationsTests : IDisposable
     [InlineData((int)PluginState.RestartSessions, (int)AgentState.Connected, true)]
     [InlineData((int)PluginState.AwaitingTrust, (int)AgentState.AwaitingTrust, false)]
     [InlineData((int)PluginState.ManualSteps, (int)AgentState.ManualSteps, false)]
-    [InlineData((int)PluginState.NodeMissing, (int)AgentState.NodeMissing, false)]
     [InlineData((int)PluginState.CliNotFound, (int)AgentState.NotFound, false)]
     [InlineData((int)PluginState.UpdateCodex, (int)AgentState.UpdateCodex, false)]
     [InlineData((int)PluginState.Failed, (int)AgentState.NotConnected, false)]

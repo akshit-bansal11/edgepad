@@ -722,9 +722,6 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Integrations_NotFound" xml:space="preserve">
     <value>{0} est introuvable sur cet ordinateur</value>
   </data>
-  <data name="Integrations_NodeMissing" xml:space="preserve">
-    <value>Node.js 20.1 ou une version plus récente est nécessaire. Téléchargez-le sur nodejs.org</value>
-  </data>
   <data name="Integrations_RunYourself" xml:space="preserve">
     <value>Edgepad n’a pas pu l’exécuter pour vous. Exécutez ces commandes dans un terminal :</value>
   </data>

@@ -712,9 +712,6 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Integrations_NotFound" xml:space="preserve">
     <value>{0} bu bilgisayarda bulunamadı</value>
   </data>
-  <data name="Integrations_NodeMissing" xml:space="preserve">
-    <value>Node.js 20.1 veya daha yenisi gerekir. nodejs.org adresinden indirin</value>
-  </data>
   <data name="Integrations_RunYourself" xml:space="preserve">
     <value>Edgepad bunu sizin için çalıştıramadı. Bu komutları bir terminalde çalıştırın:</value>
   </data>

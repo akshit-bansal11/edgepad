@@ -722,9 +722,6 @@
   <data name="Integrations_NotFound" xml:space="preserve">
     <value>لم يُعثر على {0} في هذا الكمبيوتر</value>
   </data>
-  <data name="Integrations_NodeMissing" xml:space="preserve">
-    <value>يلزم Node.js 20.1 أو أحدث. نزّله من nodejs.org</value>
-  </data>
   <data name="Integrations_RunYourself" xml:space="preserve">
     <value>تعذّر على Edgepad تشغيل هذا نيابةً عنك. شغّل هذه الأوامر في نافذة طرفية:</value>
   </data>

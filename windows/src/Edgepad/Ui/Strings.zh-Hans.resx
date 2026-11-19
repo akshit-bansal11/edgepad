@@ -722,9 +722,6 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   <data name="Integrations_NotFound" xml:space="preserve">
     <value>在这台电脑上找不到 {0}</value>
   </data>
-  <data name="Integrations_NodeMissing" xml:space="preserve">
-    <value>需要 Node.js 20.1 或更新版本。请从 nodejs.org 获取</value>
-  </data>
   <data name="Integrations_RunYourself" xml:space="preserve">
     <value>Edgepad 无法替你运行。请在终端中运行以下命令：</value>
   </data>

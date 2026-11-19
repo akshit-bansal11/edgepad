@@ -39,6 +39,7 @@ internal sealed class WindowsIntegrations : IDisposable
     private SpendBoard? spend;
     private PermissionBroker? broker;
     private CodexWatcher? codex;
+    private ClaudeSpendWatcher? claude;
     private WeatherClient? weather;
     private GitHubApi? github;
 
@@ -133,6 +134,7 @@ internal sealed class WindowsIntegrations : IDisposable
                 Spend = agents ? spend : null,
                 Broker = agents ? broker : null,
                 Codex = codex,
+                Claude = claude,
                 Weather = Settings.Flag(IntegrationSettings.Weather) ? weather : null,
                 GitHub = Settings.Flag(IntegrationSettings.GitHub) ? github : null,
                 GitHubSignedIn = () => SignIn.IsSignedIn,
@@ -158,7 +160,6 @@ internal sealed class WindowsIntegrations : IDisposable
             return now.State switch
             {
                 AgentState.NotConnected when said.State is not (AgentState.Connected or AgentState.AwaitingTrust) => said,
-                AgentState.Connected when said.State == AgentState.NodeMissing => said,
                 AgentState.Connected => now with { Restart = said.Restart },
                 _ => now,
             };
@@ -227,6 +228,7 @@ internal sealed class WindowsIntegrations : IDisposable
             disposed = true;
             StopHooks();
             codex?.Dispose();
+            claude?.Dispose();
         }
 
         SavePlace();
@@ -238,7 +240,6 @@ internal sealed class WindowsIntegrations : IDisposable
         PluginState.RestartSessions => new AgentStatus(AgentState.Connected, Restart: true),
         PluginState.AwaitingTrust => new AgentStatus(AgentState.AwaitingTrust),
         PluginState.ManualSteps => new AgentStatus(AgentState.ManualSteps, string.Join(Environment.NewLine, result.Commands)),
-        PluginState.NodeMissing => new AgentStatus(AgentState.NodeMissing),
         PluginState.CliNotFound => new AgentStatus(AgentState.NotFound, string.Join(Environment.NewLine, result.Commands)),
         PluginState.UpdateCodex => new AgentStatus(AgentState.UpdateCodex),
 
@@ -301,6 +302,17 @@ internal sealed class WindowsIntegrations : IDisposable
                 () => DateTimeOffset.UtcNow,
                 CodexWatcher.DefaultRoot(),
                 Path.Combine(folder, CodexWatcher.CacheName));
+        }
+
+        if (Settings.Flag(IntegrationSettings.Claude) && spend is not null)
+        {
+            claude ??= new ClaudeSpendWatcher(
+                () => Settings.Flag(IntegrationSettings.Claude),
+                PhoneLinked,
+                spend,
+                () => DateTimeOffset.UtcNow,
+                ClaudeSpendWatcher.DefaultRoot(),
+                Path.Combine(folder, ClaudeSpendWatcher.CacheName));
         }
 
         if (Settings.Flag(IntegrationSettings.Weather))
