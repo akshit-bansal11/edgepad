@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Edgepad.Blob;
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
+using Edgepad.Dashboard;
 using Edgepad.Dispatch;
 using Edgepad.Gamepad;
 using Edgepad.Injection;
@@ -56,6 +57,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MenuRow startWithWindows = new(Strings.Menu_StartWithWindows, Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new(Strings.Menu_Macros, Icons.Macro);
     private readonly MenuRow securityRow = new(Strings.Menu_Security, Icons.Smartphone);
+    private readonly MenuRow integrationsRow = new(Strings.Menu_Integrations, Icons.Sliders);
     private readonly MenuRow networkRow = new(Strings.Menu_Network, Icons.Wifi) { CheckOnClick = true, Switch = true };
     private readonly MenuRow networkProblem = new(Strings.Network_Title, Icons.Wifi) { Danger = true, Available = false };
     private readonly MenuRow firewallRow = new(Strings.Menu_Firewall, Icons.Shield) { Available = false };
@@ -128,6 +130,10 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MacroStore macros = MacroStore.ForCurrentUser(new ShellLauncher(), new WindowsMacroWindows());
     private readonly LevelOverlay overlay;
     private readonly SessionHost host;
+
+    // The dashboard integrations, all off until the owner turns one on; the window is not modal, one at a time. UI thread only.
+    private readonly WindowsIntegrations integrations;
+    private IntegrationsWindow? integrationsWindow;
     private readonly RfcommServer server;
     private readonly PairedLinks pairedLinks = PairedLinks.ForCurrentUser();
     private readonly NetworkSettings networkSettings;
@@ -193,6 +199,7 @@ internal sealed class TrayContext : ApplicationContext
         sendFileRow.Click += (_, _) => PickAndSendFile();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
         securityRow.Click += (_, _) => ShowSecurity();
+        integrationsRow.Click += (_, _) => ShowIntegrations();
         networkRow.Click += (_, _) => ToggleNetwork(networkRow.Checked);
         firewallRow.Click += (_, _) => AllowFirewall(ReportFirewall);
         restartAdminRow.Click += (_, _) => RestartAsAdministrator();
@@ -245,6 +252,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(sendFileRow);
         menu.Items.Add(macrosRow);
         menu.Items.Add(securityRow);
+        menu.Items.Add(integrationsRow);
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(Row(Strings.Menu_Documentation, Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
         menu.Items.Add(settingsRow);
@@ -312,6 +320,16 @@ internal sealed class TrayContext : ApplicationContext
         clipboard = new WindowsClipboard(ui, () => clipboardSetting.Enabled);
         clipboard.Watch(OnLaptopCopy);
         clipboard.PhoneTextWritten += text => ui.Post(_ => history.Record(text, ClipSide.Phone), null);
+
+        // Opens only what the saved switches ask for: nothing at all for an owner who never turned one on. A connected plugin
+        // that an update or a moved Node.js left behind is re-stamped off this thread (no program runs while both agents are off).
+        integrations = new WindowsIntegrations(pin.Folder, Program.Version);
+        integrations.Trusted += () => ui.Post(_ => ReloadIntegrations(), null);
+        integrations.Start();
+        if (integrations.Settings.Flag(IntegrationSettings.Claude) || integrations.Settings.Flag(IntegrationSettings.Codex))
+        {
+            EnsureIntegrationsCurrent();
+        }
         host = new SessionHost(
             SetStatus,
             trust,
@@ -333,7 +351,8 @@ internal sealed class TrayContext : ApplicationContext
             OnSessionEnded,
             onFileArrived: path => PostReceiveEnd(() => OnReceived(path)),
             onFileProgress: PostReceiveProgress,
-            onFileFailed: (name, code) => PostReceiveEnd(() => OnReceiveFailed(name, code)));
+            onFileFailed: (name, code) => PostReceiveEnd(() => OnReceiveFailed(name, code)),
+            integrations: integrations);
 
         // Handlers run under the queue's lock: they only post to the toast, and never call back into the queue.
         toast = new TransferToast
@@ -1446,6 +1465,47 @@ internal sealed class TrayContext : ApplicationContext
             MessageBoxIcon.Error);
     }
 
+    /// <summary>The Integrations window, not modal: a second click brings the open one to the front.</summary>
+    private void ShowIntegrations()
+    {
+        if (integrationsWindow is { IsDisposed: false } open)
+        {
+            open.Activate();
+            return;
+        }
+
+        var window = new IntegrationsWindow(new IntegrationActions(
+            integrations.Settings,
+            integrations.SignIn,
+            integrations.Status,
+            integrations.ConnectAsync,
+            integrations.DisconnectAsync,
+            EnsureIntegrationsCurrent,
+            integrations.LastHeard,
+            integrations.LoginAsync,
+            text => _ = clipboard.SetTextQuietly(text),
+            Open,
+            integrations.Changed));
+        window.FormClosed += (_, _) => integrationsWindow = null;
+        integrationsWindow = window;
+        window.Show();
+    }
+
+    private void ReloadIntegrations()
+    {
+        if (integrationsWindow is { IsDisposed: false } open)
+        {
+            open.Reload();
+        }
+    }
+
+    /// <summary>Re-stamps a plugin left behind by an update off the UI thread, then shows the result in an open window.</summary>
+    private void EnsureIntegrationsCurrent() => _ = Task.Run(async () =>
+    {
+        await integrations.EnsureCurrentAsync();
+        ui.Post(_ => ReloadIntegrations(), null);
+    });
+
     /// <summary>
     /// The Security window, with connections refused while it is open: a connected phone is a keyboard and could
     /// otherwise answer it, or change the level it is held by. The window says so. This is also where trusted phones are
@@ -1708,6 +1768,8 @@ internal sealed class TrayContext : ApplicationContext
             sendPipe?.Dispose();
             macrosRow.Dispose();
             securityRow.Dispose();
+            integrationsWindow?.Dispose();
+            integrationsRow.Dispose();
             networkRow.Dispose();
             networkProblem.Dispose();
             firewallRow.Dispose();
@@ -1728,6 +1790,9 @@ internal sealed class TrayContext : ApplicationContext
 
             // After both servers, so no connection arrives once the sessions are ended.
             host.Dispose();
+
+            // After the sessions, which give their dashboards back first; closes the hook pipe and deletes hook.json.
+            integrations.Dispose();
             clipboard.Dispose();
             media.Dispose();
             brightness.Dispose();

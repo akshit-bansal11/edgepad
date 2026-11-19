@@ -5,6 +5,7 @@ using Edgepad.Annotation;
 using Edgepad.Blob;
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
+using Edgepad.Dashboard;
 using Edgepad.Foreground;
 using Edgepad.Gamepad;
 using Edgepad.Injection;
@@ -42,7 +43,8 @@ internal sealed class SessionHost(
     Action<Func<bool>> onEnded,
     Action<string>? onFileArrived = null,
     Action<string, ulong, ulong>? onFileProgress = null,
-    Action<string, XferCode>? onFileFailed = null) : IDisposable
+    Action<string, XferCode>? onFileFailed = null,
+    WindowsIntegrations? integrations = null) : IDisposable
 {
     // Joined at exit so the session's own cleanup, which releases held keys and buttons, gets to run.
     private static readonly TimeSpan ExitGrace = TimeSpan.FromSeconds(2);
@@ -174,7 +176,7 @@ internal sealed class SessionHost(
             var platform = new WindowsPlatform(injector, pad, speakers, microphone, brightness, media, display, overlay, annotator);
             var dispatcher = new Dispatcher(platform, macros);
             session = new Session(
-                link, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, foreground, identity, clipboard, shareClipboard, onMacroAdded, StatusFor(link), OnAdmitted, OnSessionEnded, LiveFor, path => onFileArrived?.Invoke(path), onFileProgress, onFileFailed);
+                link, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, foreground, identity, clipboard, shareClipboard, onMacroAdded, StatusFor(link), OnAdmitted, OnSessionEnded, LiveFor, path => onFileArrived?.Invoke(path), onFileProgress, onFileFailed, integrations);
 
             // A dedicated thread, not the thread pool: the read loop blocks for the life of the connection,
             // and input is injected from this thread directly, so nothing queues behind other work.

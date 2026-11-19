@@ -59,6 +59,10 @@
     <!-- The notices of every package and of the .NET runtime that the self-contained exe bundles, written by
          scripts/notices.sh in the release job just before the publish. Not committed: it follows the lock file. -->
     <EmbeddedResource Include="THIRD-PARTY-NOTICES.txt" LogicalName="Edgepad.THIRD-PARTY-NOTICES.txt" Condition="Exists('THIRD-PARTY-NOTICES.txt')" />
+    <!-- The Claude Code and Codex plugin (plugins/edgepad), each file named plugins/edgepad/<path>, which ResourcePluginSource
+         reads back when Connect stamps a copy: Connect needs no download, and a release cannot ship without it. WithCulture
+         off, so no file name is ever read as a culture. -->
+    <EmbeddedResource Include="..\..\..\plugins\edgepad\**\*" LogicalName="plugins/edgepad/%(RecursiveDir)%(Filename)%(Extension)" WithCulture="false" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>

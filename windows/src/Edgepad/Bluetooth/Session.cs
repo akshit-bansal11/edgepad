@@ -4,6 +4,7 @@ using Edgepad.Annotation;
 using Edgepad.Blob;
 using Edgepad.Capture;
 using Edgepad.Controls;
+using Edgepad.Dashboard;
 using Edgepad.Dispatch;
 using Edgepad.Foreground;
 using Edgepad.Gamepad;
@@ -52,7 +53,8 @@ internal sealed class Session(
     Func<Session, Session?> liveFor,
     Action<string> onFileArrived,
     Action<string, ulong, ulong>? onFileProgress = null,
-    Action<string, XferCode>? onFileFailed = null) : IDisposable
+    Action<string, XferCode>? onFileFailed = null,
+    WindowsIntegrations? integrations = null) : IDisposable
 {
     private const byte MutedFlag = 1;
     private const byte PlayingFlag = 1;
@@ -396,7 +398,31 @@ internal sealed class Session(
             features.Add(Feature.Clipboard);
         }
 
+        // The dashboard (stats, weather, Claude Code, Codex, GitHub) only while the owner has turned one of them on in the
+        // Integrations window: with every switch off nothing is made here and the phone hears what it always heard. A switch
+        // changed while connected reaches FEATURES at the next connection, as the clipboard's does.
+        var dash = integrations?.Attach(frame => Guarded(() => Send(frame)), blobs);
+        IReadOnlyList<string> unavailable = [];
+        if (dash is not null)
+        {
+            Keep(dash);
+            dispatcher.DashWatch = dash.Host.OnWatch;
+            if (dash.Broker is { } broker)
+            {
+                dispatcher.PermAnswer = broker.Answer;
+            }
+
+            features.AddRange(dash.Host.Features());
+            unavailable = dash.Host.Unavailable();
+        }
+
         Send(new Text((byte)TextKind.Features, string.Join('/', features)));
+        if (unavailable.Count > 0)
+        {
+            Send(new Text((byte)TextKind.Unavailable, string.Join('/', unavailable)));
+        }
+
+        dash?.Host.Start();
         ReportScreen();
 
         Watch(speakers, ControlId.Volume);
@@ -410,8 +436,8 @@ internal sealed class Session(
         Keep(macros.Watch(names => Guarded(() => Send(new Text((byte)TextKind.Macros, names)))));
         Send(new Text((byte)TextKind.MacroCap, IMacroRunner.MaxMacros.ToString(CultureInfo.InvariantCulture)));
 
-        // Whether a capture is recording: idle first, then every toggle. Windows has nothing unavailable (a feature it
-        // cannot do is left out of FEATURES), so TEXT 24 is never sent from here.
+        // Whether a capture is recording: idle first, then every toggle. A feature Windows cannot do is left out of FEATURES;
+        // TEXT 24 is sent above only for a dashboard switch that is on but cannot work (GitHub not signed in).
         dispatcher.CaptureStateReply = state => Guarded(() => Send(new Text((byte)TextKind.CaptureState, state)));
         Send(new Text((byte)TextKind.CaptureState, CaptureStateToken.Idle));
 
