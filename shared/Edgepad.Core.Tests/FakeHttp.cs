@@ -4,7 +4,7 @@ using System.Text;
 namespace Edgepad.Tests;
 
 /// <summary>A request as the fake server saw it, its body already read.</summary>
-internal sealed record SeenRequest(HttpMethod Method, Uri Uri, HttpRequestMessage Message, string Body)
+internal sealed record SeenRequest(HttpMethod Method, Uri Uri, HttpRequestMessage Message, string Body, string? ContentType)
 {
     public string? Header(string name) =>
         Message.Headers.TryGetValues(name, out var values) ? string.Join(",", values) : null;
@@ -26,7 +26,7 @@ internal sealed class FakeHttp(Func<SeenRequest, HttpResponseMessage> respond) :
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var body = request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken);
-        var seen = new SeenRequest(request.Method, request.RequestUri!, request, body);
+        var seen = new SeenRequest(request.Method, request.RequestUri!, request, body, request.Content?.Headers.ContentType?.MediaType);
         Seen.Add(seen);
         return respond(seen);
     }

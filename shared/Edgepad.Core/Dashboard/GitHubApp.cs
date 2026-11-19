@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Edgepad.Dashboard;
 
 /// <summary>The GitHub OAuth App Edgepad signs in through, and the fixed names and addresses that go with it.</summary>
@@ -34,6 +36,6 @@ internal static class GitHubApp
         clientId.Length is > 0 and <= MaxClientId && clientId.All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '_');
 
     /// <summary>A token GitHub could have issued: 1..255 ASCII letters, digits and underscores. Anything else is never stored or sent.</summary>
-    public static bool IsToken(string? token) =>
+    public static bool IsToken([NotNullWhen(true)] string? token) =>
         token is { Length: > 0 and <= MaxToken } && token.All(c => char.IsAsciiLetterOrDigit(c) || c == '_');
 }
