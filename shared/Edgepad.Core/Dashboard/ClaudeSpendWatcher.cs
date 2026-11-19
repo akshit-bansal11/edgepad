@@ -22,6 +22,9 @@ internal sealed class ClaudeSpendWatcher : IDisposable
     public static readonly TimeSpan Every = TimeSpan.FromSeconds(5);
     public static readonly TimeSpan RefreshEvery = TimeSpan.FromMinutes(1);
 
+    /// <summary>The cache file is written at most this often while scanning, and again on <see cref="Dispose"/>.</summary>
+    public static readonly TimeSpan SaveEvery = TimeSpan.FromMinutes(5);
+
     private const int WindowDays = 40;
     private const int CacheVersion = 1;
     private const long MaxCacheBytes = 64L * 1024 * 1024;
@@ -42,6 +45,7 @@ internal sealed class ClaudeSpendWatcher : IDisposable
     private bool due = true;
     private DateTimeOffset lastDone = DateTimeOffset.MinValue;
     private bool cacheDirty;
+    private DateTimeOffset cacheSaved = DateTimeOffset.MinValue;
     private bool logged;
     private volatile bool unpriced;
 
@@ -130,6 +134,15 @@ internal sealed class ClaudeSpendWatcher : IDisposable
             timer?.Dispose();
             timer = null;
         }
+
+        // After a running tick, so the cache it changed is the one written.
+        lock (pollGate)
+        {
+            if (cacheDirty)
+            {
+                SaveCache();
+            }
+        }
     }
 
     /// <summary>One tick. Public to the timer and to tests; never throws, never overlaps itself.</summary>
@@ -212,11 +225,12 @@ internal sealed class ClaudeSpendWatcher : IDisposable
             }
             else
             {
-                budget -= size;
+                var grown = hit is not null && hit.Size < size && hit.From == periods.From ? hit : null;
+                budget -= size - (grown?.Size ?? 0);
                 try
                 {
                     using var stream = open(file.FullName);
-                    rows = ClaudeSpend.SumFile(stream, periods.From);
+                    rows = (grown is null ? null : Appended(stream, grown, periods.From)) ?? ClaudeSpend.SumFile(stream, periods.From);
                 }
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException)
                 {
@@ -242,9 +256,10 @@ internal sealed class ClaudeSpendWatcher : IDisposable
             }
         }
 
-        if (cacheDirty)
+        if (cacheDirty && now - cacheSaved >= SaveEvery)
         {
             SaveCache();
+            cacheSaved = now;
         }
 
         if (!complete)
@@ -261,6 +276,33 @@ internal sealed class ClaudeSpendWatcher : IDisposable
 
         spend.Update(AgentToken.Claude, totals with { Unpriced = anyUnpriced }, now);
         return true;
+    }
+
+    /// <summary>
+    /// A transcript that only grew since it was cached: the cached rows plus those of the new bytes, read from the old end. Null
+    /// (read it whole) when the stream cannot seek or the old end was not a line end, as when Claude was mid-write.
+    /// </summary>
+    private static Dictionary<string, ClaudeRow>? Appended(Stream stream, CacheEntry old, string from)
+    {
+        if (!stream.CanSeek || old.Size <= 0 || stream.Length < old.Size)
+        {
+            return null;
+        }
+
+        stream.Seek(old.Size - 1, SeekOrigin.Begin);
+        if (stream.ReadByte() != '\n')
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+            return null;
+        }
+
+        var rows = new Dictionary<string, ClaudeRow>(old.Rows, StringComparer.Ordinal);
+        foreach (var (id, row) in ClaudeSpend.SumFile(stream, from))
+        {
+            rows[id] = row;
+        }
+
+        return rows;
     }
 
     // Every regular *.jsonl under projects/, links skipped.

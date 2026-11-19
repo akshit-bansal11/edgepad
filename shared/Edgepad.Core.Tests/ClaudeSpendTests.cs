@@ -187,6 +187,46 @@ public sealed class ClaudeSpendTests : IDisposable
     }
 
     [Fact]
+    public void ALineHalfWrittenAtTheLastReadIsCountedOnceComplete()
+    {
+        var second = Line("m4", Day(19), Sonnet, 100000, 10000);
+        var path = Transcript("p/s.jsonl", Line("m1", Day(19), Sonnet, 100000, 10000));
+        File.AppendAllText(path, second[..20]);
+        File.SetLastWriteTimeUtc(path, now.UtcDateTime.AddMinutes(-1));
+        Clock = now;
+        using var watcher = NewWatcher();
+        watcher.SetWatch(ClaudeSpendWatcher.AiBit);
+        watcher.Poll();
+        Assert.Equal(45, Spend.Snapshot().Single().CentsToday);
+
+        File.AppendAllText(path, second[20..] + "\n");
+        File.SetLastWriteTimeUtc(path, now.UtcDateTime);
+        Clock = now.AddMinutes(2);
+        watcher.Poll();
+        Assert.Equal(90, Spend.Snapshot().Single().CentsToday);
+    }
+
+    [Fact]
+    public void TheCacheIsWrittenAtMostEveryFiveMinutesAndOnDispose()
+    {
+        var path = Transcript("p/s.jsonl", Line("m1", Day(19), Sonnet, 100000, 10000));
+        Clock = now;
+        var watcher = NewWatcher();
+        watcher.SetWatch(ClaudeSpendWatcher.AiBit);
+        watcher.Poll();
+        var saved = File.ReadAllText(CachePath);
+
+        File.AppendAllText(path, Line("m4", Day(19), Sonnet, 100000, 10000) + "\n");
+        File.SetLastWriteTimeUtc(path, now.UtcDateTime);
+        Clock = now.AddMinutes(2);
+        watcher.Poll();
+        Assert.Equal(saved, File.ReadAllText(CachePath));
+
+        watcher.Dispose();
+        Assert.NotEqual(saved, File.ReadAllText(CachePath));
+    }
+
+    [Fact]
     public void TheCacheSurvivesARestartAndAChangedFileIsReadAgain()
     {
         var path = Transcript("p/s.jsonl", Line("m1", Day(19), Sonnet, 100000, 10000));
