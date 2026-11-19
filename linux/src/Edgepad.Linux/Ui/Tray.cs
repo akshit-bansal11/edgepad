@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using Edgepad.Dashboard;
 using Edgepad.Platform;
 using Edgepad.Updates;
 
@@ -33,7 +34,7 @@ internal sealed record TrayHooks(
 
 /// <summary>
 /// The tray icon and its menu, in the order every laptop uses: status, Update available, a problem row, then Wi-Fi and
-/// USB connections, Share clipboard, Start at login, Check for updates daily, Send a file…, Macros…, Security…, Documentation, Open log and Quit Edgepad.
+/// USB connections, Share clipboard, Start at login, Check for updates daily, Send a file…, Macros…, Integrations…, Security…, Documentation, Open log and Quit Edgepad.
 /// Every handler runs on the UI thread and none may throw: an exception there ends the whole app, and with it the
 /// Bluetooth service.
 /// </summary>
@@ -61,6 +62,7 @@ internal sealed class Tray : IDisposable
     private readonly NativeMenuItem updatesRow = Toggle(LinuxStrings.Menu_CheckUpdates);
     private readonly NativeMenuItem sendRow = new(LinuxStrings.Menu_SendFile);
     private readonly NativeMenuItem macrosRow = new(LinuxStrings.Menu_Macros);
+    private readonly NativeMenuItem integrationsRow = new(LinuxStrings.Menu_Integrations) { IsVisible = LinuxDashboard.Shared is not null };
     private readonly NativeMenuItem securityRow = new(LinuxStrings.Menu_Security);
     private readonly TrayIcon icon;
     private readonly Bus portal = Bus.OnSession();
@@ -83,6 +85,7 @@ internal sealed class Tray : IDisposable
         updatesRow.Click += (_, _) => Safe(hooks.ToggleUpdates, "Check for updates daily");
         sendRow.Click += (_, _) => Safe(hooks.SendFile, "Send a file");
         macrosRow.Click += (_, _) => Safe(hooks.Macros, "Macros");
+        integrationsRow.Click += (_, _) => Safe(() => LinuxDashboard.Shared?.ShowWindow(), "Integrations");
         securityRow.Click += (_, _) => Safe(hooks.Security, "Security");
         var docs = new NativeMenuItem(LinuxStrings.Menu_Documentation);
         docs.Click += (_, _) => Safe(() => OpenWithDesktop(DocumentationUrl, LinuxStrings.What_Documentation), "Documentation");
@@ -107,6 +110,7 @@ internal sealed class Tray : IDisposable
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(sendRow);
         menu.Add(macrosRow);
+        menu.Add(integrationsRow);
         menu.Add(securityRow);
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(docs);

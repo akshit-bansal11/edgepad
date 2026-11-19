@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Edgepad.Bluetooth;
+using Edgepad.Dashboard;
 using Edgepad.Net;
 using Edgepad.Platform;
 using Edgepad.Trust;
@@ -74,6 +75,12 @@ internal static class Program
         using var terminate = PosixSignalRegistration.Create(PosixSignal.SIGTERM, Stop);
         using var interrupt = PosixSignalRegistration.Create(PosixSignal.SIGINT, Stop);
         var exitCode = 0;
+
+        // The dashboard integrations, every one off until the owner turns it on in Integrations…; made before the first phone can
+        // connect, and disposed after the server (its sessions end first), which removes hook.json and the hook socket.
+        using var dashboard = new LinuxDashboard(config, Version);
+        LinuxDashboard.Shared = dashboard;
+        dashboard.Start();
         using (var server = new LinuxServer(trust, pin, shell.AskTrust, identity, shell.SetStatus))
         {
             shell.Attach(server);

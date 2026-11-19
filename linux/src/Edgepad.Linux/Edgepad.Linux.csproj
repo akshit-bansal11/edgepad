@@ -70,6 +70,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The Claude Code and Codex plugin, carried inside the app (the single file included) so Connect needs no download:
+         PluginInstaller stamps a copy per agent from these resources (ResourcePluginSource, names "plugins/edgepad/<path>").
+         WithCulture=false, so hooks.claude.json is never read as a satellite for a culture named "claude". -->
+    <EmbeddedResource Include="..\..\..\plugins\edgepad\**\*" LogicalName="plugins/edgepad/%(RecursiveDir)%(Filename)%(Extension)" WithCulture="false" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- The protocol, handshake, trust and dispatch code the laptop apps share. -->
     <ProjectReference Include="..\..\..\shared\Edgepad.Core\Edgepad.Core.csproj" />
   </ItemGroup>

@@ -1,5 +1,6 @@
 using Edgepad.Blob;
 using Edgepad.Capture;
+using Edgepad.Dashboard;
 using Edgepad.Dispatch;
 using Edgepad.Foreground;
 using Edgepad.Macros;
@@ -45,6 +46,7 @@ internal sealed class LinuxSession : IDisposable
     private PowerReporter? power;
     private ForegroundReporter? foreground;
     private volatile NotificationMonitor? notifications;
+    private DashboardLink? dashboard;
 
     // Which icon run may still send: each WANT_ICONS and Dispose move it on, and a run that sees it moved stops.
     private int iconRun;
@@ -210,7 +212,24 @@ internal sealed class LinuxSession : IDisposable
 
             dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
-            dispatcher.MacroWatch = startReporting(frames.Send, () => dispatcher.LastInputMs);
+
+            // Made before the reports start: the dashboard's link adds its tokens to FEATURES and UNAVAILABLE on their way out.
+            var sender = new BlobSender(frames.Send, link.Kind, () => dispatcher.LastInputMs, ended.Token);
+
+            // The dashboard: one host per phone, which samples, reads or polls nothing until the phone's DASH_WATCH asks, and with
+            // every integration off adds nothing to what is sent.
+            Action<Frame> report = frames.Send;
+            if (LinuxDashboard.Shared is { } shared)
+            {
+                var dash = new DashboardLink(shared, frames.Send, sender);
+                dashboard = dash;
+                dispatcher.DashWatch = dash.OnWatch;
+                dispatcher.PermAnswer = dash.Answer;
+                report = frame => frames.Send(dash.Annotate(frame));
+            }
+
+            dispatcher.MacroWatch = startReporting(report, () => dispatcher.LastInputMs);
+            dashboard?.Start();
 
             // TEXT 21: the app in front, from CONTROL 11. Wayland cannot see it, so the control stays unset there and is dropped and counted.
             foreground = new ForegroundReporter(new LinuxForeground(), text => frames.Send(new Text((byte)TextKind.ForegroundApp, text)));
@@ -232,7 +251,6 @@ internal sealed class LinuxSession : IDisposable
             // A shot that only reached the clipboard is found through the same tool, while a capture is being waited for.
             dispatcher.Capture = new CaptureToPhone(
                 new LinuxCaptureFolders(surface.Fingerprint, surface.Read, () => surface.Available), frames.Send, () => dispatcher.LastInputMs);
-            var sender = new BlobSender(frames.Send, link.Kind, () => dispatcher.LastInputMs, ended.Token);
             var sync = new ClipboardSync(new QuietClipboard(surface), sender, () => ClipboardSetting.Enabled, ended.Token);
             dispatcher.Clipboard = sync;
             _ = Task.Run(() => LinuxClipboard.Poll(surface.Fingerprint, sync, () => ClipboardSetting.Enabled, ended.Token));
@@ -321,6 +339,9 @@ internal sealed class LinuxSession : IDisposable
                     }
 
                     notifications?.Dispose();
+
+                    // Stops counting this phone, then ends its host: asks that waited on it go back to the agent's own prompt.
+                    dashboard?.Dispose();
                     receiver?.Dispose();
                     dispatcher.Capture?.Dispose();
                     if (dispatcher.Cadence.Summary() is { } cadence)
