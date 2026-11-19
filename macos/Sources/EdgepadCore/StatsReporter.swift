@@ -249,7 +249,7 @@ public final class StatsReporter {
     // second read starts while one is out, so a stuck one costs one worker and nothing else. The tick never waits.
     private func readDisksAway(generation mine: Int) {
         let source = self.source
-        runPing { [weak self] in
+        runDisks { [weak self] in
             let disks = self?.guarded({ try source.readDisks() })
             guard let self else { return }
             self.gate.lock()
@@ -292,7 +292,7 @@ public final class StatsReporter {
         pingRunning = true
         let mine = generation
         let source = self.source
-        runDisks { [weak self] in
+        runPing { [weak self] in
             let ms = source.ping()
             guard let self else { return }
             self.gate.lock()

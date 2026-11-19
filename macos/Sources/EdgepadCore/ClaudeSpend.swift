@@ -372,7 +372,13 @@ public final class ClaudeSpend {
         var pending = Data()
         var skipping = false
         while true {
-            guard let chunk = try? handle.read(upToCount: 1 << 20) else { return false }
+            // read(upToCount:) answers nil at the end of the file, so only a throw is a failed read.
+            let chunk: Data
+            do {
+                chunk = try handle.read(upToCount: 1 << 20) ?? Data()
+            } catch {
+                return false
+            }
             if chunk.isEmpty { break }
             var start = chunk.startIndex
             while let end = chunk[start...].firstIndex(of: UInt8(ascii: "\n")) {
