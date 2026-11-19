@@ -255,6 +255,7 @@ public sealed class CodexRolloutTests
         Assert.Equal(0, OpenAiPrices.Cents(price, default));
     }
 
+    // Counts only Read(byte[]): a span read on a MemoryStream subclass is routed through it, so counting both would count twice.
     private sealed class Counting(byte[] data) : MemoryStream(data)
     {
         public long BytesRead { get; private set; }
@@ -262,13 +263,6 @@ public sealed class CodexRolloutTests
         public override int Read(byte[] buffer, int offset, int count)
         {
             var n = base.Read(buffer, offset, count);
-            BytesRead += n;
-            return n;
-        }
-
-        public override int Read(Span<byte> buffer)
-        {
-            var n = base.Read(buffer);
             BytesRead += n;
             return n;
         }

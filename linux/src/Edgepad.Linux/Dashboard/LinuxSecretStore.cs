@@ -189,7 +189,8 @@ internal sealed class LinuxSecretStore(ISecretService service, string folder) : 
             }
 
             var lines = File.ReadAllText(path).Split('\n');
-            return lines.Length >= 2 && lines[0] == Header ? Decode(Convert.FromBase64String(lines[1].Trim())) : null;
+            // An empty second line decodes to "", which is no secret either.
+            return lines.Length >= 2 && lines[0] == Header && lines[1].Trim().Length > 0 ? Decode(Convert.FromBase64String(lines[1].Trim())) : null;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or FormatException)
         {
