@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
+  <string name="controls_system">النظام</string>
+  <string name="controls_ai">الذكاء الاصطناعي</string>
+  <string name="controls_github">GitHub</string>
+  <string name="controls_dash_off">فعّلها من قائمة Edgepad على الحاسوب المحمول.</string>
+  <string name="widgets_title">الأدوات</string>
+  <string name="widgets_hint">تُرسم خلف لوحة التتبع. اللمسات تمرّ عبرها.</string>
+  <string name="widget_clock">الساعة</string>
+  <string name="widget_weather">الطقس</string>
+  <string name="widget_system">النظام</string>
+  <string name="widget_network">الشبكة</string>
+  <string name="widget_ai">استخدام الذكاء الاصطناعي</string>
+  <string name="widget_need_laptop">اضبطها من قائمة Edgepad على الحاسوب المحمول.</string>
+  <string name="sys_title">النظام</string>
+  <string name="sys_cpu">المعالج</string>
+  <string name="sys_gpu">معالج الرسوميات</string>
+  <string name="sys_ram">الذاكرة</string>
+  <string name="sys_vram">ذاكرة الفيديو</string>
+  <string name="sys_disks">الأقراص</string>
+  <string name="sys_net">الشبكة</string>
+  <string name="sys_down">التنزيل</string>
+  <string name="sys_up">الرفع</string>
+  <string name="sys_ping">Ping</string>
+  <string name="sys_loss">فقدان الحزم</string>
+  <string name="sys_temp">الحرارة</string>
+  <string name="sys_power">الطاقة</string>
+  <string name="sys_free">%1$s متاحة</string>
+  <string name="sys_off">فعّل إحصاءات النظام من قائمة Edgepad على الحاسوب المحمول.</string>
+  <!-- Not translated: a dash in every locale. -->
+  <string name="sys_none" translatable="false">—</string>
+  <string name="wx_clear">صافٍ</string>
+  <string name="wx_cloudy">غائم</string>
+  <string name="wx_fog">ضباب</string>
+  <string name="wx_drizzle">رذاذ</string>
+  <string name="wx_rain">مطر</string>
+  <string name="wx_snow">ثلج</string>
+  <string name="wx_showers">زخات</string>
+  <string name="wx_storm">عاصفة رعدية</string>
+  <string name="wx_credit">بيانات الطقس من Open-Meteo.com</string>
+  <string name="wx_off">الطقس مُعطّل. اختر مدينة من قائمة Edgepad على الحاسوب المحمول.</string>
+  <string name="ai_title">الذكاء الاصطناعي</string>
+  <string name="ai_win_week">أسبوع</string>
+  <string name="ai_win_month">شهر</string>
+  <string name="ai_win_spend">الإنفاق</string>
+  <string name="ai_ctx">السياق</string>
+  <string name="ai_resets">يُعاد الضبط خلال %1$s</string>
+  <string name="ai_updated">حُدّث قبل %1$s</string>
+  <string name="ai_today">اليوم</string>
+  <string name="ai_week">هذا الأسبوع</string>
+  <string name="ai_month">هذا الشهر</string>
+  <string name="ai_tokens">%1$s رمز</string>
+  <string name="ai_estimate">مُقدَّر بأسعار واجهة البرمجة</string>
+  <string name="ai_unpriced">لبعض النماذج لا سعر بعد</string>
+  <string name="ai_sessions">الجلسات</string>
+  <string name="ai_none">لا شيء يُعرض بعد.</string>
+  <string name="ai_no_limits">لم يُبلَّغ عن حد للاستخدام</string>
+  <string name="ai_setup">اربط Claude Code أو Codex من قائمة Edgepad على الحاسوب المحمول.</string>
+  <string name="ai_need_mods">تحتاج حدود Claude إلى Claude Code مع تعديلات الإضافات.</string>
+  <string name="state_busy">يعمل</string>
+  <string name="state_wait">بانتظارك</string>
+  <string name="state_idle">خامل</string>
+  <string name="dur_min">%1$d د</string>
+  <string name="dur_hr">%1$d س</string>
+  <string name="dur_day">%1$d ي</string>
+  <!-- Not translated: product names. -->
+  <string name="agent_claude" translatable="false">Claude</string>
+  <string name="agent_codex" translatable="false">Codex</string>
+  <string name="gh_title">GitHub</string>
+  <string name="gh_review">طُلبت مراجعة</string>
+  <string name="gh_mine">طلبات السحب الخاصة بك</string>
+  <string name="gh_notifs">الإشعارات: %1$d</string>
+  <string name="gh_none">لا شيء هنا</string>
+  <string name="gh_ci_ok">نجحت الفحوصات</string>
+  <string name="gh_ci_fail">فشلت الفحوصات</string>
+  <string name="gh_ci_pending">الفحوصات قيد التشغيل</string>
+  <string name="gh_draft">مسودة</string>
+  <string name="gh_signin">سجّل الدخول إلى GitHub من قائمة Edgepad على الحاسوب المحمول.</string>
+  <string name="perm_title">%1$s يطلب</string>
+  <string name="perm_allow">سماح</string>
+  <string name="perm_deny">رفض</string>
+  <string name="perm_terminal">طويل جدًا للمراجعة هنا. أجب من الحاسوب المحمول.</string>
+  <string name="perm_scroll">مرّر إلى النهاية للسماح.</string>
+  <string name="perm_channel">الموافقات</string>
+  <string name="perm_notif">يحتاج وكيل ذكاء اصطناعي إلى موافقة.</string>
+</resources>

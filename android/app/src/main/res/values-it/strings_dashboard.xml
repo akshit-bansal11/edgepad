@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
+  <string name="controls_system">Sistema</string>
+  <string name="controls_ai">IA</string>
+  <string name="controls_github">GitHub</string>
+  <string name="controls_dash_off">Attivalo nel menu Edgepad sul tuo laptop.</string>
+  <string name="widgets_title">Widget</string>
+  <string name="widgets_hint">Disegnati dietro il trackpad. I tocchi passano attraverso.</string>
+  <string name="widget_clock">Orologio</string>
+  <string name="widget_weather">Meteo</string>
+  <string name="widget_system">Sistema</string>
+  <string name="widget_network">Rete</string>
+  <string name="widget_ai">Utilizzo IA</string>
+  <string name="widget_need_laptop">Configuralo nel menu Edgepad sul tuo laptop.</string>
+  <string name="sys_title">Sistema</string>
+  <string name="sys_cpu">CPU</string>
+  <string name="sys_gpu">GPU</string>
+  <string name="sys_ram">Memoria</string>
+  <string name="sys_vram">VRAM</string>
+  <string name="sys_disks">Dischi</string>
+  <string name="sys_net">Rete</string>
+  <string name="sys_down">Download</string>
+  <string name="sys_up">Upload</string>
+  <string name="sys_ping">Ping</string>
+  <string name="sys_loss">Perdita di pacchetti</string>
+  <string name="sys_temp">Temperatura</string>
+  <string name="sys_power">Potenza</string>
+  <string name="sys_free">%1$s liberi</string>
+  <string name="sys_off">Attiva le statistiche di sistema nel menu Edgepad sul tuo laptop.</string>
+  <!-- Not translated: a dash in every locale. -->
+  <string name="sys_none" translatable="false">—</string>
+  <string name="wx_clear">Sereno</string>
+  <string name="wx_cloudy">Nuvoloso</string>
+  <string name="wx_fog">Nebbia</string>
+  <string name="wx_drizzle">Pioviggine</string>
+  <string name="wx_rain">Pioggia</string>
+  <string name="wx_snow">Neve</string>
+  <string name="wx_showers">Rovesci</string>
+  <string name="wx_storm">Temporale</string>
+  <string name="wx_credit">Dati meteo di Open-Meteo.com</string>
+  <string name="wx_off">Il meteo è disattivato. Imposta una città nel menu Edgepad sul tuo laptop.</string>
+  <string name="ai_title">IA</string>
+  <string name="ai_win_week">Settimana</string>
+  <string name="ai_win_month">Mese</string>
+  <string name="ai_win_spend">Spesa</string>
+  <string name="ai_ctx">Contesto</string>
+  <string name="ai_resets">Si azzera tra %1$s</string>
+  <string name="ai_updated">Aggiornato %1$s fa</string>
+  <string name="ai_today">Oggi</string>
+  <string name="ai_week">Questa settimana</string>
+  <string name="ai_month">Questo mese</string>
+  <string name="ai_tokens">%1$s token</string>
+  <string name="ai_estimate">Stimato a prezzi API</string>
+  <string name="ai_unpriced">Alcuni modelli non hanno ancora un prezzo</string>
+  <string name="ai_sessions">Sessioni</string>
+  <string name="ai_none">Ancora niente da mostrare.</string>
+  <string name="ai_no_limits">Nessun limite di utilizzo segnalato</string>
+  <string name="ai_setup">Collega Claude Code o Codex nel menu Edgepad sul tuo laptop.</string>
+  <string name="ai_need_mods">I limiti di Claude richiedono Claude Code con le mod dei plugin.</string>
+  <string name="state_busy">In esecuzione</string>
+  <string name="state_wait">In attesa di te</string>
+  <string name="state_idle">Inattivo</string>
+  <string name="dur_min">%1$d min</string>
+  <string name="dur_hr">%1$d h</string>
+  <string name="dur_day">%1$d g</string>
+  <!-- Not translated: product names. -->
+  <string name="agent_claude" translatable="false">Claude</string>
+  <string name="agent_codex" translatable="false">Codex</string>
+  <string name="gh_title">GitHub</string>
+  <string name="gh_review">Revisione richiesta</string>
+  <string name="gh_mine">Le tue pull request</string>
+  <string name="gh_notifs">Notifiche: %1$d</string>
+  <string name="gh_none">Niente qui</string>
+  <string name="gh_ci_ok">Controlli superati</string>
+  <string name="gh_ci_fail">Controlli falliti</string>
+  <string name="gh_ci_pending">Controlli in corso</string>
+  <string name="gh_draft">Bozza</string>
+  <string name="gh_signin">Accedi a GitHub nel menu Edgepad sul tuo laptop.</string>
+  <string name="perm_title">%1$s chiede</string>
+  <string name="perm_allow">Consenti</string>
+  <string name="perm_deny">Nega</string>
+  <string name="perm_terminal">Troppo lungo da controllare qui. Rispondi sul tuo laptop.</string>
+  <string name="perm_scroll">Scorri fino alla fine per consentire.</string>
+  <string name="perm_channel">Approvazioni</string>
+  <string name="perm_notif">Un agente IA ha bisogno di approvazione.</string>
+</resources>

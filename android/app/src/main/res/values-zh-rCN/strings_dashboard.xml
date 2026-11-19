@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
+  <string name="controls_system">系统</string>
+  <string name="controls_ai">AI</string>
+  <string name="controls_github">GitHub</string>
+  <string name="controls_dash_off">在笔记本电脑的 Edgepad 菜单中开启。</string>
+  <string name="widgets_title">小组件</string>
+  <string name="widgets_hint">显示在触控板后面。触摸会穿透。</string>
+  <string name="widget_clock">时钟</string>
+  <string name="widget_weather">天气</string>
+  <string name="widget_system">系统</string>
+  <string name="widget_network">网络</string>
+  <string name="widget_ai">AI 用量</string>
+  <string name="widget_need_laptop">在笔记本电脑的 Edgepad 菜单中设置。</string>
+  <string name="sys_title">系统</string>
+  <string name="sys_cpu">CPU</string>
+  <string name="sys_gpu">GPU</string>
+  <string name="sys_ram">内存</string>
+  <string name="sys_vram">显存</string>
+  <string name="sys_disks">磁盘</string>
+  <string name="sys_net">网络</string>
+  <string name="sys_down">下载</string>
+  <string name="sys_up">上传</string>
+  <string name="sys_ping">Ping</string>
+  <string name="sys_loss">丢包率</string>
+  <string name="sys_temp">温度</string>
+  <string name="sys_power">功耗</string>
+  <string name="sys_free">剩余 %1$s</string>
+  <string name="sys_off">在笔记本电脑的 Edgepad 菜单中开启系统统计。</string>
+  <!-- Not translated: a dash in every locale. -->
+  <string name="sys_none" translatable="false">—</string>
+  <string name="wx_clear">晴</string>
+  <string name="wx_cloudy">多云</string>
+  <string name="wx_fog">雾</string>
+  <string name="wx_drizzle">毛毛雨</string>
+  <string name="wx_rain">雨</string>
+  <string name="wx_snow">雪</string>
+  <string name="wx_showers">阵雨</string>
+  <string name="wx_storm">雷暴</string>
+  <string name="wx_credit">天气数据来自 Open-Meteo.com</string>
+  <string name="wx_off">天气已关闭。在笔记本电脑的 Edgepad 菜单中设置城市。</string>
+  <string name="ai_title">AI</string>
+  <string name="ai_win_week">周</string>
+  <string name="ai_win_month">月</string>
+  <string name="ai_win_spend">花费</string>
+  <string name="ai_ctx">上下文</string>
+  <string name="ai_resets">%1$s后重置</string>
+  <string name="ai_updated">%1$s前更新</string>
+  <string name="ai_today">今天</string>
+  <string name="ai_week">本周</string>
+  <string name="ai_month">本月</string>
+  <string name="ai_tokens">%1$s 个词元</string>
+  <string name="ai_estimate">按 API 价格估算</string>
+  <string name="ai_unpriced">部分模型尚无价格</string>
+  <string name="ai_sessions">会话</string>
+  <string name="ai_none">暂无内容。</string>
+  <string name="ai_no_limits">未报告用量上限</string>
+  <string name="ai_setup">在笔记本电脑的 Edgepad 菜单中连接 Claude Code 或 Codex。</string>
+  <string name="ai_need_mods">Claude 用量上限需要安装了插件模组的 Claude Code。</string>
+  <string name="state_busy">工作中</string>
+  <string name="state_wait">等待你处理</string>
+  <string name="state_idle">空闲</string>
+  <string name="dur_min">%1$d 分钟</string>
+  <string name="dur_hr">%1$d 小时</string>
+  <string name="dur_day">%1$d 天</string>
+  <!-- Not translated: product names. -->
+  <string name="agent_claude" translatable="false">Claude</string>
+  <string name="agent_codex" translatable="false">Codex</string>
+  <string name="gh_title">GitHub</string>
+  <string name="gh_review">请求审查</string>
+  <string name="gh_mine">你的拉取请求</string>
+  <string name="gh_notifs">通知：%1$d</string>
+  <string name="gh_none">这里没有内容</string>
+  <string name="gh_ci_ok">检查已通过</string>
+  <string name="gh_ci_fail">检查失败</string>
+  <string name="gh_ci_pending">检查进行中</string>
+  <string name="gh_draft">草稿</string>
+  <string name="gh_signin">在笔记本电脑的 Edgepad 菜单中登录 GitHub。</string>
+  <string name="perm_title">%1$s 请求确认</string>
+  <string name="perm_allow">允许</string>
+  <string name="perm_deny">拒绝</string>
+  <string name="perm_terminal">内容太长，无法在此查看。请在笔记本电脑上回答。</string>
+  <string name="perm_scroll">滚动到末尾即可允许。</string>
+  <string name="perm_channel">审批</string>
+  <string name="perm_notif">AI 代理需要审批。</string>
+</resources>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
+  <string name="controls_system">시스템</string>
+  <string name="controls_ai">AI</string>
+  <string name="controls_github">GitHub</string>
+  <string name="controls_dash_off">노트북의 Edgepad 메뉴에서 켜 주세요.</string>
+  <string name="widgets_title">위젯</string>
+  <string name="widgets_hint">트랙패드 뒤에 그려집니다. 터치는 그대로 통과합니다.</string>
+  <string name="widget_clock">시계</string>
+  <string name="widget_weather">날씨</string>
+  <string name="widget_system">시스템</string>
+  <string name="widget_network">네트워크</string>
+  <string name="widget_ai">AI 사용량</string>
+  <string name="widget_need_laptop">노트북의 Edgepad 메뉴에서 설정해 주세요.</string>
+  <string name="sys_title">시스템</string>
+  <string name="sys_cpu">CPU</string>
+  <string name="sys_gpu">GPU</string>
+  <string name="sys_ram">메모리</string>
+  <string name="sys_vram">VRAM</string>
+  <string name="sys_disks">디스크</string>
+  <string name="sys_net">네트워크</string>
+  <string name="sys_down">다운로드</string>
+  <string name="sys_up">업로드</string>
+  <string name="sys_ping">Ping</string>
+  <string name="sys_loss">패킷 손실</string>
+  <string name="sys_temp">온도</string>
+  <string name="sys_power">전력</string>
+  <string name="sys_free">%1$s 사용 가능</string>
+  <string name="sys_off">노트북의 Edgepad 메뉴에서 시스템 통계를 켜 주세요.</string>
+  <!-- Not translated: a dash in every locale. -->
+  <string name="sys_none" translatable="false">—</string>
+  <string name="wx_clear">맑음</string>
+  <string name="wx_cloudy">흐림</string>
+  <string name="wx_fog">안개</string>
+  <string name="wx_drizzle">이슬비</string>
+  <string name="wx_rain">비</string>
+  <string name="wx_snow">눈</string>
+  <string name="wx_showers">소나기</string>
+  <string name="wx_storm">뇌우</string>
+  <string name="wx_credit">날씨 데이터: Open-Meteo.com</string>
+  <string name="wx_off">날씨가 꺼져 있습니다. 노트북의 Edgepad 메뉴에서 도시를 설정해 주세요.</string>
+  <string name="ai_title">AI</string>
+  <string name="ai_win_week">주</string>
+  <string name="ai_win_month">월</string>
+  <string name="ai_win_spend">지출</string>
+  <string name="ai_ctx">컨텍스트</string>
+  <string name="ai_resets">%1$s 후 초기화</string>
+  <string name="ai_updated">%1$s 전 업데이트</string>
+  <string name="ai_today">오늘</string>
+  <string name="ai_week">이번 주</string>
+  <string name="ai_month">이번 달</string>
+  <string name="ai_tokens">토큰 %1$s개</string>
+  <string name="ai_estimate">API 가격 기준 추정</string>
+  <string name="ai_unpriced">일부 모델은 아직 가격이 없습니다</string>
+  <string name="ai_sessions">세션</string>
+  <string name="ai_none">아직 표시할 내용이 없습니다.</string>
+  <string name="ai_no_limits">보고된 사용 한도가 없습니다</string>
+  <string name="ai_setup">노트북의 Edgepad 메뉴에서 Claude Code 또는 Codex를 연결해 주세요.</string>
+  <string name="ai_need_mods">Claude 한도를 보려면 플러그인 mod가 적용된 Claude Code가 필요합니다.</string>
+  <string name="state_busy">작업 중</string>
+  <string name="state_wait">응답 대기 중</string>
+  <string name="state_idle">대기</string>
+  <string name="dur_min">%1$d분</string>
+  <string name="dur_hr">%1$d시간</string>
+  <string name="dur_day">%1$d일</string>
+  <!-- Not translated: product names. -->
+  <string name="agent_claude" translatable="false">Claude</string>
+  <string name="agent_codex" translatable="false">Codex</string>
+  <string name="gh_title">GitHub</string>
+  <string name="gh_review">검토 요청됨</string>
+  <string name="gh_mine">내 풀 리퀘스트</string>
+  <string name="gh_notifs">알림: %1$d개</string>
+  <string name="gh_none">여기에는 아무것도 없습니다</string>
+  <string name="gh_ci_ok">검사 통과</string>
+  <string name="gh_ci_fail">검사 실패</string>
+  <string name="gh_ci_pending">검사 진행 중</string>
+  <string name="gh_draft">초안</string>
+  <string name="gh_signin">노트북의 Edgepad 메뉴에서 GitHub에 로그인해 주세요.</string>
+  <string name="perm_title">%1$s 요청</string>
+  <string name="perm_allow">허용</string>
+  <string name="perm_deny">거부</string>
+  <string name="perm_terminal">여기서 확인하기엔 깁니다. 노트북에서 응답해 주세요.</string>
+  <string name="perm_scroll">끝까지 스크롤하면 허용할 수 있습니다.</string>
+  <string name="perm_channel">승인</string>
+  <string name="perm_notif">AI 에이전트가 승인을 기다리고 있습니다.</string>
+</resources>

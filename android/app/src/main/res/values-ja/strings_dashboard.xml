@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
+  <string name="controls_system">システム</string>
+  <string name="controls_ai">AI</string>
+  <string name="controls_github">GitHub</string>
+  <string name="controls_dash_off">ノートパソコンの Edgepad メニューでオンにしてください。</string>
+  <string name="widgets_title">ウィジェット</string>
+  <string name="widgets_hint">トラックパッドの後ろに表示されます。タッチは通り抜けます。</string>
+  <string name="widget_clock">時計</string>
+  <string name="widget_weather">天気</string>
+  <string name="widget_system">システム</string>
+  <string name="widget_network">ネットワーク</string>
+  <string name="widget_ai">AI の使用状況</string>
+  <string name="widget_need_laptop">ノートパソコンの Edgepad メニューで設定してください。</string>
+  <string name="sys_title">システム</string>
+  <string name="sys_cpu">CPU</string>
+  <string name="sys_gpu">GPU</string>
+  <string name="sys_ram">メモリ</string>
+  <string name="sys_vram">VRAM</string>
+  <string name="sys_disks">ディスク</string>
+  <string name="sys_net">ネットワーク</string>
+  <string name="sys_down">ダウンロード</string>
+  <string name="sys_up">アップロード</string>
+  <string name="sys_ping">Ping</string>
+  <string name="sys_loss">パケット損失</string>
+  <string name="sys_temp">温度</string>
+  <string name="sys_power">電力</string>
+  <string name="sys_free">%1$s の空き</string>
+  <string name="sys_off">ノートパソコンの Edgepad メニューでシステム統計をオンにしてください。</string>
+  <!-- Not translated: a dash in every locale. -->
+  <string name="sys_none" translatable="false">—</string>
+  <string name="wx_clear">晴れ</string>
+  <string name="wx_cloudy">くもり</string>
+  <string name="wx_fog">霧</string>
+  <string name="wx_drizzle">霧雨</string>
+  <string name="wx_rain">雨</string>
+  <string name="wx_snow">雪</string>
+  <string name="wx_showers">にわか雨</string>
+  <string name="wx_storm">雷雨</string>
+  <string name="wx_credit">天気データ: Open-Meteo.com</string>
+  <string name="wx_off">天気はオフです。ノートパソコンの Edgepad メニューで都市を設定してください。</string>
+  <string name="ai_title">AI</string>
+  <string name="ai_win_week">週</string>
+  <string name="ai_win_month">月</string>
+  <string name="ai_win_spend">支出</string>
+  <string name="ai_ctx">コンテキスト</string>
+  <string name="ai_resets">%1$s後にリセット</string>
+  <string name="ai_updated">%1$s前に更新</string>
+  <string name="ai_today">今日</string>
+  <string name="ai_week">今週</string>
+  <string name="ai_month">今月</string>
+  <string name="ai_tokens">%1$s トークン</string>
+  <string name="ai_estimate">API 料金での概算</string>
+  <string name="ai_unpriced">料金が未設定のモデルがあります</string>
+  <string name="ai_sessions">セッション</string>
+  <string name="ai_none">まだ表示するものがありません。</string>
+  <string name="ai_no_limits">使用上限は報告されていません</string>
+  <string name="ai_setup">ノートパソコンの Edgepad メニューで Claude Code または Codex を接続してください。</string>
+  <string name="ai_need_mods">Claude の上限表示には、プラグイン mod を入れた Claude Code が必要です。</string>
+  <string name="state_busy">作業中</string>
+  <string name="state_wait">あなたの操作待ち</string>
+  <string name="state_idle">待機中</string>
+  <string name="dur_min">%1$d 分</string>
+  <string name="dur_hr">%1$d 時間</string>
+  <string name="dur_day">%1$d 日</string>
+  <!-- Not translated: product names. -->
+  <string name="agent_claude" translatable="false">Claude</string>
+  <string name="agent_codex" translatable="false">Codex</string>
+  <string name="gh_title">GitHub</string>
+  <string name="gh_review">レビュー依頼</string>
+  <string name="gh_mine">あなたのプルリクエスト</string>
+  <string name="gh_notifs">通知: %1$d 件</string>
+  <string name="gh_none">ここには何もありません</string>
+  <string name="gh_ci_ok">チェック成功</string>
+  <string name="gh_ci_fail">チェック失敗</string>
+  <string name="gh_ci_pending">チェック実行中</string>
+  <string name="gh_draft">下書き</string>
+  <string name="gh_signin">ノートパソコンの Edgepad メニューで GitHub にサインインしてください。</string>
+  <string name="perm_title">%1$s が確認を求めています</string>
+  <string name="perm_allow">許可</string>
+  <string name="perm_deny">拒否</string>
+  <string name="perm_terminal">ここで確認するには長すぎます。ノートパソコンで回答してください。</string>
+  <string name="perm_scroll">最後までスクロールすると許可できます。</string>
+  <string name="perm_channel">承認</string>
+  <string name="perm_notif">AI エージェントが承認を必要としています。</string>
+</resources>

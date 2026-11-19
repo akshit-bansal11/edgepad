@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
+  <string name="controls_system">Sistem</string>
+  <string name="controls_ai">Yapay zeka</string>
+  <string name="controls_github">GitHub</string>
+  <string name="controls_dash_off">Dizüstü bilgisayarınızdaki Edgepad menüsünden açın.</string>
+  <string name="widgets_title">Widget’lar</string>
+  <string name="widgets_hint">Dokunmatik yüzeyin arkasında çizilir. Dokunuşlar geçer.</string>
+  <string name="widget_clock">Saat</string>
+  <string name="widget_weather">Hava durumu</string>
+  <string name="widget_system">Sistem</string>
+  <string name="widget_network">Ağ</string>
+  <string name="widget_ai">Yapay zeka kullanımı</string>
+  <string name="widget_need_laptop">Dizüstü bilgisayarınızdaki Edgepad menüsünden ayarlayın.</string>
+  <string name="sys_title">Sistem</string>
+  <string name="sys_cpu">CPU</string>
+  <string name="sys_gpu">GPU</string>
+  <string name="sys_ram">Bellek</string>
+  <string name="sys_vram">VRAM</string>
+  <string name="sys_disks">Diskler</string>
+  <string name="sys_net">Ağ</string>
+  <string name="sys_down">İndirme</string>
+  <string name="sys_up">Yükleme</string>
+  <string name="sys_ping">Ping</string>
+  <string name="sys_loss">Paket kaybı</string>
+  <string name="sys_temp">Sıcaklık</string>
+  <string name="sys_power">Güç</string>
+  <string name="sys_free">%1$s boş</string>
+  <string name="sys_off">Dizüstü bilgisayarınızdaki Edgepad menüsünden sistem istatistiklerini açın.</string>
+  <!-- Not translated: a dash in every locale. -->
+  <string name="sys_none" translatable="false">—</string>
+  <string name="wx_clear">Açık</string>
+  <string name="wx_cloudy">Bulutlu</string>
+  <string name="wx_fog">Sis</string>
+  <string name="wx_drizzle">Çiseleme</string>
+  <string name="wx_rain">Yağmur</string>
+  <string name="wx_snow">Kar</string>
+  <string name="wx_showers">Sağanak</string>
+  <string name="wx_storm">Gök gürültülü fırtına</string>
+  <string name="wx_credit">Hava durumu verileri: Open-Meteo.com</string>
+  <string name="wx_off">Hava durumu kapalı. Dizüstü bilgisayarınızdaki Edgepad menüsünden bir şehir seçin.</string>
+  <string name="ai_title">Yapay zeka</string>
+  <string name="ai_win_week">Hafta</string>
+  <string name="ai_win_month">Ay</string>
+  <string name="ai_win_spend">Harcama</string>
+  <string name="ai_ctx">Bağlam</string>
+  <string name="ai_resets">%1$s içinde sıfırlanır</string>
+  <string name="ai_updated">%1$s önce güncellendi</string>
+  <string name="ai_today">Bugün</string>
+  <string name="ai_week">Bu hafta</string>
+  <string name="ai_month">Bu ay</string>
+  <string name="ai_tokens">%1$s token</string>
+  <string name="ai_estimate">API fiyatlarına göre tahmini</string>
+  <string name="ai_unpriced">Bazı modellerin henüz fiyatı yok</string>
+  <string name="ai_sessions">Oturumlar</string>
+  <string name="ai_none">Henüz gösterilecek bir şey yok.</string>
+  <string name="ai_no_limits">Bildirilen bir kullanım sınırı yok</string>
+  <string name="ai_setup">Dizüstü bilgisayarınızdaki Edgepad menüsünden Claude Code veya Codex’i bağlayın.</string>
+  <string name="ai_need_mods">Claude sınırları için eklenti modları olan Claude Code gerekir.</string>
+  <string name="state_busy">Çalışıyor</string>
+  <string name="state_wait">Sizi bekliyor</string>
+  <string name="state_idle">Boşta</string>
+  <string name="dur_min">%1$d dk</string>
+  <string name="dur_hr">%1$d sa</string>
+  <string name="dur_day">%1$d g</string>
+  <!-- Not translated: product names. -->
+  <string name="agent_claude" translatable="false">Claude</string>
+  <string name="agent_codex" translatable="false">Codex</string>
+  <string name="gh_title">GitHub</string>
+  <string name="gh_review">İnceleme istendi</string>
+  <string name="gh_mine">Pull request’leriniz</string>
+  <string name="gh_notifs">Bildirimler: %1$d</string>
+  <string name="gh_none">Burada hiçbir şey yok</string>
+  <string name="gh_ci_ok">Kontroller geçti</string>
+  <string name="gh_ci_fail">Kontroller başarısız</string>
+  <string name="gh_ci_pending">Kontroller çalışıyor</string>
+  <string name="gh_draft">Taslak</string>
+  <string name="gh_signin">Dizüstü bilgisayarınızdaki Edgepad menüsünden GitHub ile oturum açın.</string>
+  <string name="perm_title">%1$s soruyor</string>
+  <string name="perm_allow">İzin ver</string>
+  <string name="perm_deny">Reddet</string>
+  <string name="perm_terminal">Burada kontrol etmek için çok uzun. Dizüstü bilgisayarınızdan yanıtlayın.</string>
+  <string name="perm_scroll">İzin vermek için sona kadar kaydırın.</string>
+  <string name="perm_channel">Onaylar</string>
+  <string name="perm_notif">Bir yapay zeka aracısının onaya ihtiyacı var.</string>
+</resources>
