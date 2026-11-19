@@ -11,7 +11,7 @@
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "\"__APP__\" --hook codex session", "timeout": 5 }
+          { "type": "command", "command": "\"__APP__\" --hook codex session", "timeout": 5, "async": true }
         ]
       }
     ]

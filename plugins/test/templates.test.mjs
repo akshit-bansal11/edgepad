@@ -74,3 +74,15 @@ test('relay.ts imports only types', () => {
     assert.ok(lines.length > 0)
     for (const line of lines) assert.match(line, /^import type /)
 })
+
+// Claude Code and Codex wait on a hook that is not async, so every event but the approval runs in the background:
+// starting the app must never stall a prompt, a reply or a session.
+test('only the permission hooks are waited on', () => {
+    for (const f of ['hooks/hooks.claude.json', 'hooks/hooks.codex.json']) {
+        for (const [event, groups] of Object.entries(JSON.parse(read(f)).hooks)) {
+            for (const h of groups.flatMap(g => g.hooks)) {
+                assert.equal(h.async === true, event !== 'PermissionRequest', `${f} ${event}`)
+            }
+        }
+    }
+})
