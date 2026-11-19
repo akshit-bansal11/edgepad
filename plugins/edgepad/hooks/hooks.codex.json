@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "\"__NODE__\" \"__ROOT__/scripts/edgepad-hook.mjs\" codex perm", "timeout": 120 }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"__NODE__\" \"__ROOT__/scripts/edgepad-hook.mjs\" codex session", "timeout": 5 }
+        ]
+      }
+    ]
+  }
+}
