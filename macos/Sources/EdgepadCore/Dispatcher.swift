@@ -86,6 +86,14 @@ public final class Dispatcher {
     /// XFER_STATUS is dropped and counted.
     public var sending: TransferSender?
 
+    /// Told the phone's DASH_WATCH, 0 to 31. Set by the session once it names a dashboard feature; without one, or for
+    /// a larger value, DASH_WATCH is dropped and counted.
+    public var dashWatch: ((Int) -> Void)?
+
+    /// Takes the phone's PERM_ANSWER and says whether an approval waited for it. Set by the session like `dashWatch`;
+    /// without one, or for an answer nothing waits for, the frame is dropped and counted.
+    public var permAnswer: ((String) -> Bool)?
+
     /// When the phone last sent input, by system uptime: a capture on its way slows down for it.
     public private(set) var lastInput: TimeInterval = 0
 
@@ -144,6 +152,10 @@ public final class Dispatcher {
             if kind == TextKind.appAdd.rawValue {
                 // The one phone string that can end in a macro, and it is only ever a token: see `AppPicker`.
                 return addApp(value)
+            }
+            if kind == TextKind.permAnswer.rawValue {
+                // Exactly `id/a` or `id/d` for an approval still waiting; the broker refuses anything else.
+                return permAnswer?(value) ?? false
             }
             guard kind == TextKind.type.rawValue else { return false }
             input.type(value)
@@ -393,8 +405,10 @@ public final class Dispatcher {
             foregroundWatch(value == 1)
             return true
         case .dashWatch:
-            // The dashboard is not built on the Mac yet, so it is dropped and counted.
-            return false
+            // A bit mask of what the phone draws; anything over 31 is dropped and counted.
+            guard let dashWatch, value <= 31 else { return false }
+            dashWatch(value)
+            return true
         }
     }
 }

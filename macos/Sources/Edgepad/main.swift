@@ -1,4 +1,11 @@
 import AppKit
+import EdgepadCore
+
+// A Claude Code or Codex hook runs this executable as `--hook <agent> <kind>`: answered and gone before anything of the
+// app starts (no single-instance check, no menu bar item, no window), and always with exit code 0.
+if let hook = HookClient.hookArguments(Array(CommandLine.arguments.dropFirst())) {
+    exit(HookClient.runConsole(hook))
+}
 
 let delegate = AppDelegate()
 let application = NSApplication.shared

@@ -71,6 +71,18 @@ for s in Sources/Edgepad/Resources/*.lproj/InfoPlist.strings; do
     fi
 done
 
+# The Claude Code and Codex plugin the Integrations window installs: its templates are stamped per agent at Connect
+# (PluginStamp). Its hooks run this app (`--hook`), so the Node scripts are left out: nobody needs Node. Missing, the
+# build stops: Connect would have nothing to install.
+plugin="../plugins/edgepad"
+if [ ! -f "$plugin/hooks/hooks.claude.json" ] || [ ! -f "$plugin/hooks/hooks.codex.json" ]; then
+    echo "bundle.sh: plugins/edgepad is missing or has no hooks templates" >&2
+    exit 1
+fi
+mkdir -p "$app/Contents/Resources/plugins"
+cp -R "$plugin" "$app/Contents/Resources/plugins/edgepad"
+rm -rf "$app/Contents/Resources/plugins/edgepad/scripts"
+
 # CFBundleVersion takes numbers only, so a draft's "-draft.45" suffix stays on the display version alone.
 # NSLocalNetworkUsageDescription and NSBonjourServices are for the Wi-Fi link's Bonjour listener. Whether macOS asks
 # them of an app that only publishes a service is unverified; with them the Local Network prompt has a reason to show.

@@ -45,6 +45,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let networkSettings = NetworkSettings.forCurrentUser()
     private var statusItem: NSStatusItem?
     private var host: SessionHost?
+    /// The Integrations window's switches and what they run; nothing runs while every one is off.
+    private var dashboard: MacDashboard?
     /// Holds the Mac off while another user is switched in or the screen is locked; started once at launch.
     private var sessionWatch: SessionWatch?
     private var server: RfcommServer?
@@ -140,6 +142,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             let since = lastConnected.generation
             DispatchQueue.global(qos: .utility).async { lastConnected.record(address, since: since) }
         }
+        // Before either server starts, so every phone that goes live gets its side of the integrations.
+        let dashboard = MacDashboard(version: runningVersion)
+        dashboard.changed = { [weak host] in host?.dashboardChanged() }
+        host.dashboard = dashboard
+        dashboard.start()
+        self.dashboard = dashboard
         self.host = host
         let watch = SessionWatch(
             hold: { [weak self] in self?.host?.holdOff() }, resume: { [weak self] in self?.host?.resume() })
@@ -361,6 +369,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         network?.stop()
         server?.stop()
         host?.stop()
+        // After the phones: hook.json and the socket go, so a hook finds nothing and the agent asks as usual.
+        dashboard?.stop()
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
@@ -413,6 +423,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 ? item(tr("Menu_SendFile", "Send a file…"), #selector(sendFile))
                 : disabled(tr("Menu_SendFileNoPhone", "Send a file… (no phone connected)")))
         menu.addItem(item(tr("Menu_Macros", "Macros…"), #selector(showMacros)))
+        menu.addItem(item(IntegrationsWindow.menuTitle, #selector(showIntegrations)))
         let names = SecurityPanel.levelNames
         let level = names.indices.contains(pin.level - 1) ? names[pin.level - 1] : ""
         menu.addItem(item(tr("Menu_Security", "Security… (%1$@)", level), #selector(showSecurity)))
@@ -813,6 +824,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case .sessionEnded:
             return tr("Xfer_SessionEnded", "The phone disconnected before %1$@ was sent", name)
         }
+    }
+
+    @objc private func showIntegrations() {
+        dashboard?.showWindow()
     }
 
     @objc private func showMacros() {

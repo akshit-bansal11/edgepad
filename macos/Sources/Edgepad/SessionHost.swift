@@ -87,6 +87,15 @@ final class SessionHost {
     /// Told whenever the owner holds phones off or forgets them, so whatever is still pairing ends with it.
     var onHold: (() -> Void)?
 
+    /// The integrations (stats, weather, Claude Code, Codex, GitHub); each live phone gets its own side of them. Nil
+    /// leaves sessions exactly as they were before the dashboard.
+    var dashboard: MacDashboard?
+
+    /// An Integrations switch moved: the phone in use is told what it can show now.
+    func dashboardChanged() {
+        current?.dashboardChanged()
+    }
+
     /// `pin` is the store the owner's Security panel changes, so the lockout counts and the check that a PIN changed
     /// mid-answer see one another.
     init(
@@ -179,6 +188,11 @@ final class SessionHost {
         dispatcher.endPerform = MacEndPower.perform
         let ask = askTrust
         let status = onStatus
+        // Made only once the phone is live, so a connection still in its handshake is never counted as a phone.
+        var makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)?
+        if let dashboard {
+            makeDashboard = { send in dashboard.newLink(send: send, blobs: sender) }
+        }
         let session = Session(
             address: address,
             link: link,
@@ -206,7 +220,8 @@ final class SessionHost {
             // one the phone in use set.
             power: MacPowerSource(speakers: speakers),
             onAdmitted: { [weak self] admitted in self?.admit(admitted) ?? false },
-            onEnded: { [weak self] ended in self?.sessionEnded(ended) })
+            onEnded: { [weak self] ended in self?.sessionEnded(ended) },
+            makeDashboard: makeDashboard)
         candidates.append((session: session, transport: transport, shownAs: shownAs, link: link))
 
         let helloTimeout = Timer(timeInterval: Session.helloTimeoutSeconds, repeats: false) { [weak session] _ in

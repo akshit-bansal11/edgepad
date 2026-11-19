@@ -120,6 +120,12 @@ public final class Session {
     private var bulk: BulkLink?
     /// Cancelled by `end()`, so the owner's question about this phone is never put, or is withdrawn if it is open.
     private let ended = Cancellation()
+    /// Makes this phone's side of the dashboard once it is live, handed the session's own way to send; nil where the app
+    /// has no dashboard, and then nothing about it is sent.
+    private let makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)?
+    private var dashboard: DashboardLink?
+    /// The FEATURES tokens of this build, without the dashboard's, so a switch that moves can send the list again.
+    private var baseFeatures: [String] = []
 
     public init(
         address: String,
@@ -144,7 +150,8 @@ public final class Session {
         schedule: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) },
         scheduleAfter: @escaping (TimeInterval, @escaping () -> Void) -> Void = { seconds, work in
             DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: work)
-        }
+        },
+        makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)? = nil
     ) {
         self.address = address
         self.link = link
@@ -167,6 +174,7 @@ public final class Session {
         self.onEnded = onEnded
         self.schedule = schedule
         self.scheduleAfter = scheduleAfter
+        self.makeDashboard = makeDashboard
     }
 
     /// Bytes from the phone, in arrival order.
@@ -306,6 +314,11 @@ public final class Session {
         bulk?.close()
         dispatcher.apps?.end()
         dispatcher.appAddReply = nil
+        dispatcher.dashWatch = nil
+        dispatcher.permAnswer = nil
+        // Stops counting this phone before its host goes, so an approval waiting on it goes back to the agent.
+        dashboard?.dispose()
+        dashboard = nil
         if dispatcher.dropped > 0 {
             Log.write("Session with \(address): \(dispatcher.dropped) frames dropped")
         }
@@ -624,7 +637,22 @@ public final class Session {
         }
         // Every media source reports its changes, with or without the end action.
         dispatcher.media?.changed = { [weak self] in self?.sendMedia() }
+        baseFeatures = features
+        if let makeDashboard {
+            let link = makeDashboard { [weak self] frame in self?.send(frame) }
+            dashboard = link
+            features += link.features()
+            dispatcher.dashWatch = { [weak link] mask in link?.onWatch(mask) }
+            dispatcher.permAnswer = { [weak link] wire in link?.answer(wire) ?? false }
+        }
         send(.text(kind: TextKind.features.rawValue, value: features.joined(separator: "/")))
+        if let link = dashboard, !isEnded {
+            let unavailable = link.unavailable()
+            if !unavailable.isEmpty {
+                send(.text(kind: TextKind.unavailable.rawValue, value: unavailable.joined(separator: "/")))
+            }
+            link.start()
+        }
         send(.text(kind: TextKind.macroCap.rawValue, value: String(MacroStore.maxMacros)))
         // Best effort, and this Mac does not record on its own: it is idle until it does.
         send(.text(kind: TextKind.captureState.rawValue, value: CaptureStateToken.idle.rawValue))
@@ -643,6 +671,16 @@ public final class Session {
         } else {
             send(.text(kind: TextKind.macros.rawValue, value: ""))
         }
+    }
+
+    /// An Integrations switch moved: the dashboard is made again on what is on now, and the phone is sent FEATURES and
+    /// UNAVAILABLE afresh, so a tile appears or goes without a reconnect.
+    public func dashboardChanged() {
+        guard isLive, !isEnded, let link = dashboard else { return }
+        link.rebuild()
+        send(.text(kind: TextKind.features.rawValue, value: (baseFeatures + link.features()).joined(separator: "/")))
+        guard !isEnded else { return }
+        send(.text(kind: TextKind.unavailable.rawValue, value: link.unavailable().joined(separator: "/")))
     }
 
     /// The phone started or stopped hearing the app in front. The source is asked only now, so a Mac nobody watches runs
