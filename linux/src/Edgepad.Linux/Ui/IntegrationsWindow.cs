@@ -307,6 +307,7 @@ internal sealed class IntegrationsWindow
         }
         else
         {
+            github.Children.Add(look.Text(LinuxStrings.Integrations_GitHubSteps, 13, dim: true));
             var start = look.Button(LinuxStrings.Integrations_SignIn, primary: true);
             start.Click += (_, _) => _ = Guard(SignInAsync);
             buttons.Children.Add(start);
@@ -328,6 +329,7 @@ internal sealed class IntegrationsWindow
     private void ShowCode(string userCode)
     {
         github.Children.Clear();
+        github.Children.Add(look.Text(LinuxStrings.Integrations_GitHubSteps, 13, dim: true));
         github.Children.Add(look.Text(Say.Format(LinuxStrings.Integrations_Code, userCode), 24, FontWeight.Bold));
         var copy = CopyButton(userCode);
         var open = look.Button(LinuxStrings.Integrations_OpenPage, primary: true);
@@ -468,6 +470,11 @@ internal sealed class IntegrationsWindow
             if (state.Restart)
             {
                 details.Children.Add(look.Text(LinuxStrings.Integrations_Restart, 14, dim: true));
+            }
+
+            if (!connected)
+            {
+                details.Children.Add(look.Text(agent == IntegrationSettings.Claude ? LinuxStrings.Integrations_ClaudeSteps : LinuxStrings.Integrations_CodexSteps, 13, dim: true));
             }
 
             if (state.Commands is { Length: > 0 } commands)

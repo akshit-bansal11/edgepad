@@ -649,4 +649,27 @@
   <data name="Integrations_SignInFailed" xml:space="preserve">
     <value>Oturum açma tamamlanmadı. Yeniden deneyin.</value>
   </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Henüz kurmadıysanız Claude Code’u bu bilgisayara kurun: claude.com/claude-code
+2. Bağlan’a tıklayın. Edgepad, eklentisini Claude Code’a ekler.
+3. Açık Claude Code oturumlarını yeniden başlatın ya da bu oturumlarda /reload-plugins yazın.
+4. Telefonunuzda Controls > AI’ı açın.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Henüz kurmadıysanız Codex’i bu bilgisayara kurun: developers.openai.com/codex
+2. Bağlan’a tıklayın. Edgepad, eklentisini Codex’e ekler.
+3. Codex’te /hooks yazın ve Edgepad’e güvenin. Codex uygulamasında: Settings > Hooks > Review hooks.
+4. Telefonunuzda Controls > AI’ı açın. Codex ilk olayını gönderdiğinde görünür.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. GitHub ile oturum aç’a tıklayın. Bir github.com sayfası açılır.
+2. Burada gösterilen kodu girin ve Authorize’a tıklayın.
+3. Telefonunuzda Controls > GitHub’ı açın.</value>
+  </data>
+  <data name="Note_CodexTrustTitle" xml:space="preserve">
+    <value>Codex yeniden onayınızı istiyor</value>
+  </data>
+  <data name="Note_CodexTrustBody" xml:space="preserve">
+    <value>Edgepad güncellendi. Codex’te /hooks yazın ve Edgepad’e güvenin; aksi halde onaylar telefon yerine terminalde kalır.</value>
+  </data>
 </root>

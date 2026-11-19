@@ -649,4 +649,27 @@
   <data name="Integrations_SignInFailed" xml:space="preserve">
     <value>لم يكتمل تسجيل الدخول. حاول مرة أخرى.</value>
   </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. ثبّت Claude Code على هذا الكمبيوتر إن لم تكن قد فعلت: claude.com/claude-code
+2. انقر «اتصال». يضيف Edgepad إضافته إلى Claude Code.
+3. أعد تشغيل جلسات Claude Code المفتوحة، أو اكتب /reload-plugins فيها.
+4. على هاتفك، افتح Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. ثبّت Codex على هذا الكمبيوتر إن لم تكن قد فعلت: developers.openai.com/codex
+2. انقر «اتصال». يضيف Edgepad إضافته إلى Codex.
+3. في Codex، اكتب /hooks وامنح Edgepad الثقة. في تطبيق Codex: Settings > Hooks > Review hooks.
+4. على هاتفك، افتح Controls > AI. يظهر بعد أن يرسل Codex أول حدث له.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. انقر «تسجيل الدخول باستخدام GitHub». تُفتح صفحة على github.com.
+2. أدخل الرمز المعروض هنا وانقر Authorize.
+3. على هاتفك، افتح Controls > GitHub.</value>
+  </data>
+  <data name="Note_CodexTrustTitle" xml:space="preserve">
+    <value>يحتاج Codex إلى موافقتك مرة أخرى</value>
+  </data>
+  <data name="Note_CodexTrustBody" xml:space="preserve">
+    <value>تم تحديث Edgepad. في Codex، اكتب /hooks وامنح Edgepad الثقة، وإلا ستبقى الموافقات في الطرفية بدل الهاتف.</value>
+  </data>
 </root>

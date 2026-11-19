@@ -580,10 +580,10 @@ internal sealed class TrayContext : ApplicationContext
     private void OnSessionEnded(Func<bool> end) => server.OnSessionEnded(end);
 
     /// <summary>One notice, and what clicking it does. The Windows shell shows one balloon at a time, so the last wins.</summary>
-    private void Balloon(string text, ToolTipIcon kind, Action? onClick = null)
+    private void Balloon(string text, ToolTipIcon kind, Action? onClick = null, string title = "Edgepad")
     {
         balloonAction = onClick;
-        icon.ShowBalloonTip(0, "Edgepad", text, kind);
+        icon.ShowBalloonTip(0, title, text, kind);
     }
 
     private void PickAndSendFile()
@@ -1499,11 +1499,23 @@ internal sealed class TrayContext : ApplicationContext
         }
     }
 
-    /// <summary>Re-stamps a plugin left behind by an update off the UI thread, then shows the result in an open window.</summary>
+    /// <summary>
+    /// Re-stamps a plugin left behind by an update off the UI thread, then shows the result in an open window. Codex skips
+    /// changed hooks without a word until they are trusted again, so that one is said in a balloon, once per re-stamp.
+    /// </summary>
     private void EnsureIntegrationsCurrent() => _ = Task.Run(async () =>
     {
-        await integrations.EnsureCurrentAsync();
-        ui.Post(_ => ReloadIntegrations(), null);
+        var retrust = await integrations.EnsureCurrentAsync();
+        ui.Post(
+            _ =>
+            {
+                ReloadIntegrations();
+                if (retrust)
+                {
+                    Balloon(Strings.Balloon_CodexTrust, ToolTipIcon.Warning, title: Strings.Balloon_CodexTrustTitle);
+                }
+            },
+            null);
     });
 
     /// <summary>

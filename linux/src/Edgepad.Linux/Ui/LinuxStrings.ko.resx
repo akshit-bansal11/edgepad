@@ -506,4 +506,27 @@
   <data name="Integrations_NotEncrypted" xml:space="preserve">
     <value>사용할 수 있는 키링이 없어서 GitHub 로그인 정보가 암호화되지 않은 비공개 파일에 저장돼요.</value>
   </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. 아직 설치하지 않았다면 이 컴퓨터에 Claude Code를 설치하세요: claude.com/claude-code
+2. 연결을 클릭하세요. Edgepad가 Claude Code에 플러그인을 추가해요.
+3. 열려 있는 Claude Code 세션을 다시 시작하거나, 세션에서 /reload-plugins를 입력하세요.
+4. 휴대전화에서 Controls > AI를 여세요.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. 아직 설치하지 않았다면 이 컴퓨터에 Codex를 설치하세요: developers.openai.com/codex
+2. 연결을 클릭하세요. Edgepad가 Codex에 플러그인을 추가해요.
+3. Codex에서 /hooks를 입력하고 Edgepad를 신뢰하세요. Codex 앱에서는 Settings > Hooks > Review hooks로 가세요.
+4. 휴대전화에서 Controls > AI를 여세요. Codex가 첫 이벤트를 보내면 나타나요.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. GitHub로 로그인을 클릭하세요. github.com 페이지가 열려요.
+2. 여기 표시된 코드를 입력하고 Authorize를 클릭하세요.
+3. 휴대전화에서 Controls > GitHub를 여세요.</value>
+  </data>
+  <data name="Notice_CodexTrustTitle" xml:space="preserve">
+    <value>Codex에서 다시 허용이 필요해요</value>
+  </data>
+  <data name="Notice_CodexTrust" xml:space="preserve">
+    <value>Edgepad가 업데이트되었어요. Codex에서 /hooks를 입력하고 Edgepad를 신뢰하세요. 그러지 않으면 승인 요청이 휴대전화 대신 터미널에 남아요.</value>
+  </data>
 </root>

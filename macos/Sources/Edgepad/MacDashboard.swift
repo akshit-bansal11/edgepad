@@ -14,6 +14,8 @@ final class MacDashboard {
     let phones = LinkedPhones()
     /// Told after the pieces changed, so the phone in use is given a new host and FEATURES again.
     var changed: (() -> Void)?
+    /// Told when a re-stamp changed Codex's hooks file, which Codex then skips until the owner trusts it again.
+    var codexRetrust: (() -> Void)?
 
     private let folder: String
     private let installer: PluginInstaller
@@ -48,8 +50,16 @@ final class MacDashboard {
     func start() {
         apply()
         guard Self.agentKeys.contains(where: settings.flag) else { return }
-        let installer = installer
-        Task { _ = await installer.ensureCurrent() }
+        Task { @MainActor [weak self] in _ = await self?.ensureCurrent() }
+    }
+
+    /// The installer's `ensureCurrent`, saying once, through `codexRetrust`, when Codex must trust Edgepad again.
+    @MainActor func ensureCurrent() async -> [(agent: String, state: PluginState)] {
+        let notices = await installer.ensureCurrent()
+        if notices.contains(where: { $0.agent == AgentToken.codex.rawValue && $0.state == .awaitingTrust }) {
+            codexRetrust?()
+        }
+        return notices
     }
 
     /// On quit: closes the hook socket and deletes hook.json, and stops the readers.
@@ -82,7 +92,8 @@ final class MacDashboard {
                 settings: settings, installer: installer, signIn: signIn,
                 login: { await GitHubApi(store: secrets).login() },
                 lastHeard: { usage.lastHeard($0) },
-                switched: { [weak self] key, on in self?.switched(key, on) })
+                switched: { [weak self] key, on in self?.switched(key, on) },
+                ensureCurrent: { [weak self] in await self?.ensureCurrent() ?? [] })
             window = IntegrationsWindow(hooks: hooks)
         }
         window?.show()

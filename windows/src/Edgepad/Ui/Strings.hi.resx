@@ -773,4 +773,27 @@
   <data name="Integrations_Working" xml:space="preserve">
     <value>काम चल रहा है…</value>
   </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. अगर आपने अभी तक नहीं किया है, तो इस कंप्यूटर पर Claude Code इंस्टॉल करें: claude.com/claude-code
+2. कनेक्ट करें पर क्लिक करें। Edgepad अपना प्लगइन Claude Code में जोड़ देगा।
+3. खुले Claude Code सेशन फिर से शुरू करें, या उनमें /reload-plugins टाइप करें।
+4. अपने फ़ोन पर Controls > AI खोलें।</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. अगर आपने अभी तक नहीं किया है, तो इस कंप्यूटर पर Codex इंस्टॉल करें: developers.openai.com/codex
+2. कनेक्ट करें पर क्लिक करें। Edgepad अपना प्लगइन Codex में जोड़ देगा।
+3. Codex में /hooks टाइप करें और Edgepad पर भरोसा करें। Codex ऐप में: Settings > Hooks > Review hooks।
+4. अपने फ़ोन पर Controls > AI खोलें। यह तब दिखेगा जब Codex अपना पहला इवेंट भेजेगा।</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. GitHub से साइन इन करें पर क्लिक करें। github.com का एक पेज खुलेगा।
+2. यहाँ दिखाया गया कोड डालें और Authorize पर क्लिक करें।
+3. अपने फ़ोन पर Controls > GitHub खोलें।</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex को फिर से आपकी मंज़ूरी चाहिए</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad अपडेट हो गया है। Codex में /hooks टाइप करें और Edgepad पर भरोसा करें, नहीं तो मंज़ूरियाँ फ़ोन के बजाय टर्मिनल में ही रहेंगी।</value>
+  </data>
 </root>

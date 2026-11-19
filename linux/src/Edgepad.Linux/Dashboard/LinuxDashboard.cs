@@ -325,6 +325,12 @@ internal sealed class LinuxDashboard : IDisposable
                 foreach (var (agent, state) in found)
                 {
                     Log.Write($"The {agent} plugin copy: {state}");
+
+                    // Codex skips changed hooks without a word until they are trusted again: said once, per re-stamp.
+                    if (agent == AgentToken.Codex && state == PluginState.AwaitingTrust)
+                    {
+                        Notifier.Send(LinuxStrings.Notice_CodexTrustTitle, LinuxStrings.Notice_CodexTrust);
+                    }
                 }
             }
             catch (Exception e)

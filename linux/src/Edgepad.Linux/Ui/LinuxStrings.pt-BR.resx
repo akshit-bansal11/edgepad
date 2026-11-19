@@ -506,4 +506,27 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   <data name="Integrations_NotEncrypted" xml:space="preserve">
     <value>Nenhum chaveiro estava disponível, então seu login do GitHub fica em um arquivo privado que não é criptografado.</value>
   </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Instale o Claude Code neste computador, se ainda não tiver: claude.com/claude-code
+2. Clique em Conectar. O Edgepad adiciona o plugin dele ao Claude Code.
+3. Reinicie as sessões abertas do Claude Code ou digite /reload-plugins nelas.
+4. No celular, abra Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Instale o Codex neste computador, se ainda não tiver: developers.openai.com/codex
+2. Clique em Conectar. O Edgepad adiciona o plugin dele ao Codex.
+3. No Codex, digite /hooks e confie no Edgepad. No app do Codex: Settings > Hooks > Review hooks.
+4. No celular, abra Controls > AI. Ele aparece assim que o Codex envia o primeiro evento.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Clique em Entrar com o GitHub. Uma página do github.com será aberta.
+2. Digite o código mostrado aqui e clique em Authorize.
+3. No celular, abra Controls > GitHub.</value>
+  </data>
+  <data name="Notice_CodexTrustTitle" xml:space="preserve">
+    <value>O Codex precisa do seu OK de novo</value>
+  </data>
+  <data name="Notice_CodexTrust" xml:space="preserve">
+    <value>O Edgepad foi atualizado. No Codex, digite /hooks e confie no Edgepad, ou as aprovações continuarão no terminal em vez de no celular.</value>
+  </data>
 </root>

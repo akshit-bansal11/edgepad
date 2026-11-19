@@ -80,6 +80,7 @@ internal sealed class IntegrationsWindow : Form
 
     private readonly Label githubHeading = new() { AutoSize = false, Text = Strings.Integrations_GitHub, TextAlign = ContentAlignment.MiddleLeft };
     private readonly Label githubStatus = new() { AutoSize = false };
+    private readonly Label githubSteps = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Integrations_GitHubSteps };
     private readonly Label code = new() { AutoSize = false };
     private readonly Label waiting = new() { AutoSize = false, Text = Strings.Integrations_Waiting };
     private readonly CheckBox includePrivate = Switch(Strings.Integrations_Private);
@@ -176,7 +177,7 @@ internal sealed class IntegrationsWindow : Form
         [
             heading, intro, stats, weather, cityLabel, cityFrame, weatherNote,
             .. claude.Controls, .. codex.Controls,
-            githubHeading, signIn, githubStatus, code, openPage, copyCode, waiting, cancelSignIn, includePrivate, close,
+            githubHeading, signIn, githubStatus, githubSteps, code, openPage, copyCode, waiting, cancelSignIn, includePrivate, close,
         ]);
 
         // A plugin stamped by an older Edgepad, or for a Node.js that moved, is brought up to date before its row is read.
@@ -533,6 +534,11 @@ internal sealed class IntegrationsWindow : Form
                 extra.Add(Strings.Integrations_Restart);
             }
 
+            if (!row.Busy && !connected)
+            {
+                extra.Add(row.Agent == IntegrationSettings.Claude ? Strings.Integrations_ClaudeSteps : Strings.Integrations_CodexSteps);
+            }
+
             row.Extra.Text = string.Join(Environment.NewLine, extra);
             row.Extra.Visible = extra.Count > 0;
             if (extra.Count > 0)
@@ -571,6 +577,12 @@ internal sealed class IntegrationsWindow : Form
         if (githubStatus.Visible)
         {
             Put(githubStatus, 14f, Weight.Regular, palette.Dim, S(8));
+        }
+
+        githubSteps.Visible = configured && !signedIn;
+        if (githubSteps.Visible)
+        {
+            Put(githubSteps, 13f, Weight.Regular, palette.Dim, S(8));
         }
 
         var showing = signingIn && userCode is not null;

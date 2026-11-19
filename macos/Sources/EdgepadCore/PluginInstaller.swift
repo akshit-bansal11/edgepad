@@ -272,7 +272,9 @@ public final class PluginInstaller {
 
     /// At app start and when the window opens: a connected agent whose copy was stamped by another app version or for
     /// an app at another path is re-stamped in place, with no CLI call, and reported `.restartSessions`; `.failed`
-    /// when it cannot be. Agents with nothing to do are not listed.
+    /// when it cannot be. Codex whose hooks file came out different is reported `.awaitingTrust` instead, with its trust
+    /// cleared: Codex runs those hooks only once the owner trusts them again in /hooks. Agents with nothing to do are
+    /// not listed.
     public func ensureCurrent() async -> [(agent: String, state: PluginState)] {
         var notices: [(agent: String, state: PluginState)] = []
         for agent in Self.agents where settings.flag(agent) {
@@ -281,12 +283,21 @@ public final class PluginInstaller {
             {
                 continue
             }
+            // Codex silently skips hooks that changed since they were trusted, so a changed hooks file asks for trust again.
+            let hooks = folderOf(agent) + "/" + PluginStamp.pluginFolder + "/hooks/hooks.json"
+            let codex = agent == AgentToken.codex.rawValue
+            let before = codex ? FileManager.default.contents(atPath: hooks) : nil
             guard Self.safePath(appPath), Self.safePath(folderOf(agent)), stamp(agent) else {
                 notices.append((agent, .failed))
                 continue
             }
             settings.set(IntegrationSettings.pluginVersionKey(agent), version)
             settings.set(IntegrationSettings.pluginAppKey(agent), appPath)
+            if codex, before == nil || before != FileManager.default.contents(atPath: hooks) {
+                settings.setFlag(IntegrationSettings.codexTrusted, false)
+                notices.append((agent, .awaitingTrust))
+                continue
+            }
             notices.append((agent, .restartSessions))
         }
         return notices

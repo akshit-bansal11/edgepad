@@ -145,6 +145,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // Before either server starts, so every phone that goes live gets its side of the integrations.
         let dashboard = MacDashboard(version: runningVersion)
         dashboard.changed = { [weak host] in host?.dashboardChanged() }
+        dashboard.codexRetrust = { [weak self] in
+            self?.notifier?.post(
+                id: "codex-trust", title: tr("Note_CodexTrustTitle", "Codex needs your OK again"),
+                body: tr(
+                    "Note_CodexTrustBody",
+                    "Edgepad was updated. In Codex, type /hooks and trust Edgepad, or phone approvals stay in the "
+                        + "terminal."))
+        }
         host.dashboard = dashboard
         dashboard.start()
         self.dashboard = dashboard

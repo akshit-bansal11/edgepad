@@ -184,6 +184,30 @@ Dollar amounts are estimates at API list prices, and the screens say so. A model
 
 Codex must trust the Edgepad plugin before its approvals work. This is a step inside Codex, not in Edgepad. In the Codex CLI, type `/hooks` and trust Edgepad. In the Codex desktop app, go to Settings > Hooks > Review hooks. The Integrations window waits until the first event arrives.
 
+Open the Integrations window from the tray icon > **Integrations…** on Windows and Linux, or the menu-bar icon > **Integrations…** on macOS. The AI and GitHub tiles appear in the phone's Controls only after you connect them here.
+
+Connect Claude Code:
+
+1. Install Claude Code on this computer if you have not: https://claude.com/claude-code
+2. Click **Connect**. Edgepad adds its plugin to Claude Code.
+3. Restart open Claude Code sessions, or type `/reload-plugins` in them.
+4. On your phone, open Controls > AI.
+
+Connect Codex:
+
+1. Install Codex on this computer if you have not: https://developers.openai.com/codex
+2. Click **Connect**. Edgepad adds its plugin to Codex.
+3. In Codex, type `/hooks` and trust Edgepad. In the Codex app: Settings > Hooks > Review hooks.
+4. On your phone, open Controls > AI. It appears once Codex sends its first event.
+
+After an Edgepad update that changes the plugin's hooks, Codex skips them until you trust them again. Edgepad shows a notification when that happens: type `/hooks` in Codex and trust Edgepad again.
+
+Connect GitHub:
+
+1. Click **Sign in with GitHub**. A github.com page opens.
+2. Enter the code shown in the Integrations window and click **Authorize**.
+3. On your phone, open Controls > GitHub.
+
 Before you uninstall Edgepad, press **Disconnect** for Claude Code and Codex in the Integrations window. Otherwise a leftover entry stays in each tool. To revoke GitHub access, open https://github.com/settings/applications, find Edgepad, and choose **Revoke**.
 
 ## Languages

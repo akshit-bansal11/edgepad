@@ -506,4 +506,27 @@
   <data name="Integrations_NotEncrypted" xml:space="preserve">
     <value>没有可用的密钥环，因此你的 GitHub 登录信息保存在一个未加密的私有文件中。</value>
   </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. 如果还没有安装，请在这台电脑上安装 Claude Code：claude.com/claude-code
+2. 点击“连接”。Edgepad 会把它的插件添加到 Claude Code。
+3. 重启已打开的 Claude Code 会话，或在其中输入 /reload-plugins。
+4. 在手机上打开 Controls > AI。</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. 如果还没有安装，请在这台电脑上安装 Codex：developers.openai.com/codex
+2. 点击“连接”。Edgepad 会把它的插件添加到 Codex。
+3. 在 Codex 中输入 /hooks 并信任 Edgepad。在 Codex 应用中：Settings > Hooks > Review hooks。
+4. 在手机上打开 Controls > AI。Codex 发送第一个事件后就会出现。</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. 点击“使用 GitHub 登录”。会打开一个 github.com 页面。
+2. 输入这里显示的代码，然后点击 Authorize。
+3. 在手机上打开 Controls > GitHub。</value>
+  </data>
+  <data name="Notice_CodexTrustTitle" xml:space="preserve">
+    <value>Codex 需要你再次同意</value>
+  </data>
+  <data name="Notice_CodexTrust" xml:space="preserve">
+    <value>Edgepad 已更新。请在 Codex 中输入 /hooks 并信任 Edgepad，否则审批会留在终端里，而不会到达手机。</value>
+  </data>
 </root>

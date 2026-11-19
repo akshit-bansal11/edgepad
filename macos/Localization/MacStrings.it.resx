@@ -649,4 +649,27 @@
   <data name="Integrations_SignInFailed" xml:space="preserve">
     <value>L’accesso non è stato completato. Riprova.</value>
   </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Installa Claude Code su questo computer, se non l’hai già fatto: claude.com/claude-code
+2. Fai clic su Connetti. Edgepad aggiunge il suo plugin a Claude Code.
+3. Riavvia le sessioni aperte di Claude Code, oppure digita /reload-plugins al loro interno.
+4. Sul telefono, apri Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Installa Codex su questo computer, se non l’hai già fatto: developers.openai.com/codex
+2. Fai clic su Connetti. Edgepad aggiunge il suo plugin a Codex.
+3. In Codex, digita /hooks e dai fiducia a Edgepad. Nell’app Codex: Settings > Hooks > Review hooks.
+4. Sul telefono, apri Controls > AI. Compare quando Codex invia il suo primo evento.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Fai clic su Accedi con GitHub. Si apre una pagina di github.com.
+2. Inserisci il codice mostrato qui e fai clic su Authorize.
+3. Sul telefono, apri Controls > GitHub.</value>
+  </data>
+  <data name="Note_CodexTrustTitle" xml:space="preserve">
+    <value>Codex ha di nuovo bisogno del tuo OK</value>
+  </data>
+  <data name="Note_CodexTrustBody" xml:space="preserve">
+    <value>Edgepad è stato aggiornato. In Codex, digita /hooks e dai fiducia a Edgepad, altrimenti le approvazioni restano nel terminale invece che sul telefono.</value>
+  </data>
 </root>

@@ -302,6 +302,24 @@ public sealed class PluginInstallerTests : IDisposable
     }
 
     [Fact]
+    public async Task EnsureCurrentAsksCodexToTrustAgainOnlyWhenItsHooksChanged()
+    {
+        await New().ConnectAsync(AgentToken.Codex, Ct);
+        settings.SetFlag(IntegrationSettings.CodexTrusted, true);
+
+        // An update that stamps the same hooks file keeps the trust.
+        Assert.Equal<(string, PluginState)>([(AgentToken.Codex, PluginState.RestartSessions)], await New(version: "5.0.1").EnsureCurrentAsync(Ct));
+        Assert.True(settings.Flag(IntegrationSettings.CodexTrusted));
+
+        // A moved app changes the command in the hooks file: Codex skips it until trusted again.
+        var moved = Path.Combine(dir.FullName, "moved", OperatingSystem.IsWindows() ? "Edgepad.exe" : "edgepad");
+        var installer = New(app: moved);
+        Assert.Equal<(string, PluginState)>([(AgentToken.Codex, PluginState.AwaitingTrust)], await installer.EnsureCurrentAsync(Ct));
+        Assert.False(settings.Flag(IntegrationSettings.CodexTrusted));
+        Assert.Equal(PluginState.AwaitingTrust, installer.Status(AgentToken.Codex));
+    }
+
+    [Fact]
     public async Task TheRealRunnerKillsAProgramPastItsTime()
     {
         var (file, args) = OperatingSystem.IsWindows()

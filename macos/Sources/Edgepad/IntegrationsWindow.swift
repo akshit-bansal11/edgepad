@@ -13,6 +13,8 @@ struct IntegrationsHooks {
     let lastHeard: (String) -> Int64
     /// An integration (an `IntegrationSettings` key) was switched on or off, or its settings changed.
     let switched: (String, Bool) -> Void
+    /// The installer's `ensureCurrent`, which also says when Codex must trust Edgepad again.
+    let ensureCurrent: () async -> [(agent: String, state: PluginState)]
 }
 
 /// The Integrations window: system stats, weather, Claude Code, Codex and GitHub, every one off until the owner turns
@@ -32,6 +34,7 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
     private let city = NSTextField()
     private var rows: [String: AgentRow] = [:]
     private let gitHubStatus = NSTextField(wrappingLabelWithString: "")
+    private let gitHubSteps = NSTextField(wrappingLabelWithString: "")
     private let signButton = NSButton(title: "", target: nil, action: nil)
     private let privateRepos = NSButton(checkboxWithTitle: "", target: nil, action: nil)
     private let codeLabel = NSTextField(labelWithString: "")
@@ -54,9 +57,9 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
         NSApp.activate(ignoringOtherApps: true)
         window?.makeKeyAndOrderFront(nil)
         refresh()
-        let installer = hooks.installer
+        let ensureCurrent = hooks.ensureCurrent
         Task { @MainActor [weak self] in
-            let notices = await installer.ensureCurrent()
+            let notices = await ensureCurrent()
             for notice in notices {
                 self?.rows[notice.agent]?.notice(notice.state)
             }
@@ -107,7 +110,13 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
         codeButtons.setViews([copyCode, openPage, cancel], in: .leading)
         codeButtons.spacing = 8
         waitingLabel.stringValue = tr("Integrations_Waiting", "Waiting for you to approve in the browser…")
-        for label in [gitHubStatus, waitingLabel] {
+        gitHubSteps.stringValue = tr(
+            "Integrations_GitHubSteps",
+            "1. Click Sign in with GitHub. A github.com page opens.\n"
+                + "2. Enter the code shown here and click Authorize.\n"
+                + "3. On your phone, open Controls > GitHub.")
+        gitHubSteps.textColor = .secondaryLabelColor
+        for label in [gitHubStatus, gitHubSteps, waitingLabel] {
             label.preferredMaxLayoutWidth = Self.width
         }
 
@@ -120,7 +129,8 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
         note.textColor = .secondaryLabelColor
         let gitHubTitle = Self.heading(tr("Integrations_GitHub", "GitHub"))
         let views: [NSView] = [
-            intro, stats, weather, cityRow, note, claude.view, codex.view, gitHubTitle, gitHubStatus, signButton,
+            intro, stats, weather, cityRow, note, claude.view, codex.view, gitHubTitle, gitHubStatus, gitHubSteps,
+            signButton,
             privateRepos, codeLabel, codeButtons, waitingLabel, close,
         ]
         let stack = NSStackView(views: views)
@@ -176,6 +186,7 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
         }
         signButton.title =
             signedIn ? tr("Integrations_SignOut", "Sign out") : tr("Integrations_SignIn", "Sign in with GitHub")
+        gitHubSteps.isHidden = !configured || signedIn
         signButton.isEnabled = configured && !signingIn
         privateRepos.isEnabled = configured && !signingIn
         codeLabel.stringValue = tr("Integrations_Code", "Your code: %1$@", userCode)
@@ -373,11 +384,12 @@ private final class AgentRow: NSObject {
         copyButton.action = #selector(copyCommands)
     }
 
-    /// A finding from `ensureCurrent`: a re-stamp asks for a restart; a failure is shown until the next connect.
+    /// A finding from `ensureCurrent`: a re-stamp asks for a restart; a failure is shown until the next connect. Codex
+    /// awaiting trust again needs nothing here: the installer's status says so until Codex sends its next event.
     func notice(_ state: PluginState) {
         if state == .restartSessions {
             restart = true
-        } else {
+        } else if state != .awaitingTrust {
             problem = state
         }
     }
@@ -417,6 +429,8 @@ private final class AgentRow: NSObject {
         } else if restart && connected {
             step.stringValue = tr(
                 "Integrations_Restart", "Restart open sessions, or run /reload-plugins in Claude Code.")
+        } else if !connected {
+            step.stringValue = agent == AgentToken.claude.rawValue ? Self.claudeSteps : Self.codexSteps
         } else {
             step.stringValue = ""
         }
@@ -424,6 +438,24 @@ private final class AgentRow: NSObject {
         commands.stringValue = manual.joined(separator: "\n")
         commands.isHidden = manual.isEmpty
         copyButton.isHidden = manual.isEmpty
+    }
+
+    private static var claudeSteps: String {
+        tr(
+            "Integrations_ClaudeSteps",
+            "1. Install Claude Code on this computer if you have not: claude.com/claude-code\n"
+                + "2. Click Connect. Edgepad adds its plugin to Claude Code.\n"
+                + "3. Restart open Claude Code sessions, or type /reload-plugins in them.\n"
+                + "4. On your phone, open Controls > AI.")
+    }
+
+    private static var codexSteps: String {
+        tr(
+            "Integrations_CodexSteps",
+            "1. Install Codex on this computer if you have not: developers.openai.com/codex\n"
+                + "2. Click Connect. Edgepad adds its plugin to Codex.\n"
+                + "3. In Codex, type /hooks and trust Edgepad. In the Codex app: Settings > Hooks > Review hooks.\n"
+                + "4. On your phone, open Controls > AI. It appears once Codex sends its first event.")
     }
 
     @objc private func pressed() {

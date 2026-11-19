@@ -649,4 +649,27 @@
   <data name="Integrations_SignInFailed" xml:space="preserve">
     <value>Die Anmeldung wurde nicht abgeschlossen. Versuch es noch einmal.</value>
   </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Installiere Claude Code auf diesem Computer, falls noch nicht geschehen: claude.com/claude-code
+2. Klicke auf „Verbinden“. Edgepad fügt sein Plugin zu Claude Code hinzu.
+3. Starte offene Claude-Code-Sitzungen neu oder gib dort /reload-plugins ein.
+4. Öffne auf deinem Handy Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Installiere Codex auf diesem Computer, falls noch nicht geschehen: developers.openai.com/codex
+2. Klicke auf „Verbinden“. Edgepad fügt sein Plugin zu Codex hinzu.
+3. Gib in Codex /hooks ein und vertraue Edgepad. In der Codex-App: Settings > Hooks > Review hooks.
+4. Öffne auf deinem Handy Controls > AI. Es erscheint, sobald Codex sein erstes Ereignis sendet.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Klicke auf „Mit GitHub anmelden“. Eine Seite auf github.com öffnet sich.
+2. Gib den hier angezeigten Code ein und klicke auf Authorize.
+3. Öffne auf deinem Handy Controls > GitHub.</value>
+  </data>
+  <data name="Note_CodexTrustTitle" xml:space="preserve">
+    <value>Codex braucht noch einmal dein OK</value>
+  </data>
+  <data name="Note_CodexTrustBody" xml:space="preserve">
+    <value>Edgepad wurde aktualisiert. Gib in Codex /hooks ein und vertraue Edgepad, sonst bleiben Freigaben im Terminal statt auf dem Handy.</value>
+  </data>
 </root>

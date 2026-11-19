@@ -649,4 +649,27 @@
   <data name="Integrations_SignInFailed" xml:space="preserve">
     <value>サインインが完了しませんでした。もう一度お試しください。</value>
   </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. まだの場合は、このコンピューターに Claude Code をインストールしてください: claude.com/claude-code
+2. 「接続」をクリックします。Edgepad が Claude Code にプラグインを追加します。
+3. 開いている Claude Code のセッションを再起動するか、そこで /reload-plugins と入力してください。
+4. スマホで Controls > AI を開きます。</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. まだの場合は、このコンピューターに Codex をインストールしてください: developers.openai.com/codex
+2. 「接続」をクリックします。Edgepad が Codex にプラグインを追加します。
+3. Codex で /hooks と入力し、Edgepad を信頼してください。Codex アプリの場合: Settings > Hooks > Review hooks。
+4. スマホで Controls > AI を開きます。Codex が最初のイベントを送ると表示されます。</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. 「GitHub でサインイン」をクリックします。github.com のページが開きます。
+2. ここに表示されたコードを入力し、Authorize をクリックします。
+3. スマホで Controls > GitHub を開きます。</value>
+  </data>
+  <data name="Note_CodexTrustTitle" xml:space="preserve">
+    <value>Codex でもう一度許可が必要です</value>
+  </data>
+  <data name="Note_CodexTrustBody" xml:space="preserve">
+    <value>Edgepad が更新されました。Codex で /hooks と入力して Edgepad を信頼してください。そうしないと、承認はスマホではなくターミナルに残ります。</value>
+  </data>
 </root>

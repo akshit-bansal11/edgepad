@@ -191,14 +191,19 @@ internal sealed partial class WindowsIntegrations : IDisposable
         return status;
     }
 
-    /// <summary>Re-stamps a connected plugin an update or a moved Node.js left behind. Never throws; runs no program while both agents are off.</summary>
-    public async Task EnsureCurrentAsync()
+    /// <summary>
+    /// Re-stamps a connected plugin an update or a moved app left behind. True when Codex must trust Edgepad's hooks again.
+    /// Never throws; runs no program while both agents are off.
+    /// </summary>
+    public async Task<bool> EnsureCurrentAsync()
     {
+        var retrust = false;
         try
         {
             foreach (var (agent, state) in await installer.EnsureCurrentAsync(CancellationToken.None).ConfigureAwait(false))
             {
                 Remember(agent, Map(PluginResult.Of(state)));
+                retrust |= agent == AgentToken.Codex && state == PluginState.AwaitingTrust;
             }
         }
         catch (Exception e)
@@ -206,6 +211,8 @@ internal sealed partial class WindowsIntegrations : IDisposable
             // A task of its own: nothing may escape it. The row keeps what it had.
             Log.Write($"The Edgepad plugin could not be brought up to date: {e.GetType().Name}");
         }
+
+        return retrust;
     }
 
     /// <summary>UTC minutes of the agent's last hook message, or -1.</summary>

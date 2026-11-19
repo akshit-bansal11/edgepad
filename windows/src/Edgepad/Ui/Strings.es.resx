@@ -773,4 +773,27 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Integrations_Working" xml:space="preserve">
     <value>Trabajando…</value>
   </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Instala Claude Code en este equipo si aún no lo tienes: claude.com/claude-code
+2. Haz clic en Conectar. Edgepad añade su plugin a Claude Code.
+3. Reinicia las sesiones abiertas de Claude Code o escribe /reload-plugins en ellas.
+4. En tu teléfono, abre Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Instala Codex en este equipo si aún no lo tienes: developers.openai.com/codex
+2. Haz clic en Conectar. Edgepad añade su plugin a Codex.
+3. En Codex, escribe /hooks y confía en Edgepad. En la app de Codex: Settings > Hooks > Review hooks.
+4. En tu teléfono, abre Controls > AI. Aparece en cuanto Codex envía su primer evento.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Haz clic en Iniciar sesión con GitHub. Se abre una página de github.com.
+2. Introduce el código que se muestra aquí y haz clic en Authorize.
+3. En tu teléfono, abre Controls > GitHub.</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex necesita tu aprobación otra vez</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad se actualizó. En Codex, escribe /hooks y confía en Edgepad, o las aprobaciones seguirán en la terminal en lugar del teléfono.</value>
+  </data>
 </root>

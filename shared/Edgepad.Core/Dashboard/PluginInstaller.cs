@@ -214,8 +214,9 @@ internal sealed partial class PluginInstaller
     /// <summary>
     /// At app start and when the window opens: a connected agent whose copy was stamped by another app version or for an app at
     /// another path (including a copy from before 5.0.0, which ran Node) is re-stamped in place, with no CLI call, and reported
-    /// <see cref="PluginState.RestartSessions"/>; <see cref="PluginState.Failed"/> when it cannot be. Agents with nothing to do are
-    /// not listed.
+    /// <see cref="PluginState.RestartSessions"/>; <see cref="PluginState.Failed"/> when it cannot be. Codex whose hooks file came out
+    /// different is reported <see cref="PluginState.AwaitingTrust"/> instead, with its trust cleared: Codex runs those hooks only
+    /// once the owner trusts them again in /hooks. Agents with nothing to do are not listed.
     /// </summary>
     public Task<IReadOnlyList<(string Agent, PluginState State)>> EnsureCurrentAsync(CancellationToken cancellationToken)
     {
@@ -233,6 +234,9 @@ internal sealed partial class PluginInstaller
                 continue;
             }
 
+            // Codex silently skips hooks that changed since they were trusted, so a changed hooks file asks for trust again.
+            var hooks = Path.Combine(FolderOf(agent), PluginStamp.PluginFolder, "hooks", "hooks.json");
+            var before = agent == AgentToken.Codex ? ReadOrNull(hooks) : null;
             if (!SafePath(appPath) || !SafePath(FolderOf(agent)) || !Stamp(agent))
             {
                 notices.Add((agent, PluginState.Failed));
@@ -241,6 +245,13 @@ internal sealed partial class PluginInstaller
 
             settings.Set(IntegrationSettings.PluginVersionKey(agent), version);
             settings.Set(IntegrationSettings.PluginAppKey(agent), appPath);
+            if (agent == AgentToken.Codex && (before is null || ReadOrNull(hooks) is not { } after || !before.AsSpan().SequenceEqual(after)))
+            {
+                settings.SetFlag(IntegrationSettings.CodexTrusted, false);
+                notices.Add((agent, PluginState.AwaitingTrust));
+                continue;
+            }
+
             notices.Add((agent, PluginState.RestartSessions));
         }
 
@@ -332,6 +343,18 @@ internal sealed partial class PluginInstaller
 
     [GeneratedRegex(@"^codex-cli (\d{1,4})\.(\d{1,4})\.(\d{1,6})(?:[-+][0-9A-Za-z.-]*)?$", RegexOptions.CultureInvariant)]
     private static partial Regex CodexPattern();
+
+    private static byte[]? ReadOrNull(string file)
+    {
+        try
+        {
+            return File.Exists(file) ? File.ReadAllBytes(file) : null;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
 
     private bool Stamp(string agent)
     {

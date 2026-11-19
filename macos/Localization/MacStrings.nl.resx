@@ -649,4 +649,27 @@
   <data name="Integrations_SignInFailed" xml:space="preserve">
     <value>Inloggen is niet voltooid. Probeer het opnieuw.</value>
   </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Installeer Claude Code op deze computer als je dat nog niet hebt gedaan: claude.com/claude-code
+2. Klik op Verbinden. Edgepad voegt zijn plug-in toe aan Claude Code.
+3. Start open Claude Code-sessies opnieuw, of typ daarin /reload-plugins.
+4. Open op je telefoon Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Installeer Codex op deze computer als je dat nog niet hebt gedaan: developers.openai.com/codex
+2. Klik op Verbinden. Edgepad voegt zijn plug-in toe aan Codex.
+3. Typ in Codex /hooks en vertrouw Edgepad. In de Codex-app: Settings > Hooks > Review hooks.
+4. Open op je telefoon Controls > AI. Het verschijnt zodra Codex zijn eerste gebeurtenis stuurt.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Klik op Inloggen met GitHub. Er opent een pagina op github.com.
+2. Voer de code in die hier staat en klik op Authorize.
+3. Open op je telefoon Controls > GitHub.</value>
+  </data>
+  <data name="Note_CodexTrustTitle" xml:space="preserve">
+    <value>Codex heeft opnieuw je akkoord nodig</value>
+  </data>
+  <data name="Note_CodexTrustBody" xml:space="preserve">
+    <value>Edgepad is bijgewerkt. Typ in Codex /hooks en vertrouw Edgepad, anders blijven goedkeuringen in de terminal in plaats van op je telefoon.</value>
+  </data>
 </root>

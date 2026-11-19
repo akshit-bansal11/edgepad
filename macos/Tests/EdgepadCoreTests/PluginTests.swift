@@ -415,6 +415,25 @@ final class PluginInstallerTests: XCTestCase {
         XCTAssertEqual(settings.text(IntegrationSettings.pluginAppKey("claude")), app)
     }
 
+    func testEnsureCurrentAsksCodexToTrustAgainOnlyWhenItsHooksChanged() async throws {
+        _ = try await installer(version: "5.0.0").connect("codex")
+        settings.setFlag(IntegrationSettings.codexTrusted, true)
+
+        // An update that stamps the same hooks file keeps the trust.
+        let same = try await installer(version: "5.0.1").ensureCurrent()
+        XCTAssertEqual(same.map(\.state), [.restartSessions])
+        XCTAssertTrue(settings.flag(IntegrationSettings.codexTrusted))
+
+        // A hooks file that comes out different is skipped by Codex until trusted again.
+        let installer = try installer(version: "5.0.2")
+        let hooks = installer.folderOf("codex") + "/edgepad/hooks/hooks.json"
+        try Data("{}".utf8).write(to: URL(fileURLWithPath: hooks))
+        let changed = await installer.ensureCurrent()
+        XCTAssertEqual(changed.map(\.state), [.awaitingTrust])
+        XCTAssertFalse(settings.flag(IntegrationSettings.codexTrusted))
+        XCTAssertEqual(installer.status("codex"), .awaitingTrust)
+    }
+
     func testVersionsParseStrictly() {
         XCTAssertEqual(PluginInstaller.codexVersion("codex-cli 0.159.0"), ToolVersion(0, 159, 0))
         XCTAssertEqual(PluginInstaller.codexVersion("codex-cli 1.0.0"), ToolVersion(1, 0, 0))

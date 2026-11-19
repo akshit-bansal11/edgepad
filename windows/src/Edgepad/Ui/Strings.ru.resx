@@ -773,4 +773,27 @@
   <data name="Integrations_Working" xml:space="preserve">
     <value>Выполняется…</value>
   </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Установите Claude Code на этот компьютер, если ещё не сделали этого: claude.com/claude-code
+2. Нажмите «Подключить». Edgepad добавит свой плагин в Claude Code.
+3. Перезапустите открытые сеансы Claude Code или введите в них /reload-plugins.
+4. На телефоне откройте Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Установите Codex на этот компьютер, если ещё не сделали этого: developers.openai.com/codex
+2. Нажмите «Подключить». Edgepad добавит свой плагин в Codex.
+3. В Codex введите /hooks и отметьте Edgepad как доверенный. В приложении Codex: Settings > Hooks > Review hooks.
+4. На телефоне откройте Controls > AI. Раздел появится, когда Codex отправит первое событие.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Нажмите «Войти через GitHub». Откроется страница github.com.
+2. Введите показанный здесь код и нажмите Authorize.
+3. На телефоне откройте Controls > GitHub.</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex снова нужно ваше подтверждение</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad обновлён. В Codex введите /hooks и отметьте Edgepad как доверенный, иначе подтверждения останутся в терминале, а не на телефоне.</value>
+  </data>
 </root>
