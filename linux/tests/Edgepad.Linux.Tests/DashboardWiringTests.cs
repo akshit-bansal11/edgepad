@@ -17,10 +17,6 @@ public sealed class DashboardWiringTests : IDisposable
         "hooks/hooks.codex.json",
         "hooks/relay.ts",
         "marketplace.template.json",
-        "scripts/edgepad-hook.mjs",
-        "scripts/scan-claude.mjs",
-        "scripts/cache.mjs",
-        "scripts/prices.mjs",
     ];
 
     private readonly DirectoryInfo dir = Directory.CreateTempSubdirectory("edgepad-dash");
@@ -35,6 +31,21 @@ public sealed class DashboardWiringTests : IDisposable
         {
             Assert.Contains(file, entries);
         }
+    }
+
+    [Fact]
+    public void TheEmbeddedPluginIsExactlyTheSourceFolder()
+    {
+        var folder = new DirectoryInfo(AppContext.BaseDirectory);
+        while (folder is not null && !Directory.Exists(Path.Combine(folder.FullName, "plugins", "edgepad")))
+        {
+            folder = folder.Parent;
+        }
+
+        Assert.NotNull(folder);
+        var onDisk = new DirectoryPluginSource(Path.Combine(folder.FullName, "plugins", "edgepad")).Entries().Order(StringComparer.Ordinal);
+        var embedded = new ResourcePluginSource(typeof(LinuxDashboard).Assembly).Entries().Order(StringComparer.Ordinal);
+        Assert.Equal(onDisk, embedded);
     }
 
     [Fact]
@@ -90,7 +101,6 @@ public sealed class DashboardWiringTests : IDisposable
         Assert.False(LinuxDashboard.StateFor(AgentToken.Codex, PluginResult.Of(PluginState.Connected)).Restart);
         Assert.Equal(AgentStatus.AwaitingTrust, LinuxDashboard.StateFor(AgentToken.Codex, PluginResult.Of(PluginState.AwaitingTrust)).Status);
         Assert.Equal(AgentStatus.NotFound, LinuxDashboard.StateFor(AgentToken.Codex, PluginResult.Of(PluginState.CliNotFound)).Status);
-        Assert.Equal(AgentStatus.NodeMissing, LinuxDashboard.StateFor(AgentToken.Claude, PluginResult.Of(PluginState.NodeMissing)).Status);
         Assert.Equal(AgentStatus.UpdateCodex, LinuxDashboard.StateFor(AgentToken.Codex, PluginResult.Of(PluginState.UpdateCodex)).Status);
         Assert.Equal(AgentStatus.NotConnected, LinuxDashboard.StateFor(AgentToken.Claude, PluginResult.Of(PluginState.Failed)).Status);
     }

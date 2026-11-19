@@ -452,9 +452,6 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Integrations_NotFound" xml:space="preserve">
     <value>No se encontró {0} en este equipo</value>
   </data>
-  <data name="Integrations_NodeMissing" xml:space="preserve">
-    <value>Se necesita Node.js 20.1 o posterior. Descárgalo en nodejs.org</value>
-  </data>
   <data name="Integrations_RunYourself" xml:space="preserve">
     <value>Edgepad no pudo ejecutar esto por ti. Ejecuta estos comandos en una terminal:</value>
   </data>

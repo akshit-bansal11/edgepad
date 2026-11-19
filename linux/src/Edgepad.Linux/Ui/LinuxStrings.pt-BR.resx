@@ -452,9 +452,6 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   <data name="Integrations_NotFound" xml:space="preserve">
     <value>{0} não foi encontrado neste computador</value>
   </data>
-  <data name="Integrations_NodeMissing" xml:space="preserve">
-    <value>É preciso o Node.js 20.1 ou mais recente. Baixe em nodejs.org</value>
-  </data>
   <data name="Integrations_RunYourself" xml:space="preserve">
     <value>O Edgepad não conseguiu executar isso por você. Execute estes comandos em um terminal:</value>
   </data>

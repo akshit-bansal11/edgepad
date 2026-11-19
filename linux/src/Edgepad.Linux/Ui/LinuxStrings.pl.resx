@@ -452,9 +452,6 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Integrations_NotFound" xml:space="preserve">
     <value>Nie znaleziono {0} na tym komputerze</value>
   </data>
-  <data name="Integrations_NodeMissing" xml:space="preserve">
-    <value>Potrzebny jest Node.js 20.1 lub nowszy. Pobierz go z nodejs.org</value>
-  </data>
   <data name="Integrations_RunYourself" xml:space="preserve">
     <value>Edgepad nie mógł tego uruchomić za Ciebie. Uruchom te polecenia w terminalu:</value>
   </data>

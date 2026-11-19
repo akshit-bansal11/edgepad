@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Edgepad.Bluetooth;
 using Edgepad.Dashboard;
+using Edgepad.Hooks;
 using Edgepad.Net;
 using Edgepad.Platform;
 using Edgepad.Trust;
@@ -26,6 +27,12 @@ internal static class Program
 
     private static int Main(string[] args)
     {
+        // A hook command of an agent's plugin: answers on stdout and leaves, before the lock, the tray, logging or any UI.
+        if (HookClient.IsHook(args))
+        {
+            return HookClient.RunConsole(args);
+        }
+
         // "edgepad --send FILE...", from the Send to phone desktop entry: hand the files to the running copy and leave.
         if (args is ["--send", .. { Length: > 0 } files])
         {

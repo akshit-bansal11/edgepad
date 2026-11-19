@@ -452,9 +452,6 @@
   <data name="Integrations_NotFound" xml:space="preserve">
     <value>{0} не найден на этом компьютере</value>
   </data>
-  <data name="Integrations_NodeMissing" xml:space="preserve">
-    <value>Нужен Node.js 20.1 или новее. Скачайте его на nodejs.org</value>
-  </data>
   <data name="Integrations_RunYourself" xml:space="preserve">
     <value>Edgepad не смог выполнить это за вас. Выполните эти команды в терминале:</value>
   </data>

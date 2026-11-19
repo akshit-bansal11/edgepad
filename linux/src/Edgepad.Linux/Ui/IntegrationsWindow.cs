@@ -17,9 +17,6 @@ internal enum AgentStatus
     /// <summary>The agent's command line is not on this computer.</summary>
     NotFound,
 
-    /// <summary>Node.js 20.1 or newer is not installed; the hook scripts need it.</summary>
-    NodeMissing,
-
     /// <summary>Codex is older than 0.159.</summary>
     UpdateCodex,
 
@@ -52,7 +49,7 @@ internal sealed class IntegrationsHooks
     /// <summary>Puts the text on the desktop clipboard.</summary>
     public required Action<string> Copy { get; init; }
 
-    /// <summary>The window opened: the installer's EnsureCurrent (re-stamps a moved Node or an updated app).</summary>
+    /// <summary>The window opened: the installer's EnsureCurrent (re-stamps an updated or moved app).</summary>
     public required Action Opened { get; init; }
 }
 
@@ -64,7 +61,6 @@ internal sealed class IntegrationsHooks
 internal sealed class IntegrationsWindow
 {
     private const double Width = 520;
-    private const string NodeUrl = "https://nodejs.org";
     private static readonly FontFamily Mono = new("monospace");
 
     private readonly IntegrationSettings settings;
@@ -456,7 +452,6 @@ internal sealed class IntegrationsWindow
             {
                 AgentStatus.Connected => Say.Format(LinuxStrings.Integrations_Connected, Heard(state.LastHeard, DateTimeOffset.Now, CultureInfo.CurrentCulture)),
                 AgentStatus.NotFound => Say.Format(LinuxStrings.Integrations_NotFound, name),
-                AgentStatus.NodeMissing => LinuxStrings.Integrations_NodeMissing,
                 AgentStatus.UpdateCodex => LinuxStrings.Integrations_UpdateCodex,
                 AgentStatus.AwaitingTrust => LinuxStrings.Integrations_WaitingTrust,
                 _ => LinuxStrings.Integrations_NotConnected,
@@ -468,14 +463,6 @@ internal sealed class IntegrationsWindow
             if (state.Status == AgentStatus.AwaitingTrust)
             {
                 details.Children.Add(look.Text(LinuxStrings.Integrations_TrustCodex, 14));
-            }
-
-            if (state.Status == AgentStatus.NodeMissing)
-            {
-                var node = look.Button("nodejs.org");
-                node.HorizontalAlignment = HorizontalAlignment.Left;
-                node.Click += (_, _) => Tray.OpenWithDesktop(NodeUrl, "Node.js");
-                details.Children.Add(node);
             }
 
             if (state.Restart)

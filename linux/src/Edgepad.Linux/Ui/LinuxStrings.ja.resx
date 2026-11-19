@@ -452,9 +452,6 @@
   <data name="Integrations_NotFound" xml:space="preserve">
     <value>このコンピューターに {0} が見つかりません</value>
   </data>
-  <data name="Integrations_NodeMissing" xml:space="preserve">
-    <value>Node.js 20.1 以降が必要です。nodejs.org から入手してください</value>
-  </data>
   <data name="Integrations_RunYourself" xml:space="preserve">
     <value>Edgepad はこれを代わりに実行できませんでした。ターミナルで次のコマンドを実行してください:</value>
   </data>

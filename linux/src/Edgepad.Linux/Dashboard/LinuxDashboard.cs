@@ -34,6 +34,7 @@ internal sealed class LinuxDashboard : IDisposable
     // Under gate.
     private Agents? agents;
     private CodexWatcher? codex;
+    private ClaudeSpendWatcher? claude;
     private WeatherClient? weather;
     private GitHubApi? github;
     private LinuxStats? stats;
@@ -91,6 +92,7 @@ internal sealed class LinuxDashboard : IDisposable
         lock (applyGate)
         {
             CodexWatcher? oldCodex = null;
+            ClaudeSpendWatcher? oldClaude = null;
             Agents? oldAgents = null;
             lock (gate)
             {
@@ -128,6 +130,22 @@ internal sealed class LinuxDashboard : IDisposable
                     codex = null;
                 }
 
+                if (Settings.Flag(IntegrationSettings.Claude) && agents is { } c)
+                {
+                    claude ??= new ClaudeSpendWatcher(
+                        () => Settings.Flag(IntegrationSettings.Claude),
+                        PhoneLinked,
+                        c.Spend,
+                        () => DateTimeOffset.UtcNow,
+                        ClaudeSpendWatcher.DefaultRoot(),
+                        Path.Combine(folder, ClaudeSpendWatcher.CacheName));
+                }
+                else
+                {
+                    oldClaude = claude;
+                    claude = null;
+                }
+
                 weather = Settings.Flag(IntegrationSettings.Weather) ? weather ?? new WeatherClient() : null;
                 github = Settings.Flag(IntegrationSettings.GitHub) ? github ?? new GitHubApi(secrets.Value) : null;
 
@@ -144,6 +162,7 @@ internal sealed class LinuxDashboard : IDisposable
                     Spend = agents?.Spend,
                     Broker = agents?.Broker,
                     Codex = codex,
+                    Claude = claude,
                     Weather = weather,
                     GitHub = github,
                     GitHubSignedIn = github is null ? null : () => signIn.Value.IsSignedIn,
@@ -154,6 +173,7 @@ internal sealed class LinuxDashboard : IDisposable
             Changed?.Invoke();
             Annotator.FeaturesChanged();
             oldCodex?.Dispose();
+            oldClaude?.Dispose();
             oldAgents?.Dispose();
         }
     }
@@ -167,9 +187,9 @@ internal sealed class LinuxDashboard : IDisposable
         }
     }
 
-    /// <summary>TEXT 24 entries for agents switched on that cannot work here (no XDG_RUNTIME_DIR, or the hook socket failed).</summary>
+    /// <summary>TEXT 24 entries for agents switched on that cannot work here (no XDG_RUNTIME_DIR, or the hook socket failed: approvals and live sessions; spend and limits still read the files).</summary>
     public string[] Unsupported() =>
-        Parts.Sessions is not null ? [] : [.. AgentKeys.Where(Settings.Flag).Select(agent => $"{agent}:{UnavailableReason.Unsupported}")];
+        Parts.Broker is not null ? [] : [.. AgentKeys.Where(Settings.Flag).Select(agent => $"{agent}:{UnavailableReason.Unsupported}")];
 
     /// <summary>The phone's PERM_ANSWER. False (counted as dropped) when no ask waits for it.</summary>
     public bool Answer(string wire) => Parts.Broker?.Answer(wire) ?? false;
@@ -212,9 +232,11 @@ internal sealed class LinuxDashboard : IDisposable
 
             disposed = true;
             codex?.Dispose();
+            claude?.Dispose();
             agents?.Dispose();
             stats?.Dispose();
             codex = null;
+            claude = null;
             agents = null;
         }
 
@@ -226,13 +248,18 @@ internal sealed class LinuxDashboard : IDisposable
 
     private bool PhoneLinked() => Volatile.Read(ref phones) > 0;
 
-    // The hook socket, hook.json and what they feed. Null (logged) without a private runtime folder.
+    // The shared boards always (the Codex and Claude file readers feed them); the hook socket, hook.json and the broker only with a
+    // private runtime folder. Without one, approvals and live sessions are unsupported while spend and limits still read the files.
     private Agents? OpenAgents()
     {
+        var store = usage.Value;
+        var sessions = new SessionBoard(() => DateTimeOffset.UtcNow);
+        var limits = new LimitsBoard(store);
+        var spend = new SpendBoard(store);
         var dir = HookEndpoint.SocketDirectory();
         if (!OperatingSystem.IsLinux() || LinuxHookListener.Open(dir) is not { } listener)
         {
-            return null;
+            return new Agents(sessions, limits, spend, null, null, null);
         }
 
         HookEndpoint endpoint;
@@ -243,14 +270,10 @@ internal sealed class LinuxDashboard : IDisposable
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             listener.Dispose();
-            Log.Write($"hook.json could not be written, so the Claude Code and Codex integrations are not offered: {e.GetType().Name}");
-            return null;
+            Log.Write($"hook.json could not be written, so approvals and live sessions are not offered: {e.GetType().Name}");
+            return new Agents(sessions, limits, spend, null, null, null);
         }
 
-        var store = usage.Value;
-        var sessions = new SessionBoard(() => DateTimeOffset.UtcNow);
-        var limits = new LimitsBoard(store);
-        var spend = new SpendBoard(store);
         var broker = new PermissionBroker(sessions, PhoneLinked);
         var server = new HookServer(listener, () => endpoint.Token, broker, sessions, limits, spend, store, Settings);
         server.CodexTrusted += () => OnUi(() => window?.Refresh());
@@ -273,7 +296,7 @@ internal sealed class LinuxDashboard : IDisposable
                     current = agents;
                 }
 
-                current?.Endpoint.Rotate();
+                current?.Endpoint?.Rotate();
             }
         }
         catch (Exception e)
@@ -321,11 +344,6 @@ internal sealed class LinuxDashboard : IDisposable
         }
 
         var status = installer.Status(agent);
-        if (status != PluginState.NotConnected && notice == PluginState.NodeMissing)
-        {
-            return new AgentState(AgentStatus.NodeMissing);
-        }
-
         var restart = notice == PluginState.RestartSessions;
         return status switch
         {
@@ -352,7 +370,6 @@ internal sealed class LinuxDashboard : IDisposable
         PluginState.Connected => new AgentState(AgentStatus.Connected, lastHeard, Restart: agent == AgentToken.Claude),
         PluginState.AwaitingTrust => new AgentState(AgentStatus.AwaitingTrust),
         PluginState.RestartSessions => new AgentState(AgentStatus.Connected, lastHeard, Restart: true),
-        PluginState.NodeMissing => new AgentState(AgentStatus.NodeMissing),
         PluginState.CliNotFound => new AgentState(AgentStatus.NotFound, Commands: Lines(result)),
         PluginState.UpdateCodex => new AgentState(AgentStatus.UpdateCodex),
         PluginState.ManualSteps => new AgentState(AgentStatus.NotConnected, Commands: Lines(result)),
@@ -407,12 +424,12 @@ internal sealed class LinuxDashboard : IDisposable
     }
 
     // Claude Code's and Codex's shared pieces; the server first, then hook.json.
-    private sealed record Agents(SessionBoard Sessions, LimitsBoard Limits, SpendBoard Spend, PermissionBroker Broker, HookEndpoint Endpoint, HookServer Server) : IDisposable
+    private sealed record Agents(SessionBoard Sessions, LimitsBoard Limits, SpendBoard Spend, PermissionBroker? Broker, HookEndpoint? Endpoint, HookServer? Server) : IDisposable
     {
         public void Dispose()
         {
-            Server.Dispose();
-            Endpoint.Dispose();
+            Server?.Dispose();
+            Endpoint?.Dispose();
         }
     }
 }

@@ -452,9 +452,6 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Integrations_NotFound" xml:space="preserve">
     <value>{0} wurde auf diesem Computer nicht gefunden</value>
   </data>
-  <data name="Integrations_NodeMissing" xml:space="preserve">
-    <value>Node.js 20.1 oder neuer wird benötigt. Erhältlich auf nodejs.org</value>
-  </data>
   <data name="Integrations_RunYourself" xml:space="preserve">
     <value>Edgepad konnte das nicht für dich ausführen. Führe diese Befehle in einem Terminal aus:</value>
   </data>
