@@ -553,4 +553,100 @@
   <data name="Macro_New" xml:space="preserve">
     <value>ماكرو جديد</value>
   </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>عمليات الدمج…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>عمليات الدمج</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>كل شيء هنا متوقف حتى تشغّله.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>عرض إحصاءات النظام على الهاتف</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>عرض الطقس على الهاتف</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>المدينة</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>يرسل اسم المدينة فقط إلى open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>اتصال</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>قطع الاتصال</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>متصل · آخر إشارة {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>غير متصل</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>لم يُعثر على {0} في هذا الكمبيوتر</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>يلزم Node.js 20.1 أو أحدث. نزّله من nodejs.org</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>تعذّر على Edgepad تشغيل هذا نيابةً عنك. شغّل هذه الأوامر في الطرفية:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>نسخ</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>في Codex، افتح /hooks وامنح Edgepad الثقة.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>في انتظار أن يثق Codex بالمكوّن الإضافي…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>حدّث Codex إلى الإصدار 0.159 أو أحدث.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>أعد تشغيل الجلسات المفتوحة، أو شغّل /reload-plugins في Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>تسجيل الدخول باستخدام GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>تسجيل الخروج</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>رمزك: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>فتح github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>في انتظار موافقتك في المتصفح…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>تضمين المستودعات الخاصة</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>تم تسجيل الدخول باسم {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>تسجيل الدخول غير مُعدّ في هذا الإصدار.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>أبدًا</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>لم يكتمل تسجيل الدخول. حاول مرة أخرى.</value>
+  </data>
 </root>

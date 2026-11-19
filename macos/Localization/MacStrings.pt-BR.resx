@@ -553,4 +553,100 @@
   <data name="Macro_New" xml:space="preserve">
     <value>Nova macro</value>
   </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>Integrações…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integrações</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Tudo aqui fica desligado até você ligar.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Mostrar estatísticas do sistema no celular</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Mostrar o clima no celular</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Cidade</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Envia só o nome da cidade para open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Conectar</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Desconectar</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Conectado · último sinal {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Não conectado</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} não foi encontrado neste computador</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>É preciso o Node.js 20.1 ou mais recente. Baixe em nodejs.org</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>O Edgepad não conseguiu executar isso por você. Execute estes comandos em um terminal:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>No Codex, abra /hooks e confie no Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Aguardando o Codex confiar no plugin…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Atualize o Codex para a versão 0.159 ou mais recente.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Reinicie as sessões abertas ou execute /reload-plugins no Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Entrar com o GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Sair</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Seu código: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Abrir github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Aguardando sua aprovação no navegador…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Incluir repositórios privados</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Conectado como {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>O login não está configurado nesta versão.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>nunca</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>O login não foi concluído. Tente de novo.</value>
+  </data>
 </root>
