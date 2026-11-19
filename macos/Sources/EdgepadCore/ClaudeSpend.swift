@@ -92,6 +92,7 @@ public final class ClaudeSpend {
     public static let aiBit = CodexWatcher.aiBit
     public static let tick: TimeInterval = 5
     public static let every: TimeInterval = 60
+    public static let saveEvery: TimeInterval = 5 * 60
     public static let bytesPerTick: Int64 = 32 * 1024 * 1024
     public static let cacheName = "dashboard-claude-cache.json"
     /// A file last written longer ago than this holds nothing for this week or month.
@@ -127,6 +128,9 @@ public final class ClaudeSpend {
     private let pollGate = NSLock()
     private var cache: [String: CacheEntry] = [:]
     private var cacheLoaded = false
+    // Saved at most every 5 minutes while scanning, and once more when the scanning stops.
+    private var cacheDirty = false
+    private var lastSaved: Date?
     private var timer: Stoppable?
     private var watch = 0
     private var unpriced = false
@@ -190,6 +194,7 @@ public final class ClaudeSpend {
         } else if !wanted, let running = timer {
             running.stop()
             timer = nil
+            flushCacheLater()
         }
     }
 
@@ -204,8 +209,12 @@ public final class ClaudeSpend {
     public func dispose() {
         gate.lock()
         defer { gate.unlock() }
+        let had = timer != nil
         timer?.stop()
         timer = nil
+        if had {
+            flushCacheLater()
+        }
     }
 
     /// One tick: a scan when the last whole one is a minute old (or none was), its totals sent to the board once it had
@@ -290,7 +299,10 @@ public final class ClaudeSpend {
         }
         cache = kept
         if changed {
-            saveCache()
+            cacheDirty = true
+        }
+        if cacheDirty, lastSaved.map({ now.timeIntervalSince($0) >= Self.saveEvery || now < $0 }) ?? true {
+            flushCache(now)
         }
 
         var sums = (today: (0.0, 0.0), week: (0.0, 0.0), month: (0.0, 0.0))
@@ -430,6 +442,26 @@ public final class ClaudeSpend {
             }
             cache[key] = CacheEntry(size: size, stamp: stamp, from: from, rows: rows)
         }
+    }
+
+    /// Saves the cache if it changed since the last save. Waits for a scan in progress, so it never runs beside one.
+    func flushCacheNow() {
+        pollGate.lock()
+        defer { pollGate.unlock() }
+        if cacheDirty {
+            flushCache(clock())
+        }
+    }
+
+    // The scanning stopped: save what is unsaved, off the caller's thread, which may be the main one.
+    private func flushCacheLater() {
+        DispatchQueue.global(qos: .utility).async { [weak self] in self?.flushCacheNow() }
+    }
+
+    private func flushCache(_ now: Date) {
+        saveCache()
+        cacheDirty = false
+        lastSaved = now
     }
 
     // The cache only saves work: the next scan rebuilds what is missing.

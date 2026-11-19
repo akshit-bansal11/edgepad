@@ -61,6 +61,43 @@ final class DashboardHostTests: XCTestCase {
         PermRequest(token: "T", agent: "claude", session: "s", cwd: "", tool: "Bash", input: ToolInput(command: "ls"))
     }
 
+    func testAFailedWeatherFetchIsAskedAgainOnceAfterTheBackOff() throws {
+        let clock = TestClock()
+        let http = FakeHttp { _ in nil }
+        let parts = DashboardParts(weather: WeatherClient(http: http, clock: { clock.now }))
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.weather, true))
+        XCTAssertTrue(settings.set(IntegrationSettings.city, "Berlin"))
+        var actions: [() -> Void] = []
+        let host = IntegrationHost(
+            send: { _ in }, blobs: nil, settings: settings, parts: parts, onMain: { $0() },
+            startTimer: { action, _ in
+                actions.append(action)
+                return Stoppable {}
+            }, weatherRetryAfter: 0.3)
+
+        host.onWatch(IntegrationHost.weatherBit)
+        let first = try XCTUnwrap(actions.first)
+        first()
+        XCTAssertTrue(wait { http.seen.count >= 1 })
+        Thread.sleep(forTimeInterval: 0.1)
+        clock.advance(WeatherClient.retryAfter + 1)
+
+        XCTAssertTrue(wait { http.seen.count >= 2 })
+        clock.advance(WeatherClient.retryAfter + 1)
+        Thread.sleep(forTimeInterval: 0.8)
+        XCTAssertEqual(http.seen.count, 2)
+        host.dispose()
+    }
+
+    private func wait(_ condition: () -> Bool) -> Bool {
+        let deadline = Date().addingTimeInterval(5)
+        while Date() < deadline {
+            if condition() { return true }
+            Thread.sleep(forTimeInterval: 0.01)
+        }
+        return false
+    }
+
     func testWithEverySwitchOffNothingIsNamedOrStarted() {
         let host = newHost(DashboardParts(), stats: FixedStats())
 

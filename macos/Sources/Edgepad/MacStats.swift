@@ -45,14 +45,31 @@ final class MacStats {
     private var lastBytes: [String: (down: UInt32, up: UInt32)] = [:]
     private var lastBytesAt: TimeInterval?
 
+    private let readLock = NSLock()
     private let routeLock = NSLock()
     private var route: (gateway: String, interface: String)?
     private var routeReadAt: TimeInterval?
 
     func fast() -> Fast {
+        readLock.lock()
+        defer { readLock.unlock() }
         let gpu = MacGpu.load()
         let net = network()
         return Fast(cpu: cpu(), ram: ram(), gpu: gpu.gpu, vram: gpu.vram, down: net.down, up: net.up)
+    }
+
+    /// The reporter stopped: forget the previous counters, so the next watch starts from a fresh first reading, and
+    /// let the default route be read again. MacGpu keeps no registry handle between calls; there is none to release.
+    func idle() {
+        readLock.lock()
+        lastTicks = nil
+        lastBytes = [:]
+        lastBytesAt = nil
+        readLock.unlock()
+        routeLock.lock()
+        route = nil
+        routeReadAt = nil
+        routeLock.unlock()
     }
 
     func info() -> Info {
@@ -68,7 +85,9 @@ final class MacStats {
         var keys: [URLResourceKey] = [.volumeLocalizedNameKey, .volumeIsLocalKey, .volumeIsBrowsableKey]
         keys += [.volumeTotalCapacityKey, .volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey]
         let manager = FileManager.default
-        let urls = manager.mountedVolumeURLs(includingResourceValuesForKeys: keys, options: [.skipHiddenVolumes]) ?? []
+        // Only the cheap keys are prefetched; capacity is asked later and only for a local volume.
+        let cheap: [URLResourceKey] = [.volumeIsLocalKey, .volumeIsBrowsableKey]
+        let urls = manager.mountedVolumeURLs(includingResourceValuesForKeys: cheap, options: [.skipHiddenVolumes]) ?? []
         var disks: [Disk] = []
         for url in urls where disks.count < Self.maxDisks {
             if let disk = Self.disk(url, keys) { disks.append(disk) }
@@ -96,7 +115,11 @@ final class MacStats {
         }
         guard status == KERN_SUCCESS else { return -1 }
         let ticks = [load.cpu_ticks.0, load.cpu_ticks.1, load.cpu_ticks.2, load.cpu_ticks.3]
-        let previous = lastTicks ?? [0, 0, 0, 0]
+        // The counters count from boot: the first reading has nothing to be a difference of, so it is unknown.
+        guard let previous = lastTicks else {
+            lastTicks = ticks
+            return -1
+        }
         lastTicks = ticks
         // Per-state counters wrap at 2^32: a wrapping difference is still the right delta.
         let delta = zip(ticks, previous).map { UInt64($0 &- $1) }
@@ -105,7 +128,8 @@ final class MacStats {
         return MacStatsParse.cpuPercent(busy: total - idle, total: total)
     }
 
-    /// Active, wired and compressed pages over the installed memory: what Activity Monitor calls Memory Used.
+    /// App memory (internal pages less purgeable ones), wired and compressed pages over the installed memory: what
+    /// Activity Monitor calls Memory Used.
     private func ram() -> Int {
         var stats = vm_statistics64()
         var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.size / MemoryLayout<integer_t>.size)
@@ -116,7 +140,9 @@ final class MacStats {
         }
         let total = ProcessInfo.processInfo.physicalMemory
         guard status == KERN_SUCCESS, total > 0 else { return -1 }
-        let pages = UInt64(stats.active_count) + UInt64(stats.wire_count) + UInt64(stats.compressor_page_count)
+        let app = UInt64(stats.internal_page_count).subtractingReportingOverflow(UInt64(stats.purgeable_count))
+        let pages = (app.overflow ? 0 : app.partialValue) + UInt64(stats.wire_count)
+            + UInt64(stats.compressor_page_count)
         return Int(min(100, pages * UInt64(vm_kernel_page_size) * 100 / total))
     }
 
@@ -180,8 +206,13 @@ final class MacStats {
     // ---- helpers
 
     private static func disk(_ url: URL, _ keys: [URLResourceKey]) -> Disk? {
-        guard let values = try? url.resourceValues(forKeys: Set(keys)) else { return nil }
-        guard values.volumeIsLocal == true, values.volumeIsBrowsable != false else { return nil }
+        // Asked first and alone: a network volume that has stopped answering can hang a capacity query, so it is
+        // skipped before one is made.
+        let kind: Set<URLResourceKey> = [.volumeIsLocalKey, .volumeIsBrowsableKey]
+        guard let gate = try? url.resourceValues(forKeys: kind),
+            gate.volumeIsLocal == true, gate.volumeIsBrowsable != false,
+            let values = try? url.resourceValues(forKeys: Set(keys))
+        else { return nil }
         guard let capacity = values.volumeTotalCapacity, capacity > 0 else { return nil }
         let total = Int64(capacity)
         let label = values.volumeLocalizedName ?? url.lastPathComponent

@@ -134,6 +134,21 @@ final class ClaudeSpendTests: XCTestCase {
         XCTAssertEqual(newSpend().scan().totals.tokToday, 0)
     }
 
+    func testTheCacheIsSavedAtMostEveryFiveMinutesAndOnceMoreOnStop() throws {
+        write("a.jsonl", [row("m1", "claude-sonnet-4-5", 1_000, 1_000, at: Date())])
+        let reader = newSpend()
+        _ = reader.scan()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root + "/cache.json"))
+        try FileManager.default.removeItem(atPath: root + "/cache.json")
+
+        write("b.jsonl", [row("m2", "claude-sonnet-4-5", 10, 10, at: Date())])
+        _ = reader.scan()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root + "/cache.json"))
+
+        reader.flushCacheNow()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root + "/cache.json"))
+    }
+
     func testItReadsOnlyWhileTheAiScreenIsWatchedWithAPhoneLinked() {
         var started = 0
         let timers: (@escaping () -> Void, TimeInterval) -> Stoppable = { _, _ in

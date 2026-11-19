@@ -381,6 +381,8 @@ public enum DashWire {
     }
 
     // ---- SPEND
+    // TODO(unpriced): mirror the "unpriced" field the core agent adds to the SPEND wire (DashWire.cs,
+    // protocol/dashboard-vectors.txt) into SpendEntry, encodeSpend, SpendBoard and IntegrationHost once it lands.
 
     /// "agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth" entries joined by "|".
     public static func encodeSpend(_ spend: [SpendEntry]) -> String {

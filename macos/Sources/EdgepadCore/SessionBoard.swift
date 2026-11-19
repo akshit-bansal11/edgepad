@@ -98,7 +98,8 @@ public final class SessionBoard {
         }
     }
 
-    public func apply(_ hook: HookEvent) {
+    /// `at` is when the thing was measured (a rollout file's modification time); the clock when nil.
+    public func apply(_ hook: HookEvent, at: Date? = nil) {
         guard DashWire.isAgent(hook.agent), (1...Self.maxIdLength).contains(hook.sessionId.utf16.count) else { return }
         run {
             let key = Key(agent: hook.agent, id: hook.sessionId)
@@ -122,7 +123,7 @@ public final class SessionBoard {
             if !hook.cwd.isEmpty {
                 session.title = Self.titleOf(hook.cwd)
             }
-            touch(session)
+            touch(session, at: at)
         }
     }
 
@@ -174,8 +175,8 @@ public final class SessionBoard {
         }
     }
 
-    private func touch(_ session: Session) {
-        session.touched = clock()
+    private func touch(_ session: Session, at: Date? = nil) {
+        session.touched = at ?? clock()
         order += 1
         session.order = order
     }

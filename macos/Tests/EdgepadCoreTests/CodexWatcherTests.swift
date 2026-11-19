@@ -148,6 +148,30 @@ final class CodexWatcherTests: XCTestCase {
         XCTAssertEqual(sessions.snapshot().map(\.state), [SessionStateToken.idle.rawValue])
     }
 
+    func testAFileWithNoMarkerIsWorkingWhenJustWrittenAndUnknownWhenNot() throws {
+        try today("rollout-new.jsonl", RolloutText.join(RolloutText.meta), age: 10)
+        try today("rollout-old.jsonl", RolloutText.join(RolloutText.meta), age: 5 * minutes)
+
+        watcher.poll()
+
+        XCTAssertEqual(sessions.snapshot().map(\.state), [SessionStateToken.busy.rawValue])
+    }
+
+    func testAWorkingFileWhoseMarkerLeftTheTailStaysWorking() throws {
+        let path = try today("rollout-a.jsonl", working)
+        watcher.poll()
+        XCTAssertEqual(sessions.snapshot().map(\.state), [SessionStateToken.busy.rawValue])
+
+        let line = #"{"type":"event_msg","payload":{"type":"agent_message","message":""#
+        let filler = String(repeating: "x", count: 900)
+        let block = Array(repeating: line + filler + #""}}"# + "\n", count: 400).joined()
+        try append(path, block)
+        try stamp(path, now.addingTimeInterval(-5 * minutes))
+        watcher.poll()
+
+        XCTAssertEqual(sessions.snapshot().map(\.state), [SessionStateToken.busy.rawValue])
+    }
+
     func testAnUnchangedFileIsNotReadAgain() throws {
         try today("rollout-a.jsonl", working)
         watcher.poll()

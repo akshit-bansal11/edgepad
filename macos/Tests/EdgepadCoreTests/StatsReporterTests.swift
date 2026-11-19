@@ -185,6 +185,54 @@ final class StatsReporterTests: XCTestCase {
             })
     }
 
+    func testAStuckDiskReadNeverBlocksATickAndNeverOverlaps() {
+        let rig = Rig(runDisks: { DispatchQueue.global().async(execute: $0) })
+        rig.source.diskGate = DispatchSemaphore(value: 0)
+        rig.reporter.setWatch(StatsReporter.screenBit)
+        for _ in 0..<12 {
+            rig.reporter.tick()
+        }
+        XCTAssertTrue(wait { rig.source.diskReads >= 1 })
+        XCTAssertEqual(rig.source.diskReads, 1)
+        XCTAssertEqual(rig.count(.disks), 0)
+
+        rig.source.diskGate?.signal()
+        XCTAssertTrue(wait { rig.count(.disks) == 1 })
+    }
+
+    func testATickIsSkippedWhileThePreviousOneStillReads() {
+        let rig = Rig()
+        rig.source.fastGate = DispatchSemaphore(value: 0)
+        rig.reporter.setWatch(StatsReporter.widgetsBit)
+        let done = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            rig.reporter.tick()
+            done.signal()
+        }
+        XCTAssertTrue(wait { rig.source.fastReads == 1 })
+
+        rig.reporter.tick()
+        rig.reporter.setWatch(0)
+
+        XCTAssertEqual(rig.source.fastReads, 1)
+        rig.source.fastGate?.signal()
+        XCTAssertEqual(done.wait(timeout: .now() + 5), .success)
+        XCTAssertEqual(rig.count(.stats), 0)
+    }
+
+    func testStoppingTheReporterTellsTheSourceItIsIdle() {
+        let rig = Rig()
+        rig.reporter.setWatch(StatsReporter.widgetsBit)
+        XCTAssertEqual(rig.source.idleCalls, 0)
+
+        rig.reporter.setWatch(0)
+        XCTAssertEqual(rig.source.idleCalls, 1)
+
+        rig.reporter.setWatch(StatsReporter.widgetsBit)
+        rig.reporter.dispose()
+        XCTAssertEqual(rig.source.idleCalls, 2)
+    }
+
     func testMacStatsShapedNumbersReachTheWire() {
         let rig = Rig()
         rig.reporter.setWatch(StatsReporter.screenBit)
@@ -211,14 +259,15 @@ final class StatsReporterTests: XCTestCase {
         private(set) var timersStopped = 0
         var reporter: StatsReporter!
 
-        init() {
+        init(runDisks: @escaping (@escaping () -> Void) -> Void = { $0() }) {
             reporter = StatsReporter(
                 source: source,
                 send: { [weak self] frame in self?.record(frame) },
                 startTimer: { [weak self] _ in
                     self?.timersStarted += 1
                     return Stoppable { self?.timersStopped += 1 }
-                })
+                },
+                runDisks: runDisks)
         }
 
         var sent: [Frame] {
@@ -253,6 +302,9 @@ private final class FakeStats: StatsSource {
     var cpu = 10
     var throwing = false
     var gate: DispatchSemaphore?
+    var fastGate: DispatchSemaphore?
+    var diskGate: DispatchSemaphore?
+    private(set) var idleCalls = 0
     var pingResult = 30
     private(set) var fastReads = 0
     private(set) var diskReads = 0
@@ -266,6 +318,7 @@ private final class FakeStats: StatsSource {
 
     func readFast() throws -> StatsSample {
         fastReads += 1
+        fastGate?.wait()
         if throwing { throw SourceFailure() }
         return StatsSample(
             cpu: cpu, ram: 20, gpu: 30, vram: 40, down: 50, up: 60, ping: -1, loss: -1, cpuTemp: 70, gpuTemp: 80,
@@ -279,8 +332,13 @@ private final class FakeStats: StatsSource {
 
     func readDisks() throws -> [DiskEntry] {
         diskReads += 1
+        diskGate?.wait()
         if throwing { throw SourceFailure() }
         return [DiskEntry(label: "C", usedPct: 50, totalGiB: 500, freeGiB: 250)]
+    }
+
+    func idle() {
+        idleCalls += 1
     }
 
     func ping() -> Int {

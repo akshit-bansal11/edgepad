@@ -111,7 +111,7 @@ final class CodexRolloutTests: XCTestCase {
         XCTAssertEqual(try tail(RolloutText.join(RolloutText.started, RolloutText.aborted)).state, idle)
         let again = RolloutText.join(RolloutText.started, RolloutText.complete, RolloutText.started)
         XCTAssertEqual(try tail(again).state, busy)
-        XCTAssertEqual(try tail("").state, idle)
+        XCTAssertNil(try tail("").state)
     }
 
     func testNullRateLimitsAndANullPrimaryGiveNoLimits() throws {
@@ -213,6 +213,32 @@ final class CodexRolloutTests: XCTestCase {
             RolloutText.context("gpt-5.5"), RolloutText.count("null", input: 300, cached: 100, output: 20))
 
         XCTAssertEqual(try totals(text), RolloutTotals(model: "gpt-5.5", input: 300, cachedInput: 100, output: 20))
+    }
+
+    private func padded(_ lines: Int) -> String {
+        let line = #"{"type":"event_msg","payload":{"type":"agent_message","message":""# + String(repeating: "x", count: 900)
+        return (0..<lines).map { _ in line + #""}}"# }.joined(separator: "\n") + "\n"
+    }
+
+    func testBigFilesReadTheLastMebibyteFirstAndKeepTheKnownModel() throws {
+        let text =
+            RolloutText.join(RolloutText.context("gpt-5.5"), RolloutText.count("null", input: 10, output: 1))
+            + padded(1300) + RolloutText.join(RolloutText.count("null", input: 300, cached: 100, output: 20))
+        let source = RolloutText.source(text)
+
+        let read = try CodexRollout.totals(source, knownModel: "gpt-5.6-luna")
+
+        XCTAssertEqual(read, RolloutTotals(model: "gpt-5.6-luna", input: 300, cachedInput: 100, output: 20))
+        XCTAssertLessThanOrEqual(source.bytesRead, CodexRollout.totalsTailBytes + 16 * 1024)
+    }
+
+    func testBigFilesNeedingTheModelOrTheUsageAreReadWhole() throws {
+        let usage = RolloutText.count("null", input: 300, cached: 100, output: 20)
+        let noModel = RolloutText.join(RolloutText.context("gpt-5.5")) + padded(1300) + RolloutText.join(usage)
+        XCTAssertEqual(try totals(noModel).model, "gpt-5.5")
+
+        let noUsage = RolloutText.join(usage) + padded(1300)
+        XCTAssertEqual(try totals(noUsage).input, 300)
     }
 
     func testANegativeCountIsZeroAndCachedAboveInputNeverMakesNegativeTokens() throws {

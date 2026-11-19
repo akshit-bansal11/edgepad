@@ -17,6 +17,7 @@ public final class CodexWatcher {
     public static let cacheName = "dashboard-codex-cache.json"
 
     private static let usageEvery = 12
+    private static let recentWrite: TimeInterval = 30
     private static let maxFiles = 4
     private static let limitFiles = 5
     private static let maxTails = 32
@@ -191,10 +192,24 @@ public final class CodexWatcher {
             }
             guard let tail = tailOf(file) else { continue }
             let id = (file.name as NSString).deletingPathExtension
-            let busy = tail.state == SessionStateToken.busy.rawValue
-            let event: SessionEvent = busy ? .prompt : .stop
-            sessions.apply(HookEvent(agent: AgentToken.codex.rawValue, sessionId: id, event: event, cwd: tail.cwd))
-            tracked[file.path] = Tracked(size: file.size, stamp: file.stamp, state: tail.state, id: id)
+            // No marker in the tail: keep what was known; a file written in the last 30 s is working; otherwise
+            // nothing is known, and idle is never assumed.
+            let known: String
+            if let state = tail.state {
+                known = state
+            } else if let before = tracked[file.path] {
+                known = before.state
+            } else if now.timeIntervalSince(file.mtime) <= Self.recentWrite {
+                known = SessionStateToken.busy.rawValue
+            } else {
+                continue
+            }
+            let event: SessionEvent = known == SessionStateToken.busy.rawValue ? .prompt : .stop
+            // Measured when the file was written, not when it was looked at.
+            sessions.apply(
+                HookEvent(agent: AgentToken.codex.rawValue, sessionId: id, event: event, cwd: tail.cwd),
+                at: file.mtime)
+            tracked[file.path] = Tracked(size: file.size, stamp: file.stamp, state: known, id: id)
         }
         for (path, old) in tracked where !seen.contains(path) {
             // Untouched for ten minutes: whatever it said last, it is not working now.
@@ -286,7 +301,10 @@ public final class CodexWatcher {
         if let hit = cache[key], hit.size == file.size, hit.stamp == file.stamp {
             return hit.totals
         }
-        guard let source = try? open(file.path), let totals = try? CodexRollout.totals(source) else {
+        // The model of an earlier read is kept, so a grown file needs only its last 1 MiB.
+        guard let source = try? open(file.path),
+            let totals = try? CodexRollout.totals(source, knownModel: cache[key]?.totals.model)
+        else {
             return .zero
         }
         cache[key] = CacheEntry(size: file.size, stamp: file.stamp, totals: totals)
@@ -308,7 +326,7 @@ public final class CodexWatcher {
         return tail
     }
 
-    private static let calendar = Calendar.current
+    private static let calendar = Calendar.autoupdatingCurrent
 
     private static func addDays(_ day: Date, _ days: Int) -> Date {
         calendar.date(byAdding: .day, value: days, to: day) ?? day

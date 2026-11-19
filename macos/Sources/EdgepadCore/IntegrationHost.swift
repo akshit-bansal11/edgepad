@@ -132,6 +132,9 @@ public final class IntegrationHost {
     private var gitHubTimer: Stoppable?
     private var gitHubLast: Date?
     private var weatherSent: String?
+    private var weatherRetrying = false
+    private var gitHubSent: [UInt8]?
+    private let weatherRetryAfter: TimeInterval
     private var watch = 0
     private var disposed = false
     // The last `maxEnded` ask ids that ended, newest last, so a PERM_ASK blob still queued for one is never sent.
@@ -154,8 +157,10 @@ public final class IntegrationHost {
         stats: StatsSource? = nil,
         clock: @escaping () -> Date = Date.init,
         onMain: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) },
-        startTimer: ((@escaping () -> Void, TimeInterval) -> Stoppable)? = nil
+        startTimer: ((@escaping () -> Void, TimeInterval) -> Stoppable)? = nil,
+        weatherRetryAfter: TimeInterval = WeatherClient.retryAfter
     ) {
+        self.weatherRetryAfter = weatherRetryAfter
         self.send = send
         self.blobs = blobs
         self.settings = settings
@@ -274,7 +279,7 @@ public final class IntegrationHost {
             sendSpend()
         }
         if gitHubGained && gitHubOn && !(parts.gitHub?.lines.isEmpty ?? true) {
-            sendGitHub()
+            sendGitHub(force: true)
         }
     }
 
@@ -379,12 +384,35 @@ public final class IntegrationHost {
         }
     }
 
-    private func refreshWeather() {
+    private func refreshWeather(isRetry: Bool = false) {
         guard let weather = parts.weather, watching(Self.weatherBit) else { return }
         let city = settings.text(IntegrationSettings.city)
         Task { [weak self] in
             let info = await weather.get(city)
             self?.weatherArrived(DashWire.encodeWeather(info))
+            if info == nil && !isRetry {
+                self?.retryWeatherOnce()
+            }
+        }
+    }
+
+    // A failed fetch is asked again once after the client's own back-off, not left for the 30 min timer.
+    private func retryWeatherOnce() {
+        gate.lock()
+        guard !disposed, !weatherRetrying else {
+            gate.unlock()
+            return
+        }
+        weatherRetrying = true
+        gate.unlock()
+        let delay = weatherRetryAfter
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(max(0, delay) * 1_000_000_000))
+            guard let self else { return }
+            self.gate.lock()
+            self.weatherRetrying = false
+            self.gate.unlock()
+            self.refreshWeather(isRetry: true)
         }
     }
 
@@ -412,14 +440,29 @@ public final class IntegrationHost {
         gate.unlock()
         Task { [weak self] in
             let result = await gitHub.refresh()
-            guard let self, result.changed, self.watching(Self.gitHubBit) else { return }
+            guard let self, self.watching(Self.gitHubBit) else { return }
+            if result.result == .noPermission {
+                // The token was refused and deleted: tell the phone now, not at the next connect.
+                self.push(
+                    .text(
+                        kind: TextKind.unavailable.rawValue,
+                        value: Feature.github.rawValue + ":" + UnavailableReason.noPermission.rawValue))
+                return
+            }
             self.sendGitHub()
         }
     }
 
-    private func sendGitHub() {
+    // What this host last sent is remembered, so a second phone still gets data the first already has, and an
+    // unchanged list is not sent twice. `force` resends when the phone opens the screen again.
+    private func sendGitHub(force: Bool = false) {
         guard let gitHub = parts.gitHub else { return }
         let body = Array(GitHubBlob.encode(gitHub.lines).utf8)
+        gate.lock()
+        let same = gitHubSent == body
+        gitHubSent = body
+        gate.unlock()
+        if same && !force { return }
         onMain { [weak self] in
             guard let self, !self.isDisposed else { return }
             self.blobs?.send(.github, label: "gh", data: body)

@@ -13,6 +13,13 @@ public protocol StatsSource: AnyObject {
     /// Round trip to the default gateway in milliseconds, or -1 when it did not answer. Blocks for up to two seconds,
     /// so the reporter runs it on a queue of its own.
     func ping() -> Int
+    /// Called when the reporter stops: let go of anything held between readings (handles, previous counters). The
+    /// default does nothing; the next reading starts afresh.
+    func idle()
+}
+
+extension StatsSource {
+    public func idle() {}
 }
 
 /// A repeating timer, or a test's stand-in for one. `stop` is idempotent.
@@ -116,6 +123,7 @@ public final class StatsReporter {
     private let send: (Frame) -> Void
     private let startTimer: (@escaping () -> Void) -> Stoppable
     private let runPing: (@escaping () -> Void) -> Void
+    private let runDisks: (@escaping () -> Void) -> Void
     private let gate = NSRecursiveLock()
     private let loss = LossMeter()
     private var timer: Stoppable?
@@ -126,6 +134,8 @@ public final class StatsReporter {
     private var infoIn = 0
     private var lastPing = -1
     private var pingRunning = false
+    private var ticking = false
+    private var disksRunning = false
     private var logged = false
     private var disposed = false
     private var lastStats: String?
@@ -136,17 +146,20 @@ public final class StatsReporter {
     ///   - startTimer: Runs the action every second until stopped, on another queue, never inline. Tests pass their
     ///     own.
     ///   - runPing: Runs the blocking ping off the timer's queue.
+    ///   - runDisks: Runs the disk read, which may hang, off the timer's queue.
     public init(
         source: StatsSource,
         send: @escaping (Frame) -> Void,
         startTimer: ((@escaping () -> Void) -> Stoppable)? = nil,
-        runPing: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.global(qos: .utility).async(execute: $0) }
+        runPing: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.global(qos: .utility).async(execute: $0) },
+        runDisks: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.global(qos: .utility).async(execute: $0) }
     ) {
         self.source = source
         self.send = send
         let queue = DispatchQueue(label: "edgepad.stats", qos: .utility)
         self.startTimer = startTimer ?? { Stoppable.repeating(every: 1, on: queue, $0) }
         self.runPing = runPing
+        self.runDisks = runDisks
     }
 
     /// True while the one-second timer exists.
@@ -189,24 +202,61 @@ public final class StatsReporter {
     /// One second's work. Internal to the timer and to tests.
     func tick() {
         gate.lock()
-        defer { gate.unlock() }
-        guard !disposed, mask != 0 else { return }
-        startPingIfDue()
-        sendIfChanged(.stats, readStats(), &lastStats)
-        infoIn -= 1
-        if infoIn <= 0 {
-            infoIn = Self.infoEvery
-            if let info = guarded({ try source.readInfo() }) {
-                sendIfChanged(.statsInfo, DashWire.encodeStatsInfo(info), &lastInfo)
-            }
+        // A tick that finds the previous one still reading is skipped, never queued behind it.
+        guard !disposed, mask != 0, !ticking else {
+            gate.unlock()
+            return
         }
+        ticking = true
+        let mine = generation
+        startPingIfDue()
+        let ping = lastPing
+        let lost = loss.percent
+        infoIn -= 1
+        let infoDue = infoIn <= 0
+        if infoDue {
+            infoIn = Self.infoEvery
+        }
+        var disksDue = false
         if mask & Self.screenBit != 0 {
             disksIn -= 1
             if disksIn <= 0 {
                 disksIn = Self.disksEvery
-                if let disks = guarded({ try source.readDisks() }) {
-                    sendIfChanged(.disks, DashWire.encodeDisks(disks), &lastDisks)
-                }
+                disksDue = !disksRunning
+                disksRunning = disksRunning || disksDue
+            }
+        }
+        gate.unlock()
+
+        // Readings happen outside the lock, so a slow source never blocks setWatch, dispose or a ping result.
+        let stats = readStats(ping: ping, loss: lost)
+        let info = infoDue ? guarded({ try source.readInfo() }) : nil
+        if disksDue {
+            readDisksAway(generation: mine)
+        }
+
+        gate.lock()
+        defer { gate.unlock() }
+        ticking = false
+        guard !disposed, mine == generation else { return }
+        sendIfChanged(.stats, stats, &lastStats)
+        if let info {
+            sendIfChanged(.statsInfo, DashWire.encodeStatsInfo(info), &lastInfo)
+        }
+    }
+
+    // Disks can hang (a volume that stopped answering): they are read on a worker and sent when they arrive, and no
+    // second read starts while one is out, so a stuck one costs one worker and nothing else. The tick never waits.
+    private func readDisksAway(generation mine: Int) {
+        let source = self.source
+        runPing { [weak self] in
+            let disks = self?.guarded({ try source.readDisks() })
+            guard let self else { return }
+            self.gate.lock()
+            defer { self.gate.unlock() }
+            self.disksRunning = false
+            if let disks, !self.disposed, mine == self.generation, self.mask & Self.screenBit != 0 {
+                self.sendIfChanged(.disks, DashWire.encodeDisks(disks), &self.lastDisks)
             }
         }
     }
@@ -215,15 +265,16 @@ public final class StatsReporter {
         generation += 1
         timer?.stop()
         timer = nil
+        source.idle()
     }
 
-    private func readStats() -> String {
+    private func readStats(ping: Int, loss lost: Int) -> String {
         let sample: StatsSample
         do {
             let s = try source.readFast()
             sample = StatsSample(
-                cpu: s.cpu, ram: s.ram, gpu: s.gpu, vram: s.vram, down: s.down, up: s.up, ping: lastPing,
-                loss: loss.percent, cpuTemp: s.cpuTemp, gpuTemp: s.gpuTemp, gpuPower: s.gpuPower)
+                cpu: s.cpu, ram: s.ram, gpu: s.gpu, vram: s.vram, down: s.down, up: s.up, ping: ping,
+                loss: lost, cpuTemp: s.cpuTemp, gpuTemp: s.gpuTemp, gpuPower: s.gpuPower)
         } catch {
             logOnce()
             sample = StatsSample(
@@ -241,7 +292,7 @@ public final class StatsReporter {
         pingRunning = true
         let mine = generation
         let source = self.source
-        runPing { [weak self] in
+        runDisks { [weak self] in
             let ms = source.ping()
             guard let self else { return }
             self.gate.lock()
@@ -270,6 +321,8 @@ public final class StatsReporter {
     }
 
     private func logOnce() {
+        gate.lock()
+        defer { gate.unlock() }
         if !logged {
             logged = true
             Log.write("stats source failed (no data)")

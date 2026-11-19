@@ -51,7 +51,8 @@ public struct RolloutWindow: Equatable {
 
 /// What the end of a rollout says: working or idle, the newest limits, and what the first line says about the session.
 public struct RolloutTail: Equatable {
-    public let state: String
+    /// "busy" or "idle", nil when the part read holds no start or end marker.
+    public let state: String?
     public let limits: [RolloutWindow]
     public let cwd: String
     public let cliVersion: String
@@ -118,27 +119,49 @@ public enum CodexRollout {
         return scan.result()
     }
 
-    /// The last cumulative usage and the last model of the whole file.
-    public static func totals(_ source: ByteSource) throws -> RolloutTotals {
+    /// How much of the end of a file is read first for the newest cumulative usage.
+    public static let totalsTailBytes = 1024 * 1024
+
+    /// The last cumulative usage and the last model. The last 1 MiB is read first; the whole file only when that holds
+    /// no usage, or no model and `knownModel` (what an earlier read of this file found) is nil.
+    public static func totals(_ source: ByteSource, knownModel: String? = nil) throws -> RolloutTotals {
+        if let length = source.length, length > UInt64(totalsTailBytes) {
+            try source.seek(to: length - UInt64(totalsTailBytes))
+            let end = try scanTotals(source, dropFirst: true)
+            if end.found, end.model != nil || knownModel != nil {
+                return RolloutTotals(
+                    model: end.model ?? knownModel, input: end.input, cachedInput: end.cached, output: end.output)
+            }
+            try source.seek(to: 0)
+        }
+        let all = try scanTotals(source, dropFirst: false)
+        return RolloutTotals(model: all.model, input: all.input, cachedInput: all.cached, output: all.output)
+    }
+
+    private static func scanTotals(_ source: ByteSource, dropFirst: Bool) throws -> (
+        model: String?, input: Int64, cached: Int64, output: Int64, found: Bool
+    ) {
         var model: String?
         var input: Int64 = 0
         var cached: Int64 = 0
         var output: Int64 = 0
-        try forEachLine(source, dropFirst: false) { line in
+        var found = false
+        try forEachLine(source, dropFirst: dropFirst) { line in
             guard has(line, "turn_context") || has(line, "total_token_usage") else { return }
-            guard let root = JsonRead.object(line, maxDepth: maxDepth), let found = payloadOf(root) else { return }
-            let payload = found.payload
-            if found.type == "turn_context", let m = payload["model"] as? String {
+            guard let root = JsonRead.object(line, maxDepth: maxDepth), let hit = payloadOf(root) else { return }
+            let payload = hit.payload
+            if hit.type == "turn_context", let m = payload["model"] as? String {
                 model = short(m)
-            } else if found.type == "token_count", let info = payload["info"] as? [String: Any],
+            } else if hit.type == "token_count", let info = payload["info"] as? [String: Any],
                 let usage = info["total_token_usage"] as? [String: Any]
             {
                 input = tokenCount(usage, "input_tokens")
                 cached = tokenCount(usage, "cached_input_tokens")
                 output = tokenCount(usage, "output_tokens")
+                found = true
             }
         }
-        return RolloutTotals(model: model, input: input, cachedInput: cached, output: output)
+        return (model, input, cached, output, found)
     }
 
     /// The window of a rate-limit object (`used_percent`, `window_minutes`, `resets_at`), or nil when it does not read.
@@ -209,7 +232,7 @@ public enum CodexRollout {
     }
 
     private final class TailScan {
-        private var state = SessionStateToken.idle.rawValue
+        private var state: String?
         private var cwd = ""
         private var version = ""
         private var preferred: [RolloutWindow]?
