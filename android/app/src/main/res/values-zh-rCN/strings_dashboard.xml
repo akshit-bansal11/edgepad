@@ -36,7 +36,6 @@
   <string name="wx_showers">阵雨</string>
   <string name="wx_storm">雷暴</string>
   <string name="wx_credit">天气数据来自 Open-Meteo.com</string>
-  <string name="wx_off">天气已关闭。在笔记本电脑的 Edgepad 菜单中设置城市。</string>
   <string name="ai_title">AI</string>
   <string name="ai_win_week">周</string>
   <string name="ai_win_month">月</string>

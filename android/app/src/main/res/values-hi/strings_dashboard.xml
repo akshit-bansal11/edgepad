@@ -36,7 +36,6 @@
   <string name="wx_showers">बौछारें</string>
   <string name="wx_storm">आंधी-तूफ़ान</string>
   <string name="wx_credit">मौसम डेटा Open-Meteo.com से</string>
-  <string name="wx_off">मौसम बंद है। अपने लैपटॉप पर Edgepad मेनू में शहर चुनें।</string>
   <string name="ai_title">AI</string>
   <string name="ai_win_week">सप्ताह</string>
   <string name="ai_win_month">महीना</string>

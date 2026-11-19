@@ -36,7 +36,6 @@
   <string name="wx_showers">زخات</string>
   <string name="wx_storm">عاصفة رعدية</string>
   <string name="wx_credit">بيانات الطقس من Open-Meteo.com</string>
-  <string name="wx_off">الطقس مُعطّل. اختر مدينة من قائمة Edgepad على الحاسوب المحمول.</string>
   <string name="ai_title">الذكاء الاصطناعي</string>
   <string name="ai_win_week">أسبوع</string>
   <string name="ai_win_month">شهر</string>

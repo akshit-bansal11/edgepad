@@ -36,7 +36,6 @@
   <string name="wx_showers">Averses</string>
   <string name="wx_storm">Orage</string>
   <string name="wx_credit">Données météo par Open-Meteo.com</string>
-  <string name="wx_off">La météo est désactivée. Choisissez une ville dans le menu Edgepad de votre ordinateur portable.</string>
   <string name="ai_title">IA</string>
   <string name="ai_win_week">Semaine</string>
   <string name="ai_win_month">Mois</string>

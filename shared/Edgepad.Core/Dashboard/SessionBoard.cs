@@ -3,7 +3,7 @@ using Edgepad.Protocol;
 namespace Edgepad.Dashboard;
 
 /// <summary>What happened to an agent session, in the board's own words.</summary>
-internal enum SessionEvent
+public enum SessionEvent
 {
     Start,
     Prompt,

@@ -8,7 +8,7 @@ using Edgepad.Trust;
 namespace Edgepad.Dashboard;
 
 /// <summary>Where an agent's integration stands, for the Integrations window.</summary>
-internal enum PluginState
+public enum PluginState
 {
     /// <summary>Not connected.</summary>
     NotConnected,

@@ -36,7 +36,6 @@
   <string name="wx_showers">Schauer</string>
   <string name="wx_storm">Gewitter</string>
   <string name="wx_credit">Wetterdaten von Open-Meteo.com</string>
-  <string name="wx_off">Wetter ist aus. Lege im Edgepad-Menü auf deinem Laptop eine Stadt fest.</string>
   <string name="ai_title">KI</string>
   <string name="ai_win_week">Woche</string>
   <string name="ai_win_month">Monat</string>

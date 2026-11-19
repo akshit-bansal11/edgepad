@@ -36,7 +36,6 @@
   <string name="wx_showers">Ливни</string>
   <string name="wx_storm">Гроза</string>
   <string name="wx_credit">Данные о погоде: Open-Meteo.com</string>
-  <string name="wx_off">Погода выключена. Укажите город в меню Edgepad на ноутбуке.</string>
   <string name="ai_title">ИИ</string>
   <string name="ai_win_week">Неделя</string>
   <string name="ai_win_month">Месяц</string>

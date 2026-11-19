@@ -36,7 +36,6 @@
   <string name="wx_showers">Chubascos</string>
   <string name="wx_storm">Tormenta</string>
   <string name="wx_credit">Datos del tiempo de Open-Meteo.com</string>
-  <string name="wx_off">El tiempo está desactivado. Elige una ciudad en el menú de Edgepad en tu portátil.</string>
   <string name="ai_title">IA</string>
   <string name="ai_win_week">Semana</string>
   <string name="ai_win_month">Mes</string>

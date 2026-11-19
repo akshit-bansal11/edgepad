@@ -36,7 +36,6 @@
   <string name="wx_showers">Przelotne opady</string>
   <string name="wx_storm">Burza</string>
   <string name="wx_credit">Dane pogodowe z Open-Meteo.com</string>
-  <string name="wx_off">Pogoda jest wyłączona. Ustaw miasto w menu Edgepad na laptopie.</string>
   <string name="ai_title">AI</string>
   <string name="ai_win_week">Tydzień</string>
   <string name="ai_win_month">Miesiąc</string>

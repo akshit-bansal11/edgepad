@@ -36,7 +36,6 @@
   <string name="wx_showers">Pancadas</string>
   <string name="wx_storm">Tempestade</string>
   <string name="wx_credit">Dados do clima por Open-Meteo.com</string>
-  <string name="wx_off">O clima está desativado. Defina uma cidade no menu do Edgepad no seu notebook.</string>
   <string name="ai_title">IA</string>
   <string name="ai_win_week">Semana</string>
   <string name="ai_win_month">Mês</string>

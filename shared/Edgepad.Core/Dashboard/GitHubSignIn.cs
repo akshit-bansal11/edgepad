@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace Edgepad.Dashboard;
 
 /// <summary>Where a sign-in stands.</summary>
-internal enum SignInState
+public enum SignInState
 {
     /// <summary>A code was issued; show it and wait.</summary>
     Started,

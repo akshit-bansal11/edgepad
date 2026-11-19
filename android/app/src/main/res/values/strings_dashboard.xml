@@ -37,7 +37,6 @@
   <string name="wx_showers">Showers</string>
   <string name="wx_storm">Thunderstorm</string>
   <string name="wx_credit">Weather data by Open-Meteo.com</string>
-  <string name="wx_off">Weather is off. Set a city in the Edgepad menu on your laptop.</string>
   <string name="ai_title">AI</string>
   <string name="ai_win_week">Week</string>
   <string name="ai_win_month">Month</string>

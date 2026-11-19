@@ -36,7 +36,6 @@
   <string name="wx_showers">Sağanak</string>
   <string name="wx_storm">Gök gürültülü fırtına</string>
   <string name="wx_credit">Hava durumu verileri: Open-Meteo.com</string>
-  <string name="wx_off">Hava durumu kapalı. Dizüstü bilgisayarınızdaki Edgepad menüsünden bir şehir seçin.</string>
   <string name="ai_title">Yapay zeka</string>
   <string name="ai_win_week">Hafta</string>
   <string name="ai_win_month">Ay</string>
