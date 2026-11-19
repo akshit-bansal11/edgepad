@@ -164,7 +164,11 @@ object DashWire {
         val v =
             parts.mapIndexed { index, part ->
                 val n = part.toIntOrNull() ?: return null
-                if (n < 0) -1 else if (index in percentFields) minOf(n, PERCENT_MAX) else n
+                when {
+                    n < 0 -> -1
+                    index in percentFields -> minOf(n, PERCENT_MAX)
+                    else -> n
+                }
             }
         return StatsSample(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], v[9], v[10])
     }
@@ -178,25 +182,29 @@ object DashWire {
     }
 
     fun disks(text: String): List<DiskEntry> =
-        entries(text).mapNotNull { entry ->
-            val p = entry.split(':')
-            val used = p.getOrNull(1)?.toIntOrNull()
-            val total = p.getOrNull(2)?.toIntOrNull()
-            val free = p.getOrNull(3)?.toIntOrNull()
-            if (p.size != DISK_FIELDS || used == null || total == null || free == null) {
-                null
-            } else {
-                DiskEntry(p[0], if (used < 0) -1 else minOf(used, PERCENT_MAX), maxOf(total, -1), maxOf(free, -1))
+        entries(text)
+            .mapNotNull { entry ->
+                val p = entry.split(':')
+                val used = p.getOrNull(1)?.toIntOrNull()
+                val total = p.getOrNull(2)?.toIntOrNull()
+                val free = p.getOrNull(3)?.toIntOrNull()
+                if (p.size != DISK_FIELDS || used == null || total == null || free == null) {
+                    null
+                } else {
+                    DiskEntry(p[0], if (used < 0) -1 else minOf(used, PERCENT_MAX), maxOf(total, -1), maxOf(free, -1))
+                }
             }
-        }.take(MAX_DISKS)
+            .take(MAX_DISKS)
 
     fun sessions(text: String): List<SessionEntry> =
-        entries(text).mapNotNull { entry ->
-            val p = entry.split(':', limit = 3)
-            val agent = AgentToken.of(p[0])
-            val state = p.getOrNull(1)?.let(SessionStateToken::of)
-            if (p.size != 3 || agent == null || state == null) null else SessionEntry(agent, state, p[2])
-        }.take(MAX_SESSIONS)
+        entries(text)
+            .mapNotNull { entry ->
+                val p = entry.split(':', limit = 3)
+                val agent = AgentToken.of(p[0])
+                val state = p.getOrNull(1)?.let(SessionStateToken::of)
+                if (p.size != 3 || agent == null || state == null) null else SessionEntry(agent, state, p[2])
+            }
+            .take(MAX_SESSIONS)
 
     /** Null for an unknown form: zero, past a year, a leading zero or sign, a fraction, `5h`, an empty `~` name. */
     fun limitWindow(text: String): LimitWindow? =
@@ -331,7 +339,7 @@ object DashWire {
         val out = StringBuilder()
         var gap = false
         text.codePoints().forEach { cp ->
-            if (cp.toChar() in " |/:" && cp < SURROGATE_START || isControl(cp) || isInvisible(cp)) {
+            if ((cp.toChar() in " |/:" && cp < SURROGATE_START) || isControl(cp) || isInvisible(cp)) {
                 gap = out.isNotEmpty()
             } else {
                 if (gap) out.append(' ')

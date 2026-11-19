@@ -46,7 +46,7 @@ const permHook = {
 const withServer = async (opts, body) => {
     const server = await startServer(opts)
     try {
-        await body(server)
+        return await body(server)
     } finally {
         await server.close()
     }

@@ -108,7 +108,11 @@ class AiScreen(
         agent: AgentToken,
         across: Int,
     ) {
-        val limits = s.limits.filter { it.agent == agent }.sortedWith(LimitWindowLabel.shortestFirst).take(MAX_RINGS)
+        val limits =
+            s.limits
+                .filter { it.agent == agent }
+                .sortedWith(LimitWindowLabel.shortestFirst)
+                .take(MAX_RINGS)
         val spend = s.spend.firstOrNull { it.agent == agent }
         val measured =
             (limits.map { it.measuredAtMin } + listOfNotNull(spend?.measuredAtMin)).filter { it >= 0 }.maxOrNull()

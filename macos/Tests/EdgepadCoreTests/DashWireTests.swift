@@ -148,7 +148,11 @@ final class DashWireTests: XCTestCase {
             let limits = entries(args).map { fields($0, 5) }.map { f in
                 let pct = Double(field(f[2])) ?? .nan
                 return LimitEntry(
-                    agent: field(f[0]), window: field(f[1]), pct: pct, resetAtMin: long(f[3]), measuredAtMin: long(f[4]))
+                    agent: field(f[0]),
+                    window: field(f[1]),
+                    pct: pct,
+                    resetAtMin: long(f[3]),
+                    measuredAtMin: long(f[4]))
             }
             return DashWire.encodeLimits(limits)
         case "LIMITSPARSE":

@@ -75,7 +75,7 @@ public sealed class DashWireTests
     [Fact]
     public void EveryTextPayloadFitsTheFrame()
     {
-        var wide = new string('😀', 60);
+        var wide = string.Concat(Enumerable.Repeat("😀", 60));
         var payloads = new[]
         {
             DashWire.EncodeStatsInfo(new StatsInfo(wide, int.MaxValue, wide, int.MaxValue, wide)),
@@ -96,7 +96,7 @@ public sealed class DashWireTests
     public void TheGitHubBlobKeepsWholeLinesWithinEightKiB()
     {
         var repo = new string('r', 100) + "/" + new string('r', 100);
-        var title = new string('😀', 80);
+        var title = string.Concat(Enumerable.Repeat("😀", 80));
         var lines = new List<GitHubLine>();
         for (var i = 0; i < 12; i++)
         {
