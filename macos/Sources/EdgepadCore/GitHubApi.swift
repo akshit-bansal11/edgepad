@@ -101,19 +101,15 @@ public final class GitHubApi {
 
     /// Asks for the pull requests, then the notification count.
     public func refresh() async -> GitHubRefreshResult {
-        gate.lock()
-        if running {
-            gate.unlock()
+        let (busy, waiting) = gate.withLock { () -> (Bool, Bool) in
+            if running { return (true, false) }
+            running = true
+            return (false, now() < backoffUntil)
+        }
+        if busy {
             return GitHubRefreshResult(result: .busy, changed: false)
         }
-        running = true
-        let waiting = now() < backoffUntil
-        gate.unlock()
-        defer {
-            gate.lock()
-            running = false
-            gate.unlock()
-        }
+        defer { gate.withLock { running = false } }
         if waiting {
             return GitHubRefreshResult(result: .rateLimited, changed: false)
         }
@@ -143,17 +139,13 @@ public final class GitHubApi {
         let result = judge(reply)
         guard result == .ok, let reply else { return result }
         guard let parsed = GitHubParse.pulls(reply.body) else { return .failed }
-        gate.lock()
-        pulls = parsed
-        gate.unlock()
+        gate.withLock { pulls = parsed }
         return .ok
     }
 
     private func refreshUnread() async -> GitHubResult {
         guard var request = authorized("GET", Self.notificationsUrl) else { return .notSignedIn }
-        gate.lock()
-        let known = unread == nil ? nil : etag
-        gate.unlock()
+        let known = gate.withLock { unread == nil ? nil : etag }
         if let known {
             request.setValue(known, forHTTPHeaderField: "If-None-Match")
         }
@@ -166,10 +158,10 @@ public final class GitHubApi {
         let usable =
             tag.map { (1...Self.maxETag).contains($0.utf8.count) && $0.utf8.allSatisfy { $0 >= 0x20 && $0 <= 0x7E } }
             ?? false
-        gate.lock()
-        unread = count
-        etag = usable ? tag : nil
-        gate.unlock()
+        gate.withLock {
+            unread = count
+            etag = usable ? tag : nil
+        }
         return .ok
     }
 

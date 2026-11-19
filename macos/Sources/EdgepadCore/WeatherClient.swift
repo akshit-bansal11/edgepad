@@ -86,19 +86,15 @@ public final class WeatherClient {
     /// The current weather for `city`; nil when the city is unusable, unknown, or Open-Meteo could not be asked.
     public func get(_ city: String?) async -> WeatherInfo? {
         guard let clean = Self.cityFrom(city) else { return nil }
-        gate.lock()
-        if let running = inFlight {
-            gate.unlock()
-            return await running.value
+        // A nil task means a cache hit, answered with `hit`.
+        let (task, hit) = gate.withLock { () -> (Task<WeatherInfo?, Never>?, WeatherInfo?) in
+            if let running = inFlight { return (running, nil) }
+            if clean == cachedCity && now() < nextAt { return (nil, cached) }
+            let started = Task { await self.fetch(clean) }
+            inFlight = started
+            return (started, nil)
         }
-        if clean == cachedCity && now() < nextAt {
-            let weather = cached
-            gate.unlock()
-            return weather
-        }
-        let task = Task { await self.fetch(clean) }
-        inFlight = task
-        gate.unlock()
+        guard let task else { return hit }
         return await task.value
     }
 
@@ -137,9 +133,7 @@ public final class WeatherClient {
     }
 
     private func fetch(_ city: String) async -> WeatherInfo? {
-        gate.lock()
-        let known = city == placeCity ? found : nil
-        gate.unlock()
+        let known = gate.withLock { city == placeCity ? found : nil }
         var place = known
         if place == nil {
             place = await geocode(city)
@@ -148,16 +142,16 @@ public final class WeatherClient {
         if let place {
             weather = await forecast(place, city)
         }
-        gate.lock()
-        if let place {
-            placeCity = city
-            found = place
+        gate.withLock {
+            if let place {
+                placeCity = city
+                found = place
+            }
+            cachedCity = city
+            cached = weather
+            nextAt = now().addingTimeInterval(weather == nil ? Self.retryAfter : Self.forecastFor)
+            inFlight = nil
         }
-        cachedCity = city
-        cached = weather
-        nextAt = now().addingTimeInterval(weather == nil ? Self.retryAfter : Self.forecastFor)
-        inFlight = nil
-        gate.unlock()
         return weather
     }
 

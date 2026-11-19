@@ -144,10 +144,10 @@ public final class GitHubSignIn {
 
         /// Sleeps through `sleep`, cut short by `stop` or by cancelling the waiting task.
         func sleep(_ sleep: Task<Void, Error>) async {
-            gate.lock()
-            sleeper = sleep
-            let already = stopped
-            gate.unlock()
+            let already = gate.withLock { () -> Bool in
+                sleeper = sleep
+                return stopped
+            }
             if already { sleep.cancel() }
             await withTaskCancellationHandler {
                 _ = try? await sleep.value
@@ -196,10 +196,11 @@ public final class GitHubSignIn {
         let flow = Flow(
             deviceCode: issued.deviceCode, interval: issued.interval,
             deadline: now().addingTimeInterval(TimeInterval(issued.expiresIn)))
-        gate.lock()
-        let old = current
-        current = flow
-        gate.unlock()
+        let old = gate.withLock { () -> Flow? in
+            let previous = current
+            current = flow
+            return previous
+        }
         old?.stop()
         return DeviceCode(
             state: .started, userCode: issued.userCode, page: GitHubApp.devicePage,
@@ -210,15 +211,9 @@ public final class GitHubSignIn {
     /// slow_down. Cancelling the calling task or calling `cancel` ends it as `.cancelled`. A failed poll is tried again
     /// at the next interval until the code runs out.
     public func wait() async -> SignInState {
-        gate.lock()
-        let flow = current
-        gate.unlock()
+        let flow = gate.withLock { current }
         guard let flow, flow.claim() else { return .failed }
-        defer {
-            gate.lock()
-            if current === flow { current = nil }
-            gate.unlock()
-        }
+        defer { gate.withLock { if current === flow { current = nil } } }
         var interval = flow.interval
         let form =
             "client_id=\(UrlText.escape(clientId))&device_code=\(UrlText.escape(flow.deviceCode))"

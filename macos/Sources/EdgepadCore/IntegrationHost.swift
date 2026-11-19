@@ -409,9 +409,7 @@ public final class IntegrationHost {
         Task { [weak self] in
             try? await Task.sleep(nanoseconds: UInt64(max(0, delay) * 1_000_000_000))
             guard let self else { return }
-            self.gate.lock()
-            self.weatherRetrying = false
-            self.gate.unlock()
+            self.gate.withLock { self.weatherRetrying = false }
             self.refreshWeather(isRetry: true)
         }
     }
