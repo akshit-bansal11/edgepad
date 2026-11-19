@@ -96,13 +96,13 @@ object MediaLayoutScreen {
         private val settings: Settings,
     ) : LayoutCanvas(context) {
         // The media pieces, then the widgets that are switched on: all are dragged and nudged the same way.
-        private val items: List<Item> =
-            MediaPiece.entries.map { Item.Piece(it, context.getString(it.nameRes)) } +
+        private val items: List<LayoutItem> =
+            MediaPiece.entries.map { LayoutItem.Piece(it, context.getString(it.nameRes)) } +
                 SurfaceWidget.entries
                     .filter(settings::widgetOn)
-                    .map { Item.Widget(it, context.getString(it.nameRes)) }
+                    .map { LayoutItem.Widget(it, context.getString(it.nameRes)) }
         private val positions = items.associateWith { stored(it) }.toMutableMap()
-        private var dragging: Item? = null
+        private var dragging: LayoutItem? = null
         private val corner = CORNER_DP * density
         private val drop = Space.HAIR * density
         private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -169,27 +169,27 @@ object MediaLayoutScreen {
 
         /** Whether a piece centred at [at] would sit on something the surface keeps for itself. */
         private fun blocked(
-            item: Item,
+            item: LayoutItem,
             at: Pair<Float, Float>,
         ): Boolean {
             bounds(item, probe, at)
             return ghosts.any { RectF.intersects(it, probe) }
         }
 
-        private fun stored(item: Item): Pair<Float, Float> =
+        private fun stored(item: LayoutItem): Pair<Float, Float> =
             when (item) {
-                is Item.Piece -> settings.piece(item.piece)
-                is Item.Widget -> settings.widget(item.widget)
+                is LayoutItem.Piece -> settings.piece(item.piece)
+                is LayoutItem.Widget -> settings.widget(item.widget)
             }
 
         private fun save(
-            item: Item,
+            item: LayoutItem,
             x: Float,
             y: Float,
         ) {
             when (item) {
-                is Item.Piece -> settings.setPiece(item.piece, x, y)
-                is Item.Widget -> settings.setWidget(item.widget, x, y)
+                is LayoutItem.Piece -> settings.setPiece(item.piece, x, y)
+                is LayoutItem.Widget -> settings.setWidget(item.widget, x, y)
             }
         }
 
@@ -209,7 +209,7 @@ object MediaLayoutScreen {
 
         /** One grid cell on x ([dx]) or y ([dy]), stored as a drag's end is; false at the edge or onto a ghost. */
         private fun nudge(
-            item: Item,
+            item: LayoutItem,
             dx: Int,
             dy: Int,
         ): Boolean {
@@ -239,7 +239,7 @@ object MediaLayoutScreen {
         }
 
         private fun bounds(
-            item: Item,
+            item: LayoutItem,
             out: RectF,
             at: Pair<Float, Float> = positions.getValue(item),
         ) {
@@ -247,13 +247,13 @@ object MediaLayoutScreen {
             val cx = fx * width
             val cy = fy * height
             when (item) {
-                is Item.Widget -> {
+                is LayoutItem.Widget -> {
                     // A widget is not scaled with the media; the surface sizes its box from the same numbers.
                     val (bw, bh) = WidgetPainter.boxSize(item.widget, width.toFloat(), height.toFloat(), density)
                     out.set(cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2)
                 }
 
-                is Item.Piece -> {
+                is LayoutItem.Piece -> {
                     val (w, h) =
                         when (item.piece) {
                             MediaPiece.NOW_PLAYING -> {
@@ -353,18 +353,18 @@ object MediaLayoutScreen {
 }
 
 /** Something the layout editor drags: a media piece, or a widget that is switched on. */
-private sealed interface Item {
+private sealed interface LayoutItem {
     val label: String
 
     class Piece(
         val piece: MediaPiece,
         override val label: String,
-    ) : Item
+    ) : LayoutItem
 
     class Widget(
         val widget: SurfaceWidget,
         override val label: String,
-    ) : Item
+    ) : LayoutItem
 }
 
 /** Positions are kept per orientation, so the hint names the one being edited. */

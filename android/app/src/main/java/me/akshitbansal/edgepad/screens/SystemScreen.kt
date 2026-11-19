@@ -150,7 +150,7 @@ class SystemScreen(
             extra = {
                 hairline()
                 add(ui.field(ui.string(R.string.sys_loss), loss))
-                updaters.add { loss.text = percent(it.stats.latest(StatsRing.LOSS)) }
+                updaters.add { loss.text = fmt.percent(it.stats.latest(StatsRing.LOSS)) }
             },
         )
     }

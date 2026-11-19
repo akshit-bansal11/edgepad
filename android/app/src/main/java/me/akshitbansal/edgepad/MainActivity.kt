@@ -878,7 +878,6 @@ class MainActivity :
         if (screen == Screen.SURFACE) goTo(Screen.SURFACE)
     }
 
-
     /** A frame of the selected laptop: the dashboard screens redraw from the kinds they show, and a gone ask leaves. */
     private fun refreshDashboard(frame: Frame) {
         if (frame !is Frame.Text) return
@@ -896,7 +895,7 @@ class MainActivity :
             else -> Unit
         }
     }
-    /** Tells the laptop to stop looking, once per watch, and not at all when there is no link to tell. */
+
     /** Takes the watch back from the laptop being left, whatever it was told, before the selection moves on. */
     private fun unwatchDash() {
         if (dashMask == 0) return

@@ -96,10 +96,11 @@ class GitHubScreen(
                 addView(title)
                 addView(
                     where,
-                    LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ).apply { topMargin = ui.dp(Space.SUB_GAP) },
+                    LinearLayout
+                        .LayoutParams(
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ).apply { topMargin = ui.dp(Space.SUB_GAP) },
                 )
             }
         val badges =
