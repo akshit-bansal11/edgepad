@@ -45,9 +45,7 @@ final class FakeHttp: HttpSender {
             method: request.httpMethod ?? "GET", url: url, host: request.url?.host ?? "",
             headers: request.allHTTPHeaderFields ?? [:],
             body: String(decoding: request.httpBody ?? Data(), as: UTF8.self))
-        lock.lock()
-        requests.append(seen)
-        lock.unlock()
+        lock.withLock { requests.append(seen) }
         guard let reply = answer(request), reply.body.count <= maxBytes else { return nil }
         return reply
     }

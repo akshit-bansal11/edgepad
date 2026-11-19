@@ -317,7 +317,7 @@ public sealed class StatsTests
             Sent.Add(text);
         }
 
-        private IDisposable Start(Action action)
+        private Stopper Start(Action action)
         {
             TimersStarted++;
             return new Stopper(() => TimersStopped++);

@@ -71,7 +71,7 @@ public sealed class IntegrationHostTests : IDisposable
         GitHubSignedIn = () => GitHubApp.IsToken(secrets.Get(GitHubApp.TokenName)),
     };
 
-    private IDisposable StartOnce(Action action, TimeSpan due)
+    private FakeTimer StartOnce(Action action, TimeSpan due)
     {
         var timer = new FakeTimer(action, due);
         onces.Add(timer);
@@ -89,7 +89,7 @@ public sealed class IntegrationHostTests : IDisposable
         }
     }
 
-    private IDisposable StartTimer(Action action, TimeSpan every)
+    private FakeTimer StartTimer(Action action, TimeSpan every)
     {
         var timer = new FakeTimer(action, every);
         timers.Add(timer);

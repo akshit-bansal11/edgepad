@@ -22,7 +22,7 @@ public sealed class IntegrationSettingsTests : IDisposable
 
     public void Dispose() => dir.Delete(recursive: true);
 
-    private void AssertAllOff(IntegrationSettings settings)
+    private static void AssertAllOff(IntegrationSettings settings)
     {
         Assert.All(Flags, key => Assert.False(settings.Flag(key), key));
         Assert.Equal(string.Empty, settings.Text(IntegrationSettings.City));

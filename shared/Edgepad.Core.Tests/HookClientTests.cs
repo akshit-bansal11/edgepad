@@ -245,7 +245,7 @@ public sealed class HookClientTests : IDisposable
         private readonly ConcurrentQueue<string> requests = new();
 
         /// <summary>Every request line, once each served connection has been read up to its line feed.</summary>
-        public IReadOnlyCollection<string> Requests
+        public ConcurrentQueue<string> Requests
         {
             get
             {

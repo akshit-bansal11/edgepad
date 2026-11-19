@@ -57,10 +57,10 @@ private final class FakeRunner: ProcessRunner {
     }
 
     func run(_ file: String, _ arguments: [String], cwd: String, timeout: TimeInterval) async -> ProcessResult {
-        lock.lock()
-        log.append(Run(file: file, arguments: arguments, cwd: cwd))
-        let reply = answer
-        lock.unlock()
+        let reply = lock.withLock {
+            log.append(Run(file: file, arguments: arguments, cwd: cwd))
+            return answer
+        }
         return reply(file, arguments)
     }
 }

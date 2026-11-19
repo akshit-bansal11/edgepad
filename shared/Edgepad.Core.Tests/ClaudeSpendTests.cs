@@ -10,6 +10,7 @@ namespace Edgepad.Tests;
 public sealed class ClaudeSpendTests : IDisposable
 {
     private const string Sonnet = "claude-sonnet-4-5-20250929";
+    private static readonly string[] ExpectedKeys = ["after", "m1", "only-uuid"];
 
     // Thursday 19 November 2026, noon local: today 19th, week from Monday 16th, month from the 1st.
     private readonly DateTimeOffset now = new(new DateTime(2026, 11, 19, 12, 0, 0, DateTimeKind.Local));
@@ -128,7 +129,7 @@ public sealed class ClaudeSpendTests : IDisposable
 
         var rows = ClaudeSpend.SumFile(new MemoryStream(Encoding.UTF8.GetBytes(text)), "2026-11-01");
 
-        Assert.Equal(new[] { "after", "m1", "only-uuid" }, rows.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal(ExpectedKeys, rows.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(new ClaudeRow("2026-11-19", 110000, 0.45, true), rows["m1"] with { Usd = Math.Round(rows["m1"].Usd, 9) });
         Assert.False(rows["only-uuid"].Priced);
         Assert.Equal(7, rows["only-uuid"].Tokens);

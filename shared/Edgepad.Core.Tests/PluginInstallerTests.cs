@@ -7,6 +7,9 @@ namespace Edgepad.Tests;
 public sealed class PluginInstallerTests : IDisposable
 {
     private const string Ok = """{"command":"x","outcome":"ok"}""";
+    private static readonly string[] ClaudeInstall = ["plugin", "install", "edgepad@edgepad", "--scope", "user", "--json"];
+    private static readonly string[] VersionArgs = ["--version"];
+    private static readonly string[] CodexAdd = ["plugin", "add", "edgepad@edgepad", "--json"];
 
     private readonly DirectoryInfo dir = Directory.CreateTempSubdirectory("edgepad-install");
     private readonly IntegrationSettings settings;
@@ -63,7 +66,7 @@ public sealed class PluginInstallerTests : IDisposable
         Assert.Equal<(string, string[], string)>(
             [
                 (Claude, new[] { "plugin", "marketplace", "add", folder, "--json" }, folder),
-                (Claude, new[] { "plugin", "install", "edgepad@edgepad", "--scope", "user", "--json" }, folder),
+                (Claude, ClaudeInstall, folder),
             ],
             CliCalls(),
             new CallComparer());
@@ -85,9 +88,9 @@ public sealed class PluginInstallerTests : IDisposable
         var folder = installer.FolderOf(AgentToken.Codex);
         Assert.Equal<(string, string[], string)>(
             [
-                (Codex, new[] { "--version" }, folder),
+                (Codex, VersionArgs, folder),
                 (Codex, new[] { "plugin", "marketplace", "add", folder, "--json" }, folder),
-                (Codex, new[] { "plugin", "add", "edgepad@edgepad", "--json" }, folder),
+                (Codex, CodexAdd, folder),
             ],
             CliCalls(),
             new CallComparer());

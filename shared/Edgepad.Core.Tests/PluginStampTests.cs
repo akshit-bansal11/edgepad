@@ -8,6 +8,8 @@ namespace Edgepad.Tests;
 
 public sealed class PluginStampTests : IDisposable
 {
+    private static readonly string?[] HookArgs = ["--hook", "claude", "perm"];
+
     // A Windows-looking app path with a space, a quote, a backslash run and a non-ASCII letter: the stamp must keep it whole.
     private const string AppPath = @"C:\Pro gram\""q""\nöde\Edgepad.exe";
 
@@ -42,7 +44,7 @@ public sealed class PluginStampTests : IDisposable
 
         var hook = Hooks(folder).GetProperty("hooks").GetProperty("PermissionRequest")[0].GetProperty("hooks")[0];
         Assert.Equal(AppPath, hook.GetProperty("command").GetString());
-        Assert.Equal(new string?[] { "--hook", "claude", "perm" }, hook.GetProperty("args").EnumerateArray().Select(a => a.GetString()));
+        Assert.Equal(HookArgs, hook.GetProperty("args").EnumerateArray().Select(a => a.GetString()));
 
         var relay = File.ReadAllText(Path.Combine(folder, PluginStamp.PluginFolder, "hooks", "relay.ts"));
         Assert.Contains("\"" + JsonEncodedText.Encode(AppPath).ToString() + "\"", relay, StringComparison.Ordinal);
