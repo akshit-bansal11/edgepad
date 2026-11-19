@@ -27,6 +27,7 @@ public final class BlobSender {
         let label: String
         let data: [UInt8]
         let abandoned: () -> Bool
+        let urgent: Bool
         let finished: (Bool) -> Void
     }
 
@@ -63,19 +64,22 @@ public final class BlobSender {
 
     /// Sends one blob. `finished` is told true once BLOB_END went, and false when the link died, the session ended or
     /// `abandoned` said so part way: no BLOB_END goes then, and the next BLOB_BEGIN clears what the far end was
-    /// holding.
+    /// holding. `urgent` (an approval a person is waiting on) does not slow down for the phone's input: it keeps the
+    /// full budget per tick however fresh the last input is. It still waits its turn behind a blob already on its way.
     public func send(
         _ kind: BlobKind,
         label: String,
         data: [UInt8],
         abandoned: @escaping () -> Bool = { false },
+        urgent: Bool = false,
         finished: @escaping (Bool) -> Void = { _ in }
     ) {
         guard !ended else {
             finished(false)
             return
         }
-        queue.append(Job(kind: kind, label: label, data: data, abandoned: abandoned, finished: finished))
+        queue.append(
+            Job(kind: kind, label: label, data: data, abandoned: abandoned, urgent: urgent, finished: finished))
         next()
     }
 
@@ -121,7 +125,7 @@ public final class BlobSender {
             current?.seq &+= 1
             guard emit(.blobChunk(seq: transfer.seq, data: Array(data[transfer.offset..<end]))) else { return }
             sent += 1
-            if sent >= budget(), end < data.count {
+            if sent >= budget(urgent: transfer.job.urgent), end < data.count {
                 schedule(BlobSender.tick) { [weak self] in self?.pump(id) }
                 return
             }
@@ -131,8 +135,8 @@ public final class BlobSender {
         stop(true)
     }
 
-    private func budget() -> Int {
-        if clock() - lastInput() < BlobSender.inputQuiet {
+    private func budget(urgent: Bool) -> Int {
+        if !urgent && clock() - lastInput() < BlobSender.inputQuiet {
             return BlobSender.busyChunksPerTick
         }
         switch link {

@@ -638,7 +638,9 @@ public final class Session {
         // Every media source reports its changes, with or without the end action.
         dispatcher.media?.changed = { [weak self] in self?.sendMedia() }
         baseFeatures = features
-        if let makeDashboard {
+        // Only for a session still live: one that already ended never disposes a link made now, and the phone would
+        // stay counted with approvals waiting on it.
+        if let makeDashboard, !isEnded {
             let link = makeDashboard { [weak self] frame in self?.send(frame) }
             dashboard = link
             features += link.features()

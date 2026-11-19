@@ -19,6 +19,11 @@ final class PermissionBrokerTests: XCTestCase {
         return broker
     }
 
+    private func text(_ agent: String, _ tool: String, _ input: ToolInput) -> String? {
+        let request = PermRequest(token: "T", agent: agent, session: "", cwd: "", tool: tool, input: input)
+        return PermissionBroker.textFor(request)
+    }
+
     private func bash(_ command: String, session: String = "s1") -> PermRequest {
         PermRequest(
             token: "T", agent: AgentToken.claude.rawValue, session: session, cwd: "/w", tool: "Bash",
@@ -181,17 +186,54 @@ final class PermissionBrokerTests: XCTestCase {
     }
 
     func testOnlyTheWhitelistedFieldIsShown() {
-        func text(_ agent: String, _ tool: String, _ input: ToolInput) -> String {
-            let request = PermRequest(token: "T", agent: agent, session: "", cwd: "", tool: tool, input: input)
-            return PermissionBroker.textFor(request)
-        }
         let all = ToolInput(command: "cmd", filePath: "/f", url: "https://u")
         XCTAssertEqual(text("claude", "Bash", all), "cmd")
         XCTAssertEqual(text("claude", "Edit", all), "/f")
         XCTAssertEqual(text("claude", "NotebookEdit", all), "/f")
         XCTAssertEqual(text("claude", "WebFetch", all), "https://u")
-        XCTAssertEqual(text("claude", "mcp.tool", all), "")
         XCTAssertEqual(text("codex", "shell", all), "cmd")
         XCTAssertEqual(text("codex", "apply_patch", ToolInput(filePath: "/p")), "/p")
+        XCTAssertEqual(text("codex", "mcp__gh__pr", ToolInput(url: "https://u")), "https://u")
+    }
+
+    func testNothingToShowIsNil() {
+        let all = ToolInput(command: "cmd", filePath: "/f", url: "https://u")
+        for tool in ["mcp.tool", "mcp__gh__pr", "ExitPlanMode", "Task", "WebSearch", "Glob", "Unknown"] {
+            XCTAssertNil(text("claude", tool, all), tool)
+        }
+        XCTAssertNil(text("codex", "apply_patch", ToolInput()))
+        XCTAssertNil(text("codex", "shell", ToolInput(command: "", url: "https://u")))
+        XCTAssertNil(text("claude", "Bash", ToolInput(filePath: "/f")))
+        XCTAssertNil(text("claude", "Bash", ToolInput(command: "")))
+        XCTAssertNil(text("claude", "Edit", ToolInput(command: "cmd")))
+        XCTAssertNil(text("claude", "WebFetch", ToolInput()))
+    }
+
+    func testAToolWithNothingToShowDefersWithoutAskingThePhone() {
+        let broker = newBroker()
+        let request = PermRequest(
+            token: "T", agent: "claude", session: "s1", cwd: "", tool: "mcp__gh__pr", input: ToolInput(command: "x"))
+        let (outcome, _) = ask(broker, request)
+
+        XCTAssertEqual(outcome(), .deferred)
+        XCTAssertTrue(asked.isEmpty)
+        XCTAssertEqual(broker.pendingCount, 0)
+    }
+
+    func testACutFieldIsDenyOnlyWithNoText() throws {
+        let broker = newBroker()
+        let input = ToolInput(command: "ls", truncated: true)
+        _ = ask(broker, PermRequest(token: "T", agent: "claude", session: "s", cwd: "", tool: "Bash", input: input))
+
+        XCTAssertFalse(asked[0].complete)
+        XCTAssertEqual(try XCTUnwrap(PermAskBody.parse(asked[0].body)).text, "")
+    }
+
+    func testAControlCharacterIsShownNotDropped() throws {
+        let broker = newBroker()
+        _ = ask(broker, bash("ls\rrm -rf x\u{0}"))
+
+        XCTAssertTrue(asked[0].complete)
+        XCTAssertEqual(try XCTUnwrap(PermAskBody.parse(asked[0].body)).text, "ls<U+000D>rm -rf x<U+0000>")
     }
 }

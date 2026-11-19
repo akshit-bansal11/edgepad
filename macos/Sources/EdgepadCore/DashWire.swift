@@ -218,17 +218,18 @@ public enum DashWire {
         return String(kept)
     }
 
-    /// For an approval's text: keeps line feeds and tabs, drops every other control character, and shows an invisible
-    /// character as <U+XXXX> so it can be read but never takes effect (Trojan Source). No trim and no cut.
+    /// For an approval's text: keeps line feeds and tabs, and shows every other control character and every invisible
+    /// character as <U+XXXX>, so it can be read but never takes effect (Trojan Source) and nothing the command holds is
+    /// hidden (a carriage return or a NUL included). No trim and no cut.
     public static func cleanText(_ text: String) -> String {
         var clean = ""
         for scalar in text.unicodeScalars {
             if scalar == "\n" || scalar == "\t" {
                 clean.unicodeScalars.append(scalar)
-            } else if isBidi(scalar) {
+            } else if isBidi(scalar) || isControl(scalar) {
                 let hex = String(scalar.value, radix: 16, uppercase: true)
                 clean += "<U+" + String(repeating: "0", count: max(0, 4 - hex.count)) + hex + ">"
-            } else if !isControl(scalar) {
+            } else {
                 clean.unicodeScalars.append(scalar)
             }
         }
@@ -509,12 +510,15 @@ public enum PermAskBody {
     static let maxToolLength = 24
 
     /// The body for an approval. The text is cleaned with `DashWire.cleanText` and the tool name reduced to
-    /// A-Za-z0-9_.-. When the body would pass 4096 bytes the text is left out and `complete` is false, so the phone
-    /// offers Deny only.
-    public static func encode(agent: String, tool: String, text: String) -> (body: String, complete: Bool) {
+    /// A-Za-z0-9_.-. Complete only when nothing was cut on the way (`truncated` false), the head plus the RAW text fit
+    /// 4096 bytes, and the cleaned body fits too, so cleaning can never hide a cut. Otherwise the text is left out and
+    /// `complete` is false, so the phone offers Deny only.
+    public static func encode(agent: String, tool: String, text: String, truncated: Bool = false) -> (
+        body: String, complete: Bool
+    ) {
         let head = agent + "\n" + toolName(tool) + "\n"
         let body = head + DashWire.cleanText(text)
-        let complete = body.utf8.count <= maxBytes
+        let complete = !truncated && head.utf8.count + text.utf8.count <= maxBytes && body.utf8.count <= maxBytes
         return (complete ? body : head, complete)
     }
 

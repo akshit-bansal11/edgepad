@@ -67,7 +67,8 @@ final class SessionTests: XCTestCase {
         address: String? = nil,
         ask: @escaping (String) -> Bool = { _ in true },
         inputBlocked: (() -> Bool)? = nil,
-        power: PowerSource? = nil
+        power: PowerSource? = nil,
+        makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)? = nil
     ) -> Session {
         Session(
             address: address ?? phone,
@@ -95,7 +96,8 @@ final class SessionTests: XCTestCase {
                 guard let self, self.holdsIcons else { return turn() }
                 self.iconTurns.append(turn)
             },
-            scheduleAfter: { [weak self] seconds, tick in self?.watchTicks.append((seconds, tick)) }
+            scheduleAfter: { [weak self] seconds, tick in self?.watchTicks.append((seconds, tick)) },
+            makeDashboard: makeDashboard
         )
     }
 
@@ -363,6 +365,28 @@ final class SessionTests: XCTestCase {
 
         XCTAssertTrue(session.isEnded)
         XCTAssertFalse(session.isLive)
+    }
+
+    func testASessionThatEndsWhileGoingLiveMakesNoDashboardSoNoPhoneStaysCounted() {
+        let phones = LinkedPhones()
+        var made = 0
+        let session = makeSession(makeDashboard: { _ in
+            made += 1
+            return DashboardLink(
+                phones: phones,
+                makeHost: {
+                    IntegrationHost(
+                        send: { _ in }, blobs: nil, settings: IntegrationSettings(path: "/dev/null/none"),
+                        parts: DashboardParts(), onMain: { $0() })
+                })
+        })
+        display.onRefresh = { [transport] in transport.alive = false }
+
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+
+        XCTAssertTrue(session.isEnded)
+        XCTAssertEqual(made, 0)
+        XCTAssertFalse(phones.any)
     }
 
     func testInputStateIsSentAfterTheDeviceTextAndOnlyOnAChange() {

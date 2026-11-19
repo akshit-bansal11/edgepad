@@ -2,18 +2,25 @@ import Foundation
 
 /// The tool fields a permission request may carry, as received (the hook client already whitelisted them).
 /// `commandSafe` is false when `command` was a list (Codex's array form) with a control character inside one element:
-/// joined with spaces it would not show what runs, so the broker offers Deny only.
+/// joined it would not show what runs, so the broker offers Deny only. `truncated` is true when a field was cut on the
+/// way, by the hook client (it says so in the request) or here: the text shown would not be all that runs, so the
+/// broker offers Deny only too.
 public struct ToolInput: Equatable {
     public let command: String?
     public let filePath: String?
     public let url: String?
     public let commandSafe: Bool
+    public let truncated: Bool
 
-    public init(command: String? = nil, filePath: String? = nil, url: String? = nil, commandSafe: Bool = true) {
+    public init(
+        command: String? = nil, filePath: String? = nil, url: String? = nil, commandSafe: Bool = true,
+        truncated: Bool = false
+    ) {
         self.command = command
         self.filePath = filePath
         self.url = url
         self.commandSafe = commandSafe
+        self.truncated = truncated
     }
 }
 
@@ -157,23 +164,50 @@ public enum HookProtocol {
             let cwd = optStr(d, "cwd", maxCwdLength)
         else { return nil }
 
-        var input = ToolInput()
+        // The client's own mark that it cut a field: true or false when present.
+        var truncated = false
+        if let raw = d["truncated"] {
+            guard let flag = raw as? NSNumber, CFGetTypeID(flag) == CFBooleanGetTypeID() else { return nil }
+            truncated = flag.boolValue
+        }
+
+        var input = ToolInput(truncated: truncated)
         if let raw = d["tool_input"] {
             guard let fields = raw as? [String: Any],
                 let file = optStr(fields, "file_path", maxTextLength),
                 let url = optStr(fields, "url", maxTextLength),
                 let command = readCommand(fields)
             else { return nil }
-            input = ToolInput(command: command.text, filePath: file, url: url, commandSafe: command.safe)
+            let cutHere = command.cut || isLong(fields["file_path"]) || isLong(fields["url"])
+            input = ToolInput(
+                command: command.text, filePath: file, url: url, commandSafe: command.safe,
+                truncated: truncated || cutHere)
         }
         return PermRequest(token: token, agent: agent, session: session ?? "", cwd: cwd ?? "", tool: tool, input: input)
     }
 
-    // A string, or (Codex's array form) a list of strings joined with spaces. Nil on anything else, JSON null included.
-    private static func readCommand(_ input: [String: Any]) -> (text: String?, safe: Bool)? {
-        guard let value = input["command"] else { return (nil, true) }
+    /// Codex's array-form command as one line to show: the elements joined by spaces, an element that is empty or holds
+    /// whitespace or a quote in POSIX single quotes (a ' inside written '\''), so `["bash","-lc","ls -la"]` reads
+    /// `bash -lc 'ls -la'` and not as four words.
+    public static func joinCommand(_ parts: [String]) -> String {
+        let shown = parts.map { needsQuotes($0) ? "'" + $0.replacingOccurrences(of: "'", with: "'\\''") + "'" : $0 }
+        return shown.joined(separator: " ")
+    }
+
+    private static func needsQuotes(_ part: String) -> Bool {
+        part.isEmpty || part.unicodeScalars.contains { $0.properties.isWhitespace || $0 == "'" || $0 == "\"" }
+    }
+
+    private static func isLong(_ value: Any?) -> Bool {
+        ((value as? String)?.utf16.count ?? 0) > maxTextLength
+    }
+
+    // A string, or (Codex's array form) a list of strings joined for display. Nil on anything else, JSON null included.
+    // `cut` is true when the text was longer than the cap.
+    private static func readCommand(_ input: [String: Any]) -> (text: String?, safe: Bool, cut: Bool)? {
+        guard let value = input["command"] else { return (nil, true, false) }
         if let text = value as? String {
-            return (cut(text, maxTextLength), true)
+            return (cut(text, maxTextLength), true, text.utf16.count > maxTextLength)
         }
         guard let parts = value as? [Any], (1...maxCommandParts).contains(parts.count) else { return nil }
         var texts: [String] = []
@@ -183,7 +217,8 @@ public enum HookProtocol {
             safe = safe && !text.unicodeScalars.contains { $0.properties.generalCategory == .control }
             texts.append(text)
         }
-        return (cut(texts.joined(separator: " "), maxTextLength), safe)
+        let joined = joinCommand(texts)
+        return (cut(joined, maxTextLength), safe, joined.utf16.count > maxTextLength)
     }
 
     private static func readSession(_ token: String, _ agent: String, _ d: [String: Any]) -> SessionRequest? {

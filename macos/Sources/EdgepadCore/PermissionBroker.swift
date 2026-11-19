@@ -78,17 +78,21 @@ public final class PermissionBroker {
     }
 
     /// The text an approval shows for this tool: Bash's command, the file of an edit or read, WebFetch's URL; for Codex,
-    /// whose tool names are not documented, the first of command, file and URL it sent; nothing for any other tool.
-    public static func textFor(_ request: PermRequest) -> String {
+    /// whose tool names are not documented, the first of command, file and URL it sent. Nil when there is nothing to
+    /// show (for Claude Code any other tool: MCP tools, Task, ExitPlanMode, WebSearch, an unknown one; or the field
+    /// missing or empty): a person must never approve what they cannot read, so the agent asks itself.
+    public static func textFor(_ request: PermRequest) -> String? {
         let input = request.input
+        let text: String?
         switch request.tool {
-        case "Bash": return input.command ?? ""
-        case "Edit", "Write", "MultiEdit", "Read", "NotebookEdit": return input.filePath ?? ""
-        case "WebFetch": return input.url ?? ""
+        case "Bash": text = input.command
+        case "Edit", "Write", "MultiEdit", "Read", "NotebookEdit": text = input.filePath
+        case "WebFetch": text = input.url
         default:
-            guard request.agent == AgentToken.codex.rawValue else { return "" }
-            return input.command ?? input.filePath ?? input.url ?? ""
+            text = request.agent == AgentToken.codex.rawValue ? input.command ?? input.filePath ?? input.url : nil
         }
+        guard let text, !text.isEmpty else { return nil }
+        return text
     }
 
     /// Asks the phones; `done` is told the outcome exactly once, at once when the ask is deferred before it starts, else
@@ -96,14 +100,16 @@ public final class PermissionBroker {
     /// cancelled): it ends a waiting ask as deferred and announces it gone; afterwards it does nothing.
     @discardableResult
     public func request(_ request: PermRequest, done: @escaping (PermDecision) -> Void) -> () -> Void {
-        guard phoneLinked() else {
+        guard phoneLinked(), let text = Self.textFor(request) else {
             done(.deferred)
             return {}
         }
 
-        let text = Self.textFor(request)
-        var (body, complete) = PermAskBody.encode(agent: request.agent, tool: request.tool, text: text)
-        if complete && !request.input.commandSafe, let command = request.input.command, text == command {
+        // Complete only when nothing was cut on the way and the whole body fits; else the text stays off the phone
+        // and it offers Deny only.
+        var (body, complete) = PermAskBody.encode(
+            agent: request.agent, tool: request.tool, text: text, truncated: request.input.truncated)
+        if complete && !request.input.commandSafe && request.input.command == text {
             body = PermAskBody.encode(agent: request.agent, tool: request.tool, text: "").body
             complete = false
         }

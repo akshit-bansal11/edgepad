@@ -32,24 +32,9 @@ public enum HookClient {
     // Bash `command`; Edit/Write/MultiEdit/Read/NotebookEdit `file_path`; WebFetch `url`. The laptop picks per tool.
     private static let inputFields = ["command", "file_path", "url"]
 
-    /// True when the app was started as a hook command; `arguments` without the program itself.
+    /// True when the app was started as a hook command (`--hook` first); `arguments` without the program itself.
     public static func isHook(_ arguments: [String]) -> Bool {
-        hookArguments(arguments) != nil
-    }
-
-    /// The hook arguments in `arguments` (without the program), or nil when the app was not started as a hook. `--hook
-    /// ...` is taken as it is. A copy stamped from an older template runs the app in place of Node with the script
-    /// first: `<root>/scripts/edgepad-hook.mjs <agent> <kind>` is read as the same hook, and the spend scanner as nothing
-    /// to do (the app reads Claude Code's spend itself), so neither ever starts the menu bar app.
-    public static func hookArguments(_ arguments: [String]) -> [String]? {
-        guard let first = arguments.first else { return nil }
-        if first == flag {
-            return arguments
-        }
-        if first.hasSuffix("/scripts/edgepad-hook.mjs") {
-            return [flag] + arguments.dropFirst()
-        }
-        return first.hasSuffix("/scripts/scan-claude.mjs") ? [] : nil
+        arguments.first == flag
     }
 
     /// `run` on the process's own stdin and stdout. Always 0.
@@ -123,17 +108,24 @@ public enum HookClient {
         let tool = text(hook["tool_name"], 64)
         guard !tool.isEmpty else { return nil }
         var input: [String: Any] = [:]
+        var truncated = false
         if let raw = hook["tool_input"] as? [String: Any] {
             for key in inputFields {
-                if let value = field(agent, key, raw[key]) {
-                    input[key] = value
+                if let got = field(agent, key, raw[key]) {
+                    input[key] = got.value
+                    truncated = truncated || got.cut
                 }
             }
         }
-        return [
+        var d: [String: Any] = [
             "session_id": text(hook["session_id"], 128), "cwd": text(hook["cwd"], 1024), "tool_name": tool,
             "tool_input": input,
         ]
+        // Only when a field was cut, so the laptop offers Deny only: what it would show is not all that runs.
+        if truncated {
+            d["truncated"] = true
+        }
+        return d
     }
 
     private static func sessionData(_ hook: [String: Any]) -> [String: Any]? {
@@ -148,19 +140,21 @@ public enum HookClient {
         return d
     }
 
-    // A string cut to inputCap; for Codex's `command` also its array form, a list of strings sent as is unless joined it
-    // passes inputCap, then as the cut joined string. Anything else is left out.
-    private static func field(_ agent: String, _ key: String, _ value: Any?) -> Any? {
+    // A string cut to inputCap; for Codex's `command` also its array form, a list of strings sent as is unless joined
+    // for display (`HookProtocol.joinCommand`) it passes inputCap, then as the cut joined string. Anything else is left
+    // out. `cut` is true when the value was cut.
+    private static func field(_ agent: String, _ key: String, _ value: Any?) -> (value: Any, cut: Bool)? {
         if let text = value as? String {
-            return HookProtocol.cut(text, inputCap)
+            return (HookProtocol.cut(text, inputCap), text.utf16.count > inputCap)
         }
         guard agent == AgentToken.codex.rawValue, key == "command", let parts = value as? [Any],
             (1...maxParts).contains(parts.count)
         else { return nil }
         let texts = parts.compactMap { $0 as? String }
         guard texts.count == parts.count else { return nil }
-        let joined = texts.joined(separator: " ")
-        return joined.utf16.count > inputCap ? HookProtocol.cut(joined, inputCap) : texts
+        let joined = HookProtocol.joinCommand(texts)
+        guard joined.utf16.count > inputCap else { return (texts, false) }
+        return (HookProtocol.cut(joined, inputCap), true)
     }
 
     // A string cut to `max` UTF-16 units, or "" for anything else.

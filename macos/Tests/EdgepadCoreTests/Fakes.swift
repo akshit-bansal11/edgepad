@@ -111,7 +111,12 @@ final class FakeDisplay: DisplayRates {
         self.current = current
     }
 
-    func refresh() {}
+    /// Runs at each refresh, so a test can act in the middle of the opening report.
+    var onRefresh: (() -> Void)?
+
+    func refresh() {
+        onRefresh?()
+    }
 
     func select(_ index: Int) -> Bool {
         selected.append(index)

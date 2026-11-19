@@ -138,6 +138,47 @@ final class DashboardHostTests: XCTestCase {
         XCTAssertEqual(outcome, .deferred)
     }
 
+    func testALinkLetGoWithoutDisposeStopsCountingItsPhone() {
+        let (parts, _) = agentParts()
+        var link: DashboardLink? = DashboardLink(phones: phones, makeHost: { [unowned self] in self.newHost(parts) })
+        XCTAssertTrue(phones.any)
+
+        link = nil
+
+        XCTAssertNil(link)
+        XCTAssertFalse(phones.any)
+    }
+
+    func testAnAskThatEndedBeforeItsTurnIsNeverSent() {
+        settings.setFlag(IntegrationSettings.claude, true)
+        let (parts, _) = agentParts()
+        var queued: [() -> Void] = []
+        var blobFrames: [Frame] = []
+        let blobs = BlobSender(link: .network, schedule: { _, work in work() }, lastInput: { -.infinity })
+        blobs.output = {
+            blobFrames.append($0)
+            return true
+        }
+        let host = IntegrationHost(
+            send: { [unowned self] in self.sent.append($0) }, blobs: blobs, settings: settings, parts: parts,
+            onMain: { queued.append($0) })
+
+        host.ask(PermPrompt(id: "0123456789ab", complete: true, body: "claude\nBash\nls"))
+        host.gone("0123456789ab")
+        host.ask(PermPrompt(id: "ba9876543210", complete: true, body: "claude\nBash\nls"))
+        for work in queued {
+            work()
+        }
+
+        let begins = blobFrames.filter {
+            if case .blobBegin = $0 { return true }
+            return false
+        }
+        XCTAssertEqual(begins, [.blobBegin(kind: BlobKind.permAsk.rawValue, size: 14, label: "ba9876543210/1")])
+        XCTAssertEqual(sent, [.text(kind: TextKind.permGone.rawValue, value: "0123456789ab")])
+        host.dispose()
+    }
+
     func testDashWatchAndPermAnswerAreDroppedWithoutAHandlerAndOutOfRange() {
         let dispatcher = Dispatcher(
             input: FakeInput(), speakers: FakeLevel(level: Level(percent: 50, muted: false)),

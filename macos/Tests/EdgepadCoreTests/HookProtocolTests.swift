@@ -24,7 +24,8 @@ final class HookProtocolTests: XCTestCase {
             return [
                 "kind": "perm", "agent": r.agent, "token": r.token, "session": r.session, "cwd": r.cwd, "tool": r.tool,
                 "command": value(r.input.command), "file_path": value(r.input.filePath), "url": value(r.input.url),
-                "command_safe": r.input.commandSafe,
+                "command_safe": r.input.commandSafe, "truncated": r.input.truncated,
+                "text": value(PermissionBroker.textFor(r)),
             ]
         case .session(let r):
             return [
@@ -111,13 +112,62 @@ final class HookProtocolTests: XCTestCase {
         XCTAssertEqual(String(decoding: HookProtocol.okReply(), as: UTF8.self), "{\"v\":1,\"ok\":true}\n")
     }
 
-    func testOldTemplatesRunTheSameHookAndTheScannerDoesNothing() {
-        XCTAssertEqual(HookClient.hookArguments(["--hook", "claude", "perm"]), ["--hook", "claude", "perm"])
-        XCTAssertEqual(
-            HookClient.hookArguments(["/x/edgepad/scripts/edgepad-hook.mjs", "codex", "session"]),
-            ["--hook", "codex", "session"])
-        XCTAssertEqual(HookClient.hookArguments(["/x/edgepad/scripts/scan-claude.mjs"]), [])
-        XCTAssertNil(HookClient.hookArguments([]))
-        XCTAssertNil(HookClient.hookArguments(["-psn_0_12345"]))
+    func testACodexListIsJoinedWithPosixQuotesWhereAWordWouldSplit() {
+        XCTAssertEqual(HookProtocol.joinCommand(["bash", "-lc", "ls -la"]), "bash -lc 'ls -la'")
+        XCTAssertEqual(HookProtocol.joinCommand(["echo", ""]), "echo ''")
+        XCTAssertEqual(HookProtocol.joinCommand(["echo", "it's"]), "echo 'it'\\''s'")
+        XCTAssertEqual(HookProtocol.joinCommand(["echo", "say \"hi\""]), "echo 'say \"hi\"'")
+        XCTAssertEqual(HookProtocol.joinCommand(["a\tb", "c\nd"]), "'a\tb' 'c\nd'")
+        XCTAssertEqual(HookProtocol.joinCommand(["ls", "-la", "/tmp"]), "ls -la /tmp")
+    }
+
+    private func perm(_ d: String) -> PermRequest? {
+        let line = "{\"v\":1,\"token\":\"T\",\"agent\":\"codex\",\"kind\":\"perm\",\"d\":" + d + "}"
+        guard case .perm(let request)? = HookProtocol.parse(Array(line.utf8)) else { return nil }
+        return request
+    }
+
+    func testACutAnywhereMarksTheRequestTruncated() throws {
+        let long = String(repeating: "a", count: HookProtocol.maxTextLength + 1)
+        let exact = String(repeating: "a", count: HookProtocol.maxTextLength)
+        func input(_ fields: String) throws -> ToolInput {
+            try XCTUnwrap(perm("{\"tool_name\":\"shell\",\"tool_input\":{" + fields + "}}")).input
+        }
+
+        XCTAssertFalse(try input("\"command\":\"" + exact + "\"").truncated)
+        XCTAssertTrue(try input("\"command\":\"" + long + "\"").truncated)
+        XCTAssertTrue(try input("\"file_path\":\"" + long + "\"").truncated)
+        XCTAssertTrue(try input("\"url\":\"" + long + "\"").truncated)
+        XCTAssertTrue(try input("\"command\":[\"echo\",\"" + exact + "\"]").truncated)
+        XCTAssertTrue(try XCTUnwrap(perm("{\"tool_name\":\"shell\",\"truncated\":true}")).input.truncated)
+        XCTAssertFalse(try XCTUnwrap(perm("{\"tool_name\":\"shell\",\"truncated\":false}")).input.truncated)
+        XCTAssertNil(perm("{\"tool_name\":\"shell\",\"truncated\":1}"))
+        XCTAssertNil(perm("{\"tool_name\":\"shell\",\"truncated\":\"yes\"}"))
+    }
+
+    func testTheClientSaysWhenItCutAField() throws {
+        let long = String(repeating: "a", count: HookClient.inputCap + 1)
+        func d(_ agent: String, _ fields: String) throws -> [String: Any] {
+            let hook = "{\"tool_name\":\"Bash\",\"tool_input\":{" + fields + "}}"
+            let built = try XCTUnwrap(HookClient.request(agent: agent, kind: "perm", input: Data(hook.utf8)))
+            return try XCTUnwrap(built["d"] as? [String: Any])
+        }
+
+        XCTAssertNil(try d("claude", "\"command\":\"ls\"")["truncated"])
+        XCTAssertEqual(try d("claude", "\"command\":\"" + long + "\"")["truncated"] as? Bool, true)
+        XCTAssertEqual(try d("claude", "\"url\":\"" + long + "\"")["truncated"] as? Bool, true)
+        let joined = try d("codex", "\"command\":[\"echo\",\"" + long + "\"]")
+        XCTAssertEqual(joined["truncated"] as? Bool, true)
+        let command = try XCTUnwrap((joined["tool_input"] as? [String: Any])?["command"] as? String)
+        XCTAssertEqual(command.utf16.count, HookClient.inputCap)
+        XCTAssertTrue(command.hasPrefix("echo "))
+        XCTAssertNil(try d("codex", "\"command\":[\"echo\",\"hi there\"]")["truncated"])
+    }
+
+    func testOnlyHookFirstIsAHook() {
+        XCTAssertTrue(HookClient.isHook(["--hook", "claude", "perm"]))
+        XCTAssertFalse(HookClient.isHook(["/x/edgepad/scripts/edgepad-hook.mjs", "codex", "session"]))
+        XCTAssertFalse(HookClient.isHook([]))
+        XCTAssertFalse(HookClient.isHook(["-psn_0_12345"]))
     }
 }

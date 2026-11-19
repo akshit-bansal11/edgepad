@@ -134,6 +134,10 @@ public final class IntegrationHost {
     private var weatherSent: String?
     private var watch = 0
     private var disposed = false
+    // The last `maxEnded` ask ids that ended, newest last, so a PERM_ASK blob still queued for one is never sent.
+    private static let maxEnded = 64
+    private var ended: Set<String> = []
+    private var endedOrder: [String] = []
 
     /// - Parameters:
     ///   - send: Writes one frame to this phone; only ever called on `onMain`.
@@ -317,17 +321,36 @@ public final class IntegrationHost {
         }
     }
 
+    // The broker announces an ask outside its lock, so its end can be queued first; the check right before the send
+    // keeps a sheet that already ended off the phone. Urgent: a person waits on it.
     func ask(_ prompt: PermPrompt) {
         let label = DashWire.permLabel(prompt.id, complete: prompt.complete)
         let body = Array(prompt.body.utf8)
+        let id = prompt.id
         onMain { [weak self] in
-            guard let self, !self.isDisposed else { return }
-            self.blobs?.send(.permAsk, label: label, data: body)
+            guard let self, !self.isDisposed, !self.hasEnded(id) else { return }
+            let over: () -> Bool = { [weak self] in self?.hasEnded(id) ?? true }
+            self.blobs?.send(.permAsk, label: label, data: body, abandoned: over, urgent: true)
         }
     }
 
     func gone(_ id: String) {
+        gate.lock()
+        if !ended.contains(id) {
+            ended.insert(id)
+            endedOrder.append(id)
+            if endedOrder.count > Self.maxEnded {
+                ended.remove(endedOrder.removeFirst())
+            }
+        }
+        gate.unlock()
         push(.text(kind: TextKind.permGone.rawValue, value: id))
+    }
+
+    private func hasEnded(_ id: String) -> Bool {
+        gate.lock()
+        defer { gate.unlock() }
+        return ended.contains(id)
     }
 
     // ---- sending
@@ -471,11 +494,16 @@ public final class DashboardLink {
         host.onWatch(watch)
     }
 
-    /// The session ended. The phone stops being counted first, so the host's dispose sees it gone.
+    /// The session ended. The phone stops being counted first, so the host's dispose sees it gone. Runs once, here or
+    /// when the link is let go of without it, so a lost link never leaves a phone counted.
     public func dispose() {
         guard !disposed else { return }
         disposed = true
         phones.remove()
         host.dispose()
+    }
+
+    deinit {
+        dispose()
     }
 }
