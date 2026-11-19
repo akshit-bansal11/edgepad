@@ -198,6 +198,9 @@ class ControlSurface(
     private val painter =
         RulerPainter(resources.displayMetrics, settings.dialLength, settings.dialHeight)
     private val pieces = MediaPiece.entries.associateWith { settings.piece(it) }
+
+    // Drawn behind the trackpad; none are on until the user switches them on, and a pad that is only a pad has none.
+    private val widgets = WidgetPainter(context, settings, ink, accent, !trackpadOnly)
     private val mediaScale = settings.mediaScale
     private val logo = AppLogo(context, backdrop.isDark)
 
@@ -455,6 +458,7 @@ class ControlSurface(
         if (!trackpadOnly) strip.refresh(BatteryModel.chips(batteries.groups()))
         stateDescription = modeLabel()
         applyState()
+        widgets.update(state)
         postDelayed({ invalidate() }, REPORT_WAIT_MS)
     }
 
@@ -474,6 +478,7 @@ class ControlSurface(
     fun stateChanged() {
         applyState()
         rebuildText()
+        widgets.update(state)
         invalidate()
     }
 
@@ -524,6 +529,7 @@ class ControlSurface(
         // the same distance with it, so neither sits under the camera.
         topShift = strip.cutoutShift(w, insets?.displayCutout?.boundingRects.orEmpty(), dp(Space.XS))
         layoutPieces(w.toFloat(), h.toFloat())
+        widgets.layout(w.toFloat(), h.toFloat())
         strip.layout(w, topShift, backdrop.isDark)
         // No ruler runs under the buttons at the top, and neighbours stop short of each other — which is
         // what keeps two dials on the same edge clear of each other.
@@ -738,6 +744,8 @@ class ControlSurface(
             return
         }
         backdrop.draw(canvas)
+        // Behind everything else, and gone with the dials when focus hides them.
+        if (widgets.active && !dialsHidden) widgets.draw(canvas)
         if (mediaShown()) {
             drawNowPlaying(canvas)
             drawTransport(canvas)
@@ -1465,6 +1473,7 @@ class ControlSurface(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        widgets.attach(this)
         idleLater()
     }
 
@@ -1480,6 +1489,7 @@ class ControlSurface(
     }
 
     override fun onDetachedFromWindow() {
+        widgets.detach()
         wake()
         airMouse?.release()
         super.onDetachedFromWindow()

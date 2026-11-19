@@ -8,9 +8,9 @@ import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.DiskEntry
 import me.akshitbansal.edgepad.link.LaptopState
+import me.akshitbansal.edgepad.link.StatsFormat
 import me.akshitbansal.edgepad.link.StatsRing
 import me.akshitbansal.edgepad.protocol.Feature
-import java.text.NumberFormat
 
 /**
  * The laptop's processor, graphics, memory, disks and network, one card each with a line graph of the last minute.
@@ -29,7 +29,7 @@ class SystemScreen(
     onBack: () -> Unit,
 ) {
     private val none = ui.string(R.string.sys_none)
-    private val oneDecimal = NumberFormat.getNumberInstance().apply { maximumFractionDigits = 1 }
+    private val fmt = StatsFormat(none)
     private val holder = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
     private val updaters = ArrayList<(LaptopState) -> Unit>()
     private var shape: List<Any>? = null
@@ -87,7 +87,7 @@ class SystemScreen(
             R.string.sys_cpu,
             sub = { it.statsInfo?.cpuName.orEmpty() },
             value = { degrees(it.stats.latest(StatsRing.CPU_TEMP)) },
-            graphs = listOf(Graph(StatsRing.CPU, R.string.sys_cpu, FULL, ::percent)),
+            graphs = listOf(Graph(StatsRing.CPU, R.string.sys_cpu, FULL, fmt::percent)),
         )
     }
 
@@ -101,7 +101,7 @@ class SystemScreen(
                 val watts = if (power < 0) none else "$power W"
                 "${degrees(it.stats.latest(StatsRing.GPU_TEMP))} · $watts"
             },
-            graphs = listOf(Graph(StatsRing.GPU, R.string.sys_gpu, FULL, ::percent)),
+            graphs = listOf(Graph(StatsRing.GPU, R.string.sys_gpu, FULL, fmt::percent)),
         )
     }
 
@@ -119,9 +119,9 @@ class SystemScreen(
             value = {
                 val total = totalMiB(it)
                 val pct = it.stats.latest(series)
-                if (total < 0 || pct < 0) none else "${gib(total * pct / FULL)} / ${gib(total)}"
+                if (total < 0 || pct < 0) none else "${fmt.gib(total * pct / FULL)} / ${fmt.gib(total)}"
             },
-            graphs = listOf(Graph(series, title, FULL, ::percent)),
+            graphs = listOf(Graph(series, title, FULL, fmt::percent)),
         )
     }
 
@@ -133,8 +133,8 @@ class SystemScreen(
             value = { it.statsInfo?.netName.orEmpty() },
             graphs =
                 listOf(
-                    Graph(StatsRing.DOWN, R.string.sys_down, 0, ::rate),
-                    Graph(StatsRing.UP, R.string.sys_up, 0, ::rate),
+                    Graph(StatsRing.DOWN, R.string.sys_down, 0, fmt::rate),
+                    Graph(StatsRing.UP, R.string.sys_up, 0, fmt::rate),
                 ),
         )
     }
@@ -256,26 +256,13 @@ class SystemScreen(
         }
     }
 
-    private fun percent(v: Int): String = if (v < 0) none else "$v%"
-
     private fun millis(v: Int): String = if (v < 0) none else "$v$MS"
 
     private fun degrees(v: Int): String = if (v < 0) none else "$v°C"
 
-    /** KiB/s as KB/s up to a thousand and MB/s past it. */
-    private fun rate(v: Int): String =
-        when {
-            v < 0 -> none
-            v < KIB -> "$v KB/s"
-            else -> "${oneDecimal.format(v / KIB.toDouble())} MB/s"
-        }
-
-    private fun gib(mib: Int): String = "${oneDecimal.format(mib / KIB.toDouble())} GB"
-
     private companion object {
         const val FULL = 100
         const val DANGER_FROM = 90
-        const val KIB = 1024
         const val MS = " ms"
         const val BAR_DP = 6f
         const val GRAPH_PORTRAIT_DP = 88f

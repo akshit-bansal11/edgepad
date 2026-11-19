@@ -18,6 +18,8 @@ import me.akshitbansal.edgepad.surface.ControlSurface
 import me.akshitbansal.edgepad.surface.CornerSlots
 import me.akshitbansal.edgepad.surface.MediaPiece
 import me.akshitbansal.edgepad.surface.Perimeter
+import me.akshitbansal.edgepad.surface.SurfaceWidget
+import me.akshitbansal.edgepad.surface.WidgetPainter
 
 /**
  * Drag the media pieces on a full-size canvas with a snapping grid; where they land is where the surface
@@ -93,9 +95,14 @@ object MediaLayoutScreen {
         context: Context,
         private val settings: Settings,
     ) : LayoutCanvas(context) {
-        private val names = MediaPiece.entries.associateWith { context.getString(it.nameRes) }
-        private val positions = MediaPiece.entries.associateWith { settings.piece(it) }.toMutableMap()
-        private var dragging: MediaPiece? = null
+        // The media pieces, then the widgets that are switched on: all are dragged and nudged the same way.
+        private val items: List<Item> =
+            MediaPiece.entries.map { Item.Piece(it, context.getString(it.nameRes)) } +
+                SurfaceWidget.entries
+                    .filter(settings::widgetOn)
+                    .map { Item.Widget(it, context.getString(it.nameRes)) }
+        private val positions = items.associateWith { stored(it) }.toMutableMap()
+        private var dragging: Item? = null
         private val corner = CORNER_DP * density
         private val drop = Space.HAIR * density
         private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -162,40 +169,57 @@ object MediaLayoutScreen {
 
         /** Whether a piece centred at [at] would sit on something the surface keeps for itself. */
         private fun blocked(
-            piece: MediaPiece,
+            item: Item,
             at: Pair<Float, Float>,
         ): Boolean {
-            bounds(piece, probe, at)
+            bounds(item, probe, at)
             return ghosts.any { RectF.intersects(it, probe) }
+        }
+
+        private fun stored(item: Item): Pair<Float, Float> =
+            when (item) {
+                is Item.Piece -> settings.piece(item.piece)
+                is Item.Widget -> settings.widget(item.widget)
+            }
+
+        private fun save(
+            item: Item,
+            x: Float,
+            y: Float,
+        ) {
+            when (item) {
+                is Item.Piece -> settings.setPiece(item.piece, x, y)
+                is Item.Widget -> settings.setWidget(item.widget, x, y)
+            }
         }
 
         // ANDU-6: each piece is a node a screen reader can move a cell at a time; a piece has no menu to open.
         private val nodes =
             ControlNodes(
                 this,
-                MediaPiece.entries.size,
-                label = { i -> names.getValue(MediaPiece.entries[i]) },
-                bounds = { i, out -> bounds(MediaPiece.entries[i], out) },
+                items.size,
+                label = { i -> items[i].label },
+                bounds = { i, out -> bounds(items[i], out) },
                 clickable = { false },
                 click = {},
-                actions = { i -> moveActions(context) { dx, dy -> nudge(MediaPiece.entries[i], dx, dy) } },
+                actions = { i -> moveActions(context) { dx, dy -> nudge(items[i], dx, dy) } },
             )
 
         override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider = nodes
 
         /** One grid cell on x ([dx]) or y ([dy]), stored as a drag's end is; false at the edge or onto a ghost. */
         private fun nudge(
-            piece: MediaPiece,
+            item: Item,
             dx: Int,
             dy: Int,
         ): Boolean {
-            val (fx, fy) = positions.getValue(piece)
+            val (fx, fy) = positions.getValue(item)
             val x = if (dx == 0) fx else Nudge.step(fx, width, dx, density)
             val y = if (dy == 0) fy else Nudge.step(fy, height, dy, density)
             val at = x to y
-            if ((x == fx && y == fy) || blocked(piece, at)) return false
-            positions[piece] = at
-            settings.setPiece(piece, x, y)
+            if ((x == fx && y == fy) || blocked(item, at)) return false
+            positions[item] = at
+            save(item, x, y)
             invalidate()
             return true
         }
@@ -209,41 +233,52 @@ object MediaLayoutScreen {
 
         fun reset() {
             settings.resetPieces()
-            for (piece in MediaPiece.entries) positions[piece] = settings.piece(piece)
+            settings.resetWidgets()
+            for (item in items) positions[item] = stored(item)
             invalidate()
         }
 
         private fun bounds(
-            piece: MediaPiece,
+            item: Item,
             out: RectF,
-            at: Pair<Float, Float> = positions.getValue(piece),
+            at: Pair<Float, Float> = positions.getValue(item),
         ) {
             val (fx, fy) = at
             val cx = fx * width
             val cy = fy * height
-            val (w, h) =
-                when (piece) {
-                    MediaPiece.NOW_PLAYING -> {
-                        ControlSurface.NOW_PLAYING_WIDTH_DP to
-                            ControlSurface.NOW_PLAYING_HEIGHT_DP
-                    }
-
-                    MediaPiece.TRANSPORT -> {
-                        ControlSurface.SKIP_GAP_DP * 2 + Space.TOUCH to ControlSurface.PLAY_DP
-                    }
+            when (item) {
+                is Item.Widget -> {
+                    // A widget is not scaled with the media; the surface sizes its box from the same numbers.
+                    val (bw, bh) = WidgetPainter.boxSize(item.widget, width.toFloat(), height.toFloat(), density)
+                    out.set(cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2)
                 }
-            val px = density * scale
-            out.set(cx - w * px / 2, cy - h * px / 2, cx + w * px / 2, cy + h * px / 2)
+
+                is Item.Piece -> {
+                    val (w, h) =
+                        when (item.piece) {
+                            MediaPiece.NOW_PLAYING -> {
+                                ControlSurface.NOW_PLAYING_WIDTH_DP to
+                                    ControlSurface.NOW_PLAYING_HEIGHT_DP
+                            }
+
+                            MediaPiece.TRANSPORT -> {
+                                ControlSurface.SKIP_GAP_DP * 2 + Space.TOUCH to ControlSurface.PLAY_DP
+                            }
+                        }
+                    val px = density * scale
+                    out.set(cx - w * px / 2, cy - h * px / 2, cx + w * px / 2, cy + h * px / 2)
+                }
+            }
         }
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
             for (ghost in ghosts) canvas.drawRoundRect(ghost, corner, corner, ghostFill)
-            for (piece in MediaPiece.entries) {
-                bounds(piece, box)
+            for (item in items) {
+                bounds(item, box)
                 // A piece at rest is a card, with a soft line under it on the light ground; the one being
                 // dragged turns accent and lifts off the grid on a shadow.
-                val lifted = piece == dragging
+                val lifted = item == dragging
                 if (lifted) {
                     canvas.drawRoundRect(box, corner, corner, lift)
                 } else if (!palette.dark) {
@@ -256,7 +291,7 @@ object MediaLayoutScreen {
                 text.color = if (lifted) palette.onAccent else palette.dim
                 val room = box.width() - 2 * Space.S * density
                 val y = box.centerY() + text.textSize * Type.CAP_CENTRE
-                text.drawFitted(canvas, names.getValue(piece), box.centerX(), y, room)
+                text.drawFitted(canvas, item.label, box.centerX(), y, room)
             }
         }
 
@@ -271,27 +306,27 @@ object MediaLayoutScreen {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     dragging =
-                        MediaPiece.entries.lastOrNull {
+                        items.lastOrNull {
                             bounds(it, box)
                             box.contains(event.x, event.y)
                         } ?: return false
                 }
 
                 MotionEvent.ACTION_MOVE -> {
-                    val piece = dragging ?: return false
+                    val item = dragging ?: return false
                     val x = snap(event.x, width)
                     val y = snap(event.y, height)
                     // A move onto a ghost is not taken: the piece waits where it was until the finger is clear.
-                    if (!blocked(piece, x to y)) {
-                        positions[piece] = x to y
+                    if (!blocked(item, x to y)) {
+                        positions[item] = x to y
                         setOnCentre(x, y)
                     }
                 }
 
                 MotionEvent.ACTION_UP -> {
-                    val piece = dragging ?: return false
-                    val (x, y) = positions.getValue(piece)
-                    settings.setPiece(piece, x, y)
+                    val item = dragging ?: return false
+                    val (x, y) = positions.getValue(item)
+                    save(item, x, y)
                     dragging = null
                     clearOnCentre()
                     performClick()
@@ -315,6 +350,21 @@ object MediaLayoutScreen {
             const val RULER_DEPTH_DP = 44f
         }
     }
+}
+
+/** Something the layout editor drags: a media piece, or a widget that is switched on. */
+private sealed interface Item {
+    val label: String
+
+    class Piece(
+        val piece: MediaPiece,
+        override val label: String,
+    ) : Item
+
+    class Widget(
+        val widget: SurfaceWidget,
+        override val label: String,
+    ) : Item
 }
 
 /** Positions are kept per orientation, so the hint names the one being edited. */

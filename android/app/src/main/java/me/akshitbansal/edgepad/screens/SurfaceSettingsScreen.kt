@@ -6,6 +6,7 @@ import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.surface.Perimeter
 import me.akshitbansal.edgepad.surface.Shapes
+import me.akshitbansal.edgepad.surface.SurfaceWidget
 import kotlin.math.roundToInt
 
 /**
@@ -65,6 +66,15 @@ object SurfaceSettingsScreen {
                 hairline()
                 add(ui.link(ui.string(R.string.settings_profiles), null, routes.profiles))
             }
+            section(ui.string(R.string.widgets_title))
+            card {
+                SurfaceWidget.entries.forEachIndexed { index, widget ->
+                    if (index > 0) hairline()
+                    val label = ui.string(widget.nameRes)
+                    add(ui.toggle(label, settings.widgetOn(widget)) { on -> settings.setWidgetOn(widget, on) })
+                }
+            }
+            footnote(ui.string(R.string.widgets_hint))
             if (settings.airMouse) {
                 section(ui.string(R.string.air_title))
                 card(Space.L) {

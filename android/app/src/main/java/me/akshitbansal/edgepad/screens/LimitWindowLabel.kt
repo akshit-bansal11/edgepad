@@ -1,5 +1,8 @@
 package me.akshitbansal.edgepad.screens
 
+import android.content.Context
+import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.link.LimitEntry
 import me.akshitbansal.edgepad.link.LimitWindow
 
 /** How a limit window is named: which string, and what goes in it. The screen turns the key into a resource. */
@@ -30,7 +33,10 @@ object LimitWindowLabel {
 
     fun of(window: LimitWindow): LimitLabel =
         when (window) {
-            LimitWindow.Context -> LimitLabel(LimitLabel.Key.CONTEXT)
+            LimitWindow.Context -> {
+                LimitLabel(LimitLabel.Key.CONTEXT)
+            }
+
             is LimitWindow.Named -> {
                 if (window.name == SPEND_LIMIT) {
                     LimitLabel(LimitLabel.Key.SPEND)
@@ -38,6 +44,7 @@ object LimitWindowLabel {
                     LimitLabel(LimitLabel.Key.TEXT, text = window.name)
                 }
             }
+
             is LimitWindow.Minutes -> {
                 when (window.minutes) {
                     WEEK -> LimitLabel(LimitLabel.Key.WEEK)
@@ -47,6 +54,16 @@ object LimitWindowLabel {
             }
         }
 
+    /** Shortest window first, then the named limits, then the context. */
+    val shortestFirst: Comparator<LimitEntry> =
+        compareBy<LimitEntry> {
+            when (it.window) {
+                is LimitWindow.Minutes -> 0
+                is LimitWindow.Named -> 1
+                LimitWindow.Context -> 2
+            }
+        }.thenBy { (it.window as? LimitWindow.Minutes)?.minutes ?: 0 }
+
     /** A length of time: minutes under an hour, hours under a day, else days. */
     fun duration(minutes: Int): LimitLabel =
         when {
@@ -55,3 +72,16 @@ object LimitWindowLabel {
             else -> LimitLabel(LimitLabel.Key.DAYS, minutes / DAY)
         }
 }
+
+/** The words for a label, from the app's strings. */
+fun LimitLabel.words(context: Context): String =
+    when (key) {
+        LimitLabel.Key.WEEK -> context.getString(R.string.ai_win_week)
+        LimitLabel.Key.MONTH -> context.getString(R.string.ai_win_month)
+        LimitLabel.Key.SPEND -> context.getString(R.string.ai_win_spend)
+        LimitLabel.Key.CONTEXT -> context.getString(R.string.ai_ctx)
+        LimitLabel.Key.MINUTES -> context.getString(R.string.dur_min, number)
+        LimitLabel.Key.HOURS -> context.getString(R.string.dur_hr, number)
+        LimitLabel.Key.DAYS -> context.getString(R.string.dur_day, number)
+        LimitLabel.Key.TEXT -> text
+    }

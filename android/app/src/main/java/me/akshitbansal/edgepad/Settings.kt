@@ -13,6 +13,7 @@ import me.akshitbansal.edgepad.surface.MediaPiece
 import me.akshitbansal.edgepad.surface.NO_DIAL
 import me.akshitbansal.edgepad.surface.Profile
 import me.akshitbansal.edgepad.surface.Strokes
+import me.akshitbansal.edgepad.surface.SurfaceWidget
 import me.akshitbansal.edgepad.surface.resolveStoredDial
 import java.io.File
 import kotlin.properties.ReadWriteProperty
@@ -452,6 +453,56 @@ class Settings(
         }
         edit.apply()
     }
+
+    /** Whether [widget] is drawn behind the trackpad. Off until switched on. */
+    fun widgetOn(widget: SurfaceWidget): Boolean = prefs.getBoolean(widgetKey(widget, "on"), false)
+
+    fun setWidgetOn(
+        widget: SurfaceWidget,
+        on: Boolean,
+    ) {
+        prefs.edit().putBoolean(widgetKey(widget, "on"), on).apply()
+    }
+
+    /**
+     * Where a widget sits, as fractions of the surface's width and height, in the current orientation's layout. An
+     * orientation that was never edited starts from that orientation's own default.
+     */
+    fun widget(widget: SurfaceWidget): Pair<Float, Float> {
+        val x = if (landscape) widget.landscapeX else widget.portraitX
+        val y = if (landscape) widget.landscapeY else widget.portraitY
+        return prefs.getFloat(layoutKey(widgetKey(widget, "x")), x).coerceIn(0f, 1f) to
+            prefs.getFloat(layoutKey(widgetKey(widget, "y")), y).coerceIn(0f, 1f)
+    }
+
+    /** Moves [widget] in the current orientation's layout only. */
+    fun setWidget(
+        widget: SurfaceWidget,
+        x: Float,
+        y: Float,
+    ) {
+        prefs
+            .edit()
+            .putFloat(layoutKey(widgetKey(widget, "x")), x.coerceIn(0f, 1f))
+            .putFloat(layoutKey(widgetKey(widget, "y")), y.coerceIn(0f, 1f))
+            .apply()
+    }
+
+    /** Puts every widget back where it started, in the current orientation's layout only. */
+    fun resetWidgets() {
+        val edit = prefs.edit()
+        for (widget in SurfaceWidget.entries) {
+            edit.remove(layoutKey(widgetKey(widget, "x")))
+            edit.remove(layoutKey(widgetKey(widget, "y")))
+        }
+        edit.apply()
+    }
+
+    /** A widget's portrait key; the landscape layout adds its prefix through [layoutKey]. */
+    private fun widgetKey(
+        widget: SurfaceWidget,
+        part: String,
+    ): String = "widget.${widget.name}.$part"
 
     /** A media piece's portrait key; portrait keeps the keys from before the orientations were split. */
     private fun pieceKey(

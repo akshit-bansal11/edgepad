@@ -108,7 +108,7 @@ class AiScreen(
         agent: AgentToken,
         across: Int,
     ) {
-        val limits = s.limits.filter { it.agent == agent }.sortedWith(windowOrder).take(MAX_RINGS)
+        val limits = s.limits.filter { it.agent == agent }.sortedWith(LimitWindowLabel.shortestFirst).take(MAX_RINGS)
         val spend = s.spend.firstOrNull { it.agent == agent }
         val measured =
             (limits.map { it.measuredAtMin } + listOfNotNull(spend?.measuredAtMin)).filter { it >= 0 }.maxOrNull()
@@ -204,27 +204,10 @@ class AiScreen(
             (spend.tokWeek > 0 && spend.centsWeek == 0L) ||
             (spend.tokMonth > 0 && spend.centsMonth == 0L)
 
-    private fun labelText(window: LimitWindow): String {
-        val label = LimitWindowLabel.of(window)
-        return when (label.key) {
-            LimitLabel.Key.WEEK -> ui.string(R.string.ai_win_week)
-            LimitLabel.Key.MONTH -> ui.string(R.string.ai_win_month)
-            LimitLabel.Key.SPEND -> ui.string(R.string.ai_win_spend)
-            LimitLabel.Key.CONTEXT -> ui.string(R.string.ai_ctx)
-            LimitLabel.Key.TEXT -> label.text
-            else -> durationText(label)
-        }
-    }
+    private fun labelText(window: LimitWindow): String = LimitWindowLabel.of(window).words(ui.context)
 
     private fun durationText(minutes: Long): String =
-        durationText(LimitWindowLabel.duration(minutes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()))
-
-    private fun durationText(label: LimitLabel): String =
-        when (label.key) {
-            LimitLabel.Key.MINUTES -> ui.string(R.string.dur_min, label.number)
-            LimitLabel.Key.HOURS -> ui.string(R.string.dur_hr, label.number)
-            else -> ui.string(R.string.dur_day, label.number)
-        }
+        LimitWindowLabel.duration(minutes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()).words(ui.context)
 
     private fun stateName(state: SessionStateToken): Int =
         when (state) {
@@ -241,15 +224,5 @@ class AiScreen(
         const val RING_DP = 104f
         const val TILE_DP = 36f
         const val ROW_DP = 64f
-
-        /** Shortest window first, then the named limits, then the context. */
-        val windowOrder: Comparator<LimitEntry> =
-            compareBy<LimitEntry> {
-                when (it.window) {
-                    is LimitWindow.Minutes -> 0
-                    is LimitWindow.Named -> 1
-                    LimitWindow.Context -> 2
-                }
-            }.thenBy { (it.window as? LimitWindow.Minutes)?.minutes ?: 0 }
     }
 }
