@@ -99,7 +99,7 @@ public sealed class HookListenerTests : IDisposable
     }
 
     private static string Request(string token) =>
-        $$"""{"v":1,"token":"{{token}}","agent":"claude","kind":"session","d":{"hook_event_name":"SessionStart","session_id":"s1","cwd":"/work/app"}}""";
+        $$$"""{"v":1,"token":"{{{token}}}","agent":"claude","kind":"session","d":{"hook_event_name":"SessionStart","session_id":"s1","cwd":"/work/app"}}""";
 
     // A hook server over the Linux listener, Claude switched on.
     private HookServer Serve(string folder, out string endpoint)

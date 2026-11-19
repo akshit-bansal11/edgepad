@@ -216,7 +216,8 @@ final class CodexRolloutTests: XCTestCase {
     }
 
     private func padded(_ lines: Int) -> String {
-        let line = #"{"type":"event_msg","payload":{"type":"agent_message","message":""# + String(repeating: "x", count: 900)
+        let line =
+            #"{"type":"event_msg","payload":{"type":"agent_message","message":""# + String(repeating: "x", count: 900)
         return (0..<lines).map { _ in line + #""}}"# }.joined(separator: "\n") + "\n"
     }
 

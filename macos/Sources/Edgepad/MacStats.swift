@@ -141,7 +141,8 @@ final class MacStats {
         let total = ProcessInfo.processInfo.physicalMemory
         guard status == KERN_SUCCESS, total > 0 else { return -1 }
         let app = UInt64(stats.internal_page_count).subtractingReportingOverflow(UInt64(stats.purgeable_count))
-        let pages = (app.overflow ? 0 : app.partialValue) + UInt64(stats.wire_count)
+        let pages =
+            (app.overflow ? 0 : app.partialValue) + UInt64(stats.wire_count)
             + UInt64(stats.compressor_page_count)
         return Int(min(100, pages * UInt64(vm_kernel_page_size) * 100 / total))
     }
