@@ -23,6 +23,7 @@ class BlobRoutes {
         APPS(setOf(BlobKind.APP_LIST, BlobKind.APP_ICON)),
         MEDIA(setOf(BlobKind.MEDIA_ICON)),
         NOTIFY(setOf(BlobKind.NOTIFICATION)),
+        GITHUB(setOf(BlobKind.GITHUB)),
         ;
 
         companion object {
