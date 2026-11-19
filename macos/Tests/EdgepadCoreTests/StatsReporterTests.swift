@@ -149,7 +149,7 @@ final class StatsReporterTests: XCTestCase {
     }
 
     func testAStuckPingNeverBlocksATickAndNeverOverlaps() {
-        let rig = Rig()
+        let rig = Rig(runPing: { DispatchQueue.global(qos: .utility).async(execute: $0) })
         rig.source.gate = DispatchSemaphore(value: 0)
         rig.reporter.setWatch(StatsReporter.widgetsBit)
         for _ in 0..<10 {
@@ -259,7 +259,11 @@ final class StatsReporterTests: XCTestCase {
         private(set) var timersStopped = 0
         var reporter: StatsReporter!
 
-        init(runDisks: @escaping (@escaping () -> Void) -> Void = { $0() }) {
+        // Ping and disks run inline by default, so every tick sees the same readings.
+        init(
+            runPing: @escaping (@escaping () -> Void) -> Void = { $0() },
+            runDisks: @escaping (@escaping () -> Void) -> Void = { $0() }
+        ) {
             reporter = StatsReporter(
                 source: source,
                 send: { [weak self] frame in self?.record(frame) },
@@ -267,6 +271,7 @@ final class StatsReporterTests: XCTestCase {
                     self?.timersStarted += 1
                     return Stoppable { self?.timersStopped += 1 }
                 },
+                runPing: runPing,
                 runDisks: runDisks)
         }
 
