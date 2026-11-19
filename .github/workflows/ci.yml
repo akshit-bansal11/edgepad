@@ -227,6 +227,28 @@ jobs:
           path: publish/Edgepad-mac.zip
           if-no-files-found: error
 
+  # The Claude Code / Codex plugin's Node scripts and templates. Plain node:test, no install step. The vendors'
+  # own validators (claude plugin validate, Codex's) need their CLIs, which these runners do not have; the
+  # release checklist covers them.
+  plugin:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: ['20', '22', '24']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Test the plugin
+        shell: bash
+        run: node --test plugins/test/*.test.mjs
+
   # Prints docs/design/design-spec.html to the PDF (Chrome) and the Word file (LibreOffice). Like the icons, nothing
   # is committed from here: download the artifact and commit the two files beside the HTML.
   design-doc:
