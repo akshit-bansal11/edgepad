@@ -49,7 +49,7 @@ public sealed class HookClientTests : IDisposable
             Assert.Equal(string.Empty, stdout.ToString());
             if (want == "NONE")
             {
-                Assert.True(server.Requests.Count == 0, line);
+                Assert.True(server.Requests.IsEmpty, line);
             }
             else
             {
@@ -114,7 +114,7 @@ public sealed class HookClientTests : IDisposable
         var stdout = new StringWriter();
         var server = new FakeServer("""{"v":1,"decision":"allow"}""");
         Assert.Equal(0, HookClient.Run(["--hook", "claude", "perm"], new StringReader("""{"tool_name":"Bash"}"""), stdout, server.Options(Path.Combine(dir.FullName, "none.json"))));
-        Assert.True(server.Requests.Count == 0);
+        Assert.True(server.Requests.IsEmpty);
 
         var dead = new HookClientOptions { File = HookFile(), Connect = (_, _) => throw new TimeoutException() };
         Assert.Equal(0, HookClient.Run(["--hook", "claude", "perm"], new StringReader("""{"tool_name":"Bash"}"""), stdout, dead));
@@ -134,7 +134,7 @@ public sealed class HookClientTests : IDisposable
         var server = new FakeServer("""{"v":1,"decision":"allow"}""");
         var stdout = new StringWriter();
         Assert.Equal(0, HookClient.Run(["--hook", "claude", "perm"], new StringReader("""{"tool_name":"Bash"}"""), stdout, server.Options(HookFile(json))));
-        Assert.True(server.Requests.Count == 0);
+        Assert.True(server.Requests.IsEmpty);
         Assert.Equal(string.Empty, stdout.ToString());
     }
 
@@ -150,7 +150,7 @@ public sealed class HookClientTests : IDisposable
         File.SetUnixFileMode(file, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead);
         var server = new FakeServer("""{"v":1,"decision":"allow"}""");
         HookClient.Run(["--hook", "claude", "perm"], new StringReader("""{"tool_name":"Bash"}"""), new StringWriter(), server.Options(file));
-        Assert.True(server.Requests.Count == 0);
+        Assert.True(server.Requests.IsEmpty);
     }
 
     [Theory]
@@ -165,7 +165,7 @@ public sealed class HookClientTests : IDisposable
         var server = new FakeServer("""{"v":1,"decision":"allow"}""");
         var stdout = new StringWriter();
         Assert.Equal(0, HookClient.Run(["--hook", "claude", "perm"], new StringReader(stdin), stdout, server.Options(HookFile())));
-        Assert.True(server.Requests.Count == 0);
+        Assert.True(server.Requests.IsEmpty);
         Assert.Equal(string.Empty, stdout.ToString());
     }
 
@@ -175,7 +175,7 @@ public sealed class HookClientTests : IDisposable
         var big = """{"tool_name":"Bash","pad":""" + "\"" + new string('x', HookClient.StdinCap) + "\"}";
         var server = new FakeServer("""{"v":1,"decision":"allow"}""");
         Assert.Equal(0, HookClient.Run(["--hook", "claude", "perm"], new StringReader(big), new StringWriter(), server.Options(HookFile())));
-        Assert.True(server.Requests.Count == 0);
+        Assert.True(server.Requests.IsEmpty);
     }
 
     [Theory]
@@ -187,7 +187,7 @@ public sealed class HookClientTests : IDisposable
     {
         var server = new FakeServer("""{"v":1,"decision":"allow"}""");
         Assert.Equal(0, HookClient.Run(args, new StringReader("""{"tool_name":"Bash"}"""), new StringWriter(), server.Options(HookFile())));
-        Assert.True(server.Requests.Count == 0);
+        Assert.True(server.Requests.IsEmpty);
     }
 
     [Fact]
@@ -201,7 +201,7 @@ public sealed class HookClientTests : IDisposable
         }
 
         HookClient.Run(["--hook", "claude", "usage"], new StringReader(string.Empty), new StringWriter(), server.Options(HookFile()));
-        Assert.True(server.Requests.Count == 0);
+        Assert.True(server.Requests.IsEmpty);
     }
 
     [Fact]
