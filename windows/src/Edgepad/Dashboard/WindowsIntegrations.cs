@@ -65,7 +65,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
         installer = new PluginInstaller(new ResourcePluginSource(typeof(WindowsIntegrations).Assembly), Settings, PluginInstaller.DefaultRoot(), version, shortPath: ShortPath);
     }
 
-    /// <summary>Codex's first hook arrived after Connect: the owner trusted the plugin. Raised on a hook thread.</summary>
+    /// <summary>An agent started working with Edgepad (its first hook since Connect, or Codex trusted). Raised on a hook thread.</summary>
     public event Action? Trusted;
 
     public IntegrationSettings Settings { get; }
@@ -187,6 +187,15 @@ internal sealed partial class WindowsIntegrations : IDisposable
     public async Task<AgentStatus> DisconnectAsync(string agent)
     {
         var status = Map(await installer.DisconnectAsync(agent, CancellationToken.None).ConfigureAwait(false));
+
+        // A reconnect waits for a real hook again before the phone names the agent.
+        UsageStore? store;
+        lock (gate)
+        {
+            store = usage;
+        }
+
+        store?.Forget(agent);
         Remember(agent, status);
         return status;
     }
@@ -350,6 +359,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
     private DashboardParts Parts()
     {
         var agents = AgentsOn && broker is not null && server is not null;
+        var store = usage;
         return new DashboardParts
         {
             Sessions = agents ? sessions : null,
@@ -361,7 +371,25 @@ internal sealed partial class WindowsIntegrations : IDisposable
             Weather = Settings.Flag(IntegrationSettings.Weather) ? weather : null,
             GitHub = Settings.Flag(IntegrationSettings.GitHub) ? github : null,
             GitHubSignedIn = () => SignIn.IsSignedIn,
+            AgentHeard = agent => store?.LastHeard(agent) >= 0,
         };
+    }
+
+    // A hook thread: an agent now works with Edgepad, so every linked phone hears its FEATURES again and the window refreshes.
+    private void Ready()
+    {
+        List<DashboardLink> live;
+        lock (gate)
+        {
+            live = [.. links];
+        }
+
+        foreach (var link in live)
+        {
+            link.FeaturesChanged?.Invoke();
+        }
+
+        Trusted?.Invoke();
     }
 
     // A live link moves to a host on the current pieces, so an agent switched on while a phone is linked reaches it (PERM_ASK
@@ -413,7 +441,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
             var current = new HookEndpoint(file, listener.Endpoint);
             made = current;
             var hooks = new HookServer(listener, () => current.Token, broker, sessions, limits, spend, usage, Settings);
-            hooks.CodexTrusted += () => Trusted?.Invoke();
+            hooks.AgentReady += _ => Ready();
             hooks.Start();
             endpoint = made;
             server = hooks;
@@ -512,6 +540,9 @@ internal sealed partial class WindowsIntegrations : IDisposable
         public Action<Frame> Send { get; } = send;
 
         public BlobSender Blobs { get; } = blobs;
+
+        /// <summary>Sends this phone its FEATURES again; set by the session that made the link.</summary>
+        public Action? FeaturesChanged { get; set; }
 
         /// <summary>The phone's DASH_WATCH, kept so a rebuilt host starts where this one was.</summary>
         public void OnWatch(int mask)

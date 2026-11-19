@@ -347,15 +347,31 @@ public sealed class HookServerTests : IDisposable
     [Fact]
     public async Task TheFirstCodexRequestRecordsTrust()
     {
-        var raised = 0;
-        server.CodexTrusted += () => raised++;
+        var raised = new List<string>();
+        server.AgentReady += agent => raised.Add(agent);
         Assert.False(settings.Flag(IntegrationSettings.CodexTrusted));
 
         Assert.NotNull(await Exchange(Start("c1", AgentToken.Codex) + "\n"));
         Assert.NotNull(await Exchange(Start("c2", AgentToken.Codex) + "\n"));
 
         Assert.True(settings.Flag(IntegrationSettings.CodexTrusted));
-        Assert.Equal(1, raised);
+        Assert.Equal([AgentToken.Codex], raised);
+    }
+
+    [Fact]
+    public async Task AnAgentIsReadyOnceWhenFirstHeardAndAgainAfterItIsForgotten()
+    {
+        var raised = new List<string>();
+        server.AgentReady += agent => raised.Add(agent);
+
+        Assert.NotNull(await Exchange(Start("a1") + "\n"));
+        Assert.NotNull(await Exchange(Start("a2") + "\n"));
+        Assert.Equal([AgentToken.Claude], raised);
+
+        usage.Forget(AgentToken.Claude);
+        Assert.Equal(-1, usage.LastHeard(AgentToken.Claude));
+        Assert.NotNull(await Exchange(Start("a3") + "\n"));
+        Assert.Equal([AgentToken.Claude, AgentToken.Claude], raised);
     }
 
     [Fact]

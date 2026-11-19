@@ -410,6 +410,9 @@ internal sealed class Session(
             dispatcher.DashWatch = dash.OnWatch;
             dispatcher.PermAnswer = dash.Answer;
 
+            // An agent that starts working with Edgepad while linked (first hook heard, Codex trusted) is named at once.
+            var own = features.ToArray();
+            dash.FeaturesChanged = () => Guarded(() => Send(new Text((byte)TextKind.Features, string.Join('/', own.Concat(dash.Host.Features())))));
             features.AddRange(dash.Host.Features());
             unavailable = dash.Host.Unavailable();
         }

@@ -45,6 +45,9 @@ public final class DashboardParts {
     public let gitHub: GitHubApi?
     /// Whether a GitHub token is saved (`GitHubSignIn.isSignedIn`).
     public let gitHubSignedIn: (() -> Bool)?
+    /// Whether the agent's hook was heard since it was connected (`UsageStore.lastHeard` at least 0). Nil counts every
+    /// agent as heard.
+    public let agentHeard: ((String) -> Bool)?
 
     private let gate = NSLock()
     private var hosts: [WeakHost] = []
@@ -58,7 +61,8 @@ public final class DashboardParts {
         claude: ClaudeSpend? = nil,
         weather: WeatherClient? = nil,
         gitHub: GitHubApi? = nil,
-        gitHubSignedIn: (() -> Bool)? = nil
+        gitHubSignedIn: (() -> Bool)? = nil,
+        agentHeard: ((String) -> Bool)? = nil
     ) {
         self.sessions = sessions
         self.limits = limits
@@ -69,6 +73,7 @@ public final class DashboardParts {
         self.weather = weather
         self.gitHub = gitHub
         self.gitHubSignedIn = gitHubSignedIn
+        self.agentHeard = agentHeard
         sessions?.changed = { [weak self] in self?.each { $0.sessionsChanged() } }
         limits?.changed = { [weak self] in self?.each { $0.limitsChanged() } }
         spend?.changed = { [weak self] in self?.each { $0.spendChanged() } }
@@ -179,6 +184,10 @@ public final class IntegrationHost {
         parts.attach(self)
     }
 
+    private func heard(_ agent: AgentToken) -> Bool {
+        parts.agentHeard?(agent.rawValue) ?? true
+    }
+
     private var agentsOn: Bool {
         settings.flag(IntegrationSettings.claude) || settings.flag(IntegrationSettings.codex)
     }
@@ -209,10 +218,13 @@ public final class IntegrationHost {
         if weatherOn && WeatherClient.cityFrom(settings.text(IntegrationSettings.city)) != nil {
             features.append(Feature.weather.rawValue)
         }
-        if settings.flag(IntegrationSettings.claude) && parts.sessions != nil {
+        // An agent counts once it actually works with Edgepad (heard from, Codex trusted), not as soon as its switch is on.
+        if settings.flag(IntegrationSettings.claude) && parts.sessions != nil && heard(AgentToken.claude) {
             features.append(Feature.claude.rawValue)
         }
-        if settings.flag(IntegrationSettings.codex) && parts.sessions != nil {
+        if settings.flag(IntegrationSettings.codex) && parts.sessions != nil && heard(AgentToken.codex)
+            && settings.flag(IntegrationSettings.codexTrusted)
+        {
             features.append(Feature.codex.rawValue)
         }
         if gitHubOn && parts.gitHubSignedIn?() == true {

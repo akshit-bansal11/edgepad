@@ -138,6 +138,21 @@ final class HookServerTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(usage.lastHeard("claude"), 0)
     }
 
+    func testAnAgentIsReadyOnceWhenFirstHeard() {
+        let server = newServer()
+        let ready = expectation(description: "ready")
+        server.agentReady = { agent in
+            XCTAssertEqual(agent, "claude")
+            ready.fulfill()
+        }
+
+        XCTAssertNotNil(exchange(server, stopLine()))
+        XCTAssertNotNil(exchange(server, stopLine()))
+        wait(for: [ready], timeout: 1)
+        usage.forget("claude")
+        XCTAssertEqual(usage.lastHeard("claude"), -1)
+    }
+
     func testAWrongMissingOrOneBitOffTokenGetsNoReply() {
         let server = newServer()
         var flipped = Array(token.utf8)
@@ -245,7 +260,10 @@ final class HookServerTests: XCTestCase {
     func testTheFirstCodexRequestRecordsTrust() {
         let server = newServer()
         let trusted = expectation(description: "trusted")
-        server.codexTrusted = { trusted.fulfill() }
+        server.agentReady = { agent in
+            XCTAssertEqual(agent, "codex")
+            trusted.fulfill()
+        }
         let codex = line("codex", "session", "{\"hook_event_name\":\"SessionStart\",\"session_id\":\"c\"}")
 
         XCTAssertNotNil(exchange(server, codex))

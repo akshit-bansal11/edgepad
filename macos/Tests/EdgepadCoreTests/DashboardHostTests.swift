@@ -138,6 +138,28 @@ final class DashboardHostTests: XCTestCase {
         XCTAssertEqual(sent.count, 2)
     }
 
+    func testAnAgentIsNamedOnlyOnceItsHookWasHeard() {
+        settings.setFlag(IntegrationSettings.claude, true)
+        settings.setFlag(IntegrationSettings.codex, true)
+        let store = UsageStore(path: folder + "/heard.json", now: Date())
+        let parts = DashboardParts(sessions: SessionBoard(), agentHeard: { store.lastHeard($0) >= 0 })
+        let host = newHost(parts)
+        XCTAssertEqual(host.features(), [])
+
+        store.touch("claude", now: Date())
+        XCTAssertEqual(host.features(), ["claude"])
+
+        // Codex heard but not yet trusted in /hooks is not named.
+        store.touch("codex", now: Date())
+        XCTAssertEqual(host.features(), ["claude"])
+        settings.setFlag(IntegrationSettings.codexTrusted, true)
+        XCTAssertEqual(host.features(), ["claude", "codex"])
+
+        store.forget("codex")
+        XCTAssertEqual(host.features(), ["claude"])
+        host.dispose()
+    }
+
     func testAnAnswerReachesTheBrokerAndItsEndIsSent() {
         settings.setFlag(IntegrationSettings.claude, true)
         let (parts, broker) = agentParts()

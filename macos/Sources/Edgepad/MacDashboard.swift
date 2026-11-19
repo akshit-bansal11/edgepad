@@ -142,10 +142,12 @@ final class MacDashboard {
             stats = MacStats()
         }
         let signIn = signIn
+        let usage = usage
         parts = DashboardParts(
             sessions: agents?.sessions, limits: agents?.limits, spend: agents?.spend, broker: agents?.broker,
             codex: codex, claude: claude, weather: weather, gitHub: gitHub,
-            gitHubSignedIn: gitHub == nil ? nil : { signIn.isSignedIn })
+            gitHubSignedIn: gitHub == nil ? nil : { signIn.isSignedIn },
+            agentHeard: { usage.lastHeard($0) >= 0 })
 
         // The phone moves to the new pieces before the old ones close under it.
         changed?()
@@ -156,6 +158,10 @@ final class MacDashboard {
 
     // An integration was switched on or off, or its settings changed. A new token whenever something is switched on.
     private func switched(_ key: String, _ on: Bool) {
+        // An agent switched off (Disconnect) is forgotten, so a reconnect waits for a real hook before the phone names it.
+        if !on && Self.agentKeys.contains(key) {
+            usage.forget(key)
+        }
         apply()
         if on {
             agents?.endpoint.rotate()
@@ -187,9 +193,13 @@ final class MacDashboard {
             let server = HookServer(
                 listener: listener, token: { endpoint.token }, broker: broker, sessions: sessions, limits: limits,
                 spend: spend, usage: usage, settings: settings)
-            // The person trusted the hooks in Codex: an open Integrations window drops its "trust the hooks" step.
-            server.codexTrusted = { [weak self] in
-                DispatchQueue.main.async { self?.window?.refresh() }
+            // An agent now works with Edgepad (first hook heard, Codex trusted): the phone names it at once, and an open
+            // Integrations window drops its "trust the hooks" step.
+            server.agentReady = { [weak self] _ in
+                DispatchQueue.main.async {
+                    self?.changed?()
+                    self?.window?.refresh()
+                }
             }
             server.start()
             return Agents(

@@ -59,8 +59,11 @@ internal sealed class HookServer : IDisposable
         this.readDeadline = readDeadline ?? ReadDeadline;
     }
 
-    /// <summary>The first accepted Codex request after Connect: the person trusted the plugin's hooks. Raised once per run.</summary>
-    public event Action? CodexTrusted;
+    /// <summary>
+    /// An agent now works with Edgepad: its first accepted request while it had no last-heard stamp, or for Codex the first after
+    /// Connect (the person trusted the plugin's hooks). Raised on a hook thread with the agent's token.
+    /// </summary>
+    public event Action<string>? AgentReady;
 
     /// <summary>Connections being served now.</summary>
     public int Active => Volatile.Read(ref active);
@@ -282,11 +285,16 @@ internal sealed class HookServer : IDisposable
 
     private void Heard(string agent)
     {
-        usage.Touch(agent, clock());
+        var ready = usage.Touch(agent, clock());
         if (agent == AgentToken.Codex && !settings.Flag(IntegrationSettings.CodexTrusted))
         {
             settings.SetFlag(IntegrationSettings.CodexTrusted, true);
-            CodexTrusted?.Invoke();
+            ready = true;
+        }
+
+        if (ready)
+        {
+            AgentReady?.Invoke(agent);
         }
     }
 

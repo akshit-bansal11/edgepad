@@ -47,24 +47,38 @@ internal sealed class UsageStore
 
     internal static long Minutes(DateTimeOffset time) => time.ToUnixTimeSeconds() / 60;
 
-    /// <summary>Stamps a hook message from <paramref name="agent"/>. Written to disk only when the minute moved.</summary>
-    public void Touch(string agent, DateTimeOffset now)
+    /// <summary>Stamps a hook message from <paramref name="agent"/>. Written to disk only when the minute moved. True when the agent had no stamp before.</summary>
+    public bool Touch(string agent, DateTimeOffset now)
     {
         if (!DashWire.IsAgent(agent))
         {
-            return;
+            return false;
         }
 
         lock (Gate)
         {
             var minute = Minutes(now);
-            if (Heard.TryGetValue(agent, out var before) && before == minute)
+            var first = !Heard.TryGetValue(agent, out var before);
+            if (!first && before == minute)
             {
-                return;
+                return false;
             }
 
             Heard[agent] = minute;
             Save();
+            return first;
+        }
+    }
+
+    /// <summary>Drops the agent's last-heard stamp (Disconnect), so it counts as unheard until its next hook message.</summary>
+    public void Forget(string agent)
+    {
+        lock (Gate)
+        {
+            if (Heard.Remove(agent))
+            {
+                Save();
+            }
         }
     }
 

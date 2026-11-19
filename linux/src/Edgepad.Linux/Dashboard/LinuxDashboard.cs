@@ -166,6 +166,7 @@ internal sealed class LinuxDashboard : IDisposable
                     Weather = weather,
                     GitHub = github,
                     GitHubSignedIn = github is null ? null : () => signIn.Value.IsSignedIn,
+                    AgentHeard = agent => usage.Value.LastHeard(agent) >= 0,
                 };
             }
 
@@ -276,7 +277,12 @@ internal sealed class LinuxDashboard : IDisposable
 
         var broker = new PermissionBroker(sessions, PhoneLinked);
         var server = new HookServer(listener, () => endpoint.Token, broker, sessions, limits, spend, store, Settings);
-        server.CodexTrusted += () => OnUi(() => window?.Refresh());
+        // An agent now works with Edgepad: the phone names it at once and the window shows it.
+        server.AgentReady += _ => OnUi(() =>
+        {
+            Annotator.FeaturesChanged();
+            window?.Refresh();
+        });
         server.Start();
         return new Agents(sessions, limits, spend, broker, endpoint, server);
     }
@@ -365,6 +371,12 @@ internal sealed class LinuxDashboard : IDisposable
         lock (gate)
         {
             notices.Remove(agent);
+        }
+
+        // A reconnect waits for a real hook again before the phone names the agent.
+        if (!on)
+        {
+            usage.Value.Forget(agent);
         }
 
         return StateFor(agent, result, LastHeard(agent));

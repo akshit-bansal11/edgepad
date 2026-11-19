@@ -34,6 +34,9 @@ internal sealed class DashboardParts
 
     /// <summary>Whether a GitHub token is saved (<see cref="GitHubSignIn.IsSignedIn"/>).</summary>
     public Func<bool>? GitHubSignedIn { get; init; }
+
+    /// <summary>Whether the agent's hook was heard since it was connected (<see cref="UsageStore.LastHeard"/> at least 0). Null counts every agent as heard.</summary>
+    public Func<string, bool>? AgentHeard { get; init; }
 }
 
 /// <summary>
@@ -137,6 +140,8 @@ internal sealed class IntegrationHost : IDisposable
         }
     }
 
+    private bool Heard(string agent) => parts.AgentHeard?.Invoke(agent) ?? true;
+
     private bool AgentsOn => settings.Flag(IntegrationSettings.Claude) || settings.Flag(IntegrationSettings.Codex);
 
     /// <summary>Call once the session has sent FEATURES: sends the current sessions and lets the Codex watcher see the new phone.</summary>
@@ -164,12 +169,13 @@ internal sealed class IntegrationHost : IDisposable
             features.Add(Feature.Weather);
         }
 
-        if (settings.Flag(IntegrationSettings.Claude) && parts.Sessions is not null)
+        // An agent counts once it actually works with Edgepad (heard from, Codex trusted), not as soon as its switch is on.
+        if (settings.Flag(IntegrationSettings.Claude) && parts.Sessions is not null && Heard(AgentToken.Claude))
         {
             features.Add(Feature.Claude);
         }
 
-        if (settings.Flag(IntegrationSettings.Codex) && parts.Sessions is not null)
+        if (settings.Flag(IntegrationSettings.Codex) && parts.Sessions is not null && Heard(AgentToken.Codex) && settings.Flag(IntegrationSettings.CodexTrusted))
         {
             features.Add(Feature.Codex);
         }

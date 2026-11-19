@@ -77,14 +77,26 @@ public final class UsageStore {
         Int64(time.timeIntervalSince1970.rounded(.down)) / 60
     }
 
-    /// Stamps a hook message from `agent`. Written to disk only when the minute moved.
-    public func touch(_ agent: String, now: Date) {
-        guard DashWire.isAgent(agent) else { return }
+    /// Stamps a hook message from `agent`. Written to disk only when the minute moved. True when the agent had no stamp
+    /// before.
+    @discardableResult
+    public func touch(_ agent: String, now: Date) -> Bool {
+        guard DashWire.isAgent(agent) else { return false }
         gate.lock()
         defer { gate.unlock() }
         let minute = Self.minutes(now)
-        if heard[agent] == minute { return }
+        let first = heard[agent] == nil
+        if heard[agent] == minute { return false }
         heard[agent] = minute
+        save()
+        return first
+    }
+
+    /// Drops the agent's last-heard stamp (Disconnect), so it counts as unheard until its next hook message.
+    public func forget(_ agent: String) {
+        gate.lock()
+        defer { gate.unlock() }
+        guard heard.removeValue(forKey: agent) != nil else { return }
         save()
     }
 

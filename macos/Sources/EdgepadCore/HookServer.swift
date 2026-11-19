@@ -25,7 +25,7 @@ public final class HookServer {
     private let gate = NSLock()
     private var active = 0
     private var started = false
-    private var onCodexTrusted: (() -> Void)?
+    private var onAgentReady: ((String) -> Void)?
 
     /// - Parameters:
     ///   - token: The current token (`HookEndpoint.token`), read per request so a rotation applies at once.
@@ -54,17 +54,18 @@ public final class HookServer {
         self.readWait = readDeadline
     }
 
-    /// The first accepted Codex request after Connect: the person trusted the plugin's hooks. Called on a hook thread.
-    public var codexTrusted: (() -> Void)? {
+    /// An agent now works with Edgepad: its first accepted request while it had no last-heard stamp, or for Codex the
+    /// first after Connect (the person trusted the plugin's hooks). Called on a hook thread with the agent's token.
+    public var agentReady: ((String) -> Void)? {
         get {
             gate.lock()
             defer { gate.unlock() }
-            return onCodexTrusted
+            return onAgentReady
         }
         set {
             gate.lock()
             defer { gate.unlock() }
-            onCodexTrusted = newValue
+            onAgentReady = newValue
         }
     }
 
@@ -220,10 +221,14 @@ public final class HookServer {
     }
 
     private func heard(_ agent: String) {
-        usage.touch(agent, now: clock())
-        guard agent == AgentToken.codex.rawValue, !settings.flag(IntegrationSettings.codexTrusted) else { return }
-        settings.setFlag(IntegrationSettings.codexTrusted, true)
-        codexTrusted?()
+        var ready = usage.touch(agent, now: clock())
+        if agent == AgentToken.codex.rawValue && !settings.flag(IntegrationSettings.codexTrusted) {
+            settings.setFlag(IntegrationSettings.codexTrusted, true)
+            ready = true
+        }
+        if ready {
+            agentReady?(agent)
+        }
     }
 }
 

@@ -48,6 +48,7 @@ public sealed class IntegrationHostTests : IDisposable
             settings.SetFlag(key, true);
         }
 
+        settings.SetFlag(IntegrationSettings.CodexTrusted, true);
         settings.Set(IntegrationSettings.City, "Delhi");
     }
 
@@ -127,6 +128,28 @@ public sealed class IntegrationHostTests : IDisposable
         Assert.DoesNotContain(Feature.GitHub, noStats.Features());
         Assert.DoesNotContain(Feature.Stats, noStats.Features());
         Assert.Equal([$"{Feature.Stats}:{UnavailableReason.Unsupported}", $"{Feature.GitHub}:{UnavailableReason.NoPermission}"], noStats.Unavailable());
+    }
+
+    [Fact]
+    public void AnAgentIsNamedOnlyOnceItsHookWasHeard()
+    {
+        settings.SetFlag(IntegrationSettings.Claude, true);
+        settings.SetFlag(IntegrationSettings.Codex, true);
+        var parts = new DashboardParts { Sessions = sessions, AgentHeard = agent => usage.LastHeard(agent) >= 0 };
+        using var host = New(shared: parts);
+        Assert.Empty(host.Features());
+
+        usage.Touch(AgentToken.Claude, clock.Now);
+        Assert.Equal([Feature.Claude], host.Features());
+
+        // Codex heard but not yet trusted in /hooks is not named; trusted but never heard is not either.
+        usage.Touch(AgentToken.Codex, clock.Now);
+        Assert.DoesNotContain(Feature.Codex, host.Features());
+        settings.SetFlag(IntegrationSettings.CodexTrusted, true);
+        Assert.Equal([Feature.Claude, Feature.Codex], host.Features());
+
+        usage.Forget(AgentToken.Codex);
+        Assert.Equal([Feature.Claude], host.Features());
     }
 
     [Fact]
