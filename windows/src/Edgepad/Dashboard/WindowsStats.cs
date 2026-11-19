@@ -9,10 +9,11 @@ namespace Edgepad.Dashboard;
 /// <summary>
 /// The laptop's numbers on Windows. CPU from <c>GetSystemTimes</c> deltas, memory from <c>GlobalMemoryStatusEx</c>, disks from
 /// the fixed drives, network rates from the up, non-loopback, non-tunnel interfaces (the list re-read every 30 s), ping to the
-/// default gateway. There is no CPU temperature Windows gives without a driver, so it is always -1. Nothing here starts a
-/// thread or a timer: <see cref="StatsReporter"/> calls in only while the phone watches.
+/// default gateway, GPU from <see cref="GpuPdh"/> and <see cref="Nvml"/>. There is no CPU temperature Windows gives without a
+/// driver, so it is always -1. Nothing here starts a thread or a timer: <see cref="StatsReporter"/> calls in only while the
+/// phone watches, and <see cref="Stop"/> closes the GPU readers when it stops.
 /// </summary>
-internal sealed class WindowsStats : IStatsSource
+internal sealed class WindowsStats : IStatsSource, IDisposable
 {
     public const int MaxDisks = 6;
 
@@ -32,13 +33,35 @@ internal sealed class WindowsStats : IStatsSource
     private RateMeter up = new();
     private string? cpuName;
 
+    // The GPU half, opened on the first read while the phone watches and closed by Stop.
+    private readonly Lock gpuGate = new();
+    private readonly GpuPdh gpu = new();
+    private Nvml? nvml;
+    private bool nvmlTried;
+    private (string Name, long Bytes)? adapter;
+
     public StatsSample ReadFast()
     {
         var cpu = ReadCpu();
         var ram = ReadMemory(out _);
         var (downRate, upRate) = ReadNetwork();
-        return new StatsSample(cpu, ram, -1, -1, downRate, upRate, -1, -1, -1, -1, -1);
+        var g = ReadGpu();
+        return new StatsSample(cpu, ram, g.Util, g.Vram, downRate, upRate, -1, -1, -1, g.Temp, g.PowerW);
     }
+
+    /// <summary>Closes the GPU counters and NVML; the next read opens them again. Called when the phone stops watching.</summary>
+    public void Stop()
+    {
+        lock (gpuGate)
+        {
+            gpu.Close();
+            nvml?.Dispose();
+            nvml = null;
+            nvmlTried = false;
+        }
+    }
+
+    public void Dispose() => Stop();
 
     public StatsInfo ReadInfo()
     {
@@ -50,7 +73,18 @@ internal sealed class WindowsStats : IStatsSource
             name = netName;
         }
 
-        return new StatsInfo(CpuName(), totalMiB, string.Empty, -1, name);
+        string gpuName;
+        long vramBytes;
+        lock (gpuGate)
+        {
+            var nvidia = Nvidia();
+            var total = nvidia?.Read().Total ?? -1;
+            var listed = Adapter();
+            gpuName = nvidia is { Name.Length: > 0 } ? nvidia.Name : listed.Name;
+            vramBytes = total > 0 ? total : listed.Bytes;
+        }
+
+        return new StatsInfo(CpuName(), totalMiB, gpuName, vramBytes > 0 ? (int)Math.Min(int.MaxValue, vramBytes >> 20) : -1, name);
     }
 
     public IReadOnlyList<DiskEntry> ReadDisks()
@@ -116,6 +150,42 @@ internal sealed class WindowsStats : IStatsSource
                 d.Free / GiB))
             .Take(MaxDisks)
             .ToList();
+
+    /// <summary>
+    /// The counters lead on load and memory in use (every vendor feeds them); NVML fills temperature and power, and load or memory
+    /// when the counters have none. The memory share is of NVML's total, else of the adapter the registry lists with the most.
+    /// </summary>
+    private (int Util, int Vram, int Temp, int PowerW) ReadGpu()
+    {
+        lock (gpuGate)
+        {
+            var (pdhUtil, dedicated) = gpu.Read();
+            var n = Nvidia()?.Read() ?? (-1, -1, -1, -1, -1);
+            var util = pdhUtil >= 0 ? pdhUtil : n.Util;
+            var used = dedicated >= 0 ? dedicated : n.Used;
+            var total = n.Total > 0 ? n.Total : Adapter().Bytes;
+            return (util, VramPercent(used, total), n.Temp, n.PowerW);
+        }
+    }
+
+    /// <summary>Memory in use as a share 0..100 of the total; -1 when either is unknown.</summary>
+    internal static int VramPercent(long used, long total) =>
+        used < 0 || total <= 0 ? -1 : (int)Math.Round(Math.Min(100.0, 100.0 * used / total), MidpointRounding.AwayFromZero);
+
+    /// <summary>NVML, tried once per watch. Caller holds <see cref="gpuGate"/>.</summary>
+    private Nvml? Nvidia()
+    {
+        if (!nvmlTried)
+        {
+            nvmlTried = true;
+            nvml = Nvml.TryOpen();
+        }
+
+        return nvml;
+    }
+
+    // ponytail: with two adapters the share is the busiest adapter's use over the biggest adapter's size; per-LUID matching if a laptop shows odd numbers.
+    private (string Name, long Bytes) Adapter() => adapter ??= GpuPdh.Adapter();
 
     private int ReadCpu()
     {
