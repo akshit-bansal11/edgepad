@@ -24,7 +24,6 @@
   <string name="sys_up">अपलोड</string>
   <string name="sys_ping">पिंग</string>
   <string name="sys_loss">पैकेट हानि</string>
-  <string name="sys_temp">तापमान</string>
   <string name="sys_power">पावर</string>
   <string name="sys_free">%1$s खाली</string>
   <string name="sys_off">अपने लैपटॉप पर Edgepad मेनू में सिस्टम स्टैट्स चालू करें।</string>

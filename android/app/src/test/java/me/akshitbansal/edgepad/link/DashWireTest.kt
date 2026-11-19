@@ -171,6 +171,15 @@ class DashWireTest {
     }
 
     @Test
+    fun aRawControlOrBidiCharacterFromTheLaptopIsShownAsAMarker() {
+        // Built from code points: the raw characters themselves are what the laptop might send.
+        val lf = Char(0x0A)
+        val raw = "claude" + lf + "Bash" + lf + "rm " + Char(0x202E) + "fdp.sh" + Char(0x85) + Char(0x0D)
+        val body = raw.toByteArray(Charsets.UTF_8)
+        assertEquals("rm <U+202E>fdp.sh<U+0085><U+000D>", DashWire.permAsk("0123456789ab", true, body)?.text)
+    }
+
+    @Test
     fun permAnswerIsByteExact() {
         assertEquals("a1b2c3d4e5f6/a", PermAnswer.text("a1b2c3d4e5f6", true))
         assertEquals("a1b2c3d4e5f6/d", PermAnswer.text("a1b2c3d4e5f6", false))

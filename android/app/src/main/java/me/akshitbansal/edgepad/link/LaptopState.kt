@@ -164,9 +164,24 @@ class LaptopState {
     var permAsks: List<PermAsk> = emptyList()
         private set
 
-    /** Adds [ask], replacing one with the same id; the oldest goes when there are more than [MAX_ASKS]. */
+    // The last MAX_GONE ask ids PERM_GONE ended, oldest first.
+    private val goneIds = ArrayDeque<String>()
+
+    /**
+     * Adds [ask], replacing one with the same id; the oldest goes when there are more than [MAX_ASKS]. An ask whose
+     * PERM_GONE already came (its blob was still on the way) is dropped: nobody waits on it.
+     */
     fun addPermAsk(ask: PermAsk) {
+        if (ask.id in goneIds) return
         permAsks = (permAsks.filter { it.id != ask.id } + ask).takeLast(MAX_ASKS)
+    }
+
+    private fun permGone(id: String) {
+        permAsks = permAsks.filter { it.id != id }
+        if (id !in goneIds) {
+            goneIds.addLast(id)
+            while (goneIds.size > MAX_GONE) goneIds.removeFirst()
+        }
     }
 
     fun setGithub(rows: List<GithubRow>) {
@@ -334,7 +349,7 @@ class LaptopState {
                     TextKind.LIMITS -> limits = DashWire.limits(frame.text)
                     TextKind.SPEND -> spend = DashWire.spend(frame.text)
                     TextKind.WEATHER -> weather = DashWire.weather(frame.text)
-                    TextKind.PERM_GONE -> permAsks = permAsks.filter { it.id != frame.text }
+                    TextKind.PERM_GONE -> permGone(frame.text)
                     null -> return dropText()
                     else -> return false
                 }
@@ -510,6 +525,9 @@ class LaptopState {
 
         /** The most approvals held at once. */
         const val MAX_ASKS = 4
+
+        /** How many ended approval ids each laptop remembers, so a BLOB 6 that arrives after its PERM_GONE is dropped. */
+        const val MAX_GONE = 16
 
         private const val FLAG_BIT = 1
 

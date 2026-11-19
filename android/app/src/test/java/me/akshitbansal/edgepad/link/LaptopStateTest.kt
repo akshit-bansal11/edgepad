@@ -548,6 +548,19 @@ class LaptopStateTest {
         assertEquals(listOf("000000000002", "000000000004", "000000000005"), state.permAsks.map { it.id })
     }
 
+    @Test
+    fun anApprovalWhoseGoneCameFirstIsDroppedForTheLastSixteenIds() {
+        for (i in 0..LaptopState.MAX_GONE) state.take(Frame.Text(TextKind.PERM_GONE.id, gone(i)))
+        state.addPermAsk(PermAsk(gone(LaptopState.MAX_GONE), true, AgentToken.CLAUDE, "Bash", "ls"))
+        assertTrue(state.permAsks.isEmpty())
+
+        // The oldest id fell out of the sixteen remembered, so it is shown again.
+        state.addPermAsk(PermAsk(gone(0), true, AgentToken.CLAUDE, "Bash", "ls"))
+        assertEquals(listOf("a00000000000"), state.permAsks.map { it.id })
+    }
+
+    private fun gone(i: Int) = "a" + i.toString().padStart(11, '0')
+
     private companion object {
         /** MacroIconChunks.ChunkBytes on the laptop. Written out, because agreeing with it is the point. */
         const val CHUNK_BYTES = 240

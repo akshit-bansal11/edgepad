@@ -24,7 +24,6 @@
   <string name="sys_up">上传</string>
   <string name="sys_ping">Ping</string>
   <string name="sys_loss">丢包率</string>
-  <string name="sys_temp">温度</string>
   <string name="sys_power">功耗</string>
   <string name="sys_free">剩余 %1$s</string>
   <string name="sys_off">在笔记本电脑的 Edgepad 菜单中开启系统统计。</string>

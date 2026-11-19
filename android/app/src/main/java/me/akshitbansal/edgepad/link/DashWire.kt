@@ -295,7 +295,8 @@ object DashWire {
         val p = String(body, Charsets.UTF_8).split('\n', limit = PERM_PARTS)
         val agent = AgentToken.of(p[0])
         if (p.size != PERM_PARTS || agent == null || !toolPattern.matches(p[1])) return null
-        return PermAsk(id, complete, agent, p[1], p[2])
+        // Cleaned again here (idempotent): a laptop that skipped it cannot put a live control or bidi character on the sheet.
+        return PermAsk(id, complete, agent, p[1], cleanText(p[2]))
     }
 
     fun github(body: ByteArray): List<GithubRow> {
@@ -350,14 +351,17 @@ object DashWire {
         return s.substring(0, end).trim()
     }
 
-    /** The laptop's CleanText: keeps line feed and tab, drops other controls, shows invisible ones as `<U+XXXX>`. */
+    /**
+     * The laptop's CleanText: keeps line feed and tab, shows every other control (Cc) and invisible character as
+     * `<U+XXXX>`. Deletes nothing; idempotent.
+     */
     fun cleanText(text: String): String {
         val out = StringBuilder()
         text.codePoints().forEach { cp ->
             when {
                 cp == '\n'.code || cp == '\t'.code -> out.append(cp.toChar())
-                isInvisible(cp) -> out.append("<U+").append(hex(cp)).append('>')
-                !isControl(cp) -> out.appendCodePoint(cp)
+                isInvisible(cp) || isControl(cp) -> out.append("<U+").append(hex(cp)).append('>')
+                else -> out.appendCodePoint(cp)
             }
         }
         return out.toString()
