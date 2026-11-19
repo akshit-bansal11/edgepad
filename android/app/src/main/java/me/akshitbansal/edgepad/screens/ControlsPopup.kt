@@ -346,7 +346,9 @@ class ControlsPopup(
         capture: Boolean,
         annotate: Boolean,
     ) {
-        tiles = Target.entries.map { tile(it, available(it, capture, annotate)) } + sendTile()
+        // AI and GitHub stay out of the deck until they are connected on the laptop; the rest show dimmed with a reason.
+        val targets = Target.entries.filter { it !in CONNECT_FIRST || available(it, capture, annotate) }
+        tiles = targets.map { tile(it, available(it, capture, annotate)) } + sendTile()
         keys = tiles.map { it.key }
         shown = DeckLayout.order(settings.deckOrder(DECK), keys)
         drawShown()
@@ -432,8 +434,6 @@ class ControlsPopup(
             Target.CAPTURE -> reasonText(reason[Feature.CAPTURE.token])
             Target.ANNOTATE -> reasonText(reason[Feature.ANNOTATE.token])
             Target.SYSTEM -> dashNote(reason[Feature.STATS.token])
-            Target.AI -> dashNote(reason[Feature.CLAUDE.token] ?: reason[Feature.CODEX.token])
-            Target.GITHUB -> dashNote(reason[Feature.GITHUB.token])
             else -> reasonText(null)
         }
     }
@@ -441,3 +441,6 @@ class ControlsPopup(
     private fun dashNote(reason: UnavailableReason?): Int =
         if (reason == null) R.string.controls_dash_off else reasonText(reason)
 }
+
+/** Tiles that appear only once their integration is connected on the laptop. */
+private val CONNECT_FIRST = setOf(ControlsPopup.Target.AI, ControlsPopup.Target.GITHUB)
