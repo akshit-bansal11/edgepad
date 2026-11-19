@@ -680,4 +680,100 @@
   <data name="Xfer_WhySkipped" xml:space="preserve">
     <value>नहीं भेजा गया।</value>
   </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>इंटीग्रेशन… (&amp;I)</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>इंटीग्रेशन</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>यहाँ सब कुछ तब तक बंद रहता है जब तक आप उसे चालू न करें।</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>फ़ोन पर सिस्टम आँकड़े दिखाएँ</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>फ़ोन पर मौसम दिखाएँ</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>शहर</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>open-meteo.com को सिर्फ़ शहर का नाम भेजा जाता है।</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>कनेक्ट करें</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>डिस्कनेक्ट करें</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>कनेक्टेड · आख़िरी संपर्क {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>कनेक्ट नहीं है</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>इस कंप्यूटर पर {0} नहीं मिला</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>Node.js 20.1 या नया चाहिए। इसे nodejs.org से लें</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad यह आपके लिए नहीं चला सका। ये कमांड किसी टर्मिनल में चलाएँ:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>कॉपी करें</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Codex में /hooks खोलें और Edgepad पर भरोसा करें।</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Codex के प्लगिन पर भरोसा करने का इंतज़ार…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Codex को वर्शन 0.159 या नए पर अपडेट करें।</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>खुले सेशन फिर से शुरू करें, या Claude Code में /reload-plugins चलाएँ।</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>GitHub से साइन इन करें</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>साइन आउट करें</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>आपका कोड: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device खोलें</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>ब्राउज़र में आपकी मंज़ूरी का इंतज़ार…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>निजी रिपॉज़िटरी शामिल करें</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>{0} के रूप में साइन इन</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>इस बिल्ड में साइन इन सेट अप नहीं है।</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>कभी नहीं</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>काम चल रहा है…</value>
+  </data>
 </root>

@@ -680,4 +680,100 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Xfer_WhySkipped" xml:space="preserve">
     <value>Nicht gesendet.</value>
   </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>&amp;Integrationen…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integrationen</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Alles hier bleibt aus, bis du es einschaltest.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Systemwerte auf dem Handy zeigen</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Wetter auf dem Handy zeigen</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Stadt</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Sendet nur den Namen der Stadt an open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Verbinden</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Trennen</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Verbunden · zuletzt gemeldet {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Nicht verbunden</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} wurde auf diesem Computer nicht gefunden</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>Node.js 20.1 oder neuer wird benötigt. Hol es dir von nodejs.org</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad konnte das nicht für dich ausführen. Führe diese Befehle in einem Terminal aus:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Öffne in Codex /hooks und vertraue Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Warte darauf, dass Codex dem Plugin vertraut…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Aktualisiere Codex auf Version 0.159 oder neuer.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Starte offene Sitzungen neu oder führe in Claude Code /reload-plugins aus.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Mit GitHub anmelden</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Abmelden</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Dein Code: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device öffnen</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Warte auf deine Bestätigung im Browser…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Private Repositorys einbeziehen</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Angemeldet als {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Die Anmeldung ist in diesem Build nicht eingerichtet.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>nie</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Wird ausgeführt…</value>
+  </data>
 </root>

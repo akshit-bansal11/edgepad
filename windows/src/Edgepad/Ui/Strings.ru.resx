@@ -680,4 +680,100 @@
   <data name="Xfer_WhySkipped" xml:space="preserve">
     <value>Не отправлено.</value>
   </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>Инте&amp;грации…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Интеграции</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Всё здесь выключено, пока вы это не включите.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Показывать данные о системе на телефоне</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Показывать погоду на телефоне</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Город</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>На open-meteo.com отправляется только название города.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Подключить</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Отключить</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Подключено · последний сигнал {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Не подключено</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} не найден на этом компьютере</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>Нужен Node.js 20.1 или новее. Скачайте его с nodejs.org</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad не смог выполнить это за вас. Выполните эти команды в терминале:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>В Codex откройте /hooks и отметьте Edgepad как доверенный.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Ждём, пока Codex начнёт доверять плагину…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Обновите Codex до версии 0.159 или новее.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Перезапустите открытые сеансы или выполните /reload-plugins в Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Войти через GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Выйти</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Ваш код: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Открыть github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Ждём подтверждения в браузере…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Включить закрытые репозитории</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Вход выполнен как {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Вход не настроен в этой сборке.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>никогда</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Выполняется…</value>
+  </data>
 </root>
