@@ -402,13 +402,16 @@ const FEATURE_DOCS: Record<string, string> = {
   NOTIFY: "The laptop can forward its notifications once CONTROL 10 is 1.",
   FOREGROUND:
     "The laptop can say which app is in front, in TEXT 21, once CONTROL 11 is 1. A Linux Wayland session cannot.",
-  STATS: "The laptop sends system numbers (TEXT 27 to 29). Named only while its stats switch is on and usable.",
-  WEATHER: "The laptop sends the weather (TEXT 35). Named only while its weather switch is on.",
+  STATS:
+    "The laptop sends system numbers (TEXT 27 to 29). Named only while its stats switch is on and usable.",
+  WEATHER:
+    "The laptop sends the weather (TEXT 35). Named only while its weather switch is on.",
   CLAUDE:
     "The laptop’s Claude Code integration is on and usable: sessions, limits, spend and approvals.",
   CODEX:
     "The laptop’s Codex integration is on and usable: sessions, limits, spend and approvals.",
-  GITHUB: "The laptop is signed in to GitHub and sends pull requests and notifications (BLOB 7).",
+  GITHUB:
+    "The laptop is signed in to GitHub and sends pull requests and notifications (BLOB 7).",
   ANNOTATE:
     "The laptop can show the annotation overlay and a signing surface. The phone shows an Annotate tile only for a laptop that names this.",
   CAPTURE:
