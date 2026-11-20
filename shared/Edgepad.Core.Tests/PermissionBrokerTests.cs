@@ -105,7 +105,14 @@ public sealed class PermissionBrokerTests
         var id = WaitAsked().Id;
         Assert.Matches("^[0-9a-f]{12}$", id);
         Assert.False(broker.Answer("000000000000", true));
-        Assert.False(broker.Answer(id.ToUpperInvariant() + "/a"));
+        // Ids are compared exactly. About one id in 300 is all digits, which capitals leave unchanged, and that id
+        // would rightly be accepted: a 5.0.0 draft build's Windows job once failed on one.
+        var shouted = id.ToUpperInvariant();
+        if (shouted != id)
+        {
+            Assert.False(broker.Answer(shouted + "/a"));
+        }
+
         Assert.True(broker.Answer(id, false));
         Assert.False(broker.Answer(id, true));
         Assert.Equal(PermDecision.Deny, await request);
