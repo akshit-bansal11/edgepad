@@ -151,6 +151,7 @@ import me.akshitbansal.edgepad.screens.SettingsScreen
 import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.SharingScreen
+import me.akshitbansal.edgepad.screens.StatsScreen
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
 import me.akshitbansal.edgepad.screens.SystemScreen
 import me.akshitbansal.edgepad.screens.Ui
@@ -244,8 +245,6 @@ class MainActivity :
         ANNOTATE,
         PRESENTER,
         SYSTEM,
-        AI,
-        GITHUB,
         KEYBOARD,
         GAMEPAD,
         MACROS,
@@ -319,6 +318,15 @@ class MainActivity :
     private var systemScreen: SystemScreen? = null
     private var aiScreen: AiScreen? = null
     private var githubScreen: GitHubScreen? = null
+
+    /** Redraws the Settings page's "when this ends" row; set while that page shows. */
+    private var endRedraw: (() -> Unit)? = null
+
+    /** The surface's Hide dials switch, kept here because the surface is rebuilt and the switch is on Dials. */
+    private var dialsHidden = false
+
+    /** The page of Simple stats that shows: 0 System, 1 AI, 2 Git. The laptop watches only that page's data. */
+    private var statsPage = 0
 
     /** What DASH_WATCH last told the selected laptop (0: nothing). The laptop forgets it at session end. */
     private var dashMask = 0
@@ -860,9 +868,13 @@ class MainActivity :
     private fun syncDashWatch() {
         val dash =
             when (screen) {
-                Screen.SYSTEM -> DashMask.Screen.SYSTEM
-                Screen.AI -> DashMask.Screen.AI
-                Screen.GITHUB -> DashMask.Screen.GITHUB
+                Screen.SYSTEM ->
+                    when (statsPage) {
+                        1 -> DashMask.Screen.AI
+                        2 -> DashMask.Screen.GITHUB
+                        else -> DashMask.Screen.SYSTEM
+                    }
+
                 else -> null
             }
         val mask =
@@ -1083,6 +1095,7 @@ class MainActivity :
         if (manager.reconnect != settings.reconnect) manager.reconnect = settings.reconnect
         val previous = screen
         screen = next
+        statsPage = 0
         syncDashWatch()
         // Only the surface follows the app in front: every settings page edits the defaults.
         settings.activeProfile = if (next == Screen.SURFACE) frontProfile() else null
@@ -1096,6 +1109,7 @@ class MainActivity :
         systemScreen = null
         aiScreen = null
         githubScreen = null
+        endRedraw = null
         controls = null
         handler.removeCallbacks(ticker)
         if (next == Screen.PAIRING) startScan() else stopScan()
@@ -1179,6 +1193,14 @@ class MainActivity :
                         ),
                         developer = developerOn(),
                         developerEditable = connected,
+                        end =
+                            SettingsScreen.End(
+                                offered = connected && Feature.END_ACTION in state.features,
+                                armed = { state.endAction },
+                                hasTimeline = { state.duration > 0 },
+                                send = { action -> manager.send(action.frame()) },
+                                onRedraw = { redraw -> endRedraw = redraw },
+                            ),
                     )
                 }
 
@@ -1269,7 +1291,17 @@ class MainActivity :
                 }
 
                 Screen.DIAL_FEEL -> {
-                    DialFeelScreen.build(ui, settings) { navigateBack() }
+                    DialFeelScreen.build(
+                        ui,
+                        settings,
+                        dialsHidden,
+                        onHideDials = { on ->
+                            dialsHidden = on
+                            surface?.setDialsHidden(on)
+                        },
+                        laptopConnected = { connected },
+                        onFloatingChanged = ::syncFloating,
+                    ) { navigateBack() }
                 }
 
                 Screen.APPEARANCE -> {
@@ -1396,15 +1428,19 @@ class MainActivity :
                 }
 
                 Screen.SYSTEM -> {
-                    SystemScreen(ui, { state }) { navigateBack() }.also { systemScreen = it }.view
-                }
-
-                Screen.AI -> {
-                    AiScreen(ui, { state }) { navigateBack() }.also { aiScreen = it }.view
-                }
-
-                Screen.GITHUB -> {
-                    GitHubScreen(ui, { state }) { navigateBack() }.also { githubScreen = it }.view
+                    StatsScreen(
+                        ui,
+                        { state },
+                        developerOn(),
+                        onPage = { page ->
+                            statsPage = page
+                            syncDashWatch()
+                        },
+                    ) { navigateBack() }.also {
+                        systemScreen = it.system
+                        aiScreen = it.ai
+                        githubScreen = it.github
+                    }.view
                 }
 
                 Screen.RECONNECTING -> {
@@ -1472,7 +1508,10 @@ class MainActivity :
                         devices = deviceSwitch,
                         batteries = liveBatteries,
                         onOpenBatteries = ::openBatteries,
-                    ).also { surface = it }
+                    ).also {
+                        surface = it
+                        if (dialsHidden) it.setDialsHidden(true)
+                    }
                 }
             }
         // No screenshot, screen recording or recents thumbnail of the PIN or pairing code, and only of those screens.
@@ -1656,7 +1695,7 @@ class MainActivity :
 
             // These are opened from the Controls popup over the surface, so back returns to it.
             Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE, Screen.PRESENTER,
-            Screen.SYSTEM, Screen.AI, Screen.GITHUB,
+            Screen.SYSTEM,
             -> {
                 goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
                 // AND-A-32: back lands where the user came from, so the popup opens again over the surface.
@@ -1944,17 +1983,10 @@ class MainActivity :
             ControlsPopup(
                 ui,
                 settings,
-                { owner.isDialsHidden },
-                owner::setDialsHidden,
                 reasons = { state.unavailable },
                 features = { state.features },
-                endOffered = { Feature.END_ACTION in state.features },
-                endArmed = { state.endAction },
-                hasTimeline = { state.duration > 0 },
-                onEnd = { action -> manager.send(action.frame()) },
                 laptopConnected = { connected },
                 onSendFile = ::pickFile,
-                onFloatingChanged = ::syncFloating,
             ) { target ->
                 when (target) {
                     ControlsPopup.Target.KEYBOARD -> goTo(Screen.KEYBOARD)
@@ -1965,8 +1997,6 @@ class MainActivity :
                     ControlsPopup.Target.CLIPBOARD -> openClipboardHistory()
                     ControlsPopup.Target.PRESENTER -> goTo(Screen.PRESENTER)
                     ControlsPopup.Target.SYSTEM -> goTo(Screen.SYSTEM)
-                    ControlsPopup.Target.AI -> goTo(Screen.AI)
-                    ControlsPopup.Target.GITHUB -> goTo(Screen.GITHUB)
                 }
             }.also { it.show(owner, controlsCapture(), controlsAnnotate()) }
     }
@@ -2895,7 +2925,7 @@ class MainActivity :
                     frame.kind == TextKind.FEATURES.id
             )
         ) {
-            controls?.refreshEnd()
+            endRedraw?.invoke()
         }
         if (frame is Frame.Text && frame.kind == TextKind.SCREEN_SIZE.id) {
             annotate?.refresh()
@@ -3239,8 +3269,6 @@ class MainActivity :
                 Screen.ANNOTATE,
                 Screen.PRESENTER,
                 Screen.SYSTEM,
-                Screen.AI,
-                Screen.GITHUB,
             )
 
         /** What a laptop names when it can answer DASH_WATCH: one of these, or the phone never sends it. */
