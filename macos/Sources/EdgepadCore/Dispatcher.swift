@@ -90,6 +90,10 @@ public final class Dispatcher {
     /// a larger value, DASH_WATCH is dropped and counted.
     public var dashWatch: ((Int) -> Void)?
 
+    /// Told the phone's DEVELOPER, true for 1 and false for 0. Set by the session; without one, or for a larger value,
+    /// DEVELOPER is dropped and counted.
+    public var developer: ((Bool) -> Void)?
+
     /// Takes the phone's PERM_ANSWER and says whether an approval waited for it. Set by the session like `dashWatch`;
     /// without one, or for an answer nothing waits for, the frame is dropped and counted.
     public var permAnswer: ((String) -> Bool)?
@@ -408,6 +412,10 @@ public final class Dispatcher {
             // A bit mask of what the phone draws; anything over 31 is dropped and counted.
             guard let dashWatch, value <= 31 else { return false }
             dashWatch(value)
+            return true
+        case .developer:
+            guard let developer, value <= 1 else { return false }
+            developer(value == 1)
             return true
         }
     }

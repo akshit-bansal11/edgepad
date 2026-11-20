@@ -189,7 +189,7 @@ public final class IntegrationHost {
     }
 
     private var agentsOn: Bool {
-        settings.flag(IntegrationSettings.claude) || settings.flag(IntegrationSettings.codex)
+        settings.active(IntegrationSettings.claude) || settings.active(IntegrationSettings.codex)
     }
 
     private var weatherOn: Bool {
@@ -197,7 +197,7 @@ public final class IntegrationHost {
     }
 
     private var gitHubOn: Bool {
-        settings.flag(IntegrationSettings.gitHub) && parts.gitHub != nil
+        settings.active(IntegrationSettings.gitHub) && parts.gitHub != nil
     }
 
     /// Call once the session has sent FEATURES: sends the current sessions and lets the agent readers see the phone.
@@ -219,16 +219,19 @@ public final class IntegrationHost {
             features.append(Feature.weather.rawValue)
         }
         // An agent counts once it actually works with Edgepad (heard from, Codex trusted), not as soon as its switch is on.
-        if settings.flag(IntegrationSettings.claude) && parts.sessions != nil && heard(AgentToken.claude) {
+        if settings.active(IntegrationSettings.claude) && parts.sessions != nil && heard(AgentToken.claude) {
             features.append(Feature.claude.rawValue)
         }
-        if settings.flag(IntegrationSettings.codex) && parts.sessions != nil && heard(AgentToken.codex)
+        if settings.active(IntegrationSettings.codex) && parts.sessions != nil && heard(AgentToken.codex)
             && settings.flag(IntegrationSettings.codexTrusted)
         {
             features.append(Feature.codex.rawValue)
         }
         if gitHubOn && parts.gitHubSignedIn?() == true {
             features.append(Feature.github.rawValue)
+        }
+        if settings.flag(IntegrationSettings.developer) {
+            features.append(Feature.developer.rawValue)
         }
         return features
     }
@@ -239,7 +242,7 @@ public final class IntegrationHost {
         if settings.flag(IntegrationSettings.stats) && stats == nil {
             reasons.append(Feature.stats.rawValue + ":" + UnavailableReason.unsupported.rawValue)
         }
-        if settings.flag(IntegrationSettings.gitHub) && parts.gitHubSignedIn?() != true {
+        if settings.active(IntegrationSettings.gitHub) && parts.gitHubSignedIn?() != true {
             reasons.append(Feature.github.rawValue + ":" + UnavailableReason.noPermission.rawValue)
         }
         return reasons

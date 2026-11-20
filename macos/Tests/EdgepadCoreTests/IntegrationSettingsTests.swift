@@ -176,4 +176,25 @@ final class IntegrationSettingsTests: XCTestCase {
             XCTAssertEqual(again.flag(Self.flags[t]), settings.flag(Self.flags[t]))
         }
     }
+
+    func testAgentsAndGitHubNeedDeveloperModeToBeActive() {
+        let settings = IntegrationSettings(path: filePath)
+        settings.setFlag(IntegrationSettings.claude, true)
+        settings.setFlag(IntegrationSettings.codex, true)
+        settings.setFlag(IntegrationSettings.gitHub, true)
+        settings.setFlag(IntegrationSettings.stats, true)
+        XCTAssertFalse(settings.active(IntegrationSettings.claude))
+        XCTAssertFalse(settings.active(IntegrationSettings.codex))
+        XCTAssertFalse(settings.active(IntegrationSettings.gitHub))
+        XCTAssertTrue(settings.active(IntegrationSettings.stats))
+
+        settings.setFlag(IntegrationSettings.developer, true)
+        XCTAssertTrue(settings.active(IntegrationSettings.claude))
+        XCTAssertTrue(settings.active(IntegrationSettings.codex))
+        XCTAssertTrue(settings.active(IntegrationSettings.gitHub))
+
+        settings.setFlag(IntegrationSettings.developer, false)
+        XCTAssertTrue(settings.flag(IntegrationSettings.claude))
+        XCTAssertFalse(settings.active(IntegrationSettings.claude))
+    }
 }

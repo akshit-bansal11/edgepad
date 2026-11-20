@@ -696,4 +696,21 @@ final class DispatcherTests: XCTestCase {
         XCTAssertEqual(input.calls, ["media 1"])
         XCTAssertEqual(dispatcher.dropped, 0)
     }
+
+    func testDeveloperIsDroppedWithoutAHandlerAndAboveOne() {
+        let dispatcher = Dispatcher(
+            input: FakeInput(), speakers: FakeLevel(level: Level(percent: 50, muted: false)),
+            microphone: FakeLevel(level: Level(percent: 50, muted: false)), brightness: FakeBrightness(level: 50),
+            display: FakeDisplay(rates: [60], current: 0))
+        dispatcher.handle(.setValue(control: ControlId.developer.rawValue, value: 1))
+        XCTAssertEqual(dispatcher.dropped, 1)
+
+        var seen: [Bool] = []
+        dispatcher.developer = { seen.append($0) }
+        dispatcher.handle(.setValue(control: ControlId.developer.rawValue, value: 1))
+        dispatcher.handle(.setValue(control: ControlId.developer.rawValue, value: 0))
+        dispatcher.handle(.setValue(control: ControlId.developer.rawValue, value: 2))
+        XCTAssertEqual(seen, [true, false])
+        XCTAssertEqual(dispatcher.dropped, 2)
+    }
 }

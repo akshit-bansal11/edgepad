@@ -22,6 +22,7 @@ public final class IntegrationSettings {
     public static let place = "place"
     public static let gitHubLogin = "githubLogin"
     public static let codexTrusted = "codexTrusted"
+    public static let developer = "developer"
 
     private static let maxFileBytes = 64 * 1024
     private static let maxValueLength = 300
@@ -55,6 +56,12 @@ public final class IntegrationSettings {
         gate.lock()
         defer { gate.unlock() }
         return values[key] == "1"
+    }
+
+    /// Whether `key` is on and in force: claude, codex and github also need developer mode; every other key is its flag.
+    public func active(_ key: String) -> Bool {
+        let gated = key == Self.claude || key == Self.codex || key == Self.gitHub
+        return flag(key) && (!gated || flag(Self.developer))
     }
 
     /// The stored text, or empty.

@@ -124,10 +124,11 @@ final class DashboardHostTests: XCTestCase {
 
     func testAgentsAreNamedAndTheirSessionsSentOnStartAndOnChange() {
         settings.setFlag(IntegrationSettings.claude, true)
+        settings.setFlag(IntegrationSettings.developer, true)
         let (parts, _) = agentParts()
         let host = newHost(parts)
 
-        XCTAssertEqual(host.features(), ["claude"])
+        XCTAssertEqual(host.features(), ["claude", "developer"])
         host.start()
         XCTAssertEqual(sent, [.text(kind: TextKind.sessions.rawValue, value: "")])
         parts.sessions?.apply(
@@ -140,28 +141,30 @@ final class DashboardHostTests: XCTestCase {
 
     func testAnAgentIsNamedOnlyOnceItsHookWasHeard() {
         settings.setFlag(IntegrationSettings.claude, true)
+        settings.setFlag(IntegrationSettings.developer, true)
         settings.setFlag(IntegrationSettings.codex, true)
         let store = UsageStore(path: folder + "/heard.json", now: Date())
         let parts = DashboardParts(sessions: SessionBoard(), agentHeard: { store.lastHeard($0) >= 0 })
         let host = newHost(parts)
-        XCTAssertEqual(host.features(), [])
+        XCTAssertEqual(host.features(), ["developer"])
 
         store.touch("claude", now: Date())
-        XCTAssertEqual(host.features(), ["claude"])
+        XCTAssertEqual(host.features(), ["claude", "developer"])
 
         // Codex heard but not yet trusted in /hooks is not named.
         store.touch("codex", now: Date())
-        XCTAssertEqual(host.features(), ["claude"])
+        XCTAssertEqual(host.features(), ["claude", "developer"])
         settings.setFlag(IntegrationSettings.codexTrusted, true)
-        XCTAssertEqual(host.features(), ["claude", "codex"])
+        XCTAssertEqual(host.features(), ["claude", "codex", "developer"])
 
         store.forget("codex")
-        XCTAssertEqual(host.features(), ["claude"])
+        XCTAssertEqual(host.features(), ["claude", "developer"])
         host.dispose()
     }
 
     func testAnAnswerReachesTheBrokerAndItsEndIsSent() {
         settings.setFlag(IntegrationSettings.claude, true)
+        settings.setFlag(IntegrationSettings.developer, true)
         let (parts, broker) = agentParts()
         let link = DashboardLink(phones: phones, makeHost: { [unowned self] in self.newHost(parts) })
         var asked: PermPrompt?
@@ -183,6 +186,7 @@ final class DashboardHostTests: XCTestCase {
 
     func testAPhoneThatGoesIsUncountedBeforeItsHostSoWaitingAsksDefer() {
         settings.setFlag(IntegrationSettings.claude, true)
+        settings.setFlag(IntegrationSettings.developer, true)
         let (parts, broker) = agentParts()
         let link = DashboardLink(phones: phones, makeHost: { [unowned self] in self.newHost(parts) })
         XCTAssertTrue(phones.any)
@@ -210,6 +214,7 @@ final class DashboardHostTests: XCTestCase {
 
     func testAnAskThatEndedBeforeItsTurnIsNeverSent() {
         settings.setFlag(IntegrationSettings.claude, true)
+        settings.setFlag(IntegrationSettings.developer, true)
         let (parts, _) = agentParts()
         var queued: [() -> Void] = []
         var blobFrames: [Frame] = []

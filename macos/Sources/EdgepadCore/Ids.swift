@@ -105,6 +105,9 @@ public enum ControlId: UInt8, CaseIterable {
     /// screen, bit 2 (4) the weather widget, bit 3 (8) an AI widget or screen, bit 4 (16) the GitHub screen. 0 to 31; more is
     /// dropped and counted. Forgotten when the session ends.
     case dashWatch = 12
+    /// Whether developer mode is on, 1 or 0, phone to computer. Anything above 1 is dropped and counted. Unlike `notify`,
+    /// the computer keeps it across sessions.
+    case developer = 13
 }
 
 /// What a TEXT frame carries. Only `type` goes phone to computer; the rest go the other way.
@@ -203,6 +206,7 @@ public enum Feature: String, CaseIterable {
     case claude = "claude"
     case codex = "codex"
     case github = "github"
+    case developer = "developer"
 }
 
 /// The whole vocabulary of `TextKind.padStatus`: a token the phone matches on, never prose, so the wording
