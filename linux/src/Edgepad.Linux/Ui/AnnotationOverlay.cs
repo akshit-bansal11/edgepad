@@ -84,6 +84,7 @@ internal sealed class AnnotationOverlay : Window
 
         private IReadOnlyList<Stroke> strokes = [];
         private PixelSize screen;
+        private Point[] edge = new Point[64];
 
         /// <summary>
         /// A laser: a hot core inside a soft red glow, always red whatever the pen's colour, sized by the pen's width.
@@ -100,14 +101,7 @@ internal sealed class AnnotationOverlay : Window
             var dot = new Point(path[^1].X, path[^1].Y);
             var radius = stroke.LaserRadiusPx(screen.Height);
 
-            // ponytail: count-based trail, a still finger keeps its trail; time-based if it looks wrong.
-            for (var i = 1; i < path.Length; i++)
-            {
-                var t = (double)i / (path.Length - 1);
-                var tail = new ImmutableSolidColorBrush(Color.FromArgb((byte)(153 * t), 0xFF, 0x1A, 0x1A));
-                var pen = new ImmutablePen(tail, 1 + (((radius * 2) - 1) * t), lineCap: PenLineCap.Round);
-                context.DrawLine(pen, new Point(path[i - 1].X, path[i - 1].Y), new Point(path[i].X, path[i].Y));
-            }
+            DrawTail(context, path, radius);
 
             var glow = new RadialGradientBrush
             {
@@ -121,6 +115,70 @@ internal sealed class AnnotationOverlay : Window
             context.DrawEllipse(LaserBrush, null, dot, radius, radius);
             context.DrawEllipse(LaserHotBrush, null, dot, radius * 0.35, radius * 0.35);
         }
+
+        /// <summary>
+        /// The trail as one smooth ribbon: as wide as the dot at the head, tapering to nothing at the tail, and
+        /// fading with a single gradient, so no joints or dots show. The edge buffer is reused every frame.
+        /// </summary>
+        private void DrawTail(DrawingContext context, System.Numerics.Vector2[] path, double radius)
+        {
+            var n = path.Length;
+            if (n < 3 || (path[n - 1] - path[0]).LengthSquared() < 1f)
+            {
+                return;
+            }
+
+            var count = n * 2;
+            if (edge.Length < count)
+            {
+                edge = new Point[count];
+            }
+
+            var (nx, ny) = (0.0, 1.0);
+            for (var i = 0; i < n; i++)
+            {
+                var a = path[Math.Max(i - 1, 0)];
+                var b = path[Math.Min(i + 1, n - 1)];
+                double dx = b.X - a.X;
+                double dy = b.Y - a.Y;
+                var length = Math.Sqrt((dx * dx) + (dy * dy));
+                if (length > 0.001)
+                {
+                    (nx, ny) = (-dy / length, dx / length);
+                }
+
+                var half = radius * i / (n - 1);
+                edge[i] = new Point(path[i].X + (nx * half), path[i].Y + (ny * half));
+                edge[count - 1 - i] = new Point(path[i].X - (nx * half), path[i].Y - (ny * half));
+            }
+
+            // A closed loop of quadratic curves through the edge points' midpoints: smooth, no corners but the tail.
+            var geometry = new StreamGeometry();
+            using (var ctx = geometry.Open())
+            {
+                ctx.BeginFigure(Mid(edge[count - 1], edge[0]), true);
+                for (var i = 0; i < count; i++)
+                {
+                    ctx.QuadraticBezierTo(edge[i], Mid(edge[i], edge[(i + 1) % count]));
+                }
+
+                ctx.EndFigure(true);
+            }
+
+            var fade = new LinearGradientBrush
+            {
+                StartPoint = new RelativePoint(path[0].X, path[0].Y, RelativeUnit.Absolute),
+                EndPoint = new RelativePoint(path[n - 1].X, path[n - 1].Y, RelativeUnit.Absolute),
+                GradientStops =
+                [
+                    new GradientStop(Color.FromArgb(0, 0xFF, 0x1A, 0x1A), 0),
+                    new GradientStop(Color.FromArgb(220, 0xFF, 0x1A, 0x1A), 1),
+                ],
+            };
+            context.DrawGeometry(fade, null, geometry);
+        }
+
+        private static Point Mid(Point a, Point b) => new((a.X + b.X) / 2, (a.Y + b.Y) / 2);
 
         public void Paint(IReadOnlyList<Stroke> next, PixelSize size)
         {
