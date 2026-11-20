@@ -25,6 +25,9 @@ internal static class ToastText
     public static int Percent(TransferView view) =>
         view.Size == 0 ? 0 : (int)Math.Min(100UL, view.Sent * 100 / view.Size);
 
+    /// <summary>"37%", beside the bar.</summary>
+    public static string PercentText(TransferView view) => string.Format(CultureInfo.CurrentCulture, PercentFormat, Percent(view));
+
     public static string Title(TransferView view)
     {
         if (view.Phase == TransferPhase.Running)
@@ -126,10 +129,10 @@ internal static class ToastText
 internal sealed class TransferToast : IDisposable
 {
     // Measurements at 96 dpi.
-    internal const int CardWidth = 360;
-    internal const int RunningHeight = 88;
-    internal const int DoneHeight = 76;
-    internal const int FailedHeight = 104;
+    internal const int CardWidth = 340;
+    internal const int RunningHeight = 60;
+    internal const int DoneHeight = 56;
+    internal const int FailedHeight = 84;
 
     private const int MaxFailures = 3;
 
@@ -235,11 +238,13 @@ internal sealed class TransferToast : IDisposable
         private const int WsExNoActivate = 0x08000000;
         private const int Corner = 12;
         private const int EdgeMargin = 16;
-        private const int Badge = 32;
-        private const int TextLeft = 60;
-        private const int ButtonHeight = 32;
-        private const int ButtonGap = 8;
+        private const int IconSize = 24;
+        private const int TextLeft = 52;
+        private const int CloseSize = 24;
+        private const int BarHeight = 4;
+        private const int PercentWidth = 40;
         private const int HideAfterMs = 4000;
+        private const int HideAfterFailureMs = 8000;
         private const TextFormatFlags Line =
             TextFormatFlags.NoPadding | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix | TextFormatFlags.VerticalCenter;
 
@@ -255,9 +260,10 @@ internal sealed class TransferToast : IDisposable
         private bool cancelClicked;
         private long hideAt;
         private (Mode, int, int, bool, int, int)? announced;
-        private FlatButton? cancel;
-        private FlatButton? retry;
-        private FlatButton? close;
+
+        // Hit areas in client coordinates, laid out with the card; empty when the control is not offered.
+        private Rectangle closeArea;
+        private Rectangle retryArea;
 
         public ToastWindow(TransferToast owner)
         {
@@ -273,7 +279,7 @@ internal sealed class TransferToast : IDisposable
             clock.Tick += OnTick;
         }
 
-        // The toast is clickable (Cancel, Try again, Close) but must never take the foreground from what the owner is doing.
+        // The toast is clickable (the X, Try again) but must never take the foreground from what the owner is doing.
         protected override CreateParams CreateParams
         {
             get
@@ -311,7 +317,6 @@ internal sealed class TransferToast : IDisposable
             {
                 palette = current;
                 BackColor = palette.Card;
-                RebuildButtons();
                 built = true;
             }
 
@@ -323,11 +328,11 @@ internal sealed class TransferToast : IDisposable
             }
 
             Opacity = 1;
-            if (mode == Mode.Done)
+            if (mode != Mode.Running)
             {
-                if (was != Mode.Done)
+                if (was != mode)
                 {
-                    hideAt = Environment.TickCount64 + HideAfterMs;
+                    hideAt = Environment.TickCount64 + (mode == Mode.Failed ? HideAfterFailureMs : HideAfterMs);
                 }
 
                 clock.Start();
@@ -352,81 +357,30 @@ internal sealed class TransferToast : IDisposable
             }
         }
 
-        private void RebuildButtons()
-        {
-            foreach (var old in new[] { cancel, retry, close })
-            {
-                old?.Dispose();
-            }
-
-            cancel = retry = close = null;
-            if (mode == Mode.Running && view.Sending && owner.OnCancel is not null)
-            {
-                cancel = Add(Strings.Common_Cancel, ButtonKind.Outline, () =>
-                {
-                    cancelClicked = true;
-                    view = view with { Cancelling = true };
-                    if (cancel is not null)
-                    {
-                        cancel.Enabled = false;
-                    }
-
-                    owner.OnCancel?.Invoke();
-                    Announce();
-                    Invalidate();
-                });
-            }
-            else if (mode == Mode.Failed)
-            {
-                if (view.Sending && owner.OnRetry is not null)
-                {
-                    retry = Add(Strings.Xfer_Retry, ButtonKind.Primary, () => owner.OnRetry?.Invoke());
-                }
-
-                close = Add(Strings.Xfer_Close, ButtonKind.Ghost, () => owner.OnClose?.Invoke());
-            }
-        }
-
-        private FlatButton Add(string text, ButtonKind kind, Action click)
-        {
-            var button = new FlatButton(text, kind, palette) { TabStop = false };
-            button.Click += (_, _) => click();
-            Controls.Add(button);
-            return button;
-        }
-
         private void Relayout()
         {
             var dpi = DeviceDpi;
             var height = Theme.Scale(mode switch { Mode.Running => RunningHeight, Mode.Done => DoneHeight, _ => FailedHeight }, dpi);
             var size = new Size(Theme.Scale(CardWidth, dpi), height);
-            var work = LevelOverlay.Metrics.Where();
+
+            // The primary screen's work area: above the taskbar, in the bottom-right corner.
+            var work = Screen.PrimaryScreen?.WorkingArea ?? SystemInformation.WorkingArea;
             var margin = Theme.Scale(EdgeMargin, dpi);
             var where = new Rectangle(new Point(work.Right - size.Width - margin, work.Bottom - size.Height - margin), size);
 
-            var bh = Theme.Scale(ButtonHeight, dpi);
-            var right = size.Width - margin;
-            if (mode == Mode.Running && cancel is not null)
-            {
-                var bw = cancel.FitWidth(dpi);
-                cancel.Bounds = Theme.Flip(new Rectangle(right - bw, (height - bh) / 2, bw, bh), new Rectangle(Point.Empty, size));
-            }
-            else if (mode == Mode.Failed)
-            {
-                var bottom = height - Theme.Scale(12, dpi) - bh;
-                var all = new Rectangle(Point.Empty, size);
-                if (close is not null)
-                {
-                    var bw = close.FitWidth(dpi);
-                    close.Bounds = Theme.Flip(new Rectangle(right - bw, bottom, bw, bh), all);
-                    right -= bw + Theme.Scale(ButtonGap, dpi);
-                }
+            var all = new Rectangle(Point.Empty, size);
+            var edge = Theme.Scale(8, dpi);
+            var box = Theme.Scale(CloseSize, dpi);
+            var canClose = mode != Mode.Running || (view.Sending && owner.OnCancel is not null && !view.Cancelling);
+            closeArea = canClose ? Theme.Flip(new Rectangle(size.Width - edge - box, edge, box, box), all) : Rectangle.Empty;
 
-                if (retry is not null)
-                {
-                    var bw = retry.FitWidth(dpi);
-                    retry.Bounds = Theme.Flip(new Rectangle(right - bw, bottom, bw, bh), all);
-                }
+            retryArea = Rectangle.Empty;
+            if (mode == Mode.Failed && view.Sending && owner.OnRetry is not null)
+            {
+                using var font = Theme.Font(Theme.Scale(12, dpi), Weight.Bold);
+                var wide = TextRenderer.MeasureText(Strings.Xfer_Retry, font, Size.Empty, Line | TextFormatFlags.NoClipping).Width;
+                retryArea = Theme.Flip(
+                    new Rectangle(Theme.Scale(TextLeft, dpi), height - Theme.Scale(28, dpi), wide, Theme.Scale(20, dpi)), all);
             }
 
             if (Bounds != where)
@@ -452,10 +406,12 @@ internal sealed class TransferToast : IDisposable
 
         private void OnTick(object? sender, EventArgs e)
         {
+            var hold = mode == Mode.Failed ? HideAfterFailureMs : HideAfterMs;
+
             // Resting the pointer on the card holds it open.
             if (Bounds.Contains(Cursor.Position))
             {
-                hideAt = Environment.TickCount64 + HideAfterMs;
+                hideAt = Environment.TickCount64 + hold;
                 Opacity = 1;
                 return;
             }
@@ -472,6 +428,46 @@ internal sealed class TransferToast : IDisposable
             if (left < fade)
             {
                 Opacity = 1 - Progress.Leaving(fade - left, fade);
+            }
+        }
+
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+            Cursor = closeArea.Contains(e.Location) || retryArea.Contains(e.Location) ? Cursors.Hand : Cursors.Default;
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            base.OnMouseUp(e);
+            if (e.Button != MouseButtons.Left)
+            {
+                return;
+            }
+
+            if (closeArea.Contains(e.Location))
+            {
+                if (mode == Mode.Running)
+                {
+                    cancelClicked = true;
+                    view = view with { Cancelling = true };
+                    owner.OnCancel?.Invoke();
+                    Relayout();
+                    Announce();
+                    Invalidate();
+                }
+                else if (mode == Mode.Failed)
+                {
+                    owner.OnClose?.Invoke();
+                }
+                else
+                {
+                    Dismiss();
+                }
+            }
+            else if (retryArea.Contains(e.Location))
+            {
+                owner.OnRetry?.Invoke();
             }
         }
 
@@ -505,28 +501,18 @@ internal sealed class TransferToast : IDisposable
             var title = ToastText.Title(view);
             var subtitle = ToastText.Subtitle(view);
 
-            var (glyph, tint) = mode switch
+            var tint = mode switch { Mode.Running => palette.Accent, Mode.Done => Theme.Connected, _ => palette.Danger };
+            var icon = Theme.Flip(new RectangleF(pad, (Height - S(IconSize)) / 2f, S(IconSize), S(IconSize)), all);
+            Icons.Draw(g, Icons.FileText, icon, tint);
+
+            if (!closeArea.IsEmpty)
             {
-                Mode.Running => (Icons.Smartphone, palette.Accent),
-                Mode.Done => (Icons.Check, Theme.Connected),
-                _ => (Icons.Close, palette.Danger),
-            };
-            var soft = mode == Mode.Running ? palette.AccentSoft : Color.FromArgb(palette.HighContrast ? 255 : 40, tint);
-            var badgeTop = mode switch { Mode.Running => (Height - S(Badge)) / 2, Mode.Done => (Height - S(Badge)) / 2, _ => S(14) };
-            var badge = Theme.Flip(new RectangleF(pad, badgeTop, S(Badge), S(Badge)), all);
-            using (var fill = new SolidBrush(soft))
-            {
-                g.FillEllipse(fill, badge);
+                Icons.Draw(g, Icons.Close, RectangleF.Inflate(closeArea, -S(6), -S(6)), palette.Dim);
             }
 
-            var inset = S(8);
-            Icons.Draw(g, glyph, RectangleF.Inflate(badge, -inset, -inset), tint);
-
-            var textRight = mode == Mode.Running && cancel is not null ? Width - pad - cancel.Width - S(12) : Width - pad;
-            var textWidth = textRight - S(TextLeft);
-            var titleFont = Theme.Font(S(14), Weight.Bold);
+            var textWidth = Width - pad - S(CloseSize + 8) - S(TextLeft);
+            var titleFont = Theme.Font(S(13), Weight.Bold);
             var smallFont = Theme.Font(S(12), Weight.Regular);
-            var tinyFont = Theme.Font(S(11), Weight.Regular);
 
             void Draw(string text, Font font, Color colour, int top, int lineHeight) =>
                 TextRenderer.DrawText(
@@ -535,26 +521,34 @@ internal sealed class TransferToast : IDisposable
             switch (mode)
             {
                 case Mode.Running:
-                    Draw(title, titleFont, palette.Ink, S(12), S(20));
-                    Draw(subtitle, smallFont, palette.Dim, S(32), S(16));
-                    PaintTrack(g, new RectangleF(S(TextLeft), S(54), textWidth, S(6)), all);
-                    Draw(ToastText.Detail(view), tinyFont, palette.Dim, S(64), S(14));
+                    Draw(title, titleFont, palette.Ink, S(10), S(18));
+                    var bar = new RectangleF(S(TextLeft), S(38), textWidth - S(PercentWidth), S(BarHeight));
+                    PaintTrack(g, bar, all);
+                    var percent = ToastText.PercentText(view);
+                    var side = new Rectangle((int)bar.Right + S(8), S(31), S(PercentWidth) - S(8), S(18));
+                    TextRenderer.DrawText(g, percent, smallFont, Theme.Flip(side, all), palette.Dim, Line | TextFormatFlags.Right | Theme.Start);
                     break;
                 case Mode.Done:
                     if (subtitle.Length == 0)
                     {
-                        Draw(title, titleFont, palette.Ink, (Height - S(20)) / 2, S(20));
+                        Draw(title, titleFont, palette.Ink, (Height - S(18)) / 2, S(18));
                     }
                     else
                     {
-                        Draw(title, titleFont, palette.Ink, S(16), S(20));
-                        Draw(subtitle, smallFont, palette.Dim, S(38), S(16));
+                        Draw(title, titleFont, palette.Ink, S(10), S(18));
+                        Draw(subtitle, smallFont, palette.Dim, S(30), S(16));
                     }
 
                     break;
                 default:
-                    Draw(title, titleFont, palette.Ink, S(12), S(20));
-                    Draw(subtitle, smallFont, palette.Dim, S(34), S(16));
+                    Draw(title, titleFont, palette.Ink, S(10), S(18));
+                    Draw(subtitle, smallFont, palette.Dim, S(30), S(16));
+                    if (!retryArea.IsEmpty)
+                    {
+                        using var bold = Theme.Font(S(12), Weight.Bold);
+                        TextRenderer.DrawText(g, Strings.Xfer_Retry, bold, retryArea, palette.Accent, Line | TextFormatFlags.NoClipping | Theme.Start);
+                    }
+
                     break;
             }
         }
