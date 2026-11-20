@@ -41,11 +41,19 @@ public sealed class WindowsIntegrationsTests : IDisposable
     }
 
     [Fact]
-    public void WithEverySwitchOffAPhoneGetsNoDashboard()
+    public void WithEverySwitchOffAPhoneGetsAnEmptyLinkThatHearsDeveloperMode()
     {
         using var integrations = new WindowsIntegrations(dir.FullName, "5.0.0");
         integrations.Start();
-        Assert.Null(integrations.Attach(_ => { }, Blobs()));
+        using (var link = integrations.Attach(_ => { }, Blobs()))
+        {
+            Assert.NotNull(link);
+            Assert.Empty(link.Host.Features());
+
+            integrations.SetDeveloper(true);
+            Assert.Equal(Feature.Developer, Assert.Single(link.Host.Features()));
+        }
+
         Assert.Equal(-1, integrations.LastHeard(AgentToken.Claude));
         Assert.Equal(AgentState.NotConnected, integrations.Status(AgentToken.Claude).State);
     }

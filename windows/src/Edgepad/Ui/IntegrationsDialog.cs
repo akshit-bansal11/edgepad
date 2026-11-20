@@ -64,6 +64,10 @@ internal sealed class IntegrationsWindow : Form
     private const int RowHeight = 28;
 
     private readonly IntegrationActions actions;
+    private readonly bool developer;
+
+    /// <summary>True for the developer window (Claude Code, Codex, GitHub), false for the other.</summary>
+    internal bool IsDeveloper => developer;
     private readonly Palette palette = Palette.Current;
     private readonly CancellationTokenSource closing = new();
 
@@ -75,7 +79,6 @@ internal sealed class IntegrationsWindow : Form
     private readonly TextBox city = new() { BorderStyle = BorderStyle.None, MaxLength = IntegrationSettings.MaxCityLength, AccessibleName = Strings.Integrations_City };
     private readonly Framed cityFrame;
     private readonly Label weatherNote = new() { AutoSize = false, Text = Strings.Integrations_WeatherNote };
-    private readonly Label developers = new() { AutoSize = false, Text = Strings.Integrations_ForDevelopers, AccessibleName = Strings.Integrations_ForDevelopers };
     private readonly AgentRow claude;
     private readonly AgentRow codex;
 
@@ -100,11 +103,15 @@ internal sealed class IntegrationsWindow : Form
     // Set while the window writes its own controls, so their Changed events do not echo into the settings.
     private bool filling;
 
-    public IntegrationsWindow(IntegrationActions actions)
+    /// <param name="actions">What the window reads and does.</param>
+    /// <param name="developer">False: the intro, stats, weather and city. True: only Claude Code, Codex and GitHub.</param>
+    public IntegrationsWindow(IntegrationActions actions, bool developer)
     {
         this.actions = actions;
+        this.developer = developer;
 
-        Text = Strings.Integrations_Title;
+        Text = developer ? Strings.Integrations_ForDevelopers : Strings.Integrations_Title;
+        heading.Text = Text;
         RightToLeft = Theme.Direction;
         RightToLeftLayout = Theme.IsRtl;
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -174,12 +181,12 @@ internal sealed class IntegrationsWindow : Form
         close.Click += (_, _) => Close();
         CancelButton = close;
 
+        Controls.Add(heading);
+        Controls.Add(close);
         Controls.AddRange(
-        [
-            heading, intro, stats, weather, cityLabel, cityFrame, weatherNote, developers,
-            .. claude.Controls, .. codex.Controls,
-            githubHeading, signIn, githubStatus, githubSteps, code, openPage, copyCode, waiting, cancelSignIn, includePrivate, close,
-        ]);
+            developer
+                ? [.. claude.Controls, .. codex.Controls, githubHeading, signIn, githubStatus, githubSteps, code, openPage, copyCode, waiting, cancelSignIn, includePrivate]
+                : [intro, stats, weather, cityLabel, cityFrame, weatherNote]);
 
         // A plugin stamped by an older Edgepad, or for a Node.js that moved, is brought up to date before its row is read.
         actions.EnsureCurrent();
@@ -303,6 +310,11 @@ internal sealed class IntegrationsWindow : Form
 
     private void SaveCity()
     {
+        if (developer)
+        {
+            return;
+        }
+
         var text = city.Text.Trim();
         if (text == actions.Settings.Text(IntegrationSettings.City))
         {
@@ -501,111 +513,115 @@ internal sealed class IntegrationsWindow : Form
         }
 
         Put(heading, 18f, Weight.Bold, palette.Ink, S(6));
-        Put(intro, 14f, Weight.Regular, palette.Dim, S(16));
-
-        Check(stats);
-        y += S(8);
-        Check(weather);
-        Put(cityLabel, 13f, Weight.Regular, palette.Dim, S(6));
-        cityFrame.Place(new Rectangle(left, y, width, S(Box)), DeviceDpi);
-        order.Add(cityFrame);
-        y += S(Box + 6);
-        Put(weatherNote, 13f, Weight.Regular, palette.Dim, S(20));
-        Put(developers, 14f, Weight.Bold, palette.Dim, S(10));
-
-        foreach (var row in new[] { claude, codex })
+        if (!developer)
         {
-            var connected = actions.Settings.Flag(row.Agent);
-            Words(row.Action, connected ? Strings.Integrations_Disconnect : Strings.Integrations_Connect);
-            row.Action.Enabled = !row.Busy;
-            Head(row.Title, row.Action);
+            Put(intro, 14f, Weight.Regular, palette.Dim, S(16));
 
-            row.Line.Text = row.Busy
-                ? Strings.Integrations_Working
-                : StatusText(row.Name, row.Status, actions.LastHeard(row.Agent), DateTimeOffset.Now);
-            Put(row.Line, 14f, Weight.Regular, row.Status.State is AgentState.Connected or AgentState.NotConnected || row.Busy ? palette.Dim : palette.Ink, S(6));
-
-            var extra = new List<string>();
-            if (!row.Busy && row.Status.State == AgentState.AwaitingTrust)
+            Check(stats);
+            y += S(8);
+            Check(weather);
+            Put(cityLabel, 13f, Weight.Regular, palette.Dim, S(6));
+            cityFrame.Place(new Rectangle(left, y, width, S(Box)), DeviceDpi);
+            order.Add(cityFrame);
+            y += S(Box + 6);
+            Put(weatherNote, 13f, Weight.Regular, palette.Dim, S(20));
+        }
+        else
+        {
+            foreach (var row in new[] { claude, codex })
             {
-                extra.Add(Strings.Integrations_TrustCodex);
+                var connected = actions.Settings.Flag(row.Agent);
+                Words(row.Action, connected ? Strings.Integrations_Disconnect : Strings.Integrations_Connect);
+                row.Action.Enabled = !row.Busy;
+                Head(row.Title, row.Action);
+
+                row.Line.Text = row.Busy
+                    ? Strings.Integrations_Working
+                    : StatusText(row.Name, row.Status, actions.LastHeard(row.Agent), DateTimeOffset.Now);
+                Put(row.Line, 14f, Weight.Regular, row.Status.State is AgentState.Connected or AgentState.NotConnected || row.Busy ? palette.Dim : palette.Ink, S(6));
+
+                var extra = new List<string>();
+                if (!row.Busy && row.Status.State == AgentState.AwaitingTrust)
+                {
+                    extra.Add(Strings.Integrations_TrustCodex);
+                }
+
+                if (!row.Busy && row.Status.Restart)
+                {
+                    extra.Add(Strings.Integrations_Restart);
+                }
+
+                if (!row.Busy && !connected)
+                {
+                    extra.Add(row.Agent == IntegrationSettings.Claude ? Strings.Integrations_ClaudeSteps : Strings.Integrations_CodexSteps);
+                }
+
+                row.Extra.Text = string.Join(Environment.NewLine, extra);
+                row.Extra.Visible = extra.Count > 0;
+                if (extra.Count > 0)
+                {
+                    Put(row.Extra, 13f, Weight.Regular, palette.Dim, S(6));
+                }
+
+                var manual = !row.Busy && row.Status.State == AgentState.ManualSteps && row.Status.Commands.Length > 0;
+                row.Frame.Visible = manual;
+                row.Copy.Visible = manual;
+                if (manual)
+                {
+                    row.Commands.Text = row.Status.Commands;
+                    row.Commands.Font = Theme.Font(Theme.Scale(13f, DeviceDpi), Weight.Regular);
+                    row.Commands.ForeColor = palette.Ink;
+                    var inner = width - S(24);
+                    var height = TextRenderer.MeasureText(row.Commands.Text, row.Commands.Font, new Size(inner, 0), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height;
+                    row.Frame.Place(new Rectangle(left, y, width, height + S(24)), DeviceDpi);
+                    y += height + S(24 + 8);
+                    Buttons(row.Copy);
+                }
+
+                y += S(10);
             }
 
-            if (!row.Busy && row.Status.Restart)
+            var configured = GitHubApp.IsConfigured(GitHubApp.ClientId);
+            Words(signIn, signedIn ? Strings.Integrations_SignOut : Strings.Integrations_SignIn);
+            signIn.Enabled = configured && !signingIn;
+            Head(githubHeading, signIn);
+            var login = actions.Settings.Text(IntegrationSettings.GitHubLogin);
+            githubStatus.Text = !configured ? Strings.Integrations_NoClientId
+                : signedIn ? Strings.Integrations_SignedIn.Fill(login.Length > 0 ? login : Strings.Integrations_GitHub)
+                : signingIn && userCode is null ? Strings.Integrations_Working
+                : Strings.Integrations_NotConnected;
+            githubStatus.Visible = !(signingIn && userCode is not null);
+            if (githubStatus.Visible)
             {
-                extra.Add(Strings.Integrations_Restart);
+                Put(githubStatus, 14f, Weight.Regular, palette.Dim, S(8));
             }
 
-            if (!row.Busy && !connected)
+            githubSteps.Visible = configured && !signedIn;
+            if (githubSteps.Visible)
             {
-                extra.Add(row.Agent == IntegrationSettings.Claude ? Strings.Integrations_ClaudeSteps : Strings.Integrations_CodexSteps);
+                Put(githubSteps, 13f, Weight.Regular, palette.Dim, S(8));
             }
 
-            row.Extra.Text = string.Join(Environment.NewLine, extra);
-            row.Extra.Visible = extra.Count > 0;
-            if (extra.Count > 0)
+            var showing = signingIn && userCode is not null;
+            foreach (var part in new Control[] { code, openPage, copyCode, waiting, cancelSignIn })
             {
-                Put(row.Extra, 13f, Weight.Regular, palette.Dim, S(6));
+                part.Visible = showing;
             }
 
-            var manual = !row.Busy && row.Status.State == AgentState.ManualSteps && row.Status.Commands.Length > 0;
-            row.Frame.Visible = manual;
-            row.Copy.Visible = manual;
-            if (manual)
+            if (showing)
             {
-                row.Commands.Text = row.Status.Commands;
-                row.Commands.Font = Theme.Font(Theme.Scale(13f, DeviceDpi), Weight.Regular);
-                row.Commands.ForeColor = palette.Ink;
-                var inner = width - S(24);
-                var height = TextRenderer.MeasureText(row.Commands.Text, row.Commands.Font, new Size(inner, 0), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height;
-                row.Frame.Place(new Rectangle(left, y, width, height + S(24)), DeviceDpi);
-                y += height + S(24 + 8);
-                Buttons(row.Copy);
+                code.Text = Strings.Integrations_Code.Fill(userCode);
+                code.AccessibleName = code.Text;
+                Put(code, 24f, Weight.Bold, palette.Ink, S(10));
+                Buttons(openPage, copyCode, cancelSignIn);
+                Put(waiting, 13f, Weight.Regular, palette.Dim, S(8));
             }
 
-            y += S(10);
-        }
-
-        var configured = GitHubApp.IsConfigured(GitHubApp.ClientId);
-        Words(signIn, signedIn ? Strings.Integrations_SignOut : Strings.Integrations_SignIn);
-        signIn.Enabled = configured && !signingIn;
-        Head(githubHeading, signIn);
-        var login = actions.Settings.Text(IntegrationSettings.GitHubLogin);
-        githubStatus.Text = !configured ? Strings.Integrations_NoClientId
-            : signedIn ? Strings.Integrations_SignedIn.Fill(login.Length > 0 ? login : Strings.Integrations_GitHub)
-            : signingIn && userCode is null ? Strings.Integrations_Working
-            : Strings.Integrations_NotConnected;
-        githubStatus.Visible = !(signingIn && userCode is not null);
-        if (githubStatus.Visible)
-        {
-            Put(githubStatus, 14f, Weight.Regular, palette.Dim, S(8));
-        }
-
-        githubSteps.Visible = configured && !signedIn;
-        if (githubSteps.Visible)
-        {
-            Put(githubSteps, 13f, Weight.Regular, palette.Dim, S(8));
-        }
-
-        var showing = signingIn && userCode is not null;
-        foreach (var part in new Control[] { code, openPage, copyCode, waiting, cancelSignIn })
-        {
-            part.Visible = showing;
-        }
-
-        if (showing)
-        {
-            code.Text = Strings.Integrations_Code.Fill(userCode);
-            code.AccessibleName = code.Text;
-            Put(code, 24f, Weight.Bold, palette.Ink, S(10));
-            Buttons(openPage, copyCode, cancelSignIn);
-            Put(waiting, 13f, Weight.Regular, palette.Dim, S(8));
-        }
-
-        includePrivate.Visible = signedIn && !signingIn;
-        if (includePrivate.Visible)
-        {
-            Check(includePrivate);
+            includePrivate.Visible = signedIn && !signingIn;
+            if (includePrivate.Visible)
+            {
+                Check(includePrivate);
+            }
         }
 
         y += S(18);

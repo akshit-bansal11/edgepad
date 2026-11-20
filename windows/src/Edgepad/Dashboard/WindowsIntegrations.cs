@@ -10,7 +10,8 @@ namespace Edgepad.Dashboard;
 /// <summary>
 /// The tray's process-wide side of the dashboard: the settings, the secret store and GitHub sign-in, the plugin installer, and the
 /// pieces the integrations need while they are on. With every switch off (the default) nothing is made but those first four, which
-/// hold no thread, handle or timer, and <see cref="Attach"/> gives a phone nothing, so a session runs exactly as before.
+/// hold no thread, handle or timer, and <see cref="Attach"/> gives a phone a link that holds nothing, so it still hears the
+/// FEATURES a later switch adds.
 /// <para>
 /// Claude or Codex on: the session, limits and spend boards and the permission broker (plain objects, kept once made), and the hook
 /// channel (the user-only pipe, hook.json and HookServer's accept loop), closed and hook.json deleted when both are off. Codex on:
@@ -74,7 +75,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
 
     public GitHubSignIn SignIn { get; }
 
-    private bool AgentsOn => Settings.Flag(IntegrationSettings.Claude) || Settings.Flag(IntegrationSettings.Codex);
+    private bool AgentsOn => Settings.Active(IntegrationSettings.Claude) || Settings.Active(IntegrationSettings.Codex);
 
     private bool PhoneLinked() => Volatile.Read(ref phones) > 0;
 
@@ -85,6 +86,17 @@ internal sealed partial class WindowsIntegrations : IDisposable
         {
             Apply(rotate: false);
         }
+    }
+
+    /// <summary>Raised after <see cref="SetDeveloper"/>, on the calling thread.</summary>
+    public event Action? DeveloperChanged;
+
+    /// <summary>Turns developer mode on or off (the tray or the phone): keeps it, applies it and tells every linked phone.</summary>
+    public void SetDeveloper(bool on)
+    {
+        _ = Settings.SetFlag(IntegrationSettings.Developer, on);
+        Changed(IntegrationSettings.Developer);
+        DeveloperChanged?.Invoke();
     }
 
     /// <summary>The Integrations window changed <paramref name="key"/>: opens or closes what it governs; a switch turned on rotates the token.</summary>
@@ -113,7 +125,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
             live = [.. links];
         }
 
-        var agent = key is IntegrationSettings.Claude or IntegrationSettings.Codex;
+        var agent = key is IntegrationSettings.Claude or IntegrationSettings.Codex or IntegrationSettings.Developer;
         foreach (var link in live)
         {
             if (agent)
@@ -129,7 +141,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
     }
 
     /// <summary>
-    /// One phone's dashboard, or null while every switch is off. The phone counts as linked for approvals only while its host has
+    /// One phone's dashboard (a link that holds nothing while every switch is off). The phone counts as linked for approvals only while its host has
     /// the broker (an agent on, the hook channel open), so no ask waits on a phone that cannot see it; turning an agent on or
     /// off moves every live link to a new host. Disposing stops counting it before the host goes, so the host's last word to the
     /// broker sees the phone gone.
@@ -139,7 +151,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
     {
         lock (gate)
         {
-            if (disposed || !FlagKeys.Any(Settings.Flag))
+            if (disposed)
             {
                 return null;
             }
@@ -329,10 +341,10 @@ internal sealed partial class WindowsIntegrations : IDisposable
             StopHooks();
         }
 
-        if (Settings.Flag(IntegrationSettings.Codex) && sessions is not null && limits is not null && spend is not null)
+        if (Settings.Active(IntegrationSettings.Codex) && sessions is not null && limits is not null && spend is not null)
         {
             codex ??= new CodexWatcher(
-                () => Settings.Flag(IntegrationSettings.Codex),
+                () => Settings.Active(IntegrationSettings.Codex),
                 PhoneLinked,
                 sessions,
                 limits,
@@ -342,10 +354,10 @@ internal sealed partial class WindowsIntegrations : IDisposable
                 Path.Combine(folder, CodexWatcher.CacheName));
         }
 
-        if (Settings.Flag(IntegrationSettings.Claude) && spend is not null)
+        if (Settings.Active(IntegrationSettings.Claude) && spend is not null)
         {
             claude ??= new ClaudeSpendWatcher(
-                () => Settings.Flag(IntegrationSettings.Claude),
+                () => Settings.Active(IntegrationSettings.Claude),
                 PhoneLinked,
                 spend,
                 () => DateTimeOffset.UtcNow,
@@ -359,7 +371,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
         }
 
         // Dropped when off, so a sign-in to another account starts from empty lists.
-        github = Settings.Flag(IntegrationSettings.GitHub) ? github ?? new GitHubApi(Secrets) : null;
+        github = Settings.Active(IntegrationSettings.GitHub) ? github ?? new GitHubApi(Secrets) : null;
     }
 
     // Under gate. The pieces a host gets now; the broker only while an agent is on and its channel is open.
@@ -376,7 +388,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
             Codex = codex,
             Claude = claude,
             Weather = Settings.Flag(IntegrationSettings.Weather) ? weather : null,
-            GitHub = Settings.Flag(IntegrationSettings.GitHub) ? github : null,
+            GitHub = Settings.Active(IntegrationSettings.GitHub) ? github : null,
             GitHubSignedIn = () => SignIn.IsSignedIn,
             AgentHeard = agent => store?.LastHeard(agent) >= 0,
         };

@@ -409,6 +409,7 @@ internal sealed class Session(
             // Through the link, not its current host or broker: an agent switched on or off while linked moves it to new ones.
             dispatcher.DashWatch = dash.OnWatch;
             dispatcher.PermAnswer = dash.Answer;
+            dispatcher.Developer = on => integrations?.SetDeveloper(on);
 
             // An agent that starts working with Edgepad while linked (first hook heard, Codex trusted) is named at once.
             var own = features.ToArray();

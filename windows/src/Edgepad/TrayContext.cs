@@ -58,6 +58,8 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MenuRow macrosRow = new(Strings.Menu_Macros, Icons.Macro);
     private readonly MenuRow securityRow = new(Strings.Menu_Security, Icons.Smartphone);
     private readonly MenuRow integrationsRow = new(Strings.Menu_Integrations, Icons.Sliders);
+    private readonly MenuRow developerRow = new(Strings.Menu_DeveloperMode, Icons.Sliders) { CheckOnClick = true, Switch = true };
+    private readonly MenuRow developerIntegrationsRow = new(Strings.Menu_DeveloperIntegrations, Icons.Sliders) { Available = false };
     private readonly MenuRow networkRow = new(Strings.Menu_Network, Icons.Wifi) { CheckOnClick = true, Switch = true };
     private readonly MenuRow networkProblem = new(Strings.Network_Title, Icons.Wifi) { Danger = true, Available = false };
     private readonly MenuRow firewallRow = new(Strings.Menu_Firewall, Icons.Shield) { Available = false };
@@ -199,7 +201,9 @@ internal sealed class TrayContext : ApplicationContext
         sendFileRow.Click += (_, _) => PickAndSendFile();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
         securityRow.Click += (_, _) => ShowSecurity();
-        integrationsRow.Click += (_, _) => ShowIntegrations();
+        integrationsRow.Click += (_, _) => ShowIntegrations(developer: false);
+        developerRow.Click += (_, _) => integrations.SetDeveloper(developerRow.Checked);
+        developerIntegrationsRow.Click += (_, _) => ShowIntegrations(developer: true);
         networkRow.Click += (_, _) => ToggleNetwork(networkRow.Checked);
         firewallRow.Click += (_, _) => AllowFirewall(ReportFirewall);
         restartAdminRow.Click += (_, _) => RestartAsAdministrator();
@@ -253,6 +257,8 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(macrosRow);
         menu.Items.Add(securityRow);
         menu.Items.Add(integrationsRow);
+        menu.Items.Add(developerRow);
+        menu.Items.Add(developerIntegrationsRow);
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(Row(Strings.Menu_Documentation, Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
         menu.Items.Add(settingsRow);
@@ -263,6 +269,8 @@ internal sealed class TrayContext : ApplicationContext
         menu.Opening += (_, _) =>
         {
             startWithWindows.Checked = RunAtLogin.IsEnabled;
+            developerRow.Checked = integrations.Settings.Flag(IntegrationSettings.Developer);
+            developerIntegrationsRow.Available = developerRow.Checked;
             securityRow.Hint = SecurityWindow.LevelName(pin.Level);
             networkRow.Checked = networkSettings.Load().Enabled;
             networkRow.Enabled = !allowingNetwork;
@@ -325,6 +333,7 @@ internal sealed class TrayContext : ApplicationContext
         // that an update or a moved Node.js left behind is re-stamped off this thread (no program runs while both agents are off).
         integrations = new WindowsIntegrations(pin.Folder, Program.Version);
         integrations.Trusted += () => ui.Post(_ => ReloadIntegrations(), null);
+        integrations.DeveloperChanged += () => ui.Post(_ => OnDeveloperChanged(), null);
         integrations.Start();
         if (integrations.Settings.Flag(IntegrationSettings.Claude) || integrations.Settings.Flag(IntegrationSettings.Codex))
         {
@@ -1465,30 +1474,52 @@ internal sealed class TrayContext : ApplicationContext
             MessageBoxIcon.Error);
     }
 
-    /// <summary>The Integrations window, not modal: a second click brings the open one to the front.</summary>
-    private void ShowIntegrations()
+    /// <summary>
+    /// The Integrations window (or, with <paramref name="developer"/>, the developer one), not modal: a second click brings the open
+    /// one to the front, and one open in the other mode is closed first.
+    /// </summary>
+    private void ShowIntegrations(bool developer)
     {
         if (integrationsWindow is { IsDisposed: false } open)
         {
-            open.Activate();
-            return;
+            if (open.IsDeveloper == developer)
+            {
+                open.Activate();
+                return;
+            }
+
+            open.Close();
         }
 
-        var window = new IntegrationsWindow(new IntegrationActions(
-            integrations.Settings,
-            integrations.SignIn,
-            integrations.Status,
-            integrations.ConnectAsync,
-            integrations.DisconnectAsync,
-            EnsureIntegrationsCurrent,
-            integrations.LastHeard,
-            integrations.LoginAsync,
-            text => _ = clipboard.SetTextQuietly(text),
-            Open,
-            integrations.Changed));
+        var window = new IntegrationsWindow(
+            new IntegrationActions(
+                integrations.Settings,
+                integrations.SignIn,
+                integrations.Status,
+                integrations.ConnectAsync,
+                integrations.DisconnectAsync,
+                EnsureIntegrationsCurrent,
+                integrations.LastHeard,
+                integrations.LoginAsync,
+                text => _ = clipboard.SetTextQuietly(text),
+                Open,
+                integrations.Changed),
+            developer);
         window.FormClosed += (_, _) => integrationsWindow = null;
         integrationsWindow = window;
         window.Show();
+    }
+
+    // Developer mode moved (the tray or the phone). UI thread. Off closes an open developer window.
+    private void OnDeveloperChanged()
+    {
+        if (integrationsWindow is { IsDisposed: false, IsDeveloper: true } open && !integrations.Settings.Flag(IntegrationSettings.Developer))
+        {
+            open.Close();
+            return;
+        }
+
+        ReloadIntegrations();
     }
 
     private void ReloadIntegrations()
@@ -1782,6 +1813,8 @@ internal sealed class TrayContext : ApplicationContext
             securityRow.Dispose();
             integrationsWindow?.Dispose();
             integrationsRow.Dispose();
+            developerRow.Dispose();
+            developerIntegrationsRow.Dispose();
             networkRow.Dispose();
             networkProblem.Dispose();
             firewallRow.Dispose();
