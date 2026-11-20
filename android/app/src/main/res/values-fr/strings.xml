@@ -423,7 +423,12 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Commandes</string>
-  <string name="controls_move_hint">Maintenez une tuile pour la déplacer.</string>
+  <string name="controls_move_hint">Touchez Modifier pour déplacer ou masquer des tuiles.</string>
+  <string name="controls_edit">Modifier</string>
+  <string name="controls_edit_hint">Touchez une tuile pour la masquer ou l’afficher. Maintenez-la et faites-la glisser pour la déplacer.</string>
+  <string name="controls_hidden">Masquée</string>
+  <string name="controls_all_hidden">Toutes les tuiles sont masquées. Touchez Modifier pour les afficher à nouveau.</string>
+  <string name="controls_toggle_tile">Masquer ou afficher %1$s</string>
   <string name="controls_hide_dials">Masquer les règles et le média</string>
   <string name="controls_blackout">Éteindre l’écran au repos</string>
   <string name="controls_open">Ouvrir %1$s</string>

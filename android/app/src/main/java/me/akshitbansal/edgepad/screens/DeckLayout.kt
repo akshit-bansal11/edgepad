@@ -105,6 +105,20 @@ object DeckLayout {
     }
 
     /**
+     * [move] made on the [shown] part of [order], the tiles drawn while some are hidden: [from] and [to] are places
+     * among [shown], and the hidden tiles keep their places in [order] around the move.
+     */
+    fun moveShown(
+        order: List<Int>,
+        shown: List<Int>,
+        from: Int,
+        to: Int,
+    ): List<Int> {
+        if (from !in shown.indices || to !in shown.indices) return order
+        return move(order, order.indexOf(shown[from]), order.indexOf(shown[to]))
+    }
+
+    /**
      * The slot whose cell holds the point ([x], [y]): cell i is [width] by [height] from ([lefts] i, [tops] i).
      * -1 in a gap between cells or outside all of them, which a drag reads as "stay where you are".
      */

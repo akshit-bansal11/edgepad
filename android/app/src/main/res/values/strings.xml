@@ -427,7 +427,12 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controls</string>
-  <string name="controls_move_hint">Press and hold a tile to move it.</string>
+  <string name="controls_move_hint">Tap Edit to move or hide tiles.</string>
+  <string name="controls_edit">Edit</string>
+  <string name="controls_edit_hint">Tap a tile to hide or show it. Hold and drag to move it.</string>
+  <string name="controls_hidden">Hidden</string>
+  <string name="controls_all_hidden">Every tile is hidden. Tap Edit to show them again.</string>
+  <string name="controls_toggle_tile">Hide or show %1$s</string>
   <string name="controls_hide_dials">Hide dials and media</string>
   <string name="controls_blackout">Black out when idle</string>
   <string name="controls_open">Open %1$s</string>

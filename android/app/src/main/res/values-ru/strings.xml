@@ -430,7 +430,12 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Управление</string>
-  <string name="controls_move_hint">Нажмите на плитку и удерживайте, чтобы переместить её.</string>
+  <string name="controls_move_hint">Нажмите «Изменить», чтобы переместить или скрыть плитки.</string>
+  <string name="controls_edit">Изменить</string>
+  <string name="controls_edit_hint">Нажмите на плитку, чтобы скрыть или показать её. Удерживайте и перетащите, чтобы переместить.</string>
+  <string name="controls_hidden">Скрыто</string>
+  <string name="controls_all_hidden">Все плитки скрыты. Нажмите «Изменить», чтобы снова их показать.</string>
+  <string name="controls_toggle_tile">Скрыть или показать: %1$s</string>
   <string name="controls_hide_dials">Скрыть шкалы и медиа</string>
   <string name="controls_blackout">Гасить экран при простое</string>
   <string name="controls_open">Открыть: %1$s</string>

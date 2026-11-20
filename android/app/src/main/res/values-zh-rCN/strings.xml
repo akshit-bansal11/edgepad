@@ -409,7 +409,12 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">控制</string>
-  <string name="controls_move_hint">长按图块即可移动。</string>
+  <string name="controls_move_hint">点按“编辑”可移动或隐藏图块。</string>
+  <string name="controls_edit">编辑</string>
+  <string name="controls_edit_hint">点按图块可隐藏或显示。长按并拖动可移动。</string>
+  <string name="controls_hidden">已隐藏</string>
+  <string name="controls_all_hidden">所有图块都已隐藏。点按“编辑”可重新显示。</string>
+  <string name="controls_toggle_tile">隐藏或显示%1$s</string>
   <string name="controls_hide_dials">隐藏标尺和媒体</string>
   <string name="controls_blackout">闲置时熄屏</string>
   <string name="controls_open">打开%1$s</string>

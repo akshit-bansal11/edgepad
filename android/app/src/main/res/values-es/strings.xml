@@ -425,7 +425,12 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controles</string>
-  <string name="controls_move_hint">Mantén pulsado un mosaico para moverlo.</string>
+  <string name="controls_move_hint">Toca Editar para mover u ocultar mosaicos.</string>
+  <string name="controls_edit">Editar</string>
+  <string name="controls_edit_hint">Toca un mosaico para ocultarlo o mostrarlo. Mantenlo pulsado y arrástralo para moverlo.</string>
+  <string name="controls_hidden">Oculto</string>
+  <string name="controls_all_hidden">Todos los mosaicos están ocultos. Toca Editar para volver a mostrarlos.</string>
+  <string name="controls_toggle_tile">Ocultar o mostrar %1$s</string>
   <string name="controls_hide_dials">Ocultar reglas y multimedia</string>
   <string name="controls_blackout">Oscurecer la pantalla si no se usa</string>
   <string name="controls_open">Abrir %1$s</string>

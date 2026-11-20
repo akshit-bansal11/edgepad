@@ -410,7 +410,12 @@
 
   <!-- Macros -->
   <string name="controls_title">Kontroller</string>
-  <string name="controls_move_hint">Taşımak için bir kutucuğu basılı tutun.</string>
+  <string name="controls_move_hint">Kutucukları taşımak veya gizlemek için Düzenle\'ye dokunun.</string>
+  <string name="controls_edit">Düzenle</string>
+  <string name="controls_edit_hint">Gizlemek veya göstermek için bir kutucuğa dokunun. Taşımak için basılı tutup sürükleyin.</string>
+  <string name="controls_hidden">Gizli</string>
+  <string name="controls_all_hidden">Tüm kutucuklar gizli. Yeniden göstermek için Düzenle\'ye dokunun.</string>
+  <string name="controls_toggle_tile">%1$s gizle veya göster</string>
   <string name="controls_hide_dials">Kadranları ve medyayı gizle</string>
   <string name="controls_blackout">Boştayken ekranı karart</string>
   <string name="controls_open">Aç: %1$s</string>

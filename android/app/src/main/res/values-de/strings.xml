@@ -414,7 +414,12 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Steuerung</string>
-  <string name="controls_move_hint">Halte eine Kachel gedrückt, um sie zu verschieben.</string>
+  <string name="controls_move_hint">Tippe auf Bearbeiten, um Kacheln zu verschieben oder auszublenden.</string>
+  <string name="controls_edit">Bearbeiten</string>
+  <string name="controls_edit_hint">Tippe auf eine Kachel, um sie aus- oder einzublenden. Halte sie gedrückt und ziehe sie, um sie zu verschieben.</string>
+  <string name="controls_hidden">Ausgeblendet</string>
+  <string name="controls_all_hidden">Alle Kacheln sind ausgeblendet. Tippe auf Bearbeiten, um sie wieder anzuzeigen.</string>
+  <string name="controls_toggle_tile">%1$s aus- oder einblenden</string>
   <string name="controls_hide_dials">Regler und Medien ausblenden</string>
   <string name="controls_blackout">Bei Inaktivität abdunkeln</string>
   <string name="controls_open">%1$s öffnen</string>

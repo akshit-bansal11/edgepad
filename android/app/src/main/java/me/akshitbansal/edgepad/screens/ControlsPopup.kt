@@ -69,6 +69,9 @@ internal fun reasonText(reason: UnavailableReason?): Int =
  *
  * Capture and Annotate are always drawn. Until the laptop names the feature (and, for Annotate, its screen size,
  * since the pen pad is shaped to that screen) the tile is dimmed and a tap says why instead of opening it.
+ *
+ * Edit (owner, 2026-11-20) draws every tile, hidden ones dimmed and named Hidden; a tap hides or shows one and a drag
+ * moves it. Hidden keys are stored per deck beside the order, and a closed popup always opens out of edit mode.
  */
 class ControlsPopup(
     private val ui: Ui,
@@ -129,6 +132,18 @@ class ControlsPopup(
     private var keys: List<String> = emptyList()
     private var tiles: List<DeckTile> = emptyList()
 
+    /** Edit mode, and the keys of the tiles hidden from the deck. */
+    private var editing = false
+    private var hidden: Set<String> = emptySet()
+
+    /** The entries of [shown] drawn now: all of them while [editing], the ones not [hidden] otherwise. */
+    private var visible: List<Int> = emptyList()
+
+    private val editButton = ui.button("", Ui.Style.QUIET) { setEditing(!editing) }
+
+    /** Under the tiles: how edit mode works, or, with every tile hidden, how to bring them back. */
+    private val tileNote = ui.secondary("", Type.SMALL, ui.palette.dim)
+
     /** The deck sees every touch before its tiles do, so a held tile keeps the finger once it leaves its cell. */
     private val holder =
         object : LinearLayout(ui.context) {
@@ -157,12 +172,24 @@ class ControlsPopup(
         val pad = ui.dp(Space.L)
         across = width - 2 * pad
         holder.orientation = LinearLayout.VERTICAL
-        holder.setPadding(pad, pad, pad, pad)
+        holder.setPadding(pad, 0, pad, pad)
+        tileNote.setPadding(pad, 0, pad, pad)
+        editing = false
+        hidden = settings.deckHidden(DECK)
         deck = Deck(ui, holder)
         draw(capture, annotate)
         // AND-A-29: the move gesture is told the first few times, under the tiles.
         val body = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
+        body.addView(
+            LinearLayout(ui.context).apply {
+                gravity = Gravity.END
+                setPadding(pad, ui.dp(Space.S), pad, 0)
+                val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
+                addView(editButton, LinearLayout.LayoutParams(wrap, wrap))
+            },
+        )
         body.addView(holder)
+        body.addView(tileNote)
         (endBox.parent as? ViewGroup)?.removeView(endBox)
         endBox.setPadding(pad, 0, pad, 0)
         endChoices = false
@@ -355,36 +382,84 @@ class ControlsPopup(
     }
 
     private fun drawShown() {
-        val rows = if (oneRow) 1 else (tiles.size + PER_ROW - 1) / PER_ROW
+        visible = if (editing) shown else shown.filter { keys[it] !in hidden }
+        editButton.text = ui.string(if (editing) R.string.editor_done else R.string.controls_edit)
+        val note =
+            when {
+                editing -> R.string.controls_edit_hint
+                visible.isEmpty() -> R.string.controls_all_hidden
+                else -> null
+            }
+        tileNote.visibility = if (note == null) View.GONE else View.VISIBLE
+        if (note != null) tileNote.text = ui.string(note)
+        if (visible.isEmpty()) {
+            deck.clear()
+            return
+        }
+        val rows = if (oneRow) 1 else (visible.size + PER_ROW - 1) / PER_ROW
         val down = rows * ui.dp(ROW_DP) + (rows - 1) * ui.dp(Space.S)
         deck.render(
             across,
             down,
-            shown.map { tiles[it] },
+            visible.map { drawn(tiles[it]) },
             labels = true,
             onMove = ::moved,
-            onTap = { tile ->
-                if (tile.note != null) {
-                    // AND-A-15: the tile is there, dimmed, and says why it does nothing.
-                    Toast.makeText(ui.context, tile.note, Toast.LENGTH_SHORT).show()
-                } else if (tile.tag == SEND_TAG) {
-                    dismiss()
-                    onSendFile()
-                } else {
-                    dismiss()
-                    onOpen(Target.entries[tile.tag])
-                }
-            },
+            onTap = ::tapped,
             rows = rows,
+            opens = !editing,
         )
     }
 
-    /** The tile at display place [from] was dropped on [to]. Saved on every move, so leaving loses nothing. */
+    /** In edit mode a tile's state is whether it is hidden, not whether the laptop offers it. */
+    private fun drawn(tile: DeckTile): DeckTile =
+        if (!editing) {
+            tile
+        } else {
+            tile.copy(
+                note = if (tile.key in hidden) ui.string(R.string.controls_hidden) else null,
+                spoken = R.string.controls_toggle_tile,
+            )
+        }
+
+    private fun tapped(tile: DeckTile) {
+        when {
+            editing -> {
+                hidden = if (tile.key in hidden) hidden - tile.key else hidden + tile.key
+                settings.setDeckHidden(DECK, hidden)
+                drawShown()
+            }
+
+            // AND-A-15: the tile is there, dimmed, and says why it does nothing.
+            tile.note != null -> {
+                Toast.makeText(ui.context, tile.note, Toast.LENGTH_SHORT).show()
+            }
+
+            tile.tag == SEND_TAG -> {
+                dismiss()
+                onSendFile()
+            }
+
+            else -> {
+                dismiss()
+                onOpen(Target.entries[tile.tag])
+            }
+        }
+    }
+
+    private fun setEditing(on: Boolean) {
+        editing = on
+        drawShown()
+    }
+
+    /**
+     * The tile at display place [from] was dropped on [to]: places among the tiles drawn, so a hidden tile keeps its
+     * place. Saved on every move, so leaving loses nothing.
+     */
     private fun moved(
         from: Int,
         to: Int,
     ) {
-        shown = DeckLayout.move(shown, from, to)
+        shown = DeckLayout.moveShown(shown, visible, from, to)
         settings.setDeckOrder(DECK, shown.map { keys[it] })
         drawShown()
     }

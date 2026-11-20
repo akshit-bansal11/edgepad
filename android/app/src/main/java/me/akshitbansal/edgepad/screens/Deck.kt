@@ -105,6 +105,7 @@ class Deck(
     private var planFor = 0
     private var wantedRows: Int? = null
     private var iconZoom = 1f
+    private var opens = true
 
     /** The side, in pixels, a picture is planned at once the grid is drawn; 0 before that. */
     val iconSide: Int get() = grid?.icon ?: 0
@@ -172,7 +173,9 @@ class Deck(
      * positions through [onMove]. [slots] is how many cells the grid is planned for when that is more than
      * the tiles it holds, so that a short last page of a pager keeps the tile size of the full ones. [rows] asks
      * for that many rows; null, a count the grid cannot be split into, or one that does not fit in [down], leaves
-     * the choice to [plan]. A tap on the Close of a held, closable tile goes to [onClose], never to [onTap].
+     * the choice to [plan]. A tap on the Close of a held, closable tile goes to [onClose], never to [onTap]. [opens]
+     * off is for a tap that changes the tile rather than opening something: no "Opening" state and no wait before
+     * the same tile can be tapped again.
      */
     fun render(
         across: Int,
@@ -185,8 +188,10 @@ class Deck(
         rows: Int? = null,
         onClose: (DeckTile) -> Unit = {},
         iconZoom: Float = 1f,
+        opens: Boolean = true,
     ) {
         this.iconZoom = iconZoom
+        this.opens = opens
         this.planFor = slots
         this.wantedRows = rows
         this.across = across
@@ -234,7 +239,19 @@ class Deck(
         // The last picture arriving with the labels off takes the label row away from every tile, and
         // that is a new grid rather than one new picture.
         if (bare() != current.bare) {
-            render(across, down, tiles, labels, onMove, onTap, planFor, wantedRows, onClose, iconZoom = iconZoom)
+            render(
+                across,
+                down,
+                tiles,
+                labels,
+                onMove,
+                onTap,
+                planFor,
+                wantedRows,
+                onClose,
+                iconZoom = iconZoom,
+                opens = opens,
+            )
             return
         }
         val button = buttons[tag] ?: return
@@ -408,6 +425,11 @@ class Deck(
         tile: DeckTile,
         view: View,
     ) {
+        if (!opens) {
+            view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            onTap(tile)
+            return
+        }
         if (!launching.add(tile.tag)) return
         view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
         view.alpha = LAUNCH_ALPHA

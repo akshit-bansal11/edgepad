@@ -367,6 +367,17 @@ class Settings(
         prefs.edit().putString("deck.$deck.order", keys.joinToString("\n")).apply()
     }
 
+    /** The keys of the tiles the person hid from a deck, stored the same way as [deckOrder]. */
+    fun deckHidden(deck: String): Set<String> =
+        prefs.getString("deck.$deck.hidden", null)?.split('\n')?.filter { it.isNotEmpty() }?.toSet() ?: emptySet()
+
+    fun setDeckHidden(
+        deck: String,
+        keys: Set<String>,
+    ) {
+        prefs.edit().putString("deck.$deck.hidden", keys.joinToString("\n")).apply()
+    }
+
     /** How many macros one page of the macro screen shows; the rest of the laptop's continue on the next page. */
     var macrosPerPage: Int
         get() = prefs.getInt(KEY_MACROS_PER_PAGE, MAX_MACROS_PER_PAGE).coerceIn(PER_PAGE_RANGE)

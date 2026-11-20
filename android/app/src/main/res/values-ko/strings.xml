@@ -396,7 +396,12 @@
   <string name="surface_locked_caption">트랙패드 잠김 · 잠금을 탭하면 해제돼요</string>
 
   <string name="controls_title">컨트롤</string>
-  <string name="controls_move_hint">항목을 길게 눌러 옮기세요.</string>
+  <string name="controls_move_hint">편집을 탭하면 항목을 옮기거나 숨길 수 있습니다.</string>
+  <string name="controls_edit">편집</string>
+  <string name="controls_edit_hint">항목을 탭하면 숨기거나 표시합니다. 길게 누른 채 끌면 옮길 수 있습니다.</string>
+  <string name="controls_hidden">숨김</string>
+  <string name="controls_all_hidden">모든 항목이 숨겨져 있습니다. 편집을 탭하면 다시 표시할 수 있습니다.</string>
+  <string name="controls_toggle_tile">%1$s 숨기기 또는 표시</string>
   <string name="controls_hide_dials">다이얼과 미디어 숨기기</string>
   <string name="controls_blackout">대기 중 화면 끄기</string>
   <string name="controls_open">%1$s 열기</string>

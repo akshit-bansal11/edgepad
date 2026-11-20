@@ -415,7 +415,12 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">कंट्रोल</string>
-  <string name="controls_move_hint">किसी टाइल को खिसकाने के लिए उसे दबाए रखें।</string>
+  <string name="controls_move_hint">टाइलें खिसकाने या छिपाने के लिए संपादित करें पर टैप करें।</string>
+  <string name="controls_edit">संपादित करें</string>
+  <string name="controls_edit_hint">किसी टाइल को छिपाने या दिखाने के लिए उस पर टैप करें। खिसकाने के लिए उसे दबाए रखें और खींचें।</string>
+  <string name="controls_hidden">छिपी हुई</string>
+  <string name="controls_all_hidden">सभी टाइलें छिपी हैं। उन्हें फिर से दिखाने के लिए संपादित करें पर टैप करें।</string>
+  <string name="controls_toggle_tile">%1$s को छिपाएँ या दिखाएँ</string>
   <string name="controls_hide_dials">डायल और मीडिया छिपाएं</string>
   <string name="controls_blackout">इस्तेमाल न होने पर स्क्रीन काली करें</string>
   <string name="controls_open">%1$s खोलें</string>

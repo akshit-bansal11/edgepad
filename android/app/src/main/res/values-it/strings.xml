@@ -424,7 +424,12 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controlli</string>
-  <string name="controls_move_hint">Tieni premuto un riquadro per spostarlo.</string>
+  <string name="controls_move_hint">Tocca Modifica per spostare o nascondere i riquadri.</string>
+  <string name="controls_edit">Modifica</string>
+  <string name="controls_edit_hint">Tocca un riquadro per nasconderlo o mostrarlo. Tienilo premuto e trascinalo per spostarlo.</string>
+  <string name="controls_hidden">Nascosto</string>
+  <string name="controls_all_hidden">Tutti i riquadri sono nascosti. Tocca Modifica per mostrarli di nuovo.</string>
+  <string name="controls_toggle_tile">Nascondi o mostra %1$s</string>
   <string name="controls_hide_dials">Nascondi righelli e media</string>
   <string name="controls_blackout">Schermo nero se inattivo</string>
   <string name="controls_open">Apri %1$s</string>

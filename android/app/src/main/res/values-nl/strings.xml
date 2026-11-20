@@ -415,7 +415,12 @@
 
   <!-- Macros -->
   <string name="controls_title">Bediening</string>
-  <string name="controls_move_hint">Houd een tegel ingedrukt om hem te verplaatsen.</string>
+  <string name="controls_move_hint">Tik op Bewerken om tegels te verplaatsen of te verbergen.</string>
+  <string name="controls_edit">Bewerken</string>
+  <string name="controls_edit_hint">Tik op een tegel om hem te verbergen of te tonen. Houd hem ingedrukt en sleep om hem te verplaatsen.</string>
+  <string name="controls_hidden">Verborgen</string>
+  <string name="controls_all_hidden">Alle tegels zijn verborgen. Tik op Bewerken om ze weer te tonen.</string>
+  <string name="controls_toggle_tile">%1$s verbergen of tonen</string>
   <string name="controls_hide_dials">Regelaars en media verbergen</string>
   <string name="controls_blackout">Scherm zwart bij inactiviteit</string>
   <string name="controls_open">%1$s openen</string>

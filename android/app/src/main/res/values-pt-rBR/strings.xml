@@ -423,7 +423,12 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controles</string>
-  <string name="controls_move_hint">Mantenha um bloco pressionado para movê-lo.</string>
+  <string name="controls_move_hint">Toque em Editar para mover ou ocultar blocos.</string>
+  <string name="controls_edit">Editar</string>
+  <string name="controls_edit_hint">Toque em um bloco para ocultá-lo ou mostrá-lo. Mantenha pressionado e arraste para movê-lo.</string>
+  <string name="controls_hidden">Oculto</string>
+  <string name="controls_all_hidden">Todos os blocos estão ocultos. Toque em Editar para mostrá-los de novo.</string>
+  <string name="controls_toggle_tile">Ocultar ou mostrar %1$s</string>
   <string name="controls_hide_dials">Ocultar réguas e mídia</string>
   <string name="controls_blackout">Apagar a tela quando ociosa</string>
   <string name="controls_open">Abrir %1$s</string>

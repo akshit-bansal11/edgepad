@@ -445,7 +445,12 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">عناصر التحكم</string>
-  <string name="controls_move_hint">اضغط مع الاستمرار على عنصر لنقله.</string>
+  <string name="controls_move_hint">انقر على تعديل لنقل العناصر أو إخفائها.</string>
+  <string name="controls_edit">تعديل</string>
+  <string name="controls_edit_hint">انقر على عنصر لإخفائه أو إظهاره. اضغط مع الاستمرار واسحبه لنقله.</string>
+  <string name="controls_hidden">مخفي</string>
+  <string name="controls_all_hidden">كل العناصر مخفية. انقر على تعديل لإظهارها من جديد.</string>
+  <string name="controls_toggle_tile">إخفاء %1$s أو إظهاره</string>
   <string name="controls_hide_dials">إخفاء المقاييس والوسائط</string>
   <string name="controls_blackout">إظلام الشاشة عند الخمول</string>
   <string name="controls_open">فتح %1$s</string>

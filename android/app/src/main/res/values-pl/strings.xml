@@ -431,7 +431,12 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Sterowanie</string>
-  <string name="controls_move_hint">Naciśnij i przytrzymaj kafelek, aby go przenieść.</string>
+  <string name="controls_move_hint">Dotknij Edytuj, aby przenieść lub ukryć kafelki.</string>
+  <string name="controls_edit">Edytuj</string>
+  <string name="controls_edit_hint">Dotknij kafelka, aby go ukryć lub pokazać. Przytrzymaj i przeciągnij, aby go przenieść.</string>
+  <string name="controls_hidden">Ukryty</string>
+  <string name="controls_all_hidden">Wszystkie kafelki są ukryte. Dotknij Edytuj, aby znów je pokazać.</string>
+  <string name="controls_toggle_tile">Ukryj lub pokaż: %1$s</string>
   <string name="controls_hide_dials">Ukryj suwaki i multimedia</string>
   <string name="controls_blackout">Wygaszaj ekran w bezczynności</string>
   <string name="controls_open">Otwórz: %1$s</string>
