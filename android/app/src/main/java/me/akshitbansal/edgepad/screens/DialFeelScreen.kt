@@ -1,13 +1,20 @@
 package me.akshitbansal.edgepad.screens
 
+import android.app.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.Switch
+import android.widget.Toast
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.surface.DialKind
 import me.akshitbansal.edgepad.surface.Perimeter
 import kotlin.math.roundToInt
+import android.provider.Settings as SystemSettings
 
 /**
  * How the corner dials respond and how big they are, with a live corner beside the sliders.
@@ -28,9 +35,18 @@ object DialFeelScreen {
     private val lengthRange = StepRange(Settings.MIN_DIAL_LENGTH, Settings.MAX_DIAL_LENGTH, 10f)
     private val heightRange = StepRange(Settings.MIN_DIAL_HEIGHT, Settings.MAX_DIAL_HEIGHT, 0.1f)
 
+    /**
+     * Owner, 2026-11-20: Hide dials and Floating dials moved here from the Controls popup. [dialsHidden] and
+     * [onHideDials] are the surface's switch, which the activity keeps across rebuilds; [laptopConnected] and
+     * [onFloatingChanged] are what the floating dials need and what follows a change.
+     */
     fun build(
         ui: Ui,
         settings: Settings,
+        dialsHidden: Boolean,
+        onHideDials: (Boolean) -> Unit,
+        laptopConnected: () -> Boolean,
+        onFloatingChanged: () -> Unit,
         onBack: () -> Unit,
     ): View {
         val placed = placedDials(settings)
@@ -47,6 +63,12 @@ object DialFeelScreen {
         ) {
             columns(
                 {
+                    card(Space.L) {
+                        add(ui.toggle(ui.string(R.string.controls_hide_dials), dialsHidden) { onHideDials(it) })
+                        hairline()
+                        add(floatingToggle(ui, settings, laptopConnected, onFloatingChanged))
+                    }
+                    footnote(ui.string(R.string.floating_caption))
                     card(Space.L) {
                         add(
                             ui.slider(
@@ -104,6 +126,51 @@ object DialFeelScreen {
                     }
                 },
             )
+        }
+    }
+
+    /**
+     * The floating dials need a connected laptop, Stay connected (the service keeps the process) and the permission to
+     * draw over other apps. Missing one, the switch stays off and says which; the permission is asked for from this
+     * tap only.
+     */
+    private fun floatingToggle(
+        ui: Ui,
+        settings: Settings,
+        laptopConnected: () -> Boolean,
+        onFloatingChanged: () -> Unit,
+    ): View {
+        lateinit var box: Switch
+        box =
+            ui.toggle(ui.string(R.string.controls_floating), settings.floatingDials) { on ->
+                val refusal =
+                    when {
+                        !on -> null
+                        !laptopConnected() -> R.string.floating_needs_link
+                        !settings.stayConnected -> R.string.floating_needs_stay
+                        !SystemSettings.canDrawOverlays(ui.context) -> R.string.floating_permission
+                        else -> null
+                    }
+                if (refusal == null) {
+                    settings.floatingDials = on
+                    onFloatingChanged()
+                } else {
+                    box.isChecked = false
+                    if (refusal == R.string.floating_permission) askOverlay(ui)
+                    Toast.makeText(ui.context, refusal, Toast.LENGTH_LONG).show()
+                }
+            }
+        return box
+    }
+
+    private fun askOverlay(ui: Ui) {
+        val context = ui.context
+        val intent =
+            Intent(SystemSettings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + context.packageName))
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            Log.w("DialFeelScreen", "no screen for the overlay permission", e)
         }
     }
 

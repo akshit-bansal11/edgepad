@@ -1,6 +1,9 @@
 package me.akshitbansal.edgepad.screens
 
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import android.view.View
+import android.widget.Toast
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
@@ -67,8 +70,13 @@ object SurfaceSettingsScreen {
                 add(ui.link(ui.string(R.string.settings_profiles), null, routes.profiles))
             }
             card(Space.XL) { add(ui.link(ui.string(R.string.widgets_title), null, routes.widgets)) }
-            if (settings.airMouse) {
-                section(ui.string(R.string.air_title))
+            // Owner, 2026-11-20: moved here from the Controls popup. Turning it on says how to use it; without a
+            // gyroscope the switch is dimmed and says that instead.
+            val sensors = ui.context.getSystemService(SensorManager::class.java)
+            val gyroscope = sensors?.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+            val air = ui.toggle(ui.string(R.string.controls_air_mouse), settings.airMouse && gyroscope != null) { }
+            card(Space.XL) { add(air) }
+            val tuning =
                 card(Space.L) {
                     add(
                         ui.slider(
@@ -90,7 +98,22 @@ object SurfaceSettingsScreen {
                         ) { step -> settings.airDeadZone = deadZoneRange.valueAt(step) },
                     )
                 }
-                footnote(ui.string(R.string.air_caption))
+            val caption = footnote(ui.string(R.string.air_caption))
+            val tune = { on: Boolean ->
+                val state = if (on) View.VISIBLE else View.GONE
+                tuning.visibility = state
+                caption.visibility = state
+            }
+            tune(settings.airMouse && gyroscope != null)
+            if (gyroscope == null) {
+                ui.enable(air, false)
+                air.stateDescription = ui.string(R.string.air_no_sensor)
+            } else {
+                air.setOnCheckedChangeListener { _, on ->
+                    settings.airMouse = on
+                    tune(on)
+                    if (on) Toast.makeText(ui.context, R.string.air_how, Toast.LENGTH_LONG).show()
+                }
             }
             systemSettings(routes.system)
         }
