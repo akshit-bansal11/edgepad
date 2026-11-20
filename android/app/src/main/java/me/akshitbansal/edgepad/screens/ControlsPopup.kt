@@ -12,9 +12,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
+import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.Switch
 import android.widget.Toast
 import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.R
@@ -30,18 +29,16 @@ import android.provider.Settings as SystemSettings
 /** Which deck this is, to [Settings]: the order is kept per deck. It is the id the Controls screen used. */
 private const val DECK = "controls"
 
-/** Tiles per row, and the height of a row in dp. The popup is meant to stay small. */
-private const val PER_ROW = 3
-private const val ROW_DP = 96f
-
 /** The widest the popup grows upright, in dp: about a phone's portrait width. */
 private const val MAX_WIDTH_DP = 360f
 
-/** Sideways the tiles go in one row, so the popup is short enough to show whole: this wide at most, in dp. */
-private const val MAX_WIDTH_ONE_ROW_DP = 760f
+/** The widest the popup grows sideways, in dp. */
+private const val MAX_WIDTH_SIDEWAYS_DP = 760f
 
 /** The tag of the "Send a file" tile, past every [ControlsPopup.Target] ordinal. */
 private const val SEND_TAG = 1000
+
+private const val WRAP = ViewGroup.LayoutParams.WRAP_CONTENT
 
 /** AND-A-29: how many openings say that a tile can be held and moved. */
 private const val HINT_TIMES = 3
@@ -117,15 +114,16 @@ class ControlsPopup(
     }
 
     private var dialog: AlertDialog? = null
-    private var across = 0
 
-    /** Sideways: every tile in one row (set by [show]). */
-    private var oneRow = false
+    /** The room the tiles have, in pixels: [across] is set by [show], [down] once the grid has been laid out. */
+    private var across = 0
+    private var down = 0
     private lateinit var deck: Deck
 
-    /** The "Sleep when this ends" row and, under it, its choices or the armed line. Rebuilt by [drawEnd]. */
-    private val endBox = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
+    /** Over the chips: the choices "Sleep when this ends" opens, or the armed line and Cancel. Rebuilt by [drawEnd]. */
+    private val endBox = LinearLayout(ui.context).apply { orientation = LinearLayout.HORIZONTAL }
     private var endChoices = false
+    private val endChip = ui.chip(ui.string(R.string.end_action_title)) { tappedEnd() }
 
     /** The tiles in the order they are drawn, as indexes into the tiles shown, and the stored-order key of each. */
     private var shown: List<Int> = emptyList()
@@ -136,10 +134,13 @@ class ControlsPopup(
     private var editing = false
     private var hidden: Set<String> = emptySet()
 
+    /** AND-A-29: this opening is one of the first few, which say how to move and hide tiles. */
+    private var moveHint = false
+
     /** The entries of [shown] drawn now: all of them while [editing], the ones not [hidden] otherwise. */
     private var visible: List<Int> = emptyList()
 
-    private val editButton = ui.button("", Ui.Style.QUIET) { setEditing(!editing) }
+    private val editChip = ui.chip("") { setEditing(!editing) }
 
     /** Under the tiles: how edit mode works, or, with every tile hidden, how to bring them back. */
     private val tileNote = ui.secondary("", Type.SMALL, ui.palette.dim)
@@ -165,87 +166,42 @@ class ControlsPopup(
         val left = bars?.left ?: 0
         val right = bars?.right ?: 0
         val top = bars?.top ?: 0
+        val bottom = bars?.bottom ?: 0
         val margin = ui.dp(Space.PAGE)
-        oneRow = owner.width > owner.height
-        val widest = ui.dp(if (oneRow) MAX_WIDTH_ONE_ROW_DP else MAX_WIDTH_DP)
+        val sideways = owner.width > owner.height
+        val widest = ui.dp(if (sideways) MAX_WIDTH_SIDEWAYS_DP else MAX_WIDTH_DP)
         val width = minOf(owner.width - left - right - 2 * margin, widest)
+        // Just under the top buttons, which sit a touch target below the system bar, and down to the page margin.
+        val offset = top + ui.dp(Space.TOUCH) + ui.dp(Space.L)
+        val height = owner.height - offset - bottom - margin
         val pad = ui.dp(Space.L)
         across = width - 2 * pad
-        holder.orientation = LinearLayout.VERTICAL
-        holder.setPadding(pad, 0, pad, pad)
-        tileNote.setPadding(pad, 0, pad, pad)
+        down = 0
         editing = false
         hidden = settings.deckHidden(DECK)
-        deck = Deck(ui, holder)
-        draw(capture, annotate)
-        // AND-A-29: the move gesture is told the first few times, under the tiles.
-        val body = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
-        body.addView(
-            LinearLayout(ui.context).apply {
-                gravity = Gravity.END
-                setPadding(pad, ui.dp(Space.S), pad, 0)
-                val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
-                addView(editButton, LinearLayout.LayoutParams(wrap, wrap))
-            },
-        )
-        body.addView(holder)
-        body.addView(tileNote)
-        (endBox.parent as? ViewGroup)?.removeView(endBox)
-        endBox.setPadding(pad, 0, pad, 0)
         endChoices = false
-        drawEnd()
+        // AND-A-29: the first few openings say how to move and hide tiles, under them.
+        moveHint = settings.controlsHintShown < HINT_TIMES
+        if (moveHint) settings.controlsHintShown += 1
+        // Owner, 2026-11-20: the tiles take the room, as on the macro deck; the switches are one row of chips.
+        holder.orientation = LinearLayout.VERTICAL
+        holder.setPadding(pad, pad, pad, ui.dp(Space.S))
+        deck = Deck(ui, holder)
+        // The grid is planned from the room it really has, known only once it is laid out; see [laidOut].
+        holder.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> laidOut() }
+        tileNote.setPadding(pad, 0, pad, ui.dp(Space.S))
+        endBox.setPadding(pad, 0, pad, 0)
+        val body = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
+        body.addView(holder, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+        body.addView(tileNote)
         body.addView(endBox)
-        body.addView(
-            ui.toggle(ui.string(R.string.controls_hide_dials), dialsHidden(), onHideDials).apply {
-                setPadding(pad, 0, pad, 0)
-            },
-        )
-        // Issue #56. The surface reads the setting again when the popup closes and hands the focus back.
-        body.addView(
-            ui.toggle(ui.string(R.string.controls_blackout), settings.blackout) { settings.blackout = it }.apply {
-                setPadding(pad, 0, pad, 0)
-            },
-        )
-        if (hasGyroscope()) {
-            body.addView(
-                ui.toggle(ui.string(R.string.controls_air_mouse), settings.airMouse) { settings.airMouse = it }.apply {
-                    setPadding(pad, 0, pad, 0)
-                },
-            )
-            // Owner, 2026-11-18: nothing said how to use it.
-            val how = ui.secondary(ui.string(R.string.air_how), Type.SMALL, ui.palette.dim)
-            how.setPadding(pad, 0, pad, pad)
-            body.addView(how)
-        } else {
-            val none = ui.secondary(ui.string(R.string.air_no_sensor), Type.SMALL, ui.palette.dim)
-            none.setPadding(pad, 0, pad, pad)
-            body.addView(none)
-        }
-        // The note explains the permission, so it goes once the permission is granted (owner, 2026-11-18).
-        val permitted = SystemSettings.canDrawOverlays(ui.context)
-        body.addView(floatingToggle().apply { setPadding(pad, 0, pad, if (permitted) pad else 0) })
-        if (!permitted) {
-            val floatingNote = ui.secondary(ui.string(R.string.floating_caption), Type.SMALL, ui.palette.dim)
-            floatingNote.setPadding(pad, 0, pad, pad)
-            body.addView(floatingNote)
-        }
-        if (settings.controlsHintShown < HINT_TIMES) {
-            settings.controlsHintShown += 1
-            val note = ui.secondary(ui.string(R.string.controls_move_hint), Type.SMALL, ui.palette.dim)
-            note.setPadding(pad, 0, pad, pad)
-            body.addView(note)
-        }
-        // Whatever is below the tiles stays reachable on a short screen.
-        val scroll =
-            ScrollView(ui.context).apply {
-                isVerticalFadingEdgeEnabled = true
-                setFadingEdgeLength(ui.dp(FADE_EDGE_DP))
-                addView(body)
-            }
+        body.addView(chips(pad))
+        draw(capture, annotate)
+        drawEnd()
         val shownDialog =
             AlertDialog
                 .Builder(ui.context)
-                .setView(scroll)
+                .setView(body)
                 .openOver(owner)
         dialog = shownDialog
         shownDialog.window?.apply {
@@ -253,11 +209,73 @@ class ControlsPopup(
             setTitle(ui.string(R.string.controls_title))
             setBackgroundDrawable(ui.rounded(ui.palette.popover, Space.CARD_RADIUS))
             setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL)
-            setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-            // Just under the top buttons, which sit a touch target below the system bar.
-            attributes = attributes.apply { y = top + ui.dp(Space.TOUCH) + ui.dp(Space.L) }
+            setLayout(width, height)
+            attributes = attributes.apply { y = offset }
         }
         holder.requestFocus()
+    }
+
+    /** The grid's height changed (the popup opened, or the end row came or went): the tiles are planned again. */
+    private fun laidOut() {
+        val room = holder.height - holder.paddingTop - holder.paddingBottom
+        if (room <= 0 || room == down) return
+        down = room
+        // Not inside the layout pass that reported it: views added there would wait a frame anyway.
+        holder.post { drawShown() }
+    }
+
+    /**
+     * The switches, as one row of chips under the tiles that scrolls sideways when it is wider than the popup: Edit,
+     * Sleep when this ends, then the on/off ones. A chip that cannot be used here is dimmed and says why when tapped.
+     */
+    private fun chips(pad: Int): View {
+        val row = LinearLayout(ui.context).apply { orientation = LinearLayout.HORIZONTAL }
+        val gap = ui.dp(Space.S)
+
+        fun add(chip: View) {
+            (chip.parent as? ViewGroup)?.removeView(chip)
+            row.addView(
+                chip,
+                LinearLayout.LayoutParams(WRAP, WRAP).apply { if (row.childCount > 0) marginStart = gap },
+            )
+        }
+        add(editChip)
+        add(endChip)
+        add(ui.toggleChip(ui.string(R.string.controls_hide_dials), dialsHidden()) { _, on -> onHideDials(on) })
+        // Issue #56. The surface reads the setting again when the popup closes and hands the focus back.
+        add(ui.toggleChip(ui.string(R.string.controls_blackout), settings.blackout) { _, on -> settings.blackout = on })
+        add(airChip())
+        add(floatingChip())
+        return HorizontalScrollView(ui.context).apply {
+            isHorizontalScrollBarEnabled = false
+            isHorizontalFadingEdgeEnabled = true
+            setFadingEdgeLength(ui.dp(FADE_EDGE_DP))
+            setPadding(pad, 0, pad, pad)
+            clipToPadding = false
+            addView(row)
+        }
+    }
+
+    /**
+     * Owner, 2026-11-18: nothing said how to use the air mouse. Turning it on says it, and a long press says it again;
+     * without a gyroscope the chip is dimmed and says that instead.
+     */
+    private fun airChip(): View {
+        val label = ui.string(R.string.controls_air_mouse)
+        if (!hasGyroscope()) {
+            return ui.chip(label) { toast(R.string.air_no_sensor) }.apply {
+                alpha = Ui.DISABLED_ALPHA
+                stateDescription = ui.string(R.string.air_no_sensor)
+            }
+        }
+        return ui.toggleChip(label, settings.airMouse) { _, on ->
+            settings.airMouse = on
+            if (on) toast(R.string.air_how)
+        }.apply { tooltipText = ui.string(R.string.air_how) }
+    }
+
+    private fun toast(text: Int) {
+        Toast.makeText(ui.context, text, Toast.LENGTH_LONG).show()
     }
 
     /** The laptop named its features after the popup opened: the tiles are drawn again from them. */
@@ -277,48 +295,64 @@ class ControlsPopup(
     }
 
     /**
-     * AU4: one row that opens two choices, or, while the laptop has one armed, the line saying so and Cancel. The
-     * choices are plain text buttons, so nothing here is told by colour alone. They fade in over [Motion.REVEAL] from
-     * the row; the tiles above stay instant.
+     * AU4: the "Sleep when this ends" chip opens two choices over the chips, or, while the laptop has one armed, the
+     * chip gives way to the line saying so and Cancel. The choices are plain text buttons, so nothing here is told by
+     * colour alone. They fade in over [Motion.REVEAL]; the tiles above are planned again for the room left.
      */
     private fun drawEnd() {
         endBox.removeAllViews()
-        if (!endOffered()) {
+        val offered = endOffered()
+        val armed = endArmed()
+        endChip.visibility = if (offered && armed == EndActionToken.NONE) View.VISIBLE else View.GONE
+        if (!offered) {
+            endBox.visibility = View.GONE
+            return
+        }
+        if (armed != EndActionToken.NONE) {
+            endBox.visibility = View.VISIBLE
+            val line = if (armed == EndActionToken.SLEEP) R.string.end_armed_sleep else R.string.end_armed_shutdown
+            endBox.addView(
+                ui.secondary(ui.string(line), Type.BODY, ui.palette.ink).apply { gravity = Gravity.CENTER_VERTICAL },
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f),
+            )
+            endBox.addView(ui.button(ui.string(R.string.end_cancel), Ui.Style.QUIET) { onEnd(ActionId.END_CANCEL) })
+            return
+        }
+        // Dimmed but still tappable: a tap says why there is nothing to wait for.
+        val timeline = hasTimeline()
+        endChip.alpha = if (timeline) 1f else Ui.DISABLED_ALPHA
+        endChip.stateDescription = if (timeline) null else ui.string(R.string.end_no_timeline)
+        if (!endChoices || !timeline) {
             endBox.visibility = View.GONE
             return
         }
         endBox.visibility = View.VISIBLE
-        val armed = endArmed()
-        if (armed != EndActionToken.NONE) {
-            val line = if (armed == EndActionToken.SLEEP) R.string.end_armed_sleep else R.string.end_armed_shutdown
-            endBox.addView(ui.secondary(ui.string(line), Type.BODY, ui.palette.ink))
-            endBox.addView(ui.button(ui.string(R.string.end_cancel), Ui.Style.OUTLINED) { onEnd(ActionId.END_CANCEL) })
+        val choices = LinearLayout(ui.context).apply { orientation = LinearLayout.HORIZONTAL }
+        val half = { LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f) }
+        choices.addView(
+            ui.button(ui.string(R.string.end_sleep), Ui.Style.OUTLINED) { onEnd(ActionId.END_SLEEP) },
+            half(),
+        )
+        choices.addView(
+            ui.button(ui.string(R.string.end_shutdown), Ui.Style.OUTLINED) { onEnd(ActionId.END_SHUTDOWN) },
+            half().apply { marginStart = ui.dp(Space.S) },
+        )
+        choices.alpha = 0f
+        endBox.addView(choices, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, WRAP))
+        choices
+            .animate()
+            .alpha(1f)
+            .setDuration(Motion.REVEAL)
+            .start()
+    }
+
+    private fun tappedEnd() {
+        if (!hasTimeline()) {
+            toast(R.string.end_no_timeline)
             return
         }
-        val timeline = hasTimeline()
-        val why = if (timeline) null else ui.string(R.string.end_no_timeline)
-        val row =
-            ui.link(ui.string(R.string.end_action_title), why, {
-                endChoices = !endChoices
-                drawEnd()
-            })
-        // Dimmed but still tappable: the summary under the title says why there is nothing to wait for.
-        if (!timeline) row.alpha = Ui.DISABLED_ALPHA
-        endBox.addView(row)
-        if (endChoices && timeline) {
-            val choices = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
-            choices.addView(ui.button(ui.string(R.string.end_sleep), Ui.Style.OUTLINED) { onEnd(ActionId.END_SLEEP) })
-            choices.addView(
-                ui.button(ui.string(R.string.end_shutdown), Ui.Style.OUTLINED) { onEnd(ActionId.END_SHUTDOWN) },
-            )
-            choices.alpha = 0f
-            endBox.addView(choices)
-            choices
-                .animate()
-                .alpha(1f)
-                .setDuration(Motion.REVEAL)
-                .start()
-        }
+        endChoices = !endChoices
+        drawEnd()
     }
 
     private fun hasGyroscope(): Boolean =
@@ -326,32 +360,28 @@ class ControlsPopup(
 
     /**
      * The floating dials need a connected laptop, Stay connected (the service keeps the process) and the
-     * permission to draw over other apps. Missing one, the switch stays off and says which; the permission is
-     * asked for from this tap only.
+     * permission to draw over other apps. Missing one, the chip stays off and says which; the permission is
+     * asked for from this tap only. A long press says what the dials are and what they need.
      */
-    private fun floatingToggle(): Switch {
-        lateinit var row: Switch
-        row =
-            ui.toggle(ui.string(R.string.controls_floating), settings.floatingDials) { on ->
-                val refusal =
-                    when {
-                        !on -> null
-                        !laptopConnected() -> R.string.floating_needs_link
-                        !settings.stayConnected -> R.string.floating_needs_stay
-                        !SystemSettings.canDrawOverlays(ui.context) -> R.string.floating_permission
-                        else -> null
-                    }
-                if (refusal == null) {
-                    settings.floatingDials = on
-                    onFloatingChanged()
-                } else {
-                    row.isChecked = false
-                    if (refusal == R.string.floating_permission) askOverlay()
-                    Toast.makeText(ui.context, refusal, Toast.LENGTH_LONG).show()
+    private fun floatingChip(): View =
+        ui.toggleChip(ui.string(R.string.controls_floating), settings.floatingDials) { box, on ->
+            val refusal =
+                when {
+                    !on -> null
+                    !laptopConnected() -> R.string.floating_needs_link
+                    !settings.stayConnected -> R.string.floating_needs_stay
+                    !SystemSettings.canDrawOverlays(ui.context) -> R.string.floating_permission
+                    else -> null
                 }
+            if (refusal == null) {
+                settings.floatingDials = on
+                onFloatingChanged()
+            } else {
+                box.isChecked = false
+                if (refusal == R.string.floating_permission) askOverlay()
+                toast(refusal)
             }
-        return row
-    }
+        }.apply { tooltipText = ui.string(R.string.floating_caption) }
 
     private fun askOverlay() {
         val context = ui.context
@@ -383,11 +413,13 @@ class ControlsPopup(
 
     private fun drawShown() {
         visible = if (editing) shown else shown.filter { keys[it] !in hidden }
-        editButton.text = ui.string(if (editing) R.string.editor_done else R.string.controls_edit)
+        editChip.text = ui.string(if (editing) R.string.editor_done else R.string.controls_edit)
+        editChip.setTextColor(if (editing) ui.palette.accent else ui.palette.ink)
         val note =
             when {
                 editing -> R.string.controls_edit_hint
                 visible.isEmpty() -> R.string.controls_all_hidden
+                moveHint -> R.string.controls_move_hint
                 else -> null
             }
         tileNote.visibility = if (note == null) View.GONE else View.VISIBLE
@@ -396,8 +428,8 @@ class ControlsPopup(
             deck.clear()
             return
         }
-        val rows = if (oneRow) 1 else (visible.size + PER_ROW - 1) / PER_ROW
-        val down = rows * ui.dp(ROW_DP) + (rows - 1) * ui.dp(Space.S)
+        // Until the grid is laid out there is no room to plan it in; [laidOut] draws it then.
+        if (down <= 0) return
         deck.render(
             across,
             down,
@@ -405,7 +437,6 @@ class ControlsPopup(
             labels = true,
             onMove = ::moved,
             onTap = ::tapped,
-            rows = rows,
             opens = !editing,
         )
     }
@@ -497,7 +528,7 @@ class ControlsPopup(
             key = "send",
             label = ui.string(R.string.xfer_send),
             tag = SEND_TAG,
-            picture = StencilIcon(StencilIcon.Kind.CAPTURE, ui.palette.ink, ui.palette.accent),
+            picture = StencilIcon(StencilIcon.Kind.SEND, ui.palette.ink, ui.palette.accent),
             spoken = R.string.controls_open,
             note = if (laptopConnected()) null else ui.string(R.string.xfer_no_laptop),
         )

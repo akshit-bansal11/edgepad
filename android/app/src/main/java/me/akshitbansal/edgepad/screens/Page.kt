@@ -19,6 +19,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
+import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -358,6 +359,41 @@ class Ui(
             // After the background: a drawable with insets resets the view's padding to those insets.
             setPadding(dp(Space.L), 0, dp(Space.L), 0)
             tappable(this, CHIP_DP / 2, onClick)
+        }
+
+    /**
+     * An on/off [chip]: a CheckBox, so a screen reader says whether it is on, drawn as a pill that fills with the
+     * accent and gains a tick when on, so the state is not told by colour alone. [onChange] gets the box, so a refusal
+     * can turn it back off.
+     */
+    fun toggleChip(
+        label: CharSequence,
+        checked: Boolean,
+        onChange: (box: CheckBox, on: Boolean) -> Unit,
+    ): CheckBox =
+        CheckBox(context).apply {
+            buttonDrawable = null
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, Type.VALUE)
+            typeface = Type.bold
+            gravity = Gravity.CENTER
+            minHeight = dp(Space.TOUCH)
+            // The tick is drawn, not spoken: the checked state already says it.
+            contentDescription = label
+            val inset = (dp(Space.TOUCH) - dp(CHIP_DP)) / 2
+            val dress = { on: Boolean ->
+                text = if (on) "✓ $label" else label
+                setTextColor(if (on) palette.accent else palette.ink)
+                val fill = if (on) palette.accentSoft else palette.faint
+                background = InsetDrawable(rounded(fill, CHIP_DP / 2), 0, inset, 0, inset)
+                // After the background, which resets the padding to its insets.
+                setPadding(dp(Space.L), 0, dp(Space.L), 0)
+            }
+            isChecked = checked
+            dress(checked)
+            setOnCheckedChangeListener { _, on ->
+                dress(on)
+                onChange(this, on)
+            }
         }
 
     /**
