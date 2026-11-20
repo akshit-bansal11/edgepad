@@ -131,7 +131,8 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
         let developersTitle = Self.heading(tr("Integrations_ForDevelopers", "For developers"))
         developersTitle.textColor = .secondaryLabelColor
         let views: [NSView] = [
-            intro, stats, weather, cityRow, note, developersTitle, claude.view, codex.view, gitHubTitle, gitHubStatus, gitHubSteps,
+            intro, stats, weather, cityRow, note, developersTitle, claude.view, codex.view, gitHubTitle,
+            gitHubStatus, gitHubSteps,
             signButton,
             privateRepos, codeLabel, codeButtons, waitingLabel, close,
         ]
