@@ -1,10 +1,15 @@
 package me.akshitbansal.edgepad.screens
 
 import android.app.AlertDialog
+import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import me.akshitbansal.edgepad.R
@@ -23,6 +28,10 @@ private const val BOTTOM_ROW_DP = 96f
 private const val CHEVRON_SP = 40f
 private const val DOT_SHARE_PER_SIZE = 0.0006f
 private const val FINGER_SCALE = 2.5f
+private const val TIP_KEY = "presenter"
+private const val DOT_BOX_DP = 40f
+private const val SHEET_WIDTH_DP = 360f
+private const val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
 
 /** The key a slide step presses: Page Down for a positive [delta], Page Up for a negative one. */
 internal fun slideKey(delta: Int): Int = if (delta > 0) KEY_PAGE_DOWN else KEY_PAGE_UP
@@ -57,7 +66,9 @@ class PresenterScreen(
     private val canvas = AnnotateCanvas(ui.context, Strokes(), screenSize, send, laser = true)
     private val gap = ui.dp(Space.S)
 
-    val view: View =
+    private val landscape = ui.context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    private val page =
         LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(ui.palette.background)
@@ -78,7 +89,6 @@ class PresenterScreen(
             canvas.laserSize = settings.laserSize
             canvas.laserTrail = settings.laserTrail
             val stage = LinearLayout.LayoutParams(wide, 0, 1f).apply { setMargins(side, gap, side, gap) }
-            val landscape = ui.context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
             val previous = ui.button(ui.string(R.string.presenter_previous), Ui.Style.OUTLINED) { step(-1) }
             val next = ui.button(ui.string(R.string.presenter_next), Ui.Style.FILLED) { step(1) }
             if (landscape) {
@@ -95,8 +105,6 @@ class PresenterScreen(
                     LinearLayout.LayoutParams(wide, ui.dp(BOTTOM_ROW_DP)).apply { setMargins(side, 0, side, gap) },
                 )
             }
-            val note = ui.secondary(ui.string(R.string.presenter_keys_note))
-            addView(note, LinearLayout.LayoutParams(wide, wrap).apply { setMargins(side, 0, side, gap) })
             // The laser is on for as long as the screen is open: the activity begins the overlay, then calls sendLaser.
             addOnAttachStateChangeListener(
                 object : View.OnAttachStateChangeListener {
@@ -105,6 +113,14 @@ class PresenterScreen(
                     override fun onViewDetachedFromWindow(v: View) = Unit
                 },
             )
+        }
+
+    val view: View =
+        FrameLayout(ui.context).apply {
+            addView(page, FrameLayout.LayoutParams(MATCH, MATCH))
+            // Above the Previous / Next row in portrait; on the pad in landscape, between its Previous / Next columns.
+            val clear = if (landscape) Space.L else BOTTOM_ROW_DP + Space.L + Space.S
+            TipCard.show(this, settings, TIP_KEY, StencilIcon.Kind.PRESENTER, R.string.tip_presenter, clear)
         }
 
     /** Previous column, laser pad, Next column: the side columns are full height and a fraction of the width. */
@@ -142,8 +158,10 @@ class PresenterScreen(
         send(laserTool(settings.laserTrail).frame())
     }
 
+    /** A compact card at the bottom of the screen: a live dot in the laser's colour, the size slider and the trail. */
     private fun openSettings() {
         val min = Settings.MIN_LASER_SIZE
+        val dot = LaserDot(ui.context, ui.dp(DOT_BOX_DP)).apply { size = settings.laserSize }
         val size =
             ui.slider(
                 ui.string(R.string.presenter_laser_size),
@@ -153,6 +171,7 @@ class PresenterScreen(
             ) { step ->
                 settings.laserSize = step + min
                 canvas.laserSize = settings.laserSize
+                dot.size = settings.laserSize
                 sendLaser()
             }
         val trail =
@@ -161,20 +180,64 @@ class PresenterScreen(
                 canvas.laserTrail = on
                 sendLaser()
             }
+        val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
+        val top =
+            LinearLayout(ui.context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                addView(dot, LinearLayout.LayoutParams(ui.dp(DOT_BOX_DP), ui.dp(DOT_BOX_DP)))
+                addView(size, LinearLayout.LayoutParams(0, wrap, 1f).apply { marginStart = ui.dp(Space.M) })
+            }
         val body =
             LinearLayout(ui.context).apply {
                 orientation = LinearLayout.VERTICAL
-                setBackgroundColor(ui.palette.background)
-                setPadding(ui.dp(Space.L), ui.dp(Space.M), ui.dp(Space.L), ui.dp(Space.M))
-                val wide = ViewGroup.LayoutParams.MATCH_PARENT
-                val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
-                addView(size, LinearLayout.LayoutParams(wide, wrap))
-                addView(trail, LinearLayout.LayoutParams(wide, wrap).apply { topMargin = ui.dp(Space.M) })
+                val pad = ui.dp(Space.L)
+                setPadding(pad, ui.dp(Space.S), pad, ui.dp(Space.S))
+                addView(top, LinearLayout.LayoutParams(MATCH, wrap))
+                addView(trail, LinearLayout.LayoutParams(MATCH, wrap))
             }
-        AlertDialog
-            .Builder(ui.context)
-            .setView(body)
-            .setPositiveButton(R.string.editor_done, null)
-            .showOver(view)
+        val dialog = AlertDialog.Builder(ui.context).setView(body).openOver(view)
+        dialog.window?.apply {
+            setBackgroundDrawable(ui.rounded(ui.palette.card, Space.CARD_RADIUS))
+            setGravity(Gravity.BOTTOM)
+            val width = minOf(view.width - 2 * ui.dp(Space.PAGE), ui.dp(SHEET_WIDTH_DP))
+            setLayout(width, wrap)
+            attributes = attributes.apply { y = ui.dp(Space.L) }
+        }
+    }
+}
+
+/** The live preview in the size sheet: a dot in the laser's red, grown and shrunk with [size]. Redraws on a change. */
+private class LaserDot(
+    context: Context,
+    private val box: Int,
+) : View(context) {
+    /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
+    constructor(context: Context) : this(context, 0)
+
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = LASER_RED }
+
+    var size = Settings.MIN_LASER_SIZE
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    init {
+        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        val span = (Settings.MAX_LASER_SIZE - Settings.MIN_LASER_SIZE).toFloat()
+        val share = (size - Settings.MIN_LASER_SIZE) / span
+        val radius = box * (MIN_RADIUS + (MAX_RADIUS - MIN_RADIUS) * share)
+        canvas.drawCircle(width / 2f, height / 2f, radius, paint)
+    }
+
+    private companion object {
+        /** The phone laser's red, as the laptop draws it. */
+        const val LASER_RED = 0xFFFF1A1A.toInt()
+        const val MIN_RADIUS = 0.08f
+        const val MAX_RADIUS = 0.42f
     }
 }
