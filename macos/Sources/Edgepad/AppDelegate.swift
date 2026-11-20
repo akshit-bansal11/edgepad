@@ -432,6 +432,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 : disabled(tr("Menu_SendFileNoPhone", "Send a file… (no phone connected)")))
         menu.addItem(item(tr("Menu_Macros", "Macros…"), #selector(showMacros)))
         menu.addItem(item(IntegrationsWindow.menuTitle, #selector(showIntegrations)))
+        let developer = item(tr("Menu_DeveloperMode", "Developer mode"), #selector(toggleDeveloper))
+        let developerOn = dashboard?.settings.flag(IntegrationSettings.developer) == true
+        developer.state = developerOn ? .on : .off
+        menu.addItem(developer)
+        if developerOn {
+            menu.addItem(
+                item(
+                    tr("Menu_DeveloperIntegrations", "Developer integrations…"), #selector(showDeveloperIntegrations)))
+        }
         let names = SecurityPanel.levelNames
         let level = names.indices.contains(pin.level - 1) ? names[pin.level - 1] : ""
         menu.addItem(item(tr("Menu_Security", "Security… (%1$@)", level), #selector(showSecurity)))
@@ -832,6 +841,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case .sessionEnded:
             return tr("Xfer_SessionEnded", "The phone disconnected before %1$@ was sent", name)
         }
+    }
+
+    @objc private func toggleDeveloper() {
+        dashboard?.setDeveloper(dashboard?.settings.flag(IntegrationSettings.developer) != true)
+    }
+
+    @objc private func showDeveloperIntegrations() {
+        dashboard?.showWindow(developer: true)
     }
 
     @objc private func showIntegrations() {

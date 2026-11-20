@@ -30,6 +30,7 @@ final class MacDashboard {
     private var stats: MacStats?
     private var parts = DashboardParts()
     private var window: IntegrationsWindow?
+    private var windowIsDeveloper = false
 
     /// - Parameter version: This app's version, stamped into the plugin copies.
     init(version: String) {
@@ -49,7 +50,7 @@ final class MacDashboard {
     /// was updated (the Integrations window says so when it opens).
     func start() {
         apply()
-        guard Self.agentKeys.contains(where: settings.flag) else { return }
+        guard Self.agentKeys.contains(where: settings.active) else { return }
         Task { @MainActor [weak self] in _ = await self?.ensureCurrent() }
     }
 
@@ -83,8 +84,25 @@ final class MacDashboard {
             unsupported: { [weak self] in self?.unsupported() ?? [] })
     }
 
-    /// Opens the Integrations window, or brings it to the front.
-    func showWindow() {
+    /// Developer mode on or off, from the menu or the phone. Off hides Claude Code, Codex and GitHub and closes the hook
+    /// channel but keeps every connection. Main queue only.
+    func setDeveloper(_ on: Bool) {
+        settings.setFlag(IntegrationSettings.developer, on)
+        if !on && window != nil && windowIsDeveloper {
+            window?.close()
+            window = nil
+        }
+        apply()
+    }
+
+    /// Opens the Integrations window (the developer one when `developer`), or brings it to the front. A window open in
+    /// the other mode is closed.
+    func showWindow(developer: Bool = false) {
+        if window != nil && windowIsDeveloper != developer {
+            window?.close()
+            window = nil
+        }
+        windowIsDeveloper = developer
         if window == nil {
             let secrets = secrets
             let usage = usage
@@ -94,14 +112,14 @@ final class MacDashboard {
                 lastHeard: { usage.lastHeard($0) },
                 switched: { [weak self] key, on in self?.switched(key, on) },
                 ensureCurrent: { [weak self] in await self?.ensureCurrent() ?? [] })
-            window = IntegrationsWindow(hooks: hooks)
+            window = IntegrationsWindow(hooks: hooks, developer: developer)
         }
         window?.show()
     }
 
     /// Makes the pieces the switches now ask for and lets go of the rest, then tells the phone in use.
     private func apply() {
-        let agentsOn = Self.agentKeys.contains(where: settings.flag)
+        let agentsOn = Self.agentKeys.contains(where: settings.active)
         var oldAgents: Agents?
         if agentsOn && agents == nil {
             agents = openAgents()
@@ -113,11 +131,11 @@ final class MacDashboard {
         let settings = settings
         let phones = phones
         var oldCodex: CodexWatcher?
-        if settings.flag(IntegrationSettings.codex), let made = agents {
+        if settings.active(IntegrationSettings.codex), let made = agents {
             codex =
                 codex
                 ?? CodexWatcher(
-                    settingsOn: { settings.flag(IntegrationSettings.codex) }, phoneLinked: { phones.any },
+                    settingsOn: { settings.active(IntegrationSettings.codex) }, phoneLinked: { phones.any },
                     sessions: made.sessions, limits: made.limits, spend: made.spend, root: CodexWatcher.defaultRoot(),
                     cachePath: folder + "/" + CodexWatcher.cacheName)
         } else {
@@ -125,18 +143,18 @@ final class MacDashboard {
             codex = nil
         }
         var oldClaude: ClaudeSpend?
-        if settings.flag(IntegrationSettings.claude), let made = agents {
+        if settings.active(IntegrationSettings.claude), let made = agents {
             claude =
                 claude
                 ?? ClaudeSpend(
-                    settingsOn: { settings.flag(IntegrationSettings.claude) }, phoneLinked: { phones.any },
+                    settingsOn: { settings.active(IntegrationSettings.claude) }, phoneLinked: { phones.any },
                     spend: made.spend, root: ClaudeSpend.defaultRoot(), cachePath: folder + "/" + ClaudeSpend.cacheName)
         } else {
             oldClaude = claude
             claude = nil
         }
         weather = settings.flag(IntegrationSettings.weather) ? weather ?? WeatherClient() : nil
-        gitHub = settings.flag(IntegrationSettings.gitHub) ? gitHub ?? GitHubApi(store: secrets) : nil
+        gitHub = settings.active(IntegrationSettings.gitHub) ? gitHub ?? GitHubApi(store: secrets) : nil
         // Kept until quit once made: a reporter of a host being replaced may still be reading it.
         if settings.flag(IntegrationSettings.stats) && stats == nil {
             stats = MacStats()
@@ -171,7 +189,7 @@ final class MacDashboard {
     // TEXT 24 entries for agents switched on whose hook socket could not be opened.
     private func unsupported() -> [String] {
         guard parts.sessions == nil else { return [] }
-        return Self.agentKeys.filter(settings.flag).map { $0 + ":" + UnavailableReason.unsupported.rawValue }
+        return Self.agentKeys.filter(settings.active).map { $0 + ":" + UnavailableReason.unsupported.rawValue }
     }
 
     // The hook socket, hook.json and what they feed. Nil (logged) when the socket or the file cannot be made.

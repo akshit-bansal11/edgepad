@@ -190,8 +190,11 @@ final class SessionHost {
         let status = onStatus
         // Made only once the phone is live, so a connection still in its handshake is never counted as a phone.
         var makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)?
+        var setDeveloper: ((Bool) -> Void)?
         if let dashboard {
             makeDashboard = { send in dashboard.newLink(send: send, blobs: sender) }
+            // The settings and the menu belong to the main queue.
+            setDeveloper = { on in DispatchQueue.main.async { dashboard.setDeveloper(on) } }
         }
         let session = Session(
             address: address,
@@ -221,7 +224,8 @@ final class SessionHost {
             power: MacPowerSource(speakers: speakers),
             onAdmitted: { [weak self] admitted in self?.admit(admitted) ?? false },
             onEnded: { [weak self] ended in self?.sessionEnded(ended) },
-            makeDashboard: makeDashboard)
+            makeDashboard: makeDashboard,
+            setDeveloper: setDeveloper)
         candidates.append((session: session, transport: transport, shownAs: shownAs, link: link))
 
         let helloTimeout = Timer(timeInterval: Session.helloTimeoutSeconds, repeats: false) { [weak session] _ in

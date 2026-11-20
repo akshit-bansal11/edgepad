@@ -123,6 +123,8 @@ public final class Session {
     /// Makes this phone's side of the dashboard once it is live, handed the session's own way to send; nil where the app
     /// has no dashboard, and then nothing about it is sent.
     private let makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)?
+    /// Turns developer mode on or off when the phone asks (CONTROL 13); nil where the app has no dashboard.
+    private let setDeveloper: ((Bool) -> Void)?
     private var dashboard: DashboardLink?
     /// The FEATURES tokens of this build, without the dashboard's, so a switch that moves can send the list again.
     private var baseFeatures: [String] = []
@@ -151,7 +153,8 @@ public final class Session {
         scheduleAfter: @escaping (TimeInterval, @escaping () -> Void) -> Void = { seconds, work in
             DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: work)
         },
-        makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)? = nil
+        makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)? = nil,
+        setDeveloper: ((Bool) -> Void)? = nil
     ) {
         self.address = address
         self.link = link
@@ -175,6 +178,7 @@ public final class Session {
         self.schedule = schedule
         self.scheduleAfter = scheduleAfter
         self.makeDashboard = makeDashboard
+        self.setDeveloper = setDeveloper
     }
 
     /// Bytes from the phone, in arrival order.
@@ -645,6 +649,7 @@ public final class Session {
             dashboard = link
             features += link.features()
             dispatcher.dashWatch = { [weak link] mask in link?.onWatch(mask) }
+            dispatcher.developer = setDeveloper
             dispatcher.permAnswer = { [weak link] wire in link?.answer(wire) ?? false }
         }
         send(.text(kind: TextKind.features.rawValue, value: features.joined(separator: "/")))

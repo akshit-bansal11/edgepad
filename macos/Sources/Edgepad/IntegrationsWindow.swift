@@ -28,6 +28,7 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
     static var menuTitle: String { tr("Menu_Integrations", "Integrations…") }
 
     private let hooks: IntegrationsHooks
+    private let developer: Bool
     private var window: NSWindow?
     private let stats = NSButton(checkboxWithTitle: "", target: nil, action: nil)
     private let weather = NSButton(checkboxWithTitle: "", target: nil, action: nil)
@@ -44,7 +45,8 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
     private var signingIn = false
     private var gitHubProblem: String?
 
-    init(hooks: IntegrationsHooks) {
+    init(hooks: IntegrationsHooks, developer: Bool) {
+        self.developer = developer
         self.hooks = hooks
         super.init()
     }
@@ -65,6 +67,11 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
             }
             self?.refresh()
         }
+    }
+
+    /// Closes the window if it is open.
+    func close() {
+        window?.close()
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -130,25 +137,31 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
         let gitHubTitle = Self.heading(tr("Integrations_GitHub", "GitHub"))
         let developersTitle = Self.heading(tr("Integrations_ForDevelopers", "For developers"))
         developersTitle.textColor = .secondaryLabelColor
-        let views: [NSView] = [
-            intro, stats, weather, cityRow, note, developersTitle, claude.view, codex.view, gitHubTitle,
-            gitHubStatus, gitHubSteps,
-            signButton,
-            privateRepos, codeLabel, codeButtons, waitingLabel, close,
-        ]
+        let views: [NSView] =
+            developer
+            ? [
+                developersTitle, claude.view, codex.view, gitHubTitle, gitHubStatus, gitHubSteps, signButton,
+                privateRepos, codeLabel, codeButtons, waitingLabel, close,
+            ]
+            : [intro, stats, weather, cityRow, note, close]
         let stack = NSStackView(views: views)
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 10
         stack.edgeInsets = NSEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
-        stack.setCustomSpacing(18, after: note)
-        stack.setCustomSpacing(10, after: developersTitle)
-        stack.setCustomSpacing(18, after: codex.view)
+        if developer {
+            stack.setCustomSpacing(10, after: developersTitle)
+            stack.setCustomSpacing(18, after: codex.view)
+        } else {
+            stack.setCustomSpacing(18, after: note)
+        }
 
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: Self.width + 40, height: 600), styleMask: [.titled, .closable],
             backing: .buffered, defer: false)
-        window.title = tr("Integrations_Title", "Integrations")
+        window.title =
+            developer
+            ? tr("Integrations_ForDevelopers", "For developers") : tr("Integrations_Title", "Integrations")
         window.isReleasedWhenClosed = false
         window.delegate = self
         window.contentView = stack

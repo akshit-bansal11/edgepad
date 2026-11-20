@@ -68,7 +68,8 @@ final class SessionTests: XCTestCase {
         ask: @escaping (String) -> Bool = { _ in true },
         inputBlocked: (() -> Bool)? = nil,
         power: PowerSource? = nil,
-        makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)? = nil
+        makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)? = nil,
+        setDeveloper: ((Bool) -> Void)? = nil
     ) -> Session {
         Session(
             address: address ?? phone,
@@ -97,7 +98,8 @@ final class SessionTests: XCTestCase {
                 self.iconTurns.append(turn)
             },
             scheduleAfter: { [weak self] seconds, tick in self?.watchTicks.append((seconds, tick)) },
-            makeDashboard: makeDashboard
+            makeDashboard: makeDashboard,
+            setDeveloper: setDeveloper
         )
     }
 
@@ -387,6 +389,36 @@ final class SessionTests: XCTestCase {
         XCTAssertTrue(session.isEnded)
         XCTAssertEqual(made, 0)
         XCTAssertFalse(phones.any)
+    }
+
+    func testDeveloperModeIsNamedInFeaturesAndThePhoneCanSetIt() {
+        let settings = IntegrationSettings(path: directory.path + "/developer.txt")
+        settings.setFlag(IntegrationSettings.developer, true)
+        var asked: [Bool] = []
+        let session = makeSession(
+            makeDashboard: { _ in
+                DashboardLink(
+                    phones: LinkedPhones(),
+                    makeHost: {
+                        IntegrationHost(
+                            send: { _ in }, blobs: nil, settings: settings, parts: DashboardParts(), onMain: { $0() })
+                    })
+            },
+            setDeveloper: { asked.append($0) })
+
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+        session.receive(FrameCodec.encode(.setValue(control: ControlId.developer.rawValue, value: 1)))
+        session.receive(FrameCodec.encode(.setValue(control: ControlId.developer.rawValue, value: 0)))
+        session.receive(FrameCodec.encode(.setValue(control: ControlId.developer.rawValue, value: 2)))
+
+        let named = transport.frames().contains { frame in
+            if case .text(let kind, let value) = frame, kind == TextKind.features.rawValue {
+                return value.split(separator: "/").contains(Substring(Feature.developer.rawValue))
+            }
+            return false
+        }
+        XCTAssertTrue(named)
+        XCTAssertEqual(asked, [true, false])
     }
 
     func testInputStateIsSentAfterTheDeviceTextAndOnlyOnAChange() {
