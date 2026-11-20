@@ -25,7 +25,7 @@
 - [Install](#install)
 - [Quick start](#quick-start)
 - [How it works](#how-it-works)
-- [Integrations and widgets](#integrations-and-widgets)
+- [Optional extras](#optional-extras)
 - [Languages](#languages)
 - [Security](#security)
 - [Develop](#develop)
@@ -160,12 +160,15 @@ sequenceDiagram
 
 Read more: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the apps, their threads and the trust model, [docs/PROTOCOL.md](docs/PROTOCOL.md) for the wire format, and the [online documentation](https://edgepad.akshitbansal.dev/docs).
 
-## Integrations and widgets
+## Optional extras
 
-Everything here is off until you turn it on. In the laptop app, open the menu and choose **Integrations…**. Nothing is assumed to be installed.
+Edgepad does everything above without these. They are here if you want them, and each one is off until you turn it on. In the laptop app, open the menu and choose **Integrations…**. Nothing is assumed to be installed.
 
-- **Widgets on the phone.** Clock, weather, system numbers, network and AI usage, drawn behind the trackpad. Move them in the layout editor.
-- **System, AI and GitHub screens.** Reached from the Controls popup on the phone.
+- **Widgets on the phone.** Clock, weather, system numbers and network (and AI usage, once Claude Code or Codex is connected), drawn behind the trackpad. Move them in the layout editor.
+- **System screen.** The laptop's processor, memory, disks and network, from the Controls popup on the phone.
+
+For developers, there are also AI and GitHub screens. They never appear in the phone's Controls until you connect them on the laptop, and you can hide any Controls tile with **Edit**.
+
 - **Claude Code and Codex.** Approve their requests from the phone, and see their sessions, limits and spend. Needs Claude Code, or Codex 0.159 or newer. Nothing else to install: the hooks run the Edgepad app itself, and the app reads Claude spend from Claude Code's own transcripts.
 - **GitHub.** Sign in with a GitHub account to see review requests, your pull requests with their checks, and notifications. Private repositories are included only if you tick **Include private repositories**.
 
