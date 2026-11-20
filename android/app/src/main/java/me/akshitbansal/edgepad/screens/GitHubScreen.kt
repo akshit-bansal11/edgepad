@@ -4,6 +4,7 @@ import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
@@ -50,6 +51,7 @@ class GitHubScreen(
     }
 
     private fun Column.render(s: LaptopState) {
+        card { add(brand()) }
         // GitHub refused the laptop's token (signed out or revoked) since it said FEATURES; a later UNAVAILABLE without it,
         // once a new token works, brings the lists back.
         val refused = s.unavailable[Feature.GITHUB.token] == UnavailableReason.NO_PERMISSION
@@ -79,6 +81,24 @@ class GitHubScreen(
                 add(pull(row))
             }
         }
+    }
+
+    /** The GitHub mark beside its name. */
+    private fun brand(): LinearLayout {
+        val mark =
+            ImageView(ui.context).apply {
+                setImageResource(R.drawable.ic_github)
+                setColorFilter(ui.palette.ink)
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }
+        val start =
+            LinearLayout(ui.context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                val side = ui.dp(MARK_DP)
+                addView(mark, LinearLayout.LayoutParams(side, side).apply { marginEnd = ui.dp(Space.M) })
+                addView(ui.text(ui.string(R.string.gh_title), Type.BODY, ui.palette.ink, face = Type.bold))
+            }
+        return ui.row(start).apply { minimumHeight = ui.dp(Space.ROW) }
     }
 
     private fun Column.note(text: String) {
@@ -141,5 +161,6 @@ class GitHubScreen(
 
     private companion object {
         const val TITLE_LINES = 2
+        const val MARK_DP = 24f
     }
 }
