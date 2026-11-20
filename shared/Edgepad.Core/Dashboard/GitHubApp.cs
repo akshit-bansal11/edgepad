@@ -6,12 +6,11 @@ namespace Edgepad.Dashboard;
 internal static class GitHubApp
 {
     /// <summary>
-    /// PLACEHOLDER: the OAuth App's public Client ID, empty until the owner registers the app (plan step O1: register it at
-    /// https://github.com/settings/applications/new with Device Flow enabled, then paste its Client ID here). While it is
-    /// empty, sign-in reports <see cref="SignInState.NotConfigured"/> and asks nobody. A Client ID is public by design; the
-    /// device flow needs no client secret, and none may ever be added.
+    /// The public Client ID of the Edgepad OAuth App, registered 2026-11-20 with Device Flow on and token expiry off,
+    /// because nothing here refreshes a token. A Client ID is public by design; the device flow needs no client secret,
+    /// and none may ever be added. An empty value reports <see cref="SignInState.NotConfigured"/> and asks nobody.
     /// </summary>
-    public const string ClientId = "";
+    public const string ClientId = "Ov23li11P3z1LCVz9APf";
 
     /// <summary>The <see cref="ISecretStore"/> name the token is kept under.</summary>
     public const string TokenName = "github.token";

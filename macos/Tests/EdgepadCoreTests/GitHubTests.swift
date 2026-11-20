@@ -125,13 +125,14 @@ final class GitHubSignInTests: XCTestCase {
             delay: { _ in try await Task.sleep(nanoseconds: 3_600_000_000_000) })
     }
 
-    func testThePlaceholderClientIdReportsNotConfiguredWithoutARequest() async {
+    func testAnEmptyClientIdReportsNotConfiguredWithoutARequest() async {
         let http = FakeHttp { _ in FakeHttp.json200(self.code) }
-        let start = await newSignIn(http, clientId: GitHubApp.clientId).start(includePrivate: false)
+        let start = await newSignIn(http, clientId: "").start(includePrivate: false)
 
         XCTAssertEqual(start.state, .notConfigured)
         XCTAssertTrue(http.seen.isEmpty)
-        XCTAssertFalse(GitHubApp.isConfigured(GitHubApp.clientId))
+        XCTAssertFalse(GitHubApp.isConfigured(""))
+        XCTAssertTrue(GitHubApp.isConfigured(GitHubApp.clientId))
     }
 
     func testStartAsksGitHubForACodeAtTheFixedAddress() async {

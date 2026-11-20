@@ -3,10 +3,10 @@ import Foundation
 /// The GitHub OAuth App Edgepad signs in through, and the fixed names and addresses that go with it. The twin of the
 /// laptop core's GitHubApp.
 public enum GitHubApp {
-    /// PLACEHOLDER: the OAuth App's public Client ID, empty until the owner registers the app (plan step O1), and the
-    /// same value as GitHubApp.cs. While it is empty, sign-in reports `SignInState.notConfigured` and asks nobody. A
-    /// Client ID is public by design; the device flow needs no client secret, and none may ever be added.
-    public static let clientId = ""
+    /// The public Client ID of the Edgepad OAuth App, the same value as GitHubApp.cs. A Client ID is public by design;
+    /// the device flow needs no client secret, and none may ever be added. An empty value reports
+    /// `SignInState.notConfigured` and asks nobody.
+    public static let clientId = "Ov23li11P3z1LCVz9APf"
 
     /// The `SecretStore` name the token is kept under.
     public static let tokenName = "github.token"
@@ -50,7 +50,7 @@ public enum SignInState: Equatable {
     case started
     /// The token is saved.
     case signedIn
-    /// No Client ID is built in (`GitHubApp.clientId` is the placeholder); nobody was asked.
+    /// No Client ID was given (an empty or malformed one); nobody was asked.
     case notConfigured
     /// The user said no on GitHub.
     case denied

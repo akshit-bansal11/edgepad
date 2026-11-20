@@ -18,16 +18,17 @@ public sealed class GitHubSignInTests
     private readonly List<TimeSpan> waits = [];
 
     [Fact]
-    public async Task ThePlaceholderClientIdReportsNotConfiguredWithoutARequest()
+    public async Task AnEmptyClientIdReportsNotConfiguredWithoutARequest()
     {
         var http = new FakeHttp(_ => FakeHttp.Json(Code));
-        var signIn = new GitHubSignIn(secrets, GitHubApp.ClientId, http, () => clock.Now, Wait);
+        var signIn = new GitHubSignIn(secrets, "", http, () => clock.Now, Wait);
 
         var start = await signIn.StartAsync(false, TestContext.Current.CancellationToken);
 
         Assert.Equal(SignInState.NotConfigured, start.State);
         Assert.Empty(http.Seen);
-        Assert.False(GitHubApp.IsConfigured(GitHubApp.ClientId));
+        Assert.False(GitHubApp.IsConfigured(""));
+        Assert.True(GitHubApp.IsConfigured(GitHubApp.ClientId));
     }
 
     [Fact]

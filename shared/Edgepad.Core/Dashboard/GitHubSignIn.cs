@@ -12,7 +12,7 @@ public enum SignInState
     /// <summary>The token is saved.</summary>
     SignedIn,
 
-    /// <summary>No Client ID is built in (<see cref="GitHubApp.ClientId"/> is the placeholder); nobody was asked.</summary>
+    /// <summary>No Client ID was given (an empty or malformed one); nobody was asked.</summary>
     NotConfigured,
 
     /// <summary>The user said no on GitHub.</summary>
