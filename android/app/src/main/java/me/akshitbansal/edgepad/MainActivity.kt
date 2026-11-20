@@ -868,14 +868,17 @@ class MainActivity :
     private fun syncDashWatch() {
         val dash =
             when (screen) {
-                Screen.SYSTEM ->
+                Screen.SYSTEM -> {
                     when (statsPage) {
                         1 -> DashMask.Screen.AI
                         2 -> DashMask.Screen.GITHUB
                         else -> DashMask.Screen.SYSTEM
                     }
+                }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
         val mask =
             DashMask.of(
@@ -1428,19 +1431,20 @@ class MainActivity :
                 }
 
                 Screen.SYSTEM -> {
-                    StatsScreen(
-                        ui,
-                        { state },
-                        developerOn(),
-                        onPage = { page ->
-                            statsPage = page
-                            syncDashWatch()
-                        },
-                    ) { navigateBack() }.also {
-                        systemScreen = it.system
-                        aiScreen = it.ai
-                        githubScreen = it.github
-                    }.view
+                    val stats =
+                        StatsScreen(
+                            ui,
+                            { state },
+                            developerOn(),
+                            onPage = { page ->
+                                statsPage = page
+                                syncDashWatch()
+                            },
+                        ) { navigateBack() }
+                    systemScreen = stats.system
+                    aiScreen = stats.ai
+                    githubScreen = stats.github
+                    stats.view
                 }
 
                 Screen.RECONNECTING -> {

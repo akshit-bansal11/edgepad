@@ -686,9 +686,12 @@ class WidgetPainter(
             val natural =
                 when (widget) {
                     SurfaceWidget.CLOCK -> CLOCK_HEIGHT_DP
+
                     SurfaceWidget.NETWORK -> NETWORK_HEIGHT_DP
+
                     // Four square cards across the width, so the box is as tall as one card.
                     SurfaceWidget.SYSTEM -> (width / density - (CARDS - 1) * CARD_GAP_DP) / CARDS
+
                     else -> DEFAULT_HEIGHT_DP
                 }
             return width to minOf(natural * density, HEIGHT_SHARE * h)

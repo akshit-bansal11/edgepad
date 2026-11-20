@@ -93,7 +93,12 @@ object TipCard {
                     bottomMargin = ui.dp(bottomDp)
                 }
         host.addView(card, at)
-        card.animate().alpha(1f).translationY(0f).setDuration(Motion.REVEAL).start()
+        card
+            .animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(Motion.REVEAL)
+            .start()
         return true
     }
 }

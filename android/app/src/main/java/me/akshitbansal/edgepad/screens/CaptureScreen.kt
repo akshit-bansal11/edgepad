@@ -25,11 +25,6 @@ import me.akshitbansal.edgepad.protocol.FileStatus
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.surface.ControlSurface
 
-private const val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
-private const val SIDE_DP = 200f
-private const val ACTIONS_DP = 100f
-private const val TIP_KEY = "capture"
-
 /**
  * Asking the laptop to take a screenshot or a recording, with the pad under the buttons. The laptop's own
  * tool does the capturing; a region capture waits for the pointer to drag out an area, which is why the

@@ -343,9 +343,12 @@ class ControlsPopup(
     ): Boolean =
         when (target) {
             Target.CAPTURE -> capture
+
             Target.ANNOTATE -> annotate
+
             // Any page: the AI and Git pages are named only with Developer mode on.
             Target.SYSTEM -> features().any { it in STATS_PAGES }
+
             else -> true
         }
 

@@ -1,6 +1,6 @@
 package me.akshitbansal.edgepad.screens
 
-import android.app.ActivityNotFoundException
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.util.Log

@@ -202,8 +202,7 @@ class StatCards(
         canvas.drawText(speed, left + side + dp(Space.S), centreY - (ink.ascent + ink.descent) / 2, rateInk)
     }
 
-    private fun text(face: Typeface): TextPaint =
-        TextPaint(Paint.ANTI_ALIAS_FLAG).apply { typeface = face }
+    private fun text(face: Typeface): TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { typeface = face }
 
     private fun faded(
         color: Int,
