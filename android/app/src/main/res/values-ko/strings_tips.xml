@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">팁 닫기</string>
+  <string name="tip_presenter">이 화면이 열려 있는 동안 볼륨 키로 슬라이드를 넘깁니다.</string>
+  <string name="tip_capture">영역: 누른 뒤 패드에서 반대쪽 모서리까지 드래그하세요.</string>
+  <string name="tip_annotate">여기에 그리면 노트북의 같은 위치에 잉크가 나타납니다.</string>
+  <string name="tip_shapes">한 번에 그린 뒤 손가락을 떼세요.</string>
+  <string name="capture_to_phone">휴대폰으로</string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">Zamknij wskazówkę</string>
+  <string name="tip_presenter">Przyciski głośności zmieniają slajdy, gdy ten ekran jest otwarty.</string>
+  <string name="tip_capture">Obszar: dotknij, potem przeciągnij po padzie do przeciwległego rogu.</string>
+  <string name="tip_annotate">Rysuj tutaj. Tusz pojawia się na laptopie w tym samym miejscu.</string>
+  <string name="tip_shapes">Narysuj jednym pociągnięciem i unieś palec.</string>
+  <string name="capture_to_phone">Na telefon</string>
+</resources>

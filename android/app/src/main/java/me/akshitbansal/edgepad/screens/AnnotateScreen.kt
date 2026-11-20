@@ -15,7 +15,6 @@ import android.widget.ScrollView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
-import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
@@ -49,19 +48,7 @@ class AnnotateScreen(
 ) {
     private val strokes = Strokes(settings.penRgb, settings.penWidth, settings.penOpacity)
 
-    // AND-A-20: one dim line over the empty pad until the first touch draws something.
-    private var armed = false
-    private val hint = ui.text(hintFor(state), Type.BODY, ui.palette.dim)
-    private val canvas =
-        AnnotateCanvas(
-            ui.context,
-            strokes,
-            { state.screenSize },
-            { frame ->
-                if (armed) hint.visibility = View.GONE
-                send(frame)
-            },
-        )
+    private val canvas = AnnotateCanvas(ui.context, strokes, { state.screenSize }, send)
     private val tools = ArrayList<Pair<PenTool, ImageView>>()
     private val swatches = ArrayList<View>()
     private lateinit var customSwatch: View
@@ -81,7 +68,6 @@ class AnnotateScreen(
             setBackgroundColor(ui.palette.background)
             canvas.contentDescription = ui.string(R.string.annotate_description)
             addView(canvas, FrameLayout.LayoutParams(MATCH, MATCH))
-            addView(hint, FrameLayout.LayoutParams(WRAP, WRAP, Gravity.CENTER))
             EditorFrame.addBack(this, ui, onBack)
             addView(
                 LinearLayout(ui.context).apply {
@@ -95,20 +81,17 @@ class AnnotateScreen(
                     .apply { setMargins(ui.dp(Space.M), ui.dp(Space.M), ui.dp(Space.M), ui.dp(Space.M)) },
             )
             ui.padToBars(this)
+            // Clear of the menu and its handle, which sit in the bottom corner.
+            val kind = StencilIcon.Kind.ANNOTATE
+            TipCard.show(this, settings, "annotate", kind, R.string.tip_annotate, Space.M, endDp = MENU_CLEAR_DP)
         }
 
     init {
-        hint.gravity = Gravity.CENTER
-        hint.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         // A new session starts on the laptop's own pen, so say which one the preview starts on.
         sendStyle()
         paint()
         open(false)
-        armed = true
     }
-
-    private fun hintFor(state: LaptopState): String =
-        state.laptopName?.let { ui.string(R.string.annotate_hint_named, it) } ?: ui.string(R.string.annotate_hint)
 
     /** Redraws the pad, for a laptop display that changed shape under it. */
     fun refresh() = canvas.refresh()
@@ -457,6 +440,7 @@ class AnnotateScreen(
     private companion object {
         const val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
         const val WRAP = ViewGroup.LayoutParams.WRAP_CONTENT
+        const val MENU_CLEAR_DP = 72f
         const val SWATCH_DP = 32f
         const val RING_DP = 3f
         const val HAIR_DP = 1f

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">Tip sluiten</string>
+  <string name="tip_presenter">Met de volumetoetsen wissel je van dia zolang dit scherm open is.</string>
+  <string name="tip_capture">Gebied: tik erop en sleep op het pad naar de tegenoverliggende hoek.</string>
+  <string name="tip_annotate">Teken hier. De inkt verschijnt op de laptop op dezelfde plek.</string>
+  <string name="tip_shapes">Teken in één streek en til dan je vinger op.</string>
+  <string name="capture_to_phone">Naar telefoon</string>
+</resources>

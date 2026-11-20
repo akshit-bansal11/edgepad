@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">Close tip</string>
+  <string name="tip_presenter">Volume keys change slides while this screen is open.</string>
+  <string name="tip_capture">Region: tap it, then drag on the pad to the far corner.</string>
+  <string name="tip_annotate">Draw here. Ink appears on the laptop in the same place.</string>
+  <string name="tip_shapes">Draw it in one stroke, then lift.</string>
+  <string name="capture_to_phone">To phone</string>
+</resources>

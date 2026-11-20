@@ -200,6 +200,12 @@ class Settings(
     /** The Presenter laser leaves a short red trail behind the dot. */
     var laserTrail by flag("laserTrail", false)
 
+    /** Whether the one-time tip [key] has been shown; see [TipCard][me.akshitbansal.edgepad.screens.TipCard]. */
+    fun tipSeen(key: String): Boolean = prefs.getBoolean(TIP_PREFIX + key, false)
+
+    /** Marks the tip [key] seen, for good. */
+    fun setTipSeen(key: String) = prefs.edit().putBoolean(TIP_PREFIX + key, true).apply()
+
     /** The pen's opacity in percent, as [me.akshitbansal.edgepad.protocol.ControlId.PEN_OPACITY] sends it. */
     var penOpacity by pref({ prefs.getInt(KEY_PEN_OPACITY, Strokes.DEFAULT_OPACITY).coerceIn(PEN_OPACITIES) }) {
         putInt(KEY_PEN_OPACITY, it.coerceIn(PEN_OPACITIES))
@@ -694,6 +700,7 @@ class Settings(
         private const val KEY_PEN_RGB = "penRgb"
         private const val KEY_PEN_WIDTH = "penWidth"
         private const val KEY_LASER_SIZE = "laserSize"
+        private const val TIP_PREFIX = "tip."
         private const val KEY_PEN_OPACITY = "penOpacity"
 
         /** Prefixes a media layout key to make its landscape twin. */

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">ヒントを閉じる</string>
+  <string name="tip_presenter">この画面を開いている間は、音量キーでスライドを切り替えられます。</string>
+  <string name="tip_capture">範囲：タップしてから、パッド上で対角までドラッグします。</string>
+  <string name="tip_annotate">ここに描くと、ノートPCの同じ位置にインクが表示されます。</string>
+  <string name="tip_shapes">ひと筆で描いて、指を離します。</string>
+  <string name="capture_to_phone">スマホへ</string>
+</resources>

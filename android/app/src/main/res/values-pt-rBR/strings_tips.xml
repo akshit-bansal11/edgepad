@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">Fechar dica</string>
+  <string name="tip_presenter">As teclas de volume mudam os slides enquanto esta tela está aberta.</string>
+  <string name="tip_capture">Região: toque nela e arraste no painel até o canto oposto.</string>
+  <string name="tip_annotate">Desenhe aqui. A tinta aparece no notebook no mesmo lugar.</string>
+  <string name="tip_shapes">Desenhe num só traço e depois levante o dedo.</string>
+  <string name="capture_to_phone">Para o celular</string>
+</resources>

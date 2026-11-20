@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">Tipp schließen</string>
+  <string name="tip_presenter">Lautstärketasten wechseln die Folien, solange dieser Bildschirm offen ist.</string>
+  <string name="tip_capture">Bereich: antippen, dann auf dem Pad zur Gegenecke ziehen.</string>
+  <string name="tip_annotate">Zeichne hier. Die Tinte erscheint am Laptop an derselben Stelle.</string>
+  <string name="tip_shapes">In einem Zug zeichnen, dann loslassen.</string>
+  <string name="capture_to_phone">Aufs Handy</string>
+</resources>

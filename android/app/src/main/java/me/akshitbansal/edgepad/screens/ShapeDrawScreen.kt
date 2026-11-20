@@ -32,6 +32,8 @@ import me.akshitbansal.edgepad.surface.TrackpadRecognizer
  * the next thing that happens.
  */
 object ShapeDrawScreen {
+    private const val TIP_BOTTOM_DP = 72f
+
     fun build(
         ui: Ui,
         settings: Settings,
@@ -72,6 +74,8 @@ object ShapeDrawScreen {
                         }
                     },
                 )
+                // Above the line that reports a stroke that came out wrong, which sits at the bottom.
+                TipCard.show(root, settings, "shapes", StencilIcon.Kind.ANNOTATE, R.string.tip_shapes, TIP_BOTTOM_DP)
                 return
             }
             val redraw = {
@@ -190,7 +194,6 @@ object ShapeDrawScreen {
         /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
         constructor(context: Context) : this(context, emptyList(), {})
 
-        private val hint = context.getString(R.string.shapes_draw_hint)
         private val tooShort = context.getString(R.string.shapes_too_short)
         private val tooClose = context.getString(R.string.shapes_too_close)
         private val xs = FloatArray(TrackpadRecognizer.MAX_PATH)
@@ -207,7 +210,7 @@ object ShapeDrawScreen {
                 color = palette.accent
             }
         private var count = 0
-        private var message = hint
+        private var message = ""
 
         init {
             contentDescription = context.getString(R.string.shapes_draw_title)
@@ -218,7 +221,7 @@ object ShapeDrawScreen {
         fun clear() {
             count = 0
             path.reset()
-            message = hint
+            message = ""
             invalidate()
         }
 
