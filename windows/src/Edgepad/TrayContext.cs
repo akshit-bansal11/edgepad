@@ -188,6 +188,9 @@ internal sealed class TrayContext : ApplicationContext
         updateSetting = UpdateSetting.ForCurrentUser(pin.Folder);
         updateChoice = new UpdateChoice(Path.Combine(pin.Folder, "update-choice.txt"));
 
+        // Made here, before the menu rows below capture it; its events and Start() wait for the UI thread further down.
+        integrations = new WindowsIntegrations(pin.Folder, Program.Version);
+
         // An install from before the first-run question asked about the clipboard had it on without a file. It keeps
         // what it had, written down so it is a stored value from now on; only an install that never answered asks.
         if (networkSettings.HasChoice && !clipboardSetting.HasChoice)
@@ -331,7 +334,6 @@ internal sealed class TrayContext : ApplicationContext
 
         // Opens only what the saved switches ask for: nothing at all for an owner who never turned one on. A connected plugin
         // that an update or a moved Node.js left behind is re-stamped off this thread (no program runs while both agents are off).
-        integrations = new WindowsIntegrations(pin.Folder, Program.Version);
         integrations.Trusted += () => ui.Post(_ => ReloadIntegrations(), null);
         integrations.DeveloperChanged += () => ui.Post(_ => OnDeveloperChanged(), null);
         integrations.Start();
