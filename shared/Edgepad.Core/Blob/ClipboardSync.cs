@@ -277,6 +277,40 @@ internal sealed class ClipboardSync
         }
     }
 
+    /// <summary>
+    /// Sends text now, for the history panel's "send to phone": the same gates and caps as a copy, no debounce, no
+    /// clipboard read. Blocks for the transfer, so never on the read or UI thread. False when not shared or allowed,
+    /// empty, over the cap, or the send fails.
+    /// </summary>
+    public bool SendNow(BlobKind kind, byte[] data)
+    {
+        if (!Active || data.Length == 0 || Cap((byte)kind) is not { } cap || data.Length > cap)
+        {
+            return false;
+        }
+
+        var hash = SHA256.HashData(data);
+        lock (gate)
+        {
+            known = hash;
+        }
+
+        var sent = false;
+        try
+        {
+            sent = sender.Send(kind, NoLabel, data, () => !Active);
+        }
+        finally
+        {
+            if (!sent)
+            {
+                Forget(hash);
+            }
+        }
+
+        return sent;
+    }
+
     /// <summary>The phone never got this, so the same content copied again must go. A blob since then stays known.</summary>
     private void Forget(byte[] hash)
     {

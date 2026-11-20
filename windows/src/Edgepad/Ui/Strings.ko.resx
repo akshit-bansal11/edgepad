@@ -482,4 +482,327 @@ Wi-Fi 및 USB 페어링을 등록 해제하지 못했어요. 파일을 삭제하
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi 및 USB: 휴대전화가 이 노트북을 찾지 못할 수 있어요.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>관리자 권한으로 다시 시작</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>작업 관리자 같은 상승된 창에도 Edgepad로 입력할 수 있게 합니다. 잠금 화면과 UAC 창에는 입력할 수 없습니다.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} 설치</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>나중에</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>이 버전 건너뛰기</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0}을(를) 사용할 수 있습니다. 클릭하여 설치하세요.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0}을(를) 확인할 수 없어 설치하지 않았습니다.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0}을(를) 설치할 수 없습니다. 클릭하여 릴리스 페이지를 여세요.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>주요 릴리스입니다. 휴대폰의 Edgepad도 업데이트하세요. 그러지 않으면 서로 연결을 거부합니다. 지금 설치할까요?</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>종료하는 중</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>미디어가 끝났습니다. 이 노트북은 {0}초 후에 종료됩니다.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>취소</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>휴대폰으로 파일 보내기…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0}을(를) 휴대폰에서 받았습니다.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0}을(를) 받지 못했습니다.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>휴대폰에 알림 표시</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>설치</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>나중에</value>
+  </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>클립보드 기록(&amp;H)</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>이 노트북과 휴대폰의 최근 복사 항목입니다. 메모리에만 보관됩니다.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>클립보드</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>아직 복사한 항목이 없습니다</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>이 노트북과 휴대폰에서 복사한 항목이 여기에 표시됩니다.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>복사 항목을 여기서 보려면 트레이 메뉴에서 클립보드 공유를 켜세요.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>모두 지우기</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>이 노트북</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>휴대폰</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>방금</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0}분 전</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0}시간 전</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0}일 전</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>휴대폰으로 보내기</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>제거</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>휴대폰으로 보냈습니다</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>보내지 못했습니다. 연결을 확인하세요.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>복사했습니다. Ctrl+V로 붙여넣으세요.</value>
+  </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>클립보드를 사용할 수 없습니다. 다시 시도하세요.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V를 다른 앱이 사용 중이어서 단축키가 꺼져 있습니다.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>휴대폰으로 보내는 중</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>휴대폰에서 받는 중</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0}/{1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0}/{1} · {2}/초</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0}/{1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} 보냄</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>보낸 파일: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>보낸 파일: {0}/{1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>받은 파일: {0}</value>
+  </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>받은 파일: {0}/{1}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0}을(를) 보내지 못했습니다</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>보내지 못한 파일: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>취소하는 중…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>다시 시도</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>닫기</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>연결된 휴대폰이 없습니다.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} 건너뜀: 비어 있거나, 없거나, 2GB를 넘습니다.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>휴대폰이 거부했습니다. 저장 공간이 부족할 수 있습니다.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>손상된 채로 도착했습니다. 다시 시도하세요.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>휴대폰이 저장하지 못했습니다.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>휴대폰이 다른 파일을 처리 중이었습니다.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>휴대폰이 응답하지 않습니다.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>연결이 끊어졌습니다.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>이 노트북이 파일을 읽지 못했습니다.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>취소했습니다.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>보내지 않았습니다.</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>연동(&amp;I)…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>개발자 모드</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>개발자 연동…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>연동</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>여기 있는 모든 기능은 켜기 전까지 꺼져 있어요.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>휴대전화에 시스템 통계 표시</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>휴대전화에 날씨 표시</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>도시</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>open-meteo.com에는 도시 이름만 보내요.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>연결</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>연결 해제</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>연결됨 · 마지막 신호 {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>연결 안 됨</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>이 컴퓨터에서 {0}을(를) 찾을 수 없어요</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad가 대신 실행하지 못했어요. 터미널에서 다음 명령을 실행하세요:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>복사</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Codex에서 /hooks를 열고 Edgepad를 신뢰하세요.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Codex가 플러그인을 신뢰하기를 기다리는 중…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Codex를 0.159 이상 버전으로 업데이트하세요.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>열려 있는 세션을 다시 시작하거나 Claude Code에서 /reload-plugins를 실행하세요.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>개발자용</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>GitHub로 로그인</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>로그아웃</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>내 코드: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device 열기</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>브라우저에서 승인하기를 기다리는 중…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>비공개 저장소 포함</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>{0}(으)로 로그인됨</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>이 빌드에는 로그인이 설정되어 있지 않아요.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>처리 중…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. 아직 설치하지 않았다면 이 컴퓨터에 Claude Code를 설치하세요: claude.com/claude-code
+2. 연결을 클릭하세요. Edgepad가 Claude Code에 플러그인을 추가해요.
+3. 열려 있는 Claude Code 세션을 다시 시작하거나, 세션에서 /reload-plugins를 입력하세요.
+4. 휴대전화에서 Controls > AI를 여세요.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. 아직 설치하지 않았다면 이 컴퓨터에 Codex를 설치하세요: developers.openai.com/codex
+2. 연결을 클릭하세요. Edgepad가 Codex에 플러그인을 추가해요.
+3. Codex에서 /hooks를 입력하고 Edgepad를 신뢰하세요. Codex 앱에서는 Settings > Hooks > Review hooks로 가세요.
+4. 휴대전화에서 Controls > AI를 여세요. Codex가 첫 이벤트를 보내면 나타나요.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. GitHub로 로그인을 클릭하세요. github.com 페이지가 열려요.
+2. 여기 표시된 코드를 입력하고 Authorize를 클릭하세요.
+3. 휴대전화에서 Controls > GitHub를 여세요.</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex에서 다시 허용이 필요해요</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad가 업데이트되었어요. Codex에서 /hooks를 입력하고 Edgepad를 신뢰하세요. 그러지 않으면 승인 요청이 휴대전화 대신 터미널에 남아요.</value>
+  </data>
 </root>

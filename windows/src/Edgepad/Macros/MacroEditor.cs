@@ -213,6 +213,12 @@ internal sealed class MacroWindow : Form
 
     private int S(int value) => Theme.Scale(value, DeviceDpi);
 
+    protected override void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+        Reveal.Window(this);
+    }
+
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
@@ -892,7 +898,7 @@ internal sealed class MacroWindow : Form
             graphics.Clear(palette.Card);
             graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-            using (var dashed = new Pen(palette.Line) { DashStyle = DashStyle.Dash })
+            using (var dashed = new Pen(palette.Hairline) { DashStyle = DashStyle.Dash })
             using (var box = Theme.Rounded(new RectangleF(0.5f, 0.5f, Width - 1, Height - 1), Theme.Scale(10f, DeviceDpi)))
             {
                 graphics.DrawPath(dashed, box);

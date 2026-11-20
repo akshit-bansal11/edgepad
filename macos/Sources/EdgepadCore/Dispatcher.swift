@@ -40,6 +40,14 @@ public final class Dispatcher {
     /// apps, like `padStatusReply`; without one, MACROS_WATCH and MACROS_UNWATCH are dropped and counted.
     public var macroWatch: ((Bool) -> Void)?
 
+    /// Says which app is in front. Set by the app on a Mac that can tell, like `macros`; without one, FOREGROUND_WATCH is
+    /// dropped and counted and the feature is not listed.
+    public var foreground: ForegroundSource?
+
+    /// Told when the phone starts (true) or stops (false) hearing the app in front. Set by the session once it lists the
+    /// feature, like `macroWatch`.
+    public var foregroundWatch: ((Bool) -> Void)?
+
     /// Sends captures to the phone when it asks for that. Set by the app per connection; without one,
     /// CAPTURE_TARGET and FILE_RESULT are dropped and counted.
     public var capture: CaptureToPhone?
@@ -55,6 +63,40 @@ public final class Dispatcher {
     /// Where the answer to APP_ADD goes, one `AppAddStatus` token. Set by the session once it has a link to write to,
     /// like `padStatusReply`.
     public var appAddReply: ((String) -> Void)?
+
+    /// What is playing, for MEDIA_POSITION. Set by the app per connection, like `capture`; without one, MEDIA_POSITION and
+    /// the end actions are dropped and counted.
+    public var media: MediaSource?
+
+    /// Where the media icon goes, on the same sender as the clipboard so the phone's one transfer is not interrupted.
+    public var mediaBlobs: BlobSender?
+
+    /// What a fired end action does to this Mac: sleep, or the shutdown countdown. Nil sends END_* to the drop path.
+    public var endPerform: ((EndKind) -> Bool)?
+
+    /// Armed by END_SLEEP and END_SHUTDOWN, disarmed by END_CANCEL. Set by the session once it has a link to write its
+    /// state to, like `padStatusReply`.
+    public var endAction: EndAction?
+
+    /// Receives the phone's files, on either socket. Set by the app per connection, like `capture`; without one,
+    /// XFER_BEGIN, XFER_CHUNK and XFER_END are dropped and counted.
+    public var transfers: TransferReceiver?
+
+    /// Sends files to the phone and takes its answers. Set by the app per connection; without one, the phone's
+    /// XFER_STATUS is dropped and counted.
+    public var sending: TransferSender?
+
+    /// Told the phone's DASH_WATCH, 0 to 31. Set by the session once it names a dashboard feature; without one, or for
+    /// a larger value, DASH_WATCH is dropped and counted.
+    public var dashWatch: ((Int) -> Void)?
+
+    /// Told the phone's DEVELOPER, true for 1 and false for 0. Set by the session; without one, or for a larger value,
+    /// DEVELOPER is dropped and counted.
+    public var developer: ((Bool) -> Void)?
+
+    /// Takes the phone's PERM_ANSWER and says whether an approval waited for it. Set by the session like `dashWatch`;
+    /// without one, or for an answer nothing waits for, the frame is dropped and counted.
+    public var permAnswer: ((String) -> Bool)?
 
     /// When the phone last sent input, by system uptime: a capture on its way slows down for it.
     public private(set) var lastInput: TimeInterval = 0
@@ -115,6 +157,10 @@ public final class Dispatcher {
                 // The one phone string that can end in a macro, and it is only ever a token: see `AppPicker`.
                 return addApp(value)
             }
+            if kind == TextKind.permAnswer.rawValue {
+                // Exactly `id/a` or `id/d` for an approval still waiting; the broker refuses anything else.
+                return permAnswer?(value) ?? false
+            }
             guard kind == TextKind.type.rawValue else { return false }
             input.type(value)
             return true
@@ -131,8 +177,19 @@ public final class Dispatcher {
             return clipboard?.take(seq: seq, data: data) ?? false
         case .blobEnd(let sha256):
             return clipboard?.take(sha256: sha256) ?? false
+        case .xferBegin(let id, let size, let name):
+            return transfers?.take(begin: id, size: size, name: name) ?? false
+        case .xferChunk(let id, let offset, let data):
+            return transfers?.take(chunk: id, offset: offset, data: data) ?? false
+        case .xferEnd(let id, let sha256):
+            return transfers?.take(end: id, sha256: sha256) ?? false
+        case .xferStatus(let id, let status, let offset):
+            // Both ends of the pair see it: the sender takes its answers, the receiver the sender's CANCELLED.
+            let answered = sending?.take(status: status, id: id, offset: offset) ?? false
+            let cancelled = transfers?.take(status: status, id: id) ?? false
+            return answered || cancelled
         case .hello, .helloAck, .ping, .pong, .state, .padState, .pinRequest, .pinAnswer, .fileBegin, .fileChunk,
-            .fileEnd:
+            .fileEnd, .bulkHello:
             // A Mac has no virtual controller to give a pad frame to, and the rest are not the phone's to send
             // once the session is live.
             return false
@@ -217,6 +274,13 @@ public final class Dispatcher {
             // Notifications: macOS has no default shortcut for it. The macro blocks are handled before this
             // switch; their cases are here only so the switch stays exhaustive.
             return false
+        case .endSleep:
+            return endAction?.arm(.sleep) ?? false
+        case .endShutdown:
+            return endAction?.arm(.shutdown) ?? false
+        case .endCancel:
+            guard let endAction else { return false }
+            endAction.cancel()
         case .appsList:
             return apps?.list() ?? false
         case .appsCancel:
@@ -225,7 +289,7 @@ public final class Dispatcher {
             guard let macroWatch else { return false }
             macroWatch(action == .macrosWatch)
         case .annotateBegin, .annotateEnd, .annotateUndo, .annotateClear, .toolPen, .toolHighlighter, .toolLine,
-            .toolArrow, .toolRectangle, .toolEllipse, .signBegin, .signSave:
+            .toolArrow, .toolRectangle, .toolEllipse, .toolLaser, .toolLaserTrail, .signBegin, .signSave:
             // With no overlay behind them these are dropped, which is the honest answer.
             return annotation?.run(action) ?? false
         case .desktopLeft:
@@ -320,8 +384,7 @@ public final class Dispatcher {
         case .brightness:
             return brightness.set(value)
         case .mediaPosition:
-            // Now playing is not built on the Mac yet.
-            return false
+            return media?.seek(percent: Percent.clamp(value)) ?? false
         case .penColor:
             // The value is a palette index; the board rejects one it does not have.
             return annotation?.setColour(value) ?? false
@@ -337,6 +400,23 @@ public final class Dispatcher {
             return capture?.setTarget(value) ?? false
         case .clipboard:
             return clipboard?.setShared(value) ?? false
+        case .notify:
+            // Not built on the Mac yet, so it is dropped and counted.
+            return false
+        case .foregroundWatch:
+            // Only 0 or 1; anything else is dropped and counted, as is a watch with no source behind it.
+            guard let foregroundWatch, value <= 1 else { return false }
+            foregroundWatch(value == 1)
+            return true
+        case .dashWatch:
+            // A bit mask of what the phone draws; anything over 31 is dropped and counted.
+            guard let dashWatch, value <= 31 else { return false }
+            dashWatch(value)
+            return true
+        case .developer:
+            guard let developer, value <= 1 else { return false }
+            developer(value == 1)
+            return true
         }
     }
 }

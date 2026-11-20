@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using Edgepad.Blob;
 using Edgepad.Dispatch;
 using Edgepad.Macros;
+using Edgepad.Media;
 using Edgepad.Net;
 using Edgepad.Protocol;
 using Xunit;
@@ -255,6 +256,62 @@ public sealed class DispatcherTests : IDisposable
 
         Assert.Equal(2, dispatcher.Dropped);
         Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void TheEndActionIdsReachTheEndActionAndNeverThePlatform()
+    {
+        List<EndKind> done = [];
+        List<string> states = [];
+        dispatcher.EndAction = new EndAction(
+            kind =>
+            {
+                done.Add(kind);
+                return true;
+            },
+            states.Add);
+        dispatcher.EndAction.Observe(new MediaSnapshot("a", true, 10, 200));
+
+        dispatcher.Handle(new RunAction((byte)ActionId.EndSleep));
+        dispatcher.Handle(new RunAction((byte)ActionId.EndShutdown));
+        dispatcher.Handle(new RunAction((byte)ActionId.EndCancel));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal(["sleep", "shutdown", "none"], states);
+        Assert.Empty(done);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void WithNoEndActionTheEndIdsAreDropped()
+    {
+        dispatcher.Handle(new RunAction((byte)ActionId.EndSleep));
+        dispatcher.Handle(new RunAction((byte)ActionId.EndShutdown));
+        dispatcher.Handle(new RunAction((byte)ActionId.EndCancel));
+
+        Assert.Equal(3, dispatcher.Dropped);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void RecordingIsReportedWithNoCaptureAndCancelOnlyWithinEightSeconds()
+    {
+        List<string> states = [];
+        long now = 1_000;
+        dispatcher.CaptureStateReply = states.Add;
+        dispatcher.Clock = () => now;
+
+        dispatcher.Handle(new RunAction((byte)ActionId.CaptureRecord));
+        now += 9_000;
+        dispatcher.Handle(new RunAction((byte)ActionId.CaptureCancel));
+        Assert.Equal(["recording"], states);
+
+        dispatcher.Handle(new RunAction((byte)ActionId.CaptureRecord));
+        dispatcher.Handle(new RunAction((byte)ActionId.CaptureRecord));
+        now += 2_000;
+        dispatcher.Handle(new RunAction((byte)ActionId.CaptureCancel));
+        Assert.Equal(["recording", "idle", "recording", "idle"], states);
+        Assert.Equal(0, dispatcher.Dropped);
     }
 
     [Theory]
@@ -571,5 +628,95 @@ public sealed class DispatcherTests : IDisposable
             Closed.Add(index);
             return Answer;
         }
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void TheForegroundWatchReachesTheSession(int value)
+    {
+        List<bool> seen = [];
+        dispatcher.ForegroundWatch = seen.Add;
+
+        dispatcher.Handle(new SetValue((byte)ControlId.ForegroundWatch, (byte)value));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal([value == 1], seen);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void AForegroundWatchAboveOneOrWithNoSourceIsDropped()
+    {
+        List<bool> seen = [];
+        dispatcher.Handle(new SetValue((byte)ControlId.ForegroundWatch, 1));
+        dispatcher.ForegroundWatch = seen.Add;
+        dispatcher.Handle(new SetValue((byte)ControlId.ForegroundWatch, 2));
+
+        Assert.Equal(2, dispatcher.Dropped);
+        Assert.Empty(seen);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(31)]
+    public void TheDashWatchMaskReachesTheHost(int value)
+    {
+        List<int> seen = [];
+        dispatcher.DashWatch = seen.Add;
+
+        dispatcher.Handle(new SetValue((byte)ControlId.DashWatch, (byte)value));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal([value], seen);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void ADashWatchAbove31OrWithNoHostIsDropped()
+    {
+        List<int> seen = [];
+        dispatcher.Handle(new SetValue((byte)ControlId.DashWatch, 1));
+        dispatcher.DashWatch = seen.Add;
+        dispatcher.Handle(new SetValue((byte)ControlId.DashWatch, 32));
+
+        Assert.Equal(2, dispatcher.Dropped);
+        Assert.Empty(seen);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void TheDeveloperValueReachesTheHostAndAnythingElseIsDropped()
+    {
+        List<bool> seen = [];
+        dispatcher.Handle(new SetValue((byte)ControlId.Developer, 1));
+        dispatcher.Developer = seen.Add;
+        dispatcher.Handle(new SetValue((byte)ControlId.Developer, 1));
+        dispatcher.Handle(new SetValue((byte)ControlId.Developer, 0));
+        dispatcher.Handle(new SetValue((byte)ControlId.Developer, 2));
+
+        Assert.Equal(2, dispatcher.Dropped);
+        Assert.Equal([true, false], seen);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void APermAnswerTheBrokerTakesIsHandledAndOneItRefusesIsDropped()
+    {
+        List<string> seen = [];
+        dispatcher.Handle(new Text((byte)TextKind.PermAnswer, "0123456789ab/a"));
+        dispatcher.PermAnswer = wire =>
+        {
+            seen.Add(wire);
+            return wire == "0123456789ab/a";
+        };
+        dispatcher.Handle(new Text((byte)TextKind.PermAnswer, "0123456789ab/a"));
+        dispatcher.Handle(new Text((byte)TextKind.PermAnswer, "garbage"));
+
+        Assert.Equal(2, dispatcher.Dropped);
+        Assert.Equal(["0123456789ab/a", "garbage"], seen);
+        Assert.Empty(platform.Calls);
     }
 }

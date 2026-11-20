@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">सुझाव बंद करें</string>
+  <string name="tip_presenter">यह स्क्रीन खुली होने पर वॉल्यूम कीज़ स्लाइड बदलती हैं।</string>
+  <string name="tip_capture">क्षेत्र: उसे टैप करें, फिर पैड पर सामने वाले कोने तक खींचें।</string>
+  <string name="tip_annotate">यहाँ बनाएँ। स्याही लैपटॉप पर उसी जगह दिखती है।</string>
+  <string name="tip_shapes">एक ही स्ट्रोक में बनाएँ, फिर उंगली उठाएँ।</string>
+  <string name="capture_to_phone">फ़ोन पर</string>
+</resources>

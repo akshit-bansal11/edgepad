@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Conexiones Wi-Fi y USB</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>Compartir portapapeles</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Copia en uno y pega en el otro: texto e imágenes.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Buscar actualizaciones a diario</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Macros…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Seguridad…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Documentación</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Abrir registro</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Salir de Edgepad</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>Actualización disponible</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>Actualización disponible: {0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Instalar Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Más tarde</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Omitir esta versión</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Enviar un archivo al teléfono…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Mostrar notificaciones en el teléfono</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>¿Dejar que los teléfonos encuentren esta laptop?</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Permitir</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Activar</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Ahora no</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Olvidar</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>No se pudo guardar la configuración, así que no se cambió nada. El registro indica el motivo.</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} quiere vincularse. Escribe el código de vinculación que muestra.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Apagando</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>El contenido terminó. Este portátil se apaga en {0} segundos.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi y USB: no se pudo escuchar. Consulta el registro.</value>
+  </data>
+  <data name="App_Name" xml:space="preserve">
+    <value>Edgepad</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Instalar</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>Iniciar al abrir sesión</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>Desactivado</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>Escuchando en el puerto {0}</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>Puerto en uso, se usa {0}</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>No se pudo escuchar; consulta el registro</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>No se pudo abrir {0}: todavía no hay nada en {1}.</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>No se pudo abrir {0}: instala xdg-utils.</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>la página de la versión</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>la documentación</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>el registro</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepad se está ejecutando</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>Tu escritorio no muestra iconos en la bandeja. En GNOME, instala la extensión ‘AppIndicator and KStatusNotifierItem Support’ para tener uno.</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>Los teléfonos de la misma red Wi-Fi, o conectados por USB con «Compartir conexión por USB», podrán encontrar esta laptop y pedir vincularse. Nada se conecta sin el código de vinculación escrito aquí.</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>Un firewall puede bloquearlos. Permite {0}/tcp y 5353/udp, por ejemplo:</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>¿Compartir el portapapeles?</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} quiere conectarse. Una ventana pregunta si confías en él. Búscala en tu pantalla.</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} está disponible. Haz clic para abrir la página de la versión.</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepad no puede controlar esta laptop</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Edgepad no pudo iniciarse</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>No se pudo configurar su icono de bandeja. El registro indica el motivo.</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0} cambia cómo se comunican la laptop y el teléfono. Instala también la app del teléfono que corresponde, o no se conectarán. ¿Instalar ahora la actualización de la laptop?</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} está descargado y comprobado, pero esta copia está instalada donde solo un administrador puede cambiarla. Abre una terminal y ejecuta:</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>No se pudo instalar la actualización y no se cambió nada. El registro indica el motivo.</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>Esto se aplica ahora, pero no se pudo guardar, así que volverá a como estaba tras reiniciar. El registro indica el motivo.</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>No se pudo cambiar Iniciar al abrir sesión. El registro indica el motivo.</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>¿Olvidar todos los teléfonos de confianza ({0})? Cada teléfono, incluido este, tendrá que ser de confianza aquí otra vez antes de poder usar esta laptop.</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>¿Olvidar los teléfonos de confianza? Cada teléfono, incluido este, tendrá que ser de confianza aquí otra vez antes de poder usar esta laptop.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>No se pudieron olvidar las vinculaciones por Wi-Fi y USB: su archivo no se pudo eliminar ni vaciar. Los teléfonos vinculados no podrán volver a conectarse por Wi-Fi o USB mientras Edgepad siga abierto, pero podrán hacerlo la próxima vez que se inicie. Elige otra vez «Olvidar todos…» en «Seguridad…», o elimina paired-links.txt tú mismo desde:</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>No se pudieron olvidar los teléfonos de confianza: su archivo no se pudo eliminar ni vaciar. Ningún teléfono podrá conectarse mientras Edgepad siga abierto, pero esos teléfonos volverán a ser de confianza la próxima vez que Edgepad se inicie. Cierra lo que esté usando el archivo y elige otra vez «Olvidar todos…» en «Seguridad…», o elimínalo tú mismo:</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>No se pudieron olvidar los teléfonos que introdujeron el PIN: su lista no se pudo eliminar. Mientras Edgepad siga abierto se pide el PIN a cada teléfono en cada conexión, pero esos teléfonos volverán a omitirlo en el nivel 2 la próxima vez que Edgepad se inicie. Elige otra vez «Olvidar todos…» en «Seguridad…», o elimina pin-verified.txt tú mismo desde:</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>Enviar un archivo al teléfono</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>No hay ningún teléfono conectado. Conéctalo y vuelve a enviar el archivo.</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>Se envió {0} al teléfono.</value>
+  </data>
+  <data name="Send_Cancelled" xml:space="preserve">
+    <value>Se canceló el envío de {0}.</value>
+  </data>
+  <data name="Send_NotSent" xml:space="preserve">
+    <value>No se envió {0} ({1}).</value>
+  </data>
+  <data name="Send_Failed" xml:space="preserve">
+    <value>No se pudo enviar {0}. El registro indica el motivo.</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Seguridad</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Todo teléfono necesita antes tu sí aquí. Los niveles 2 y 3 piden además un PIN de seis dígitos, que se escribe en la pantalla del teléfono. Los teléfonos se desconectan mientras esta ventana está abierta.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Solo confianza</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>PIN una vez por teléfono</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>PIN en cada conexión</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Definir PIN…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Cambiar PIN…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Se guardará un PIN nuevo.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>Hay un PIN definido.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>No hay ningún PIN definido.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Al guardar un PIN o un nivel nuevo, los teléfonos que ya escribieron el PIN tendrán que escribirlo otra vez.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Teléfonos de confianza</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>Olvidar todos…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>Restablecer PIN y olvidar teléfonos…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Aún no hay ningún teléfono de confianza. Se pregunta por un teléfono la primera vez que se conecta.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>Habrá que volver a confiar aquí en {0} ({1}) antes de que pueda usar esta laptop. Los teléfonos siguen desconectados mientras decides.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Prueba Olvidar de nuevo cuando nada más esté usando los archivos de Edgepad en {0}. {1} no se pudo olvidar del todo: no se pudo reescribir un archivo. Sigue siendo de confianza en el disco, pero Edgepad lo rechaza hasta que se reinicie, y volverá a ser de confianza a partir de entonces a menos que lo olvides otra vez.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>No se pudo guardar el PIN, así que no se cambió nada. El registro indica el motivo.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>No se pudo guardar el nivel, así que sigue aplicándose el anterior. El registro indica el motivo.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>Se elimina el PIN, el nivel vuelve a 1 y se olvidan todos los teléfonos de confianza. Habrá que volver a confiar aquí en cada teléfono, también en el que está conectado. Un PIN olvidado no se puede recuperar, solo restablecer.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Cierra lo que esté usando el archivo y elige «Restablecer PIN y olvidar teléfonos» de nuevo, o elimínalo tú mismo:
+
+{0}
+
+No se restableció nada: no se pudieron olvidar los teléfonos de confianza, así que el PIN y el nivel quedaron como estaban. Ningún teléfono puede conectarse mientras Edgepad siga abierto, pero esos teléfonos volverán a ser de confianza, con el mismo PIN, la próxima vez que se inicie.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Cierra lo que esté usando el archivo y elige «Restablecer PIN y olvidar teléfonos» de nuevo, o elimina tú mismo security.txt y pin-verified.txt de:
+
+{0}
+
+Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no se pudo eliminar un archivo de configuración, así que puede que sigan aplicándose el PIN y el nivel anteriores. Habrá que volver a confiar aquí en cada teléfono.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Confiar</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>No confiar</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>¿Confiar en {0}?</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Un teléfono vinculado pide controlar el puntero y el teclado de esta laptop. Confía en él solo si es tuyo. Si no respondes en {0} s, no se confiará en él.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>PIN nuevo</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>PIN nuevo otra vez</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Seis dígitos</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Otra vez</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>Usar este PIN</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>Un PIN tiene exactamente seis dígitos.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>Los dos PIN no coinciden.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Macros</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Aún no hay macros</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Argumentos</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>opcional</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Examinar…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Añadir macro</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Macro nueva</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>«{0}» no tiene nada que abrir. Elige lo que abre o quítala.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>No se pudieron guardar las macros en {0}: {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Elige lo que abre este botón</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Escribe el código de vinculación que muestra el teléfono:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Código de vinculación que muestra el teléfono</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Vincular un teléfono</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>¿Vincular {0}?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Vincular</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Comprobando el código de vinculación</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Se cierra en {0} s</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} llegó desde el teléfono.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} de {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>Solicitud {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>Cada macro es un botón en el teléfono. Hasta {0}.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>Programa, archivo, carpeta o enlace</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>Añadir una app</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>No se encontraron apps en este portátil.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Anotación de Edgepad</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Restablecer</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>Integraciones…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Modo desarrollador</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>Integraciones para desarrolladores…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integraciones</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Todo aquí está desactivado hasta que lo actives.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Mostrar datos del sistema en el teléfono</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Mostrar el tiempo en el teléfono</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Ciudad</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Solo envía el nombre de la ciudad a open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Conectar</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Desconectar</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Conectado · última señal {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>No conectado</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>No se encontró {0} en este equipo</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad no pudo ejecutar esto por ti. Ejecuta estos comandos en una terminal:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>En Codex, abre /hooks y confía en Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Esperando a que Codex confíe en el complemento…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Actualiza Codex a la versión 0.159 o posterior.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Reinicia las sesiones abiertas o ejecuta /reload-plugins en Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Para desarrolladores</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Iniciar sesión con GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Cerrar sesión</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Tu código: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Abrir github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Esperando a que lo apruebes en el navegador…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Incluir repositorios privados</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Sesión iniciada como {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>El inicio de sesión no está configurado en esta versión.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>nunca</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>El inicio de sesión no terminó. Inténtalo de nuevo.</value>
+  </data>
+  <data name="Integrations_NotEncrypted" xml:space="preserve">
+    <value>No había ningún llavero disponible, así que tu sesión de GitHub se guarda en un archivo privado que no está cifrado.</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Instala Claude Code en este equipo si aún no lo tienes: claude.com/claude-code
+2. Haz clic en Conectar. Edgepad añade su plugin a Claude Code.
+3. Reinicia las sesiones abiertas de Claude Code o escribe /reload-plugins en ellas.
+4. En tu teléfono, abre Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Instala Codex en este equipo si aún no lo tienes: developers.openai.com/codex
+2. Haz clic en Conectar. Edgepad añade su plugin a Codex.
+3. En Codex, escribe /hooks y confía en Edgepad. En la app de Codex: Settings > Hooks > Review hooks.
+4. En tu teléfono, abre Controls > AI. Aparece en cuanto Codex envía su primer evento.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Haz clic en Iniciar sesión con GitHub. Se abre una página de github.com.
+2. Introduce el código que se muestra aquí y haz clic en Authorize.
+3. En tu teléfono, abre Controls > GitHub.</value>
+  </data>
+  <data name="Notice_CodexTrustTitle" xml:space="preserve">
+    <value>Codex necesita tu aprobación otra vez</value>
+  </data>
+  <data name="Notice_CodexTrust" xml:space="preserve">
+    <value>Edgepad se actualizó. En Codex, escribe /hooks y confía en Edgepad, o las aprobaciones seguirán en la terminal en lugar del teléfono.</value>
+  </data>
+</root>

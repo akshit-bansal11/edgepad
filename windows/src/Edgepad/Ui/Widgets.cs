@@ -98,7 +98,7 @@ internal sealed class FlatButton : Button
             if (Focused && ShowFocusCues)
             {
                 using var ring = new Pen(kind == ButtonKind.Primary ? palette.Ink : palette.Accent, Theme.Scale(2f, dpi));
-                using var inner = Theme.Rounded(RectangleF.Inflate(shape, -1, -1), radius);
+                using var inner = Theme.Rounded(RectangleF.Inflate(shape, -1, -1), Theme.Inner(radius, 1f));
                 graphics.DrawPath(ring, inner);
             }
         }

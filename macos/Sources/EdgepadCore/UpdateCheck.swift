@@ -47,6 +47,25 @@ public enum UpdateCheck {
     private static let releases = "https://github.com/akshit-bansal11/edgepad/releases"
     private static let tagUrl = releases + "/tag/v"
 
+    /// The signed list of file hashes a release carries.
+    public static func sumsUrl(_ version: Version) -> URL? {
+        assetUrl(version, "SHA256SUMS.txt")
+    }
+
+    /// The DER ECDSA signature over the bytes of `sumsUrl`.
+    public static func sigUrl(_ version: Version) -> URL? {
+        assetUrl(version, "SHA256SUMS.txt.sig")
+    }
+
+    /// A file of release `version`, by the exact name the release gives it.
+    public static func assetUrl(_ version: Version, _ name: String) -> URL? {
+        URL(string: "\(releases)/download/v\(version)/\(name)")
+    }
+
+    public static func macName(_ version: Version) -> String {
+        "Edgepad-\(version)-mac.zip"
+    }
+
     /// The version a redirect `location` names. Anything but this repository's own tag page with a plain
     /// three-part version is refused: the answer is shown in the menu, and it came from the network.
     public static func versionIn(_ location: String?) -> Version? {

@@ -29,6 +29,7 @@
   <string name="address_connect">Conectar</string>
   <string name="address_looking">Buscando una laptop en %1$s…</string>
   <string name="address_invalid">Eso no es una dirección. Escribe un nombre de host o una dirección IP, con el puerto si no es el 47321.</string>
+  <string name="address_bad_port">El puerto debe ser un número del 1 al 65535.</string>
   <string name="address_no_laptop">Nada en esa dirección respondió como una laptop con Edgepad.</string>
   <string name="usb_tethering">Compartir conexión por USB</string>
   <string name="local_network_needed">Edgepad necesita el permiso de Dispositivos cercanos para encontrar laptops en tu red Wi-Fi y por USB.</string>
@@ -111,9 +112,9 @@
   <string name="pair_expires">Caduca en %1$s</string>
   <string name="pair_expired">Caducado</string>
   <string name="pair_confirm_title">¿%1$s indicó que el código coincidía?</string>
-  <string name="pair_confirm_body">Si indicó que el código era incorrecto, toca No: puede que otro dispositivo esté respondiendo en su lugar.</string>
-  <string name="pair_confirm_yes">Sí, vinculada</string>
-  <string name="pair_confirm_no">No</string>
+  <string name="pair_confirm_body">Si indicó que el código era incorrecto, toca «No coinciden»: puede que otro dispositivo esté respondiendo en su lugar.</string>
+  <string name="pair_confirm_yes">Los códigos coinciden</string>
+  <string name="pair_confirm_no">No coinciden</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop fuera de alcance</string>
@@ -169,8 +170,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 reglas, divididas</string>
   <string name="media_layout_title">Diseño multimedia</string>
-  <string name="media_layout_hint_upright">Este es el diseño en vertical; gira el teléfono para organizar el horizontal. Arrastra una pieza para moverla. Se ajusta a la cuadrícula y a las líneas centrales.</string>
-  <string name="media_layout_hint_sideways">Este es el diseño en horizontal; gira el teléfono para organizar el vertical. Arrastra una pieza para moverla. Se ajusta a la cuadrícula y a las líneas centrales.</string>
   <string name="piece_now_playing">En reproducción</string>
   <string name="piece_transport">Anterior · reproducir · siguiente</string>
   <string name="media_layout_reset">Restablecer posiciones</string>
@@ -293,7 +292,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Dibujar</string>
   <string name="shapes_target_title">Qué ejecuta</string>
-  <string name="shapes_draw_hint">Dibújala de un solo trazo y levanta el dedo al terminar.</string>
   <string name="shapes_redraw">Volver a dibujar</string>
   <string name="shapes_save">Guardar</string>
   <string name="shapes_delete">Eliminar</string>
@@ -424,7 +422,11 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controles</string>
-  <string name="controls_move_hint">Mantén pulsado un mosaico para moverlo.</string>
+  <string name="controls_edit">Editar</string>
+  <string name="controls_edit_hint">Toca un mosaico para ocultarlo o mostrarlo. Mantenlo pulsado y arrástralo para moverlo.</string>
+  <string name="controls_hidden">Oculto</string>
+  <string name="controls_all_hidden">Todos los mosaicos están ocultos. Toca Editar para volver a mostrarlos.</string>
+  <string name="controls_toggle_tile">Ocultar o mostrar %1$s</string>
   <string name="controls_hide_dials">Ocultar reglas y multimedia</string>
   <string name="controls_blackout">Oscurecer la pantalla si no se usa</string>
   <string name="controls_open">Abrir %1$s</string>
@@ -443,10 +445,8 @@
   <string name="capture_stop">Detener grabación</string>
   <string name="capture_recording">Grabando en la laptop. Toca «Detener grabación» para terminar; con «Guardar en» Teléfono, el archivo llega entonces.</string>
   <string name="capture_sent">Enviada a la laptop: %1$s</string>
-  <string name="capture_hint">Para una región, toca Región y luego mantén un dedo quieto un momento en el panel táctil y muévelo para marcar el área.</string>
-  <string name="capture_save_to">Guardar en</string>
+  <string name="capture_drag_caption">Arrastra para seleccionar el área</string>
   <string name="capture_save_laptop">Laptop</string>
-  <string name="capture_save_phone">Teléfono</string>
   <string name="capture_receiving">Recibiendo %1$s, %2$d%%</string>
   <string name="capture_saved">Guardada en %1$s</string>
   <string name="capture_bad_hash">La captura llegó dañada. Sigue en la laptop.</string>
@@ -457,8 +457,6 @@
   <string name="capture_send_failed">La laptop no pudo enviar la captura. Sigue en la laptop.</string>
   <string name="controls_annotate">Anotar</string>
   <string name="annotate_description">Panel de lápiz: lo que toques se dibuja en el mismo lugar de la pantalla de la laptop. Solo funciona con el tacto.</string>
-  <string name="annotate_hint">Dibuja aquí. La tinta aparece en la laptop, en el mismo lugar.</string>
-  <string name="annotate_hint_named">Dibuja aquí. La tinta aparece en %1$s, en el mismo lugar.</string>
   <string name="annotate_menu">Herramientas de dibujo</string>
   <string name="annotate_menu_expanded">Expandido</string>
   <string name="annotate_menu_collapsed">Contraído</string>
@@ -525,7 +523,7 @@
   <string name="apps_add_from_laptop">Añadir desde la laptop</string>
   <string name="apps_add_caption">Elige una app de la lista de la laptop y allí se convierte en una macro. Solo se envía tu elección.</string>
   <string name="apps_title">Añadir una macro</string>
-  <string name="apps_search_hint">Buscar apps</string>
+  <string name="apps_search_hint">Buscar apps, p. ej. Chrome</string>
   <string name="apps_loading">Buscando apps en %1$s…</string>
   <string name="apps_none">%1$s no incluyó ninguna app.</string>
   <string name="apps_no_match">Ninguna app coincide con la búsqueda.</string>
@@ -565,4 +563,69 @@
   <string name="battery_percent">%1$d%%</string>
   <string name="battery_more">+%1$d</string>
   <string name="battery_summary">Baterías: %1$s</string>
+  <string name="updates_later">Más tarde</string>
+  <string name="updates_skip">Omitir esta versión</string>
+  <string name="updates_notify_text">Edgepad %1$s está disponible. Toca para actualizar.</string>
+  <string name="end_action_title">Suspender al terminar</string>
+  <string name="end_sleep">Suspender el portátil</string>
+  <string name="end_shutdown">Apagar el portátil</string>
+  <string name="end_cancel">Cancelar</string>
+  <string name="end_armed_sleep">Se suspenderá al terminar</string>
+  <string name="end_armed_shutdown">Se apagará al terminar</string>
+  <string name="end_no_timeline">Esto no tiene hora de fin, así que no hay nada que esperar.</string>
+  <string name="unavailable_unsupported">Este portátil no puede hacer esto.</string>
+  <string name="unavailable_off">Esto está desactivado en el portátil.</string>
+  <string name="unavailable_no_tool">Al portátil le falta un programa que esto necesita.</string>
+  <string name="unavailable_no_permission">El portátil aún no lo ha permitido.</string>
+  <string name="capture_recording_laptop">Grabando en el portátil</string>
+  <string name="xfer_send">Enviar un archivo</string>
+  <string name="xfer_sending">Enviando %1$s · %2$d%%</string>
+  <string name="xfer_receiving">Recibiendo %1$s · %2$d%%</string>
+  <string name="xfer_done">Guardado %1$s</string>
+  <string name="xfer_failed">No se pudo enviar %1$s</string>
+  <string name="xfer_cancel">Cancelar</string>
+  <plurals name="xfer_too_many">
+    <item quantity="one">Solo se pusieron en cola los primeros %1$d archivos</item>
+    <item quantity="many">Solo se pusieron en cola los primeros %1$d archivos</item>
+    <item quantity="other">Solo se pusieron en cola los primeros %1$d archivos</item>
+  </plurals>
+  <string name="xfer_sending_n">Enviando %1$s (%2$d de %3$d) · %4$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">Se envió %1$d archivo</item>
+    <item quantity="many">Se enviaron %1$d archivos</item>
+    <item quantity="other">Se enviaron %1$d archivos</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">Se recibió %1$d archivo</item>
+    <item quantity="many">Se recibieron %1$d archivos</item>
+    <item quantity="other">Se recibieron %1$d archivos</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">Se enviaron %1$d de %2$d archivo</item>
+    <item quantity="many">Se enviaron %1$d de %2$d archivos</item>
+    <item quantity="other">Se enviaron %1$d de %2$d archivos</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">No se envió %1$d archivo</item>
+    <item quantity="many">No se enviaron %1$d archivos</item>
+    <item quantity="other">No se enviaron %1$d archivos</item>
+  </plurals>
+  <plurals name="xfer_card_more">
+    <item quantity="one">y %1$d más</item>
+    <item quantity="many">y %1$d más</item>
+    <item quantity="other">y %1$d más</item>
+  </plurals>
+  <plurals name="xfer_share_count">
+    <item quantity="one">%1$d archivo</item>
+    <item quantity="many">%1$d de archivos</item>
+    <item quantity="other">%1$d archivos</item>
+  </plurals>
+  <string name="xfer_card_cancelling">Cancelando…</string>
+  <string name="xfer_retry">Reintentar</string>
+  <string name="xfer_card_a11y">Transferencia de archivos</string>
+  <string name="xfer_no_laptop">Conéctate primero a un portátil</string>
+  <string name="xfer_channel">Transferencias de archivos</string>
+  <string name="notify_channel">Notificaciones del portátil</string>
+  <string name="notify_setting">Mostrar notificaciones del portátil</string>
+  <string name="notify_setting_hint">Requiere activar el mismo interruptor en el menú de Edgepad del portátil.</string>
 </resources>

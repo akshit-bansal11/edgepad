@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_profiles">アプリ別プロファイル</string>
+  <string name="profiles_title">アプリ別プロファイル</string>
+  <string name="profiles_toggle">アプリごとにダイヤルとジェスチャーを切り替える</string>
+  <string name="profiles_caption">オンの間だけ、ノートPCが前面のアプリをこのスマホに伝えます。ノートPCには何も保存されません。</string>
+  <string name="profiles_empty">プロファイルはまだありません。ノートPCでアプリを前面に出し、ここに追加してください。</string>
+  <string name="profiles_add_current">前面のアプリを追加</string>
+  <string name="profiles_none_in_front">前面のアプリはまだありません</string>
+  <string name="profiles_unsupported">このノートPCは前面のアプリを伝えられません。</string>
+  <string name="profiles_delete">プロファイルを削除</string>
+  <string name="profiles_delete_confirm">%1$sのプロファイルを削除しますか?</string>
+  <string name="profile_default">既定と同じ</string>
+  <string name="profile_custom">カスタム</string>
+</resources>

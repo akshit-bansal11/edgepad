@@ -184,6 +184,13 @@ public sealed class FrameFixtureTests
             "BLOB_BEGIN" => new BlobBegin((byte)Field(1), (uint)Field(2), fields[3]),
             "BLOB_CHUNK" => new BlobChunk((byte)Field(1), Convert.FromHexString(fields[2])),
             "BLOB_END" => new BlobEnd(Convert.FromHexString(fields[1])),
+            "BULK_HELLO" => new BulkHello((byte)Field(1)),
+            "XFER_BEGIN" => new XferBegin((byte)Field(1), ulong.Parse(fields[2], CultureInfo.InvariantCulture), fields[3]),
+            "XFER_CHUNK" => new XferChunk(
+                (byte)Field(1), ulong.Parse(fields[2], CultureInfo.InvariantCulture), Convert.FromHexString(fields[3])),
+            "XFER_END" => new XferEnd((byte)Field(1), Convert.FromHexString(fields[2])),
+            "XFER_STATUS" => new XferStatus(
+                (byte)Field(1), (byte)Field(2), ulong.Parse(fields[3], CultureInfo.InvariantCulture)),
             "PAD_STATE" => new PadState(
                 (ushort)Field(1),
                 (byte)Field(2),

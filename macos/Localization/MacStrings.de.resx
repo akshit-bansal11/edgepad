@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>Edgepad nutzt Bluetooth, um auf das mit diesem Mac gekoppelte Telefon zu warten.</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad sucht hier nach dem Screenshot oder der Aufnahme, die das Telefon empfangen soll.</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad sucht hier nach dem Screenshot oder der Aufnahme, die das Telefon empfangen soll.</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad sucht hier nach dem Screenshot oder der Aufnahme, die das Telefon empfangen soll.</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>Edgepad lässt dein Telefon diesen Mac finden und sich per WLAN verbinden, wenn du WLAN-Verbindungen aktivierst.</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>Edgepad fragt Musik oder Spotify, welcher Titel läuft, und springt darin, wenn du am Telefon spulst. Am Ende der Wiedergabe versetzt es diesen Mac in den Ruhezustand oder fährt ihn herunter, wenn du es am Telefon verlangst.</value>
+  </data>
+  <data name="Core_ConnectedOver" xml:space="preserve">
+    <value>Verbunden mit {0} · {1}</value>
+  </data>
+  <data name="Core_BluetoothNotAllowed" xml:space="preserve">
+    <value>Edgepad darf Bluetooth nicht verwenden. Erlaube es in Systemeinstellungen › Datenschutz &amp; Sicherheit › Bluetooth.</value>
+  </data>
+  <data name="Core_BluetoothOffMenu" xml:space="preserve">
+    <value>Bluetooth ist aus. Schalte es in der Menüleiste ein.</value>
+  </data>
+  <data name="Core_RefusedUnreadable" xml:space="preserve">
+    <value>Ein Handy wurde abgewiesen: die vertrauten Handys lassen sich nicht lesen</value>
+  </data>
+  <data name="Core_RefusedForgotten" xml:space="preserve">
+    <value>Ein hier vergessenes Handy wurde abgewiesen</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Welcome_SetUp" xml:space="preserve">
+    <value>Einrichten</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="Common_Send" xml:space="preserve">
+    <value>Senden</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Installieren</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Vergessen</value>
+  </data>
+  <data name="Common_Trust" xml:space="preserve">
+    <value>Vertrauen</value>
+  </data>
+  <data name="Common_DontTrust" xml:space="preserve">
+    <value>Nicht vertrauen</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Zurücksetzen</value>
+  </data>
+  <data name="Common_Pair" xml:space="preserve">
+    <value>Koppeln</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad läuft bereits.</value>
+  </data>
+  <data name="App_AlreadyRunningBody" xml:space="preserve">
+    <value>Du findest es rechts in der Menüleiste. Halte Command gedrückt und ziehe, um Symbole neu anzuordnen.</value>
+  </data>
+  <data name="App_Welcome" xml:space="preserve">
+    <value>Edgepad lebt in der Menüleiste</value>
+  </data>
+  <data name="App_WelcomeBody" xml:space="preserve">
+    <value>macOS fragt jetzt nach dem, was Edgepad braucht. Bluetooth, um dein Handy zu hören. Gerätesteuerung, um den Zeiger zu bewegen und Tasten zu drücken. Mitteilungen, um dir zu sagen, wenn ein Handy eine Verbindung anfragt. Dein Ordner Schreibtisch, Dokumente oder Downloads, nur wenn das Handy einen Screenshot oder eine Aufnahme anfordert.</value>
+  </data>
+  <data name="App_UpdatedAllow" xml:space="preserve">
+    <value>Aktualisiert: Erlaube Edgepad erneut unter Gerätesteuerung</value>
+  </data>
+  <data name="App_TipBlocked" xml:space="preserve">
+    <value>Edgepad kann diesen Mac noch nicht steuern</value>
+  </data>
+  <data name="App_TipStatus" xml:space="preserve">
+    <value>Edgepad: {0}</value>
+  </data>
+  <data name="App_PermissionSteps" xml:space="preserve">
+    <value>Systemeinstellungen › Datenschutz &amp; Sicherheit › Gerätesteuerung und Datenzugriff › + › Edgepad</value>
+  </data>
+  <data name="Menu_Installing" xml:space="preserve">
+    <value>Edgepad {0} wird installiert …</value>
+  </data>
+  <data name="Menu_Install" xml:space="preserve">
+    <value>Edgepad {0} installieren</value>
+  </data>
+  <data name="Menu_UpdateAvailable" xml:space="preserve">
+    <value>Update verfügbar: {0}</value>
+  </data>
+  <data name="Menu_Later" xml:space="preserve">
+    <value>Später</value>
+  </data>
+  <data name="Menu_Skip" xml:space="preserve">
+    <value>Diese Version überspringen</value>
+  </data>
+  <data name="Menu_AllowControl" xml:space="preserve">
+    <value>Edgepad erlauben, diesen Mac zu steuern …</value>
+  </data>
+  <data name="Menu_Wifi" xml:space="preserve">
+    <value>WLAN-Verbindungen</value>
+  </data>
+  <data name="Menu_WifiHint" xml:space="preserve">
+    <value>WLAN-Verbindungen ({0})</value>
+  </data>
+  <data name="Menu_WifiTip" xml:space="preserve">
+    <value>Auf dem Mac nur per WLAN: USB-Tethering braucht einen Treiber, den macOS nicht enthält.</value>
+  </data>
+  <data name="Menu_Clipboard" xml:space="preserve">
+    <value>Zwischenablage teilen</value>
+  </data>
+  <data name="Menu_ClipboardTip" xml:space="preserve">
+    <value>Auf dem einen Gerät kopieren, auf dem anderen einfügen: Text und Bilder.</value>
+  </data>
+  <data name="Menu_Login" xml:space="preserve">
+    <value>Beim Anmelden starten</value>
+  </data>
+  <data name="Menu_DailyUpdates" xml:space="preserve">
+    <value>Täglich nach Updates suchen</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Datei senden …</value>
+  </data>
+  <data name="Menu_SendFileNoPhone" xml:space="preserve">
+    <value>Datei senden … (kein Handy verbunden)</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Makros…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Sicherheit … ({0})</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Dokumentation</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Logdatei öffnen</value>
+  </data>
+  <data name="Menu_About" xml:space="preserve">
+    <value>Über Edgepad</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad beenden</value>
+  </data>
+  <data name="Net_PortInUse" xml:space="preserve">
+    <value>Port belegt, verwende {0}</value>
+  </data>
+  <data name="Net_WaitingForNetwork" xml:space="preserve">
+    <value>Warte auf ein Netzwerk</value>
+  </data>
+  <data name="Net_CouldNotListen" xml:space="preserve">
+    <value>Zuhören nicht möglich; siehe Protokoll</value>
+  </data>
+  <data name="Net_Phone" xml:space="preserve">
+    <value>Ein Handy</value>
+  </data>
+  <data name="Note_UpdateTitle" xml:space="preserve">
+    <value>Edgepad {0} ist verfügbar</value>
+  </data>
+  <data name="Note_UpdateBody" xml:space="preserve">
+    <value>Klicke, um die Download-Seite zu öffnen.</value>
+  </data>
+  <data name="Note_PairTitle" xml:space="preserve">
+    <value>{0} koppeln?</value>
+  </data>
+  <data name="Note_PairBody" xml:space="preserve">
+    <value>Gib den Kopplungscode ein, der auf dem Handy steht.</value>
+  </data>
+  <data name="Note_TrustTitle" xml:space="preserve">
+    <value>{0} vertrauen?</value>
+  </data>
+  <data name="Note_TrustBody" xml:space="preserve">
+    <value>{0} möchte sich verbinden. Wähle „Vertrauen“ oder „Nicht vertrauen“.</value>
+  </data>
+  <data name="Note_NotUpdated" xml:space="preserve">
+    <value>Edgepad wurde nicht aktualisiert</value>
+  </data>
+  <data name="Status_Received" xml:space="preserve">
+    <value>{0} empfangen in Downloads/Edgepad</value>
+  </data>
+  <data name="Status_OnlyFiles" xml:space="preserve">
+    <value>Es lassen sich nur Dateien senden, keine Ordner</value>
+  </data>
+  <data name="Status_Forgot" xml:space="preserve">
+    <value>Vertraute Handys vergessen; bereit für ein neues in {0} Sekunden</value>
+  </data>
+  <data name="Xfer_Sent" xml:space="preserve">
+    <value>{0} an das Handy gesendet</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>{0} wird gesendet</value>
+  </data>
+  <data name="Xfer_BadHash" xml:space="preserve">
+    <value>{0} ist beschädigt auf dem Handy angekommen; sende es erneut</value>
+  </data>
+  <data name="Xfer_Rejected" xml:space="preserve">
+    <value>Das Handy hat {0} nicht angenommen</value>
+  </data>
+  <data name="Xfer_WriteFailed" xml:space="preserve">
+    <value>{0} konnte nicht gelesen oder gespeichert werden</value>
+  </data>
+  <data name="Xfer_Cancelled" xml:space="preserve">
+    <value>Senden von {0} abgebrochen</value>
+  </data>
+  <data name="Xfer_Busy" xml:space="preserve">
+    <value>Das Handy empfängt bereits eine Datei; sende {0} danach noch einmal</value>
+  </data>
+  <data name="Xfer_TimedOut" xml:space="preserve">
+    <value>Das Handy hat beim Senden von {0} nicht geantwortet</value>
+  </data>
+  <data name="Xfer_SessionEnded" xml:space="preserve">
+    <value>Das Handy wurde getrennt, bevor {0} gesendet war</value>
+  </data>
+  <data name="Alert_MajorTitle" xml:space="preserve">
+    <value>Edgepad {0} braucht auch eine aktualisierte Handy-App.</value>
+  </data>
+  <data name="Alert_MajorBody" xml:space="preserve">
+    <value>Installiere beide zusammen, sonst verbinden sich Handy und Mac nicht.</value>
+  </data>
+  <data name="Alert_LoginFailed" xml:space="preserve">
+    <value>„Beim Anmelden starten“ ließ sich nicht ändern</value>
+  </data>
+  <data name="Alert_LoginApproval" xml:space="preserve">
+    <value>Edgepad den Start beim Anmelden erlauben</value>
+  </data>
+  <data name="Alert_LoginApprovalBody" xml:space="preserve">
+    <value>Erlaube Edgepad in Systemeinstellungen › Allgemein › Anmeldeobjekte.</value>
+  </data>
+  <data name="Alert_ForgetAll" xml:space="preserve">
+    <value>Alle vertrauten Handys vergessen?</value>
+  </data>
+  <data name="Alert_ForgetAllBody" xml:space="preserve">
+    <value>{0} vergessen? Jedes Handy, auch dieses, muss hier erneut als vertraut bestätigt werden, bevor es diesen Mac nutzen kann.</value>
+  </data>
+  <data name="Alert_TheTrustedPhones" xml:space="preserve">
+    <value>die vertrauten Handys</value>
+  </data>
+  <data name="Alert_EveryTrustedPhone" xml:space="preserve">
+    <value>jedes vertraute Handy ({0})</value>
+  </data>
+  <data name="Alert_ForgetFailed" xml:space="preserve">
+    <value>Vertraute Handys konnten nicht vergessen werden</value>
+  </data>
+  <data name="Alert_ForgetFailedBody" xml:space="preserve">
+    <value>Die zugehörige Datei konnte nicht entfernt oder geleert werden. Solange Edgepad läuft, kann sich kein Handy verbinden, aber diese Handys sind beim nächsten Start von Edgepad wieder vertraut. Wähle erneut „Alle vertrauten Handys vergessen“ oder lösche die Datei selbst:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetPinFailed" xml:space="preserve">
+    <value>Handys, die die PIN eingegeben haben, konnten nicht vergessen werden</value>
+  </data>
+  <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
+    <value>Die Liste konnte nicht entfernt werden. Solange Edgepad läuft, wird jedes Handy bei jeder Verbindung nach der PIN gefragt, aber beim nächsten Start von Edgepad überspringen diese Handys sie bei „PIN einmal pro Handy“ wieder. Wähle erneut „Alle vertrauten Handys vergessen“ oder lösche pin-verified.txt selbst aus:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetOne" xml:space="preserve">
+    <value>{0} vergessen?</value>
+  </data>
+  <data name="Alert_ForgetOneBody" xml:space="preserve">
+    <value>Es muss hier erneut als vertraut bestätigt werden, bevor es diesen Mac nutzen kann.</value>
+  </data>
+  <data name="Alert_ForgetOneFailed" xml:space="preserve">
+    <value>{0} konnte nicht vergessen werden</value>
+  </data>
+  <data name="Alert_ForgetOneFailedBody" xml:space="preserve">
+    <value>Eine Datei konnte nicht neu geschrieben werden, daher ist es womöglich noch vertraut. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Alert_PairingsFailed" xml:space="preserve">
+    <value>WLAN-Kopplungen konnten nicht vergessen werden</value>
+  </data>
+  <data name="Alert_PairingsFailedBody" xml:space="preserve">
+    <value>Die zugehörige Datei konnte nicht entfernt oder geleert werden. Solange Edgepad läuft, können gekoppelte Handys sich nicht per WLAN neu verbinden, beim nächsten Start aber wieder. Wähle erneut „Alle vertrauten Handys vergessen“ oder lösche paired-links.txt selbst aus:
+
+{0}</value>
+  </data>
+  <data name="Alert_NoPhone" xml:space="preserve">
+    <value>Kein Handy verbunden</value>
+  </data>
+  <data name="Alert_NoPhoneBody" xml:space="preserve">
+    <value>Verbinde ein Handy mit Edgepad und sende die Datei dann erneut.</value>
+  </data>
+  <data name="Alert_ChooseFiles" xml:space="preserve">
+    <value>Dateien zum Senden an das Handy auswählen</value>
+  </data>
+  <data name="Alert_TurnOn" xml:space="preserve">
+    <value>Einschalten</value>
+  </data>
+  <data name="Alert_Allow" xml:space="preserve">
+    <value>Zulassen</value>
+  </data>
+  <data name="Alert_NotNow" xml:space="preserve">
+    <value>Nicht jetzt</value>
+  </data>
+  <data name="Alert_Network" xml:space="preserve">
+    <value>Handys diesen Laptop finden lassen?</value>
+  </data>
+  <data name="Alert_NetworkBody" xml:space="preserve">
+    <value>Auf dem Mac nur per WLAN: USB-Tethering braucht einen Treiber, den macOS nicht enthält. Handys im selben WLAN können diesen Mac finden und eine Kopplung anfragen. Ohne den hier eingegebenen Kopplungscode verbindet sich nichts. macOS fragt eventuell, ob Edgepad Geräte in deinem lokalen Netzwerk finden darf, und die Firewall, ob es eingehende Verbindungen annehmen darf: erlaube beides.</value>
+  </data>
+  <data name="Alert_SaveFailed" xml:space="preserve">
+    <value>Die Einstellung konnte nicht gespeichert werden</value>
+  </data>
+  <data name="Alert_SaveFailedBody" xml:space="preserve">
+    <value>Nichts wurde geändert. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Alert_Trust" xml:space="preserve">
+    <value>{0} vertrauen?</value>
+  </data>
+  <data name="Alert_TrustQuoted" xml:space="preserve">
+    <value>Der Name in Anführungszeichen ist nur das, wie sich das Handy nennt; vertraut wird die Adresse.</value>
+  </data>
+  <data name="Alert_TrustAddress" xml:space="preserve">
+    <value>Vertraut wird die Adresse.</value>
+  </data>
+  <data name="Alert_TrustBody" xml:space="preserve">
+    <value>{0} möchte Zeiger und Tastatur dieses Macs steuern. {1} Vertraue nur, wenn es dein Handy ist. Ohne Antwort innerhalb von {2} Sekunden wird nicht vertraut.</value>
+  </data>
+  <data name="Alert_Credits" xml:space="preserve">
+    <value>Schriften und Symbole: Lato, Lucide.</value>
+  </data>
+  <data name="Alert_ShutdownTitle" xml:space="preserve">
+    <value>Dieser Mac wird in 60 Sekunden heruntergefahren.</value>
+  </data>
+  <data name="Alert_ShutdownBody" xml:space="preserve">
+    <value>Die Medien auf dem Handy sind zu Ende und du wolltest dann herunterfahren.</value>
+  </data>
+  <data name="Sec_Title" xml:space="preserve">
+    <value>Sicherheit</value>
+  </data>
+  <data name="Sec_Intro" xml:space="preserve">
+    <value>Jedes Handy braucht zuerst dein Ja. Die beiden PIN-Stufen fragen zusätzlich nach einer sechsstelligen PIN.</value>
+  </data>
+  <data name="Sec_LevelTrust" xml:space="preserve">
+    <value>Nur Vertrauen</value>
+  </data>
+  <data name="Sec_LevelPinOnce" xml:space="preserve">
+    <value>PIN einmal pro Handy</value>
+  </data>
+  <data name="Sec_LevelPinEvery" xml:space="preserve">
+    <value>PIN bei jeder Verbindung</value>
+  </data>
+  <data name="Sec_ResetButton" xml:space="preserve">
+    <value>PIN zurücksetzen und Handys vergessen…</value>
+  </data>
+  <data name="Sec_ForgetAllButton" xml:space="preserve">
+    <value>Alle vertrauten Handys vergessen …</value>
+  </data>
+  <data name="Sec_Warning" xml:space="preserve">
+    <value>Wenn du eine neue PIN oder Stufe speicherst, müssen Handys, die die PIN schon einmal eingegeben haben, sie erneut eingeben.</value>
+  </data>
+  <data name="Sec_ChangePin" xml:space="preserve">
+    <value>PIN ändern…</value>
+  </data>
+  <data name="Sec_SetPin" xml:space="preserve">
+    <value>PIN festlegen…</value>
+  </data>
+  <data name="Sec_PinNew" xml:space="preserve">
+    <value>Eine neue PIN wird gespeichert.</value>
+  </data>
+  <data name="Sec_PinSet" xml:space="preserve">
+    <value>Eine PIN ist festgelegt.</value>
+  </data>
+  <data name="Sec_PinNone" xml:space="preserve">
+    <value>Keine PIN festgelegt.</value>
+  </data>
+  <data name="Sec_SixDigits" xml:space="preserve">
+    <value>Sechs Ziffern</value>
+  </data>
+  <data name="Sec_Again" xml:space="preserve">
+    <value>Wiederholen</value>
+  </data>
+  <data name="Sec_NewPin" xml:space="preserve">
+    <value>Neue PIN</value>
+  </data>
+  <data name="Sec_NewPinAgain" xml:space="preserve">
+    <value>Neue PIN wiederholen</value>
+  </data>
+  <data name="Sec_NewPinBody" xml:space="preserve">
+    <value>Sechs Ziffern, zweimal eingegeben.</value>
+  </data>
+  <data name="Sec_UsePin" xml:space="preserve">
+    <value>PIN verwenden</value>
+  </data>
+  <data name="Sec_Mismatch" xml:space="preserve">
+    <value>Die beiden PINs stimmen nicht überein.</value>
+  </data>
+  <data name="Sec_Exactly" xml:space="preserve">
+    <value>Verwende genau sechs Ziffern.</value>
+  </data>
+  <data name="Sec_PinNotSaved" xml:space="preserve">
+    <value>Die PIN konnte nicht gespeichert werden, deshalb wurde nichts geändert. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Sec_LevelNotSaved" xml:space="preserve">
+    <value>Die Stufe konnte nicht gespeichert werden, deshalb gilt weiter die bisherige. Den Grund nennt das Protokoll.</value>
+  </data>
+  <data name="Sec_ResetTitle" xml:space="preserve">
+    <value>PIN zurücksetzen und alle Handys vergessen?</value>
+  </data>
+  <data name="Sec_ResetBody" xml:space="preserve">
+    <value>Die PIN wird gelöscht, die Stufe geht zurück auf „Nur Vertrauen“, und alle vertrauten Handys werden vergessen. Jedes Handy muss hier erneut als vertraut bestätigt werden. Eine vergessene PIN lässt sich nicht wiederherstellen, nur zurücksetzen.</value>
+  </data>
+  <data name="Sec_ResetFailedTrust" xml:space="preserve">
+    <value>Nichts wurde zurückgesetzt: Die vertrauten Handys ließen sich nicht vergessen, daher blieben PIN und Stufe unverändert. Solange Edgepad läuft, kann sich kein Handy verbinden, aber beim nächsten Start sind diese Handys wieder vertraut, hinter derselben PIN. Schließe, was die Datei festhält, und wähle erneut „Zurücksetzen“, oder lösche sie selbst:
+
+{0}</value>
+  </data>
+  <data name="Sec_ResetFailedPin" xml:space="preserve">
+    <value>Die vertrauten Handys wurden vergessen, aber die PIN ließ sich nicht zurücksetzen: Eine Einstellungsdatei konnte nicht entfernt werden, daher gelten die alte PIN und Stufe womöglich noch. Jedes Handy muss hier erneut als vertraut bestätigt werden. Schließe, was die Datei festhält, und wähle erneut „Zurücksetzen“, oder lösche security.txt und pin-verified.txt selbst aus:
+
+{0}</value>
+  </data>
+  <data name="Sec_TrustedPhones" xml:space="preserve">
+    <value>Vertraute Handys</value>
+  </data>
+  <data name="Sec_ForgetLabel" xml:space="preserve">
+    <value>{0} vergessen</value>
+  </data>
+  <data name="Sec_FailTitle" xml:space="preserve">
+    <value>Die Sicherheitseinstellungen konnten nicht gespeichert werden</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>{0} koppeln?</value>
+  </data>
+  <data name="Pair_ThisPhone" xml:space="preserve">
+    <value>Dieses Handy</value>
+  </data>
+  <data name="Pair_Window" xml:space="preserve">
+    <value>Handy koppeln</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Gib den Kopplungscode ein, der auf dem Handy steht:</value>
+  </data>
+  <data name="Pair_CodeLabel" xml:space="preserve">
+    <value>Code, der auf dem Handy steht</value>
+  </data>
+  <data name="Pair_Announce" xml:space="preserve">
+    <value>{0} koppeln? Schließt in {1} s.</value>
+  </data>
+  <data name="Pair_Matched" xml:space="preserve">
+    <value>Code stimmt überein. Tippe auf {0} auf „Codes stimmen überein“, um abzuschließen.</value>
+  </data>
+  <data name="Pair_Mismatched" xml:space="preserve">
+    <value>Der Code stimmt nicht überein. Nichts wurde gekoppelt.</value>
+  </data>
+  <data name="Pair_Paired" xml:space="preserve">
+    <value>Gekoppelt mit {0}.</value>
+  </data>
+  <data name="Pair_NotFinished" xml:space="preserve">
+    <value>Die Kopplung wurde nicht abgeschlossen.</value>
+  </data>
+  <data name="Pair_Warning" xml:space="preserve">
+    <value>Koppel nur ein Handy, das dir gehört. Hast du das Koppeln nicht gerade selbst gestartet, wähle „Abbrechen“.</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Schließt in {0} s</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Code wird geprüft</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Makros</value>
+  </data>
+  <data name="Macro_Body" xml:space="preserve">
+    <value>Tasten auf dem Makro-Bildschirm deines Handys, bis zu {0}. Das Handy sendet die Nummer einer Taste, nie ein Programm, und kann deshalb nur ausführen, was du hier hinzufügst.</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>{0} hat nichts zu öffnen. Wähle eine App oder Datei oder gib eine Webadresse ein.</value>
+  </data>
+  <data name="Macro_AMacro" xml:space="preserve">
+    <value>Ein Makro</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Die Makros konnten nicht in {0} gespeichert werden: {1}.</value>
+  </data>
+  <data name="Macro_SaveFailedTitle" xml:space="preserve">
+    <value>Die Makros konnten nicht gespeichert werden</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>Öffnet</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Argumente</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>Symbol</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>Makro hinzufügen</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
+  <data name="Macro_MoveUp" xml:space="preserve">
+    <value>Nach oben verschieben</value>
+  </data>
+  <data name="Macro_MoveDown" xml:space="preserve">
+    <value>Nach unten verschieben</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Durchsuchen…</value>
+  </data>
+  <data name="Macro_Choose" xml:space="preserve">
+    <value>Auswählen …</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>Symbol des Programms verwenden</value>
+  </data>
+  <data name="Macro_ArgsHint" xml:space="preserve">
+    <value>Keine, an Leerzeichen getrennt (nur Apps)</value>
+  </data>
+  <data name="Macro_IconHint" xml:space="preserve">
+    <value>Das eigene des Programms</value>
+  </data>
+  <data name="Macro_OpensHint" xml:space="preserve">
+    <value>Eine App, Datei, Ordner oder Webadresse</value>
+  </data>
+  <data name="Macro_Empty" xml:space="preserve">
+    <value>Noch keine Makros. Füge eine App, ein Dokument, einen Ordner oder eine Webadresse hinzu. Jedes wird zu einer Taste auf dem Handy.</value>
+  </data>
+  <data name="Macro_Count" xml:space="preserve">
+    <value>{0} von {1}</value>
+  </data>
+  <data name="Macro_NameLeft" xml:space="preserve">
+    <value>Name · noch {0}</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Neues Makro</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>Integrationen…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Entwicklermodus</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>Entwickler-Integrationen…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integrationen</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Hier ist alles aus, bis du es einschaltest.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Systemwerte auf dem Handy zeigen</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Wetter auf dem Handy zeigen</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Stadt</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Sendet nur den Namen der Stadt an open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Verbinden</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Trennen</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Verbunden · zuletzt gehört {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Nicht verbunden</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} wurde auf diesem Computer nicht gefunden</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>Node.js 20.1 oder neuer wird benötigt. Erhältlich auf nodejs.org</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad konnte das nicht für dich ausführen. Führe diese Befehle in einem Terminal aus:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Öffne in Codex /hooks und vertraue Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Warte, bis Codex dem Plugin vertraut…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Aktualisiere Codex auf Version 0.159 oder neuer.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Starte offene Sitzungen neu oder führe /reload-plugins in Claude Code aus.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Für Entwickler</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Mit GitHub anmelden</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Abmelden</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Dein Code: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device öffnen</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Warte auf deine Zustimmung im Browser…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Private Repositorys einbeziehen</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Angemeldet als {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Die Anmeldung ist in diesem Build nicht eingerichtet.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>nie</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>Die Anmeldung wurde nicht abgeschlossen. Versuch es noch einmal.</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Installiere Claude Code auf diesem Computer, falls noch nicht geschehen: claude.com/claude-code
+2. Klicke auf „Verbinden“. Edgepad fügt sein Plugin zu Claude Code hinzu.
+3. Starte offene Claude-Code-Sitzungen neu oder gib dort /reload-plugins ein.
+4. Öffne auf deinem Handy Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Installiere Codex auf diesem Computer, falls noch nicht geschehen: developers.openai.com/codex
+2. Klicke auf „Verbinden“. Edgepad fügt sein Plugin zu Codex hinzu.
+3. Gib in Codex /hooks ein und vertraue Edgepad. In der Codex-App: Settings > Hooks > Review hooks.
+4. Öffne auf deinem Handy Controls > AI. Es erscheint, sobald Codex sein erstes Ereignis sendet.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Klicke auf „Mit GitHub anmelden“. Eine Seite auf github.com öffnet sich.
+2. Gib den hier angezeigten Code ein und klicke auf Authorize.
+3. Öffne auf deinem Handy Controls > GitHub.</value>
+  </data>
+  <data name="Note_CodexTrustTitle" xml:space="preserve">
+    <value>Codex braucht noch einmal dein OK</value>
+  </data>
+  <data name="Note_CodexTrustBody" xml:space="preserve">
+    <value>Edgepad wurde aktualisiert. Gib in Codex /hooks ein und vertraue Edgepad, sonst bleiben Freigaben im Terminal statt auf dem Handy.</value>
+  </data>
+</root>

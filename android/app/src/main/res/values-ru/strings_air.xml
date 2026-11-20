@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="controls_air_mouse">Воздушная мышь</string>
+  <string name="air_how">Положите большой палец на тачпад, затем поворачивайте телефон влево или вправо и наклоняйте вверх или вниз. Пока это включено, удержание пальца не перетаскивает.</string>
+  <string name="air_caption">Наклоняйте телефон, чтобы двигать указатель, пока палец лежит на тачпаде. Датчик движения читается только тогда.</string>
+  <string name="air_sensitivity">Чувствительность</string>
+  <string name="air_dead_zone">Мёртвая зона</string>
+  <string name="air_no_sensor">В этом телефоне нет гироскопа.</string>
+  <string name="controls_floating">Плавающие диски</string>
+  <string name="floating_caption">Показывает диски поверх других приложений. Нужно разрешение отображаться поверх других приложений.</string>
+  <string name="floating_permission">Разрешить в настройках</string>
+  <string name="floating_needs_link">Сначала подключитесь к ноутбуку.</string>
+  <string name="floating_needs_stay">Включите «Не отключаться», чтобы диски оставались поверх других приложений.</string>
+</resources>

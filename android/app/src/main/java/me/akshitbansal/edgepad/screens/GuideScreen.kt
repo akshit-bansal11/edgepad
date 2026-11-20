@@ -387,7 +387,7 @@ object GuideScreen {
             .animate()
             .alpha(1f)
             .translationX(0f)
-            .setDuration(Motion.SLOW)
+            .setDuration(Motion.REVEAL)
             .setInterpolator(PathInterpolator(EASE_X1, EASE_Y1, EASE_X2, EASE_Y2))
             .start()
     }

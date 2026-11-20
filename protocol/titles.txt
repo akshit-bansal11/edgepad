@@ -1,0 +1,45 @@
+# Track titles as the phone shows them: title | artist | expected. Windows, Linux and the Swift port read this file.
+# Lines split on '|', so a title never holds one. Parts are trimmed. An empty expected part means an empty title.
+Song (Official Video) | Artist | Song
+Song [Remastered 2011] | Artist | Song
+Song {Live} | Artist | Song
+Song (Live (Acoustic)) | Artist | Song
+Song (a [b] c) [d] | Artist | Song
+Song (Live | Artist | Song (Live
+Song) Live | Artist | Song) Live
+Song feat. Guest | Artist | Song
+Song feat Guest | Artist | Song
+Song ft. Guest | Artist | Song
+Song ft Guest | Artist | Song
+Song Featuring Guest | Artist | Song
+Song prod. Beatmaker | Artist | Song
+Song FEAT. Guest | Artist | Song
+Song feat. Guest (Live) | Artist | Song
+Song (feat. Guest) | Artist | Song
+Song - feat. Guest | Artist | Song
+Left Alone | Artist | Left Alone
+Stand with Me | Other Artist | Stand with Me
+Rock and Roll | Artist | Rock and Roll
+Song with Artist | Artist | Song
+Song & Artist | Artist | Song
+Song, Artist | Artist | Song
+Song x Artist | Artist | Song
+Song and Artist | Artist, Other | Song
+Song with Artist, Other | Artist, Other | Song
+Song x B | A, B | Song
+Song with Artist | Artist - Topic | Song
+Song with Artist | ArtistVEVO | Song
+Artist - Song | Artist | Song
+Artist – Song | Artist | Song
+Artist — Song | artist | Song
+Other - Song | Artist | Other - Song
+Song - | Artist | Song
+: Song - | Artist | Song
+Song - Live (Remastered) | Artist | Song - Live
+Song   with   spaces | Artist | Song with spaces
+夜に駆ける (Official) | YOASOBI | 夜に駆ける
+夜に駆ける with YOASOBI | YOASOBI | 夜に駆ける
+Song 🎵 (Video) | Artist | Song 🎵
+(Intro) | Artist | (Intro)
+[Live] (Acoustic) | Artist | [Live] (Acoustic)
+Song (x) |  | Song

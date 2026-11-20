@@ -1,0 +1,48 @@
+{
+  "modules": ["./relay.ts"],
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "__APP__", "args": ["--hook", "claude", "perm"], "timeout": 120 }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "__APP__", "args": ["--hook", "claude", "session"], "timeout": 5, "async": true }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "__APP__", "args": ["--hook", "claude", "session"], "timeout": 5, "async": true }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          { "type": "command", "command": "__APP__", "args": ["--hook", "claude", "session"], "timeout": 5, "async": true }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "__APP__", "args": ["--hook", "claude", "session"], "timeout": 5, "async": true }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          { "type": "command", "command": "__APP__", "args": ["--hook", "claude", "session"], "timeout": 5, "async": true }
+        ]
+      }
+    ]
+  }
+}

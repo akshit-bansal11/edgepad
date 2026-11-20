@@ -157,7 +157,7 @@ internal sealed partial class WindowsMacroWindows : IMacroWindows
         && !(DwmGetWindowAttribute(window, Cloaked, out var cloaked, sizeof(int)) == 0 && cloaked != 0);
 
     /// <summary>The process's image path, or null, as for an elevated process, which then matches nothing.</summary>
-    private static unsafe string? ImageOf(uint pid)
+    internal static unsafe string? ImageOf(uint pid)
     {
         var process = OpenProcess(QueryLimitedInformation, false, pid);
         if (process == 0)

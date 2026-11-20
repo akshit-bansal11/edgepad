@@ -1,8 +1,12 @@
 package me.akshitbansal.edgepad.screens
 
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import android.view.View
+import android.widget.Toast
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
+import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.surface.Perimeter
 import me.akshitbansal.edgepad.surface.Shapes
 import kotlin.math.roundToInt
@@ -21,11 +25,18 @@ object SurfaceSettingsScreen {
         val dialFeel: () -> Unit,
         val mediaLayout: () -> Unit,
         val appearance: () -> Unit,
+        val profiles: () -> Unit,
         val system: () -> Unit,
         val back: () -> Unit,
+        val widgets: () -> Unit,
     )
 
     private const val NO_DIAL = "—"
+    private const val PERCENT = 100
+
+    private val sensitivityRange =
+        StepRange(Settings.MIN_AIR_SENSITIVITY, Settings.MAX_AIR_SENSITIVITY, 0.1f)
+    private val deadZoneRange = StepRange(Settings.MIN_AIR_DEAD_ZONE, Settings.MAX_AIR_DEAD_ZONE, 0.01f)
 
     fun build(
         ui: Ui,
@@ -55,6 +66,54 @@ object SurfaceSettingsScreen {
                         routes.appearance,
                     ),
                 )
+                hairline()
+                add(ui.link(ui.string(R.string.settings_profiles), null, routes.profiles))
+            }
+            card(Space.XL) { add(ui.link(ui.string(R.string.widgets_title), null, routes.widgets)) }
+            // Owner, 2026-11-20: moved here from the Controls popup. Turning it on says how to use it; without a
+            // gyroscope the switch is dimmed and says that instead.
+            val sensors = ui.context.getSystemService(SensorManager::class.java)
+            val gyroscope = sensors?.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+            val air = ui.toggle(ui.string(R.string.controls_air_mouse), settings.airMouse && gyroscope != null) { }
+            card(Space.XL) { add(air) }
+            val tuning =
+                card(Space.L) {
+                    add(
+                        ui.slider(
+                            ui.string(R.string.air_sensitivity),
+                            sensitivityRange.steps,
+                            sensitivityRange.stepOf(settings.airSensitivity),
+                            { step -> ui.string(R.string.multiplier_value, sensitivityRange.valueAt(step)) },
+                        ) { step -> settings.airSensitivity = sensitivityRange.valueAt(step) },
+                    )
+                    hairline()
+                    add(
+                        ui.slider(
+                            ui.string(R.string.air_dead_zone),
+                            deadZoneRange.steps,
+                            deadZoneRange.stepOf(settings.airDeadZone),
+                            { step ->
+                                ui.string(R.string.percent_value, (deadZoneRange.valueAt(step) * PERCENT).roundToInt())
+                            },
+                        ) { step -> settings.airDeadZone = deadZoneRange.valueAt(step) },
+                    )
+                }
+            val caption = footnote(ui.string(R.string.air_caption))
+            val tune = { on: Boolean ->
+                val state = if (on) View.VISIBLE else View.GONE
+                tuning.visibility = state
+                caption.visibility = state
+            }
+            tune(settings.airMouse && gyroscope != null)
+            if (gyroscope == null) {
+                ui.enable(air, false)
+                air.stateDescription = ui.string(R.string.air_no_sensor)
+            } else {
+                air.setOnCheckedChangeListener { _, on ->
+                    settings.airMouse = on
+                    tune(on)
+                    if (on) Toast.makeText(ui.context, R.string.air_how, Toast.LENGTH_LONG).show()
+                }
             }
             systemSettings(routes.system)
         }

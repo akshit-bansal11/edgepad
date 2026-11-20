@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
+  <string name="controls_dash_off">Turn it on in the Edgepad menu on your laptop.</string>
+  <string name="widgets_title">Widgets</string>
+  <string name="widgets_hint">Drawn behind the trackpad. Touches pass through.</string>
+  <string name="developer_mode_title">Developer mode</string>
+  <string name="developer_mode_hint">Shows Claude Code, Codex and GitHub on this phone and the laptop. Turning it off keeps your connections.</string>
+  <string name="developer_mode_offline">Connect to a laptop to change this. The laptop keeps it.</string>
+  <string name="widgets_layout_title">Widget layout</string>
+  <string name="widgets_layout_hint">Drag a widget to move it. Hold it to change its size.</string>
+  <string name="widget_clock">Clock</string>
+  <string name="widget_weather">Weather</string>
+  <string name="widget_system">System</string>
+  <string name="widget_network">Network</string>
+  <string name="widget_ai">AI usage</string>
+  <string name="sys_title">System</string>
+  <string name="sys_cpu">CPU</string>
+  <string name="sys_gpu">GPU</string>
+  <string name="sys_ram">Memory</string>
+  <string name="sys_vram">VRAM</string>
+  <string name="sys_disks">Disks</string>
+  <string name="sys_down">Download</string>
+  <string name="sys_up">Upload</string>
+  <string name="sys_ping">Ping</string>
+  <string name="sys_loss">Packet loss</string>
+  <string name="sys_free">%1$s free</string>
+  <string name="sys_off">Turn on System stats in the Edgepad menu on your laptop.</string>
+  <!-- Not translated: a dash in every locale. -->
+  <string name="sys_none" translatable="false">—</string>
+  <string name="wx_clear">Clear</string>
+  <string name="wx_cloudy">Cloudy</string>
+  <string name="wx_fog">Fog</string>
+  <string name="wx_drizzle">Drizzle</string>
+  <string name="wx_rain">Rain</string>
+  <string name="wx_snow">Snow</string>
+  <string name="wx_showers">Showers</string>
+  <string name="wx_storm">Thunderstorm</string>
+  <string name="wx_credit">Weather data by Open-Meteo.com</string>
+  <string name="ai_title">AI</string>
+  <string name="ai_win_week">Week</string>
+  <string name="ai_win_month">Month</string>
+  <string name="ai_win_spend">Spend</string>
+  <string name="ai_ctx">Context</string>
+  <string name="ai_resets">Resets in %1$s</string>
+  <string name="ai_updated">Updated %1$s ago</string>
+  <string name="ai_today">Today</string>
+  <string name="ai_week">This week</string>
+  <string name="ai_month">This month</string>
+  <string name="ai_tokens">%1$s tokens</string>
+  <string name="ai_estimate">Estimated at API prices</string>
+  <string name="ai_unpriced">Some models have no price yet</string>
+  <string name="ai_sessions">Sessions</string>
+  <string name="ai_none">Nothing to show yet.</string>
+  <string name="ai_no_limits">No usage limit reported</string>
+  <string name="ai_setup">Connect Claude Code or Codex in the Edgepad menu on your laptop.</string>
+  <string name="ai_need_mods">Claude limits need Claude Code with plugin mods.</string>
+  <string name="state_busy">Working</string>
+  <string name="state_wait">Waiting for you</string>
+  <string name="state_idle">Idle</string>
+  <string name="dur_min">%1$d min</string>
+  <string name="dur_hr">%1$d h</string>
+  <string name="dur_day">%1$d d</string>
+  <!-- Not translated: product names. -->
+  <string name="agent_claude" translatable="false">Claude</string>
+  <string name="agent_codex" translatable="false">Codex</string>
+  <string name="gh_title">GitHub</string>
+  <string name="gh_review">Review requested</string>
+  <string name="gh_mine">Your pull requests</string>
+  <string name="gh_notifs">Notifications: %1$d</string>
+  <string name="gh_none">Nothing here</string>
+  <string name="gh_ci_ok">Checks passed</string>
+  <string name="gh_ci_fail">Checks failed</string>
+  <string name="gh_ci_pending">Checks running</string>
+  <string name="gh_draft">Draft</string>
+  <string name="gh_signin">Sign in with GitHub in the Edgepad menu on your laptop.</string>
+  <string name="perm_title">%1$s asks</string>
+  <string name="perm_allow">Allow</string>
+  <string name="perm_deny">Deny</string>
+  <string name="perm_terminal">Too long to check here. Answer on your laptop.</string>
+  <string name="perm_scroll">Scroll to the end to allow.</string>
+  <string name="perm_channel">Approvals</string>
+  <string name="perm_notif">An AI agent needs approval.</string>
+</resources>

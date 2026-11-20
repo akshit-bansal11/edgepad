@@ -56,6 +56,18 @@ internal enum ActionId : byte
     SignSave = 51,
 
     /// <summary>
+    /// The laser tool: the next <see cref="Pen"/> stroke is a dot that follows the finger and leaves nothing behind. Like the
+    /// other tools, offered by the phone only for a laptop that sent <see cref="Feature.Annotate"/>.
+    /// </summary>
+    ToolLaser = 37,
+
+    /// <summary>
+    /// The trailing laser: <see cref="ToolLaser"/> plus a short red trail behind the dot. Both lasers take their size from
+    /// the pen width.
+    /// </summary>
+    ToolLaserTrail = 38,
+
+    /// <summary>
     /// Screen capture, which is this laptop's own tool: a region (a drag), the whole screen, and a recording.
     /// Actions because the phone only asks; what each one presses is decided here. A laptop too old to know
     /// them drops and counts the ids, and the phone shows the buttons only for one that sent
@@ -85,6 +97,15 @@ internal enum ActionId : byte
     /// </summary>
     MacrosWatch = 58,
     MacrosUnwatch = 59,
+
+    /// <summary>
+    /// Phone to laptop: arm this laptop to sleep or shut down when the current media ends (EndSleep, EndShutdown), or disarm it
+    /// (EndCancel). This laptop reports the armed state as <see cref="TextKind.EndAction"/>. The phone offers them only for a
+    /// laptop that sent <see cref="Feature.EndAction"/>, and a laptop too old to know the ids drops and counts them.
+    /// </summary>
+    EndSleep = 60,
+    EndShutdown = 61,
+    EndCancel = 62,
 
     /// <summary>
     /// The first of 32 macro slots, 64..95; slot n is <c>MacroBase + n</c>. The phone sends the index and
@@ -194,6 +215,67 @@ internal enum TextKind : byte
 
     /// <summary>Laptop to phone: the audio output, "kind/name" split on the first "/", kind an <see cref="OutputKind"/> token. Empty means none known.</summary>
     Output = 20,
+
+    /// <summary>
+    /// Laptop to phone: the app in front, "token/name" split on the first "/", token 1 to 64 of A-Z a-z 0-9 . _ - and name cut to
+    /// 40 code points. Empty means nothing known. Sent only after <see cref="ControlId.ForegroundWatch"/> is 1, on change, and
+    /// never logged.
+    /// </summary>
+    ForegroundApp = 21,
+
+    /// <summary>Laptop to phone: how many macro slots this laptop keeps, in decimal such as "15". Empty or never sent means the phone's own default.</summary>
+    MacroCap = 22,
+
+    /// <summary>Laptop to phone: a <see cref="CaptureStateToken"/>, "idle" or "recording". Best effort: a laptop that cannot tell sends nothing.</summary>
+    CaptureState = 23,
+
+    /// <summary>
+    /// Laptop to phone: the features this laptop cannot offer right now and why, "feature:reason" entries joined by "/", reason an
+    /// <see cref="UnavailableReason"/> token. Empty means none.
+    /// </summary>
+    Unavailable = 24,
+
+    /// <summary>Laptop to phone: what <see cref="ActionId.EndSleep"/> armed, as one <see cref="EndActionToken"/>. Sent on change.</summary>
+    EndAction = 25,
+
+    /// <summary>
+    /// Laptop to phone: the title line of what is playing before it is cleaned for <see cref="NowPlaying"/>. Sent only when it
+    /// differs from that text.
+    /// </summary>
+    NowPlayingFull = 26,
+
+    /// <summary>
+    /// Laptop to phone: "cpu/ram/gpu/vram/down/up/ping/loss/ctemp/gtemp/gpower", percents 0..100, down and up in KiB/s, ping in ms,
+    /// temperatures in C, power in W, -1 unknown. Once a second while <see cref="ControlId.DashWatch"/> has bit 0 or 1, not re-sent when identical.
+    /// </summary>
+    Stats = 27,
+
+    /// <summary>Laptop to phone: "cpuName|ramMiB|gpuName|vramMiB|netName", names cleaned to 30 code points. Sent when a watch starts and when it changes.</summary>
+    StatsInfo = 28,
+
+    /// <summary>Laptop to phone: "label:usedPct:totalGiB:freeGiB" entries joined by "|", at most 6. Sent while bit 1 of <see cref="ControlId.DashWatch"/> is set, on change.</summary>
+    Disks = 29,
+
+    /// <summary>Laptop to phone: "agent:state:title" entries joined by "|", newest first, at most 8, agent an <see cref="AgentToken"/> and state a <see cref="SessionStateToken"/>. Empty means none.</summary>
+    Sessions = 30,
+
+    /// <summary>Phone to laptop: exactly "id/a" or "id/d", the id 12 lowercase hex digits. Anything else, or an unknown or answered id, is dropped and counted.</summary>
+    PermAnswer = 31,
+
+    /// <summary>Laptop to phone: "id" of an approval that was answered elsewhere, timed out or died, so the phone dismisses its sheet.</summary>
+    PermGone = 32,
+
+    /// <summary>
+    /// Laptop to phone: "agent:window:pct:resetAtMin:measuredAtMin" entries joined by "|". The window is decimal minutes (1..525600),
+    /// <see cref="LimitWindow.Context"/>, or <see cref="LimitWindow.NamedPrefix"/> and a name for a limit with no duration. See protocol/actions.txt.
+    /// </summary>
+    Limits = 33,
+
+    /// <summary>Laptop to phone: "agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth" entries joined by "|". Cents are estimates at API list prices.</summary>
+    Spend = 34,
+
+    /// <summary>Laptop to phone: "tempTenthsC/wmoCode/city", city cleaned to 24 code points. Empty means none.</summary>
+    Weather = 35,
 }
 
 /// <summary>
@@ -272,6 +354,75 @@ internal static class Feature
 
     /// <summary>This laptop can tell which macro apps are running, in <see cref="TextKind.MacroOpen"/>.</summary>
     public const string Running = "running";
+
+    /// <summary>This laptop answers <see cref="ActionId.EndSleep"/>, <see cref="ActionId.EndShutdown"/> and <see cref="ActionId.EndCancel"/>.</summary>
+    public const string EndAction = "endaction";
+
+    /// <summary>This laptop can forward its notifications once <see cref="ControlId.Notify"/> is 1.</summary>
+    public const string Notify = "notify";
+
+    /// <summary>This laptop can say which app is in front, in <see cref="TextKind.ForegroundApp"/>, once <see cref="ControlId.ForegroundWatch"/> is 1.</summary>
+    public const string Foreground = "foreground";
+
+    /// <summary>This laptop can send <see cref="TextKind.Stats"/>, <see cref="TextKind.StatsInfo"/> and <see cref="TextKind.Disks"/>; named only while its stats switch is on and usable.</summary>
+    public const string Stats = "stats";
+
+    /// <summary>This laptop can send <see cref="TextKind.Weather"/>; named only while its weather switch is on.</summary>
+    public const string Weather = "weather";
+
+    /// <summary>This laptop's Claude Code integration is on and usable: <see cref="TextKind.Limits"/>, <see cref="TextKind.Spend"/>, <see cref="TextKind.Sessions"/> and approvals.</summary>
+    public const string Claude = "claude";
+
+    /// <summary>This laptop's Codex integration is on and usable, as <see cref="Claude"/> is for Claude Code.</summary>
+    public const string Codex = "codex";
+
+    /// <summary>This laptop is signed in to GitHub and can send <see cref="BlobKind.Github"/>.</summary>
+    public const string GitHub = "github";
+
+    /// <summary>Developer mode is on; <see cref="Claude"/>, <see cref="Codex"/> and <see cref="GitHub"/> are named only while it is.</summary>
+    public const string Developer = "developer";
+}
+
+/// <summary>The agent of a <see cref="TextKind.Sessions"/>, <see cref="TextKind.Limits"/>, <see cref="TextKind.Spend"/> or <see cref="BlobKind.PermAsk"/> entry. Tokens, never prose. Mirrors protocol/actions.txt.</summary>
+internal static class AgentToken
+{
+    public const string Claude = "claude";
+    public const string Codex = "codex";
+}
+
+/// <summary>The state in a <see cref="TextKind.Sessions"/> entry. Mirrors protocol/actions.txt.</summary>
+internal static class SessionStateToken
+{
+    /// <summary>The agent is working.</summary>
+    public const string Busy = "busy";
+
+    /// <summary>The agent waits for the person (an approval or a question).</summary>
+    public const string Wait = "wait";
+
+    /// <summary>The agent is idle.</summary>
+    public const string Idle = "idle";
+}
+
+/// <summary>The CI field of a <see cref="BlobKind.Github"/> line. Mirrors protocol/actions.txt.</summary>
+internal static class CiToken
+{
+    public const string Ok = "ok";
+    public const string Fail = "fail";
+    public const string Pending = "pending";
+    public const string None = "none";
+}
+
+/// <summary>
+/// The window field of a <see cref="TextKind.Limits"/> entry is decimal minutes (1..525600, so 300 is five hours, 10080 a week and
+/// 43200 thirty days), or one of these two forms. Mirrors the LIMIT_WINDOW rows of protocol/actions.txt.
+/// </summary>
+internal static class LimitWindow
+{
+    /// <summary>The context window of a session, not a time window.</summary>
+    public const string Context = "ctx";
+
+    /// <summary>A limit with no duration is this character and a name, such as "~spend_limit".</summary>
+    public const char NamedPrefix = '~';
 }
 
 /// <summary>What a SET_VALUE frame may set and a STATE frame reports. Mirrors protocol/actions.txt.</summary>
@@ -315,6 +466,22 @@ internal enum ControlId : byte
 
     /// <summary>The opacity of the next strokes in percent, 10..100, phone to laptop. Anything else is dropped and counted.</summary>
     PenOpacity = 9,
+
+    /// <summary>Whether this link forwards the laptop's notifications, 1 or 0, phone to laptop. Forgotten when the session ends. Anything else is dropped and counted.</summary>
+    Notify = 10,
+
+    /// <summary>Whether this link hears which app is in front, 1 or 0, phone to laptop. Forgotten when the session ends. Anything else is dropped and counted.</summary>
+    ForegroundWatch = 11,
+
+    /// <summary>
+    /// Phone to laptop: a bitmask of what the phone draws right now: bit 0 (1) widgets needing system numbers, bit 1 (2) the System
+    /// screen, bit 2 (4) the weather widget, bit 3 (8) an AI widget or the AI screen, bit 4 (16) the GitHub screen. 0..31; larger is
+    /// dropped and counted. Forgotten when the session ends. The only thing that makes the laptop sample, read usage files or poll.
+    /// </summary>
+    DashWatch = 12,
+
+    /// <summary>Developer mode, 1 or 0, phone to laptop. The laptop keeps it across sessions; the phone shows it from FEATURES <see cref="Feature.Developer"/>. Anything else is dropped and counted.</summary>
+    Developer = 13,
 }
 
 /// <summary>
@@ -522,4 +689,46 @@ internal enum BlobKind : byte
     ClipImage = 1,
     AppList = 2,
     AppIcon = 3,
+
+    /// <summary>Laptop to phone: a 64 px PNG. The label is the app's name, or "artwork" for a browser's media artwork.</summary>
+    MediaIcon = 4,
+
+    /// <summary>Laptop to phone: "app\ntitle\nbody" in UTF-8. The label is the notification's id.</summary>
+    Notification = 5,
+
+    /// <summary>
+    /// Laptop to phone: an approval request. The label is "id/f", id 12 lowercase hex and f 1 when the text is complete or 0 when it was over the
+    /// 4096-byte cap. The body is UTF-8 "agent", "tool" and "text" joined by line feeds. Sent urgently. Answered by <see cref="TextKind.PermAnswer"/>.
+    /// </summary>
+    PermAsk = 6,
+
+    /// <summary>Laptop to phone: GitHub pull requests and the notification count. The label is "gh"; the body is tab-separated lines, see protocol/actions.txt.</summary>
+    Github = 7,
+}
+
+/// <summary>
+/// The reason token of <see cref="TextKind.Unavailable"/>. Tokens the phone matches on, never prose, for the reason
+/// <see cref="PadStatus"/> is. Mirrors protocol/actions.txt.
+/// </summary>
+internal static class UnavailableReason
+{
+    public const string Unsupported = "unsupported";
+    public const string Off = "off";
+    public const string NoTool = "no-tool";
+    public const string NoPermission = "no-permission";
+}
+
+/// <summary>The whole vocabulary of <see cref="TextKind.EndAction"/>. Mirrors protocol/actions.txt.</summary>
+internal static class EndActionToken
+{
+    public const string None = "none";
+    public const string Sleep = "sleep";
+    public const string Shutdown = "shutdown";
+}
+
+/// <summary>The whole vocabulary of <see cref="TextKind.CaptureState"/>. Mirrors protocol/actions.txt.</summary>
+internal static class CaptureStateToken
+{
+    public const string Idle = "idle";
+    public const string Recording = "recording";
 }

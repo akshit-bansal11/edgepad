@@ -4,6 +4,64 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+Wire protocol 6. A 5.0 phone and a 4.x laptop (or the reverse) refuse each other at the handshake and say which side needs updating, so install the phone and the laptop from the same release. Windows needs nothing new installed or allowed. All of this is built and has passed CI only; none of it has run on a phone with a laptop.
+
+### Added
+
+- **Phone and laptops: send a file.** A file moves either way, up to 2 GB: from the phone with Controls › Send a file or Share, from Windows with the tray row and Send to, from the Mac with the menu row, Open With or a drop on the icon, from Linux with the tray row, `edgepad --send` and a Send to phone desktop entry. Names are made safe, the SHA-256 is checked, an interrupted transfer resumes, and one file moves at a time per direction. Over Wi-Fi or USB the bytes use a second socket that can only attach to a phone that is already connected.
+- **Phone and Windows: send many files at once.** Phone: Send a file picks several, and the Android share sheet takes several. Windows: the tray's Send a file picks several, and Explorer's Send to takes several files. Linux: the picker takes several. Files go one after another. The phone shows a card with the file name, "2 of 5", a bar with percent and speed, and Cancel; at the end it says "Sent N files", or which files failed and why, with Try again, which re-sends only the failed ones. Windows shows the same as a toast near the tray. A failed file does not stop the rest; Cancel or a lost link does.
+- **Phone and laptops: update in place.** The phone offers Later and Skip this version and posts a notice. Windows, Mac and Linux verify a signed list of file hashes before replacing themselves. The signing key is embedded; a build without one would open the release page instead. See `docs/UPDATES.md`.
+- **Phone: Sleep when this ends.** Sleep or shut down the laptop when the current video or track ends, with a cancellable 60 second countdown on the laptop. Windows and Linux; the Mac gains it with its new now-playing support.
+- **Phone: Quick Settings tile** and play/pause and volume buttons in the stay-connected notification.
+- **Phone: clipboard history.** The last copies from the laptop and from this phone, each with where it came from (phone or laptop) and how long ago. Tap one to send it again. An empty list says Nothing copied yet.
+- **Windows: clipboard panel.** Win+Alt+V opens Edgepad's clipboard panel: recent copies from the phone and the laptop, newest first. Click or Enter pastes into the app you were in; Ctrl+Enter sends the item to the phone; Esc closes. Also in the tray menu as Clipboard history. Text only, 25 items, kept in memory only, and only while Share clipboard is on. If another app owns Win+Alt+V, the tray row still opens the panel.
+- **Phone: Presenter** with Next and Previous slide, and the volume keys stepping slides while the screen is open. The laser pad is always shown: Previous and Next are tall columns at the sides in landscape and a row below in portrait, and the laser switch is gone. Presenter settings hold a Laser size slider and Show trail. The **Laser pointer** draws a dot on the laptop and leaves nothing behind (Windows, Mac, Linux).
+- **Phone and laptops: the laser.** A bright red dot with a glow, sized by the slider. With Show trail on, a short red tail follows it. Both lasers take their size from PEN_WIDTH.
+- **Phone: app profiles.** Dials and gestures switch with the app in front on the laptop. Off by default; the laptop sends the app only while it is on. Windows, Mac and Linux on X11.
+- **Phone: Air mouse.** Tilt to move the pointer while a finger rests on the trackpad. It turns left and right in any grip (flat, held like a remote, upright) and stops the moment the finger lifts. A line under the switch says how to use it.
+- **Phone: Floating dials** over other apps, with Android's draw-over-apps permission and Stay connected.
+- **Phone: Show laptop notifications,** off by default on both sides. Linux only: Windows waits for a check of its notification listener, and macOS has no public API. Content is never logged.
+- **Phone: the laptop's own details.** The real icon of what is playing (a browser shows its media artwork), the full title when the laptop cleaned it, the laptop's macro limit, whether it is recording, and why a feature is missing.
+- **Windows: Restart as administrator** from the tray, so input reaches elevated windows.
+- **Mac: now playing and position** for Music and Spotify, hold-off while the Mac is locked or switched to another user, and a copied screenshot is sent when Capture saves to the phone.
+- **Mac and Linux: every language the phone has.** The menus and dialogs follow the system language in 14 languages; Arabic is right to left on Linux.
+- **Linux: refresh-rate dial** (xrandr on X11, Mutter on Wayland GNOME), **arm64 archive** `Edgepad-<version>-linux-arm64.tar.gz`, and the same cleaned titles, media icons and capture fallback as Windows.
+- **Site: docs search.**
+- **Phone: System screen.** Controls › System shows the laptop's processor, graphics card, graphics memory, memory, every disk, Wi-Fi download and upload, and ping to the router, each with a one-minute graph, upright or sideways. Turn on System stats in the laptop's Integrations window. Readings run only while the screen or a widget is on show. CPU temperature on Windows, temperatures on the Mac and AMD graphics temperature on Windows show a dash.
+- **Phone: trackpad widgets.** Clock, weather, system and network (and AI usage, once connected) can sit on the trackpad as a background that never takes a touch. Surface settings › Widgets. Weather uses Open-Meteo with a city you type on the laptop and nothing else.
+- **Phone: a roomier Controls popup.** The tiles fill the popup, as on the macro deck, and the switches under them (Hide dials and media, Black out when idle, Air mouse, Floating dials, Sleep when this ends) are one row of chips. Keyboard, Annotate, Clipboard and Presenter have clearer icons, and Send a file has its own paper plane instead of the Capture icon.
+- **Phone: edit Controls.** The Edit chip under the tiles shows every tile; tap one to hide or show it, and drag to move it. Hidden tiles stay hidden until shown again.
+- **Laptops: Integrations window** (tray › Integrations…, or the menu-bar item on the Mac), every switch off by default, with numbered steps for Claude Code, Codex and GitHub. Connect installs the Edgepad plugin that ships inside each release; it runs Edgepad itself, so nothing else needs installing. Codex asks you once to trust it in /hooks, and again after an update that changes its hooks, which Edgepad says in a notification.
+- **Optional, for developers: AI and GitHub screens.** Off until connected in the Integrations window, and their tiles appear in Controls only after that. Controls › AI shows Claude Code and Codex usage limits, spend in tokens and estimated dollars ("at least" when a model has no published price) and open sessions. Their approval requests can be answered from a sheet over any screen, with the full command and Deny and Allow; no answer in 30 seconds, a cut-off request or any failure leaves the question in the terminal, and hidden or direction-changing characters are shown as <U+XXXX>. Controls › GitHub lists pull requests waiting for your review and your own, with checks and review state, and your unread notification count; the sign-in is stored encrypted on the laptop and never sent to the phone.
+
+### Changed
+
+- **The website moved to https://getedgepad.com.** The Documentation links in every app, the Linux installer and the README point there, and the old address redirects to it.
+- **Protocol 6.** New frames BULK_HELLO and XFER_BEGIN, XFER_CHUNK, XFER_END, XFER_STATUS; ACTION 37, ACTION 38 (TOOL_LASER_TRAIL) and 60 to 62, CONTROL 10 to 12, TEXT 21 to 35 and BLOB kinds 4 to 7. See `docs/PROTOCOL.md`.
+- **Phone: motion that carries.** Presses answer within 160 ms, popovers and windows open from where they were opened within 300 ms, and a screen change takes at most 400 ms and carries across instead of cutting. The same tiers apply on Windows, Linux and the website.
+- **Phone: the battery strip is an underline** instead of pills.
+- **Phone: Capture's region is a plain drag (#75).** Point at one corner, tap Region, then drag on the trackpad to the opposite corner; no hold. Until that drag, taps send nothing on Windows and Mac, where a click ended the selection as a few pixels. On Windows, Record starts the same way. On the main trackpad a ring now fills while a finger holds still, and turns the accent colour when the drag starts. During the drag the pointer's reach scales with the laptop's screen, so two thirds of the pad crosses a large monitor.
+- **Phone, laptops: media titles are cleaned** of brackets, "feat." and the artist's name, from one shared test list.
+- **Phone: gesture hints are off by default.**
+- **Phone: the Presenter laser pad no longer draws a trail of the finger.** Only the dot shows, or the red tail when Show trail is on.
+- **Windows: the pairing code is typed into one box per digit;** paste fills them all.
+- **Site: download links read the newest published release,** not the changelog, so they no longer 404 before the tag publishes.
+
+### Fixed
+
+- **Mac: media changes reach the phone** even where the end-of-media action is not offered.
+- **Windows: a screen that refuses brightness changes logs it once,** not on every dial step, and quitting no longer throws from the brightness control.
+- **Release: a hand-run draft without the signing key ships unsigned** instead of failing.
+- **Phone: floating dials' permission note hides once the permission is granted.**
+- **Phone: the air mouse no longer drags while a finger is held;** taps still click.
+- **Windows: the gamepad finds ViGEmBus** installed while the phone is connected the next time the gamepad screen opens, without a reconnect.
+
+### Security
+
+- **Releases are signed.** `SHA256SUMS.txt` carries a signature made with a key that only the release job can read. It protects against a replaced release file after a GitHub account takeover; it does not protect against a stolen signing key. See `docs/UPDATES.md`.
+- **The transfer socket cannot admit a phone.** It asks no question and starts no session, and a second socket is closed on any frame but transfer frames.
+- **Notifications and the app in front are consent-gated:** each is off until both the phone and the laptop turn it on, sent only while connected, and never logged.
+
 ## [4.2.1] - 2026-11-16
 
 No wire-protocol change: the protocol stays at version 5.

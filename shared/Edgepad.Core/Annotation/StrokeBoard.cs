@@ -23,6 +23,12 @@ internal enum StrokeTool
     Arrow,
     Rectangle,
     Ellipse,
+
+    /// <summary>A dot that follows the finger: it keeps only its latest point, is never stored in the board's strokes, and is gone at pen up.</summary>
+    Laser,
+
+    /// <summary>The laser plus a short fading trail: it keeps its latest <see cref="Stroke.TrailPoints"/> points, is never stored, and is gone at pen up.</summary>
+    LaserTrail,
 }
 
 /// <summary>A point as the phone sent it: 0 is the left/top edge of the laptop screen, 65535 the right/bottom.</summary>
@@ -89,7 +95,7 @@ internal readonly record struct PenStyle(int Rgb, int Width, int Opacity)
 
 /// <summary>
 /// One finger-down to finger-up. Freehand tools keep every point; the shape tools keep the down point and the
-/// latest one, because a shape is only ever its two corners.
+/// latest one, because a shape is only ever its two corners; the laser keeps only the latest point, the trailing laser its latest few.
 /// </summary>
 internal sealed class Stroke(StrokeTool tool, PenStyle style)
 {
@@ -117,6 +123,15 @@ internal sealed class Stroke(StrokeTool tool, PenStyle style)
         (byte)Math.Round(255f * (Tool == StrokeTool.Highlighter ? HighlighterAlpha : 1f) * Style.Opacity / 100f);
 
     public List<NormPoint> Points { get; } = [];
+
+    /// <summary>How many points the trailing laser keeps behind the dot.</summary>
+    public const int TrailPoints = 24;
+
+    /// <summary>Either laser: sized from the pen width, never stored.</summary>
+    public bool IsLaser => Tool is StrokeTool.Laser or StrokeTool.LaserTrail;
+
+    /// <summary>The laser dot's radius in pixels: 0.06% of the screen's height per width step (20 is 1.2%), at least 2.</summary>
+    public float LaserRadiusPx(int height) => Math.Max(2f, Style.Width * 0.0006f * height);
 
     private bool IsShape => Tool is StrokeTool.Line or StrokeTool.Arrow or StrokeTool.Rectangle or StrokeTool.Ellipse;
 
@@ -160,7 +175,20 @@ internal sealed class Stroke(StrokeTool tool, PenStyle style)
     /// <summary>A shape keeps two points: the down point, then wherever the finger is now.</summary>
     internal void Extend(NormPoint point)
     {
-        if (IsShape && Points.Count > 1)
+        if (Tool == StrokeTool.Laser)
+        {
+            Points.Clear();
+            Points.Add(point);
+        }
+        else if (Tool == StrokeTool.LaserTrail)
+        {
+            Points.Add(point);
+            if (Points.Count > TrailPoints)
+            {
+                Points.RemoveAt(0);
+            }
+        }
+        else if (IsShape && Points.Count > 1)
         {
             Points[1] = point;
         }
@@ -359,7 +387,11 @@ internal sealed class StrokeBoard
 
     private void Commit()
     {
-        if (Active is not null)
+        if (Active is { IsLaser: true })
+        {
+            Active = null;
+        }
+        else if (Active is not null)
         {
             strokes.Add(Active);
             committedPoints += Active.Points.Count;

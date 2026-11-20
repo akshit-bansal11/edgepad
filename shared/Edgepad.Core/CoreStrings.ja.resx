@@ -79,7 +79,7 @@
     <value>ペアリングが完了しませんでした。</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>ペアリングコードが一致しました。{0}で「はい、ペアリング済み」をタップして完了してください。</value>
+    <value>ペアリングコードが一致しました。{0}で「コードが一致」をタップして完了してください。</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>{0}とペアリングしました。</value>

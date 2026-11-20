@@ -1,0 +1,6 @@
+{
+  "name": "edgepad",
+  "description": "Edgepad integration for Claude Code and Codex",
+  "owner": { "name": "Akshit Bansal" },
+  "plugins": [{ "name": "edgepad", "source": "./edgepad" }]
+}

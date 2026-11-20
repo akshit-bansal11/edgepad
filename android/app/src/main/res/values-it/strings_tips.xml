@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">Chiudi il suggerimento</string>
+  <string name="tip_presenter">I tasti del volume cambiano diapositiva finché questa schermata è aperta.</string>
+  <string name="tip_capture">Area: toccala, poi trascina sul pad fino all’angolo opposto.</string>
+  <string name="tip_annotate">Disegna qui. L’inchiostro appare sul portatile nello stesso punto.</string>
+  <string name="tip_shapes">Disegnala con un solo tratto, poi solleva il dito.</string>
+  <string name="capture_to_phone">Sul telefono</string>
+</resources>

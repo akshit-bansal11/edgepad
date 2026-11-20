@@ -19,7 +19,7 @@ internal static class Dialogs
         var yesButton = look.Button(yes, primary: !dangerous, danger: dangerous);
         var noButton = look.Button(no, primary: dangerous);
         noButton.IsDefault = true;
-        var window = look.Dialog("Edgepad", 440, Body(look, question, Look.Footer(noButton, yesButton)));
+        var window = look.Dialog(LinuxStrings.App_Name, 440, Body(look, question, Look.Footer(noButton, yesButton)));
         window.Topmost = true;
         yesButton.Click += (_, _) => Finish(window, answer, true);
         noButton.Click += (_, _) => Finish(window, answer, false);
@@ -27,14 +27,14 @@ internal static class Dialogs
         return answer.Task;
     }
 
-    /// <summary>Shows a message with one OK button; completes when it is closed.</summary>
+    /// <summary>Shows a message with one Close button; completes when it is closed.</summary>
     public static Task Inform(Window? owner, string message)
     {
         var look = Look.Current;
         var closed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var ok = look.Button("OK", primary: true);
+        var ok = look.Button(LinuxStrings.Common_Close, primary: true);
         ok.IsDefault = true;
-        var window = look.Dialog("Edgepad", 440, Body(look, message, Look.Footer(ok)));
+        var window = look.Dialog(LinuxStrings.App_Name, 440, Body(look, message, Look.Footer(ok)));
         window.Topmost = true;
         ok.Click += (_, _) => Finish(window, closed, true);
         Present(window, owner, closed, false, ok);

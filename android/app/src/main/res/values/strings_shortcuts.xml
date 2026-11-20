@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">Not connected</string>
+  <string name="notice_play_pause">Play or pause</string>
+  <string name="notice_volume_down">Volume down</string>
+  <string name="notice_volume_up">Volume up</string>
+  <string name="controls_clipboard">Clipboard</string>
+  <string name="controls_presenter">Presenter</string>
+  <string name="clip_history_title">Clipboard</string>
+  <string name="clip_history_empty">Nothing copied yet</string>
+  <string name="clip_history_empty_hint">Copies from the laptop and this phone show up here while Share clipboard is on.</string>
+  <string name="clip_history_from_laptop">From laptop</string>
+  <string name="clip_history_from_phone">From this phone</string>
+  <string name="clip_history_just_now">Just now</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
+  <string name="clip_history_sent">Sent to %1$s</string>
+  <string name="clip_history_failed">Could not send. Check the connection.</string>
+  <string name="clip_history_send_hint">Send again</string>
+  <string name="presenter_title">Presenter</string>
+  <string name="presenter_next">Next slide</string>
+  <string name="presenter_previous">Previous slide</string>
+  <string name="presenter_settings">Presenter settings</string>
+  <string name="presenter_laser_size">Laser size</string>
+  <string name="presenter_laser_trail">Show trail</string>
+  <string name="presenter_point_here">Point here</string>
+  <string name="tool_laser">Laser</string>
+</resources>

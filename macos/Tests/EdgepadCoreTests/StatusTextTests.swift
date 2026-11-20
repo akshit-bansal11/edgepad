@@ -32,3 +32,17 @@ final class StatusTextTests: XCTestCase {
         XCTAssertEqual(SingleInstance.decide(mine: "4.0.0", others: []), .takeOver)
     }
 }
+
+final class MiddleTruncatedTests: XCTestCase {
+    func testAShortNameIsUntouched() {
+        XCTAssertEqual(StatusText.middleTruncated("report.pdf"), "report.pdf")
+    }
+
+    func testALongNameKeepsItsExtension() {
+        XCTAssertEqual(StatusText.middleTruncated("quarterly-report-final.pdf", limit: 16), "quarterly…al.pdf")
+    }
+
+    func testANameWithoutAnExtensionIsCutAtTheEnd() {
+        XCTAssertEqual(StatusText.middleTruncated("abcdefghijklmnopqrstuvwxyz", limit: 10), "abcdefghi…")
+    }
+}

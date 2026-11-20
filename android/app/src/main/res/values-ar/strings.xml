@@ -29,6 +29,7 @@
   <string name="address_connect">اتصال</string>
   <string name="address_looking">جارٍ البحث عن لابتوب على %1$s…</string>
   <string name="address_invalid">هذا ليس عنوانًا. اكتب اسم مضيف أو عنوان IP، مع المنفذ إن لم يكن 47321.</string>
+  <string name="address_bad_port">يجب أن يكون المنفذ رقمًا من 1 إلى 65535.</string>
   <string name="address_no_laptop">لم يردّ على هذا العنوان أي لابتوب يشغّل Edgepad.</string>
   <string name="usb_tethering">التوصيل عبر USB</string>
   <string name="local_network_needed">يحتاج Edgepad إلى إذن «الأجهزة المجاورة» للعثور على أجهزة اللابتوب على شبكة Wi-Fi وعبر USB.</string>
@@ -123,9 +124,9 @@
   <string name="pair_expires">تنتهي الصلاحية خلال %1$s</string>
   <string name="pair_expired">انتهت الصلاحية</string>
   <string name="pair_confirm_title">هل ظهر على %1$s أن الرمز مطابق؟</string>
-  <string name="pair_confirm_body">إذا ظهر أن الرمز خاطئ، فانقر «لا»: فقد يكون جهاز آخر يردّ بدلًا منه.</string>
-  <string name="pair_confirm_yes">نعم، تم الإقران</string>
-  <string name="pair_confirm_no">لا</string>
+  <string name="pair_confirm_body">إذا ظهر أن الرمز خاطئ، فانقر «غير متطابقة»: فقد يكون جهاز آخر يردّ بدلًا منه.</string>
+  <string name="pair_confirm_yes">الرموز متطابقة</string>
+  <string name="pair_confirm_no">غير متطابقة</string>
 
   <!-- Connection lost -->
   <string name="lost_title">اللابتوب خارج النطاق</string>
@@ -184,8 +185,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 مقاييس، مقسّمة</string>
   <string name="media_layout_title">تخطيط الوسائط</string>
-  <string name="media_layout_hint_upright">هذا هو التخطيط العمودي؛ أدر الهاتف لترتيب التخطيط الأفقي. اسحب عنصرًا لنقله. يلتصق بالشبكة وبخطوط المنتصف.</string>
-  <string name="media_layout_hint_sideways">هذا هو التخطيط الأفقي؛ أدر الهاتف لترتيب التخطيط العمودي. اسحب عنصرًا لنقله. يلتصق بالشبكة وبخطوط المنتصف.</string>
   <string name="piece_now_playing">قيد التشغيل</string>
   <string name="piece_transport">السابق · تشغيل · التالي</string>
   <string name="media_layout_reset">إعادة تعيين المواضع</string>
@@ -314,7 +313,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">الرسم</string>
   <string name="shapes_target_title">ما الذي يشغّله</string>
-  <string name="shapes_draw_hint">ارسمه بحركة واحدة، وارفع إصبعك عند الانتهاء.</string>
   <string name="shapes_redraw">إعادة الرسم</string>
   <string name="shapes_save">حفظ</string>
   <string name="shapes_delete">حذف</string>
@@ -444,7 +442,11 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">عناصر التحكم</string>
-  <string name="controls_move_hint">اضغط مع الاستمرار على عنصر لنقله.</string>
+  <string name="controls_edit">تعديل</string>
+  <string name="controls_edit_hint">انقر على عنصر لإخفائه أو إظهاره. اضغط مع الاستمرار واسحبه لنقله.</string>
+  <string name="controls_hidden">مخفي</string>
+  <string name="controls_all_hidden">كل العناصر مخفية. انقر على تعديل لإظهارها من جديد.</string>
+  <string name="controls_toggle_tile">إخفاء %1$s أو إظهاره</string>
   <string name="controls_hide_dials">إخفاء المقاييس والوسائط</string>
   <string name="controls_blackout">إظلام الشاشة عند الخمول</string>
   <string name="controls_open">فتح %1$s</string>
@@ -463,10 +465,8 @@
   <string name="capture_stop">إيقاف التسجيل</string>
   <string name="capture_recording">يجري التسجيل على اللابتوب. انقر «إيقاف التسجيل» للإنهاء؛ ومع «الحفظ في» «الهاتف» يصل الملف حينها.</string>
   <string name="capture_sent">تم الإرسال إلى اللابتوب: %1$s</string>
-  <string name="capture_hint">لالتقاط منطقة، انقر «منطقة»، ثم ثبّت إصبعك على لوحة اللمس لحظة وحرّكه لتحديد المساحة.</string>
-  <string name="capture_save_to">الحفظ في</string>
+  <string name="capture_drag_caption">اسحب لتحديد المنطقة</string>
   <string name="capture_save_laptop">اللابتوب</string>
-  <string name="capture_save_phone">الهاتف</string>
   <string name="capture_receiving">جارٍ استلام %1$s، %2$d%%</string>
   <string name="capture_saved">تم الحفظ في %1$s</string>
   <string name="capture_bad_hash">وصل الالتقاط تالفًا. ما زال موجودًا على اللابتوب.</string>
@@ -477,8 +477,6 @@
   <string name="capture_send_failed">تعذّر على اللابتوب إرسال الالتقاط. ما زال موجودًا عليه.</string>
   <string name="controls_annotate">الرسم</string>
   <string name="annotate_description">لوحة قلم: يرسم اللمس في المكان نفسه على شاشة اللابتوب. تعمل باللمس فقط.</string>
-  <string name="annotate_hint">ارسم هنا. يظهر الحبر على اللابتوب في المكان نفسه.</string>
-  <string name="annotate_hint_named">ارسم هنا. يظهر الحبر على %1$s في المكان نفسه.</string>
   <string name="annotate_menu">أدوات الرسم</string>
   <string name="annotate_menu_expanded">موسَّعة</string>
   <string name="annotate_menu_collapsed">مطويّة</string>
@@ -545,7 +543,7 @@
   <string name="apps_add_from_laptop">إضافة من اللابتوب</string>
   <string name="apps_add_caption">اختر تطبيقًا يعرضه اللابتوب فيصبح ماكرو هناك. لا يُرسَل سوى اختيارك.</string>
   <string name="apps_title">إضافة ماكرو</string>
-  <string name="apps_search_hint">بحث في التطبيقات</string>
+  <string name="apps_search_hint">بحث في التطبيقات، مثل Chrome</string>
   <string name="apps_loading">جارٍ البحث عن تطبيقات على %1$s…</string>
   <string name="apps_none">لم يعرض %1$s أي تطبيقات.</string>
   <string name="apps_no_match">لا يوجد تطبيق يطابق هذا البحث.</string>
@@ -588,4 +586,90 @@
   <string name="battery_percent">%1$d%%</string>
   <string name="battery_more">+%1$d</string>
   <string name="battery_summary">البطاريات: %1$s</string>
+  <string name="updates_later">لاحقًا</string>
+  <string name="updates_skip">تخطي هذا الإصدار</string>
+  <string name="updates_notify_text">إصدار Edgepad %1$s متاح. المس للتحديث.</string>
+  <string name="end_action_title">النوم عند انتهاء هذا</string>
+  <string name="end_sleep">وضع اللابتوب في السكون</string>
+  <string name="end_shutdown">إيقاف تشغيل اللابتوب</string>
+  <string name="end_cancel">إلغاء</string>
+  <string name="end_armed_sleep">سينتقل إلى السكون عند الانتهاء</string>
+  <string name="end_armed_shutdown">سيتم الإيقاف عند الانتهاء</string>
+  <string name="end_no_timeline">ليس لهذا وقت انتهاء، فلا شيء للانتظار.</string>
+  <string name="unavailable_unsupported">لا يستطيع هذا اللابتوب القيام بذلك.</string>
+  <string name="unavailable_off">هذا الخيار متوقف على اللابتوب.</string>
+  <string name="unavailable_no_tool">ينقص اللابتوب برنامج يحتاجه هذا.</string>
+  <string name="unavailable_no_permission">لم يسمح اللابتوب بهذا بعد.</string>
+  <string name="capture_recording_laptop">التسجيل على اللابتوب</string>
+  <string name="xfer_send">إرسال ملف</string>
+  <string name="xfer_sending">جارٍ إرسال %1$s · %2$d%%</string>
+  <string name="xfer_receiving">جارٍ استلام %1$s · %2$d%%</string>
+  <string name="xfer_done">تم حفظ %1$s</string>
+  <string name="xfer_failed">تعذر إرسال %1$s</string>
+  <string name="xfer_cancel">إلغاء</string>
+  <plurals name="xfer_too_many">
+    <item quantity="zero">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
+    <item quantity="one">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
+    <item quantity="two">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
+    <item quantity="few">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
+    <item quantity="many">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
+    <item quantity="other">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
+  </plurals>
+  <string name="xfer_sending_n">جارٍ إرسال %1$s (%2$d من %3$d) · %4$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="zero">لم يُرسَل أي ملف (%1$d)</item>
+    <item quantity="one">أُرسل ملف واحد (%1$d)</item>
+    <item quantity="two">أُرسل ملفان (%1$d)</item>
+    <item quantity="few">أُرسلت %1$d ملفات</item>
+    <item quantity="many">أُرسل %1$d ملفًا</item>
+    <item quantity="other">أُرسل %1$d ملف</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="zero">لم يُستلَم أي ملف (%1$d)</item>
+    <item quantity="one">استُلم ملف واحد (%1$d)</item>
+    <item quantity="two">استُلم ملفان (%1$d)</item>
+    <item quantity="few">استُلمت %1$d ملفات</item>
+    <item quantity="many">استُلم %1$d ملفًا</item>
+    <item quantity="other">استُلم %1$d ملف</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="zero">أُرسل %1$d من %2$d ملف</item>
+    <item quantity="one">أُرسل %1$d من %2$d ملف</item>
+    <item quantity="two">أُرسل %1$d من %2$d ملف</item>
+    <item quantity="few">أُرسل %1$d من %2$d ملفات</item>
+    <item quantity="many">أُرسل %1$d من %2$d ملفًا</item>
+    <item quantity="other">أُرسل %1$d من %2$d ملف</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="zero">تعذر إرسال %1$d ملف</item>
+    <item quantity="one">تعذر إرسال ملف واحد (%1$d)</item>
+    <item quantity="two">تعذر إرسال ملفين (%1$d)</item>
+    <item quantity="few">تعذر إرسال %1$d ملفات</item>
+    <item quantity="many">تعذر إرسال %1$d ملفًا</item>
+    <item quantity="other">تعذر إرسال %1$d ملف</item>
+  </plurals>
+  <plurals name="xfer_card_more">
+    <item quantity="zero">و%1$d أخرى</item>
+    <item quantity="one">و%1$d أخرى</item>
+    <item quantity="two">و%1$d أخرى</item>
+    <item quantity="few">و%1$d أخرى</item>
+    <item quantity="many">و%1$d أخرى</item>
+    <item quantity="other">و%1$d أخرى</item>
+  </plurals>
+  <plurals name="xfer_share_count">
+    <item quantity="zero">%1$d ملف</item>
+    <item quantity="one">ملف واحد</item>
+    <item quantity="two">ملفان</item>
+    <item quantity="few">%1$d ملفات</item>
+    <item quantity="many">%1$d ملفًا</item>
+    <item quantity="other">%1$d ملف</item>
+  </plurals>
+  <string name="xfer_card_cancelling">جارٍ الإلغاء…</string>
+  <string name="xfer_retry">إعادة المحاولة</string>
+  <string name="xfer_card_a11y">نقل الملفات</string>
+  <string name="xfer_no_laptop">اتصل بلابتوب أولًا</string>
+  <string name="xfer_channel">نقل الملفات</string>
+  <string name="notify_channel">إشعارات اللابتوب</string>
+  <string name="notify_setting">عرض إشعارات اللابتوب</string>
+  <string name="notify_setting_hint">يتطلب تشغيل المفتاح نفسه في قائمة Edgepad على اللابتوب.</string>
 </resources>

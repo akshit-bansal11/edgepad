@@ -42,6 +42,9 @@ internal sealed class LinuxClipboard : IClipboardSurface
         available = wayland || !string.IsNullOrEmpty(display);
     }
 
+    /// <summary>Whether there is a display for a clipboard tool to talk to.</summary>
+    public bool Available => available;
+
     /// <summary>
     /// What to take from a clipboard that offers <paramref name="types"/>: a password manager's hint anywhere means
     /// nothing is read at all; otherwise a PNG, else UTF-8 text, else nothing.

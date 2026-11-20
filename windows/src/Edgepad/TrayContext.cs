@@ -1,14 +1,18 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Edgepad.Blob;
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
+using Edgepad.Dashboard;
 using Edgepad.Dispatch;
 using Edgepad.Gamepad;
+using Edgepad.Injection;
 using Edgepad.Macros;
 using Edgepad.Net;
 using Edgepad.Network;
 using Edgepad.Startup;
+using Edgepad.Transfer;
 using Edgepad.Trust;
 using Edgepad.Ui;
 using Edgepad.Updates;
@@ -25,13 +29,16 @@ internal sealed class TrayContext : ApplicationContext
 
     // The documentation site. The phone's Settings › Help offers the same link, so the
     // two halves point at one page rather than each explaining itself.
-    private const string DocumentationUrl = "https://edgepad.akshitbansal.dev/docs";
+    private const string DocumentationUrl = "https://getedgepad.com/docs";
 
     // ViGEmBus is a separate install the owner makes; this is where it is downloaded from.
     private const string DriverUrl = "https://github.com/nefarius/ViGEmBus/releases/latest";
 
     // A connection that drops within this long of launch is not worth a word: the app has only just started.
     private const long SettleMs = 8000;
+
+    // How long a receive batch stays open after its last file.
+    private const int ReceiveLingerMs = 2000;
 
     /// <summary>
     /// How long the question about a new phone waits for the owner. No answer is a no: a laptop left alone must
@@ -46,30 +53,65 @@ internal sealed class TrayContext : ApplicationContext
     /// </summary>
     private static readonly TimeSpan QuietAfterForget = TimeSpan.FromSeconds(30);
 
-    // Lucide's clipboard, on the same grid as the paths in Ui/Icons.
-    private const string ClipboardGlyph = "M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1H9a1 1 0 0 1 -1 -1V3a1 1 0 0 1 1 -1z"
-        + "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2H6a2 2 0 0 1 -2 -2V6a2 2 0 0 1 2 -2h2";
-
     // An ampersand marks the row's access key (Windows menu convention); each letter is used once.
     private readonly MenuRow startWithWindows = new(Strings.Menu_StartWithWindows, Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new(Strings.Menu_Macros, Icons.Macro);
     private readonly MenuRow securityRow = new(Strings.Menu_Security, Icons.Smartphone);
+    private readonly MenuRow integrationsRow = new(Strings.Menu_Integrations, Icons.Sliders);
+    private readonly MenuRow developerRow = new(Strings.Menu_DeveloperMode, Icons.Sliders) { CheckOnClick = true, Switch = true };
+    private readonly MenuRow developerIntegrationsRow = new(Strings.Menu_DeveloperIntegrations, Icons.Sliders) { Available = false };
     private readonly MenuRow networkRow = new(Strings.Menu_Network, Icons.Wifi) { CheckOnClick = true, Switch = true };
     private readonly MenuRow networkProblem = new(Strings.Network_Title, Icons.Wifi) { Danger = true, Available = false };
     private readonly MenuRow firewallRow = new(Strings.Menu_Firewall, Icons.Shield) { Available = false };
+    private readonly MenuRow restartAdminRow = new(Strings.Menu_RestartAdmin, Icons.Shield)
+    {
+        Available = !Environment.IsPrivilegedProcess,
+        ToolTipText = Strings.Menu_RestartAdminTip,
+    };
+
     private readonly MenuRow bluetoothRow = new(Strings.Menu_BluetoothSettings, Icons.Smartphone) { Available = false };
-    private readonly MenuRow clipboardRow = new(Strings.Menu_ShareClipboard, ClipboardGlyph)
+    private readonly MenuRow clipboardRow = new(Strings.Menu_ShareClipboard, Icons.Clipboard)
     {
         CheckOnClick = true,
         Switch = true,
         ToolTipText = Strings.Menu_ShareClipboardTip,
     };
 
+    private readonly MenuRow clipHistoryRow = new(Strings.Menu_ClipboardHistory, Icons.Clipboard) { ToolTipText = Strings.Menu_ClipboardHistoryTip };
+
+    // In memory only, and only while Share clipboard is on. UI thread only.
+    private readonly ClipboardHistory history = new();
+    private ClipboardPanel? clipPanel;
+
+    // Registered only while Share clipboard is on, so the key is not swallowed while the panel cannot open. UI thread only.
+    private ClipboardHotkey? hotkey;
+
+    private readonly MenuRow sendFileRow = new(Strings.Menu_SendFile, Icons.Download);
+    private readonly SendPipe? sendPipe;
+
+    // Sending and receiving files both report to one feed; the toast shows it. Built in the constructor, on the UI thread.
+    private readonly TransferFeed feed = new();
+    private readonly SendQueue queue;
+    private readonly TransferToast toast;
+
+    // A receive batch stays open until 2 s after its last file or, while a file is open, until 2 s past the receiver's idle
+    // drop, which reports a stalled file first. The timer runs only while a batch is open. UI thread only.
+    private readonly System.Windows.Forms.Timer receiveEnd = new() { Interval = ReceiveLingerMs };
+    private bool receiving;
+    private string? receivingName;
+
+    // Receive progress from the session thread: the update not yet shown, which a newer one for the same file overwrites, so
+    // the UI thread gets one post per update it shows, not one per chunk. An arrival or a failure closes it. Under receiveGate.
+    private readonly Lock receiveGate = new();
+    private ReceiveTick? openTick;
     private readonly MenuRow checkUpdates = new(Strings.Menu_CheckUpdates, Icons.Download) { CheckOnClick = true, Switch = true };
     private readonly MenuRow openLog = new(Strings.Menu_OpenLog, Icons.FileText);
     private readonly TrayMenu settingsMenu = new(withHeader: false);
     private readonly MenuRow settingsRow = new(Strings.Menu_Settings, Icons.Sliders);
     private readonly MenuRow update = new(Strings.Menu_Update, Icons.Download) { Available = false };
+    private readonly MenuRow installRow = new(Strings.Menu_UpdateInstall, Icons.Download) { Available = false };
+    private readonly MenuRow laterRow = new(Strings.Menu_UpdateLater, Icons.Download) { Available = false };
+    private readonly MenuRow skipRow = new(Strings.Menu_UpdateSkip, Icons.Download) { Available = false };
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
     private readonly TrayMenu menu = new();
     private readonly NotifyIcon icon;
@@ -90,6 +132,10 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MacroStore macros = MacroStore.ForCurrentUser(new ShellLauncher(), new WindowsMacroWindows());
     private readonly LevelOverlay overlay;
     private readonly SessionHost host;
+
+    // The dashboard integrations, all off until the owner turns one on; the window is not modal, one at a time. UI thread only.
+    private readonly WindowsIntegrations integrations;
+    private IntegrationsWindow? integrationsWindow;
     private readonly RfcommServer server;
     private readonly PairedLinks pairedLinks = PairedLinks.ForCurrentUser();
     private readonly NetworkSettings networkSettings;
@@ -97,6 +143,12 @@ internal sealed class TrayContext : ApplicationContext
     private readonly NetworkServer network;
     private readonly ClipboardSetting clipboardSetting;
     private readonly UpdateSetting updateSetting;
+    private readonly UpdateChoice updateChoice;
+
+    // The release the update rows offer, whether the tray icon carries the update dot, and whether an install is under way. UI thread only.
+    private Version? offered;
+    private bool updateReady;
+    private bool installing;
     private readonly WindowsClipboard clipboard;
 
     // What is wrong with the Wi-Fi and USB listener, if anything (NetworkStatus). Only the UI thread touches it.
@@ -134,6 +186,10 @@ internal sealed class TrayContext : ApplicationContext
         firewallMemory = FirewallMemory.ForCurrentUser(pin.Folder);
         clipboardSetting = ClipboardSetting.ForCurrentUser(pin.Folder);
         updateSetting = UpdateSetting.ForCurrentUser(pin.Folder);
+        updateChoice = new UpdateChoice(Path.Combine(pin.Folder, "update-choice.txt"));
+
+        // Made here, before the menu rows below capture it; its events and Start() wait for the UI thread further down.
+        integrations = new WindowsIntegrations(pin.Folder, Program.Version);
 
         // An install from before the first-run question asked about the clipboard had it on without a file. It keeps
         // what it had, written down so it is a stored value from now on; only an install that never answered asks.
@@ -145,13 +201,34 @@ internal sealed class TrayContext : ApplicationContext
         // Click, not CheckedChanged: the menu sets Checked from the registry each time it opens, and that must
         // read the key without writing it back — least of all deleting it after a failed read.
         startWithWindows.Click += (_, _) => SaveStartWithWindows(startWithWindows.Checked);
+        sendFileRow.Click += (_, _) => PickAndSendFile();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
         securityRow.Click += (_, _) => ShowSecurity();
+        integrationsRow.Click += (_, _) => ShowIntegrations(developer: false);
+        developerRow.Click += (_, _) => integrations.SetDeveloper(developerRow.Checked);
+        developerIntegrationsRow.Click += (_, _) => ShowIntegrations(developer: true);
         networkRow.Click += (_, _) => ToggleNetwork(networkRow.Checked);
         firewallRow.Click += (_, _) => AllowFirewall(ReportFirewall);
+        restartAdminRow.Click += (_, _) => RestartAsAdministrator();
         clipboardRow.Click += (_, _) => SaveClipboard(clipboardRow.Checked);
+        clipHistoryRow.Click += (_, _) => ShowClipboardPanel(paste: false);
         checkUpdates.Click += (_, _) => SaveCheckUpdates(checkUpdates.Checked);
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
+        installRow.Click += (_, _) => _ = InstallUpdateAsync();
+        laterRow.Click += (_, _) =>
+        {
+            updateChoice.Later(DateTimeOffset.UtcNow);
+            HideUpdateRows();
+        };
+        skipRow.Click += (_, _) =>
+        {
+            if (offered is { } version)
+            {
+                updateChoice.Skip(version);
+            }
+
+            HideUpdateRows();
+        };
         bluetoothRow.Click += (_, _) => Open("ms-settings:bluetooth", "Bluetooth settings");
         networkProblem.Click += (_, _) => OpenLog();
         openLog.Click += (_, _) => OpenLog();
@@ -167,15 +244,24 @@ internal sealed class TrayContext : ApplicationContext
         // The header is the menu's own. Under it, in the order the plan fixes: the update, then whatever is wrong or
         // needs doing (rows that stay hidden while all is well), then the switches, the windows, the help, and Quit.
         menu.Items.Add(update);
+        menu.Items.Add(installRow);
+        menu.Items.Add(laterRow);
+        menu.Items.Add(skipRow);
         menu.Items.Add(bluetoothRow);
         menu.Items.Add(networkProblem);
         menu.Items.Add(firewallRow);
+        menu.Items.Add(restartAdminRow);
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(networkRow);
         menu.Items.Add(clipboardRow);
+        menu.Items.Add(clipHistoryRow);
         menu.Items.Add(new MenuSeparator());
+        menu.Items.Add(sendFileRow);
         menu.Items.Add(macrosRow);
         menu.Items.Add(securityRow);
+        menu.Items.Add(integrationsRow);
+        menu.Items.Add(developerRow);
+        menu.Items.Add(developerIntegrationsRow);
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(Row(Strings.Menu_Documentation, Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
         menu.Items.Add(settingsRow);
@@ -186,6 +272,8 @@ internal sealed class TrayContext : ApplicationContext
         menu.Opening += (_, _) =>
         {
             startWithWindows.Checked = RunAtLogin.IsEnabled;
+            developerRow.Checked = integrations.Settings.Flag(IntegrationSettings.Developer);
+            developerIntegrationsRow.Available = developerRow.Checked;
             securityRow.Hint = SecurityWindow.LevelName(pin.Level);
             networkRow.Checked = networkSettings.Load().Enabled;
             networkRow.Enabled = !allowingNetwork;
@@ -194,6 +282,11 @@ internal sealed class TrayContext : ApplicationContext
             firewallRow.Available = networkRow.Checked && firewallRefused && !allowingNetwork;
             bluetoothRow.Available = trust.TrustedPhones.Count == 0;
             clipboardRow.Checked = clipboardSetting.Enabled;
+            // The panel only lists what sharing recorded, so it is off with sharing (owner, 2026-11-18).
+            clipHistoryRow.Enabled = clipboardSetting.Enabled;
+            var keyed = hotkey?.Registered == true;
+            clipHistoryRow.Hint = keyed ? ClipboardHotkey.Display : null;
+            clipHistoryRow.ToolTipText = keyed || !clipboardSetting.Enabled ? Strings.Menu_ClipboardHistoryTip : Strings.Clip_HotkeyTaken;
             checkUpdates.Checked = updateSetting.Enabled;
             openLog.Enabled = File.Exists(Log.FilePath);
             macrosRow.Hint = Strings.Menu_MacrosCount.Fill(macros.Macros.Count, MacroStore.MaxMacros);
@@ -223,6 +316,7 @@ internal sealed class TrayContext : ApplicationContext
         // Creating the menu installed the WinForms context on this thread; status updates arrive from
         // Bluetooth threads and are marshalled back here.
         ui = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
+        SetHotkey(clipboardSetting.Enabled);
 
         // The taskbar's tile, light or dark, now and whenever Windows' theme changes (that arrives as General).
         ApplyTrayIcon();
@@ -235,6 +329,18 @@ internal sealed class TrayContext : ApplicationContext
 
         // Here for the same reason: its window, and every clipboard call after it, belong to this thread.
         clipboard = new WindowsClipboard(ui, () => clipboardSetting.Enabled);
+        clipboard.Watch(OnLaptopCopy);
+        clipboard.PhoneTextWritten += text => ui.Post(_ => history.Record(text, ClipSide.Phone), null);
+
+        // Opens only what the saved switches ask for: nothing at all for an owner who never turned one on. A connected plugin
+        // that an update or a moved Node.js left behind is re-stamped off this thread (no program runs while both agents are off).
+        integrations.Trusted += () => ui.Post(_ => ReloadIntegrations(), null);
+        integrations.DeveloperChanged += () => ui.Post(_ => OnDeveloperChanged(), null);
+        integrations.Start();
+        if (integrations.Settings.Flag(IntegrationSettings.Claude) || integrations.Settings.Flag(IntegrationSettings.Codex))
+        {
+            EnsureIntegrationsCurrent();
+        }
         host = new SessionHost(
             SetStatus,
             trust,
@@ -246,13 +352,34 @@ internal sealed class TrayContext : ApplicationContext
             media,
             display,
             macros,
+            new WindowsForeground(ui),
             overlay,
             identity,
             clipboard,
             () => clipboardSetting.Enabled,
             AnnounceMacro,
             ui,
-            OnSessionEnded);
+            OnSessionEnded,
+            onFileArrived: path => PostReceiveEnd(() => OnReceived(path)),
+            onFileProgress: PostReceiveProgress,
+            onFileFailed: (name, code) => PostReceiveEnd(() => OnReceiveFailed(name, code)),
+            integrations: integrations);
+
+        // Handlers run under the queue's lock: they only post to the toast, and never call back into the queue.
+        toast = new TransferToast
+        {
+            OnCancel = CancelSends,
+            OnRetry = Retry,
+            OnClose = () => feed.Dismiss(),
+        };
+        feed.Changed += toast.Show;
+        receiveEnd.Tick += (_, _) => EndReceiveBatch();
+        queue = new SendQueue(
+            (path, _, ct) => host.SendFile(path, sent => feed.Bytes(sent), ct),
+            feed,
+            path => File.Exists(path) ? new FileInfo(path).Length : null);
+        SendPipe.EnsureShortcut();
+        sendPipe = new SendPipe((paths, skipped) => ui.Post(_ => SendFiles(paths, skipped), null));
         server = new RfcommServer(SetStatus, host);
         _ = StartServerAsync();
 
@@ -331,9 +458,8 @@ internal sealed class TrayContext : ApplicationContext
     }
 
     /// <summary>
-    /// Asks GitHub which release is newest and, when it is newer than this one, shows the menu row and says so
-    /// once. The row, and the balloon, open the release page: this copy may have been installed by winget, which keeps
-    /// its own record of the version, so the app does not replace itself.
+    /// Asks GitHub which release is newest and, when it is newer than this one and not skipped or put off, shows the
+    /// update rows and says so once per version. With no update key embedded the row opens the release page instead.
     /// </summary>
     private async Task CheckForUpdateAsync()
     {
@@ -345,29 +471,104 @@ internal sealed class TrayContext : ApplicationContext
                 return;
             }
 
-            ui.Post(
-                _ =>
-                {
-                    var version = latest.ToString();
-                    var label = Strings.Menu_UpdateVersion.Fill(version);
-                    var announced = update.Available && update.Text == label;
-                    update.Text = label;
-                    update.Available = true;
-                    if (!announced)
-                    {
-                        Log.Write($"Edgepad {version} is available");
-                        Balloon(
-                            Strings.Balloon_UpdateAvailable.Fill(version),
-                            ToolTipIcon.Info,
-                            () => Open(UpdateCheck.LatestUrl, "the release page"));
-                    }
-                },
-                null);
+            ui.Post(_ => ShowUpdate(latest), null);
         }
         catch (Exception e)
         {
             // Top-level boundary of a fire-and-forget task: an escaped exception here would be lost silently.
             Log.Write($"The update check failed: {e}");
+        }
+    }
+
+    /// <summary>Shows the rows for <paramref name="version"/> and the tray dot, and says so once per version. UI thread.</summary>
+    private void ShowUpdate(Version version)
+    {
+        var decision = UpdatePolicy.Decide(version, Program.Version, null, UpdateKey.IsSet);
+        if (decision == UpdateDecision.NotNewer || !updateChoice.ShouldShow(version, DateTimeOffset.UtcNow))
+        {
+            HideUpdateRows();
+            return;
+        }
+
+        offered = version;
+        var canInstall = decision != UpdateDecision.NoKey;
+        var text = version.ToString();
+        update.Text = Strings.Menu_UpdateVersion.Fill(text);
+        update.Available = !canInstall;
+        installRow.Text = Strings.Menu_UpdateInstall.Fill(text);
+        installRow.Available = canInstall;
+        laterRow.Available = true;
+        skipRow.Available = true;
+        if (!updateReady)
+        {
+            updateReady = true;
+            ApplyTrayIcon();
+        }
+
+        if (!updateChoice.WasNotified(version))
+        {
+            updateChoice.MarkNotified(version);
+            Log.Write($"Edgepad {text} is available");
+            Balloon(
+                canInstall ? Strings.Balloon_UpdateReady.Fill(text) : Strings.Balloon_UpdateAvailable.Fill(text),
+                ToolTipIcon.Info,
+                canInstall ? () => _ = InstallUpdateAsync() : () => Open(UpdateCheck.LatestUrl, "the release page"));
+        }
+    }
+
+    private void HideUpdateRows()
+    {
+        update.Available = false;
+        installRow.Available = false;
+        laterRow.Available = false;
+        skipRow.Available = false;
+        if (updateReady)
+        {
+            updateReady = false;
+            ApplyTrayIcon();
+        }
+    }
+
+    /// <summary>The Install row: confirm a major step, then verify, download and start the new copy. Any failure installs nothing and offers the release page.</summary>
+    private async Task InstallUpdateAsync()
+    {
+        if (installing || offered is not { } version || Environment.ProcessPath is not { } running)
+        {
+            return;
+        }
+
+        installing = true;
+        try
+        {
+            var decision = UpdatePolicy.Decide(version, Program.Version, null, UpdateKey.IsSet);
+            if (decision is not (UpdateDecision.Install or UpdateDecision.InstallNeedsMajorConfirm))
+            {
+                Open(UpdateCheck.LatestUrl, "the release page");
+                return;
+            }
+
+            if (decision == UpdateDecision.InstallNeedsMajorConfirm
+                && !Ask.Confirm(null, Strings.Update_MajorWarning, "Edgepad", MessageBoxIcon.Question, Strings.Update_Install, Strings.Update_NotNow))
+            {
+                return;
+            }
+
+            var outcome = await WindowsUpdater.InstallAsync(version, running, CancellationToken.None);
+            if (outcome == UpdateOutcome.Unverified)
+            {
+                Balloon(Strings.Balloon_UpdateUnverified.Fill(version.ToString()), ToolTipIcon.Warning);
+            }
+            else if (outcome == UpdateOutcome.Failed)
+            {
+                Balloon(
+                    Strings.Balloon_UpdateFailed.Fill(version.ToString()),
+                    ToolTipIcon.Warning,
+                    () => Open(UpdateCheck.LatestUrl, "the release page"));
+            }
+        }
+        finally
+        {
+            installing = false;
         }
     }
 
@@ -390,10 +591,200 @@ internal sealed class TrayContext : ApplicationContext
     private void OnSessionEnded(Func<bool> end) => server.OnSessionEnded(end);
 
     /// <summary>One notice, and what clicking it does. The Windows shell shows one balloon at a time, so the last wins.</summary>
-    private void Balloon(string text, ToolTipIcon kind, Action? onClick = null)
+    private void Balloon(string text, ToolTipIcon kind, Action? onClick = null, string title = "Edgepad")
     {
         balloonAction = onClick;
-        icon.ShowBalloonTip(0, "Edgepad", text, kind);
+        icon.ShowBalloonTip(0, title, text, kind);
+    }
+
+    private void PickAndSendFile()
+    {
+        using var dialog = new OpenFileDialog { CheckFileExists = true, Multiselect = true };
+        if (dialog.ShowDialog() == DialogResult.OK)
+        {
+            var (valid, skipped) = SendPipe.ValidateAll(dialog.FileNames);
+            SendFiles(valid, skipped);
+        }
+    }
+
+    /// <summary>Queues files for the phone; a second call while one batch runs adds to it. UI thread.</summary>
+    private void SendFiles(IReadOnlyList<string> paths, int skipped)
+    {
+        if (paths.Count == 0)
+        {
+            return;
+        }
+
+        // No phone: the queue would end at once with every file unsent; a notice is kinder than a toast flash.
+        if (host.CurrentAddress is null && !queue.IsRunning)
+        {
+            overlay.ShowNotice(Strings.Xfer_NoPhone, dropped: true);
+            Log.Write("Send to phone: no phone connected");
+            return;
+        }
+
+        queue.Enqueue(paths, skipped);
+    }
+
+    // Receiving. The protocol has no file count, so the batch is a running count that closes 2 s after its last file.
+    // While a send runs its events are not shown (one view at a time); an arrival is then told by a balloon.
+    // A finished send that still has failures keeps the toast, and its Try again, until it is closed or a new send starts.
+    private bool ReceiveHidden() =>
+        queue.IsRunning || feed.View is { Phase: TransferPhase.Finished, Sending: true, Failed.Count: > 0 };
+
+    // Session thread. Latest wins while the last update for this file is still waiting for the UI thread.
+    private void PostReceiveProgress(string name, ulong held, ulong size)
+    {
+        ReceiveTick tick;
+        lock (receiveGate)
+        {
+            if (openTick is { } waiting && waiting.Name == name)
+            {
+                waiting.Held = held;
+                waiting.Size = size;
+                return;
+            }
+
+            tick = openTick = new ReceiveTick(name) { Held = held, Size = size };
+        }
+
+        PostToUi(() => ShowReceiveTick(tick));
+    }
+
+    // Session thread. Closes the waiting update, so progress that comes after this end is posted after it, never before.
+    private void PostReceiveEnd(Action end)
+    {
+        lock (receiveGate)
+        {
+            openTick = null;
+        }
+
+        PostToUi(end);
+    }
+
+    // A session ending at shutdown reports its open file after the WinForms context may be gone: nothing is left to show it.
+    private void PostToUi(Action work)
+    {
+        try
+        {
+            ui.Post(_ => work(), null);
+        }
+        catch (Exception e) when (e is InvalidOperationException or ObjectDisposedException)
+        {
+            Log.Write($"Transfer update dropped at shutdown: {e.GetType().Name}");
+        }
+    }
+
+    private void ShowReceiveTick(ReceiveTick tick)
+    {
+        ulong held;
+        ulong size;
+        lock (receiveGate)
+        {
+            if (ReferenceEquals(openTick, tick))
+            {
+                openTick = null;
+            }
+
+            held = tick.Held;
+            size = tick.Size;
+        }
+
+        OnReceiveProgress(tick.Name, held, size);
+    }
+
+    // `incoming` is the name the phone sends under, and a new one there is a new file. An arrival's name can differ (a
+    // numbered copy), so it only starts a file when none is open.
+    private void OpenReceiveBatch(string name, ulong size, bool incoming)
+    {
+        if (!receiving)
+        {
+            receiving = true;
+            feed.BeginBatch(sending: false, 0);
+        }
+
+        if (receivingName is null || (incoming && receivingName != name))
+        {
+            receivingName = name;
+            feed.StartFile(name, size);
+        }
+
+        RestartReceiveEnd();
+    }
+
+    private void RestartReceiveEnd()
+    {
+        receiveEnd.Stop();
+        receiveEnd.Interval = receivingName is null
+            ? ReceiveLingerMs
+            : (int)TransferLimits.IdleDrop.TotalMilliseconds + ReceiveLingerMs;
+        receiveEnd.Start();
+    }
+
+    private void OnReceiveProgress(string name, ulong held, ulong size)
+    {
+        if (ReceiveHidden())
+        {
+            return;
+        }
+
+        OpenReceiveBatch(name, size, incoming: true);
+        feed.Bytes(held);
+    }
+
+    private void OnReceived(string path)
+    {
+        var name = Path.GetFileName(path);
+        if (ReceiveHidden() || toast.Stopped)
+        {
+            Balloon(Strings.Balloon_FileReceived.Fill(FileNames.Middle(name, 32)), ToolTipIcon.Info);
+            if (ReceiveHidden())
+            {
+                return;
+            }
+        }
+
+        OpenReceiveBatch(name, 0, incoming: false);
+        feed.FileDone(receivingName ?? name, null);
+        receivingName = null;
+        RestartReceiveEnd();
+    }
+
+    private void OnReceiveFailed(string name, XferCode code)
+    {
+        Log.Write($"Receive from phone: {code}");
+        if (ReceiveHidden())
+        {
+            return;
+        }
+
+        OpenReceiveBatch(name, 0, incoming: false);
+        feed.FileDone(receivingName ?? name, TransferOutcome.Of(code) ?? TransferFailure.LinkLost);
+        receivingName = null;
+        RestartReceiveEnd();
+    }
+
+    private void EndReceiveBatch()
+    {
+        receiveEnd.Stop();
+        if (!receiving)
+        {
+            return;
+        }
+
+        receiving = false;
+
+        // A file still open went quiet past the receiver's idle drop with no word from it: it did not arrive.
+        if (receivingName is { } stalled && !ReceiveHidden())
+        {
+            feed.FileDone(stalled, TransferFailure.TimedOut);
+        }
+
+        receivingName = null;
+        if (!queue.IsRunning)
+        {
+            feed.EndBatch();
+        }
     }
 
     private void SaveStartWithWindows(bool on)
@@ -629,7 +1020,148 @@ internal sealed class TrayContext : ApplicationContext
         {
             Balloon(Strings.Balloon_ShareClipboardNotSaved, ToolTipIcon.Warning);
         }
+
+        SetHotkey(on);
+
+        // Nothing is kept while sharing is off.
+        if (!on)
+        {
+            history.Clear();
+            clipPanel?.Close();
+        }
     }
+
+    /// <summary>Win+Alt+V exists only while sharing is on; off, the key goes back to Windows and any other app.</summary>
+    private void SetHotkey(bool on)
+    {
+        if (on)
+        {
+            hotkey ??= new ClipboardHotkey(() => ShowClipboardPanel(paste: true));
+            return;
+        }
+
+        hotkey?.Dispose();
+        hotkey = null;
+    }
+
+    private void OnLaptopCopy()
+    {
+        if (clipboardSetting.Enabled && clipboard.ReadText() is { } text)
+        {
+            history.Record(text, ClipSide.Laptop);
+        }
+    }
+
+    /// <summary>
+    /// Win+Alt+V (paste) or the tray row (copy only). A second call while the panel is open closes it. The window to paste
+    /// into is taken before the panel activates.
+    /// </summary>
+    private void ShowClipboardPanel(bool paste)
+    {
+        if (!clipboardSetting.Enabled)
+        {
+            return;
+        }
+
+        if (clipPanel is { IsDisposed: false } open)
+        {
+            open.Close();
+            return;
+        }
+
+        var target = paste ? NativeMethods.GetForegroundWindow() : 0;
+        var panelHost = new ClipPanelHost(
+            clipboardSetting.Enabled,
+            () => shownNow?.IsConnected == true,
+            entry => Pick(entry, target),
+            async entry =>
+            {
+                var sent = await host.SendClipboardText(entry.Text) == true;
+                overlay.ShowNotice(sent ? Strings.Clip_Sent : Strings.Clip_SendFailed, dropped: !sent);
+                return sent;
+            },
+            entry => history.Remove(entry.Text),
+            history.Clear);
+        var panel = new ClipboardPanel(history.Items, panelHost);
+        panel.Location = ClipPanelPlacement.Place(Cursor.Position, panel.Size, LevelOverlay.Metrics.Where(), 8);
+        panel.FormClosed += (_, _) =>
+        {
+            if (ReferenceEquals(clipPanel, panel))
+            {
+                clipPanel = null;
+            }
+
+            panel.Dispose();
+        };
+        clipPanel = panel;
+        panel.Show();
+    }
+
+    /// <summary>
+    /// A row was picked: close the panel, put the text on the clipboard without telling the phone, and, when a window
+    /// had the focus, give it back and press Ctrl+V once Win/Alt/Shift are up. Otherwise say it is only copied.
+    /// </summary>
+    private void Pick(ClipEntry entry, nint target)
+    {
+        clipPanel?.Close();
+        var copied = clipboard.SetTextQuietly(entry.Text);
+        history.Record(entry.Text, entry.Side);
+        if (!copied)
+        {
+            // Another app held the clipboard: Ctrl+V now would paste what was there before. OnUi has logged it.
+            overlay.ShowNotice(Strings.Clip_NotCopied, dropped: true);
+            return;
+        }
+
+        // A window that closed, or one Windows would not bring forward, would let Ctrl+V land somewhere else.
+        if (target == 0 || !NativeMethods.IsWindow(target) || !NativeMethods.SetForegroundWindow(target))
+        {
+            overlay.ShowNotice(Strings.Clip_CopiedOnly);
+            return;
+        }
+
+        var timer = new System.Windows.Forms.Timer { Interval = 80 };
+        var waited = 0;
+        timer.Tick += (_, _) =>
+        {
+            waited += timer.Interval;
+            if (waited < 500 && ModifierDown())
+            {
+                return;
+            }
+
+            timer.Dispose();
+            if (NativeMethods.GetForegroundWindow() != target)
+            {
+                overlay.ShowNotice(Strings.Clip_CopiedOnly);
+                return;
+            }
+
+            var keys = PasteKeys.CtrlV();
+            if (NativeMethods.SendInput((uint)keys.Length, keys, Marshal.SizeOf<NativeInput>()) == 0)
+            {
+                overlay.ShowNotice(Strings.Clip_CopiedOnly);
+            }
+        };
+        timer.Start();
+    }
+
+    // Methods, not lambdas over the field: the toast is built in the constructor before the queue is assigned.
+    // Only a send's failures, and through the tray pick's path, so no phone gives its notice and nothing is an empty batch.
+    private void Retry()
+    {
+        if (queue.FailedPaths is { Count: > 0 } failed)
+        {
+            SendFiles(failed, 0);
+        }
+    }
+
+    private void CancelSends() => queue.Cancel();
+
+    // The high bit (a negative short) means the key is down now.
+    private static bool ModifierDown() =>
+        NativeMethods.GetAsyncKeyState((int)Keys.LWin) < 0 || NativeMethods.GetAsyncKeyState((int)Keys.RWin) < 0
+            || NativeMethods.GetAsyncKeyState((int)Keys.Menu) < 0 || NativeMethods.GetAsyncKeyState((int)Keys.ShiftKey) < 0;
 
     /// <summary>
     /// The Check for updates daily switch. Off stops the daily timer; on starts it and checks once now. It holds from
@@ -739,6 +1271,41 @@ internal sealed class TrayContext : ApplicationContext
         {
             overlay.ShowNotice(Strings.Phone_Disconnected, dropped: true);
         }
+    }
+
+    /// <summary>
+    /// Starts a copy with administrator rights and quits this one, so the lock is free for it. Declining the UAC prompt
+    /// (error 1223) leaves this copy running.
+    /// </summary>
+    private void RestartAsAdministrator()
+    {
+        var sid = SingleInstance.CurrentUserSid();
+        var path = Environment.ProcessPath;
+        if (sid is null || path is null)
+        {
+            Log.Write("Restart as administrator: the user or the exe path is unknown");
+            return;
+        }
+
+        try
+        {
+            using var started = Process.Start(new ProcessStartInfo(path, SingleInstance.RestartArguments(sid))
+            {
+                UseShellExecute = true,
+                Verb = "runas",
+            });
+        }
+        catch (Win32Exception e) when (e.NativeErrorCode == SingleInstance.UacDeclined)
+        {
+            return;
+        }
+        catch (Exception e) when (e is Win32Exception or InvalidOperationException)
+        {
+            Log.Write($"Restart as administrator: {e.Message}");
+            return;
+        }
+
+        ExitThread();
     }
 
     private static MenuRow Row(string text, string glyph, Action run, string? hint = null)
@@ -908,6 +1475,81 @@ internal sealed class TrayContext : ApplicationContext
             Strings.Security_Title,
             MessageBoxIcon.Error);
     }
+
+    /// <summary>
+    /// The Integrations window (or, with <paramref name="developer"/>, the developer one), not modal: a second click brings the open
+    /// one to the front, and one open in the other mode is closed first.
+    /// </summary>
+    private void ShowIntegrations(bool developer)
+    {
+        if (integrationsWindow is { IsDisposed: false } open)
+        {
+            if (open.IsDeveloper == developer)
+            {
+                open.Activate();
+                return;
+            }
+
+            open.Close();
+        }
+
+        var window = new IntegrationsWindow(
+            new IntegrationActions(
+                integrations.Settings,
+                integrations.SignIn,
+                integrations.Status,
+                integrations.ConnectAsync,
+                integrations.DisconnectAsync,
+                EnsureIntegrationsCurrent,
+                integrations.LastHeard,
+                integrations.LoginAsync,
+                text => _ = clipboard.SetTextQuietly(text),
+                Open,
+                integrations.Changed),
+            developer);
+        window.FormClosed += (_, _) => integrationsWindow = null;
+        integrationsWindow = window;
+        window.Show();
+    }
+
+    // Developer mode moved (the tray or the phone). UI thread. Off closes an open developer window.
+    private void OnDeveloperChanged()
+    {
+        if (integrationsWindow is { IsDisposed: false, IsDeveloper: true } open && !integrations.Settings.Flag(IntegrationSettings.Developer))
+        {
+            open.Close();
+            return;
+        }
+
+        ReloadIntegrations();
+    }
+
+    private void ReloadIntegrations()
+    {
+        if (integrationsWindow is { IsDisposed: false } open)
+        {
+            open.Reload();
+        }
+    }
+
+    /// <summary>
+    /// Re-stamps a plugin left behind by an update off the UI thread, then shows the result in an open window. Codex skips
+    /// changed hooks without a word until they are trusted again, so that one is said in a balloon, once per re-stamp.
+    /// </summary>
+    private void EnsureIntegrationsCurrent() => _ = Task.Run(async () =>
+    {
+        var retrust = await integrations.EnsureCurrentAsync();
+        ui.Post(
+            _ =>
+            {
+                ReloadIntegrations();
+                if (retrust)
+                {
+                    Balloon(Strings.Balloon_CodexTrust, ToolTipIcon.Warning, title: Strings.Balloon_CodexTrustTitle);
+                }
+            },
+            null);
+    });
 
     /// <summary>
     /// The Security window, with connections refused while it is open: a connected phone is a keyboard and could
@@ -1091,18 +1733,30 @@ internal sealed class TrayContext : ApplicationContext
             var oldHandle = dottedHandle;
             dotted = null;
             dottedHandle = 0;
-            if (wasConnected)
+            if (wasConnected || updateReady)
             {
                 using var bitmap = next.ToBitmap();
                 using (var graphics = Graphics.FromImage(bitmap))
                 {
                     graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                     var size = Math.Max(4, bitmap.Width * 0.42f);
-                    var dot = new RectangleF(bitmap.Width - size, bitmap.Height - size, size - 1, size - 1);
                     using var ring = new SolidBrush(Palette.TaskbarIsDark ? Color.Black : Color.White);
-                    using var fill = new SolidBrush(Theme.Connected);
-                    graphics.FillEllipse(ring, RectangleF.Inflate(dot, 1.2f, 1.2f));
-                    graphics.FillEllipse(fill, dot);
+                    if (wasConnected)
+                    {
+                        var dot = new RectangleF(bitmap.Width - size, bitmap.Height - size, size - 1, size - 1);
+                        using var fill = new SolidBrush(Theme.Connected);
+                        graphics.FillEllipse(ring, RectangleF.Inflate(dot, 1.2f, 1.2f));
+                        graphics.FillEllipse(fill, dot);
+                    }
+
+                    if (updateReady)
+                    {
+                        // Top right, opposite the connected dot, so both can show at once.
+                        var dot = new RectangleF(bitmap.Width - size, 0, size - 1, size - 1);
+                        using var fill = new SolidBrush(Palette.Current.Accent);
+                        graphics.FillEllipse(ring, RectangleF.Inflate(dot, 1.2f, 1.2f));
+                        graphics.FillEllipse(fill, dot);
+                    }
                 }
 
                 dottedHandle = bitmap.GetHicon();
@@ -1141,6 +1795,10 @@ internal sealed class TrayContext : ApplicationContext
             SystemEvents.UserPreferenceChanged -= OnPreferenceChanged;
             SystemEvents.PowerModeChanged -= OnPowerModeChanged;
             VirtualPad.DriverMissing -= OnDriverMissing;
+            hotkey?.Dispose();
+            clipPanel?.Dispose();
+            history.Clear();
+            clipHistoryRow.Dispose();
             icon.Dispose();
             themed?.Dispose();
             dotted?.Dispose();
@@ -1151,22 +1809,37 @@ internal sealed class TrayContext : ApplicationContext
 
             menu.Dispose();
             startWithWindows.Dispose();
+            sendFileRow.Dispose();
+            sendPipe?.Dispose();
             macrosRow.Dispose();
             securityRow.Dispose();
+            integrationsWindow?.Dispose();
+            integrationsRow.Dispose();
+            developerRow.Dispose();
+            developerIntegrationsRow.Dispose();
             networkRow.Dispose();
             networkProblem.Dispose();
             firewallRow.Dispose();
+            restartAdminRow.Dispose();
             bluetoothRow.Dispose();
             clipboardRow.Dispose();
             checkUpdates.Dispose();
             openLog.Dispose();
             update.Dispose();
+            installRow.Dispose();
+            laterRow.Dispose();
+            skipRow.Dispose();
             updateTimer.Dispose();
+            receiveEnd.Dispose();
+            toast.Dispose();
             server.Dispose();
             network.Dispose();
 
             // After both servers, so no connection arrives once the sessions are ended.
             host.Dispose();
+
+            // After the sessions, which give their dashboards back first; closes the hook pipe and deletes hook.json.
+            integrations.Dispose();
             clipboard.Dispose();
             media.Dispose();
             brightness.Dispose();
@@ -1177,5 +1850,15 @@ internal sealed class TrayContext : ApplicationContext
         }
 
         base.Dispose(disposing);
+    }
+
+    /// <summary>One receive progress update on its way to the UI thread. Held and Size change only under receiveGate.</summary>
+    private sealed class ReceiveTick(string name)
+    {
+        public string Name { get; } = name;
+
+        public ulong Held { get; set; }
+
+        public ulong Size { get; set; }
     }
 }

@@ -4,8 +4,9 @@ using System.Text;
 namespace Edgepad.Input;
 
 /// <summary>
-/// One <c>struct input_event</c> as the x86_64 kernel reads it from /dev/uinput (linux/input.h): a 16-byte
-/// <c>struct timeval</c>, then type u16, code u16 and value s32, 24 bytes in all. The time is left at zero, so it
+/// One <c>struct input_event</c> as a 64-bit kernel reads it from /dev/uinput (linux/input.h): a 16-byte
+/// <c>struct timeval</c>, then type u16, code u16 and value s32, 24 bytes in all. Checked against x86_64; arm64 uses
+/// the same layout, but that is UNVERIFIED on an arm64 device. The time is left at zero, so it
 /// has no fields here: uinput ignores it and the input core stamps each event itself.
 /// </summary>
 [StructLayout(LayoutKind.Explicit, Size = 24)]
@@ -99,7 +100,8 @@ internal sealed partial class Uinput : IDisposable
     public const ushort BusVirtual = 0x06;
 
     // ioctl numbers, from asm-generic/ioctl.h: dir << 30 | size << 16 | type << 8 | nr, with _IOC_NONE = 0 and
-    // _IOC_WRITE = 1. UINPUT_IOCTL_BASE is 'U' = 0x55 (linux/uinput.h).
+    // _IOC_WRITE = 1. This is the generic encoding, which arm64 also uses; unverified on an arm64 device.
+    // UINPUT_IOCTL_BASE is 'U' = 0x55 (linux/uinput.h).
     //   UI_DEV_CREATE  = _IO('U', 1)                       = 0x5501
     //   UI_DEV_DESTROY = _IO('U', 2)                       = 0x5502
     //   UI_DEV_SETUP   = _IOW('U', 3, struct uinput_setup) = 1 << 30 | 92 (0x5C) << 16 | 0x55 << 8 | 3 = 0x405C5503
@@ -121,7 +123,8 @@ internal sealed partial class Uinput : IDisposable
 
     private const string Library = "libc.so.6";
 
-    // x86_64 values from fcntl.h. Close-on-exec as well, so the clipboard tools Typing launches never inherit it.
+    // Values from fcntl.h (O_WRONLY 1, O_NONBLOCK 0x800, O_CLOEXEC 0x80000), the asm-generic ones that x86_64 and arm64
+    // share; unverified on an arm64 device. Close-on-exec as well, so the clipboard tools Typing launches never inherit it.
     private const int WriteOnly = 0x1;
     private const int NonBlocking = 0x800;
     private const int CloseOnExec = 0x80000;
@@ -190,8 +193,9 @@ internal sealed partial class Uinput : IDisposable
         fd = -1;
     }
 
-    // open and ioctl are variadic, and are called with their x86_64 SysV argument types directly, as Libc.Fcntl
-    // is: for integer and pointer arguments that is the same call. size_t and ssize_t are nint on linux-x64.
+    // open and ioctl are variadic, and are declared with fixed argument lists, as Libc.Fcntl is. On x86_64 SysV that is
+    // the same call for integer and pointer arguments; the arm64 Linux convention is believed to be too, unverified on
+    // an arm64 device. size_t and ssize_t are nint on a 64-bit target.
     [LibraryImport(Library, EntryPoint = "open", SetLastError = true, StringMarshalling = StringMarshalling.Utf8)]
     private static partial int OpenFile(string path, int flags);
 

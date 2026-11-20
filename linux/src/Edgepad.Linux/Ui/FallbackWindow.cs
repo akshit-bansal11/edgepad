@@ -19,6 +19,8 @@ internal sealed class FallbackWindow
     private readonly Window window;
     private readonly TextBlock status;
     private readonly TextBlock update;
+    private readonly StackPanel updateButtons;
+    private readonly Button install;
     private readonly TextBlock problem;
     private readonly CheckBox network;
     private readonly CheckBox clipboard;
@@ -35,24 +37,36 @@ internal sealed class FallbackWindow
         status = look.Text(initialStatus, 14);
         update = look.Text("", 14);
         update.IsVisible = false;
+
+        install = look.Button(LinuxStrings.Common_Install, primary: true);
+        install.Click += (_, _) => hooks.InstallUpdate();
+        var later = look.Button(LinuxStrings.Menu_UpdateLater);
+        later.Click += (_, _) => hooks.LaterUpdate();
+        var skip = look.Button(LinuxStrings.Menu_UpdateSkip);
+        skip.Click += (_, _) => hooks.SkipUpdate();
+        updateButtons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, IsVisible = false };
+        updateButtons.Children.Add(install);
+        updateButtons.Children.Add(later);
+        updateButtons.Children.Add(skip);
         problem = look.Text("", 14);
         problem.Foreground = look.Danger;
         problem.IsVisible = false;
-        network = Check(look, "Wi-Fi and USB connections", () => hooks.ToggleNetwork());
-        clipboard = Check(look, "Share clipboard", () => hooks.ToggleClipboard());
-        autostart = Check(look, "Start at login", () => hooks.ToggleAutostart());
-        updates = Check(look, "Check for updates daily", () => hooks.ToggleUpdates());
-        macros = look.Button("Macros…");
+        network = Check(look, LinuxStrings.Menu_Network, () => hooks.ToggleNetwork());
+        clipboard = Check(look, LinuxStrings.Menu_ShareClipboard, () => hooks.ToggleClipboard());
+        autostart = Check(look, LinuxStrings.Menu_StartAtLogin, () => hooks.ToggleAutostart());
+        updates = Check(look, LinuxStrings.Menu_CheckUpdates, () => hooks.ToggleUpdates());
+        macros = look.Button(LinuxStrings.Menu_Macros);
         macros.Click += (_, _) => hooks.Macros();
-        security = look.Button("Security…");
+        security = look.Button(LinuxStrings.Menu_Security);
         security.Click += (_, _) => hooks.Security();
-        var quit = look.Button("Quit Edgepad", danger: true);
+        var quit = look.Button(LinuxStrings.Menu_Quit, danger: true);
         quit.Click += (_, _) => hooks.Quit();
 
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 10 };
-        body.Children.Add(look.Text("Edgepad is running", 18, FontWeight.Bold));
+        body.Children.Add(look.Text(LinuxStrings.Fallback_Running, 18, FontWeight.Bold));
         body.Children.Add(status);
         body.Children.Add(update);
+        body.Children.Add(updateButtons);
         body.Children.Add(problem);
         body.Children.Add(network);
         body.Children.Add(clipboard);
@@ -64,11 +78,11 @@ internal sealed class FallbackWindow
         buttons.Children.Add(quit);
         body.Children.Add(buttons);
         body.Children.Add(look.Text(
-            "Your desktop shows no tray icons. On GNOME, install the 'AppIndicator and KStatusNotifierItem Support' extension to get one.",
+            LinuxStrings.Fallback_NoTray,
             13,
             dim: true));
 
-        window = look.Dialog("Edgepad", 480, body);
+        window = look.Dialog(LinuxStrings.App_Name, 480, body);
         window.Closing += (_, e) =>
         {
             // Not an exit: the window is all the owner has to come back to. A logout or Quit goes through.
@@ -114,10 +128,19 @@ internal sealed class FallbackWindow
 
     public void SetStatus(string text) => status.Text = text;
 
-    public void SetUpdate(string version)
+    public void SetUpdate(string version, bool canInstall)
     {
-        update.Text = $"Update available: {version}";
+        update.Text = Say.Format(LinuxStrings.Menu_UpdateVersion, version);
+        install.Content = Say.Format(LinuxStrings.Menu_UpdateInstall, version);
         update.IsVisible = true;
+        install.IsVisible = canInstall;
+        updateButtons.IsVisible = true;
+    }
+
+    public void ClearUpdate()
+    {
+        update.IsVisible = false;
+        updateButtons.IsVisible = false;
     }
 
     public void SetProblem(string? text)
@@ -130,12 +153,12 @@ internal sealed class FallbackWindow
     {
         refreshing = true;
         network.IsChecked = hooks.NetworkOn();
-        network.Content = $"Wi-Fi and USB connections ({hooks.NetworkHint()})";
+        network.Content = $"{LinuxStrings.Menu_Network} ({hooks.NetworkHint()})";
         clipboard.IsChecked = hooks.ClipboardOn();
         autostart.IsChecked = hooks.AutostartOn();
         updates.IsChecked = hooks.UpdatesOn();
-        macros.Content = $"Macros… ({hooks.MacrosHint()})";
-        security.Content = $"Security… ({hooks.SecurityHint()})";
+        macros.Content = $"{LinuxStrings.Menu_Macros} ({hooks.MacrosHint()})";
+        security.Content = $"{LinuxStrings.Menu_Security} ({hooks.SecurityHint()})";
         refreshing = false;
     }
 

@@ -27,7 +27,8 @@ class AppLogo(
     private val smooth = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
     private val note: Drawable = checkNotNull(context.getDrawable(R.drawable.ic_music)).mutate()
 
-    /** Draws the logo for [app] to fit a [size] box centred on ([cx], [cy]); [color] is only for the note. */
+    /** Draws the logo for [app] to fit a [size] box centred on ([cx], [cy]); [color] is only for the note. Without a bundled
+     * logo, the laptop's icon for [app] is drawn, then its [artwork]. */
     fun draw(
         canvas: Canvas,
         app: String,
@@ -35,13 +36,16 @@ class AppLogo(
         cy: Float,
         size: Float,
         color: Int,
+        byApp: Bitmap? = null,
+        artwork: Bitmap? = null,
     ) {
-        val bitmap =
+        val bundled =
             resource(app)?.let { id ->
                 // Not getOrPut: it takes a stored null for absent, and a logo that failed would be parsed every draw.
                 if (!bitmaps.containsKey(id)) bitmaps[id] = render(id)
                 bitmaps[id]
             }
+        val bitmap = pickIcon(bundled, byApp, artwork)
         if (bitmap == null) {
             note.setTint(color)
             val half = (size * NOTE / 2).toInt()
@@ -183,3 +187,10 @@ class AppLogo(
         const val RENDER_PX = 256
     }
 }
+
+/** The icon to draw: the bundled service logo, else the laptop's icon for the app, else the media's artwork. */
+internal fun <T : Any> pickIcon(
+    bundled: T?,
+    byApp: T?,
+    artwork: T?,
+): T? = bundled ?: byApp ?: artwork

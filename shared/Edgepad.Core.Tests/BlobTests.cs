@@ -224,6 +224,70 @@ public sealed class BlobTests
     }
 
     [Fact]
+    public void AnUrgentBlobKeepsTheFullBudgetWhileInputIsFresh()
+    {
+        var chunksAtEachTick = new List<int>();
+        lastInput = now;
+        var sender = Sender(pause: _ =>
+        {
+            chunksAtEachTick.Add(wire.OfType<BlobChunk>().Count());
+            lastInput = now;
+            return true;
+        });
+
+        Assert.True(sender.Send(BlobKind.ClipText, "", Payload(40 * FrameCodec.MaxChunkBytes), urgent: true));
+
+        Assert.Equal(BlobSender.BluetoothChunksPerTick, chunksAtEachTick[0]);
+        Assert.Equal(2 * BlobSender.BluetoothChunksPerTick, chunksAtEachTick[1]);
+        Assert.Single(wire.OfType<BlobEnd>());
+    }
+
+    [Fact]
+    public void ABlobThatIsNotUrgentStillSlowsDownForInput()
+    {
+        var chunksAtEachTick = new List<int>();
+        lastInput = now;
+        var sender = Sender(pause: _ =>
+        {
+            chunksAtEachTick.Add(wire.OfType<BlobChunk>().Count());
+            lastInput = now;
+            return true;
+        });
+
+        Assert.True(sender.Send(BlobKind.ClipText, "", Payload(40 * FrameCodec.MaxChunkBytes), urgent: false));
+
+        Assert.Equal(BlobSender.BusyChunksPerTick, chunksAtEachTick[0]);
+        Assert.Equal(2 * BlobSender.BusyChunksPerTick, chunksAtEachTick[1]);
+    }
+
+    [Fact]
+    public async Task AnUrgentBlobWaitsItsTurnBehindOneInFlight()
+    {
+        var order = new List<string>();
+        using var release = new ManualResetEventSlim();
+        using var started = new ManualResetEventSlim();
+        var slow = Sender(pause: _ =>
+        {
+            order.Add("first-tick");
+            started.Set();
+            return release.Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        });
+
+        var first = Task.Run(() => slow.Send(BlobKind.ClipText, "first", Payload(40 * FrameCodec.MaxChunkBytes)), TestContext.Current.CancellationToken);
+        Assert.True(started.Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
+        var second = Task.Run(() => slow.Send(BlobKind.ClipText, "second", Payload(2), urgent: true), TestContext.Current.CancellationToken);
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+        Assert.False(second.IsCompleted);
+        Assert.Single(wire.OfType<BlobBegin>());
+
+        release.Set();
+        Assert.True(await first);
+        Assert.True(await second);
+        Assert.Equal(["first", "second"], wire.OfType<BlobBegin>().Select(b => b.Label).ToArray());
+    }
+
+    [Fact]
     public void InputThatHasGoneQuietRestoresTheBudget()
     {
         var chunksAtEachTick = new List<int>();
@@ -578,6 +642,49 @@ public sealed class BlobTests
         Settle();
 
         Assert.Equal(2, wire.OfType<BlobBegin>().Count());
+    }
+
+    [Fact]
+    public void SendNowSendsWhenSharedAndAllowed()
+    {
+        sync.SetShared(1);
+
+        Assert.True(sync.SendNow(BlobKind.ClipText, A));
+
+        Assert.Single(wire.OfType<BlobEnd>());
+    }
+
+    [Fact]
+    public void SendNowSendsNothingWhenNotShared()
+    {
+        Assert.False(sync.SendNow(BlobKind.ClipText, A));
+
+        Assert.Empty(wire);
+    }
+
+    [Fact]
+    public void SendNowRefusesEmptyAndOverTheCap()
+    {
+        sync.SetShared(1);
+
+        Assert.False(sync.SendNow(BlobKind.ClipText, []));
+        Assert.False(sync.SendNow(BlobKind.ClipText, new byte[ClipboardSync.MaxTextBytes + 1]));
+
+        Assert.Empty(wire);
+    }
+
+    [Fact]
+    public void ACopyAlreadySentByHandIsNotSentAgain()
+    {
+        sync.SetShared(1);
+        Assert.True(sync.SendNow(BlobKind.ClipText, B));
+        wire.Clear();
+        surface.Current = new ClipboardContent(BlobKind.ClipText, B);
+
+        sync.LocalChanged();
+        Settle();
+
+        Assert.Empty(wire);
     }
 
     private static byte[] Payload(int length) => [.. Enumerable.Range(0, length).Select(i => (byte)(i * 31))];

@@ -46,6 +46,21 @@ public enum Frame: Equatable {
     case blobChunk(seq: UInt8, data: [UInt8])
     /// The end of the blob: the SHA-256 of all of it.
     case blobEnd(sha256: [UInt8])
+    /// The first frame of the second socket a phone opens for transfers, HELLO's shape: the magic and the protocol
+    /// version. A computer closes that socket on a version it does not speak.
+    case bulkHello(version: UInt8)
+    /// The start of a transfer in either direction. `id` is 1...255, never 0; `size` is the whole file in bytes and
+    /// `name` its file name with no folder, at most `FrameCodec.maxXferNameBytes` bytes of UTF-8.
+    case xferBegin(id: UInt8, size: UInt64, name: String)
+    /// One piece of a transfer: `offset` is the full byte offset of the first byte of `data`, which replaces the
+    /// sequence number mod 256 of the file frames. `data` is 1 to `FrameCodec.maxXferChunkBytes` bytes.
+    case xferChunk(id: UInt8, offset: UInt64, data: [UInt8])
+    /// The end of a transfer: the SHA-256 of all of it.
+    case xferEnd(id: UInt8, sha256: [UInt8])
+    /// How a transfer stands, either direction. `status` is 0 READY (`offset` is where the sender starts), 1 PROGRESS (the
+    /// contiguous bytes held), 2 SAVED, 3 BAD_HASH, 4 REJECTED, 5 WRITE_FAILED, 6 CANCELLED or 7 BUSY. A status this build
+    /// does not know is data, not a codec error: the receiver drops it and counts it.
+    case xferStatus(id: UInt8, status: UInt8, offset: UInt64)
 }
 
 /// Six decimal digits, the one secret that crosses the link. A frame can end up in a log line or a debug

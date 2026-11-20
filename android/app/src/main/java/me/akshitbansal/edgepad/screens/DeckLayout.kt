@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.screens
 
+import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.LaptopState
 
 /**
@@ -41,6 +42,12 @@ object DeckLayout {
         touch: Int,
         gap: Int,
     ): Boolean = rows * touch + (rows - 1) * gap <= down
+
+    /**
+     * How far a label drawn at [sp] may shrink to fit its cell, as a fraction of [sp]: down to [Type.MICRO], and
+     * not at all when it is already that small. Past that the end of the name is cut with an ellipsis.
+     */
+    fun labelFloor(sp: Float): Float = minOf(1f, Type.MICRO / sp)
 
     /** The side a picture is drawn at: [zoom] of the [box] it has room for, never under [minPx]. */
     fun iconSide(
@@ -95,6 +102,20 @@ object DeckLayout {
     ): List<Int> {
         if (from !in order.indices || to !in order.indices) return order
         return order.toMutableList().apply { add(to, removeAt(from)) }
+    }
+
+    /**
+     * [move] made on the [shown] part of [order], the tiles drawn while some are hidden: [from] and [to] are places
+     * among [shown], and the hidden tiles keep their places in [order] around the move.
+     */
+    fun moveShown(
+        order: List<Int>,
+        shown: List<Int>,
+        from: Int,
+        to: Int,
+    ): List<Int> {
+        if (from !in shown.indices || to !in shown.indices) return order
+        return move(order, order.indexOf(shown[from]), order.indexOf(shown[to]))
     }
 
     /**

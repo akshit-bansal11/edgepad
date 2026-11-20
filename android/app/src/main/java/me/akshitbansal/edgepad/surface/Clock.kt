@@ -71,3 +71,21 @@ internal fun subLine(
         app.isNotEmpty() -> SubLine.APP_AND_TIME
         else -> SubLine.TIME
     }
+
+/**
+ * The room the app's name gets on the sub-line: what is left of [room] once the rest of the line, the separator and
+ * the times, which are [overhead] wide, is kept. The times change while the name does not, so the name is cut first.
+ */
+internal fun appRoom(
+    room: Float,
+    overhead: Float,
+): Float = maxOf(0f, room - overhead)
+
+/**
+ * How much taller the now-playing box stands, in px, when the sub-line is drawn at [textPx] and not at the
+ * [defaultPx] it was spaced for: a large system font would otherwise set its baseline on the progress line.
+ */
+internal fun subLineGrowth(
+    textPx: Float,
+    defaultPx: Float,
+): Float = maxOf(0f, textPx - defaultPx)

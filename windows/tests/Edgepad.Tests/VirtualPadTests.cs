@@ -37,10 +37,10 @@ public sealed class VirtualPadTests
     }
 
     [Fact]
-    public void TheDriverIsLookedForOnceAndNotOncePerPress()
+    public void TheDriverIsLookedForAgainOnEachAttachOnly()
     {
-        // The phone can press attach as often as it likes; a laptop without the driver would otherwise
-        // probe it and write a log line every time, for an answer that cannot have changed.
+        // An attach is the gamepad screen opening, so a driver installed while connected is found then; the
+        // probe and a detach do not look again.
         var looks = 0;
         using var pad = new VirtualPad(() =>
         {
@@ -53,7 +53,7 @@ public sealed class VirtualPadTests
         pad.Attach();
         pad.Detach();
 
-        Assert.Equal(1, looks);
+        Assert.Equal(3, looks);
     }
 
     [Fact]

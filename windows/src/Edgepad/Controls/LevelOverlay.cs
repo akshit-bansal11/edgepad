@@ -270,7 +270,7 @@ internal sealed class LevelOverlay : IDisposable
         /// </summary>
         private const double Solid = 0.88;
 
-        /// <summary>How long the panel stays up after the last frame; the tail of it is spent fading, for <see cref="Theme.Motion.Base"/>.</summary>
+        /// <summary>How long the panel stays up after the last frame; the tail of it is spent fading, for <see cref="Theme.Motion.Reveal"/>.</summary>
         private const long VisibleMs = 1200;
 
         /// <summary>
@@ -402,10 +402,10 @@ internal sealed class LevelOverlay : IDisposable
                 return;
             }
 
-            var fade = Theme.Motion.Base;
+            var fade = Theme.Motion.Reveal;
             if (left < fade)
             {
-                Opacity = Solid * left / fade;
+                Opacity = Solid * (1 - Progress.Leaving(fade - left, fade));
             }
         }
 
@@ -420,7 +420,7 @@ internal sealed class LevelOverlay : IDisposable
             graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 
             var dpi = laidOutAt;
-            using (var hairline = new Pen(Colours.Line))
+            using (var hairline = new Pen(Colours.Hairline))
             using (var outline = Theme.Rounded(new RectangleF(0, 0, Width - 1, Height - 1), Metrics.Scale(Corner, dpi)))
             {
                 graphics.DrawPath(hairline, outline);

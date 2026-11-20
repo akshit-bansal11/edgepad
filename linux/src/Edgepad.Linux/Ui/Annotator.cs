@@ -57,12 +57,15 @@ internal sealed class Annotator : IDisposable
     /// The TEXT 9 tokens for a laptop that can, or cannot, show the overlay and see macro apps' windows. Capture is
     /// always offered.
     /// </summary>
-    internal static string Features(bool annotate, bool running = false, bool clipboard = false, bool apps = false)
+    internal static string Features(bool annotate, bool running = false, bool clipboard = false, bool apps = false, bool notify = false, bool endAction = false, bool foreground = false)
     {
         var features = annotate ? $"{Feature.Annotate}/{Feature.Capture}" : Feature.Capture;
         features = running ? $"{features}/{Feature.Running}" : features;
         features = clipboard ? $"{features}/{Feature.Clipboard}" : features;
-        return apps ? $"{features}/{Feature.Apps}" : features;
+        features = apps ? $"{features}/{Feature.Apps}" : features;
+        features = notify ? $"{features}/{Feature.Notify}" : features;
+        features = endAction ? $"{features}/{Feature.EndAction}" : features;
+        return foreground ? $"{features}/{Feature.Foreground}" : features;
     }
 
     /// <summary>Tells every connected phone the features again, after the clipboard switch moved.</summary>
@@ -112,7 +115,44 @@ internal sealed class Annotator : IDisposable
             Log.Write($"The annotation overlay could not be built, so annotate is not offered ({session} session): {e}");
         }
 
+        uiDecided = true;
         Changed?.Invoke();
+    }
+
+    /// <summary>Set once <see cref="StartUi"/> has decided whether annotate is offered, so TEXT 24 never blames it early.</summary>
+    private static volatile bool uiDecided;
+
+    /// <summary>Whether /dev/uinput cannot be opened; capture then presses nothing.</summary>
+    private static volatile bool inputBlocked;
+
+    /// <summary>The session's word on /dev/uinput. Tells every connected phone TEXT 24 again when it flipped.</summary>
+    internal static void InputBlocked(bool blocked)
+    {
+        if (inputBlocked != blocked)
+        {
+            inputBlocked = blocked;
+            Changed?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// The TEXT 24 payload: "feature:reason" entries joined by "/", empty for none. Annotate is unsupported when the
+    /// overlay was refused (no X11 window, as on Wayland); capture needs /dev/uinput for its shortcut keys.
+    /// </summary>
+    internal static string Unavailable(bool decided, bool annotate, bool blocked)
+    {
+        var entries = new List<string>(2);
+        if (decided && !annotate)
+        {
+            entries.Add($"{Feature.Annotate}:{UnavailableReason.Unsupported}");
+        }
+
+        if (blocked)
+        {
+            entries.Add($"{Feature.Capture}:{UnavailableReason.NoPermission}");
+        }
+
+        return string.Join('/', entries);
     }
 
     /// <summary>
@@ -293,7 +333,8 @@ internal sealed class Annotator : IDisposable
             return;
         }
 
-        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning, ClipboardSetting.Enabled, apps: true)));
+        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning, ClipboardSetting.Enabled, apps: true, notify: NotifySetting.Enabled && !NotificationMonitor.Refused, endAction: LinuxPower.Reachable, foreground: LinuxForeground.Offered)));
+        sink(new Text((byte)TextKind.Unavailable, Unavailable(uiDecided, annotating, inputBlocked)));
         if (primary is { } screen)
         {
             sink(new Text(
@@ -332,6 +373,10 @@ internal sealed class Annotator : IDisposable
                 return board.SetTool(StrokeTool.Rectangle);
             case ActionId.ToolEllipse:
                 return board.SetTool(StrokeTool.Ellipse);
+            case ActionId.ToolLaser:
+                return board.SetTool(StrokeTool.Laser);
+            case ActionId.ToolLaserTrail:
+                return board.SetTool(StrokeTool.LaserTrail);
             default:
                 return false;
         }

@@ -28,6 +28,7 @@
   <string name="address_connect">연결</string>
   <string name="address_looking">노트북 찾는 중 (%1$s)…</string>
   <string name="address_invalid">올바른 주소가 아니에요. 호스트 이름이나 IP 주소를 입력하세요. 포트가 47321이 아니면 포트도 함께 입력하세요.</string>
+  <string name="address_bad_port">포트는 1에서 65535 사이의 숫자여야 해요.</string>
   <string name="address_no_laptop">해당 주소에서 Edgepad가 실행 중인 노트북의 응답이 없어요.</string>
   <string name="usb_tethering">USB 테더링</string>
   <string name="local_network_needed">Wi-Fi와 USB로 노트북을 찾으려면 Edgepad에 근처 기기 권한이 필요해요.</string>
@@ -99,9 +100,9 @@
   <string name="pair_expires">%1$s 후 만료</string>
   <string name="pair_expired">만료됨</string>
   <string name="pair_confirm_title">%1$s에 코드가 일치한다고 표시되었나요?</string>
-  <string name="pair_confirm_body">코드가 틀렸다고 표시되었다면 아니요를 탭하세요. 다른 기기가 대신 응답하고 있을 수 있어요.</string>
-  <string name="pair_confirm_yes">예, 페어링됨</string>
-  <string name="pair_confirm_no">아니요</string>
+  <string name="pair_confirm_body">코드가 틀렸다고 표시되었다면 “일치하지 않음”을 탭하세요. 다른 기기가 대신 응답하고 있을 수 있어요.</string>
+  <string name="pair_confirm_yes">코드 일치</string>
+  <string name="pair_confirm_no">일치하지 않음</string>
 
   <string name="lost_title">노트북과 연결이 끊김</string>
   <string name="lost_body">%1$s에서 응답이 없어요. 모든 컨트롤이 일시 중지되었고, 누른 입력은 대기열에 쌓이지 않아요.</string>
@@ -153,8 +154,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">다이얼 8개, 나눔</string>
   <string name="media_layout_title">미디어 레이아웃</string>
-  <string name="media_layout_hint_upright">세로 화면의 레이아웃이에요. 가로 화면 레이아웃은 휴대전화를 돌려서 배치하세요. 항목을 드래그해서 옮기세요. 격자와 중앙선에 맞춰져요.</string>
-  <string name="media_layout_hint_sideways">가로 화면의 레이아웃이에요. 세로 화면 레이아웃은 휴대전화를 돌려서 배치하세요. 항목을 드래그해서 옮기세요. 격자와 중앙선에 맞춰져요.</string>
   <string name="piece_now_playing">재생 중</string>
   <string name="piece_transport">이전 · 재생 · 다음</string>
   <string name="media_layout_reset">위치 초기화</string>
@@ -270,7 +269,6 @@
   <string name="shapes_draw_title">도형 그리기</string>
   <string name="shapes_draw_back">그리기</string>
   <string name="shapes_target_title">실행할 동작</string>
-  <string name="shapes_draw_hint">한 번에 이어서 그리고, 끝나면 손가락을 떼세요.</string>
   <string name="shapes_redraw">다시 그리기</string>
   <string name="shapes_save">저장</string>
   <string name="shapes_delete">삭제</string>
@@ -395,7 +393,11 @@
   <string name="surface_locked_caption">트랙패드 잠김 · 잠금을 탭하면 해제돼요</string>
 
   <string name="controls_title">컨트롤</string>
-  <string name="controls_move_hint">항목을 길게 눌러 옮기세요.</string>
+  <string name="controls_edit">편집</string>
+  <string name="controls_edit_hint">항목을 탭하면 숨기거나 표시합니다. 길게 누른 채 끌면 옮길 수 있습니다.</string>
+  <string name="controls_hidden">숨김</string>
+  <string name="controls_all_hidden">모든 항목이 숨겨져 있습니다. 편집을 탭하면 다시 표시할 수 있습니다.</string>
+  <string name="controls_toggle_tile">%1$s 숨기기 또는 표시</string>
   <string name="controls_hide_dials">다이얼과 미디어 숨기기</string>
   <string name="controls_blackout">대기 중 화면 끄기</string>
   <string name="controls_open">%1$s 열기</string>
@@ -414,10 +416,8 @@
   <string name="capture_stop">녹화 중지</string>
   <string name="capture_recording">노트북에서 녹화 중이에요. 끝내려면 녹화 중지를 탭하세요. 저장 위치가 휴대전화이면 그때 파일이 도착해요.</string>
   <string name="capture_sent">노트북으로 보냄: %1$s</string>
-  <string name="capture_hint">영역을 캡처하려면 영역을 탭한 뒤, 트랙패드에 손가락을 잠시 멈춰 두었다가 움직여 범위를 지정하세요.</string>
-  <string name="capture_save_to">저장 위치</string>
+  <string name="capture_drag_caption">드래그해서 영역 선택</string>
   <string name="capture_save_laptop">노트북</string>
-  <string name="capture_save_phone">휴대전화</string>
   <string name="capture_receiving">수신 중 %1$s, %2$d%%</string>
   <string name="capture_saved">%1$s에 저장했어요</string>
   <string name="capture_bad_hash">캡처가 손상된 채로 도착했어요. 원본은 노트북에 남아 있어요.</string>
@@ -428,8 +428,6 @@
   <string name="capture_send_failed">노트북에서 캡처를 보내지 못했어요. 원본은 노트북에 남아 있어요.</string>
   <string name="controls_annotate">필기</string>
   <string name="annotate_description">펜 패드예요. 터치하면 노트북 화면의 같은 위치에 그려져요. 터치로만 쓸 수 있어요.</string>
-  <string name="annotate_hint">여기에 그리세요. 노트북의 같은 위치에 잉크가 나타나요.</string>
-  <string name="annotate_hint_named">여기에 그리세요. %1$s의 같은 위치에 잉크가 나타나요.</string>
   <string name="annotate_menu">그리기 도구</string>
   <string name="annotate_menu_expanded">펼쳐짐</string>
   <string name="annotate_menu_collapsed">접힘</string>
@@ -495,7 +493,7 @@
   <string name="apps_add_from_laptop">노트북에서 추가</string>
   <string name="apps_add_caption">노트북에 있는 앱을 선택하면 그 앱이 노트북의 매크로가 돼요. 선택한 내용 외에는 아무것도 전송되지 않아요.</string>
   <string name="apps_title">매크로 추가</string>
-  <string name="apps_search_hint">앱 검색</string>
+  <string name="apps_search_hint">앱 검색, 예: Chrome</string>
   <string name="apps_loading">%1$s에서 앱을 찾는 중…</string>
   <string name="apps_none">%1$s에 표시할 앱이 없어요.</string>
   <string name="apps_no_match">검색과 일치하는 앱이 없어요.</string>
@@ -533,4 +531,55 @@
   <string name="battery_percent">%1$d%%</string>
   <string name="battery_more">+%1$d</string>
   <string name="battery_summary">배터리: %1$s</string>
+  <string name="updates_later">나중에</string>
+  <string name="updates_skip">이 버전 건너뛰기</string>
+  <string name="updates_notify_text">Edgepad %1$s을(를) 사용할 수 있습니다. 눌러서 업데이트하세요.</string>
+  <string name="end_action_title">끝나면 절전</string>
+  <string name="end_sleep">노트북 절전</string>
+  <string name="end_shutdown">노트북 종료</string>
+  <string name="end_cancel">취소</string>
+  <string name="end_armed_sleep">끝나면 절전합니다</string>
+  <string name="end_armed_shutdown">끝나면 종료합니다</string>
+  <string name="end_no_timeline">종료 시간이 없어 기다릴 것이 없습니다.</string>
+  <string name="unavailable_unsupported">이 노트북은 이 기능을 지원하지 않습니다.</string>
+  <string name="unavailable_off">노트북에서 꺼져 있습니다.</string>
+  <string name="unavailable_no_tool">노트북에 필요한 프로그램이 없습니다.</string>
+  <string name="unavailable_no_permission">노트북이 아직 허용하지 않았습니다.</string>
+  <string name="capture_recording_laptop">노트북에서 녹화 중</string>
+  <string name="xfer_send">파일 보내기</string>
+  <string name="xfer_sending">%1$s 보내는 중 · %2$d%%</string>
+  <string name="xfer_receiving">%1$s 받는 중 · %2$d%%</string>
+  <string name="xfer_done">%1$s 저장됨</string>
+  <string name="xfer_failed">%1$s을(를) 보내지 못했습니다</string>
+  <string name="xfer_cancel">취소</string>
+  <plurals name="xfer_too_many">
+    <item quantity="other">처음 %1$d개 파일만 대기열에 추가했습니다</item>
+  </plurals>
+  <string name="xfer_sending_n">%1$s 보내는 중 (%3$d개 중 %2$d번째) · %4$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="other">파일 %1$d개를 보냈습니다</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="other">파일 %1$d개를 받았습니다</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="other">파일 %2$d개 중 %1$d개를 보냈습니다</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="other">파일 %1$d개를 보내지 못했습니다</item>
+  </plurals>
+  <plurals name="xfer_card_more">
+    <item quantity="other">외 %1$d개</item>
+  </plurals>
+  <plurals name="xfer_share_count">
+    <item quantity="other">파일 %1$d개</item>
+  </plurals>
+  <string name="xfer_card_cancelling">취소하는 중…</string>
+  <string name="xfer_retry">다시 시도</string>
+  <string name="xfer_card_a11y">파일 전송</string>
+  <string name="xfer_no_laptop">먼저 노트북에 연결하세요</string>
+  <string name="xfer_channel">파일 전송</string>
+  <string name="notify_channel">노트북 알림</string>
+  <string name="notify_setting">노트북 알림 표시</string>
+  <string name="notify_setting_hint">노트북의 Edgepad 메뉴에서도 같은 스위치를 켜야 합니다.</string>
 </resources>

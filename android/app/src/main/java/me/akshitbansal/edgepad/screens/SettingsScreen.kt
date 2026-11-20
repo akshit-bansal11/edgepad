@@ -5,10 +5,16 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.net.Uri
 import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.LinearLayout
 import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
+import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.protocol.ActionId
+import me.akshitbansal.edgepad.protocol.EndActionToken
 
 /**
  * The app's settings: only what holds everywhere. How the laptops stay connected, what is shared with them, the theme
@@ -30,6 +36,10 @@ object SettingsScreen {
         val clipboard: () -> Unit,
         val stayConnected: () -> Unit,
         val back: () -> Unit,
+        /** The notifications switch changed: on asks for the Android 13 permission, and NOTIFY is sent either way. */
+        val notify: (Boolean) -> Unit = {},
+        /** The Developer mode switch moved: DEVELOPER is sent to the laptop, whose FEATURES then confirm it. */
+        val developer: (Boolean) -> Unit = {},
     )
 
     /**
@@ -42,7 +52,25 @@ object SettingsScreen {
         val onSummary: (TextView) -> Unit,
     )
 
-    /** [backLabel] names the screen the back link returns to: Devices, the surface or the surface's settings. */
+    /**
+     * The laptop's "when this ends" row, moved here from the Controls popup. [offered] is whether the laptop names
+     * END_ACTION; [armed] and [hasTimeline] are read afresh on every redraw; [send] sends END_SLEEP, END_SHUTDOWN or
+     * END_CANCEL. [onRedraw] is handed the function that redraws the row, for the activity to call when the laptop's
+     * armed state changes, since rebuilding the page would throw the scroll position back to the top.
+     */
+    class End(
+        val offered: Boolean = false,
+        val armed: () -> EndActionToken = { EndActionToken.NONE },
+        val hasTimeline: () -> Boolean = { true },
+        val send: (ActionId) -> Unit = {},
+        val onRedraw: (redraw: () -> Unit) -> Unit = {},
+    )
+
+    /**
+     * [backLabel] names the screen the back link returns to: Devices, the surface or the surface's settings.
+     * [developer] is developer mode as the laptop last reported it; [developerEditable] is false with no laptop
+     * connected, when the switch is dimmed, since only a laptop can change it.
+     */
     fun build(
         ui: Ui,
         settings: Settings,
@@ -50,6 +78,9 @@ object SettingsScreen {
         backLabel: String,
         update: Update,
         routes: Routes,
+        developer: Boolean = false,
+        developerEditable: Boolean = false,
+        end: End = End(),
     ): View =
         // The nav bar draws no title: the large title under it is the screen's name, and says so to a screen reader.
         ui.page(ui.bar("", routes.back, backLabel = backLabel)) {
@@ -87,6 +118,38 @@ object SettingsScreen {
                         )
                     }
                     footnote(ui.string(R.string.clipboard_share_caption))
+
+                    card(Space.XL) {
+                        add(
+                            ui.toggle(ui.string(R.string.notify_setting), settings.notifyForward) {
+                                settings.notifyForward = it
+                                routes.notify(it)
+                            },
+                        )
+                    }
+                    footnote(ui.string(R.string.notify_setting_hint))
+
+                    card(Space.XL) {
+                        val toggle =
+                            ui.toggle(ui.string(R.string.developer_mode_title), developer) { routes.developer(it) }
+                        ui.enable(toggle, developerEditable)
+                        add(toggle)
+                    }
+                    footnote(
+                        ui.string(
+                            if (developerEditable) R.string.developer_mode_hint else R.string.developer_mode_offline,
+                        ),
+                    )
+
+                    // Issue #56. The surface reads the setting again when it takes the focus back.
+                    card(Space.XL) {
+                        add(
+                            ui.toggle(ui.string(R.string.controls_blackout), settings.blackout) {
+                                settings.blackout = it
+                            },
+                        )
+                    }
+                    if (end.offered) endRow(ui, end)
 
                     section(ui.string(R.string.settings_appearance))
                     card {
@@ -173,6 +236,50 @@ object SettingsScreen {
             ui.palette.dark -> Settings.Theme.DARK
             else -> Settings.Theme.LIGHT
         }
+    }
+
+    /**
+     * AU4, moved from the Controls popup: the choices to sleep or shut the laptop down when what is playing ends, or,
+     * while the laptop has one armed, the line saying so and Cancel. The choices are plain text buttons, so nothing
+     * here is told by colour alone. Without an end time they are dimmed and the note says why.
+     */
+    private fun Column.endRow(
+        ui: Ui,
+        end: End,
+    ) {
+        section(ui.string(R.string.end_action_title))
+        val box = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
+        card { add(box) }
+        val note = footnote("")
+        val gap = ui.dp(Space.S)
+        val fill = {
+            box.removeAllViews()
+            note.visibility = View.GONE
+            val armed = end.armed()
+            if (armed != EndActionToken.NONE) {
+                val line = if (armed == EndActionToken.SLEEP) R.string.end_armed_sleep else R.string.end_armed_shutdown
+                box.addView(ui.secondary(ui.string(line), Type.BODY, ui.palette.ink))
+                val cancel = ui.button(ui.string(R.string.end_cancel), Ui.Style.QUIET) { end.send(ActionId.END_CANCEL) }
+                box.addView(cancel)
+            } else {
+                val timeline = end.hasTimeline()
+                val sleep =
+                    ui.button(ui.string(R.string.end_sleep), Ui.Style.OUTLINED) { end.send(ActionId.END_SLEEP) }
+                val shut =
+                    ui.button(ui.string(R.string.end_shutdown), Ui.Style.OUTLINED) { end.send(ActionId.END_SHUTDOWN) }
+                for (button in listOf(sleep, shut)) {
+                    ui.enable(button, timeline)
+                    val params = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                    box.addView(button, params.apply { topMargin = gap })
+                }
+                if (!timeline) {
+                    note.text = ui.string(R.string.end_no_timeline)
+                    note.visibility = View.VISIBLE
+                }
+            }
+        }
+        fill()
+        end.onRedraw(fill)
     }
 
     private fun setTheme(

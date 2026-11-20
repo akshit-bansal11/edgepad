@@ -1,8 +1,8 @@
 # Wire protocol
 
-Version 5. The laptop apps (Windows, Mac and Linux) and the phone app refuse any other version at the handshake.
+Version 6. The laptop apps (Windows, Mac and Linux) and the phone app refuse any other version at the handshake, so a version 6 phone and a version 5 laptop, or the other way round, do not connect until both are updated.
 
-The transport is a byte stream: RFCOMM, or the encrypted network link described below. A frame is one type byte followed by a payload whose length is fixed by the type, except TEXT, FILE_BEGIN and FILE_CHUNK, whose second header byte gives the length of what follows. All multi-byte integers are little-endian. An unknown type byte, a wrong length, a bad magic or a flag byte other than 0 or 1 is a protocol error and closes the connection. A well-formed frame naming an action or control this side does not know is dropped and counted, never treated as an error, so a newer app can talk to an older one until the version check says otherwise.
+The transport is a byte stream: RFCOMM, or the encrypted network link described below. A frame is one type byte followed by a payload whose length is fixed by the type, except TEXT, FILE_BEGIN, FILE_CHUNK, BLOB_BEGIN, BLOB_CHUNK, XFER_BEGIN and XFER_CHUNK, whose second header byte gives the length of what follows. All multi-byte integers are little-endian. An unknown type byte, a wrong length, a bad magic or a flag byte other than 0 or 1 is a protocol error and closes the connection. A well-formed frame naming an action or control this side does not know is dropped and counted, never treated as an error, so a newer app can talk to an older one until the version check says otherwise.
 
 `protocol/frames.txt` is the authoritative fixture: every line is a frame's fields and its exact bytes, and both test suites encode and decode every line.
 
@@ -27,6 +27,7 @@ The transport is a byte stream: RFCOMM, or the encrypted network link described 
 | `0x24` | PEN | x u16, y u16, state u8 | phone to laptop | one point of a pen stroke on the annotate or sign surface; state 0 is up, 1 down, 2 move; see [Annotate and sign](#annotate-and-sign) |
 | `0x03` | PIN_REQUEST | attemptsLeft u8, lockedSeconds u16 | laptop to phone | asks for the PIN, or says the phone is locked out; only between the trust question and HELLO_ACK; see [The PIN](#the-pin) |
 | `0x04` | PIN_ANSWER | six bytes, each 0 to 9 | phone to laptop | the PIN, one digit value per byte (not ASCII); only as the answer to PIN_REQUEST |
+| `0x05` | BULK_HELLO | magic `EDGP`, version u8 | phone to laptop | the first frame of the second socket a phone opens for file transfers; HELLO's shape under its own type; see [The second socket](#the-second-socket) |
 | `0x50` | FILE_BEGIN | fileType u8, length u8, size u32, UTF-8 name | laptop to phone | starts a capture file the phone asked for; see [Saving a capture on the phone](#saving-a-capture-on-the-phone) |
 | `0x51` | FILE_CHUNK | seq u8, length u8, up to 255 bytes | laptop to phone | one piece of that file; seq is the piece's index mod 256 |
 | `0x52` | FILE_END | sha256, 32 bytes | laptop to phone | the SHA-256 of the whole file |
@@ -34,8 +35,12 @@ The transport is a byte stream: RFCOMM, or the encrypted network link described 
 | `0x54` | BLOB_BEGIN | kind u8, length u8, size u32, UTF-8 label | both ways | starts a blob: clipboard contents, an app list or an app icon; FILE_BEGIN's shape on a lane of its own; see [Blobs](#blobs) |
 | `0x55` | BLOB_CHUNK | seq u8, length u8, up to 255 bytes | both ways | one piece of that blob; seq is the piece's index mod 256 |
 | `0x56` | BLOB_END | sha256, 32 bytes | both ways | the SHA-256 of the whole blob |
+| `0x57` | XFER_BEGIN | id u8, length u8, size u64, UTF-8 name | both ways | starts a file transfer; the length counts the size and the name; id is 1 to 255, never 0; see [File transfer](#file-transfer) |
+| `0x58` | XFER_CHUNK | id u8, length u8, offset u64, 1 to 247 bytes | both ways | one piece of that file; the offset is the file offset of its first byte, not a sequence number |
+| `0x59` | XFER_END | id u8, sha256, 32 bytes | both ways | the SHA-256 of the whole file |
+| `0x5A` | XFER_STATUS | id u8, status u8, offset u64 | both ways | how the transfer stands: the receiver sends READY, PROGRESS and the verdicts, the sender may send CANCELLED |
 
-TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter, 4 the display's available refresh rates as `60/120/144` (laptop to phone), 5 the laptop's macro names as `Chrome/Spotify/Notes` (laptop to phone), 6 one piece of one macro's icon as `slot/chunk/chunks/base64` (laptop to phone), 7 a request for the macro icons, with an empty payload (phone to laptop), 8 whether a virtual controller can be offered, as one PAD_STATUS token (laptop to phone), 9 the optional features the laptop has, as tokens joined by `/` such as `annotate/capture`, where a feature not named is off and a token the phone does not know is ignored (laptop to phone), 10 the primary display in pixels as `1920/1080` (laptop to phone), 11 how a sign-save ended, as one SIGN_STATUS token: `saved`, `empty` or `failed` (laptop to phone), 12 why a capture the phone asked for stayed on the laptop, as one CAPTURE_STATUS token: `too-large`, `not-found` or `failed` (laptop to phone), 13 which laptop this is, as `id/os/name` with the id 32 hex digits and the os one of `windows`, `linux` or `macos` (laptop to phone, once after HELLO_ACK), 14 an app to add as a macro, as `epoch.index` into the list the laptop last sent (phone to laptop), 15 how that add ended, as one APP_ADD_STATUS token: `added`, `full`, `duplicate`, `stale` or `failed` (laptop to phone), 16 which macro apps are running, one character per macro slot in TEXT 5 order: `-` not trackable (a URL, folder, document or an app the laptop cannot see), `0` not running, `1` running, `2` running and in front (laptop to phone, only on change and only while watched with MACROS_WATCH). A slot's state character is data, and a character this build does not know reads as untracked. TEXT 9 names `running` when the laptop can report it. 17 a stroke colour as exactly six hex digits, `RRGGBB`, either case (phone to laptop), for annotate and sign: see [Annotate and sign](#annotate-and-sign), 18 whether the laptop can take input, as `blocked` or `ok` (laptop to phone, once after TEXT 13 and again on every change). `blocked` means the operating system discards the laptop's synthetic input: a Mac without Accessibility trust, a Linux without write access to `/dev/uinput`. Windows, Mac and Linux send it. Windows sends `blocked` on the first input batch it refuses (an elevated window in front) and `ok` after the next accepted batch at least 2 seconds later. A phone that never received it reads `ok`. A phone that does not know kind 18 drops it like any unknown kind, so the protocol version stays 5.
+TEXT kinds: 0 what is playing (laptop to phone), 1 the app playing it (laptop to phone), 2 the timeline as `seconds/length` such as `84/227` (laptop to phone), 3 text to type (phone to laptop), where `\b` is backspace and `\n` is enter, 4 the display's available refresh rates as `60/120/144` (laptop to phone), 5 the laptop's macro names as `Chrome/Spotify/Notes` (laptop to phone), 6 one piece of one macro's icon as `slot/chunk/chunks/base64` (laptop to phone), 7 a request for the macro icons, with an empty payload (phone to laptop), 8 whether a virtual controller can be offered, as one PAD_STATUS token (laptop to phone), 9 the optional features the laptop has, as tokens joined by `/` such as `annotate/capture`, where a feature not named is off and a token the phone does not know is ignored (laptop to phone), 10 the primary display in pixels as `1920/1080` (laptop to phone), 11 how a sign-save ended, as one SIGN_STATUS token: `saved`, `empty` or `failed` (laptop to phone), 12 why a capture the phone asked for stayed on the laptop, as one CAPTURE_STATUS token: `too-large`, `not-found` or `failed` (laptop to phone), 13 which laptop this is, as `id/os/name` with the id 32 hex digits and the os one of `windows`, `linux` or `macos` (laptop to phone, once after HELLO_ACK), 14 an app to add as a macro, as `epoch.index` into the list the laptop last sent (phone to laptop), 15 how that add ended, as one APP_ADD_STATUS token: `added`, `full`, `duplicate`, `stale` or `failed` (laptop to phone), 16 which macro apps are running, one character per macro slot in TEXT 5 order: `-` not trackable (a URL, folder, document or an app the laptop cannot see), `0` not running, `1` running, `2` running and in front (laptop to phone, only on change and only while watched with MACROS_WATCH). A slot's state character is data, and a character this build does not know reads as untracked. TEXT 9 names `running` when the laptop can report it. 17 a stroke colour as exactly six hex digits, `RRGGBB`, either case (phone to laptop), for annotate and sign: see [Annotate and sign](#annotate-and-sign), 18 whether the laptop can take input, as `blocked` or `ok` (laptop to phone, once after TEXT 13 and again on every change). `blocked` means the operating system discards the laptop's synthetic input: a Mac without Accessibility trust, a Linux without write access to `/dev/uinput`. Windows, Mac and Linux send it. Windows sends `blocked` on the first input batch it refuses (an elevated window in front) and `ok` after the next accepted batch at least 2 seconds later. A phone that never received it reads `ok`. A phone that does not know kind 18 drops it like any unknown kind. 19 and 20 are the batteries and the audio output, below under [Batteries and audio output](#batteries-and-audio-output). 21 the app in front as `token/name`, split on the first `/`, the token 1 to 64 characters of `A-Z a-z 0-9 . _ -` and the name cut to 40 code points; empty means nothing is known; sent only after CONTROL 11 is 1, on change, and never logged (laptop to phone). 22 how many macro slots the laptop keeps, in decimal such as `15`; empty or never sent means the phone's own default (laptop to phone). 23 whether the laptop is recording the screen, as one CAPTURE_STATE token, `idle` or `recording`; best effort, and a laptop that cannot tell sends nothing (laptop to phone). 24 the features the laptop cannot offer right now and why, as `feature:reason` entries joined by `/`, the reason one of `unsupported`, `off`, `no-tool` or `no-permission`; empty means none (laptop to phone). 25 what the end-of-media action is armed to do, as one END_ACTION token, `none`, `sleep` or `shutdown`; sent on change (laptop to phone). 26 the title line of what is playing before it is cleaned for TEXT 0, sent only when it differs from TEXT 0 (laptop to phone). TEXT 9 also names `foreground`, `endaction` and `notify` when the laptop has them. Kinds 27 to 35 carry the dashboard; see [Dashboard widgets and screens](#dashboard-widgets-and-screens).
 
 An icon does not fit the 255 bytes a payload holds, so TEXT 6 carries a PNG in pieces and the phone joins them: the counts are what let it tell a finished icon from a truncated one. Kinds rather than a frame type of their own, which is what keeps the protocol version where it is — an unknown kind is dropped and counted on both sides, while an unknown type closes the connection. The payload of TEXT 7 is a decimal side in pixels, and empty means 128. Icons are answered rather than pushed, so a laptop too old to know TEXT 7 drops it and the phone keeps its labels, and a phone too old to send it costs the link nothing.
 
@@ -43,7 +48,7 @@ The handshake has deadlines on both sides, and none of them is a change to the p
 
 After HELLO_ACK the laptop sends a STATE for volume, microphone and brightness, then TEXT 0, 1 and 2 and a STATE for media position, then TEXT 4 and a STATE for the refresh rate, then TEXT 5 and TEXT 9, and thereafter every change as it happens. Media position is refreshed once a second while playing. Icons are not part of that sequence: the laptop sends TEXT 6 only in answer to TEXT 7.
 
-Silence is also a behaviour and not a frame. The phone sends PING every 5 seconds while connected, and every 0.5 seconds while a screen shows the round trip; the laptop answers each with PONG. A laptop ends a session after 30 seconds with no frame from the phone, which releases every key, button, pad and ink stroke the phone held, and fails a send to a network phone after 30 seconds. A phone that sends no PING for 30 seconds is treated as gone. The phone closes a link as lost after 15 seconds with no frame from the laptop (any frame counts, not only PONG), and on the network also sets `TCP_USER_TIMEOUT` to 20 seconds. The protocol version stays 5.
+Silence is also a behaviour and not a frame. The phone sends PING every 5 seconds while connected, and every 0.5 seconds while a screen shows the round trip; the laptop answers each with PONG. A laptop ends a session after 30 seconds with no frame from the phone, which releases every key, button, pad and ink stroke the phone held, and fails a send to a network phone after 30 seconds. A phone that sends no PING for 30 seconds is treated as gone. The phone closes a link as lost after 15 seconds with no frame from the laptop (any frame counts, not only PONG), and on the network also sets `TCP_USER_TIMEOUT` to 20 seconds.
 
 ## Batteries and audio output
 
@@ -119,6 +124,8 @@ The laptop deletes its copy only after a FILE_RESULT of 0 that arrives after its
 | ANNOTATE_UNDO | 42 | removes the last stroke |
 | ANNOTATE_CLEAR | 43 | removes every stroke |
 | TOOL_PEN, TOOL_HIGHLIGHTER, TOOL_LINE, TOOL_ARROW, TOOL_RECTANGLE, TOOL_ELLIPSE | 44 to 49 | picks what the next PEN stroke draws |
+| TOOL_LASER | 37 | picks the laser: the next PEN stroke is a dot that follows the finger and leaves nothing behind |
+| TOOL_LASER_TRAIL | 38 | picks the trailing laser: the laser dot plus a short red trail behind it, gone at pen up. Both lasers take their size from PEN_WIDTH: the dot's radius is 0.06% of the screen's height per step, so 20 is 1.2% |
 | SIGN_BEGIN | 50 | opens a signing surface that shows nothing on the laptop and accepts only the pen tool |
 | SIGN_SAVE | 51 | exports the strokes as a signature image, then answers with TEXT 11 |
 | CAPTURE_REGION | 52 | Win+Shift+S, the Snipping Tool's region capture |
@@ -129,6 +136,9 @@ The laptop deletes its copy only after a FILE_RESULT of 0 that arrives after its
 | APPS_CANCEL | 57 | stops that list and its icons |
 | MACROS_WATCH | 58 | the macro grid is open: starts a once-a-second survey of which macro apps are running, reported as TEXT 16 on change only; forgotten when the session ends |
 | MACROS_UNWATCH | 59 | stops that survey |
+| END_SLEEP | 60 | arms the laptop to sleep when the current media ends; see [End of media](#end-of-media) |
+| END_SHUTDOWN | 61 | arms the laptop to shut down when the current media ends, after a cancellable countdown |
+| END_CANCEL | 62 | disarms either |
 
 | Control | Id | SET does | STATE reports |
 | --- | --- | --- | --- |
@@ -142,6 +152,10 @@ The laptop deletes its copy only after a FILE_RESULT of 0 that arrives after its
 | CLIPBOARD | 7 | whether this link shares the clipboard: 1 yes, 0 no; forgotten when the session ends, and honoured only while the laptop's own clipboard toggle is on (it names `clipboard` in TEXT 9 then); anything else is dropped and counted | not reported |
 | PEN_WIDTH | 8 | the width of new pen-tool strokes, 1 to 100, as 0.02% of the screen's height per step (5 is 0.1%, 20 is 0.4%, 100 is 2.0%); 0 or more than 100 is dropped and counted; forgotten when the session ends | not reported |
 | PEN_OPACITY | 9 | the opacity of new strokes in percent, 10 to 100; anything else is dropped and counted; forgotten when the session ends | not reported |
+| NOTIFY | 10 | whether this link forwards the laptop's notifications: 1 yes, 0 no; forgotten when the session ends; anything else is dropped and counted; see [Notifications](#notifications) | not reported |
+| FOREGROUND_WATCH | 11 | whether this link hears which app is in front (TEXT 21): 1 yes, 0 no; forgotten when the session ends; anything else is dropped and counted | not reported |
+| DASH_WATCH | 12 | the bitmask of what the phone draws now, 0 to 31 (bit 0 system numbers, bit 1 System screen, bit 2 weather, bit 3 AI, bit 4 GitHub); larger is dropped and counted; forgotten when the session ends; the only thing that makes the laptop sample or poll; see [Dashboard widgets and screens](#dashboard-widgets-and-screens) | not reported |
+| DEVELOPER | 13 | developer mode: 1 on, 0 off; anything else is dropped and counted; the laptop keeps it across sessions and the phone shows it from FEATURES `developer`; see [Dashboard widgets and screens](#dashboard-widgets-and-screens) | not reported |
 
 REFRESH_RATE's value is an index into TEXT 4's list, never a rate in hertz: SET carries value u8 and the laptop drops anything above 100, so 120 or 144 could not cross the wire at all. An index also makes a rate the laptop does not have unrepresentable rather than merely rejected. A laptop that names no rates has none to offer, and the dial has nothing to show.
 
@@ -168,9 +182,12 @@ The kind is data, not a codec error:
 | 1 | CLIP_IMAGE | the clipboard's image, PNG |
 | 2 | APP_LIST | the apps a laptop could add as macros, in response to APPS_LIST |
 | 3 | APP_ICON | one app's icon, PNG, the label naming the app |
+| 4 | MEDIA_ICON | laptop to phone: a 64 px PNG; the label is the app's name, or `artwork` for a browser's media artwork; see [Media icons](#media-icons) |
+| 5 | NOTIFICATION | laptop to phone: `app`, `title` and `body` joined by line feeds, in UTF-8, the label being the notification's id; see [Notifications](#notifications) |
+| 6 | PERM_ASK | laptop to phone: an approval the phone can answer with TEXT 31; label `id/f`, `f` 1 when complete and 0 when over the cap; see [Dashboard widgets and screens](#dashboard-widgets-and-screens) |
+| 7 | GITHUB | laptop to phone: the GitHub lists, tab-separated lines; label `gh`; see [Dashboard widgets and screens](#dashboard-widgets-and-screens) |
 
-A receiver reads a kind it does not know to its BLOB_END and drops it, counting it. Which side sends which kind, the size caps and the pacing belong to the feature that uses each kind; this section fixes only the frames. The codecs carry them and nothing in the apps sends or acts on them yet.
-
+A receiver reads a kind it does not know to its BLOB_END and drops it, counting it. Which side sends which kind, the size caps and the pacing belong to the feature that uses each kind; this section fixes only the frames.
 ## Annotate and sign
 
 The laptop owns the drawing and the phone only steers it. ANNOTATE_BEGIN shows a transparent overlay on the laptop's primary display; SIGN_BEGIN shows nothing and accepts only the pen tool. PEN outside either mode, and a tool action in the wrong mode, is dropped and counted. A laptop says it can annotate by naming `annotate` in TEXT 9, and sends TEXT 10 (`1920/1080`, the primary display in pixels) after the handshake and again when the display changes, so the phone can shape its surface to the same ratio. A phone that never hears either shows nothing to draw on.
@@ -252,9 +269,61 @@ it cannot say why. Matching on the laptop's wording instead of on a token would 
 protocol and so unchangeable. The laptop also sends TEXT 8 once after the handshake, so a phone can hide the
 pad rather than offer a button that quietly does nothing.
 
+## Media icons
+
+BLOB kind 4, MEDIA_ICON, is laptop to phone. The payload is a PNG of 64 pixels, and the label is the name of the app that is playing, or the word `artwork` when the picture is the media's own artwork (a browser's). The laptop never fetches an image from the web for it: on Windows it is the thumbnail the system media session already holds, and on Linux it is the player's `mpris:artUrl` only when that is a `file:` URL to a png or jpg under 512 KB. A phone that does not know kind 4 reads the blob to its BLOB_END and drops it, as for any unknown blob kind.
+
+## End of media
+
+ACTION 60 END_SLEEP, 61 END_SHUTDOWN and 62 END_CANCEL, phone to laptop, arm the laptop to sleep or shut down when what is playing ends, or disarm it. A laptop offers them by naming `endaction` in TEXT 9, and reports what is armed as TEXT 25 on every change. The laptop decides that the media ended: playback stopped in the last 3 seconds of the timeline, or the track changed after the last 3 seconds, or the session vanished near the end. It refuses to arm when the player reports no timeline. Shutdown waits a 60 second countdown that the laptop's owner can cancel. Arming is forgotten when the session ends. A laptop too old to know the ids drops and counts them.
+
+## Notifications
+
+A laptop forwards its notifications only when two switches are on: the laptop's own, and the phone's, sent as CONTROL 10 NOTIFY (1 or 0, forgotten when the session ends; both default to off). A laptop that can do it names `notify` in TEXT 9. Each notification is BLOB kind 5, laptop to phone, as `app`, `title` and `body` joined by line feeds in UTF-8, the label being the notification's id. The laptop cuts the title to 60 and the body to 200 code points, sends at most 10 a minute, drops a duplicate and sends nothing while no phone is connected. The content is never logged on either side. A laptop that cannot forward them, and why, may say so in TEXT 24.
+
+## File transfer
+
+XFER_BEGIN, XFER_CHUNK, XFER_END and XFER_STATUS (`0x57` to `0x5A`) move one whole file in either direction and replace nothing: captures keep the FILE frames above, and clipboard and icons keep the blob frames. A transfer has an id of 1 to 255 chosen by its sender; id 0 is a protocol error, as a bad length is, and closes the link. All four frames carry the id first. A decoder bounds them as it bounds the blob frames: a length that does not match its header, an XFER_BEGIN too short to hold its size, an XFER_CHUNK with no data and an XFER_END that is not 32 bytes close the link. XFER_BEGIN's name is at most 247 bytes of UTF-8 and a chunk carries at most 247 bytes.
+
+The order is XFER_BEGIN from the sender, XFER_STATUS READY from the receiver, XFER_CHUNKs, XFER_END, and a final XFER_STATUS from the receiver. READY's offset is where the sender starts. The chunk offset is the byte position in the file, so a restart is exact.
+
+| Status | Name | Sent by | Offset means |
+| --- | --- | --- | --- |
+| 0 | READY | receiver | where the sender starts |
+| 1 | PROGRESS | receiver | the contiguous bytes held; sent every 256 KiB more, and when a chunk arrives out of place |
+| 2 | SAVED | receiver | the file's size; the file is whole and its SHA-256 matched |
+| 3 | BAD_HASH | receiver | 0; every byte arrived and the digest did not match |
+| 4 | REJECTED | receiver | 0; a name, size, free-space or chunk it will not take |
+| 5 | WRITE_FAILED | receiver | 0 |
+| 6 | CANCELLED | either | 0; the receiver's owner stopped it, or the sender gave up |
+| 7 | BUSY | receiver | 0; a transfer is already arriving |
+
+A status this build does not know is dropped and counted, not an error. Chunks must arrive in order and without a gap. One that does not is answered with PROGRESS at the bytes held, and the sender restarts there. An XFER_END that arrives short of the size is answered the same way, because that is not yet a bad file.
+
+Policy, which is the receiver's and not the sender's:
+
+- One transfer per direction at a time; a second XFER_BEGIN is answered BUSY.
+- At most 2 GiB. A larger size is REJECTED, and so is a file that would leave less than 64 MiB free.
+- Both directions are accepted without a prompt from the connected, trusted peer, and nothing is ever opened.
+- The name is the last path segment only. Control characters are dropped, and the characters `< > : " / \\ | ? *` become `_`. Trailing dots and spaces are removed. A name is cut to 120 UTF-8 bytes keeping an extension of up to 20. A name that is empty afterwards, or a Windows device name (`CON`, `NUL`, `COM1` and the rest, with or without an extension), is REJECTED. `protocol/filenames.txt` pins these rules and all three implementations read it.
+- Files land in an `Edgepad` folder inside the Downloads folder and never over an existing file: a taken name becomes `name (1).ext`, `name (2).ext`. The laptop marks the file as downloaded (Mark of the Web on Windows, the quarantine attribute on a Mac).
+- While arriving, the file is a `name.size.part` file in a partial folder, hashed as it comes. Only a matching SHA-256 renames it into place.
+- Resume: a session that ends keeps the part. A later XFER_BEGIN with the same name and size continues from the bytes held, which are hashed again from disk because the digest covers the whole file. The final SHA-256 is the guard, so a part that was damaged ends as BAD_HASH and not as a bad file. Parts older than 7 days are deleted.
+- The sender waits 30 seconds for READY and for the last answer. Nothing arriving for 30 seconds on the second socket ends it.
+
+## The second socket
+
+A phone on the network may open a second TCP connection to the laptop for file transfers, so a large file does not queue behind input on the first. It runs the same link layer (EDGL1, below) and its first frame is BULK_HELLO, `0x05`, HELLO's shape: the magic `EDGP` and the protocol version.
+
+**The rule: BULK_HELLO can only attach.** It never creates a session, never replaces one and never admits a phone. It asks no trust question and no PIN, and it does not change the connected phone or the laptop's status. The laptop answers HELLO_ACK only when a phone session is live right now, over the same link, and otherwise closes the socket without a word; it also closes on a version it does not speak. Trust and the PIN were passed by the session it attaches to. After the HELLO_ACK the socket carries XFER_BEGIN, XFER_CHUNK, XFER_END and XFER_STATUS and nothing else: any other frame, and a second BULK_HELLO, close it. It ends with the session it belongs to. A phone with no second socket (Bluetooth has none) sends the same four frames on its first stream, where they are paced as the blob frames are so input still goes out between chunks.
+
+## Update verification
+
+The apps check for a newer release, and where they can they replace themselves. The signature scheme, the order of checks and what they do and do not protect against are in [UPDATES.md](UPDATES.md). None of it is part of the wire protocol above: it runs between an app and GitHub.
+
 ## On a Mac
 
-The protocol is unchanged: the Mac app speaks version 5 and the tables above are the whole of the wire format. What differs is what the Mac does with a frame.
+The protocol is unchanged: the Mac app speaks version 6 and the tables above are the whole of the wire format. What differs is what the Mac does with a frame.
 
 KEY still carries a Windows virtual-key code, and the Mac maps it by position: Win is Command, Ctrl is Control, Alt is Option. The Menu key has no Mac equivalent and is dropped and counted. Mute, volume and the media keys go out as the Mac's own media keys.
 
@@ -282,11 +351,11 @@ KEY still carries a Windows virtual-key code, and the Mac maps it by position: W
 
 ZOOM sums wheel units until a whole notch (120) is owed, then presses Command+plus or Command+minus once per notch. These are macOS's default shortcuts: if one was changed or switched off in System Settings > Keyboard > Keyboard Shortcuts, the gesture does whatever that shortcut now does, or nothing.
 
-Controls are as on Windows, with these exceptions. MEDIA_POSITION is dropped, because now playing is not built on the Mac. VOLUME and MIC_LEVEL go through Core Audio. BRIGHTNESS and REFRESH_RATE act on the display, and BRIGHTNESS needs a private framework that may be missing; see [ARCHITECTURE.md](ARCHITECTURE.md). The Mac sends TEXT 5 (the macro names) from the list edited under **Macros…** in its menu bar, again whenever that list is saved, and answers TEXT 7 with the icons as TEXT 6 chunks, read from the target or the icon file with NSWorkspace; TEXT 8 is always `no-driver`. PAD_STATE is dropped. PEN, PEN_COLOR, PEN_WIDTH, PEN_OPACITY, PEN_RGB and TEXT 9 `annotate/capture` and TEXT 10 (the primary display in pixels, sent again when the displays change) are live as on Windows. Drawing over other apps should not need Screen Recording permission, since the overlay only draws; that is UNKNOWN until tried on a Mac. STATE for volume, microphone and brightness is sent after the handshake and then whenever a poll, twice a second, finds a change.
+Controls are as on Windows, with these exceptions. MEDIA_POSITION seeks Music and Spotify through AppleScript, on request and never on the main thread, and the STATE it reports carries the position of those two players; now playing is learned from their distributed notifications, and browsers are not followed on the Mac. None of this has been seen on a Mac. VOLUME and MIC_LEVEL go through Core Audio. BRIGHTNESS and REFRESH_RATE act on the display, and BRIGHTNESS needs a private framework that may be missing; see [ARCHITECTURE.md](ARCHITECTURE.md). The Mac sends TEXT 5 (the macro names) from the list edited under **Macros…** in its menu bar, again whenever that list is saved, and answers TEXT 7 with the icons as TEXT 6 chunks, read from the target or the icon file with NSWorkspace; TEXT 8 is always `no-driver`. PAD_STATE is dropped. PEN, PEN_COLOR, PEN_WIDTH, PEN_OPACITY, PEN_RGB and TEXT 9 `annotate/capture` and TEXT 10 (the primary display in pixels, sent again when the displays change) are live as on Windows. Drawing over other apps should not need Screen Recording permission, since the overlay only draws; that is UNKNOWN until tried on a Mac. STATE for volume, microphone and brightness is sent after the handshake and then whenever a poll, twice a second, finds a change.
 
 ## On Linux
 
-The protocol is unchanged: the Linux app speaks version 5 and the tables above are the whole of the wire format. It is the shared C# core with a Linux action table, so everything the Windows app drops and counts, it drops and counts the same way. What differs is what it does with a frame, and what it cannot do. Nothing here has been seen working on a Linux laptop; [LINUX.md](LINUX.md) says how to check each item.
+The protocol is unchanged: the Linux app speaks version 6 and the tables above are the whole of the wire format. It is the shared C# core with a Linux action table, so everything the Windows app drops and counts, it drops and counts the same way. What differs is what it does with a frame, and what it cannot do. Nothing here has been seen working on a Linux laptop; [LINUX.md](LINUX.md) says how to check each item.
 
 KEY still carries a Windows virtual-key code, and Linux maps it by position to an evdev key: Win is the left Meta key and the Menu key is `KEY_COMPOSE`. Input goes through a uinput keyboard and mouse, so it works the same on Wayland and X11. A KEY for SysRq (the phone's PrtSc) is dropped and counted while Alt is held, since Alt+SysRq+key is the kernel's magic SysRq. ZOOM is Ctrl plus the wheel.
 
@@ -319,7 +388,7 @@ Controls are as on Windows, with these exceptions. VOLUME and MIC_LEVEL go throu
 
 ## The network link (Wi-Fi and USB)
 
-The same frames run over TCP, inside a link layer of their own called EDGL1. It has its own version byte, `linkVersion` (1), independent of the protocol version above: the protocol version stays 5, and a change to this layer moves `linkVersion` only. Everything below the frames is EDGL1; `FrameStream` and every frame above it are unchanged. `protocol/link-vectors.txt` holds worked values for every derivation here, written by the core test `LinkVectorsOutput` from the same code the laptop runs (CI uploads it as the `edgepad-link-vectors` artifact). The C#, Kotlin and Swift suites must each reproduce every line of it. It is a cross-check between implementations, not a review of the scheme.
+The same frames run over TCP, inside a link layer of their own called EDGL1. It has its own version byte, `linkVersion` (1), independent of the protocol version above: the protocol version is not part of it, and a change to this layer moves `linkVersion` only. Everything below the frames is EDGL1; `FrameStream` and every frame above it are unchanged. `protocol/link-vectors.txt` holds worked values for every derivation here, written by the core test `LinkVectorsOutput` from the same code the laptop runs (CI uploads it as the `edgepad-link-vectors` artifact). The C#, Kotlin and Swift suites must each reproduce every line of it. It is a cross-check between implementations, not a review of the scheme.
 
 Network listening is off until the laptop's owner turns it on. All crypto is platform crypto: P-256 ECDH, HKDF and HMAC over SHA-256, AES-256-GCM.
 
@@ -424,6 +493,69 @@ After a pairing the laptop calls `TrustStore.Grant("link:<phoneIdHex>")`, where 
 - The scheme is implemented three times against shared vectors. No cryptographer has reviewed it, and nothing here claims one has.
 - No latency over this link has been measured, and none is stated.
 
+## Dashboard widgets and screens
+
+The trackpad widgets and the System, AI and GitHub screens show data from the laptop. None of it is a new frame type. It uses CONTROL 12 (what the phone draws), TEXT 27 to 35 (the data), BLOB kinds 6 and 7 (approvals and the GitHub lists) and FEATURE tokens. A build that does not know an id drops and counts it.
+
+**The watch.** The phone sends DASH_WATCH (CONTROL 12), a bitmask of what it draws now:
+
+| Bit | Value | Drawn on the phone |
+| --- | --- | --- |
+| 0 | 1 | widgets that need system numbers: CPU, RAM, GPU, network |
+| 1 | 2 | the System screen |
+| 2 | 4 | the weather widget |
+| 3 | 8 | an AI widget or the AI screen |
+| 4 | 16 | the GitHub screen |
+
+Values are 0 to 31; larger values are dropped and counted. The mask is forgotten when the session ends. With no bit set the laptop sends no dashboard data, and it never samples, reads usage files or polls GitHub on its own.
+
+**The data.** Each kind is UTF-8, at most 255 bytes, never split inside a character.
+
+- TEXT 27 STATS, laptop to phone: `cpu/ram/gpu/vram/down/up/ping/loss/ctemp/gtemp/gpower`. Percents 0 to 100, down and up in KiB/s, ping in ms, loss in percent, temperatures in C, gpower in W; -1 is unknown. Sent once a second while bit 0 or bit 1 is set, and not re-sent when identical.
+- TEXT 28 STATS_INFO, laptop to phone: `cpuName|ramMiB|gpuName|vramMiB|netName`, names Clean(30). Sent when the watch starts and when it changes.
+- TEXT 29 DISKS, laptop to phone: `label:usedPct:totalGiB:freeGiB` entries joined by `|`, label Clean(16), at most 6 disks. Sent while bit 1 is set, re-read every 10 seconds, and only when changed.
+- TEXT 30 SESSIONS, laptop to phone: `agent:state:title` entries joined by `|`, title Clean(24), newest first, at most 8. Empty means none. Sent on change, whatever the watch.
+- TEXT 31 PERM_ANSWER, phone to laptop: exactly `id/a` or `id/d`, where id is 12 lowercase hex digits. Anything else, or an unknown or already answered id, is dropped and counted.
+- TEXT 32 PERM_GONE, laptop to phone: `id` of an approval answered elsewhere, timed out, or whose request died. The phone dismisses that sheet.
+- TEXT 33 LIMITS, laptop to phone: `agent:window:pct:resetAtMin:measuredAtMin` entries joined by `|`. Sent on change, and as a snapshot when bit 3 is set. Absent windows are simply absent.
+- TEXT 34 SPEND, laptop to phone: `agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth` entries joined by `|`, integers. Tokens are uncached input plus output. Cents are estimates at API list prices. Sent on change, and as a snapshot when bit 3 is set.
+- TEXT 35 WEATHER, laptop to phone: `tempTenthsC/wmoCode/city`, city Clean(24). Empty means none.
+
+**Tokens.** AGENT is `claude` or `codex`. SESSION_STATE is `busy`, `wait` or `idle`. CI is `ok`, `fail`, `pending` or `none`. An unknown token drops its entry.
+
+**Limit windows.** The window field is one of three forms:
+
+- decimal minutes of the limit's window: 300 is 5 hours, 10080 a week, 43200 thirty days; any value from 1 to 525600;
+- `ctx`, the context window;
+- `~` and a name, Clean(16), for a limit with no duration, such as `~spend_limit`.
+
+Any other window drops that entry. pct is 0 to 100, floats rounded and clamped. Both times are UTC minutes since the Unix epoch, -1 when unknown. The phone works out "resets in" and "updated ago" when it draws.
+
+**Clean.** Clean(n) turns control characters, tab, `|`, `/`, `:`, and the bidi and zero-width characters into a space. It collapses runs of spaces, trims, and cuts to n code points, never inside a surrogate pair. Approval text is cleaned differently: line feeds and tabs are kept, and bidi and zero-width characters are shown as `<U+XXXX>`.
+
+**Developer mode.** CONTROL 13 (DEVELOPER) is 1 or 0, phone to laptop; anything else is dropped and counted. The laptop keeps the value across sessions (unlike NOTIFY) and can change it from its own tray too; either way it re-sends TEXT 9 so the phone follows. The phone never sends it on connect: the laptop is the truth, shown as FEATURE `developer`. Off hides and stops advertising `claude`, `codex` and `github`, and closes the hook channel, so approvals go back to the agent's own prompt. It never deletes a connection, plugin or sign-in.
+
+**Features.** TEXT 9 names `stats`, `weather`, `claude`, `codex` and `github` only while that Integrations switch on the laptop is on and usable. `claude`, `codex` and `github` also need developer mode (`developer` is named while it is on). `github` also needs a signed-in account. Empty states use TEXT 24 with these reasons: `stats:unsupported`, `claude:no-tool`, `codex:no-tool`, `codex:unsupported` (Codex too old), and `github:no-permission` (not signed in).
+
+**Approvals.** BLOB 6 carries the ask to every linked phone with the feature. Its body is the agent, the tool name (1 to 24 of `A-Za-z0-9_.-`) and the text, joined by line feeds, at most 4096 bytes. Over that cap the laptop sends `f` 0 and an empty text. The first valid TEXT 31 answer wins. TEXT 32 tells the other phones it was answered elsewhere. Nothing from the phone changes the approval except its `id/a` or `id/d`.
+
+**GitHub.** BLOB 7 is UTF-8 lines, each tab-separated: `section`, `repo`, `number`, `title`, `flags`, `ci`. Section `R` is review requested, `M` is your pull requests, and `N` is notifications, which have an empty repo and a count as number. Title is Clean(80). Flags `d` means draft. CI is a CI token. At most 10 lines per section and 8 KiB in all. Sent while bit 4 is set and after each refresh that changed it.
+
+## Local hook channel
+
+This channel is on the laptop only. The plugin's hooks run the Edgepad app itself as `"<app>" --hook <claude|codex> <perm|session|usage>` (no Node or other runtime is needed); that short-lived process hands the agent event to the running app, and the running app answers approvals. It is not the phone link, and the phone never uses it.
+
+- **Transport.** Windows: the named pipe `\\.\pipe\edgepad-hook-<first 16 hex digits of SHA-256 of the user SID>`, with `PipeOptions.CurrentUserOnly` and an explicit ACL for the current user only that denies network access. Linux and macOS: a Unix socket `hook.sock` in a folder the app creates with mode 0700 (Linux `$XDG_RUNTIME_DIR/edgepad/`, with no `/tmp` fallback; macOS `$TMPDIR/edgepad/`). The socket is mode 0600. Owner and mode are checked before bind, and the peer user ID is checked against the app's own before anything is read.
+- **Discovery.** A file `hook.json`: `{"v":1,"endpoint":"...","token":"<32 random bytes, base64url>","pid":N}`. Windows: `%LOCALAPPDATA%\Edgepad\hook.json`. macOS: `~/Library/Application Support/Edgepad/hook.json`. Linux: `$XDG_RUNTIME_DIR/edgepad/hook.json`. Mode 0600, or a user-only ACL. The token is new at every app start and whenever an integration is switched on. The app deletes the file on exit and when both agents are disconnected. A client refuses a file the caller does not own, or that group or others can read.
+- **Request.** One connection and one JSON line of at most 64 KiB: `{"v":1,"token":"...","agent":"claude|codex","kind":"perm|session|usage|spend","d":{...}}`. The server waits at most 2 seconds for it. The reply for `perm` is one line, `{"v":1,"decision":"allow|deny|defer"}`. Other kinds get `{"v":1,"ok":true}`, and their clients do not wait for it. Malformed input, an unknown kind or agent, or a wrong token closes the connection with no reply.
+- **Server limits.** The token is compared in constant time. At most 8 connections and 8 pending approvals at once; an excess ask is deferred. At most 20 asks a minute. JSON depth at most 8. Every string is capped and cleaned before use. No field reaches a process, a file path or a format string. `deny` carries a fixed message. Tool input, commands and text are never logged, only the agent, the kind and the id.
+- **Approval flow.** If the integration is off, no phone is linked, or no linked phone has the feature, the answer is `defer` at once and the agent shows its normal prompt. Otherwise BLOB 6 goes to each linked phone, and the first valid TEXT 31 wins. No answer within 30 seconds is `defer`. If the agent closes first, because the owner answered in the terminal, the app sends TEXT 32. A pending approval shows that session as `wait` in SESSIONS.
+- **What an approval shows.** Only a whitelisted field: Bash's command, the file of Edit, Write, MultiEdit, Read or NotebookEdit, WebFetch's URL; for Codex the first of command, file and URL. A tool with none of these, or an empty one, is `defer` at once without asking the phone. A Codex array command is joined with spaces, an element that is empty or holds any character outside `A-Za-z0-9_@%+=:,./-` written in POSIX single quotes (each `'` as `'\''`). Control characters other than line feed and tab, and every format character, show as `<U+XXXX>`; nothing is deleted. BLOB 6 is complete (label flag 1, Allow offered) only when no field was cut on the way (the hook client marks a cut with `"truncated":true` in `d`), and both the raw text and the cleaned body fit 4096 bytes with the agent and tool lines. Otherwise the phone offers Deny only.
+- **Codex on Windows.** Codex runs the hook command through a shell Edgepad cannot know, and a quoted program path followed by arguments breaks PowerShell. The app stamps its path without quotes (its 8.3 short form when the path has spaces) when that path holds only letters, digits and `\ : . _ - ~`, and quoted otherwise. Approvals from Codex on Windows still need a test on a real device. If the command fails, Codex shows its own prompt in the terminal, so the failure is safe.
+- **Agent side.** The hook command reads the hook JSON on stdin (perm, session; at most 1 MiB) or as its next argument (usage), connects within 2 seconds and waits at most 35 seconds for a perm decision. It prints a decision only for PermissionRequest. For every other event it prints nothing, because stdout from SessionStart or UserPromptSubmit can be added to the model's context. It always exits 0, since exit 2 would block or change a tool. Every hook but PermissionRequest is declared `"async": true` in both plugins, so Claude Code and Codex never wait for the app to start on a prompt, a reply or a session event; only an approval, which the person is reading anyway, is waited on.
+- **Claude spend.** The running app reads token totals from Claude Code's own transcripts (`projects/**/*.jsonl` under `CLAUDE_CONFIG_DIR` or `~/.claude`) while a phone watches the AI screen or widget, so no hook carries spend. The `spend` kind stays accepted for plugin copies stamped before 5.0.0.
+- **Threat model.** The channel protects against other user accounts and against processes that do not run as the owner. It does NOT protect against malware running as the same user. Such code can read `hook.json` and use the channel. It still cannot allow an approval: only a linked phone's TEXT 31 does that.
+
 ## Versions
 
 | Version | Release | Change |
@@ -433,6 +565,7 @@ After a pairing the laptop calls `TrustStore.Grant("link:<phoneIdHex>")`, where 
 | 3 | 0.6.0 | TEXT kind 3; actions 31 to 34 arrived in 0.5.0, CONTROL 4, TEXT 4 and 5 and the macro block in 1.1.0, and TEXT 6 and 7 in 2.3.0 |
 | 4 | 3.0.0 | PAD_STATE, a new frame type; actions 35 and 36 and TEXT 8 came with it and would not have needed one |
 | 5 | 4.0.0 | PIN_REQUEST and PIN_ANSWER, PEN, and FILE_BEGIN, FILE_CHUNK, FILE_END and FILE_RESULT, all new frame types; actions 40 to 55, CONTROL 5 and 6 and TEXT 9 to 12 came with them and would not have needed a bump |
+| 6 | 5.0.0 | BULK_HELLO and XFER_BEGIN, XFER_CHUNK, XFER_END and XFER_STATUS, all new frame types; ACTION 37 and 60 to 62, CONTROL 10 and 11, TEXT 21 to 26 and BLOB kinds 4 and 5 came with them and would not have needed a bump; CONTROL 12 and 13, TEXT 27 to 35, BLOB kinds 6 and 7 and the dashboard FEATURE tokens are new ids in the same release and would not have needed a bump either |
 
 Version 4 was a new frame type. PAD_STATE's type byte `0x23` is
 the whole reason: an unknown type closes the connection, so a v3 laptop meeting a v4 phone's PAD_STATE would
@@ -443,6 +576,8 @@ and TEXT 8 are new ids in tables that already existed, and an older build drops 
 Version 5 is the same kind of move, made for new frame types: PIN_REQUEST (`0x03`), PIN_ANSWER (`0x04`), PEN (`0x24`) and the four file frames (`0x50` to `0x53`). A v4 phone meeting a PIN_REQUEST would hang up mid-handshake instead of saying which side is old, and a v4 laptop meeting a PEN would close the link mid-session. From version 5 a v4 peer is refused at HELLO exactly as before: the laptop answers with its own version, then closes. Everything else in 4.0.0 (actions 40 to 55, CONTROL 5 and 6, TEXT 9 to 12, the Linux app) is a new id in a table that already existed, so an older build drops and counts it. Because 4.0.0 is the first release at version 5, a frame added while it was being built was still "version 5": every half in a build comes from one commit. PEN_WIDTH (CONTROL 8), PEN_OPACITY (CONTROL 9) and PEN_RGB (TEXT 17) are new ids in tables that already existed too, so they cost no version: a laptop without them drops and counts them and draws the strokes as it always did.
 
 The blob frames (`0x54` to `0x56`) are new frame types too, and the version stays 5 because version 5 has not shipped: they belong to the same unreleased step as the file frames. CONTROL 7, ACTION 56 and 57 and TEXT 13 to 15 are new ids in existing tables and would not have needed a bump.
+
+Version 6 is the same kind of move again, for the five new frame types `0x05` and `0x57` to `0x5A`. A version 5 laptop meeting an XFER_BEGIN would close the link mid-session, and a version 5 laptop meeting a BULK_HELLO would find no HELLO, so the handshake refuses the mismatch instead: a version 6 phone and a version 5 laptop, or a version 5 phone and a version 6 laptop, answer each other with their own version and close, and both halves of a release must be installed together. The new actions, controls, TEXT kinds and blob kinds are new ids in tables that already existed and cost no version on their own. The Android app, the three laptop apps and the fixtures in `protocol/frames.txt` and `protocol/actions.txt` all move to 6 in the same release.
 
 The refresh-rate dial and the macro buttons both arrived in 1.1.0 **without** a bump, which is the rule
 working rather than being broken. An unknown action, control or text kind is dropped and counted, so a

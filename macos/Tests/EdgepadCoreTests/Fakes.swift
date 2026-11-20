@@ -111,7 +111,12 @@ final class FakeDisplay: DisplayRates {
         self.current = current
     }
 
-    func refresh() {}
+    /// Runs at each refresh, so a test can act in the middle of the opening report.
+    var onRefresh: (() -> Void)?
+
+    func refresh() {
+        onRefresh?()
+    }
 
     func select(_ index: Int) -> Bool {
         selected.append(index)
@@ -298,5 +303,47 @@ final class FakeFolders: AppFolders {
     func entries(in path: String) -> [AppFolderEntry]? {
         reads.append(path)
         return tree[path]
+    }
+}
+
+final class FakeMedia: MediaSource {
+    var info = MediaInfo.none
+    var changed: (() -> Void)?
+    var seeks: [Int] = []
+    var iconApps: [String] = []
+
+    func read() -> MediaInfo { info }
+
+    func seek(percent: Int) -> Bool {
+        seeks.append(percent)
+        return true
+    }
+
+    func icon(forApp app: String) -> [UInt8]? {
+        iconApps.append(app)
+        return nil
+    }
+}
+
+/// A source of the app in front that keeps the callback so a test can fire a change by hand.
+final class FakeForeground: ForegroundSource {
+    var available = true
+    private(set) var watches = 0
+    private(set) var cancels = 0
+    private var onChange: ((String) -> Void)?
+
+    func watch(_ onChange: @escaping (String) -> Void) -> ForegroundWatch {
+        watches += 1
+        self.onChange = onChange
+        onChange("fake.app/Fake")
+        return ForegroundWatch { [weak self] in
+            self?.cancels += 1
+            self?.onChange = nil
+        }
+    }
+
+    /// A change as the platform would report it; nothing happens once the watch is cancelled.
+    func change(to text: String) {
+        onChange?(text)
     }
 }

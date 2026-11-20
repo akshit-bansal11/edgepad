@@ -118,6 +118,45 @@ internal sealed record BlobEnd(byte[] Sha256) : Frame
     public override int GetHashCode() => Sha256.Length == 0 ? 0 : Sha256[0];
 }
 
+/// <summary>
+/// The first frame of the second socket a phone opens for transfers, HELLO's shape: the magic and the protocol version.
+/// A laptop answers a version it does not speak by closing that socket.
+/// </summary>
+internal sealed record BulkHello(byte Version) : Frame;
+
+/// <summary>
+/// The start of a transfer in either direction. <c>Id</c> is 1..255, never 0. <c>Size</c> is the whole file in bytes and
+/// <c>Name</c> its file name with no folder, at most <see cref="FrameCodec.MaxXferNameBytes"/> bytes of UTF-8.
+/// </summary>
+internal sealed record XferBegin(byte Id, ulong Size, string Name) : Frame;
+
+/// <summary>
+/// One piece of a transfer: <c>Offset</c> is the full byte offset of the first byte of <c>Data</c>, which replaces the
+/// sequence number mod 256 of the file frames. <c>Data</c> is 1 to <see cref="FrameCodec.MaxXferChunkBytes"/> bytes. Equal by content.
+/// </summary>
+internal sealed record XferChunk(byte Id, ulong Offset, byte[] Data) : Frame
+{
+    public bool Equals(XferChunk? other) =>
+        other is not null && other.Id == Id && other.Offset == Offset && other.Data.AsSpan().SequenceEqual(Data);
+
+    public override int GetHashCode() => HashCode.Combine(Id, Offset, Data.Length);
+}
+
+/// <summary>The end of a transfer: the SHA-256 of all of it.</summary>
+internal sealed record XferEnd(byte Id, byte[] Sha256) : Frame
+{
+    public bool Equals(XferEnd? other) => other is not null && other.Id == Id && other.Sha256.AsSpan().SequenceEqual(Sha256);
+
+    public override int GetHashCode() => HashCode.Combine(Id, Sha256.Length == 0 ? 0 : Sha256[0]);
+}
+
+/// <summary>
+/// How a transfer stands, either direction. <c>Status</c> is 0 READY (<c>Offset</c> is where the sender starts), 1 PROGRESS (the
+/// contiguous bytes held), 2 SAVED, 3 BAD_HASH, 4 REJECTED, 5 WRITE_FAILED, 6 CANCELLED or 7 BUSY. A status this build does not
+/// know is data, not a codec error: the receiver drops it and counts it.
+/// </summary>
+internal sealed record XferStatus(byte Id, byte Status, ulong Offset) : Frame;
+
 /// <summary>The phone's answer to a file, one <see cref="FileStatus"/> id. Only <see cref="FileStatus.Saved"/> lets this laptop delete its copy.</summary>
 internal sealed record FileResult(byte Status) : Frame;
 

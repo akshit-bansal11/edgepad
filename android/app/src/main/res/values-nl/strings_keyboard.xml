@@ -5,7 +5,7 @@
   <string name="keyboard_type_send">Typen</string>
   <!-- The back links: the macros go back to the surface, the keyboard to Controls. -->
   <string name="back_to_surface">Bediening</string>
-  <string name="macros_title">Macro\'s</string>
+  <string name="macros_title">Macro’s</string>
   <string name="keyboard_key_on">Aan</string>
   <string name="keyboard_description">Schermtoetsenbord voor de laptop</string>
   <string name="keyboard_size">Grootte</string>

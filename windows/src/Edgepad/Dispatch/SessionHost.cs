@@ -5,10 +5,13 @@ using Edgepad.Annotation;
 using Edgepad.Blob;
 using Edgepad.Bluetooth;
 using Edgepad.Controls;
+using Edgepad.Dashboard;
+using Edgepad.Foreground;
 using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
 using Edgepad.Net;
+using Edgepad.Transfer;
 using Edgepad.Trust;
 
 namespace Edgepad.Dispatch;
@@ -30,13 +33,18 @@ internal sealed class SessionHost(
     MediaSessions media,
     DisplayModes display,
     MacroStore macros,
+    IForegroundApp foreground,
     LevelOverlay overlay,
     LinkIdentity identity,
     WindowsClipboard clipboard,
     Func<bool> shareClipboard,
     Action<string> onMacroAdded,
     SynchronizationContext ui,
-    Action<Func<bool>> onEnded) : IDisposable
+    Action<Func<bool>> onEnded,
+    Action<string>? onFileArrived = null,
+    Action<string, ulong, ulong>? onFileProgress = null,
+    Action<string, XferCode>? onFileFailed = null,
+    WindowsIntegrations? integrations = null) : IDisposable
 {
     // Joined at exit so the session's own cleanup, which releases held keys and buttons, gets to run.
     private static readonly TimeSpan ExitGrace = TimeSpan.FromSeconds(2);
@@ -49,6 +57,15 @@ internal sealed class SessionHost(
     // Every admitted session's thread, the connected one and any replaced one still unwinding, joined at exit; each
     // leaves as its session ends.
     private readonly ConcurrentDictionary<Session, Thread> sessionThreads = new();
+
+    // The admitted session, under gate, set in the same lock as the admission itself. A transfer socket attaches to this
+    // and to nothing else: never to a candidate, which Admission.Sessions would also list.
+    private Session? connected;
+
+    // Network sockets that have not yet said which they are (a phone's HELLO or a transfer socket's BULK_HELLO), with their
+    // phone's address. They are bounded like TcpLinkListener's unauthenticated sockets, whose count ends once the link layer
+    // has proved the phone's key, before this host sees the socket.
+    private readonly ConcurrentDictionary<Session, string> awaiting = new();
 
     /// <summary>The connected phone's address, or null.</summary>
     public string? CurrentAddress => admission.CurrentAddress;
@@ -69,6 +86,10 @@ internal sealed class SessionHost(
     /// </summary>
     internal static bool ShowStatus(string? currentAddress, string address, LaptopStatus status) =>
         status.IsConnected || currentAddress is null || string.Equals(currentAddress, address, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Whether another socket may wait for its first frame: the same limits as the link listener's unauthenticated ones.</summary>
+    internal static bool CanAwait(int total, int fromAddress) =>
+        total < TcpLinkListener.MaxUnauthenticated && fromAddress < TcpLinkListener.MaxUnauthenticatedPerHost;
 
     /// <summary>Whether a hold or a quiet period refuses new connections right now; no pairing may start then.</summary>
     public bool IsRefusing => admission.IsRefusing;
@@ -155,7 +176,7 @@ internal sealed class SessionHost(
             var platform = new WindowsPlatform(injector, pad, speakers, microphone, brightness, media, display, overlay, annotator);
             var dispatcher = new Dispatcher(platform, macros);
             session = new Session(
-                link, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, identity, clipboard, shareClipboard, onMacroAdded, StatusFor(link), OnAdmitted, OnSessionEnded);
+                link, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, foreground, identity, clipboard, shareClipboard, onMacroAdded, StatusFor(link), OnAdmitted, OnSessionEnded, LiveFor, path => onFileArrived?.Invoke(path), onFileProgress, onFileFailed, integrations);
 
             // A dedicated thread, not the thread pool: the read loop blocks for the life of the connection,
             // and input is injected from this thread directly, so nothing queues behind other work.
@@ -163,10 +184,13 @@ internal sealed class SessionHost(
 
             // Tested again here: a HangUp that ran since the check above has already looked for sessions to end,
             // and would have missed this one.
-            if (!admission.AddCandidate(session, address))
+            var tooMany = link.Kind == LinkKind.Network && !TryAwait(session, address);
+            if (tooMany || !admission.AddCandidate(session, address))
             {
-                // A hold, a quiet period or quitting started between the check above and here.
-                Log.Write(admission.Refusal(address) ?? $"Refused {address}: connections are being held off");
+                // Too many sockets waiting to say what they are, or a hold, a quiet period or quitting started between the
+                // check above and here.
+                Log.Write(tooMany ? $"Refused {address}: too many sockets from it are waiting to say what they are" : admission.Refusal(address) ?? $"Refused {address}: connections are being held off");
+                _ = awaiting.TryRemove(session, out _);
                 session.Dispose();
                 injector.Dispose();
                 pad.Dispose();
@@ -198,8 +222,81 @@ internal sealed class SessionHost(
         link.Release();
         if (session is not null)
         {
+            _ = awaiting.TryRemove(session, out _);
             admission.Ended(session);
         }
+    }
+
+    // Counted and added under one lock, so two sockets arriving together cannot both take the last place.
+    private bool TryAwait(Session session, string address)
+    {
+        lock (gate)
+        {
+            var fromAddress = awaiting.Values.Count(a => string.Equals(a, address, StringComparison.OrdinalIgnoreCase));
+            if (!CanAwait(awaiting.Count, fromAddress))
+            {
+                return false;
+            }
+
+            awaiting[session] = address;
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// The session a transfer socket may attach to (<c>hasLiveSession</c>, D-BULK): the one admitted for exactly this socket's
+    /// address, still running, and holding no transfer socket yet. Reserved for the caller on the way out. Null otherwise.
+    /// This never creates, replaces or admits a session and never calls <see cref="OnAdmitted"/>. The socket has said it is a
+    /// transfer socket, so it stops counting against the sockets still to identify themselves.
+    /// </summary>
+    private Session? LiveFor(Session bulk)
+    {
+        _ = awaiting.TryRemove(bulk, out _);
+        Session? live;
+        lock (gate)
+        {
+            live = connected;
+            if (live is null
+                || !string.Equals(admission.CurrentAddress, bulk.Address, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(live.Address, bulk.Address, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+        }
+
+        // A session that ended is disposed before it is cleared here, and a disposed one refuses.
+        return live.ReserveBulk(bulk) ? live : null;
+    }
+
+    /// <summary>
+    /// Sends a file to the connected phone, on a pool thread. Null when no phone is connected; otherwise how it ended
+    /// (<see cref="XferCode.Saved"/> is a file the phone has whole and checked). A file that cannot be read faults the task.
+    /// </summary>
+    public Task<XferCode?> SendFile(string path, Action<ulong>? progress = null, CancellationToken cancel = default)
+    {
+        Session? session;
+        lock (gate)
+        {
+            session = connected;
+        }
+
+        return session is null
+            ? Task.FromResult<XferCode?>(null)
+            : Task.Run(() => (XferCode?)session.SendFile(path, cancel, progress), CancellationToken.None);
+    }
+
+    /// <summary>Sends <paramref name="text"/> to the connected phone's clipboard, on a pool thread. Null when no phone is connected; otherwise whether it went.</summary>
+    public Task<bool?> SendClipboardText(string text)
+    {
+        Session? session;
+        lock (gate)
+        {
+            session = connected;
+        }
+
+        return session is null
+            ? Task.FromResult<bool?>(null)
+            : Task.Run(() => (bool?)session.SendClipboardText(text), CancellationToken.None);
     }
 
     /// <summary>
@@ -209,6 +306,7 @@ internal sealed class SessionHost(
     /// </summary>
     private bool OnAdmitted(Session session)
     {
+        _ = awaiting.TryRemove(session, out _);
         bool admitted;
         Session? previous;
         string refusal;
@@ -217,6 +315,7 @@ internal sealed class SessionHost(
             admitted = admission.Admit(session, out previous, out refusal);
             if (admitted)
             {
+                connected = session;
                 // The handshake asks from the session's own thread, the one Dispose waits for.
                 sessionThreads[session] = Thread.CurrentThread;
             }
@@ -246,6 +345,15 @@ internal sealed class SessionHost(
     private void OnSessionEnded(Session session)
     {
         sessionThreads.TryRemove(session, out _);
+        _ = awaiting.TryRemove(session, out _);
+        lock (gate)
+        {
+            if (ReferenceEquals(connected, session))
+            {
+                connected = null;
+            }
+        }
+
         onEnded(() => admission.Ended(session));
     }
 

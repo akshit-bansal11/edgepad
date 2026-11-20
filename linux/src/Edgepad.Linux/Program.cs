@@ -3,6 +3,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Edgepad.Bluetooth;
+using Edgepad.Dashboard;
+using Edgepad.Hooks;
 using Edgepad.Net;
 using Edgepad.Platform;
 using Edgepad.Trust;
@@ -23,8 +25,26 @@ internal static class Program
     private static string Version =>
         typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0] ?? "0.0.0";
 
-    private static int Main()
+    private static int Main(string[] args)
     {
+        // A hook command of an agent's plugin: answers on stdout and leaves, before the lock, the tray, logging or any UI.
+        if (HookClient.IsHook(args))
+        {
+            return HookClient.RunConsole(args);
+        }
+
+        // "edgepad --send FILE...", from the Send to phone desktop entry: hand the files to the running copy and leave.
+        if (args is ["--send", .. { Length: > 0 } files])
+        {
+            if (SendSocket.Send(files))
+            {
+                return 0;
+            }
+
+            Console.Error.WriteLine("Edgepad is not running. Start it, then send the file again.");
+            return 1;
+        }
+
         AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Write($"Unhandled: {e.ExceptionObject}");
 
         // Before any UI or thread starts, so every thread shows the shared strings in the desktop's language.
@@ -62,10 +82,19 @@ internal static class Program
         using var terminate = PosixSignalRegistration.Create(PosixSignal.SIGTERM, Stop);
         using var interrupt = PosixSignalRegistration.Create(PosixSignal.SIGINT, Stop);
         var exitCode = 0;
+
+        // The dashboard integrations, every one off until the owner turns it on in Integrations…; made before the first phone can
+        // connect, and disposed after the server (its sessions end first), which removes hook.json and the hook socket.
+        using var dashboard = new LinuxDashboard(config, Version);
+        LinuxDashboard.Shared = dashboard;
+        dashboard.Start();
         using (var server = new LinuxServer(trust, pin, shell.AskTrust, identity, shell.SetStatus))
         {
             shell.Attach(server);
             server.Start();
+
+            // Files handed over by "edgepad --send"; the socket is private to this user (see SendSocket).
+            using var sendSocket = SendSocket.Listen(file => _ = shell.SendFileAsync(file));
 
             // Disposed before the server, whose HoldOff and Resume it calls.
             using var away = new SessionWatch(server.HoldOff, server.Resume);

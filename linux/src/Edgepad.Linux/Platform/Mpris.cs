@@ -1,4 +1,5 @@
 using System.Globalization;
+using Edgepad.Media;
 using Edgepad.Protocol;
 using Tmds.DBus.Protocol;
 
@@ -11,7 +12,10 @@ internal sealed record MediaState(
     bool Playing,
     int PositionPercent,
     int PositionSeconds,
-    int DurationSeconds)
+    int DurationSeconds,
+    string Full = "",
+    string Bus = "",
+    string ArtUrl = "")
 {
     public static MediaState Nothing { get; } = new("", "", false, 0, 0, 0);
 }
@@ -64,7 +68,8 @@ internal static class MprisMap
         var artist = player.Metadata.TryGetValue("xesam:artist", out var raw) && raw is string[] artists
             ? string.Join(", ", artists.Where(a => !string.IsNullOrWhiteSpace(a)))
             : Text(player.Metadata, "xesam:artist");
-        var nowPlaying = string.IsNullOrWhiteSpace(artist) ? title : $"{title} - {artist}";
+        var full = string.IsNullOrWhiteSpace(artist) ? title : $"{title} - {artist}";
+        var nowPlaying = TitleCleaner.NowPlaying(title, artist);
 
         var length = Length(player.Metadata);
         var position = Math.Clamp(player.PositionMicroseconds, 0, length > 0 ? length : long.MaxValue);
@@ -75,7 +80,34 @@ internal static class MprisMap
             player.PlaybackStatus == "Playing",
             percent,
             length > 0 ? (int)(position / 1_000_000) : 0,
-            (int)(length / 1_000_000));
+            (int)(length / 1_000_000),
+            FrameCodec.Truncate(full.Trim(), MaxTextBytes),
+            player.BusName,
+            Text(player.Metadata, "mpris:artUrl"));
+    }
+
+    private const long MaxArtworkBytes = 512 * 1024;
+
+    /// <summary>Players that play web pages, whose own icon says nothing about what is playing.</summary>
+    public static bool IsBrowser(string busName) =>
+        AppName(busName).ToUpperInvariant() is "FIREFOX" or "CHROMIUM" or "CHROME" or "BRAVE" or "VIVALDI" or "OPERA" or "MSEDGE" or "EDGE";
+
+    /// <summary>
+    /// The local picture <c>mpris:artUrl</c> names, or null. Only a <c>file:</c> png or jpg under 512 KB:
+    /// the laptop never fetches a web image. <paramref name="sizeOf"/> gives a file's size, null when it is missing.
+    /// </summary>
+    public static string? ArtworkPath(string? artUrl, Func<string, long?> sizeOf)
+    {
+        if (string.IsNullOrEmpty(artUrl)
+            || !Uri.TryCreate(artUrl, UriKind.Absolute, out var uri)
+            || !uri.IsFile
+            || uri.Host.Length > 0
+            || Path.GetExtension(uri.LocalPath).ToUpperInvariant() is not (".PNG" or ".JPG" or ".JPEG"))
+        {
+            return null;
+        }
+
+        return sizeOf(uri.LocalPath) is > 0 and <= MaxArtworkBytes ? uri.LocalPath : null;
     }
 
     /// <summary>
@@ -136,6 +168,7 @@ internal sealed class Mpris : IDisposable
 
     private readonly Bus bus = Bus.OnSession();
     private readonly Lock gate = new();
+    private readonly Dictionary<string, string> entries = [];
     private PlayerSnapshot? followed;
 
     /// <summary>
@@ -210,6 +243,55 @@ internal sealed class Mpris : IDisposable
             writer.WriteInt64(micros);
             return writer.CreateMessage();
         });
+    }
+
+    /// <summary>
+    /// The player's <c>DesktopEntry</c> (its .desktop id, without the suffix), or "" when it names none. One
+    /// <c>GetAll</c> per bus name, kept; a failed call is not kept, so it is asked again.
+    /// </summary>
+    public string DesktopEntry(string busName)
+    {
+        lock (gate)
+        {
+            if (entries.TryGetValue(busName, out var known))
+            {
+                return known;
+            }
+        }
+
+        var read = bus.Call(
+            c =>
+            {
+                using var writer = c.GetMessageWriter();
+                writer.WriteMethodCallHeader(
+                    destination: busName,
+                    path: PlayerPath,
+                    @interface: "org.freedesktop.DBus.Properties",
+                    member: "GetAll",
+                    signature: "s");
+                writer.WriteString("org.mpris.MediaPlayer2");
+                return writer.CreateMessage();
+            },
+            (Message reply, object? _) => reply.GetBodyReader().ReadDictionaryOfStringToVariantValue(),
+            out var properties);
+        if (!read)
+        {
+            return "";
+        }
+
+        var id = properties is not null && properties.TryGetValue("DesktopEntry", out var v) && Plain(v) is string text ? text : "";
+        lock (gate)
+        {
+            // More names than this is not a real desktop (instances come and go): start over rather than grow.
+            if (entries.Count >= MaxPlayers * 2)
+            {
+                entries.Clear();
+            }
+
+            entries[busName] = id;
+        }
+
+        return id;
     }
 
     public void Dispose() => bus.Dispose();

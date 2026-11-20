@@ -34,6 +34,10 @@ final class SessionHost {
     /// pictures, which would only push the grid's out of the one `macros` holds.
     private let appCatalog = ApplicationsCatalog(icons: WorkspaceMacroIcons())
 
+    /// What Music and Spotify are playing, for every connection: always listening, so a phone that connects mid-song is
+    /// told at once. Each connection holds its own view of it.
+    private let nowPlaying = NowPlayingHub()
+
     /// One pasteboard for every connection, polled on the timer below. The sessions' clipboards are held weakly: a
     /// session that ended has already stopped its own.
     private let pasteboard = PasteboardSurface()
@@ -66,6 +70,9 @@ final class SessionHost {
     /// Whether macOS is discarding this Mac's input (no Accessibility trust); set by the app, read for TEXT 18.
     var inputBlocked: () -> Bool = { false }
 
+    /// Told the final path of each file the phone sent, once it is saved and marked as downloaded.
+    var onFileArrived: ((String) -> Void)?
+
     /// Told the address of each phone as it is admitted, for the Security window's "last connected".
     var onVerified: ((String) -> Void)?
 
@@ -79,6 +86,15 @@ final class SessionHost {
 
     /// Told whenever the owner holds phones off or forgets them, so whatever is still pairing ends with it.
     var onHold: (() -> Void)?
+
+    /// The integrations (stats, weather, Claude Code, Codex, GitHub); each live phone gets its own side of them. Nil
+    /// leaves sessions exactly as they were before the dashboard.
+    var dashboard: MacDashboard?
+
+    /// An Integrations switch moved: the phone in use is told what it can show now.
+    func dashboardChanged() {
+        current?.dashboardChanged()
+    }
 
     /// `pin` is the store the owner's Security panel changes, so the lockout counts and the check that a PIN changed
     /// mid-answer see one another.
@@ -145,6 +161,8 @@ final class SessionHost {
         // Per connection, like the injector: a phone that goes takes its overlay down with it (Session.end).
         dispatcher.annotation = Annotator()
         dispatcher.macros = macros
+        // Observes nothing until a phone sets FOREGROUND_WATCH to 1.
+        dispatcher.foreground = WorkspaceForeground()
         // Per connection too: the phone says where captures go each time it connects.
         dispatcher.capture = CaptureToPhone(
             folders: MacCaptureFolders(), lastInput: { [weak dispatcher] in dispatcher?.lastInput ?? 0 })
@@ -157,8 +175,27 @@ final class SessionHost {
         clipboards.add(clipboard)
         // On the same sender, so a list and a clipboard copy queue behind one another: the phone holds one transfer.
         dispatcher.apps = AppPicker(catalog: appCatalog, store: macros, sender: sender)
+        dispatcher.media = MacMediaSource(hub: nowPlaying)
+        dispatcher.mediaBlobs = sender
+        // Per connection too: files come in and go out on whichever socket the phone has open.
+        dispatcher.transfers = TransferReceiver(
+            destination: MacTransfers.destination, partialFolder: MacTransfers.partialFolder,
+            arrived: { [weak self] path in self?.onFileArrived?(path) },
+            mark: MacTransfers.markDownloaded)
+        dispatcher.sending = TransferSender(
+            link: link == "Bluetooth" ? .bluetooth : .network,
+            lastInput: { [weak dispatcher] in dispatcher?.lastInput ?? 0 })
+        dispatcher.endPerform = MacEndPower.perform
         let ask = askTrust
         let status = onStatus
+        // Made only once the phone is live, so a connection still in its handshake is never counted as a phone.
+        var makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)?
+        var setDeveloper: ((Bool) -> Void)?
+        if let dashboard {
+            makeDashboard = { send in dashboard.newLink(send: send, blobs: sender) }
+            // The settings and the menu belong to the main queue.
+            setDeveloper = { on in DispatchQueue.main.async { dashboard.setDeveloper(on) } }
+        }
         let session = Session(
             address: address,
             link: link,
@@ -186,7 +223,9 @@ final class SessionHost {
             // one the phone in use set.
             power: MacPowerSource(speakers: speakers),
             onAdmitted: { [weak self] admitted in self?.admit(admitted) ?? false },
-            onEnded: { [weak self] ended in self?.sessionEnded(ended) })
+            onEnded: { [weak self] ended in self?.sessionEnded(ended) },
+            makeDashboard: makeDashboard,
+            setDeveloper: setDeveloper)
         candidates.append((session: session, transport: transport, shownAs: shownAs, link: link))
 
         let helloTimeout = Timer(timeInterval: Session.helloTimeoutSeconds, repeats: false) { [weak session] _ in
@@ -194,6 +233,21 @@ final class SessionHost {
         }
         RunLoop.main.add(helloTimeout, forMode: .common)
         return session
+    }
+
+    /// Hands the phone's transfer socket to the phone in use, which takes it only if it is that phone's, live, and has
+    /// none yet. Nil leaves the socket for the caller to close; nothing here creates, replaces or admits a session.
+    func attachBulk(address: String, version: UInt8, transport: Transport) -> BulkLink? {
+        current?.attachBulk(address: address, version: version, transport: transport)
+    }
+
+    /// Sends the file at `path` to the phone in use and says how it ended.
+    func sendFile(_ path: String, finished: @escaping (XferCode) -> Void) {
+        guard let current else {
+            finished(.sessionEnded)
+            return
+        }
+        current.sendFile(path, finished: finished)
     }
 
     /// Ends the phone in use and every connection still in its handshake, and stops polling. On quit.
@@ -250,7 +304,10 @@ final class SessionHost {
         // Uptime, not the wall clock: a clock stepped backwards must not stretch the quiet period. Never shortens
         // one already running.
         quietUntil = max(quietUntil ?? 0, ProcessInfo.processInfo.systemUptime + Self.quietAfterForget)
-        onStatus("Forgot the trusted phones; ready for a new one in \(Int(Self.quietAfterForget)) seconds")
+        onStatus(
+            tr(
+                "Status_Forgot", "Forgot the trusted phones; ready for a new one in %1$@ seconds",
+                "\(Int(Self.quietAfterForget))"))
         Timer.scheduledTimer(withTimeInterval: Self.quietAfterForget, repeats: false) { [weak self] _ in
             guard let self, self.current == nil else { return }
             self.onStatus(Self.waiting)

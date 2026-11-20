@@ -124,6 +124,8 @@ internal sealed class WindowsPlatform(
             case ActionId.ToolArrow:
             case ActionId.ToolRectangle:
             case ActionId.ToolEllipse:
+            case ActionId.ToolLaser:
+            case ActionId.ToolLaserTrail:
             case ActionId.SignBegin:
             case ActionId.SignSave:
                 // The annotator decides which of these the current mode allows; a tool while signing is dropped.

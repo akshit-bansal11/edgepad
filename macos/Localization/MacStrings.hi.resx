@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>Edgepad इस Mac से पेयर किए गए फ़ोन को सुनने के लिए Bluetooth इस्तेमाल करता है।</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad यहाँ वह स्क्रीनशॉट या रिकॉर्डिंग खोजता है जिसे आपने फ़ोन पर पाने को कहा था।</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad यहाँ वह स्क्रीनशॉट या रिकॉर्डिंग खोजता है जिसे आपने फ़ोन पर पाने को कहा था।</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad यहाँ वह स्क्रीनशॉट या रिकॉर्डिंग खोजता है जिसे आपने फ़ोन पर पाने को कहा था।</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>Wi-Fi कनेक्शन चालू करने पर, Edgepad आपके फ़ोन को इस Mac को ढूँढने और Wi-Fi से जुड़ने देता है।</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>Edgepad Music या Spotify से पूछता है कि कौन-सा गाना चल रहा है और फ़ोन पर आगे-पीछे करने पर उसे खिसकाता है; मीडिया खत्म होने पर फ़ोन से कहने पर यह इस Mac को स्लीप या बंद कर देता है।</value>
+  </data>
+  <data name="Core_ConnectedOver" xml:space="preserve">
+    <value>{0} से जुड़ा है · {1}</value>
+  </data>
+  <data name="Core_BluetoothNotAllowed" xml:space="preserve">
+    <value>Edgepad को Bluetooth इस्तेमाल करने की अनुमति नहीं है। इसे सिस्टम सेटिंग › गोपनीयता और सुरक्षा › Bluetooth में अनुमति दें।</value>
+  </data>
+  <data name="Core_BluetoothOffMenu" xml:space="preserve">
+    <value>Bluetooth बंद है। इसे मेन्यू बार में चालू करें।</value>
+  </data>
+  <data name="Core_RefusedUnreadable" xml:space="preserve">
+    <value>एक फ़ोन अस्वीकार किया गया: भरोसेमंद फ़ोनों की सूची पढ़ी नहीं जा सकती</value>
+  </data>
+  <data name="Core_RefusedForgotten" xml:space="preserve">
+    <value>एक फ़ोन अस्वीकार किया गया जिसे यहाँ भुलाया जा चुका है</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>रद्द करें</value>
+  </data>
+  <data name="Welcome_SetUp" xml:space="preserve">
+    <value>सेट अप करें</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>सेव करें</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>बंद करें</value>
+  </data>
+  <data name="Common_Send" xml:space="preserve">
+    <value>भेजें</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>इंस्टॉल करें</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>भूल जाएं</value>
+  </data>
+  <data name="Common_Trust" xml:space="preserve">
+    <value>भरोसा करें</value>
+  </data>
+  <data name="Common_DontTrust" xml:space="preserve">
+    <value>भरोसा न करें</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>रीसेट करें</value>
+  </data>
+  <data name="Common_Pair" xml:space="preserve">
+    <value>पेयर करें</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad पहले से चल रहा है।</value>
+  </data>
+  <data name="App_AlreadyRunningBody" xml:space="preserve">
+    <value>इसे मेन्यू बार में दाईं ओर देखें। आइकन का क्रम बदलने के लिए Command दबाए रखें और खींचें।</value>
+  </data>
+  <data name="App_Welcome" xml:space="preserve">
+    <value>Edgepad मेन्यू बार में रहता है</value>
+  </data>
+  <data name="App_WelcomeBody" xml:space="preserve">
+    <value>macOS अब वह मांगेगा जो Edgepad को चाहिए। Bluetooth, आपका फ़ोन सुनने के लिए। डिवाइस नियंत्रण, पॉइंटर हिलाने और कुंजियाँ दबाने के लिए। सूचनाएँ, जब कोई फ़ोन कनेक्ट होना चाहे तो बताने के लिए। आपका डेस्कटॉप, दस्तावेज़ या डाउनलोड फ़ोल्डर, केवल तब जब फ़ोन स्क्रीनशॉट या रिकॉर्डिंग माँगे।</value>
+  </data>
+  <data name="App_UpdatedAllow" xml:space="preserve">
+    <value>अपडेट हो गया: डिवाइस नियंत्रण में Edgepad को फिर से अनुमति दें</value>
+  </data>
+  <data name="App_TipBlocked" xml:space="preserve">
+    <value>Edgepad अभी इस Mac को नियंत्रित नहीं कर सकता</value>
+  </data>
+  <data name="App_TipStatus" xml:space="preserve">
+    <value>Edgepad: {0}</value>
+  </data>
+  <data name="App_PermissionSteps" xml:space="preserve">
+    <value>सिस्टम सेटिंग › गोपनीयता और सुरक्षा › डिवाइस नियंत्रण और डेटा एक्सेस › + › Edgepad</value>
+  </data>
+  <data name="Menu_Installing" xml:space="preserve">
+    <value>Edgepad {0} इंस्टॉल हो रहा है…</value>
+  </data>
+  <data name="Menu_Install" xml:space="preserve">
+    <value>Edgepad {0} इंस्टॉल करें</value>
+  </data>
+  <data name="Menu_UpdateAvailable" xml:space="preserve">
+    <value>अपडेट उपलब्ध है: {0} </value>
+  </data>
+  <data name="Menu_Later" xml:space="preserve">
+    <value>बाद में</value>
+  </data>
+  <data name="Menu_Skip" xml:space="preserve">
+    <value>यह संस्करण छोड़ें</value>
+  </data>
+  <data name="Menu_AllowControl" xml:space="preserve">
+    <value>Edgepad को इस Mac को नियंत्रित करने दें…</value>
+  </data>
+  <data name="Menu_Wifi" xml:space="preserve">
+    <value>Wi-Fi कनेक्शन</value>
+  </data>
+  <data name="Menu_WifiHint" xml:space="preserve">
+    <value>Wi-Fi कनेक्शन ({0})</value>
+  </data>
+  <data name="Menu_WifiTip" xml:space="preserve">
+    <value>Mac पर केवल Wi-Fi: USB टेदरिंग के लिए ऐसा ड्राइवर चाहिए जो macOS में नहीं है।</value>
+  </data>
+  <data name="Menu_Clipboard" xml:space="preserve">
+    <value>क्लिपबोर्ड शेयर करें</value>
+  </data>
+  <data name="Menu_ClipboardTip" xml:space="preserve">
+    <value>एक पर कॉपी करें, दूसरे पर पेस्ट करें: टेक्स्ट और इमेज।</value>
+  </data>
+  <data name="Menu_Login" xml:space="preserve">
+    <value>लॉगिन पर शुरू करें</value>
+  </data>
+  <data name="Menu_DailyUpdates" xml:space="preserve">
+    <value>रोज़ अपडेट जांचें</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>फ़ाइल भेजें…</value>
+  </data>
+  <data name="Menu_SendFileNoPhone" xml:space="preserve">
+    <value>फ़ाइल भेजें… (कोई फ़ोन कनेक्ट नहीं है)</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>मैक्रो… </value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>सुरक्षा… ({0})</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>दस्तावेज़</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>लॉग खोलें </value>
+  </data>
+  <data name="Menu_About" xml:space="preserve">
+    <value>Edgepad के बारे में</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad बंद करें </value>
+  </data>
+  <data name="Net_PortInUse" xml:space="preserve">
+    <value>पोर्ट व्यस्त है, {0} इस्तेमाल हो रहा है</value>
+  </data>
+  <data name="Net_WaitingForNetwork" xml:space="preserve">
+    <value>नेटवर्क का इंतज़ार है</value>
+  </data>
+  <data name="Net_CouldNotListen" xml:space="preserve">
+    <value>सुन नहीं सका; लॉग देखें</value>
+  </data>
+  <data name="Net_Phone" xml:space="preserve">
+    <value>एक फ़ोन</value>
+  </data>
+  <data name="Note_UpdateTitle" xml:space="preserve">
+    <value>Edgepad {0} उपलब्ध है</value>
+  </data>
+  <data name="Note_UpdateBody" xml:space="preserve">
+    <value>डाउनलोड पेज खोलने के लिए क्लिक करें।</value>
+  </data>
+  <data name="Note_PairTitle" xml:space="preserve">
+    <value>{0} को पेयर करें?</value>
+  </data>
+  <data name="Note_PairBody" xml:space="preserve">
+    <value>फ़ोन पर दिखा पेयरिंग कोड लिखें।</value>
+  </data>
+  <data name="Note_TrustTitle" xml:space="preserve">
+    <value>{0} पर भरोसा करें?</value>
+  </data>
+  <data name="Note_TrustBody" xml:space="preserve">
+    <value>{0} कनेक्ट करना चाहता है। “भरोसा करें” या “भरोसा न करें” चुनें।</value>
+  </data>
+  <data name="Note_NotUpdated" xml:space="preserve">
+    <value>Edgepad अपडेट नहीं हुआ</value>
+  </data>
+  <data name="Status_Received" xml:space="preserve">
+    <value>{0} Downloads/Edgepad में मिला</value>
+  </data>
+  <data name="Status_OnlyFiles" xml:space="preserve">
+    <value>केवल फ़ाइलें भेजी जा सकती हैं, फ़ोल्डर नहीं</value>
+  </data>
+  <data name="Status_Forgot" xml:space="preserve">
+    <value>भरोसेमंद फ़ोन भुला दिए गए; {0} सेकंड में नया फ़ोन जोड़ने के लिए तैयार</value>
+  </data>
+  <data name="Xfer_Sent" xml:space="preserve">
+    <value>{0} फ़ोन पर भेज दिया गया</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>{0} भेजा जा रहा है</value>
+  </data>
+  <data name="Xfer_BadHash" xml:space="preserve">
+    <value>{0} फ़ोन पर खराब होकर पहुँचा; इसे फिर से भेजें</value>
+  </data>
+  <data name="Xfer_Rejected" xml:space="preserve">
+    <value>फ़ोन ने {0} स्वीकार नहीं किया</value>
+  </data>
+  <data name="Xfer_WriteFailed" xml:space="preserve">
+    <value>{0} पढ़ा या सहेजा नहीं जा सका</value>
+  </data>
+  <data name="Xfer_Cancelled" xml:space="preserve">
+    <value>{0} का भेजना रद्द किया गया</value>
+  </data>
+  <data name="Xfer_Busy" xml:space="preserve">
+    <value>फ़ोन पहले से एक फ़ाइल ले रहा है; उसके बाद {0} फिर भेजें</value>
+  </data>
+  <data name="Xfer_TimedOut" xml:space="preserve">
+    <value>{0} भेजते समय फ़ोन ने जवाब नहीं दिया</value>
+  </data>
+  <data name="Xfer_SessionEnded" xml:space="preserve">
+    <value>{0} भेजे जाने से पहले फ़ोन डिस्कनेक्ट हो गया</value>
+  </data>
+  <data name="Alert_MajorTitle" xml:space="preserve">
+    <value>Edgepad {0} के लिए फ़ोन ऐप भी अपडेट करना होगा।</value>
+  </data>
+  <data name="Alert_MajorBody" xml:space="preserve">
+    <value>दोनों को साथ में इंस्टॉल करें, वरना फ़ोन और यह Mac कनेक्ट नहीं होंगे।</value>
+  </data>
+  <data name="Alert_LoginFailed" xml:space="preserve">
+    <value>“लॉगिन पर शुरू करें” बदला नहीं जा सका</value>
+  </data>
+  <data name="Alert_LoginApproval" xml:space="preserve">
+    <value>Edgepad को लॉगिन पर शुरू होने की अनुमति दें</value>
+  </data>
+  <data name="Alert_LoginApprovalBody" xml:space="preserve">
+    <value>सिस्टम सेटिंग › सामान्य › लॉगिन आइटम में Edgepad को अनुमति दें।</value>
+  </data>
+  <data name="Alert_ForgetAll" xml:space="preserve">
+    <value>सभी भरोसेमंद फ़ोन भूल जाएं?</value>
+  </data>
+  <data name="Alert_ForgetAllBody" xml:space="preserve">
+    <value>{0} को भूल जाएं? हर फ़ोन को, इस वाले समेत, इस Mac का इस्तेमाल करने से पहले यहाँ फिर से भरोसेमंद बनाना होगा।</value>
+  </data>
+  <data name="Alert_TheTrustedPhones" xml:space="preserve">
+    <value>भरोसेमंद फ़ोन</value>
+  </data>
+  <data name="Alert_EveryTrustedPhone" xml:space="preserve">
+    <value>हर भरोसेमंद फ़ोन ({0})</value>
+  </data>
+  <data name="Alert_ForgetFailed" xml:space="preserve">
+    <value>भरोसेमंद फ़ोन भुलाए नहीं जा सके</value>
+  </data>
+  <data name="Alert_ForgetFailedBody" xml:space="preserve">
+    <value>उनकी फ़ाइल हटाई या खाली नहीं की जा सकी। Edgepad के चलते रहने तक कोई फ़ोन कनेक्ट नहीं हो सकता, पर Edgepad शुरू होने पर ये फ़ोन फिर भरोसेमंद हो जाएंगे। “सभी भरोसेमंद फ़ोन भूलें” फिर चुनें, या फ़ाइल खुद हटा दें:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetPinFailed" xml:space="preserve">
+    <value>जिन फ़ोनों ने पिन डाला था उन्हें भुलाया नहीं जा सका</value>
+  </data>
+  <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
+    <value>उनकी सूची हटाई नहीं जा सकी। Edgepad के चलते रहने तक हर फ़ोन से हर कनेक्शन पर पिन माँगा जाएगा, पर Edgepad शुरू होने पर ये फ़ोन “हर फ़ोन पर एक बार पिन” में फिर उसे छोड़ देंगे। “सभी भरोसेमंद फ़ोन भूलें” फिर चुनें, या pin-verified.txt यहाँ से खुद हटा दें:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetOne" xml:space="preserve">
+    <value>{0} को भूल जाएं?</value>
+  </data>
+  <data name="Alert_ForgetOneBody" xml:space="preserve">
+    <value>इस Mac का इस्तेमाल करने से पहले इसे यहाँ फिर से भरोसेमंद बनाना होगा।</value>
+  </data>
+  <data name="Alert_ForgetOneFailed" xml:space="preserve">
+    <value>{0} को भुलाया नहीं जा सका</value>
+  </data>
+  <data name="Alert_ForgetOneFailedBody" xml:space="preserve">
+    <value>एक फ़ाइल दोबारा लिखी नहीं जा सकी, इसलिए यह अब भी भरोसेमंद हो सकता है। कारण लॉग में है।</value>
+  </data>
+  <data name="Alert_PairingsFailed" xml:space="preserve">
+    <value>Wi-Fi पेयरिंग भुलाई नहीं जा सकीं</value>
+  </data>
+  <data name="Alert_PairingsFailedBody" xml:space="preserve">
+    <value>उनकी फ़ाइल हटाई या खाली नहीं की जा सकी। Edgepad के चलते रहने तक पेयर किए फ़ोन Wi-Fi पर दोबारा कनेक्ट नहीं हो सकते, पर अगली बार शुरू होने पर हो सकेंगे। “सभी भरोसेमंद फ़ोन भूलें” फिर चुनें, या paired-links.txt यहाँ से खुद हटा दें:
+
+{0}</value>
+  </data>
+  <data name="Alert_NoPhone" xml:space="preserve">
+    <value>कोई फ़ोन कनेक्ट नहीं है</value>
+  </data>
+  <data name="Alert_NoPhoneBody" xml:space="preserve">
+    <value>Edgepad से कोई फ़ोन कनेक्ट करें, फिर फ़ाइल दोबारा भेजें।</value>
+  </data>
+  <data name="Alert_ChooseFiles" xml:space="preserve">
+    <value>फ़ोन पर भेजने के लिए फ़ाइलें चुनें</value>
+  </data>
+  <data name="Alert_TurnOn" xml:space="preserve">
+    <value>चालू करें</value>
+  </data>
+  <data name="Alert_Allow" xml:space="preserve">
+    <value>अनुमति दें</value>
+  </data>
+  <data name="Alert_NotNow" xml:space="preserve">
+    <value>अभी नहीं</value>
+  </data>
+  <data name="Alert_Network" xml:space="preserve">
+    <value>फ़ोन को यह लैपटॉप ढूंढने दें?</value>
+  </data>
+  <data name="Alert_NetworkBody" xml:space="preserve">
+    <value>Mac पर केवल Wi-Fi: USB टेदरिंग के लिए ऐसा ड्राइवर चाहिए जो macOS में नहीं है। उसी Wi-Fi पर मौजूद फ़ोन इस Mac को ढूँढकर पेयर करने का अनुरोध कर सकेंगे। यहाँ लिखे पेयरिंग कोड के बिना कुछ भी कनेक्ट नहीं होता। macOS पूछ सकता है कि क्या Edgepad आपके लोकल नेटवर्क पर डिवाइस ढूँढ सकता है, और फ़ायरवॉल पूछ सकता है कि क्या वह आने वाले कनेक्शन स्वीकार कर सकता है: दोनों की अनुमति दें।</value>
+  </data>
+  <data name="Alert_SaveFailed" xml:space="preserve">
+    <value>सेटिंग सहेजी नहीं जा सकी</value>
+  </data>
+  <data name="Alert_SaveFailedBody" xml:space="preserve">
+    <value>कुछ नहीं बदला गया। कारण लॉग में है।</value>
+  </data>
+  <data name="Alert_Trust" xml:space="preserve">
+    <value>{0} पर भरोसा करें?</value>
+  </data>
+  <data name="Alert_TrustQuoted" xml:space="preserve">
+    <value>उद्धरण चिह्नों में नाम सिर्फ़ वही है जो फ़ोन खुद को कहता है; जिस पर भरोसा किया जाएगा वह पता है।</value>
+  </data>
+  <data name="Alert_TrustAddress" xml:space="preserve">
+    <value>जिस पर भरोसा किया जाएगा वह पता है।</value>
+  </data>
+  <data name="Alert_TrustBody" xml:space="preserve">
+    <value>{0} इस Mac का पॉइंटर और कीबोर्ड नियंत्रित करना चाहता है। {1} इस पर तभी भरोसा करें जब यह आपका हो। {2} सेकंड में जवाब न मिलने पर इस पर भरोसा नहीं किया जाएगा।</value>
+  </data>
+  <data name="Alert_Credits" xml:space="preserve">
+    <value>फ़ॉन्ट और आइकन: Lato, Lucide।</value>
+  </data>
+  <data name="Alert_ShutdownTitle" xml:space="preserve">
+    <value>यह Mac 60 सेकंड में बंद हो जाएगा।</value>
+  </data>
+  <data name="Alert_ShutdownBody" xml:space="preserve">
+    <value>फ़ोन पर मीडिया खत्म हो गया है और आपने तब शटडाउन करने को कहा था।</value>
+  </data>
+  <data name="Sec_Title" xml:space="preserve">
+    <value>सुरक्षा</value>
+  </data>
+  <data name="Sec_Intro" xml:space="preserve">
+    <value>हर फ़ोन से पहले आपकी हाँ माँगी जाती है। दोनों पिन स्तर छह अंकों का पिन भी माँगते हैं।</value>
+  </data>
+  <data name="Sec_LevelTrust" xml:space="preserve">
+    <value>सिर्फ़ भरोसा</value>
+  </data>
+  <data name="Sec_LevelPinOnce" xml:space="preserve">
+    <value>हर फ़ोन पर एक बार पिन</value>
+  </data>
+  <data name="Sec_LevelPinEvery" xml:space="preserve">
+    <value>हर कनेक्शन पर पिन</value>
+  </data>
+  <data name="Sec_ResetButton" xml:space="preserve">
+    <value>पिन रीसेट करें और फ़ोन भूल जाएं… </value>
+  </data>
+  <data name="Sec_ForgetAllButton" xml:space="preserve">
+    <value>सभी भरोसेमंद फ़ोन भूलें…</value>
+  </data>
+  <data name="Sec_Warning" xml:space="preserve">
+    <value>नया पिन या स्तर सेव करने पर, जिन फ़ोन ने एक बार पिन डाला था, उन्हें उसे फिर डालना होगा।</value>
+  </data>
+  <data name="Sec_ChangePin" xml:space="preserve">
+    <value>पिन बदलें…</value>
+  </data>
+  <data name="Sec_SetPin" xml:space="preserve">
+    <value>पिन सेट करें…</value>
+  </data>
+  <data name="Sec_PinNew" xml:space="preserve">
+    <value>नया पिन सेव किया जाएगा।</value>
+  </data>
+  <data name="Sec_PinSet" xml:space="preserve">
+    <value>पिन सेट है।</value>
+  </data>
+  <data name="Sec_PinNone" xml:space="preserve">
+    <value>कोई पिन सेट नहीं है।</value>
+  </data>
+  <data name="Sec_SixDigits" xml:space="preserve">
+    <value>छह अंक</value>
+  </data>
+  <data name="Sec_Again" xml:space="preserve">
+    <value>दोबारा</value>
+  </data>
+  <data name="Sec_NewPin" xml:space="preserve">
+    <value>नया पिन</value>
+  </data>
+  <data name="Sec_NewPinAgain" xml:space="preserve">
+    <value>नया पिन दोबारा</value>
+  </data>
+  <data name="Sec_NewPinBody" xml:space="preserve">
+    <value>छह अंक, दो बार लिखें।</value>
+  </data>
+  <data name="Sec_UsePin" xml:space="preserve">
+    <value>यह पिन रखें </value>
+  </data>
+  <data name="Sec_Mismatch" xml:space="preserve">
+    <value>दोनों पिन मेल नहीं खाते।</value>
+  </data>
+  <data name="Sec_Exactly" xml:space="preserve">
+    <value>ठीक छह अंक इस्तेमाल करें।</value>
+  </data>
+  <data name="Sec_PinNotSaved" xml:space="preserve">
+    <value>पिन सेव नहीं हो सका, इसलिए कुछ नहीं बदला। वजह लॉग में है।</value>
+  </data>
+  <data name="Sec_LevelNotSaved" xml:space="preserve">
+    <value>स्तर सेव नहीं हो सका, इसलिए पिछला स्तर ही लागू है। वजह लॉग में है।</value>
+  </data>
+  <data name="Sec_ResetTitle" xml:space="preserve">
+    <value>पिन रीसेट करें और सभी फ़ोन भूल जाएं?</value>
+  </data>
+  <data name="Sec_ResetBody" xml:space="preserve">
+    <value>पिन हटा दिया जाता है, स्तर “सिर्फ़ भरोसा” पर लौट आता है, और सभी भरोसेमंद फ़ोन भुला दिए जाते हैं। हर फ़ोन को यहाँ फिर से भरोसेमंद बनाना होगा। भूला हुआ पिन वापस नहीं मिल सकता, केवल रीसेट हो सकता है।</value>
+  </data>
+  <data name="Sec_ResetFailedTrust" xml:space="preserve">
+    <value>कुछ भी रीसेट नहीं हुआ: भरोसेमंद फ़ोन भुलाए नहीं जा सके, इसलिए पिन और स्तर जैसे थे वैसे रहे। Edgepad के चलते रहने तक कोई फ़ोन कनेक्ट नहीं हो सकता, पर अगली बार शुरू होने पर ये फ़ोन उसी पिन के साथ फिर भरोसेमंद हो जाएंगे। फ़ाइल को रोके हुए प्रोग्राम को बंद करें और “रीसेट करें” फिर चुनें, या उसे खुद हटा दें:
+
+{0}</value>
+  </data>
+  <data name="Sec_ResetFailedPin" xml:space="preserve">
+    <value>भरोसेमंद फ़ोन भुला दिए गए, पर पिन रीसेट नहीं हो सका: एक सेटिंग फ़ाइल हटाई नहीं जा सकी, इसलिए पुराना पिन और स्तर अब भी लागू हो सकते हैं। हर फ़ोन को यहाँ फिर से भरोसेमंद बनाना होगा। फ़ाइल को रोके हुए प्रोग्राम को बंद करें और “रीसेट करें” फिर चुनें, या security.txt और pin-verified.txt यहाँ से खुद हटा दें:
+
+{0}</value>
+  </data>
+  <data name="Sec_TrustedPhones" xml:space="preserve">
+    <value>भरोसेमंद फ़ोन</value>
+  </data>
+  <data name="Sec_ForgetLabel" xml:space="preserve">
+    <value>{0} को भूल जाएं</value>
+  </data>
+  <data name="Sec_FailTitle" xml:space="preserve">
+    <value>सुरक्षा सेटिंग सहेजी नहीं जा सकीं</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>{0} को पेयर करें?</value>
+  </data>
+  <data name="Pair_ThisPhone" xml:space="preserve">
+    <value>यह फ़ोन</value>
+  </data>
+  <data name="Pair_Window" xml:space="preserve">
+    <value>फ़ोन पेयर करें</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>फ़ोन पर दिख रहा पेयरिंग कोड डालें:</value>
+  </data>
+  <data name="Pair_CodeLabel" xml:space="preserve">
+    <value>फ़ोन पर दिखा कोड</value>
+  </data>
+  <data name="Pair_Announce" xml:space="preserve">
+    <value>{0} को पेयर करें? {1} सेकंड में बंद हो जाएगा।</value>
+  </data>
+  <data name="Pair_Matched" xml:space="preserve">
+    <value>कोड मेल खा गया। पूरा करने के लिए {0} पर “कोड मेल खाते हैं” पर टैप करें।</value>
+  </data>
+  <data name="Pair_Mismatched" xml:space="preserve">
+    <value>कोड मेल नहीं खाया। कुछ भी पेयर नहीं हुआ।</value>
+  </data>
+  <data name="Pair_Paired" xml:space="preserve">
+    <value>{0} से पेयर हो गया।</value>
+  </data>
+  <data name="Pair_NotFinished" xml:space="preserve">
+    <value>पेयरिंग पूरी नहीं हुई।</value>
+  </data>
+  <data name="Pair_Warning" xml:space="preserve">
+    <value>सिर्फ़ अपना फ़ोन पेयर करें। अगर आपने अभी पेयरिंग शुरू नहीं की थी, तो “रद्द करें” चुनें।</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>{0} सेकंड में बंद होगा</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>कोड जाँचा जा रहा है</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>मैक्रो</value>
+  </data>
+  <data name="Macro_Body" xml:space="preserve">
+    <value>आपके फ़ोन की मैक्रो स्क्रीन के बटन, अधिकतम {0}। फ़ोन बटन का नंबर भेजता है, कभी कोई प्रोग्राम नहीं, इसलिए वह केवल वही चला सकता है जो आप यहाँ जोड़ते हैं।</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>{0} के पास खोलने के लिए कुछ नहीं है। कोई ऐप या फ़ाइल ब्राउज़ करें, या वेब पता लिखें।</value>
+  </data>
+  <data name="Macro_AMacro" xml:space="preserve">
+    <value>एक मैक्रो</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>मैक्रो {0} में सहेजे नहीं जा सके: {1}।</value>
+  </data>
+  <data name="Macro_SaveFailedTitle" xml:space="preserve">
+    <value>मैक्रो सहेजे नहीं जा सके</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>नाम</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>क्या खोलता है</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>आर्गुमेंट</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>आइकन</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>मैक्रो जोड़ें</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>हटाएं </value>
+  </data>
+  <data name="Macro_MoveUp" xml:space="preserve">
+    <value>ऊपर ले जाएं</value>
+  </data>
+  <data name="Macro_MoveDown" xml:space="preserve">
+    <value>नीचे ले जाएं</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>ब्राउज़ करें… </value>
+  </data>
+  <data name="Macro_Choose" xml:space="preserve">
+    <value>चुनें…</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>प्रोग्राम का अपना आइकन रखें </value>
+  </data>
+  <data name="Macro_ArgsHint" xml:space="preserve">
+    <value>कोई नहीं, स्पेस से अलग करें (केवल ऐप)</value>
+  </data>
+  <data name="Macro_IconHint" xml:space="preserve">
+    <value>प्रोग्राम का अपना</value>
+  </data>
+  <data name="Macro_OpensHint" xml:space="preserve">
+    <value>कोई ऐप, फ़ाइल, फ़ोल्डर या वेब पता</value>
+  </data>
+  <data name="Macro_Empty" xml:space="preserve">
+    <value>अभी कोई मैक्रो नहीं है। कोई ऐप, दस्तावेज़, फ़ोल्डर या वेब पता जोड़ें। हर एक फ़ोन पर एक बटन बन जाता है।</value>
+  </data>
+  <data name="Macro_Count" xml:space="preserve">
+    <value>{1} में से {0}</value>
+  </data>
+  <data name="Macro_NameLeft" xml:space="preserve">
+    <value>नाम · {0} शेष</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>नया मैक्रो</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>इंटीग्रेशन…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>डेवलपर मोड</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>डेवलपर इंटीग्रेशन…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>इंटीग्रेशन</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>यहां सब कुछ तब तक बंद रहता है जब तक आप उसे चालू न करें।</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>फ़ोन पर सिस्टम आंकड़े दिखाएं</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>फ़ोन पर मौसम दिखाएं</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>शहर</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>open-meteo.com को सिर्फ़ शहर का नाम भेजता है।</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>कनेक्ट करें</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>डिस्कनेक्ट करें</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>कनेक्ट है · आखिरी संकेत {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>कनेक्ट नहीं है</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>इस कंप्यूटर पर {0} नहीं मिला</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>Node.js 20.1 या नया चाहिए। इसे nodejs.org से पाएं</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad इसे आपके लिए नहीं चला सका। ये कमांड किसी टर्मिनल में चलाएं:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>कॉपी करें</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Codex में /hooks खोलें और Edgepad पर भरोसा करें।</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Codex के प्लगिन पर भरोसा करने की प्रतीक्षा है…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Codex को वर्शन 0.159 या नए पर अपडेट करें।</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>खुले सेशन फिर से शुरू करें, या Claude Code में /reload-plugins चलाएं।</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>डेवलपर के लिए</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>GitHub से साइन इन करें</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>साइन आउट करें</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>आपका कोड: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device खोलें</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>ब्राउज़र में आपकी मंज़ूरी की प्रतीक्षा है…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>निजी रिपॉज़िटरी शामिल करें</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>{0} के रूप में साइन इन है</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>इस बिल्ड में साइन-इन सेट नहीं है।</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>कभी नहीं</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>साइन-इन पूरा नहीं हुआ। फिर से कोशिश करें।</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. अगर आपने अभी तक नहीं किया है, तो इस कंप्यूटर पर Claude Code इंस्टॉल करें: claude.com/claude-code
+2. कनेक्ट करें पर क्लिक करें। Edgepad अपना प्लगइन Claude Code में जोड़ देगा।
+3. खुले Claude Code सेशन फिर से शुरू करें, या उनमें /reload-plugins टाइप करें।
+4. अपने फ़ोन पर Controls > AI खोलें।</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. अगर आपने अभी तक नहीं किया है, तो इस कंप्यूटर पर Codex इंस्टॉल करें: developers.openai.com/codex
+2. कनेक्ट करें पर क्लिक करें। Edgepad अपना प्लगइन Codex में जोड़ देगा।
+3. Codex में /hooks टाइप करें और Edgepad पर भरोसा करें। Codex ऐप में: Settings > Hooks > Review hooks।
+4. अपने फ़ोन पर Controls > AI खोलें। यह तब दिखेगा जब Codex अपना पहला इवेंट भेजेगा।</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. GitHub से साइन इन करें पर क्लिक करें। github.com का एक पेज खुलेगा।
+2. यहाँ दिखाया गया कोड डालें और Authorize पर क्लिक करें।
+3. अपने फ़ोन पर Controls > GitHub खोलें।</value>
+  </data>
+  <data name="Note_CodexTrustTitle" xml:space="preserve">
+    <value>Codex को फिर से आपकी मंज़ूरी चाहिए</value>
+  </data>
+  <data name="Note_CodexTrustBody" xml:space="preserve">
+    <value>Edgepad अपडेट हो गया है। Codex में /hooks टाइप करें और Edgepad पर भरोसा करें, नहीं तो मंज़ूरियाँ फ़ोन के बजाय टर्मिनल में ही रहेंगी।</value>
+  </data>
+</root>

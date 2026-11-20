@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">Brak połączenia</string>
+  <string name="notice_play_pause">Odtwarzaj lub wstrzymaj</string>
+  <string name="notice_volume_down">Ciszej</string>
+  <string name="notice_volume_up">Głośniej</string>
+  <string name="controls_clipboard">Schowek</string>
+  <string name="controls_presenter">Prezenter</string>
+  <string name="clip_history_title">Schowek</string>
+  <string name="clip_history_empty">Nic jeszcze nie skopiowano</string>
+  <string name="clip_history_empty_hint">Kopie z laptopa i z tego telefonu pojawią się tu, gdy Udostępnianie schowka jest włączone.</string>
+  <string name="clip_history_from_laptop">Z laptopa</string>
+  <string name="clip_history_from_phone">Z tego telefonu</string>
+  <string name="clip_history_just_now">Przed chwilą</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
+  <string name="clip_history_sent">Wysłano do %1$s</string>
+  <string name="clip_history_failed">Nie udało się wysłać. Sprawdź połączenie.</string>
+  <string name="clip_history_send_hint">Wyślij ponownie</string>
+  <string name="presenter_title">Prezenter</string>
+  <string name="presenter_next">Następny slajd</string>
+  <string name="presenter_previous">Poprzedni slajd</string>
+  <string name="presenter_settings">Ustawienia prezentera</string>
+  <string name="presenter_laser_size">Rozmiar lasera</string>
+  <string name="presenter_laser_trail">Pokaż smugę</string>
+  <string name="presenter_point_here">Wskaż tutaj</string>
+  <string name="tool_laser">Laser</string>
+</resources>

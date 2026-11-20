@@ -1,5 +1,8 @@
 using System.Globalization;
+using Edgepad.Blob;
 using Edgepad.Macros;
+using Edgepad.Media;
+using Edgepad.Net;
 using Edgepad.Protocol;
 
 namespace Edgepad.Platform;
@@ -29,6 +32,7 @@ internal sealed class StateReporter : IDisposable
     private readonly Backlight backlight;
     private readonly Mpris mpris;
     private readonly MacroStore macros;
+    private readonly LinuxDisplayModes displayModes;
     private readonly Action<Frame> send;
     private readonly Func<long> lastInputMs;
     private readonly CancellationTokenSource stopping = new();
@@ -42,10 +46,22 @@ internal sealed class StateReporter : IDisposable
     private int? lastBrightness;
     private MediaState? lastMedia;
     private string? lastTimeline;
+    private string lastFull = "";
+    private string? lastRates;
+    private int lastRate = -1;
+    private string? lastIconKey;
+    private readonly BlobSender blobs;
+
+    /// <summary>
+    /// Raised on the polling thread with each look at the media, for the end-of-media action. Static because the media is
+    /// the laptop's, not one session's: a listener is whichever session is live.
+    /// </summary>
+    internal static event Action<MediaSnapshot>? MediaObserved;
 
     /// <param name="lastInputMs">When the phone last sent input, in <see cref="Environment.TickCount64"/> milliseconds.</param>
-    public StateReporter(Audio speakers, Audio microphone, Backlight backlight, Mpris mpris, MacroStore macros, Action<Frame> send, Func<long> lastInputMs)
+    public StateReporter(Audio speakers, Audio microphone, Backlight backlight, Mpris mpris, MacroStore macros, LinuxDisplayModes displayModes, Action<Frame> send, Func<long> lastInputMs)
     {
+        this.displayModes = displayModes;
         this.lastInputMs = lastInputMs;
         this.speakers = speakers;
         this.microphone = microphone;
@@ -53,6 +69,9 @@ internal sealed class StateReporter : IDisposable
         this.mpris = mpris;
         this.macros = macros;
         this.send = send;
+
+        // The smallest blobs there are, and Bluetooth's pace is the slower of the two, so it does for either link.
+        blobs = new BlobSender(send, LinkKind.Bluetooth, lastInputMs, stopping.Token);
         thread = new Thread(Run) { IsBackground = true, Name = "edgepad-state" };
         thread.Start();
     }
@@ -79,9 +98,11 @@ internal sealed class StateReporter : IDisposable
         try
         {
             // The features (TEXT 9) are the annotator's to send, since annotate depends on the display. The
-            // refresh-rate list is empty because Linux has no shared way to switch modes; the phone's dial then has
-            // no travel.
-            send(new Text((byte)TextKind.RefreshRates, ""));
+            // refresh-rate list is read once here (one xrandr run or D-Bus call), empty where the display cannot be
+            // switched, which leaves the phone's dial with no travel.
+            displayModes.Refresh();
+            ReportRates();
+            send(new Text((byte)TextKind.MacroCap, MacroStore.MaxMacros.ToString(CultureInfo.InvariantCulture)));
 
             // Reports the names now and again whenever the file is reloaded, and is released with this thread.
             using var watch = macros.Watch(names => Guarded(() => send(new Text((byte)TextKind.Macros, names))));
@@ -113,6 +134,29 @@ internal sealed class StateReporter : IDisposable
         }
 
         PollMedia();
+        ReportRates();
+    }
+
+    /// <summary>
+    /// TEXT 4 and then the index in force, each only when it changed. Reads fields the display modes already hold: the
+    /// display is read on connect and after a switch, never from here.
+    /// </summary>
+    private void ReportRates()
+    {
+        var rates = string.Join('/', displayModes.Rates);
+        if (rates != lastRates)
+        {
+            lastRates = rates;
+            lastRate = -1;
+            send(new Text((byte)TextKind.RefreshRates, rates));
+        }
+
+        var current = displayModes.Current;
+        if (current != lastRate && current >= 0)
+        {
+            lastRate = current;
+            send(new StateReport((byte)ControlId.RefreshRate, (byte)current, 0));
+        }
     }
 
     private void PollLevels()
@@ -139,6 +183,16 @@ internal sealed class StateReporter : IDisposable
     private void PollMedia()
     {
         var media = mpris.Poll();
+        MediaObserved?.Invoke(new MediaSnapshot(media.Full, media.Playing, media.PositionSeconds, media.DurationSeconds));
+
+        // The uncleaned line goes first, only while it differs from TEXT 0; empty puts the phone back on TEXT 0.
+        var full = FullFor(media);
+        if (full != lastFull)
+        {
+            lastFull = full;
+            send(new Text((byte)TextKind.NowPlayingFull, full));
+        }
+
         if (media.NowPlaying != lastMedia?.NowPlaying)
         {
             send(new Text((byte)TextKind.NowPlaying, media.NowPlaying));
@@ -161,7 +215,67 @@ internal sealed class StateReporter : IDisposable
             send(new StateReport((byte)ControlId.MediaPosition, (byte)media.PositionPercent, media.Playing ? PlayingFlag : (byte)0));
         }
 
+        SendIcon(media);
         lastMedia = media;
+    }
+
+    /// <summary>The TEXT 26 payload: the uncleaned line when cleaning changed it, else empty.</summary>
+    internal static string FullFor(MediaState media) => media.Full == media.NowPlaying ? "" : media.Full;
+
+    /// <summary>
+    /// BLOB 4, once per followed player, and for a browser once per artwork. Nothing to do with no player. The
+    /// artwork is a local file or nothing, never a download; a browser without one shows its own icon.
+    /// </summary>
+    private void SendIcon(MediaState media)
+    {
+        if (media.Bus.Length == 0)
+        {
+            lastIconKey = null;
+            return;
+        }
+
+        var browser = MprisMap.IsBrowser(media.Bus);
+        var key = browser ? media.Bus + "|" + media.ArtUrl : media.Bus;
+        if (key == lastIconKey)
+        {
+            return;
+        }
+
+        lastIconKey = key;
+        var label = media.App;
+        string? path = null;
+        if (browser && MprisMap.ArtworkPath(media.ArtUrl, ArtworkSize) is { } art)
+        {
+            path = art;
+            label = "artwork";
+        }
+        else if (mpris.DesktopEntry(media.Bus) is { Length: > 0 } entry)
+        {
+            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var dirs = DesktopIcons.DataDirs(
+                Environment.GetEnvironmentVariable("XDG_DATA_HOME"), Environment.GetEnvironmentVariable("XDG_DATA_DIRS"), home);
+            path = DesktopIcons.IconForDesktopId(entry, dirs);
+        }
+
+        if (path is not null && LinuxMacroIcons.Render(path, IconSize, IconSize) is { } png)
+        {
+            blobs.Send(BlobKind.MediaIcon, label, png);
+        }
+    }
+
+    private const int IconSize = 64;
+
+    private static long? ArtworkSize(string path)
+    {
+        try
+        {
+            var info = new FileInfo(path);
+            return info.Exists ? info.Length : null;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
     }
 
     // The macro store reports from a pool thread, where an escape would end the process.

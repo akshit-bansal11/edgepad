@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Numerics;
 using Edgepad.Injection;
 
 namespace Edgepad.Annotation;
@@ -92,10 +93,17 @@ internal sealed class AnnotationOverlay : Form
         private const byte AcSrcAlpha = 1;
         private const uint UlwAlpha = 2;
 
+        /// <summary>The glow reaches this many radii out from the dot's centre.</summary>
+        private const float LaserGlowRadii = 2.2f;
+
+        private static readonly Color LaserColour = Color.FromArgb(0xFF, 0xFF, 0x1A, 0x1A);
+
         private readonly nint dc;
         private readonly nint dib;
         private readonly nint previous;
         private readonly Bitmap bitmap;
+        private PointF[] leftEdge = new PointF[32];
+        private PointF[] rightEdge = new PointF[32];
 
         public Canvas(Size size)
         {
@@ -130,8 +138,97 @@ internal sealed class AnnotationOverlay : Form
             g.Clear(Color.Transparent);
             foreach (var stroke in strokes)
             {
+                if (stroke.IsLaser)
+                {
+                    DrawLaser(g, stroke);
+                    continue;
+                }
+
                 SignatureExport.Draw(g, stroke, Size.Width, Size.Height);
             }
+        }
+
+        /// <summary>
+        /// A laser: a hot core inside a soft red glow, always red whatever the pen's colour, sized by the pen's width.
+        /// The trailing one also draws a red tail that fades and thins away behind the dot.
+        /// </summary>
+        private void DrawLaser(Graphics g, Stroke stroke)
+        {
+            var path = stroke.Path(Size.Width, Size.Height);
+            if (path.Length == 0)
+            {
+                return;
+            }
+
+            var point = path[^1];
+            var radius = stroke.LaserRadiusPx(Size.Height);
+
+            DrawTail(g, path, radius);
+
+            var glow = radius * LaserGlowRadii;
+            using (var disc = new GraphicsPath())
+            {
+                disc.AddEllipse(point.X - glow, point.Y - glow, glow * 2f, glow * 2f);
+                using var brush = new PathGradientBrush(disc)
+                {
+                    CenterColor = Color.FromArgb(140, LaserColour),
+                    SurroundColors = [Color.FromArgb(0, LaserColour)],
+                };
+                g.FillPath(brush, disc);
+            }
+
+            using var core = new SolidBrush(LaserColour);
+            g.FillEllipse(core, point.X - radius, point.Y - radius, radius * 2f, radius * 2f);
+            var hot = radius * 0.35f;
+            using var centre = new SolidBrush(Color.FromArgb(0xFF, 0xFF, 0xD0, 0xD0));
+            g.FillEllipse(centre, point.X - hot, point.Y - hot, hot * 2f, hot * 2f);
+        }
+
+        /// <summary>
+        /// The trail as one smooth ribbon: as wide as the dot at the head, tapering to nothing at the tail, and
+        /// fading with a single gradient, so no joints or dots show. The two edge buffers are reused every frame.
+        /// </summary>
+        private void DrawTail(Graphics g, Vector2[] path, float radius)
+        {
+            var n = path.Length;
+            if (n < 3 || (path[n - 1] - path[0]).LengthSquared() < 1f)
+            {
+                return;
+            }
+
+            if (leftEdge.Length < n)
+            {
+                leftEdge = new PointF[n];
+                rightEdge = new PointF[n];
+            }
+
+            var (nx, ny) = (0f, 1f);
+            for (var i = 0; i < n; i++)
+            {
+                var a = path[Math.Max(i - 1, 0)];
+                var b = path[Math.Min(i + 1, n - 1)];
+                var (dx, dy) = (b.X - a.X, b.Y - a.Y);
+                var length = MathF.Sqrt((dx * dx) + (dy * dy));
+                if (length > 0.001f)
+                {
+                    (nx, ny) = (-dy / length, dx / length);
+                }
+
+                var half = radius * i / (n - 1);
+                leftEdge[i] = new PointF(path[i].X + (nx * half), path[i].Y + (ny * half));
+                rightEdge[n - 1 - i] = new PointF(path[i].X - (nx * half), path[i].Y - (ny * half));
+            }
+
+            using var ribbon = new GraphicsPath();
+            ribbon.AddCurve(leftEdge, 0, n - 1, 0.5f);
+            ribbon.AddCurve(rightEdge, 0, n - 1, 0.5f);
+            ribbon.CloseFigure();
+            using var fade = new LinearGradientBrush(
+                new PointF(path[0].X, path[0].Y),
+                new PointF(path[n - 1].X, path[n - 1].Y),
+                Color.FromArgb(0, LaserColour),
+                Color.FromArgb(220, LaserColour));
+            g.FillPath(fade, ribbon);
         }
 
         public void Push(nint window, Point at)

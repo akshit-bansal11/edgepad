@@ -9,7 +9,13 @@
     {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "edgepad-docs.vercel.app" }],
-      "destination": "https://edgepad.akshitbansal.dev/:path*",
+      "destination": "https://getedgepad.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "edgepad.akshitbansal.dev" }],
+      "destination": "https://getedgepad.com/:path*",
       "permanent": true
     }
   ],

@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Wi-Fi- en USB-verbindingen</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>Klembord delen</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Kopieer op het ene apparaat, plak op het andere: tekst en afbeeldingen.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Dagelijks op updates controleren</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Macro’s…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Beveiliging…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Documentatie</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Logboek openen</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad afsluiten</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>Update beschikbaar</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>Update beschikbaar: {0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} installeren</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Deze versie overslaan</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Een bestand naar de telefoon sturen…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Meldingen op de telefoon tonen</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Telefoons deze laptop laten vinden?</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Toestaan</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Aanzetten</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Niet nu</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Annuleren</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Vergeten</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>De instelling kon niet worden opgeslagen, dus er is niets gewijzigd. In het logboek staat de reden.</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} wil koppelen. Typ de koppelcode die op de telefoon staat.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Afsluiten</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>De media is afgelopen. Deze laptop sluit af over {0} seconden.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Annuleren</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi en USB: kan geen verbindingen accepteren. Zie het logboek.</value>
+  </data>
+  <data name="App_Name" xml:space="preserve">
+    <value>Edgepad</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Installeren</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>Starten bij inloggen</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>Uit</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>Luistert op poort {0}</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>Poort in gebruik, {0} wordt gebruikt</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>Kan niet luisteren; zie het logboek</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>{0} kon niet worden geopend: op {1} staat nog niets.</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>{0} kon niet worden geopend: installeer xdg-utils.</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>De releasepagina</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>De documentatie</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>Het logboek</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepad is actief</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>Je bureaublad toont geen systeemvakpictogrammen. Installeer onder GNOME de extensie ‘AppIndicator and KStatusNotifierItem Support’ om er een te krijgen.</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>Telefoons op hetzelfde Wi-Fi-netwerk, of verbonden via USB-tethering, kunnen deze laptop vinden en vragen om te koppelen. Er verbindt niets zonder de koppelcode die je hier typt.</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>Een firewall kan ze blokkeren. Sta bijvoorbeeld {0}/tcp en 5353/udp toe:</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>Klembord delen?</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} wil verbinden. Een venster vraagt of je het vertrouwt. Zoek het op je scherm.</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} is beschikbaar. Klik om de releasepagina te openen.</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepad kan deze laptop niet bedienen</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Edgepad kon niet starten</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>Het systeemvakpictogram kon niet worden ingesteld. In het logboek staat de reden.</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0} verandert hoe de laptop en de telefoon met elkaar praten. Installeer ook de bijbehorende telefoon-app, anders verbinden ze niet. De laptopupdate nu installeren?</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} is gedownload en gecontroleerd, maar deze kopie staat op een plek die alleen een beheerder kan wijzigen. Open een terminal en voer uit:</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>De update kon niet worden geïnstalleerd en er is niets gewijzigd. In het logboek staat de reden.</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>Dit geldt nu, maar kon niet worden opgeslagen en is na een herstart weer weg. In het logboek staat de reden.</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>Starten bij inloggen kon niet worden gewijzigd. In het logboek staat de reden.</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>Alle vertrouwde telefoons vergeten ({0})? Elke telefoon, ook deze, moet hier opnieuw worden vertrouwd voordat hij deze laptop kan gebruiken.</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>De vertrouwde telefoons vergeten? Elke telefoon, ook deze, moet hier opnieuw worden vertrouwd voordat hij deze laptop kan gebruiken.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>De Wi-Fi- en USB-koppelingen konden niet worden vergeten: hun bestand kon niet worden verwijderd of leeggemaakt. Gekoppelde telefoons kunnen niet opnieuw verbinden via Wi-Fi of USB zolang Edgepad draait, maar bij de volgende start wel weer. Kies opnieuw ‘Alles vergeten…’ in ‘Beveiliging…’, of verwijder paired-links.txt zelf uit:</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>De vertrouwde telefoons konden niet worden vergeten: hun bestand kon niet worden verwijderd of leeggemaakt. Zolang Edgepad draait kan geen enkele telefoon verbinden, maar die telefoons worden bij de volgende start van Edgepad weer vertrouwd. Sluit wat het bestand vasthoudt en kies opnieuw ‘Alles vergeten…’ in ‘Beveiliging…’, of verwijder het zelf:</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>De telefoons die de pincode hebben ingevoerd konden niet worden vergeten: hun lijst kon niet worden verwijderd. Zolang Edgepad draait wordt elke telefoon bij elke verbinding om de pincode gevraagd, maar die telefoons slaan hem bij de volgende start van Edgepad op niveau 2 weer over. Kies opnieuw ‘Alles vergeten…’ in ‘Beveiliging…’, of verwijder pin-verified.txt zelf uit:</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>Een bestand naar de telefoon sturen</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>Er is geen telefoon verbonden. Verbind hem en stuur het bestand opnieuw.</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>{0} is naar de telefoon gestuurd.</value>
+  </data>
+  <data name="Send_Cancelled" xml:space="preserve">
+    <value>Het versturen van {0} is geannuleerd.</value>
+  </data>
+  <data name="Send_NotSent" xml:space="preserve">
+    <value>{0} is niet verstuurd ({1}).</value>
+  </data>
+  <data name="Send_Failed" xml:space="preserve">
+    <value>{0} kon niet worden verstuurd. In het logboek staat de reden.</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Beveiliging</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Elke telefoon heeft eerst hier jouw goedkeuring nodig. Niveau 2 en 3 vragen ook om een pincode van zes cijfers, die je op het scherm van de telefoon typt. De verbinding met telefoons wordt verbroken zolang dit venster openstaat.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Alleen vertrouwen</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>Pincode eenmalig per telefoon</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>Pincode bij elke verbinding</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Pincode instellen…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Pincode wijzigen…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Er wordt een nieuwe pincode opgeslagen.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>Er is een pincode ingesteld.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>Er is geen pincode ingesteld.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Als je een nieuwe pincode of een nieuw niveau opslaat, moeten telefoons die de pincode al eens hebben ingevoerd, die opnieuw invoeren.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Vertrouwde telefoons</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>Alles vergeten…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>Pincode resetten en telefoons vergeten…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Opslaan</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Nog geen telefoon is vertrouwd. Een telefoon krijgt de vraag wanneer hij voor het eerst verbindt.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>{0} ({1}) moet hier opnieuw worden vertrouwd voordat deze laptop kan worden gebruikt. Telefoons blijven zonder verbinding terwijl je beslist.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Probeer Vergeten opnieuw zodra niets anders de bestanden van Edgepad in {0} gebruikt. {1} kon niet volledig worden vergeten: een bestand kon niet worden herschreven. De telefoon blijft op schijf vertrouwd, maar Edgepad weigert hem tot Edgepad opnieuw is gestart, en daarna wordt hij weer vertrouwd tenzij je hem opnieuw vergeet.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>De pincode kon niet worden opgeslagen, dus er is niets gewijzigd. In het logboek staat de reden.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>Het niveau kon niet worden opgeslagen, dus het vorige niveau blijft gelden. In het logboek staat de reden.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>De pincode wordt verwijderd, het niveau gaat terug naar 1 en elke vertrouwde telefoon wordt vergeten. Elke telefoon, ook de telefoon die nu verbonden is, moet hier opnieuw worden vertrouwd. Een vergeten pincode kan niet worden hersteld, alleen gereset.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Sluit wat het bestand vasthoudt en kies dan opnieuw “Pincode resetten en telefoons vergeten”, of verwijder het zelf:  {0}  Er is niets gereset: de vertrouwde telefoons konden niet worden vergeten, dus de pincode en het niveau zijn ongewijzigd gebleven. Zolang Edgepad draait, kan geen enkele telefoon verbinden, maar die telefoons worden bij de volgende start weer vertrouwd, met dezelfde pincode.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Sluit wat het bestand vasthoudt en kies dan opnieuw “Pincode resetten en telefoons vergeten”, of verwijder security.txt en pin-verified.txt zelf uit:  {0}  De vertrouwde telefoons zijn vergeten, maar de pincode kon niet worden gereset: een instellingenbestand kon niet worden verwijderd, dus de oude pincode en het oude niveau gelden mogelijk nog. Elke telefoon moet hier opnieuw worden vertrouwd.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Vertrouwen</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Niet vertrouwen</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>{0} vertrouwen?</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Een gekoppelde telefoon vraagt om de aanwijzer en het toetsenbord van deze laptop te bedienen. Vertrouw hem alleen als het jouw telefoon is. Als je niet binnen {0} s antwoordt, wordt hij niet vertrouwd.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>Nieuwe pincode</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>Nieuwe pincode nogmaals</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Zes cijfers</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Nogmaals</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>Deze pincode gebruiken</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>Een pincode bestaat uit precies zes cijfers.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>De twee pincodes zijn niet gelijk.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Macro’s</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Nog geen macro’s</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Naam</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Argumenten</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>optioneel</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Verwijderen</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Bladeren…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Macro toevoegen</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Nieuwe macro</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}” heeft niets om te openen. Kies wat het opent, of verwijder het.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>De macro’s konden niet worden opgeslagen in {0}: {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Kies wat deze knop opent</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Typ de koppelcode die op de telefoon staat:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Koppelcode op de telefoon</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Telefoon koppelen</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>{0} koppelen?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Koppelen</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Sluiten</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>De koppelcode controleren</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Sluit over {0} s</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} is van de telefoon aangekomen.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} van {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>Verzoek {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>Elke macro is een knop op de telefoon. Maximaal {0}.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>Programma, bestand, map of link</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>App toevoegen</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>Er zijn geen apps gevonden op deze laptop.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Toevoegen</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Edgepad-annotatie</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Resetten</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>Integraties…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Ontwikkelaarsmodus</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>Ontwikkelaarsintegraties…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integraties</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Alles hier staat uit totdat je het aanzet.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Systeemgegevens op de telefoon tonen</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Weer op de telefoon tonen</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Stad</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Stuurt alleen de naam van de stad naar open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Verbinden</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Verbinding verbreken</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Verbonden · laatst gehoord {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Niet verbonden</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} is niet gevonden op deze computer</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad kon dit niet voor je uitvoeren. Voer deze opdrachten uit in een terminal:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Kopiëren</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Open in Codex /hooks en vertrouw Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Wachten tot Codex de plug-in vertrouwt…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Werk Codex bij naar versie 0.159 of nieuwer.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Herstart open sessies, of voer /reload-plugins uit in Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Voor ontwikkelaars</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Inloggen met GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Uitloggen</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Je code: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device openen</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Wachten tot je goedkeurt in de browser…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Privérepository’s meenemen</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Ingelogd als {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Inloggen is in deze build niet ingesteld.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>nooit</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>Inloggen is niet voltooid. Probeer het opnieuw.</value>
+  </data>
+  <data name="Integrations_NotEncrypted" xml:space="preserve">
+    <value>Er was geen sleutelbos beschikbaar, dus je GitHub-login staat in een privébestand dat niet versleuteld is.</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Installeer Claude Code op deze computer als je dat nog niet hebt gedaan: claude.com/claude-code
+2. Klik op Verbinden. Edgepad voegt zijn plug-in toe aan Claude Code.
+3. Start open Claude Code-sessies opnieuw, of typ daarin /reload-plugins.
+4. Open op je telefoon Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Installeer Codex op deze computer als je dat nog niet hebt gedaan: developers.openai.com/codex
+2. Klik op Verbinden. Edgepad voegt zijn plug-in toe aan Codex.
+3. Typ in Codex /hooks en vertrouw Edgepad. In de Codex-app: Settings > Hooks > Review hooks.
+4. Open op je telefoon Controls > AI. Het verschijnt zodra Codex zijn eerste gebeurtenis stuurt.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Klik op Inloggen met GitHub. Er opent een pagina op github.com.
+2. Voer de code in die hier staat en klik op Authorize.
+3. Open op je telefoon Controls > GitHub.</value>
+  </data>
+  <data name="Notice_CodexTrustTitle" xml:space="preserve">
+    <value>Codex heeft opnieuw je akkoord nodig</value>
+  </data>
+  <data name="Notice_CodexTrust" xml:space="preserve">
+    <value>Edgepad is bijgewerkt. Typ in Codex /hooks en vertrouw Edgepad, anders blijven goedkeuringen in de terminal in plaats van op je telefoon.</value>
+  </data>
+</root>

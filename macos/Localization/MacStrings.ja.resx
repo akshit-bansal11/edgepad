@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>Edgepad は Bluetooth を使って、この Mac とペアリングしたスマートフォンを待ち受けます。</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad はここで、スマートフォンで受け取るよう指示したスクリーンショットや録画を探します。</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad はここで、スマートフォンで受け取るよう指示したスクリーンショットや録画を探します。</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad はここで、スマートフォンで受け取るよう指示したスクリーンショットや録画を探します。</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>Wi-Fi 接続をオンにすると、Edgepad はスマートフォンがこの Mac を見つけて Wi-Fi で接続できるようにします。</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>Edgepad は「ミュージック」や Spotify に再生中の曲を尋ね、スマートフォンでシークすると曲内を移動します。メディアの終了時にスマートフォンから指示すると、この Mac をスリープまたはシャットダウンします。</value>
+  </data>
+  <data name="Core_ConnectedOver" xml:space="preserve">
+    <value>{0} に接続済み · {1}</value>
+  </data>
+  <data name="Core_BluetoothNotAllowed" xml:space="preserve">
+    <value>Edgepad は Bluetooth の使用を許可されていません。システム設定 › プライバシーとセキュリティ › Bluetooth で許可してください。</value>
+  </data>
+  <data name="Core_BluetoothOffMenu" xml:space="preserve">
+    <value>Bluetooth がオフです。メニューバーでオンにしてください。</value>
+  </data>
+  <data name="Core_RefusedUnreadable" xml:space="preserve">
+    <value>スマホを拒否しました: 信頼済みのスマホを読み取れません</value>
+  </data>
+  <data name="Core_RefusedForgotten" xml:space="preserve">
+    <value>ここで登録解除されたスマホを拒否しました</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Welcome_SetUp" xml:space="preserve">
+    <value>設定する</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="Common_Send" xml:space="preserve">
+    <value>送信</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>インストール</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>登録解除</value>
+  </data>
+  <data name="Common_Trust" xml:space="preserve">
+    <value>信頼する</value>
+  </data>
+  <data name="Common_DontTrust" xml:space="preserve">
+    <value>信頼しない</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>リセット</value>
+  </data>
+  <data name="Common_Pair" xml:space="preserve">
+    <value>ペアリング</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad はすでに実行中です。</value>
+  </data>
+  <data name="App_AlreadyRunningBody" xml:space="preserve">
+    <value>メニューバーの右側にあります。Command を押しながらドラッグすると、アイコンの順番を変えられます。</value>
+  </data>
+  <data name="App_Welcome" xml:space="preserve">
+    <value>Edgepad はメニューバーに常駐します</value>
+  </data>
+  <data name="App_WelcomeBody" xml:space="preserve">
+    <value>macOS がこれから Edgepad に必要な許可を求めます。Bluetooth はスマホを検出するため。デバイス制御はポインタの移動とキー入力のため。通知はスマホが接続を求めたときにお知らせするため。デスクトップ、書類、ダウンロードのフォルダは、スマホがスクリーンショットや録画を求めたときだけ使います。</value>
+  </data>
+  <data name="App_UpdatedAllow" xml:space="preserve">
+    <value>更新しました: デバイス制御で Edgepad をもう一度許可してください</value>
+  </data>
+  <data name="App_TipBlocked" xml:space="preserve">
+    <value>Edgepad はまだこの Mac を操作できません</value>
+  </data>
+  <data name="App_TipStatus" xml:space="preserve">
+    <value>Edgepad: {0}</value>
+  </data>
+  <data name="App_PermissionSteps" xml:space="preserve">
+    <value>システム設定 › プライバシーとセキュリティ › デバイス制御とデータアクセス › + › Edgepad</value>
+  </data>
+  <data name="Menu_Installing" xml:space="preserve">
+    <value>Edgepad {0} をインストール中…</value>
+  </data>
+  <data name="Menu_Install" xml:space="preserve">
+    <value>Edgepad {0} をインストール</value>
+  </data>
+  <data name="Menu_UpdateAvailable" xml:space="preserve">
+    <value>アップデートあり：{0}</value>
+  </data>
+  <data name="Menu_Later" xml:space="preserve">
+    <value>後で</value>
+  </data>
+  <data name="Menu_Skip" xml:space="preserve">
+    <value>このバージョンをスキップ</value>
+  </data>
+  <data name="Menu_AllowControl" xml:space="preserve">
+    <value>Edgepad にこの Mac の操作を許可…</value>
+  </data>
+  <data name="Menu_Wifi" xml:space="preserve">
+    <value>Wi-Fi 接続</value>
+  </data>
+  <data name="Menu_WifiHint" xml:space="preserve">
+    <value>Wi-Fi 接続 ({0})</value>
+  </data>
+  <data name="Menu_WifiTip" xml:space="preserve">
+    <value>Mac では Wi-Fi のみ対応です。USB テザリングには macOS に含まれないドライバが必要です。</value>
+  </data>
+  <data name="Menu_Clipboard" xml:space="preserve">
+    <value>クリップボードを共有</value>
+  </data>
+  <data name="Menu_ClipboardTip" xml:space="preserve">
+    <value>一方でコピーして、もう一方で貼り付けます。テキストと画像に対応しています。</value>
+  </data>
+  <data name="Menu_Login" xml:space="preserve">
+    <value>ログイン時に起動</value>
+  </data>
+  <data name="Menu_DailyUpdates" xml:space="preserve">
+    <value>アップデートを毎日確認</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>ファイルを送信…</value>
+  </data>
+  <data name="Menu_SendFileNoPhone" xml:space="preserve">
+    <value>ファイルを送信…（スマホが接続されていません）</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>マクロ…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>セキュリティ… ({0})</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>ドキュメント</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>ログを開く</value>
+  </data>
+  <data name="Menu_About" xml:space="preserve">
+    <value>Edgepad について</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepadを終了</value>
+  </data>
+  <data name="Net_PortInUse" xml:space="preserve">
+    <value>ポートが使用中のため {0} を使用</value>
+  </data>
+  <data name="Net_WaitingForNetwork" xml:space="preserve">
+    <value>ネットワークを待っています</value>
+  </data>
+  <data name="Net_CouldNotListen" xml:space="preserve">
+    <value>待ち受けできません。ログを確認してください</value>
+  </data>
+  <data name="Net_Phone" xml:space="preserve">
+    <value>スマホ</value>
+  </data>
+  <data name="Note_UpdateTitle" xml:space="preserve">
+    <value>Edgepad {0} が利用可能です</value>
+  </data>
+  <data name="Note_UpdateBody" xml:space="preserve">
+    <value>クリックするとダウンロードページが開きます。</value>
+  </data>
+  <data name="Note_PairTitle" xml:space="preserve">
+    <value>{0}をペアリングしますか？</value>
+  </data>
+  <data name="Note_PairBody" xml:space="preserve">
+    <value>スマホに表示されたペアリングコードを入力してください。</value>
+  </data>
+  <data name="Note_TrustTitle" xml:space="preserve">
+    <value>{0}を信頼しますか？</value>
+  </data>
+  <data name="Note_TrustBody" xml:space="preserve">
+    <value>{0}が接続を求めています。「信頼する」または「信頼しない」を選んでください。</value>
+  </data>
+  <data name="Note_NotUpdated" xml:space="preserve">
+    <value>Edgepad を更新できませんでした</value>
+  </data>
+  <data name="Status_Received" xml:space="preserve">
+    <value>{0} を Downloads/Edgepad に受信しました</value>
+  </data>
+  <data name="Status_OnlyFiles" xml:space="preserve">
+    <value>送信できるのはファイルのみで、フォルダは送信できません</value>
+  </data>
+  <data name="Status_Forgot" xml:space="preserve">
+    <value>信頼済みのスマホを登録解除しました。{0} 秒後に新しいスマホを受け付けます</value>
+  </data>
+  <data name="Xfer_Sent" xml:space="preserve">
+    <value>{0} をスマホに送信しました</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>{0} を送信中</value>
+  </data>
+  <data name="Xfer_BadHash" xml:space="preserve">
+    <value>{0} は破損した状態でスマホに届きました。もう一度送信してください</value>
+  </data>
+  <data name="Xfer_Rejected" xml:space="preserve">
+    <value>スマホが {0} を受け付けませんでした</value>
+  </data>
+  <data name="Xfer_WriteFailed" xml:space="preserve">
+    <value>{0} を読み取れないか、保存できませんでした</value>
+  </data>
+  <data name="Xfer_Cancelled" xml:space="preserve">
+    <value>{0} の送信をキャンセルしました</value>
+  </data>
+  <data name="Xfer_Busy" xml:space="preserve">
+    <value>スマホはすでにファイルを受信中です。終わってから {0} をもう一度送信してください</value>
+  </data>
+  <data name="Xfer_TimedOut" xml:space="preserve">
+    <value>{0} の送信中にスマホが応答しませんでした</value>
+  </data>
+  <data name="Xfer_SessionEnded" xml:space="preserve">
+    <value>{0} の送信前にスマホが切断されました</value>
+  </data>
+  <data name="Alert_MajorTitle" xml:space="preserve">
+    <value>Edgepad {0} では、スマホのアプリも更新する必要があります。</value>
+  </data>
+  <data name="Alert_MajorBody" xml:space="preserve">
+    <value>両方を一緒にインストールしてください。そうしないとスマホとこの Mac は接続できません。</value>
+  </data>
+  <data name="Alert_LoginFailed" xml:space="preserve">
+    <value>「ログイン時に起動」を変更できませんでした</value>
+  </data>
+  <data name="Alert_LoginApproval" xml:space="preserve">
+    <value>Edgepad のログイン時の起動を許可してください</value>
+  </data>
+  <data name="Alert_LoginApprovalBody" xml:space="preserve">
+    <value>システム設定 › 一般 › ログイン項目で Edgepad を許可してください。</value>
+  </data>
+  <data name="Alert_ForgetAll" xml:space="preserve">
+    <value>信頼済みのスマホをすべて登録解除しますか？</value>
+  </data>
+  <data name="Alert_ForgetAllBody" xml:space="preserve">
+    <value>{0} を登録解除しますか？ このスマホを含め、すべてのスマホはこの Mac を使う前にここでもう一度信頼する必要があります。</value>
+  </data>
+  <data name="Alert_TheTrustedPhones" xml:space="preserve">
+    <value>信頼済みのスマホ</value>
+  </data>
+  <data name="Alert_EveryTrustedPhone" xml:space="preserve">
+    <value>信頼済みのすべてのスマホ（{0}）</value>
+  </data>
+  <data name="Alert_ForgetFailed" xml:space="preserve">
+    <value>信頼済みのスマホを登録解除できませんでした</value>
+  </data>
+  <data name="Alert_ForgetFailedBody" xml:space="preserve">
+    <value>ファイルを削除または空にできませんでした。Edgepad の実行中はどのスマホも接続できませんが、Edgepad を起動するとそれらのスマホは再び信頼されます。「信頼済みのスマホをすべて登録解除」をもう一度選ぶか、ファイルを自分で削除してください:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetPinFailed" xml:space="preserve">
+    <value>PIN を入力したスマホを登録解除できませんでした</value>
+  </data>
+  <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
+    <value>一覧を削除できませんでした。Edgepad の実行中はすべてのスマホが接続のたびに PIN を求められますが、Edgepad を起動すると、それらのスマホは「スマホごとに1回PIN」で再び PIN が省略されます。「信頼済みのスマホをすべて登録解除」をもう一度選ぶか、pin-verified.txt を次の場所から自分で削除してください:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetOne" xml:space="preserve">
+    <value>{0}を登録解除しますか？</value>
+  </data>
+  <data name="Alert_ForgetOneBody" xml:space="preserve">
+    <value>この Mac を使うには、ここでもう一度信頼する必要があります。</value>
+  </data>
+  <data name="Alert_ForgetOneFailed" xml:space="preserve">
+    <value>{0} を登録解除できませんでした</value>
+  </data>
+  <data name="Alert_ForgetOneFailedBody" xml:space="preserve">
+    <value>ファイルを書き換えられなかったため、まだ信頼されたままの可能性があります。理由はログにあります。</value>
+  </data>
+  <data name="Alert_PairingsFailed" xml:space="preserve">
+    <value>Wi-Fi のペアリングを解除できませんでした</value>
+  </data>
+  <data name="Alert_PairingsFailedBody" xml:space="preserve">
+    <value>ファイルを削除または空にできませんでした。Edgepad の実行中はペアリング済みのスマホは Wi-Fi で再接続できませんが、次回起動すると再接続できるようになります。「信頼済みのスマホをすべて登録解除」をもう一度選ぶか、paired-links.txt を次の場所から自分で削除してください:
+
+{0}</value>
+  </data>
+  <data name="Alert_NoPhone" xml:space="preserve">
+    <value>スマホが接続されていません</value>
+  </data>
+  <data name="Alert_NoPhoneBody" xml:space="preserve">
+    <value>スマホを Edgepad に接続してから、もう一度ファイルを送信してください。</value>
+  </data>
+  <data name="Alert_ChooseFiles" xml:space="preserve">
+    <value>スマホに送るファイルを選択</value>
+  </data>
+  <data name="Alert_TurnOn" xml:space="preserve">
+    <value>オンにする</value>
+  </data>
+  <data name="Alert_Allow" xml:space="preserve">
+    <value>許可</value>
+  </data>
+  <data name="Alert_NotNow" xml:space="preserve">
+    <value>あとで</value>
+  </data>
+  <data name="Alert_Network" xml:space="preserve">
+    <value>スマホがこのノートPCを見つけられるようにしますか？</value>
+  </data>
+  <data name="Alert_NetworkBody" xml:space="preserve">
+    <value>Mac では Wi-Fi のみ対応です。USB テザリングには macOS に含まれないドライバが必要です。同じ Wi-Fi 上のスマホがこの Mac を見つけてペアリングを要求できるようになります。ここで入力したペアリングコードがなければ何も接続されません。macOS からローカルネットワーク上のデバイスの検出を、ファイアウォールから着信接続の受け入れを許可するか尋ねられることがあります。どちらも許可してください。</value>
+  </data>
+  <data name="Alert_SaveFailed" xml:space="preserve">
+    <value>設定を保存できませんでした</value>
+  </data>
+  <data name="Alert_SaveFailedBody" xml:space="preserve">
+    <value>何も変更されていません。理由はログにあります。</value>
+  </data>
+  <data name="Alert_Trust" xml:space="preserve">
+    <value>{0}を信頼しますか？</value>
+  </data>
+  <data name="Alert_TrustQuoted" xml:space="preserve">
+    <value>引用符内の名前はスマホが自称しているだけで、信頼されるのはアドレスです。</value>
+  </data>
+  <data name="Alert_TrustAddress" xml:space="preserve">
+    <value>信頼されるのはアドレスです。</value>
+  </data>
+  <data name="Alert_TrustBody" xml:space="preserve">
+    <value>{0} がこの Mac のポインタとキーボードの操作を求めています。{1} 自分のスマホの場合のみ信頼してください。{2} 秒以内に応答がない場合は信頼されません。</value>
+  </data>
+  <data name="Alert_Credits" xml:space="preserve">
+    <value>フォントとアイコン: Lato、Lucide。</value>
+  </data>
+  <data name="Alert_ShutdownTitle" xml:space="preserve">
+    <value>この Mac は 60 秒後にシャットダウンします。</value>
+  </data>
+  <data name="Alert_ShutdownBody" xml:space="preserve">
+    <value>スマホのメディアが終了し、そのときにシャットダウンするよう設定されています。</value>
+  </data>
+  <data name="Sec_Title" xml:space="preserve">
+    <value>セキュリティ</value>
+  </data>
+  <data name="Sec_Intro" xml:space="preserve">
+    <value>すべてのスマホは、まずあなたの承認を求められます。2 つの PIN レベルでは、6 桁の PIN も求められます。</value>
+  </data>
+  <data name="Sec_LevelTrust" xml:space="preserve">
+    <value>信頼のみ</value>
+  </data>
+  <data name="Sec_LevelPinOnce" xml:space="preserve">
+    <value>スマホごとに1回PIN</value>
+  </data>
+  <data name="Sec_LevelPinEvery" xml:space="preserve">
+    <value>接続のたびにPIN</value>
+  </data>
+  <data name="Sec_ResetButton" xml:space="preserve">
+    <value>PINをリセットしてスマホを登録解除…</value>
+  </data>
+  <data name="Sec_ForgetAllButton" xml:space="preserve">
+    <value>信頼済みのスマホをすべて登録解除…</value>
+  </data>
+  <data name="Sec_Warning" xml:space="preserve">
+    <value>新しいPINやレベルを保存すると、PINを一度入力したスマホも、もう一度入力する必要があります。</value>
+  </data>
+  <data name="Sec_ChangePin" xml:space="preserve">
+    <value>PINを変更…</value>
+  </data>
+  <data name="Sec_SetPin" xml:space="preserve">
+    <value>PINを設定…</value>
+  </data>
+  <data name="Sec_PinNew" xml:space="preserve">
+    <value>新しいPINが保存されます。</value>
+  </data>
+  <data name="Sec_PinSet" xml:space="preserve">
+    <value>PINは設定済みです。</value>
+  </data>
+  <data name="Sec_PinNone" xml:space="preserve">
+    <value>PINは設定されていません。</value>
+  </data>
+  <data name="Sec_SixDigits" xml:space="preserve">
+    <value>6桁</value>
+  </data>
+  <data name="Sec_Again" xml:space="preserve">
+    <value>再入力</value>
+  </data>
+  <data name="Sec_NewPin" xml:space="preserve">
+    <value>新しいPIN</value>
+  </data>
+  <data name="Sec_NewPinAgain" xml:space="preserve">
+    <value>新しいPIN（再入力）</value>
+  </data>
+  <data name="Sec_NewPinBody" xml:space="preserve">
+    <value>6 桁の数字を 2 回入力します。</value>
+  </data>
+  <data name="Sec_UsePin" xml:space="preserve">
+    <value>このPINを使う</value>
+  </data>
+  <data name="Sec_Mismatch" xml:space="preserve">
+    <value>2 つの PIN が一致しません。</value>
+  </data>
+  <data name="Sec_Exactly" xml:space="preserve">
+    <value>ちょうど 6 桁の数字を入力してください。</value>
+  </data>
+  <data name="Sec_PinNotSaved" xml:space="preserve">
+    <value>PINを保存できなかったため、何も変更されていません。理由はログに記録されています。</value>
+  </data>
+  <data name="Sec_LevelNotSaved" xml:space="preserve">
+    <value>レベルを保存できなかったため、以前のレベルがそのまま適用されます。理由はログに記録されています。</value>
+  </data>
+  <data name="Sec_ResetTitle" xml:space="preserve">
+    <value>PIN をリセットして、すべてのスマホを登録解除しますか？</value>
+  </data>
+  <data name="Sec_ResetBody" xml:space="preserve">
+    <value>PIN は削除され、レベルは「信頼のみ」に戻り、信頼済みのスマホはすべて登録解除されます。各スマホはここでもう一度信頼する必要があります。忘れた PIN は復元できず、リセットのみ可能です。</value>
+  </data>
+  <data name="Sec_ResetFailedTrust" xml:space="preserve">
+    <value>何もリセットされませんでした。信頼済みのスマホを登録解除できなかったため、PIN とレベルはそのままです。Edgepad の実行中はどのスマホも接続できませんが、次回起動すると、それらのスマホは同じ PIN のもとで再び信頼されます。ファイルを使用しているものを閉じてから「リセット」をもう一度選ぶか、ファイルを自分で削除してください:
+
+{0}</value>
+  </data>
+  <data name="Sec_ResetFailedPin" xml:space="preserve">
+    <value>信頼済みのスマホは登録解除されましたが、PIN をリセットできませんでした。設定ファイルを削除できなかったため、古い PIN とレベルがまだ有効な可能性があります。各スマホはここでもう一度信頼する必要があります。ファイルを使用しているものを閉じてから「リセット」をもう一度選ぶか、security.txt と pin-verified.txt を次の場所から自分で削除してください:
+
+{0}</value>
+  </data>
+  <data name="Sec_TrustedPhones" xml:space="preserve">
+    <value>信頼済みのスマホ</value>
+  </data>
+  <data name="Sec_ForgetLabel" xml:space="preserve">
+    <value>{0}を登録解除</value>
+  </data>
+  <data name="Sec_FailTitle" xml:space="preserve">
+    <value>セキュリティ設定を保存できませんでした</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>{0}をペアリングしますか？</value>
+  </data>
+  <data name="Pair_ThisPhone" xml:space="preserve">
+    <value>このスマホ</value>
+  </data>
+  <data name="Pair_Window" xml:space="preserve">
+    <value>スマホをペアリング</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>スマホに表示されているペアリングコードを入力してください：</value>
+  </data>
+  <data name="Pair_CodeLabel" xml:space="preserve">
+    <value>スマホに表示されたコード</value>
+  </data>
+  <data name="Pair_Announce" xml:space="preserve">
+    <value>{0} をペアリングしますか？ {1} 秒後に閉じます。</value>
+  </data>
+  <data name="Pair_Matched" xml:space="preserve">
+    <value>コードが一致しました。{0} で「コードが一致」をタップして完了してください。</value>
+  </data>
+  <data name="Pair_Mismatched" xml:space="preserve">
+    <value>コードが一致しませんでした。ペアリングされていません。</value>
+  </data>
+  <data name="Pair_Paired" xml:space="preserve">
+    <value>{0}とペアリングしました。</value>
+  </data>
+  <data name="Pair_NotFinished" xml:space="preserve">
+    <value>ペアリングが完了しませんでした。</value>
+  </data>
+  <data name="Pair_Warning" xml:space="preserve">
+    <value>自分のスマホだけをペアリングしてください。ペアリングを開始した覚えがない場合は、「キャンセル」を選んでください。</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>{0}秒後に閉じます</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>コードを確認中</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>マクロ</value>
+  </data>
+  <data name="Macro_Body" xml:space="preserve">
+    <value>スマホのマクロ画面に表示されるボタンです。最大 {0} 個。スマホが送るのはボタンの番号だけでプログラムではないため、ここで追加したものしか実行できません。</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>{0} には開く対象がありません。アプリやファイルを参照するか、Web アドレスを入力してください。</value>
+  </data>
+  <data name="Macro_AMacro" xml:space="preserve">
+    <value>マクロ</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>マクロを {0} に保存できませんでした: {1}。</value>
+  </data>
+  <data name="Macro_SaveFailedTitle" xml:space="preserve">
+    <value>マクロを保存できませんでした</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>開く対象</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>引数</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>アイコン</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>マクロを追加</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Macro_MoveUp" xml:space="preserve">
+    <value>上へ移動</value>
+  </data>
+  <data name="Macro_MoveDown" xml:space="preserve">
+    <value>下へ移動</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>参照…</value>
+  </data>
+  <data name="Macro_Choose" xml:space="preserve">
+    <value>選択…</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>プログラムのアイコンを使う</value>
+  </data>
+  <data name="Macro_ArgsHint" xml:space="preserve">
+    <value>なし、スペースで区切る（アプリのみ）</value>
+  </data>
+  <data name="Macro_IconHint" xml:space="preserve">
+    <value>プログラム自体のアイコン</value>
+  </data>
+  <data name="Macro_OpensHint" xml:space="preserve">
+    <value>アプリ、ファイル、フォルダ、または Web アドレス</value>
+  </data>
+  <data name="Macro_Empty" xml:space="preserve">
+    <value>マクロはまだありません。アプリ、書類、フォルダ、または Web アドレスを追加してください。それぞれがスマホのボタンになります。</value>
+  </data>
+  <data name="Macro_Count" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Macro_NameLeft" xml:space="preserve">
+    <value>名前 · 残り {0}</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>新しいマクロ</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>連携…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>開発者モード</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>開発者向け連携…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>連携</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>ここにある機能はすべて、オンにするまでオフです。</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>システムの状態をスマホに表示</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>天気をスマホに表示</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>都市</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>open-meteo.com には都市名だけを送ります。</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>接続</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>切断</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>接続済み · 最終受信 {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>未接続</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>このコンピューターに {0} が見つかりません</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>Node.js 20.1 以降が必要です。nodejs.org から入手してください</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad はこれを代わりに実行できませんでした。ターミナルで次のコマンドを実行してください:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Codex で /hooks を開き、Edgepad を信頼してください。</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Codex がプラグインを信頼するのを待っています…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Codex をバージョン 0.159 以降に更新してください。</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>開いているセッションを再起動するか、Claude Code で /reload-plugins を実行してください。</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>開発者向け</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>GitHub でサインイン</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>サインアウト</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>あなたのコード: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device を開く</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>ブラウザーでの承認を待っています…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>プライベートリポジトリを含める</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>{0} としてサインイン中</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>このビルドではサインインが設定されていません。</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>サインインが完了しませんでした。もう一度お試しください。</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. まだの場合は、このコンピューターに Claude Code をインストールしてください: claude.com/claude-code
+2. 「接続」をクリックします。Edgepad が Claude Code にプラグインを追加します。
+3. 開いている Claude Code のセッションを再起動するか、そこで /reload-plugins と入力してください。
+4. スマホで Controls > AI を開きます。</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. まだの場合は、このコンピューターに Codex をインストールしてください: developers.openai.com/codex
+2. 「接続」をクリックします。Edgepad が Codex にプラグインを追加します。
+3. Codex で /hooks と入力し、Edgepad を信頼してください。Codex アプリの場合: Settings > Hooks > Review hooks。
+4. スマホで Controls > AI を開きます。Codex が最初のイベントを送ると表示されます。</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. 「GitHub でサインイン」をクリックします。github.com のページが開きます。
+2. ここに表示されたコードを入力し、Authorize をクリックします。
+3. スマホで Controls > GitHub を開きます。</value>
+  </data>
+  <data name="Note_CodexTrustTitle" xml:space="preserve">
+    <value>Codex でもう一度許可が必要です</value>
+  </data>
+  <data name="Note_CodexTrustBody" xml:space="preserve">
+    <value>Edgepad が更新されました。Codex で /hooks と入力して Edgepad を信頼してください。そうしないと、承認はスマホではなくターミナルに残ります。</value>
+  </data>
+</root>

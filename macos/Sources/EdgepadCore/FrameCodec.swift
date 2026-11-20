@@ -9,6 +9,10 @@ public enum ProtocolError: Error, Equatable {
     case textLengthMismatch
     /// A FILE_BEGIN or BLOB_BEGIN too short to hold its size.
     case fileBeginTooShort
+    /// An XFER_BEGIN too short to hold its size, or an XFER_CHUNK too short to hold an offset and a byte.
+    case xferTooShort
+    /// A transfer frame with id 0, which is never a transfer.
+    case badTransferId
 }
 
 /// How many payload bytes follow a type byte.
@@ -51,6 +55,11 @@ public enum FrameCodec {
     private static let blobBeginType: UInt8 = 0x54
     private static let blobChunkType: UInt8 = 0x55
     private static let blobEndType: UInt8 = 0x56
+    private static let bulkHelloType: UInt8 = 0x05
+    private static let xferBeginType: UInt8 = 0x57
+    private static let xferChunkType: UInt8 = 0x58
+    private static let xferEndType: UInt8 = 0x59
+    private static let xferStatusType: UInt8 = 0x5A
 
     /// FILE_BEGIN's size field, ahead of the name in the length-prefixed part.
     private static let fileSizeBytes = 4
@@ -59,14 +68,24 @@ public enum FrameCodec {
     /// The most of a name one FILE_BEGIN carries: what is left of the 255 bytes after the size.
     public static let maxFileNameBytes = maxTextBytes - fileSizeBytes
     public static let sha256Bytes = 32
+    /// XFER_BEGIN's size and XFER_CHUNK's offset: a u64, ahead of the name or the data in the length-prefixed part.
+    private static let xferNumberBytes = 8
+    /// The most of a name one XFER_BEGIN carries: what is left of the 255 bytes after the size.
+    public static let maxXferNameBytes = maxTextBytes - xferNumberBytes
+    /// The most one XFER_CHUNK carries: what is left of the 255 bytes after the offset.
+    public static let maxXferChunkBytes = maxTextBytes - xferNumberBytes
 
     /// PAD_STATE is the longest fixed payload at 12 bytes, so 13 on the wire.
     public static func payloadLength(_ type: UInt8) -> PayloadLength {
         switch type {
-        case helloType:
+        case helloType, bulkHelloType:
             return .fixed(5)
         case helloAckType, runActionType, fileResultType:
             return .fixed(1)
+        case xferEndType:
+            return .fixed(1 + sha256Bytes)
+        case xferStatusType:
+            return .fixed(2 + xferNumberBytes)
         case pointerButtonType, zoomType, setValueType:
             return .fixed(2)
         case stateType, keyType, pinRequestType:
@@ -83,7 +102,7 @@ public enum FrameCodec {
             return .fixed(5)
         case fileEndType, blobEndType:
             return .fixed(sha256Bytes)
-        case textType, fileBeginType, fileChunkType, blobBeginType, blobChunkType:
+        case textType, fileBeginType, fileChunkType, blobBeginType, blobChunkType, xferBeginType, xferChunkType:
             return .lengthPrefixed
         default:
             return .unknown
@@ -163,6 +182,27 @@ public enum FrameCodec {
         case .blobEnd(let sha256):
             precondition(sha256.count == sha256Bytes, "A SHA-256 is \(sha256Bytes) bytes")
             return [blobEndType] + sha256
+        case .bulkHello(let version):
+            return [bulkHelloType] + ProtocolConstants.magic + [version]
+        case .xferBegin(let id, let size, let name):
+            // TEXT's header again: the id, then one length byte counting the u64 and the name together.
+            precondition(id != 0, "A transfer id is 1 to 255")
+            let body = Array(truncate(name, maxBytes: maxXferNameBytes).utf8)
+            let length = UInt8(truncatingIfNeeded: xferNumberBytes + body.count)
+            return [xferBeginType, id, length] + littleEndian(size) + body
+        case .xferChunk(let id, let offset, let data):
+            precondition(id != 0, "A transfer id is 1 to 255")
+            precondition(
+                (1...maxXferChunkBytes).contains(data.count), "A transfer chunk is 1 to \(maxXferChunkBytes) bytes")
+            let length = UInt8(truncatingIfNeeded: xferNumberBytes + data.count)
+            return [xferChunkType, id, length] + littleEndian(offset) + data
+        case .xferEnd(let id, let sha256):
+            precondition(id != 0, "A transfer id is 1 to 255")
+            precondition(sha256.count == sha256Bytes, "A SHA-256 is \(sha256Bytes) bytes")
+            return [xferEndType, id] + sha256
+        case .xferStatus(let id, let status, let offset):
+            precondition(id != 0, "A transfer id is 1 to 255")
+            return [xferStatusType, id, status] + littleEndian(offset)
         case .pinAnswer(let pin):
             // Each digit goes out as its value 0...9, not its ASCII code, so these bytes can never read as text.
             return [pinAnswerType] + pin.digits
@@ -184,11 +224,15 @@ public enum FrameCodec {
         }
 
         switch type {
-        case helloType:
+        case helloType, bulkHelloType:
             guard Array(payload[0..<4]) == ProtocolConstants.magic else {
                 throw ProtocolError.badMagic
             }
-            return .hello(version: payload[4])
+            return type == helloType ? .hello(version: payload[4]) : .bulkHello(version: payload[4])
+        case xferEndType:
+            return .xferEnd(id: try transferId(payload[0]), sha256: Array(payload[1...]))
+        case xferStatusType:
+            return .xferStatus(id: try transferId(payload[0]), status: payload[1], offset: uint64(payload, 2))
         case helloAckType:
             return .helloAck(version: payload[0])
         case moveType:
@@ -289,6 +333,18 @@ public enum FrameCodec {
             return .blobBegin(kind: payload[0], size: size, label: label)
         case blobChunkType:
             return .blobChunk(seq: payload[0], data: body)
+        case xferBeginType:
+            guard body.count >= xferNumberBytes else {
+                throw ProtocolError.xferTooShort
+            }
+            let name = String(decoding: body[xferNumberBytes...], as: UTF8.self)
+            return .xferBegin(id: try transferId(payload[0]), size: uint64(body, 0), name: name)
+        case xferChunkType:
+            guard body.count > xferNumberBytes else {
+                throw ProtocolError.xferTooShort
+            }
+            return .xferChunk(
+                id: try transferId(payload[0]), offset: uint64(body, 0), data: Array(body[xferNumberBytes...]))
         default:
             // Invalid UTF-8 becomes U+FFFD rather than an error, so a bad title cannot drop the connection.
             return .text(kind: payload[0], value: String(decoding: body, as: UTF8.self))
@@ -305,6 +361,14 @@ public enum FrameCodec {
         default:
             throw ProtocolError.badFlag(value)
         }
+    }
+
+    /// Id 0 is a protocol error on every transfer frame: it closes the link, as a bad length does.
+    private static func transferId(_ id: UInt8) throws -> UInt8 {
+        guard id != 0 else {
+            throw ProtocolError.badTransferId
+        }
+        return id
     }
 
     private static func utf8Width(_ scalar: Unicode.Scalar) -> Int {
@@ -328,6 +392,14 @@ public enum FrameCodec {
         Int16(bitPattern: uint16(bytes, at))
     }
 
+    private static func uint64(_ bytes: [UInt8], _ at: Int) -> UInt64 {
+        var value: UInt64 = 0
+        for index in 0..<8 {
+            value |= UInt64(bytes[at + index]) << UInt64(index * 8)
+        }
+        return value
+    }
+
     private static func int64(_ bytes: [UInt8]) -> Int64 {
         var value: UInt64 = 0
         for index in 0..<8 {
@@ -348,8 +420,11 @@ public enum FrameCodec {
         (0..<4).map { UInt8(truncatingIfNeeded: value >> UInt32($0 * 8)) }
     }
 
+    private static func littleEndian(_ value: UInt64) -> [UInt8] {
+        (0..<8).map { UInt8(truncatingIfNeeded: value >> UInt64($0 * 8)) }
+    }
+
     private static func littleEndian(_ value: Int64) -> [UInt8] {
-        let bits = UInt64(bitPattern: value)
-        return (0..<8).map { UInt8(truncatingIfNeeded: bits >> UInt64($0 * 8)) }
+        littleEndian(UInt64(bitPattern: value))
     }
 }

@@ -36,6 +36,9 @@ interface LinkTransport {
      */
     val writePaceMs: Int get() = 0
 
+    /** The address of the laptop this transport is connected to, or null (Bluetooth, or not connected yet). */
+    val peer: InetAddress? get() = null
+
     fun close()
 }
 

@@ -70,7 +70,7 @@ internal static partial class X11
         {
             for (var i = 0; i < count; i++)
             {
-                // Window is an unsigned long, pointer-sized on linux-x64.
+                // Window is an unsigned long, pointer-sized on a 64-bit Linux target (x86_64; arm64 is the same, unverified).
                 Shape(display, (nuint)Marshal.ReadIntPtr(children, i * IntPtr.Size));
             }
         }

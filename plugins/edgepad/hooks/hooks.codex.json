@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "\"__APP__\" --hook codex perm", "timeout": 120 }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"__APP__\" --hook codex session", "timeout": 5, "async": true }
+        ]
+      }
+    ]
+  }
+}

@@ -79,7 +79,7 @@
     <value>لم يكتمل الإقران.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>تطابق رمز الإقران. انقر «نعم، تم الإقران» على {0} لإنهاء الإقران.</value>
+    <value>تطابق رمز الإقران. انقر «الرموز متطابقة» على {0} لإنهاء الإقران.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>تم الإقران مع {0}.</value>

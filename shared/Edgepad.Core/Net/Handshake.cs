@@ -11,7 +11,8 @@ namespace Edgepad.Net;
 /// read ends. <c>ended</c> is cancelled when the session ends under the handshake (a hold, a hang-up, quitting):
 /// the trust question is then never put, or is withdrawn if it is open.
 ///
-/// True means HELLO_ACK went out and the session is live. False, or any exception, means the caller closes the
+/// <see cref="HandshakeOutcome.Live"/> means HELLO_ACK went out and the session is live; <see cref="HandshakeOutcome.Bulk"/> that a
+/// transfer socket was answered (see <see cref="Attach"/>). Refused, or any exception, means the caller closes the
 /// link: nothing that comes after HELLO_ACK is reachable without it.
 /// </summary>
 internal static class Handshake
@@ -22,7 +23,7 @@ internal static class Handshake
     /// </summary>
     public static readonly TimeSpan HelloTimeout = TimeSpan.FromSeconds(10);
 
-    public static bool Run(
+    public static HandshakeOutcome Open(
         FrameStream frames,
         string address,
         TrustStore trust,
@@ -34,7 +35,9 @@ internal static class Handshake
         Action giveUp,
         CancellationToken ended,
         TimeSpan? helloTimeout = null,
-        TimeSpan? pinTimeout = null)
+        TimeSpan? pinTimeout = null,
+        Func<bool>? hasLiveSession = null,
+        LinkKind linkKind = LinkKind.Bluetooth)
     {
         var helloWait = helloTimeout ?? HelloTimeout;
 
@@ -66,13 +69,18 @@ internal static class Handshake
         // link, and at level 1 swap the live session for it.
         if (Interlocked.Exchange(ref expired, 1) != 0)
         {
-            return false;
+            return HandshakeOutcome.Refused;
+        }
+
+        if (first is BulkHello bulk)
+        {
+            return Attach(frames, address, bulk, hasLiveSession, linkKind, log);
         }
 
         if (first is not Hello hello)
         {
             log($"Refused {address}: no valid HELLO");
-            return false;
+            return HandshakeOutcome.Refused;
         }
 
         if (hello.Version != ProtocolConstants.Version)
@@ -81,7 +89,7 @@ internal static class Handshake
             frames.Send(new HelloAck(ProtocolConstants.Version));
             log($"Refused {address}: it speaks protocol {hello.Version}, this laptop {ProtocolConstants.Version}");
             onStatus(LaptopStatus.RefusedProtocol(hello.Version, ProtocolConstants.Version));
-            return false;
+            return HandshakeOutcome.Refused;
         }
 
         // A phone locked out by wrong PINs is told so and closed before the owner is asked anything, so
@@ -89,7 +97,7 @@ internal static class Handshake
         if (PinGate.LockedOut(address, pin, frames.Send, log))
         {
             onStatus(LaptopStatus.RefusedLockedOut);
-            return false;
+            return HandshakeOutcome.Refused;
         }
 
         // HELLO_ACK waits on the owner's answer, and a refusal closes the socket without one: the same
@@ -113,7 +121,7 @@ internal static class Handshake
             var trusted = string.Join(", ", trust.TrustedPhones);
             log($"Refused {address}: this laptop trusts {(trusted.Length > 0 ? trusted : "no phone yet")}");
             onStatus(LaptopStatus.RefusedUntrusted);
-            return false;
+            return HandshakeOutcome.Refused;
         }
 
         // The PIN at levels 2 and 3, and still before onAdmitted: a phone that has not given it must never be
@@ -122,7 +130,7 @@ internal static class Handshake
         if (pinOutcome != PinOutcome.Passed)
         {
             onStatus(pinOutcome == PinOutcome.LockedOut ? LaptopStatus.RefusedLockedOut : LaptopStatus.RefusedPin);
-            return false;
+            return HandshakeOutcome.Refused;
         }
 
         // Only now may this phone take over from one already connected: before trust said yes, any bonded
@@ -130,7 +138,7 @@ internal static class Handshake
         if (!onAdmitted())
         {
             log($"Refused {address}: trusted, but not taken now: phones are being forgotten, Edgepad is quitting, or another phone just took over");
-            return false;
+            return HandshakeOutcome.Refused;
         }
 
         // Once per connection, and a failed write is logged inside and never stops it.
@@ -138,6 +146,79 @@ internal static class Handshake
         frames.Send(new HelloAck(ProtocolConstants.Version));
         log($"Connected {address}");
         onStatus(LaptopStatus.Connected(address, PhoneWay.Bluetooth));
-        return true;
+        return HandshakeOutcome.Live;
     }
+
+    /// <summary>
+    /// How long a transfer socket may go without a frame once attached; the host holds it to this, as to <see cref="HelloTimeout"/>
+    /// before, because a transfer is paced by the sender and a stalled one is a dead one.
+    /// </summary>
+    public static readonly TimeSpan BulkSilenceLimit = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// <see cref="Open"/> for a host that has no transfer socket: true only for a live phone session. A BULK_HELLO is refused,
+    /// because no <c>hasLiveSession</c> is passed and a transfer socket attaches to nothing.
+    /// </summary>
+    public static bool Run(
+        FrameStream frames,
+        string address,
+        TrustStore trust,
+        PinStore pin,
+        Func<string, CancellationToken, bool> askTrust,
+        Func<bool> onAdmitted,
+        Action<LaptopStatus> onStatus,
+        Action<string> log,
+        Action giveUp,
+        CancellationToken ended,
+        TimeSpan? helloTimeout = null,
+        TimeSpan? pinTimeout = null) =>
+        Open(frames, address, trust, pin, askTrust, onAdmitted, onStatus, log, giveUp, ended, helloTimeout, pinTimeout) == HandshakeOutcome.Live;
+
+    /// <summary>The only frames a transfer socket may carry once attached. Anything else, and a BULK_HELLO again, closes it.</summary>
+    public static bool IsLegalOnBulk(Frame frame) => frame is XferBegin or XferChunk or XferEnd or XferStatus;
+
+    /// <summary>
+    /// A transfer socket's whole handshake, and nothing else of the real one. It asks no trust question, asks for no PIN, never
+    /// calls <c>onAdmitted</c>, never changes the status line and never touches the connected session: the phone proved its key
+    /// on this socket as on the first, and trust and the PIN were passed by the session it attaches to. It only answers
+    /// HELLO_ACK, and only when that session is live right now, so a transfer socket can never be a way in.
+    /// </summary>
+    private static HandshakeOutcome Attach(FrameStream frames, string address, BulkHello hello, Func<bool>? hasLiveSession, LinkKind linkKind, Action<string> log)
+    {
+        if (hello.Version != ProtocolConstants.Version)
+        {
+            log($"Refused {address}: its transfer socket speaks protocol {hello.Version}, this laptop {ProtocolConstants.Version}");
+            return HandshakeOutcome.Refused;
+        }
+
+        if (linkKind != LinkKind.Network)
+        {
+            log($"Refused {address}: a transfer socket only attaches over the network");
+            return HandshakeOutcome.Refused;
+        }
+
+        if (hasLiveSession?.Invoke() != true)
+        {
+            log($"Refused {address}: a transfer socket with no connected phone to attach to");
+            return HandshakeOutcome.Refused;
+        }
+
+        frames.Send(new HelloAck(ProtocolConstants.Version));
+        return HandshakeOutcome.Bulk;
+    }
+}
+
+/// <summary>How <see cref="Handshake.Open"/> ended. Only <see cref="Live"/> is a phone connected; the caller closes the link on <see cref="Refused"/>.</summary>
+internal enum HandshakeOutcome
+{
+    Refused,
+
+    /// <summary>HELLO_ACK went out and the session is live.</summary>
+    Live,
+
+    /// <summary>
+    /// HELLO_ACK went out to a transfer socket. The host hands it to the live session of the same address, and closes it
+    /// when there is none or that session already holds one; it is never a session of its own.
+    /// </summary>
+    Bulk,
 }

@@ -205,6 +205,10 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
                 return board.SetTool(StrokeTool.Rectangle);
             case ActionId.ToolEllipse:
                 return board.SetTool(StrokeTool.Ellipse);
+            case ActionId.ToolLaser:
+                return board.SetTool(StrokeTool.Laser);
+            case ActionId.ToolLaserTrail:
+                return board.SetTool(StrokeTool.LaserTrail);
             default:
                 return false;
         }

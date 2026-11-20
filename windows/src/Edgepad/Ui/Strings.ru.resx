@@ -482,4 +482,327 @@
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi и USB: телефоны могут не найти этот ноутбук.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Перезапустить от имени администратора</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Позволяет Edgepad вводить текст в окна с повышенными правами, например в Диспетчер задач. Экран блокировки и запросы UAC остаются недоступными.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Установить Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Позже</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Пропустить эту версию</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Доступен Edgepad {0}. Нажмите, чтобы установить.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} не удалось проверить, поэтому он не установлен.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Не удалось установить Edgepad {0}. Нажмите, чтобы открыть страницу релиза.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>Это крупный релиз. Обновите Edgepad и на телефоне, иначе они откажутся работать друг с другом. Установить сейчас?</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Завершение работы</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>Воспроизведение закончилось. Ноутбук выключится через {0} с.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Отправить файл на телефон…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>Файл {0} получен с телефона.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>Не удалось получить файл {0}.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Показывать уведомления на телефоне</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Установить</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Не сейчас</value>
+  </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>&amp;История буфера обмена</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Недавние копии с этого ноутбука и телефона. Хранятся только в памяти.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Буфер обмена</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Пока ничего не скопировано</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Копии с этого ноутбука и телефона появляются здесь.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Включите «Общий буфер обмена» в меню в трее, чтобы видеть здесь свои копии.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Очистить всё</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Этот ноутбук</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Телефон</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Только что</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} мин назад</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} ч назад</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} д назад</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Отправить на телефон</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Отправлено на телефон</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>Не удалось отправить. Проверьте подключение.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Скопировано. Нажмите Ctrl+V, чтобы вставить.</value>
+  </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Не удалось использовать буфер обмена. Попробуйте ещё раз.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V занято другим приложением, поэтому сочетание отключено.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Отправка на телефон</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>Получение с телефона</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} из {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} из {1} · {2}/с</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} из {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>Отправлено: {0}</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Отправлено файлов: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Отправлено файлов: {0} из {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Получено файлов: {0}</value>
+  </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Получено файлов: {0} из {1}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>Не отправлено: {0}</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Не отправлено файлов: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Отмена…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Повторить</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>Телефон не подключён.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>Пропущено {0}: пустой, отсутствует или больше 2 ГБ.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>Телефон отклонил файл. Возможно, не хватает места.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Файл пришёл повреждённым. Повторите попытку.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>Телефон не смог сохранить файл.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>Телефон был занят другим файлом.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>Телефон перестал отвечать.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>Соединение потеряно.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Этот ноутбук не смог прочитать файл.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Отменено.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>Не отправлено.</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>Инте&amp;грации…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Режим разработчика</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>Интеграции для разработчиков…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Интеграции</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Всё здесь выключено, пока вы это не включите.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Показывать данные о системе на телефоне</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Показывать погоду на телефоне</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Город</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>На open-meteo.com отправляется только название города.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Подключить</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Отключить</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Подключено · последний сигнал {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Не подключено</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} не найден на этом компьютере</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad не смог выполнить это за вас. Выполните эти команды в терминале:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>В Codex откройте /hooks и отметьте Edgepad как доверенный.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Ждём, пока Codex начнёт доверять плагину…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Обновите Codex до версии 0.159 или новее.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Перезапустите открытые сеансы или выполните /reload-plugins в Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Для разработчиков</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Войти через GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Выйти</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Ваш код: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Открыть github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Ждём подтверждения в браузере…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Включить закрытые репозитории</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Вход выполнен как {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Вход не настроен в этой сборке.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>никогда</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Выполняется…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Установите Claude Code на этот компьютер, если ещё не сделали этого: claude.com/claude-code
+2. Нажмите «Подключить». Edgepad добавит свой плагин в Claude Code.
+3. Перезапустите открытые сеансы Claude Code или введите в них /reload-plugins.
+4. На телефоне откройте Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Установите Codex на этот компьютер, если ещё не сделали этого: developers.openai.com/codex
+2. Нажмите «Подключить». Edgepad добавит свой плагин в Codex.
+3. В Codex введите /hooks и отметьте Edgepad как доверенный. В приложении Codex: Settings > Hooks > Review hooks.
+4. На телефоне откройте Controls > AI. Раздел появится, когда Codex отправит первое событие.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Нажмите «Войти через GitHub». Откроется страница github.com.
+2. Введите показанный здесь код и нажмите Authorize.
+3. На телефоне откройте Controls > GitHub.</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex снова нужно ваше подтверждение</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad обновлён. В Codex введите /hooks и отметьте Edgepad как доверенный, иначе подтверждения останутся в терминале, а не на телефоне.</value>
+  </data>
 </root>

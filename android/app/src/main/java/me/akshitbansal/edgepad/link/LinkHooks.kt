@@ -1,6 +1,8 @@
 package me.akshitbansal.edgepad.link
 
+import android.net.Uri
 import me.akshitbansal.edgepad.protocol.BlobKind
+import me.akshitbansal.edgepad.protocol.Frame
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -18,9 +20,22 @@ object LinkHooks {
     @Volatile
     var shareTarget: (() -> ShareTarget?)? = null
 
+    /** Sends one frame to the selected laptop; false when nothing is connected. For the tile and the notification. */
+    @Volatile
+    var sendToSelected: ((Frame) -> Boolean)? = null
+
+    /** The selected laptop for the Quick Settings tile, or null when nothing is connected. */
+    @Volatile
+    var tileStatus: (() -> TileStatus?)? = null
+
     /** Shares on their way to a laptop right now. While any is, the app leaving does not end the links. */
     val sharing = AtomicInteger()
 }
+
+/** What the Quick Settings tile shows: the laptop it would send to. */
+data class TileStatus(
+    val laptopName: String,
+)
 
 /**
  * The links of an activity Android destroyed by itself (memory pressure, "Don't keep activities") while Stay connected
@@ -70,4 +85,9 @@ internal fun lingerAction(sharing: Int): LingerAction = if (sharing > 0) LingerA
 class ShareTarget(
     val name: String,
     val send: ((BlobKind, ByteArray) -> Boolean)?,
+    /**
+     * Sends picked documents as file transfers, one after another, and blocks until the laptop has answered the last,
+     * so off the main thread. True when every one arrived.
+     */
+    val sendFiles: ((List<Uri>) -> Boolean)? = null,
 )

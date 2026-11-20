@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Wi-Fi ve USB bağlantıları</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>Panoyu paylaş</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Birinde kopyalayın, ötekine yapıştırın: metin ve resimler.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Güncellemeleri günlük denetle</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Makrolar…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Güvenlik…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Belgeler</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Günlüğü aç</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Edgepad’den çık</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>Güncelleme var</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>Güncelleme var: {0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} sürümünü yükle</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Sonra</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Bu sürümü atla</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Telefona dosya gönder…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Bildirimleri telefonda göster</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Telefonlar bu bilgisayarı bulabilsin mi?</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>İzin ver</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Aç</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Şimdi değil</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>İptal</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Unut</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>Ayar kaydedilemedi, bu yüzden hiçbir şey değişmedi. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} eşleşmek istiyor. Gösterdiği eşleştirme kodunu yazın.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Kapatılıyor</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>Medya bitti. Bu dizüstü bilgisayar {0} saniye içinde kapanacak.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>İptal</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi ve USB: dinlenemedi. Günlüğe bakın.</value>
+  </data>
+  <data name="App_Name" xml:space="preserve">
+    <value>Edgepad</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Yükle</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>Oturum açılınca başlat</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>Kapalı</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>{0} bağlantı noktasını dinliyor</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>Bağlantı noktası kullanımda, {0} kullanılıyor</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>Dinlenemedi; günlüğe bakın</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>{0} açılamadı: {1} konumunda henüz bir şey yok.</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>{0} açılamadı: xdg-utils’i yükleyin.</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>Sürüm sayfası</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>Belgeler</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>Günlük</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepad çalışıyor</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>Masaüstünüzde sistem tepsisi simgesi görünmüyor. GNOME’da bir tane görmek için ‘AppIndicator and KStatusNotifierItem Support’ uzantısını yükleyin.</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>Aynı Wi-Fi ağındaki veya USB ile internet paylaşımıyla bağlı telefonlar bu bilgisayarı bulup eşleştirme isteyebilecek. Burada yazılan eşleştirme kodu olmadan hiçbir şey bağlanmaz.</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>Bir güvenlik duvarı bunları engelleyebilir. Örneğin {0}/tcp ve 5353/udp’ye izin verin:</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>Pano paylaşılsın mı?</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} bağlanmak istiyor. Bir pencere ona güvenip güvenmediğinizi soruyor. Ekranınızda arayın.</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} kullanılabilir. Sürüm sayfasını açmak için tıklayın.</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepad bu bilgisayarı denetleyemiyor</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Edgepad başlatılamadı</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>Sistem tepsisi simgesi kurulamadı. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0}, bilgisayarla telefonun birbiriyle konuşma biçimini değiştiriyor. Eşleşen telefon uygulamasını da yükleyin, yoksa bağlanmazlar. Bilgisayar güncellemesi şimdi yüklensin mi?</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} indirildi ve denetlendi, ancak bu kopya yalnızca bir yöneticinin değiştirebileceği bir yere yüklü. Bir terminal açıp şunu çalıştırın:</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>Güncelleme yüklenemedi ve hiçbir şey değişmedi. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>Bu şimdi geçerli, ancak kaydedilemedi; bu yüzden yeniden başlatınca eski haline dönecek. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>Oturum açılınca başlatma ayarı değiştirilemedi. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>Güvenilen tüm telefonlar ({0}) unutulsun mu? Her telefonun, bu da dahil, bu bilgisayarı kullanabilmesi için burada yeniden güvenilir yapılması gerekir.</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>Güvenilen telefonlar unutulsun mu? Her telefonun, bu da dahil, bu bilgisayarı kullanabilmesi için burada yeniden güvenilir yapılması gerekir.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>Wi-Fi ve USB eşleştirmeleri unutulamadı: dosyaları silinemedi veya boşaltılamadı. Edgepad çalıştığı sürece eşleştirilmiş telefonlar Wi-Fi veya USB ile yeniden bağlanamaz, ancak bir sonraki başlatmada bağlanabilir. «Güvenlik…» içinde «Tümünü unut…» seçeneğini yeniden seçin veya paired-links.txt dosyasını şu konumdan kendiniz silin:</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>Güvenilen telefonlar unutulamadı: dosyaları silinemedi veya boşaltılamadı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak Edgepad bir sonraki başlatıldığında bu telefonlar yeniden güvenilir olacak. Dosyayı tutan şeyi kapatın ve «Güvenlik…» içinde «Tümünü unut…» seçeneğini yeniden seçin veya dosyayı kendiniz silin:</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>PIN giren telefonlar unutulamadı: listeleri silinemedi. Edgepad çalıştığı sürece her telefondan her bağlantıda PIN istenir, ancak Edgepad bir sonraki başlatıldığında bu telefonlar 2. düzeyde PIN’i yine atlayacak. «Güvenlik…» içinde «Tümünü unut…» seçeneğini yeniden seçin veya pin-verified.txt dosyasını şu konumdan kendiniz silin:</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>Telefona dosya gönder</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>Bağlı telefon yok. Telefonu bağlayın, sonra dosyayı yeniden gönderin.</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>{0} telefona gönderildi.</value>
+  </data>
+  <data name="Send_Cancelled" xml:space="preserve">
+    <value>{0} gönderimi iptal edildi.</value>
+  </data>
+  <data name="Send_NotSent" xml:space="preserve">
+    <value>{0} gönderilemedi ({1}).</value>
+  </data>
+  <data name="Send_Failed" xml:space="preserve">
+    <value>{0} gönderilemedi. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Güvenlik</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Her telefonun önce burada sizin onayınızı alması gerekir. 2. ve 3. düzeyler ayrıca telefonun ekranında yazılan altı basamaklı bir PIN ister. Bu pencere açıkken telefonların bağlantısı kesilir.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Yalnızca güven</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>Telefon başına bir kez PIN</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>Her bağlantıda PIN</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>PIN belirle…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>PIN’i değiştir…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Yeni bir PIN kaydedilecek.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>Bir PIN belirlendi.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>PIN belirlenmedi.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Yeni bir PIN veya düzeyi kaydetmek, PIN’i bir kez girmiş telefonlardan onu yeniden girmelerini ister.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Güvenilen telefonlar</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>Tümünü unut…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>PIN’i sıfırla ve telefonları unut…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Kaydet</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Henüz güvenilen telefon yok. Bir telefon ilk kez bağlandığında size sorulur.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>Bu bilgisayarı kullanabilmesi için {0} ({1}) cihazına burada yeniden güvenmeniz gerekir. Siz karar verirken telefonların bağlantısı kesik kalır.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>{0} klasöründeki Edgepad dosyalarını başka hiçbir şey kullanmıyorken “Unut” seçeneğini yeniden deneyin. {1} tam olarak unutulamadı: bir dosya yeniden yazılamadı. Diskte güvenilir olarak kalır, ancak Edgepad yeniden başlatılana kadar Edgepad onu reddeder; yeniden unutmazsanız bundan sonra yine güvenilir olur.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>PIN kaydedilemedi, bu yüzden hiçbir şey değişmedi. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>Düzey kaydedilemedi, bu yüzden önceki düzey geçerli kalıyor. Nedeni günlükte yazıyor.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>PIN silinir, düzey 1’e döner ve güvenilen her telefon unutulur. Bağlı olan telefon dahil her telefona burada yeniden güvenmeniz gerekir. Unutulan bir PIN geri alınamaz, yalnızca sıfırlanabilir.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Dosyayı tutan şeyi kapatın, sonra “PIN’i sıfırla ve telefonları unut” seçeneğini yeniden seçin ya da dosyayı kendiniz silin:
+{0}
+Hiçbir şey sıfırlanmadı: güvenilen telefonlar unutulamadı, bu yüzden PIN ve düzey olduğu gibi bırakıldı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad’in bir sonraki başlayışında aynı PIN’le yine güvenilir olur.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Dosyayı tutan şeyi kapatın, sonra “PIN’i sıfırla ve telefonları unut” seçeneğini yeniden seçin ya da security.txt ve pin-verified.txt dosyalarını şu klasörden kendiniz silin:
+{0}
+Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kaldırılamadı, bu yüzden eski PIN ve düzey hâlâ geçerli olabilir. Her telefonun burada yeniden güvenilir olarak işaretlenmesi gerekir.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Güven</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Güvenme</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>{0} cihazına güvenilsin mi?</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Eşleşmiş bir telefon bu bilgisayarın işaretçisini ve klavyesini denetlemek istiyor. Yalnızca size aitse güvenin. {0} sn içinde yanıt vermezseniz güvenilmez.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>Yeni PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>Yeni PIN’i yeniden girin</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Altı basamak</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Yeniden</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>Bu PIN’i kullan</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>PIN tam olarak altı basamaklı olmalıdır.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>İki PIN aynı değil.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Makrolar</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Henüz makro yok</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Ad</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Bağımsız değişkenler</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>isteğe bağlı</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Kaldır</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Gözat…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Makro ekle</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Yeni makro</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}” için açılacak bir şey yok. Neyi açacağını seçin ya da kaldırın.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Makrolar {0} konumuna kaydedilemedi: {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Bu düğmenin neyi açacağını seçin</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Telefonda gösterilen eşleştirme kodunu yazın:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Telefonda gösterilen eşleştirme kodu</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Telefon eşleştir</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>{0} eşleştirilsin mi?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Eşleştir</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Kapat</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Eşleştirme kodu denetleniyor</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>{0} sn içinde kapanır</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} telefondan geldi.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>İstek {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>Her makro telefonda bir düğmedir. En fazla {0}.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>Program, dosya, klasör veya bağlantı</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>Uygulama ekle</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>Bu dizüstü bilgisayarda uygulama bulunamadı.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Ekle</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Edgepad açıklaması</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Sıfırla</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>Entegrasyonlar…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Geliştirici modu</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>Geliştirici entegrasyonları…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Entegrasyonlar</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Buradaki her şey siz açana kadar kapalıdır.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Sistem verilerini telefonda göster</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Hava durumunu telefonda göster</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Şehir</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>open-meteo.com’a yalnızca şehir adını gönderir.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Bağlan</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Bağlantıyı kes</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Bağlı · son sinyal {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Bağlı değil</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} bu bilgisayarda bulunamadı</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad bunu sizin için çalıştıramadı. Bu komutları bir terminalde çalıştırın:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Kopyala</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Codex’te /hooks’u açın ve Edgepad’e güvenin.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Codex’in eklentiye güvenmesi bekleniyor…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Codex’i 0.159 veya daha yeni bir sürüme güncelleyin.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Açık oturumları yeniden başlatın ya da Claude Code’da /reload-plugins çalıştırın.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Geliştiriciler için</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>GitHub ile oturum aç</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Oturumu kapat</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Kodunuz: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device adresini aç</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Tarayıcıda onaylamanız bekleniyor…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Özel depoları dahil et</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>{0} olarak oturum açıldı</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Oturum açma bu sürümde ayarlanmamış.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>hiç</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>Oturum açma tamamlanmadı. Yeniden deneyin.</value>
+  </data>
+  <data name="Integrations_NotEncrypted" xml:space="preserve">
+    <value>Kullanılabilir bir anahtar zinciri yoktu, bu yüzden GitHub oturumunuz şifrelenmemiş özel bir dosyada tutuluyor.</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Henüz kurmadıysanız Claude Code’u bu bilgisayara kurun: claude.com/claude-code
+2. Bağlan’a tıklayın. Edgepad, eklentisini Claude Code’a ekler.
+3. Açık Claude Code oturumlarını yeniden başlatın ya da bu oturumlarda /reload-plugins yazın.
+4. Telefonunuzda Controls > AI’ı açın.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Henüz kurmadıysanız Codex’i bu bilgisayara kurun: developers.openai.com/codex
+2. Bağlan’a tıklayın. Edgepad, eklentisini Codex’e ekler.
+3. Codex’te /hooks yazın ve Edgepad’e güvenin. Codex uygulamasında: Settings > Hooks > Review hooks.
+4. Telefonunuzda Controls > AI’ı açın. Codex ilk olayını gönderdiğinde görünür.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. GitHub ile oturum aç’a tıklayın. Bir github.com sayfası açılır.
+2. Burada gösterilen kodu girin ve Authorize’a tıklayın.
+3. Telefonunuzda Controls > GitHub’ı açın.</value>
+  </data>
+  <data name="Notice_CodexTrustTitle" xml:space="preserve">
+    <value>Codex yeniden onayınızı istiyor</value>
+  </data>
+  <data name="Notice_CodexTrust" xml:space="preserve">
+    <value>Edgepad güncellendi. Codex’te /hooks yazın ve Edgepad’e güvenin; aksi halde onaylar telefon yerine terminalde kalır.</value>
+  </data>
+</root>

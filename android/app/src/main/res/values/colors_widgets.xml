@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The stat cards' hues, light set. Each is at least 3:1 on the card (#FBFBFD) as a graphic: green 4.3:1,
+       red 4.5:1, blue is the accent 5.3:1, amber 4.6:1, teal 4.1:1. -->
+  <color name="stat_cpu">#1E8A3C</color>
+  <color name="stat_gpu">#D63A52</color>
+  <color name="stat_ram">#0068D6</color>
+  <color name="stat_vram">#B35C00</color>
+  <color name="stat_net">#00808A</color>
+</resources>

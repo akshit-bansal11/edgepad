@@ -56,6 +56,33 @@ case "$appearances" in
 esac
 cp Resources/edgepad.icns "$app/Contents/Resources/edgepad.icns" || { echo "bundle.sh: macos/Resources/edgepad.icns is missing; run scripts/icons.sh (CI job icons) and commit it" >&2; exit 1; }
 
+# SwiftPM puts the app's and the core's translated words in <target>.bundle folders beside the executable;
+# Bundle.module finds them in Contents/Resources. They hold the <lang>.lproj folders that
+# scripts/resx-to-lproj.ps1 wrote. If ad hoc codesign rejects the nested bundles, copy only their .lproj folders.
+for b in "$bin"/*.bundle; do
+    if [ -d "$b" ]; then cp -R "$b" "$app/Contents/Resources/"; fi
+done
+# The permission prompts read InfoPlist.strings from the app bundle itself, not from a SwiftPM bundle.
+for s in Sources/Edgepad/Resources/*.lproj/InfoPlist.strings; do
+    if [ -f "$s" ]; then
+        lproj="$app/Contents/Resources/$(basename "$(dirname "$s")")"
+        mkdir -p "$lproj"
+        cp "$s" "$lproj/InfoPlist.strings"
+    fi
+done
+
+# The Claude Code and Codex plugin the Integrations window installs: its templates are stamped per agent at Connect
+# (PluginStamp). Its hooks run this app (`--hook`), so the Node scripts are left out: nobody needs Node. Missing, the
+# build stops: Connect would have nothing to install.
+plugin="../plugins/edgepad"
+if [ ! -f "$plugin/hooks/hooks.claude.json" ] || [ ! -f "$plugin/hooks/hooks.codex.json" ]; then
+    echo "bundle.sh: plugins/edgepad is missing or has no hooks templates" >&2
+    exit 1
+fi
+mkdir -p "$app/Contents/Resources/plugins"
+cp -R "$plugin" "$app/Contents/Resources/plugins/edgepad"
+rm -rf "$app/Contents/Resources/plugins/edgepad/scripts"
+
 # CFBundleVersion takes numbers only, so a draft's "-draft.45" suffix stays on the display version alone.
 # NSLocalNetworkUsageDescription and NSBonjourServices are for the Wi-Fi link's Bonjour listener. Whether macOS asks
 # them of an app that only publishes a service is unverified; with them the Local Network prompt has a reason to show.
@@ -84,12 +111,47 @@ cat > "$app/Contents/Info.plist" <<EOF
   <string>$version</string>
   <key>CFBundleVersion</key>
   <string>${version%%-*}</string>
+  <key>CFBundleDocumentTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleTypeName</key>
+      <string>Any file</string>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+      <key>LSHandlerRank</key>
+      <string>None</string>
+      <key>LSItemContentTypes</key>
+      <array>
+        <string>public.data</string>
+      </array>
+    </dict>
+  </array>
+  <key>CFBundleLocalizations</key>
+  <array>
+    <string>en</string>
+    <string>ar</string>
+    <string>de</string>
+    <string>es</string>
+    <string>fr</string>
+    <string>hi</string>
+    <string>it</string>
+    <string>ja</string>
+    <string>ko</string>
+    <string>nl</string>
+    <string>pl</string>
+    <string>pt-BR</string>
+    <string>ru</string>
+    <string>tr</string>
+    <string>zh-Hans</string>
+  </array>
   <key>LSMinimumSystemVersion</key>
   <string>13.0</string>
   <key>LSUIElement</key>
   <true/>
   <key>NSHighResolutionCapable</key>
   <true/>
+  <key>NSAppleEventsUsageDescription</key>
+  <string>Edgepad asks Music or Spotify where the song is and moves it when you seek on the phone, and sleeps or shuts down this Mac when you ask the phone to at the end of the media.</string>
   <key>NSBluetoothAlwaysUsageDescription</key>
   <string>Edgepad uses Bluetooth to listen for the phone you have paired with this Mac.</string>
   <key>NSDesktopFolderUsageDescription</key>

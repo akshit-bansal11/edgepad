@@ -196,6 +196,24 @@ public sealed class AnnotateTests
     }
 
     [Fact]
+    public void TheForegroundTokenIsOfferedOnlyWhenAsked()
+    {
+        Assert.DoesNotContain("foreground", Annotator.Features(annotate: true));
+        Assert.EndsWith("/foreground", Annotator.Features(annotate: true, foreground: true), StringComparison.Ordinal);
+        Assert.Equal("capture/foreground", Annotator.Features(annotate: false, foreground: true));
+    }
+
+    [Fact]
+    public void TheLaserIsTakenWhenAnnotatingAndDroppedWhenSigning()
+    {
+        var board = new StrokeBoard();
+        board.Begin(BoardMode.Annotate);
+        Assert.True(board.SetTool(StrokeTool.Laser));
+        board.Begin(BoardMode.Sign);
+        Assert.False(board.SetTool(StrokeTool.Laser));
+    }
+
+    [Fact]
     public void AnX11WindowThatIsSeeThroughAndClickThroughOffersAnnotate() =>
         Assert.Equal("annotate/capture", Annotator.Features(Annotator.Refusal("XID", transparent: true, () => true) is null));
 

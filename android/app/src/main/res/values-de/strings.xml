@@ -29,6 +29,7 @@
   <string name="address_connect">Verbinden</string>
   <string name="address_looking">Suche Laptop unter %1$s…</string>
   <string name="address_invalid">Das ist keine Adresse. Gib einen Hostnamen oder eine IP-Adresse ein, bei einem anderen Port als 47321 mit Port.</string>
+  <string name="address_bad_port">Der Port muss eine Zahl von 1 bis 65535 sein.</string>
   <string name="address_no_laptop">Unter dieser Adresse hat sich kein Laptop mit Edgepad gemeldet.</string>
   <string name="usb_tethering">USB-Tethering</string>
   <string name="local_network_needed">Edgepad braucht die Berechtigung „Geräte in der Nähe“, um Laptops in deinem WLAN und per USB zu finden.</string>
@@ -106,9 +107,9 @@
   <string name="pair_expires">Läuft ab in %1$s</string>
   <string name="pair_expired">Abgelaufen</string>
   <string name="pair_confirm_title">Hat %1$s gemeldet, dass der Code stimmt?</string>
-  <string name="pair_confirm_body">Wenn der Code als falsch gemeldet wurde, tippe auf „Nein“: Möglicherweise antwortet ein anderes Gerät an seiner Stelle.</string>
-  <string name="pair_confirm_yes">Ja, gekoppelt</string>
-  <string name="pair_confirm_no">Nein</string>
+  <string name="pair_confirm_body">Wenn der Code als falsch gemeldet wurde, tippe auf „Stimmen nicht überein“: Möglicherweise antwortet ein anderes Gerät an seiner Stelle.</string>
+  <string name="pair_confirm_yes">Codes stimmen überein</string>
+  <string name="pair_confirm_no">Stimmen nicht überein</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop nicht erreichbar</string>
@@ -163,8 +164,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 Regler, geteilt</string>
   <string name="media_layout_title">Medienanordnung</string>
-  <string name="media_layout_hint_upright">Das ist die Anordnung im Hochformat; drehe das Handy, um die im Querformat einzurichten. Zieh ein Element, um es zu verschieben. Es rastet am Raster und an den Mittellinien ein.</string>
-  <string name="media_layout_hint_sideways">Das ist die Anordnung im Querformat; drehe das Handy, um die im Hochformat einzurichten. Zieh ein Element, um es zu verschieben. Es rastet am Raster und an den Mittellinien ein.</string>
   <string name="piece_now_playing">Aktuelle Wiedergabe</string>
   <string name="piece_transport">Zurück · Wiedergabe · Weiter</string>
   <string name="media_layout_reset">Positionen zurücksetzen</string>
@@ -285,7 +284,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Zeichnen</string>
   <string name="shapes_target_title">Was sie auslöst</string>
-  <string name="shapes_draw_hint">Zeichne sie in einem Zug und setze am Ende ab.</string>
   <string name="shapes_redraw">Neu zeichnen</string>
   <string name="shapes_save">Speichern</string>
   <string name="shapes_delete">Löschen</string>
@@ -413,7 +411,11 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Steuerung</string>
-  <string name="controls_move_hint">Halte eine Kachel gedrückt, um sie zu verschieben.</string>
+  <string name="controls_edit">Bearbeiten</string>
+  <string name="controls_edit_hint">Tippe auf eine Kachel, um sie aus- oder einzublenden. Halte sie gedrückt und ziehe sie, um sie zu verschieben.</string>
+  <string name="controls_hidden">Ausgeblendet</string>
+  <string name="controls_all_hidden">Alle Kacheln sind ausgeblendet. Tippe auf Bearbeiten, um sie wieder anzuzeigen.</string>
+  <string name="controls_toggle_tile">%1$s aus- oder einblenden</string>
   <string name="controls_hide_dials">Regler und Medien ausblenden</string>
   <string name="controls_blackout">Bei Inaktivität abdunkeln</string>
   <string name="controls_open">%1$s öffnen</string>
@@ -432,10 +434,8 @@
   <string name="capture_stop">Aufzeichnung beenden</string>
   <string name="capture_recording">Aufzeichnung läuft auf dem Laptop. Tippe auf „Aufzeichnung beenden“; bei „Speichern auf: Handy“ kommt die Datei dann an.</string>
   <string name="capture_sent">An den Laptop gesendet: %1$s</string>
-  <string name="capture_hint">Für einen Bereich tippe auf „Bereich“, halte dann einen Finger kurz still auf dem Touchpad und bewege ihn, um den Bereich aufzuziehen.</string>
-  <string name="capture_save_to">Speichern auf</string>
+  <string name="capture_drag_caption">Ziehen, um den Bereich zu wählen</string>
   <string name="capture_save_laptop">Laptop</string>
-  <string name="capture_save_phone">Handy</string>
   <string name="capture_receiving">Empfange %1$s, %2$d %%</string>
   <string name="capture_saved">Gespeichert unter %1$s</string>
   <string name="capture_bad_hash">Die Aufnahme ist beschädigt angekommen. Sie liegt weiterhin auf dem Laptop.</string>
@@ -446,8 +446,6 @@
   <string name="capture_send_failed">Der Laptop konnte die Aufnahme nicht senden. Sie liegt weiterhin auf dem Laptop.</string>
   <string name="controls_annotate">Zeichnen</string>
   <string name="annotate_description">Stiftfläche: Eine Berührung zeichnet an derselben Stelle auf dem Laptop-Bildschirm. Funktioniert nur per Touch.</string>
-  <string name="annotate_hint">Zeichne hier. Die Tinte erscheint an derselben Stelle auf dem Laptop.</string>
-  <string name="annotate_hint_named">Zeichne hier. Die Tinte erscheint an derselben Stelle auf %1$s.</string>
   <string name="annotate_menu">Zeichenwerkzeuge</string>
   <string name="annotate_menu_expanded">Ausgeklappt</string>
   <string name="annotate_menu_collapsed">Eingeklappt</string>
@@ -514,7 +512,7 @@
   <string name="apps_add_from_laptop">Vom Laptop hinzufügen</string>
   <string name="apps_add_caption">Wähle eine App aus der Liste des Laptops, und sie wird dort zu einem Makro. Gesendet wird nur deine Auswahl.</string>
   <string name="apps_title">Makro hinzufügen</string>
-  <string name="apps_search_hint">Apps suchen</string>
+  <string name="apps_search_hint">Apps suchen, z. B. Chrome</string>
   <string name="apps_loading">Suche Apps auf %1$s…</string>
   <string name="apps_none">%1$s hat keine Apps aufgelistet.</string>
   <string name="apps_no_match">Keine App passt zu dieser Suche.</string>
@@ -553,4 +551,62 @@
   <string name="battery_percent">%1$d %%</string>
   <string name="battery_more">+%1$d</string>
   <string name="battery_summary">Akkus: %1$s</string>
+  <string name="updates_later">Später</string>
+  <string name="updates_skip">Diese Version überspringen</string>
+  <string name="updates_notify_text">Edgepad %1$s ist verfügbar. Zum Aktualisieren tippen.</string>
+  <string name="end_action_title">Schlafen, wenn das endet</string>
+  <string name="end_sleep">Laptop in den Ruhezustand</string>
+  <string name="end_shutdown">Laptop herunterfahren</string>
+  <string name="end_cancel">Abbrechen</string>
+  <string name="end_armed_sleep">Ruhezustand, wenn das endet</string>
+  <string name="end_armed_shutdown">Herunterfahren, wenn das endet</string>
+  <string name="end_no_timeline">Das hat keine Endzeit, also gibt es nichts abzuwarten.</string>
+  <string name="unavailable_unsupported">Dieser Laptop kann das nicht.</string>
+  <string name="unavailable_off">Das ist am Laptop ausgeschaltet.</string>
+  <string name="unavailable_no_tool">Dem Laptop fehlt ein Programm, das dafür nötig ist.</string>
+  <string name="unavailable_no_permission">Der Laptop hat das noch nicht erlaubt.</string>
+  <string name="capture_recording_laptop">Aufnahme auf dem Laptop</string>
+  <string name="xfer_send">Datei senden</string>
+  <string name="xfer_sending">%1$s wird gesendet · %2$d%%</string>
+  <string name="xfer_receiving">%1$s wird empfangen · %2$d%%</string>
+  <string name="xfer_done">%1$s gespeichert</string>
+  <string name="xfer_failed">%1$s konnte nicht gesendet werden</string>
+  <string name="xfer_cancel">Abbrechen</string>
+  <plurals name="xfer_too_many">
+    <item quantity="one">Nur die ersten %1$d Dateien wurden eingereiht</item>
+    <item quantity="other">Nur die ersten %1$d Dateien wurden eingereiht</item>
+  </plurals>
+  <string name="xfer_sending_n">%1$s wird gesendet (%2$d von %3$d) · %4$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">%1$d Datei gesendet</item>
+    <item quantity="other">%1$d Dateien gesendet</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">%1$d Datei empfangen</item>
+    <item quantity="other">%1$d Dateien empfangen</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">%1$d von %2$d Datei gesendet</item>
+    <item quantity="other">%1$d von %2$d Dateien gesendet</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d Datei wurde nicht gesendet</item>
+    <item quantity="other">%1$d Dateien wurden nicht gesendet</item>
+  </plurals>
+  <plurals name="xfer_card_more">
+    <item quantity="one">und %1$d weitere</item>
+    <item quantity="other">und %1$d weitere</item>
+  </plurals>
+  <plurals name="xfer_share_count">
+    <item quantity="one">%1$d Datei</item>
+    <item quantity="other">%1$d Dateien</item>
+  </plurals>
+  <string name="xfer_card_cancelling">Wird abgebrochen…</string>
+  <string name="xfer_retry">Erneut versuchen</string>
+  <string name="xfer_card_a11y">Dateiübertragung</string>
+  <string name="xfer_no_laptop">Verbinde zuerst einen Laptop</string>
+  <string name="xfer_channel">Dateiübertragungen</string>
+  <string name="notify_channel">Laptop-Benachrichtigungen</string>
+  <string name="notify_setting">Laptop-Benachrichtigungen anzeigen</string>
+  <string name="notify_setting_hint">Der gleiche Schalter muss im Edgepad-Menü des Laptops eingeschaltet sein.</string>
 </resources>

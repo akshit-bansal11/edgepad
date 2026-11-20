@@ -482,4 +482,327 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi 和 USB：手机可能找不到这台电脑。</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>以管理员身份重新启动</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>让 Edgepad 能在任务管理器等提升权限的窗口中输入。锁屏和 UAC 提示仍无法输入。</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>安装 Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>稍后</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>跳过此版本</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} 可用。点击即可安装。</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>无法验证 Edgepad {0}，因此未安装。</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>无法安装 Edgepad {0}。点击打开发布页面。</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>这是主要版本。请同时更新手机上的 Edgepad，否则两者会互相拒绝。 现在安装吗？</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>正在关机</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>媒体已结束。这台笔记本将在 {0} 秒后关机。</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>向手机发送文件…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>已从手机收到 {0}。</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>无法接收 {0}。</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>在手机上显示通知</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>安装</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>暂不</value>
+  </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>剪贴板历史记录(&amp;H)</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>此笔记本电脑和手机最近的复制内容。仅保存在内存中。</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>剪贴板</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>尚未复制任何内容</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>来自此笔记本电脑和手机的复制内容会显示在这里。</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>在托盘菜单中开启“共享剪贴板”，即可在此查看复制内容。</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>全部清除</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>此笔记本电脑</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>手机</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>刚刚</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} 分钟前</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} 小时前</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} 天前</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>发送到手机</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>已发送到手机</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>无法发送。请检查连接。</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>已复制。按 Ctrl+V 粘贴。</value>
+  </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>无法使用剪贴板。请重试。</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V 已被其他应用占用，因此快捷键已关闭。</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>正在发送到手机</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>正在从手机接收</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0}/{1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0}/{1} · {2}/秒</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0}/{1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>已发送 {0}</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>已发送文件：{0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>已发送文件：{0}/{1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>已接收文件：{0}</value>
+  </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>已接收文件：{0}/{1}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} 未发送</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>未发送文件：{0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>正在取消…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>重试</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>没有已连接的手机。</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>已跳过 {0}：为空、缺失或超过 2 GB。</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>手机拒绝了它，可能是空间不足。</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>文件到达时已损坏。请重试。</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>手机无法保存它。</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>手机正忙于处理另一个文件。</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>手机已停止响应。</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>连接已断开。</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>此笔记本电脑无法读取该文件。</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>已取消。</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>未发送。</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>集成(&amp;I)…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>开发者模式</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>开发者集成…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>集成</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>这里的所有功能在你打开之前都是关闭的。</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>在手机上显示系统统计</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>在手机上显示天气</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>城市</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>只会把城市名称发送到 open-meteo.com。</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>连接</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>断开连接</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>已连接 · 上次收到 {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>未连接</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>在这台电脑上找不到 {0}</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad 无法替你运行。请在终端中运行以下命令：</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>在 Codex 中打开 /hooks 并信任 Edgepad。</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>正在等待 Codex 信任插件…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>请将 Codex 更新到 0.159 或更新版本。</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>请重启已打开的会话，或在 Claude Code 中运行 /reload-plugins。</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>开发者</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>使用 GitHub 登录</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>退出登录</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>你的代码：{0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>打开 github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>正在等待你在浏览器中批准…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>包括私有仓库</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>已登录为 {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>此版本未设置登录。</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>从未</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>正在处理…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. 如果还没有安装，请在这台电脑上安装 Claude Code：claude.com/claude-code
+2. 点击“连接”。Edgepad 会把它的插件添加到 Claude Code。
+3. 重启已打开的 Claude Code 会话，或在其中输入 /reload-plugins。
+4. 在手机上打开 Controls > AI。</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. 如果还没有安装，请在这台电脑上安装 Codex：developers.openai.com/codex
+2. 点击“连接”。Edgepad 会把它的插件添加到 Codex。
+3. 在 Codex 中输入 /hooks 并信任 Edgepad。在 Codex 应用中：Settings > Hooks > Review hooks。
+4. 在手机上打开 Controls > AI。Codex 发送第一个事件后就会出现。</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. 点击“使用 GitHub 登录”。会打开一个 github.com 页面。
+2. 输入这里显示的代码，然后点击 Authorize。
+3. 在手机上打开 Controls > GitHub。</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex 需要你再次同意</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad 已更新。请在 Codex 中输入 /hooks 并信任 Edgepad，否则审批会留在终端里，而不会到达手机。</value>
+  </data>
 </root>

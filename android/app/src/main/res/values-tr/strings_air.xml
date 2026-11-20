@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="controls_air_mouse">Hava faresi</string>
+  <string name="air_how">Başparmağınızı dokunmatik yüzeye koyun, sonra telefonu sola veya sağa çevirip yukarı veya aşağı eğin. Bu açıkken parmağı basılı tutmak sürüklemez.</string>
+  <string name="air_caption">Parmağınız dokunmatik yüzeydeyken imleci hareket ettirmek için telefonu eğin. Hareket sensörü yalnızca o zaman okunur.</string>
+  <string name="air_sensitivity">Hassasiyet</string>
+  <string name="air_dead_zone">Ölü bölge</string>
+  <string name="air_no_sensor">Bu telefonda jiroskop yok.</string>
+  <string name="controls_floating">Yüzen kadranlar</string>
+  <string name="floating_caption">Kadranları diğer uygulamaların üstünde gösterir. Diğer uygulamaların üzerinde görüntüleme izni gerekir.</string>
+  <string name="floating_permission">Ayarlarda izin ver</string>
+  <string name="floating_needs_link">Önce bir dizüstüne bağlanın.</string>
+  <string name="floating_needs_stay">Kadranları diğer uygulamaların üstünde tutmak için Bağlı kal seçeneğini açın.</string>
+</resources>

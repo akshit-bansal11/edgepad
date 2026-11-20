@@ -189,6 +189,66 @@ sealed interface Frame {
         override fun toString(): String = "BlobEnd(${sha256.joinToString("") { "%02x".format(it) }})"
     }
 
+    /**
+     * The first frame of the second socket the phone opens for transfers, HELLO's shape: the magic and the protocol
+     * version. The laptop closes that socket on a version it does not speak.
+     */
+    data class BulkHello(
+        val version: Int,
+    ) : Frame
+
+    /**
+     * The start of a transfer in either direction. [id] is 1..255, never 0. [size] is the whole file in bytes and
+     * [name] its file name with no folder, at most [FrameCodec.MAX_XFER_NAME_BYTES] bytes of UTF-8.
+     */
+    data class XferBegin(
+        val id: Int,
+        val size: ULong,
+        val name: String,
+    ) : Frame
+
+    /**
+     * One piece of a transfer: [offset] is the full byte offset of the first byte of [data], which replaces the
+     * sequence number mod 256 of the file frames. [data] is 1 to [FrameCodec.MAX_XFER_CHUNK_BYTES] bytes. Not a data
+     * class, for the reason [FileChunk] is not.
+     */
+    class XferChunk(
+        val id: Int,
+        val offset: ULong,
+        val data: ByteArray,
+    ) : Frame {
+        override fun equals(other: Any?): Boolean =
+            other is XferChunk && other.id == id && other.offset == offset && other.data.contentEquals(data)
+
+        override fun hashCode(): Int = 31 * (31 * id + offset.hashCode()) + data.contentHashCode()
+
+        override fun toString(): String = "XferChunk(id=$id, offset=$offset, ${data.size} bytes)"
+    }
+
+    /** The end of a transfer: the SHA-256 of all of it, 32 bytes. */
+    class XferEnd(
+        val id: Int,
+        val sha256: ByteArray,
+    ) : Frame {
+        override fun equals(other: Any?): Boolean =
+            other is XferEnd && other.id == id && other.sha256.contentEquals(sha256)
+
+        override fun hashCode(): Int = 31 * id + sha256.contentHashCode()
+
+        override fun toString(): String = "XferEnd(id=$id, ${sha256.joinToString("") { "%02x".format(it) }})"
+    }
+
+    /**
+     * How a transfer stands, either direction. [status] is 0 READY ([offset] is where the sender starts), 1 PROGRESS
+     * (the contiguous bytes held), 2 SAVED, 3 BAD_HASH, 4 REJECTED, 5 WRITE_FAILED, 6 CANCELLED or 7 BUSY. A status
+     * this build does not know is data, not a codec error: the receiver drops it and counts it.
+     */
+    data class XferStatus(
+        val id: Int,
+        val status: Int,
+        val offset: ULong,
+    ) : Frame
+
     /** The phone's answer to a file, one [FileStatus] id. Only [FileStatus.SAVED] lets the laptop delete its copy. */
     data class FileResult(
         val status: Int,

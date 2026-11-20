@@ -26,7 +26,7 @@
     <value>Sta&amp;rten met Windows</value>
   </data>
   <data name="Menu_Macros" xml:space="preserve">
-    <value>&amp;Macro's…</value>
+    <value>&amp;Macro’s…</value>
   </data>
   <data name="Menu_Security" xml:space="preserve">
     <value>Beveili&amp;ging…</value>
@@ -299,7 +299,7 @@
     <value>Knoppen op het macroscherm van je telefoon, maximaal 15. De telefoon stuurt het nummer van een knop, nooit een programma, dus hij kan alleen uitvoeren wat je hier toevoegt. Met Alt+Pijl-omhoog en Alt+Pijl-omlaag wijzig je de volgorde van de knoppen.</value>
   </data>
   <data name="Macro_EmptyHeadline" xml:space="preserve">
-    <value>Nog geen macro's</value>
+    <value>Nog geen macro’s</value>
   </data>
   <data name="Macro_EmptyDetail" xml:space="preserve">
     <value>Voeg een app, document, map of webadres toe. Elk daarvan wordt een knop op de telefoon.</value>
@@ -326,7 +326,7 @@
     <value>Pictogram</value>
   </data>
   <data name="Macro_Title" xml:space="preserve">
-    <value>Macro's</value>
+    <value>Macro’s</value>
   </data>
   <data name="Macro_IconPreview" xml:space="preserve">
     <value>Voorbeeld van pictogram</value>
@@ -362,13 +362,13 @@
     <value>Macro toevoegen</value>
   </data>
   <data name="Macro_Full" xml:space="preserve">
-    <value>Macro's: {0} van {0}</value>
+    <value>Macro’s: {0} van {0}</value>
   </data>
   <data name="Macro_NoRoom" xml:space="preserve">
     <value>Terwijl dit venster openstond, is er een macro vanaf je telefoon toegevoegd, maar er is geen ruimte voor. Verwijder er hier een en sla dan op.</value>
   </data>
   <data name="Macro_SaveFailed" xml:space="preserve">
-    <value>De macro's konden niet worden opgeslagen in {0}: {1}</value>
+    <value>De macro’s konden niet worden opgeslagen in {0}: {1}</value>
   </data>
   <data name="Macro_NothingToOpen" xml:space="preserve">
     <value>“{0}” heeft niets om te openen. Kies wat het opent, of verwijder het.</value>
@@ -380,7 +380,7 @@
     <value>Niet opslaan</value>
   </data>
   <data name="Macro_SaveHeading" xml:space="preserve">
-    <value>Wijzigingen in macro's opslaan?</value>
+    <value>Wijzigingen in macro’s opslaan?</value>
   </data>
   <data name="Macro_SaveText" xml:space="preserve">
     <value>Je wijzigingen gaan verloren als je ze niet opslaat.</value>
@@ -389,10 +389,10 @@
     <value>Kies wat deze knop opent</value>
   </data>
   <data name="Macro_FilterPrograms" xml:space="preserve">
-    <value>Programma's en documenten (*.*)</value>
+    <value>Programma’s en documenten (*.*)</value>
   </data>
   <data name="Macro_FilterIcons" xml:space="preserve">
-    <value>Pictogrammen, programma's en afbeeldingen (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
+    <value>Pictogrammen, programma’s en afbeeldingen (*.ico;*.exe;*.dll;*.png;*.bmp;*.jpg)</value>
   </data>
   <data name="Macro_FilterAll" xml:space="preserve">
     <value>Alle bestanden (*.*)</value>
@@ -462,5 +462,328 @@
   </data>
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi en USB: telefoons vinden deze laptop mogelijk niet.</value>
+  </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Opnieuw starten als administrator</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Laat Edgepad typen in vensters met verhoogde rechten, zoals Taakbeheer. Het vergrendelscherm en UAC-meldingen blijven buiten bereik.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} installeren</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Deze versie overslaan</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} is beschikbaar. Klik om te installeren.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} kon niet worden gecontroleerd en is daarom niet geïnstalleerd.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0} kon niet worden geïnstalleerd. Klik om de releasepagina te openen.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>Dit is een grote release. Werk Edgepad ook op de telefoon bij, anders weigeren ze elkaar. Nu installeren?</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Afsluiten</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>De media is afgelopen. Deze laptop sluit af over {0} seconden.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Annuleren</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Een bestand naar de telefoon sturen…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} is van de telefoon aangekomen.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0} kon niet worden ontvangen.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Meldingen op de telefoon tonen</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Installeren</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Niet nu</value>
+  </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>Klembord&amp;historie</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Recente kopieën van deze laptop en de telefoon. Alleen in het geheugen bewaard.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Klembord</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Nog niets gekopieerd</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Kopieën van deze laptop en de telefoon verschijnen hier.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Zet Klembord delen aan in het systeemvakmenu om je kopieën hier te zien.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Alles wissen</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Deze laptop</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Telefoon</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Zojuist</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} min geleden</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} u geleden</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} d geleden</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Naar telefoon sturen</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Verwijderen</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Naar telefoon gestuurd</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>Versturen mislukt. Controleer de verbinding.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Gekopieerd. Druk op Ctrl+V om te plakken.</value>
+  </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Het klembord kon niet worden gebruikt. Probeer het opnieuw.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V wordt door een andere app gebruikt, dus de sneltoets staat uit.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Naar telefoon versturen</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>Van telefoon ontvangen</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} van {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} van {1} · {2}/s</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} van {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} verstuurd</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Verstuurde bestanden: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Verstuurde bestanden: {0} van {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Ontvangen bestanden: {0}</value>
+  </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Ontvangen bestanden: {0} van {1}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} is niet verstuurd</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Niet verstuurde bestanden: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Annuleren…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Opnieuw proberen</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Sluiten</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>Er is geen telefoon verbonden.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} overgeslagen: leeg, ontbreekt of groter dan 2 GB.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>De telefoon weigerde het. Mogelijk is er geen ruimte meer.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Het kwam beschadigd aan. Probeer het opnieuw.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>De telefoon kon het niet opslaan.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>De telefoon was bezig met een ander bestand.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>De telefoon reageert niet meer.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>De verbinding is verbroken.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Deze laptop kon het bestand niet lezen.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Geannuleerd.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>Niet verstuurd.</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>In&amp;tegraties…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Ontwikkelaarsmodus</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>Ontwikkelaarsintegraties…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integraties</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Alles hier staat uit tot je het aanzet.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Systeemstatistieken op de telefoon tonen</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Weer op de telefoon tonen</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Stad</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Stuurt alleen de naam van de stad naar open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Verbinden</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Loskoppelen</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Verbonden · laatst gehoord {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Niet verbonden</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} is niet gevonden op deze computer</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad kon dit niet voor je uitvoeren. Voer deze opdrachten uit in een terminal:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Kopiëren</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Open in Codex /hooks en vertrouw Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Wachten tot Codex de plug-in vertrouwt…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Werk Codex bij naar versie 0.159 of nieuwer.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Start open sessies opnieuw, of voer /reload-plugins uit in Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Voor ontwikkelaars</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Inloggen met GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Uitloggen</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Je code: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device openen</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Wachten tot je goedkeurt in de browser…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Privérepository’s meenemen</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Ingelogd als {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Inloggen is in deze build niet ingesteld.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>nooit</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Bezig…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Installeer Claude Code op deze computer als je dat nog niet hebt gedaan: claude.com/claude-code
+2. Klik op Verbinden. Edgepad voegt zijn plug-in toe aan Claude Code.
+3. Start open Claude Code-sessies opnieuw, of typ daarin /reload-plugins.
+4. Open op je telefoon Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Installeer Codex op deze computer als je dat nog niet hebt gedaan: developers.openai.com/codex
+2. Klik op Verbinden. Edgepad voegt zijn plug-in toe aan Codex.
+3. Typ in Codex /hooks en vertrouw Edgepad. In de Codex-app: Settings > Hooks > Review hooks.
+4. Open op je telefoon Controls > AI. Het verschijnt zodra Codex zijn eerste gebeurtenis stuurt.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Klik op Inloggen met GitHub. Er opent een pagina op github.com.
+2. Voer de code in die hier staat en klik op Authorize.
+3. Open op je telefoon Controls > GitHub.</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex heeft opnieuw je akkoord nodig</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad is bijgewerkt. Typ in Codex /hooks en vertrouw Edgepad, anders blijven goedkeuringen in de terminal in plaats van op je telefoon.</value>
   </data>
 </root>

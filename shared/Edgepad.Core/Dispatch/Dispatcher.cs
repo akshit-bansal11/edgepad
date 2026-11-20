@@ -4,7 +4,9 @@ using Edgepad.Annotation;
 using Edgepad.Blob;
 using Edgepad.Capture;
 using Edgepad.Macros;
+using Edgepad.Media;
 using Edgepad.Protocol;
+using Edgepad.Transfer;
 
 namespace Edgepad.Dispatch;
 
@@ -20,6 +22,7 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
 {
     private const byte MaxButton = 2;
     private const byte MaxPercent = 100;
+    private const byte MaxDashWatch = 31;
 
     /// <summary>Frames that asked for something unknown, out of range, or unavailable (no microphone).</summary>
     public int Dropped { get; private set; }
@@ -48,10 +51,43 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     public Action<bool>? MacroWatch { get; set; }
 
     /// <summary>
+    /// Told when the phone starts (true) and stops (false) hearing which app is in front. Set by the session on a laptop that can say,
+    /// like <see cref="MacroWatch"/>; without one, SET FOREGROUND_WATCH is dropped and counted.
+    /// </summary>
+    public Action<bool>? ForegroundWatch { get; set; }
+
+    /// <summary>
+    /// Told the phone's DASH_WATCH mask (0..31): which dashboard numbers it draws right now. Set by the session's integration host,
+    /// like <see cref="ForegroundWatch"/>; without one, or above 31, SET DASH_WATCH is dropped and counted.
+    /// </summary>
+    public Action<int>? DashWatch { get; set; }
+
+    /// <summary>Told the phone's DEVELOPER (true on); set by the session; without one, or for a value above 1, the frame is dropped and counted.</summary>
+    public Action<bool>? Developer { get; set; }
+
+    /// <summary>
+    /// Takes a TEXT PERM_ANSWER (<c>id/a</c> or <c>id/d</c>) and says whether it answered an approval that waits. Set by the session
+    /// (the permission broker's <c>Answer</c>); without one, or when it returns false, the frame is dropped and counted.
+    /// </summary>
+    public Func<string, bool>? PermAnswer { get; set; }
+
+    /// <summary>
     /// Shares the clipboard when the phone asks for that. Set by the session, like <see cref="Capture"/>; without one,
     /// SET CLIPBOARD and the blob frames are dropped and counted.
     /// </summary>
     public ClipboardSync? Clipboard { get; set; }
+
+    /// <summary>
+    /// Receives files from the phone. Set by the session, which also supplies the folders and the reply; without one, XFER_BEGIN,
+    /// XFER_CHUNK and XFER_END are dropped and counted.
+    /// </summary>
+    public TransferReceiver? Transfers { get; set; }
+
+    /// <summary>
+    /// Sends files to the phone; it takes the phone's answers. Set by the session, like <see cref="Transfers"/>. A CANCELLED whose id
+    /// both a send and a receive hold ends both, which only ever fails safe.
+    /// </summary>
+    public TransferSender? Sending { get; set; }
 
     /// <summary>
     /// Offers this laptop's apps to the phone as macros. Set by the session, like <see cref="Capture"/>; without one,
@@ -61,6 +97,26 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
 
     /// <summary>Where the answer to APP_ADD goes, one <see cref="AppAddStatus"/> token. Set by the session, like <see cref="PadStatusReply"/>.</summary>
     public Action<string>? AppAddReply { get; set; }
+
+    /// <summary>
+    /// Sleeps or shuts the laptop down when the media ends. Set by the session, like <see cref="Capture"/>; without one,
+    /// EndSleep, EndShutdown and EndCancel are dropped and counted, as on a laptop too old to know them.
+    /// </summary>
+    public EndAction? EndAction { get; set; }
+
+    /// <summary>
+    /// Where "recording" and "idle" go when the phone starts or cancels a recording. Best effort and only that: a recording
+    /// the owner stops on the laptop itself is never seen, so the phone may show "recording" until it next toggles.
+    /// </summary>
+    public Action<string>? CaptureStateReply { get; set; }
+
+    /// <summary>The clock for the cancel window, in milliseconds; a test moves it by hand.</summary>
+    public Func<long> Clock { get; set; } = () => Environment.TickCount64;
+
+    private const long CancelRecordingWindowMs = 8_000;
+
+    private bool recording;
+    private long recordingSince;
 
     /// <summary>When the phone last sent input, by <see cref="Environment.TickCount64"/>: a capture on its way slows down for it.</summary>
     public long LastInputMs => Interlocked.Read(ref lastInput);
@@ -125,6 +181,8 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         Text t when t.Kind == (byte)TextKind.PenRgb => PenStyle.TryParseRgb(t.Value, out var rgb) && platform.PenRgb(rgb),
         // The one phone string that can end in a macro, and it is only ever a token: see AppPicker.
         Text t when t.Kind == (byte)TextKind.AppAdd => AddApp(t.Value),
+        // Only ever "id/a" or "id/d" for an approval that waits; the broker refuses anything else.
+        Text t when t.Kind == (byte)TextKind.PermAnswer => PermAnswer?.Invoke(t.Value) ?? false,
         Key k => Do(() => platform.Key(k.Code, k.Down)),
         // A pad frame with no pad plugged in is dropped and counted like any other id this laptop
         // cannot act on. The phone is not meant to send one before its PAD_ATTACH was answered
@@ -137,6 +195,11 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         BlobBegin b => Clipboard?.Take(b) ?? false,
         BlobChunk c => Clipboard?.Take(c) ?? false,
         BlobEnd e => Clipboard?.Take(e) ?? false,
+        XferBegin x => Transfers?.Take(x) ?? false,
+        XferChunk x => Transfers?.Take(x) ?? false,
+        XferEnd x => Transfers?.Take(x) ?? false,
+        // A status answers what this laptop sends, or is the sender cancelling what it receives; each ignores the other's ids.
+        XferStatus x => (Sending?.Take(x) ?? false) | (Transfers?.Take(x) ?? false),
         _ => false,
     };
 
@@ -166,8 +229,21 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
             return false;
         }
 
-        return action switch
+        var handled = Perform(action);
+        if (handled)
         {
+            NoteCaptureState(action);
+        }
+
+        return handled;
+    }
+
+    private bool Perform(ActionId action) =>
+        action switch
+        {
+            ActionId.EndSleep => Arm(EndKind.Sleep),
+            ActionId.EndShutdown => Arm(EndKind.Shutdown),
+            ActionId.EndCancel => Disarm(),
             ActionId.PadAttach => Answer(platform.AttachPad()),
             ActionId.PadDetach => Answer(platform.DetachPad()),
             // The capture lists its folders before the shortcut is pressed, so the press can be told apart from them.
@@ -180,6 +256,34 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
             ActionId.AppsCancel => Apps?.Cancel() ?? false,
             _ => platform.Run(action),
         };
+
+    private bool Arm(EndKind kind) => EndAction?.Arm(kind) ?? false;
+
+    private bool Disarm()
+    {
+        if (EndAction is not { } end)
+        {
+            return false;
+        }
+
+        end.Cancel();
+        return true;
+    }
+
+    /// <summary>Runs after the action was handled, so a recording that never started is never reported.</summary>
+    private void NoteCaptureState(ActionId action)
+    {
+        if (action == ActionId.CaptureRecord)
+        {
+            recording = !recording;
+            recordingSince = Clock();
+            CaptureStateReply?.Invoke(recording ? CaptureStateToken.Recording : CaptureStateToken.Idle);
+        }
+        else if (action == ActionId.CaptureCancel && recording && Clock() - recordingSince < CancelRecordingWindowMs)
+        {
+            recording = false;
+            CaptureStateReply?.Invoke(CaptureStateToken.Idle);
+        }
     }
 
     private bool AddApp(string token)
@@ -208,6 +312,9 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     {
         ControlId.CaptureTarget => Capture?.SetTarget(percent) ?? false,
         ControlId.Clipboard => Clipboard?.SetShared(percent) ?? false,
+        ControlId.ForegroundWatch => ForegroundWatch is { } watch && percent <= 1 && Do(() => watch(percent == 1)),
+        ControlId.DashWatch => DashWatch is { } dash && percent <= MaxDashWatch && Do(() => dash(percent)),
+        ControlId.Developer => Developer is { } developer && percent <= 1 && Do(() => developer(percent == 1)),
         var id => Enum.IsDefined(id) && platform.Set(id, percent),
     };
 

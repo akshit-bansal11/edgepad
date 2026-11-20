@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.screens
 
 import android.app.AlertDialog
+import android.content.Context
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -46,6 +47,8 @@ class PickerScreen(
     private val onUsbHelp: () -> Unit,
     private val onDisconnectAll: () -> Unit,
     onUpdate: () -> Unit,
+    onSkip: () -> Unit = {},
+    onLater: () -> Unit = {},
 ) {
     /** One row. [active] says it is the laptop the screens and every frame go to. */
     class Device(
@@ -63,6 +66,7 @@ class PickerScreen(
     private var messageDismiss: (() -> Unit)? = null
     private var rtt = Double.NaN
     private var rttTag: TextView? = null
+    private var scanning = false
 
     /** What the rows on screen were built from, and the status each showed, so a change can be told from a repeat. */
     private var built: List<String> = emptyList()
@@ -71,6 +75,7 @@ class PickerScreen(
     private val refresh = ui.icon(Glyph.Shape.REFRESH, ui.string(R.string.refresh)) { spinAndRefresh() }
     private lateinit var updateCard: LinearLayout
     private lateinit var updateVersion: TextView
+    private lateinit var skeleton: View
     private lateinit var list: LinearLayout
     private lateinit var legend: TextView
     private lateinit var multiHint: TextView
@@ -99,10 +104,21 @@ class PickerScreen(
             updateCard =
                 card {
                     add(ui.link(ui.string(R.string.update_available), "", onUpdate) { updateVersion = it })
+                    add(
+                        ButtonPair(
+                            ui.context,
+                            ui.button(ui.string(R.string.updates_skip), Ui.Style.QUIET, onSkip),
+                            ui.button(ui.string(R.string.updates_later), Ui.Style.QUIET, onLater),
+                        ),
+                    )
                 }.apply { visibility = View.GONE }
             columns(
                 {
                     section(ui.string(R.string.paired_laptops))
+                    skeleton =
+                        card {
+                            add(ui.skeletonRows(SKELETON_ROWS, ROW_DP, TILE_DP))
+                        }.apply { visibility = View.GONE }
                     list = card {}
                     legend = footnote("")
                     multiHint = footnote(ui.string(R.string.devices_multi_hint))
@@ -190,6 +206,16 @@ class PickerScreen(
         dismissButton.visibility = if (text.isNotEmpty() && onDismiss != null) View.VISIBLE else View.GONE
     }
 
+    /**
+     * A scan is running with nothing listed yet: rows the size of the real ones hold the place of the list (UX-D15).
+     * Shown only while the list is empty, so a rescan of a list that has laptops in it draws nothing new.
+     */
+    fun setScanning(on: Boolean) {
+        if (scanning == on) return
+        scanning = on
+        render()
+    }
+
     /** The newer release to offer, shown above the list; null hides the notice. */
     fun setUpdate(version: String?) {
         updateVersion.text = version.orEmpty()
@@ -244,6 +270,7 @@ class PickerScreen(
         }
         val any = devices.isNotEmpty()
         list.visibility = if (any) View.VISIBLE else View.GONE
+        skeleton.visibility = if (scanning && !any) View.VISIBLE else View.GONE
         legend.visibility = if (any) View.VISIBLE else View.GONE
         val remembers = autoConnect && devices.any { it.row.saved?.autoConnect == true }
         legend.text = ui.string(if (remembers) R.string.devices_legend else R.string.devices_legend_off)
@@ -451,7 +478,7 @@ class PickerScreen(
         refresh
             .animate()
             .rotationBy(FULL_TURN)
-            .setDuration(Motion.BASE)
+            .setDuration(Motion.PRESS)
             .withEndAction { refresh.rotation = 0f }
             .start()
         onRefresh()
@@ -459,6 +486,11 @@ class PickerScreen(
 
     private companion object {
         const val MARK_DP = 34f
+        const val SKELETON_ROWS = 2
+
+        /** The height and tile of a laptop row, as [Ui.laptop] draws it. */
+        const val ROW_DP = 64f
+        const val TILE_DP = 36f
         const val CHIP_RADIUS_DP = 8f
 
         /** The dot is drawn 6 dp across; the rest of its box is room for the ring it sends out while connecting. */
@@ -475,3 +507,43 @@ internal val Transport.label: Int
             Transport.WIFI -> R.string.transport_wifi
             Transport.USB -> R.string.transport_usb
         }
+
+/**
+ * Two buttons at the end of a row, or stacked one above the other when together they are wider than the row,
+ * as a long translation of "Skip this version" is on a narrow phone. The orientation is settled in [onMeasure].
+ */
+private class ButtonPair(
+    context: Context,
+    private val first: View,
+    private val second: View,
+) : LinearLayout(context) {
+    /** For layout tools only (lint ViewConstructor); the app always passes its buttons. */
+    constructor(context: Context) : this(context, View(context), View(context))
+
+    private var stacked = false
+
+    init {
+        gravity = Gravity.END
+        addView(first)
+        addView(second)
+    }
+
+    override fun onMeasure(
+        widthMeasureSpec: Int,
+        heightMeasureSpec: Int,
+    ) {
+        val free = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        first.measure(free, free)
+        second.measure(free, free)
+        val room = MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight
+        val stack = Squeeze.stacks(first.measuredWidth + second.measuredWidth, room)
+        if (stack != stacked) {
+            stacked = stack
+            orientation = if (stack) VERTICAL else HORIZONTAL
+            val across = if (stack) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT
+            first.layoutParams = LayoutParams(across, ViewGroup.LayoutParams.WRAP_CONTENT)
+            second.layoutParams = LayoutParams(across, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
+}

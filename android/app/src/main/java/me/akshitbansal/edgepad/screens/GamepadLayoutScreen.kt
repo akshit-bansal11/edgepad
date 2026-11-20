@@ -685,7 +685,7 @@ object GamepadLayoutScreen {
                     .Builder(context)
                     .setTitle(titleRes)
                     .setView(field)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                    .setPositiveButton(R.string.shapes_save) { _, _ ->
                         // Nothing usable typed is nothing done: the name rules live in one place, and this is
                         // the trust boundary they guard — a name carrying a separator would corrupt the store.
                         GamepadLayout.clean(field.text.toString(), max)?.let(onName)

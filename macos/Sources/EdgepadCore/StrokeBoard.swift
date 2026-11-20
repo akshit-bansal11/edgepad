@@ -16,6 +16,10 @@ public enum StrokeTool: Int, CaseIterable {
     case arrow
     case rectangle
     case ellipse
+    /// A dot that follows the finger: one point, never stored in the board's strokes, gone at pen up.
+    case laser
+    /// The laser plus a short fading trail: its latest `Stroke.trailPoints` points, never stored, gone at pen up.
+    case laserTrail
 }
 
 /// A point as the phone sent it: 0 is the left/top edge of the Mac's screen, 65535 the right/bottom.
@@ -134,6 +138,12 @@ public final class Stroke {
     /// phone set. It is stroked once per path, so an overlapping stretch of one stroke is not darker than the rest.
     public static let highlighterAlpha: Float = 0.35
 
+    /// Either laser is always this red; its size comes from the pen width.
+    static let laserRgb: UInt32 = 0xFF_1A1A
+
+    /// How many points the trailing laser keeps behind the dot.
+    public static let trailPoints = 24
+
     /// The arrow head's wings are this many pen widths long.
     private static let headWidths: Float = 4
 
@@ -154,13 +164,20 @@ public final class Stroke {
 
     /// The colour as 0xRRGGBB, without the alpha `alpha` gives it.
     public var rgb: UInt32 {
-        style.rgb
+        isLaser ? Stroke.laserRgb : style.rgb
     }
 
     /// The ink's alpha, 0...1: the opacity the phone set, and for the highlighter that of its 35%.
     public var alpha: Float {
-        (tool == .highlighter ? Stroke.highlighterAlpha : 1) * Float(style.opacity) / 100
+        if isLaser { return 1 }
+        return (tool == .highlighter ? Stroke.highlighterAlpha : 1) * Float(style.opacity) / 100
     }
+
+    /// Either laser: sized from the pen width, never stored.
+    public var isLaser: Bool { tool == .laser || tool == .laserTrail }
+
+    /// The laser dot's radius in pixels: 0.06% of the screen's height per width step (20 is 1.2%), at least 2.
+    public func laserRadiusPx(height: Int) -> Float { max(2, Float(style.width) * 0.0006 * Float(height)) }
 
     private var isShape: Bool {
         tool == .line || tool == .arrow || tool == .rectangle || tool == .ellipse
@@ -168,7 +185,8 @@ public final class Stroke {
 
     /// The width as a share of the screen's height, so a stroke looks alike on any display; at least one pixel.
     public func widthPx(height: Int) -> Float {
-        max(1, style.penShare * (tool == .highlighter ? PenStyle.highlighterWidths : 1) * Float(height))
+        if isLaser { return 2 * laserRadiusPx(height: height) }
+        return max(1, style.penShare * (tool == .highlighter ? PenStyle.highlighterWidths : 1) * Float(height))
     }
 
     /// The points in pixels of a `width` by `height` screen, y down.
@@ -201,7 +219,12 @@ public final class Stroke {
 
     /// A shape keeps two points: the down point, then wherever the finger is now.
     func extend(_ point: NormPoint) {
-        if isShape && points.count > 1 {
+        if tool == .laser {
+            points = [point]
+        } else if tool == .laserTrail {
+            points.append(point)
+            if points.count > Stroke.trailPoints { points.removeFirst() }
+        } else if isShape && points.count > 1 {
             points[1] = point
         } else {
             points.append(point)
@@ -369,13 +392,19 @@ public final class StrokeBoard {
             return setTool(.rectangle)
         case .toolEllipse:
             return setTool(.ellipse)
+        case .toolLaser:
+            return setTool(.laser)
+        case .toolLaserTrail:
+            return setTool(.laserTrail)
         default:
             return false
         }
     }
 
     private func commit() {
-        if let open = active {
+        if active?.isLaser == true {
+            active = nil
+        } else if let open = active {
             strokes.append(open)
             committedPoints += open.points.count
             active = nil

@@ -175,4 +175,20 @@ class DeckLayoutTest {
             assertTrue(grids.all { (rows, columns) -> rows * columns >= perPage })
         }
     }
+
+    @Test
+    fun aLabelShrinksNoFurtherThanTheMicroSize() {
+        assertEquals(12f / 17f, DeckLayout.labelFloor(17f), 0.0001f)
+        assertEquals(1f, DeckLayout.labelFloor(12f), 0f)
+        assertEquals(1f, DeckLayout.labelFloor(10f), 0f)
+    }
+
+    @Test
+    fun aMoveAmongShownTilesLeavesHiddenOnesInPlace() {
+        val order = listOf(0, 1, 2, 3, 4)
+        val shown = listOf(0, 2, 4)
+        assertEquals(listOf(1, 2, 3, 4, 0), DeckLayout.moveShown(order, shown, 0, 2))
+        assertEquals(listOf(4, 0, 1, 2, 3), DeckLayout.moveShown(order, shown, 2, 0))
+        assertEquals(order, DeckLayout.moveShown(order, shown, 0, 3))
+    }
 }

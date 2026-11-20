@@ -482,4 +482,327 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-FiとUSB：スマホがこのノートPCを見つけられない可能性があります。</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>管理者として再起動</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>タスクマネージャーなど、昇格したウィンドウにも Edgepad で入力できるようにします。ロック画面と UAC の確認画面には入力できません。</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} をインストール</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>後で</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>このバージョンをスキップ</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} が利用可能です。クリックしてインストールします。</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} を確認できなかったため、インストールしませんでした。</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0} をインストールできませんでした。クリックしてリリースページを開きます。</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>これはメジャーリリースです。スマートフォンの Edgepad も更新してください。そうしないと互いに接続を拒否します。 今すぐインストールしますか？</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>シャットダウン中</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>メディアが終了しました。このノート PC は {0} 秒後にシャットダウンします。</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>スマートフォンにファイルを送信…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} をスマートフォンから受信しました。</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0} を受信できませんでした。</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>通知をスマートフォンに表示</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>インストール</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>今はしない</value>
+  </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>クリップボード履歴(&amp;H)</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>このノートPCとスマートフォンの最近のコピー。メモリ内にのみ保持されます。</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>クリップボード</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>まだ何もコピーされていません</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>このノートPCとスマートフォンのコピーがここに表示されます。</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>コピーをここに表示するには、トレイメニューで「クリップボードを共有」をオンにしてください。</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>すべてクリア</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>このノートPC</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>スマートフォン</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>たった今</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} 分前</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} 時間前</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} 日前</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>スマートフォンに送信</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>スマートフォンに送信しました</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>送信できませんでした。接続を確認してください。</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>コピーしました。Ctrl+V で貼り付けます。</value>
+  </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>クリップボードを使用できませんでした。もう一度お試しください。</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V は別のアプリが使用しているため、ショートカットはオフです。</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>スマートフォンに送信中</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>スマートフォンから受信中</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} / {1} · {2}/秒</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} を送信しました</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>送信したファイル: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>送信したファイル: {0} / {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>受信したファイル: {0}</value>
+  </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>受信したファイル: {0} / {1}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} は送信されませんでした</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>送信されなかったファイル: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>キャンセル中…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>再試行</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>接続されているスマートフォンがありません。</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} をスキップしました: 空、見つからない、または 2 GB を超えています。</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>スマートフォンが拒否しました。空き容量が不足している可能性があります。</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>破損した状態で届きました。もう一度お試しください。</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>スマートフォンが保存できませんでした。</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>スマートフォンが別のファイルを処理中でした。</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>スマートフォンが応答しなくなりました。</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>接続が失われました。</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>このノートPCはファイルを読み取れませんでした。</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>キャンセルしました。</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>送信されませんでした。</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>連携(&amp;I)…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>開発者モード</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>開発者向け連携…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>連携</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>ここにある機能は、オンにするまですべてオフです。</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>スマホにシステムの統計を表示</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>スマホに天気を表示</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>都市</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>open-meteo.com には都市名だけを送信します。</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>接続</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>切断</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>接続済み · 最終受信 {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>未接続</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>このコンピューターに {0} が見つかりません</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad では実行できませんでした。ターミナルで次のコマンドを実行してください：</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Codex で /hooks を開き、Edgepad を信頼してください。</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Codex がプラグインを信頼するのを待っています…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Codex をバージョン 0.159 以降に更新してください。</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>開いているセッションを再起動するか、Claude Code で /reload-plugins を実行してください。</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>開発者向け</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>GitHub でサインイン</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>サインアウト</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>コード: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device を開く</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>ブラウザーでの承認を待っています…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>プライベートリポジトリを含める</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>{0} としてサインイン中</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>このビルドではサインインが設定されていません。</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>処理中…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. まだの場合は、このコンピューターに Claude Code をインストールしてください: claude.com/claude-code
+2. 「接続」をクリックします。Edgepad が Claude Code にプラグインを追加します。
+3. 開いている Claude Code のセッションを再起動するか、そこで /reload-plugins と入力してください。
+4. スマホで Controls > AI を開きます。</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. まだの場合は、このコンピューターに Codex をインストールしてください: developers.openai.com/codex
+2. 「接続」をクリックします。Edgepad が Codex にプラグインを追加します。
+3. Codex で /hooks と入力し、Edgepad を信頼してください。Codex アプリの場合: Settings > Hooks > Review hooks。
+4. スマホで Controls > AI を開きます。Codex が最初のイベントを送ると表示されます。</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. 「GitHub でサインイン」をクリックします。github.com のページが開きます。
+2. ここに表示されたコードを入力し、Authorize をクリックします。
+3. スマホで Controls > GitHub を開きます。</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex でもう一度許可が必要です</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad が更新されました。Codex で /hooks と入力して Edgepad を信頼してください。そうしないと、承認はスマホではなくターミナルに残ります。</value>
+  </data>
 </root>

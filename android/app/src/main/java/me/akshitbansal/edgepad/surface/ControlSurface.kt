@@ -18,6 +18,7 @@ import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.RoundedCorner
+import android.view.Surface
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
@@ -31,10 +32,12 @@ import me.akshitbansal.edgepad.drawFitted
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.Output
 import me.akshitbansal.edgepad.link.OutputName
+import me.akshitbansal.edgepad.link.blob.MediaIconStore
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.OutputKind
+import me.akshitbansal.edgepad.screens.Carry
 import me.akshitbansal.edgepad.screens.askText
 import kotlin.math.abs
 import kotlin.math.hypot
@@ -133,6 +136,26 @@ class ControlSurface(
             sink = send,
         )
     private val hapticsOn = settings.haptics
+
+    /** Built on the first touch after the setting turns on, and let go when it turns off; never for [trackpadOnly]. */
+    private var airMouse: AirMouse? = null
+
+    private fun air(): AirMouse? {
+        if (trackpadOnly || !settings.airMouse) {
+            airMouse?.release()
+            airMouse = null
+            return null
+        }
+        return airMouse
+            ?: AirMouse(
+                context,
+                send,
+                sensitivity = { settings.airSensitivity },
+                deadZone = { settings.airDeadZone },
+                rotation = { display?.rotation ?: Surface.ROTATION_0 },
+            ).also { airMouse = it }
+    }
+
     private val showHints = settings.hints && !trackpadOnly
     private val hintFade = HintFade(settings.hintsSeen) { settings.hintsSeen = it }
 
@@ -175,6 +198,9 @@ class ControlSurface(
     private val painter =
         RulerPainter(resources.displayMetrics, settings.dialLength, settings.dialHeight)
     private val pieces = MediaPiece.entries.associateWith { settings.piece(it) }
+
+    // Drawn behind the trackpad; none are on until the user switches them on, and a pad that is only a pad has none.
+    private val widgets = WidgetPainter(context, settings, ink, accent, !trackpadOnly)
     private val mediaScale = settings.mediaScale
     private val logo = AppLogo(context, backdrop.isDark)
 
@@ -259,6 +285,10 @@ class ControlSurface(
     private val keepOut = FloatArray(2)
     private val exclusions = List(dials.size) { Rect() }
     private val nowPlayingBox = RectF()
+
+    /** The surface's spoken description without the title, and the title last put after it (null: not yet). */
+    private var baseDescription = ""
+    private var describedTitle: String? = null
     private val progressHit = RectF()
     private val prevHit = RectF()
     private val playHit = RectF()
@@ -297,6 +327,8 @@ class ControlSurface(
 
     /** The top button the finger went down on, until it lifts or the touch is cancelled. */
     private var pressedTop: TopButton? = null
+    private val originRect = RectF()
+    private val originAt = IntArray(2)
     private var scrubbing = false
     private var scrubFraction = 0f
 
@@ -305,6 +337,7 @@ class ControlSurface(
 
     /** What the surface last saw of [TrackpadRecognizer.held]; the tick fires on the change, not on the state. */
     private var holdTicked = false
+    private val holdBox = RectF()
     private val holdDue =
         Runnable {
             trackpad.tick(SystemClock.uptimeMillis())
@@ -377,7 +410,7 @@ class ControlSurface(
     private val captionTint = withAlpha(accent, CAPTION_TINT_ALPHA)
 
     // Low is the theme's red even under a control colour the user chose, so it is never tinted through it.
-    private val strip = BatteryStrip(context, ink, accent, faint, palette.danger)
+    private val strip = BatteryStrip(context, ink, accent, faint, dim, palette.danger)
 
     /** How far a display cutout pushed the battery strip and the button row down, in px; set in onSizeChanged. */
     private var topShift = 0f
@@ -385,7 +418,36 @@ class ControlSurface(
     /** The finger went down on the battery strip, until it lifts or the touch is cancelled. */
     private var pressedStrip = false
 
+    /** Ends region select when nothing was dragged: an overlay closed from the laptop's keyboard sends no word. */
+    private val selectExpired = Runnable { selectRegion(false, swallowTaps = false) }
+
+    /**
+     * Region select on the Capture pad (#75): the next drag draws the laptop's selection box, and with
+     * [swallowTaps] taps send nothing until it has. See [TrackpadRecognizer.selecting].
+     */
+    fun selectRegion(
+        on: Boolean,
+        swallowTaps: Boolean,
+    ) {
+        trackpad.selecting = on
+        trackpad.swallowTaps = swallowTaps
+        // The larger of the two ratios, so a drag edge to edge on the pad reaches edge to edge on the laptop either
+        // way; [SELECT_REACH] leaves room for a drag that starts away from the pad's edge.
+        trackpad.selectGain =
+            state.screenSize?.let { (w, h) ->
+                if (width == 0 || height == 0) 0f else maxOf(w.toFloat() / width, h.toFloat() / height) * SELECT_REACH
+            } ?: 0f
+        removeCallbacks(selectExpired)
+        if (on) postDelayed(selectExpired, SELECT_MS)
+        rebuildCaption()
+        invalidate()
+    }
+
     init {
+        trackpad.onSelected = {
+            removeCallbacks(selectExpired)
+            rebuildCaption()
+        }
         keepScreenOn = true
         contentDescription = context.getString(R.string.surface_description)
         // The mode rides on the state description rather than on announceForAccessibility, which API 36
@@ -396,6 +458,7 @@ class ControlSurface(
         if (!trackpadOnly) strip.refresh(BatteryModel.chips(batteries.groups()))
         stateDescription = modeLabel()
         applyState()
+        widgets.update(state)
         postDelayed({ invalidate() }, REPORT_WAIT_MS)
     }
 
@@ -415,6 +478,7 @@ class ControlSurface(
     fun stateChanged() {
         applyState()
         rebuildText()
+        widgets.update(state)
         invalidate()
     }
 
@@ -444,8 +508,7 @@ class ControlSurface(
         if (insets != null) {
             for (position in CORNER_POSITIONS) corner = maxOf(corner, insets.getRoundedCorner(position)?.radius ?: 0)
         }
-        val displayDp = maxOf(corner / density, MIN_BEND_DP)
-        perimeter = Perimeter(w.toFloat(), h.toFloat(), dp(displayDp))
+        perimeter = Perimeter(w.toFloat(), h.toFloat(), RulerGeometry.bend(corner.toFloat(), density))
         dials.forEachIndexed { i, dial ->
             // A half of a split corner sits off the corner on its own edge, clear of the bend; [DialSpan] below
             // trims it where it would meet its neighbour.
@@ -466,7 +529,8 @@ class ControlSurface(
         // the same distance with it, so neither sits under the camera.
         topShift = strip.cutoutShift(w, insets?.displayCutout?.boundingRects.orEmpty(), dp(Space.XS))
         layoutPieces(w.toFloat(), h.toFloat())
-        strip.layout(w, topShift)
+        widgets.layout(w.toFloat(), h.toFloat())
+        strip.layout(w, topShift, backdrop.isDark)
         // No ruler runs under the buttons at the top, and neighbours stop short of each other — which is
         // what keeps two dials on the same edge clear of each other.
         // A dial the user puts in the top-middle slot is the one exception: it is centred inside the
@@ -558,7 +622,10 @@ class ControlSurface(
         val roomMax = maxOf(w - 2 * dp(painter.halfLengthDp + Space.L) - fixed, media(NOW_PLAYING_MIN_TEXT_DP))
         val text = maxOf(titlePaint.measureText(titleLine), subPaint.measureText(subLine))
         val half = (fixed + text.coerceIn(media(NOW_PLAYING_MIN_TEXT_DP), roomMax)) / 2
-        val tall = media(NOW_PLAYING_HEIGHT_DP) / 2
+        // A larger system font drops the sub-line's baseline by the growth; the box's half grows by as much,
+        // so the gap to the progress line stays what it was.
+        val growth = subLineGrowth(subPaint.textSize, dp(Type.MICRO) * mediaScale)
+        val tall = media(NOW_PLAYING_HEIGHT_DP) / 2 + growth
         nowPlayingBox.set(nx * w - half, ny * h - tall, nx * w + half, ny * h + tall)
         val touch = dp(Space.TOUCH) / 2
         progressHit.set(
@@ -583,14 +650,21 @@ class ControlSurface(
                     }
                 }
             // The volume dial's output is read with the surface, since the dials are not views of their own.
-            contentDescription =
+            baseDescription =
                 if (output == null) {
                     context.getString(R.string.surface_description)
                 } else {
                     context.getString(R.string.surface_description_output, output.name)
                 }
+            describedTitle = null
         }
         val playing = state.nowPlaying
+        // TalkBack reads the title as the laptop first had it (TEXT 26), not the cleaned line drawn on screen.
+        val spoken = state.nowPlayingFull.ifEmpty { playing }
+        if (spoken != describedTitle) {
+            describedTitle = spoken
+            contentDescription = if (spoken.isEmpty()) baseDescription else "$baseDescription. $spoken"
+        }
         titlePaint.color = if (playing.isEmpty()) dim else ink
         val room =
             maxOf(
@@ -610,12 +684,18 @@ class ControlSurface(
         val sub =
             when (subLine(app, state.duration, scrubOnADial)) {
                 SubLine.APP_AND_TIME -> {
-                    context.getString(
-                        R.string.surface_app_time,
-                        app,
-                        Clock.format(state.position),
-                        Clock.format(state.duration),
-                    )
+                    // The changing time is always kept; only the app's name is cut, and only as far as it must.
+                    val position = Clock.format(state.position)
+                    val duration = Clock.format(state.duration)
+                    val bare = context.getString(R.string.surface_app_time, "", position, duration)
+                    val name =
+                        TextUtils.ellipsize(
+                            app,
+                            subPaint,
+                            appRoom(room, subPaint.measureText(bare)),
+                            TextUtils.TruncateAt.END,
+                        )
+                    context.getString(R.string.surface_app_time, name, position, duration)
                 }
 
                 SubLine.TIME -> {
@@ -659,10 +739,13 @@ class ControlSurface(
         super.onDraw(canvas)
         if (dark) {
             // Issue #56: every pixel off on an OLED panel, so nothing static is left lit to burn in.
+            // Pure black on purpose: the one place DES-D21 does not apply, since off pixels are the point.
             canvas.drawColor(Color.BLACK)
             return
         }
         backdrop.draw(canvas)
+        // Behind everything else, and gone with the dials when focus hides them.
+        if (widgets.active && !dialsHidden) widgets.draw(canvas)
         if (mediaShown()) {
             drawNowPlaying(canvas)
             drawTransport(canvas)
@@ -685,7 +768,7 @@ class ControlSurface(
                 dp(ICON_DP),
             )
         }
-        strip.draw(canvas)
+        strip.draw(canvas, backdrop.hasImage)
         if (pressedStrip) {
             val radius = strip.hit.height() / 2
             fill.color = faint
@@ -746,6 +829,24 @@ class ControlSurface(
         }
         fill.color = ink
         for (i in 0 until fingerCount) canvas.drawCircle(fingerXs[i], fingerYs[i], dp(FINGER_DP) / 2, fill)
+        if (fingerCount == 1) drawHold(canvas)
+    }
+
+    /**
+     * The hold, made visible (#75): a ring round the finger fills while it stays still, and turns the accent
+     * once the button is gripped, so "keep still" and "you are dragging" can be seen, not only felt. Hidden
+     * for the first part of the hold, or every tap would flash a ring. It asks for frames only while filling.
+     */
+    private fun drawHold(canvas: Canvas) {
+        val progress = if (trackpad.dragging) 1f else trackpad.holdProgress(SystemClock.uptimeMillis()) ?: return
+        if (progress < 1f) postInvalidateOnAnimation()
+        if (progress < HOLD_RING_FROM) return
+        val r = dp(HOLD_RING_DP)
+        holdBox.set(fingerXs[0] - r, fingerYs[0] - r, fingerXs[0] + r, fingerYs[0] + r)
+        stroke.strokeWidth = dp(HOLD_RING_WIDTH_DP)
+        stroke.color = if (trackpad.dragging) accent else dim
+        canvas.drawArc(holdBox, RING_START_DEG, FULL_TURN_DEG * progress, false, stroke)
+        stroke.strokeWidth = dp(Space.HAIR)
     }
 
     private fun trailX(back: Int): Float = trail[((trailHead - back + TRAIL) % TRAIL) * 2]
@@ -762,7 +863,16 @@ class ControlSurface(
             val corner = size * LOGO_ROUNDING
             canvas.drawRoundRect(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2, corner, corner, stroke)
         } else {
-            logo.draw(canvas, state.app, cx, cy, size, ink)
+            logo.draw(
+                canvas,
+                state.app,
+                cx,
+                cy,
+                size,
+                ink,
+                state.mediaIcons.get(state.app),
+                state.mediaIcons.get(MediaIconStore.ARTWORK),
+            )
         }
         val textX = box.left + size + dp(Space.M)
         canvas.drawText(titleLine, textX, cy - dp(Space.XS), titlePaint)
@@ -884,6 +994,7 @@ class ControlSurface(
             when {
                 locked -> R.string.surface_locked_caption
                 dialsHidden -> R.string.surface_focus_caption
+                trackpad.selecting -> R.string.capture_drag_caption
                 else -> null
             }
         if (res == null || width == 0) {
@@ -1047,7 +1158,10 @@ class ControlSurface(
                 // A blacked-out surface wakes on this touch and still acts on it, so a dial or gesture works blind.
                 wake()
                 requestUnbufferedDispatch(event)
+                // With the air mouse on, a resting finger is its clutch and must not also grip the button.
+                trackpad.holdGrips = air()?.works != true
                 down(event)
+                if (onTrackpad()) air()?.clutchDown()
             }
 
             MotionEvent.ACTION_POINTER_DOWN -> {
@@ -1071,6 +1185,7 @@ class ControlSurface(
 
             MotionEvent.ACTION_UP -> {
                 idleLater()
+                airMouse?.clutchUp()
                 val top = pressedTop
                 pressedTop = null
                 val onStrip = pressedStrip
@@ -1079,6 +1194,7 @@ class ControlSurface(
                     onStrip -> {
                         if (strip.hit.contains(event.x, event.y)) {
                             performClick()
+                            markOrigin(strip.hit)
                             onOpenBatteries()
                         }
                     }
@@ -1088,6 +1204,7 @@ class ControlSurface(
                     top != null -> {
                         if (top.hit.contains(event.x, event.y)) {
                             performClick()
+                            markOrigin(top.hit)
                             top.open()
                         }
                     }
@@ -1100,6 +1217,7 @@ class ControlSurface(
 
             MotionEvent.ACTION_CANCEL -> {
                 idleLater()
+                airMouse?.clutchUp()
                 cancelTouches(event.eventTime)
             }
 
@@ -1246,13 +1364,7 @@ class ControlSurface(
         x: Float,
         y: Float,
     ) {
-        perimeter.project(x, y, hit)
-        val moved = perimeter.delta(lastS, hit[0])
-        lastS = hit[0]
-        // Deep inside the screen the nearest edge can flip from one side of a corner to the other; that is a
-        // jump along the path, not a slide, so it moves nothing.
-        if (abs(moved) > dp(JUMP_DP)) return
-        dials[activeDial].slide(moved / density, TrackpadRecognizer.SLOP_DP)
+        lastS = DialSlide.slide(dials[activeDial], perimeter, x, y, hit, lastS, density, TrackpadRecognizer.SLOP_DP)
     }
 
     /** Ends the touch and says whether it tapped a dial; a top button is settled in [onTouchEvent]. */
@@ -1361,17 +1473,25 @@ class ControlSurface(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        widgets.attach(this)
         idleLater()
     }
 
     override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
         super.onWindowFocusChanged(hasWindowFocus)
         // Back from the Controls popup, whose switch may have just changed, the idle count starts over.
-        if (hasWindowFocus) idleLater() else removeCallbacks(goDark)
+        if (hasWindowFocus) {
+            idleLater()
+        } else {
+            removeCallbacks(goDark)
+            airMouse?.release()
+        }
     }
 
     override fun onDetachedFromWindow() {
+        widgets.detach()
         wake()
+        airMouse?.release()
         super.onDetachedFromWindow()
     }
 
@@ -1539,6 +1659,14 @@ class ControlSurface(
         val hit = RectF()
     }
 
+    /** Tells [Carry] which drawn button is about to open something, so that it grows from there (UX-32). */
+    private fun markOrigin(hit: RectF) {
+        getLocationOnScreen(originAt)
+        originRect.set(hit)
+        originRect.offset(originAt[0].toFloat(), originAt[1].toFloat())
+        Carry.mark(originRect)
+    }
+
     /** #65: the Type text dialog of the keyboard screen, reachable without leaving the surface. */
     private fun typeText() = askText(context, this, send)
 
@@ -1609,7 +1737,6 @@ class ControlSurface(
         private const val PLAY_GLOW_ALPHA = 0.35f
         private const val DIM_ALPHA = 0x8C000000.toInt()
         private const val FAINT_ALPHA = 0x40000000
-        private const val MIN_BEND_DP = 24f
         private const val CORNER_HIT_DP = 96f
         private const val CORNER_HIT_NEAR_DP = 56f
 
@@ -1621,7 +1748,6 @@ class ControlSurface(
         private const val SKIP_DP = 24f
         private const val PLAY_ICON_DP = 24f
         private const val HIT_SLACK_DP = 12f
-        private const val JUMP_DP = 64f
         private const val SAMPLE_DP = 8f
         private const val TITLE_SP = 15f
 
@@ -1640,6 +1766,21 @@ class ControlSurface(
          */
         private const val CAPTION_GAP_DP = 28f
         private const val FINGER_DP = 10f
+
+        /** How long region select waits for its drag before the pad goes back to clicking on taps. */
+        private const val SELECT_MS = 30_000L
+
+        /** A selecting drag that covers 2/3 of the pad crosses the laptop's whole screen. */
+        private const val SELECT_REACH = 1.5f
+
+        /** The hold ring (#75): radius and line, round the finger dot, clear of a fingertip's edge. */
+        private const val HOLD_RING_DP = 22f
+        private const val HOLD_RING_WIDTH_DP = 3f
+
+        /** The share of the hold (100 ms) that passes before the ring shows, so a quick tap never flashes it. */
+        private const val HOLD_RING_FROM = 0.25f
+        private const val RING_START_DEG = -90f
+        private const val FULL_TURN_DEG = 360f
         private const val MAX_POINTERS = 10
         private const val TRAIL = 18
         private const val TRAIL_ALPHA = 200f

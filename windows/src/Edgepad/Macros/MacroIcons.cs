@@ -136,6 +136,9 @@ internal static partial class MacroIcons
     /// <summary>The path if it is a file this can read something from, else null.</summary>
     private static string? Readable(string? path) => SourceFor(path) == Source.None ? null : path;
 
+    /// <summary>The PNG for the file at <paramref name="path"/>, or null when it has no readable picture. Not cached; the caller does that.</summary>
+    internal static byte[]? PngForPath(string path, int size) => SourceFor(path) == Source.None ? null : Render(path, size);
+
     private static byte[]? Render(string path, int size)
     {
         try
@@ -267,7 +270,7 @@ internal static partial class MacroIcons
     /// transparent corners have to survive, because the phone draws it on black or on white depending on
     /// its theme, and a picture flattened against the wrong one is a white box on a black screen.
     /// </summary>
-    private static byte[] Encode(Bitmap source, int size)
+    internal static byte[] Encode(Bitmap source, int size)
     {
         using var square = new Bitmap(size, size, PixelFormat.Format32bppArgb);
         using (var graphics = Graphics.FromImage(square))

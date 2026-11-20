@@ -76,19 +76,19 @@
     <value>Edgepad {0} उपलब्ध है। रिलीज़ पेज खोलने के लिए क्लिक करें; उसे डाउनलोड करके चलाएं, इससे यह कॉपी बदल जाएगी।</value>
   </data>
   <data name="Balloon_StartWithWindowsNotSaved" xml:space="preserve">
-    <value>"Windows के साथ शुरू करें" सेव नहीं हो सका, इसलिए Edgepad अपने-आप शुरू नहीं होगा। वजह लॉग में है।</value>
+    <value>“Windows के साथ शुरू करें” सेव नहीं हो सका, इसलिए Edgepad अपने-आप शुरू नहीं होगा। वजह लॉग में है।</value>
   </data>
   <data name="Balloon_ShareClipboardNotSaved" xml:space="preserve">
-    <value>"क्लिपबोर्ड शेयर करें" अभी के लिए बदल गया, पर सेव नहीं हो सका, इसलिए हो सकता है कि अगली बार शुरू होने पर यह याद न रहे।</value>
+    <value>“क्लिपबोर्ड शेयर करें” अभी के लिए बदल गया, पर सेव नहीं हो सका, इसलिए हो सकता है कि अगली बार शुरू होने पर यह याद न रहे।</value>
   </data>
   <data name="Balloon_CheckUpdatesNotSaved" xml:space="preserve">
-    <value>"रोज़ अपडेट जांचें" अभी के लिए बदल गया, पर सेव नहीं हो सका, इसलिए हो सकता है कि अगली बार शुरू होने पर यह याद न रहे।</value>
+    <value>“रोज़ अपडेट जांचें” अभी के लिए बदल गया, पर सेव नहीं हो सका, इसलिए हो सकता है कि अगली बार शुरू होने पर यह याद न रहे।</value>
   </data>
   <data name="Balloon_NewFile" xml:space="preserve">
     <value>Edgepad का यह वर्शन नई फ़ाइल है, इसलिए Windows एक बार पूछेगा कि फ़ोन को इस तक पहुंचने दें।</value>
   </data>
   <data name="Balloon_FirewallNotChanged" xml:space="preserve">
-    <value>Windows फ़ायरवॉल नहीं बदला, इसलिए हो सकता है कि फ़ोन इस लैपटॉप तक न पहुंच पाएं। इस मेन्यू में "Windows फ़ायरवॉल से अनुमति दें" फिर कोशिश करता है।</value>
+    <value>Windows फ़ायरवॉल नहीं बदला, इसलिए हो सकता है कि फ़ोन इस लैपटॉप तक न पहुंच पाएं। इस मेन्यू में “Windows फ़ायरवॉल से अनुमति दें” फिर कोशिश करता है।</value>
   </data>
   <data name="Balloon_MacroAdded" xml:space="preserve">
     <value>आपके फ़ोन से {0} जोड़ा गया</value>
@@ -100,7 +100,7 @@
     <value>कंट्रोलर के लिए ViGEmBus ड्राइवर चाहिए। डाउनलोड पेज खोलने के लिए क्लिक करें।</value>
   </data>
   <data name="Balloon_WantsToConnect" xml:space="preserve">
-    <value>{0} कनेक्ट करना चाहता है। "भरोसा करें" या "भरोसा न करें" चुनें।</value>
+    <value>{0} कनेक्ट करना चाहता है। “भरोसा करें” या “भरोसा न करें” चुनें।</value>
   </data>
   <data name="Phone_Connected" xml:space="preserve">
     <value>फ़ोन कनेक्टेड</value>
@@ -151,24 +151,24 @@
     <value>सुरक्षा</value>
   </data>
   <data name="Error_ForgetOne" xml:space="preserve">
-    <value>{0} में Edgepad की फ़ाइलें कोई और इस्तेमाल न कर रहा हो, तब "भूल जाएं" फिर आज़माएं। {1} को पूरी तरह भुलाया नहीं जा सका: एक फ़ाइल दोबारा लिखी नहीं जा सकी। वह डिस्क पर भरोसेमंद बना रहता है, पर Edgepad दोबारा शुरू होने तक उसे मना करता है, और उसके बाद वह फिर भरोसेमंद हो जाएगा, जब तक आप उसे दोबारा न भूलें।</value>
+    <value>{0} में Edgepad की फ़ाइलें कोई और इस्तेमाल न कर रहा हो, तब “भूल जाएं” फिर आज़माएं। {1} को पूरी तरह भुलाया नहीं जा सका: एक फ़ाइल दोबारा लिखी नहीं जा सकी। वह डिस्क पर भरोसेमंद बना रहता है, पर Edgepad दोबारा शुरू होने तक उसे मना करता है, और उसके बाद वह फिर भरोसेमंद हो जाएगा, जब तक आप उसे दोबारा न भूलें।</value>
   </data>
   <data name="Error_ForgetAllTrust" xml:space="preserve">
-    <value>भरोसेमंद फ़ोन की फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर "सब भूल जाएं" दोबारा चुनें, या उसे खुद हटा दें:
+    <value>भरोसेमंद फ़ोन की फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर “सब भूल जाएं” दोबारा चुनें, या उसे खुद हटा दें:
 
 {0}
 
 भरोसेमंद फ़ोन भूले नहीं जा सके: उनकी फ़ाइल हटाई या खाली नहीं की जा सकी। Edgepad के चलते रहने तक कोई फ़ोन कनेक्ट नहीं हो सकता, पर Edgepad अगली बार शुरू होने पर वे फ़ोन फिर भरोसेमंद हो जाएंगे।</value>
   </data>
   <data name="Error_ForgetAllPin" xml:space="preserve">
-    <value>"सब भूल जाएं" दोबारा चुनें, या pin-verified.txt को यहां से खुद हटा दें:
+    <value>“सब भूल जाएं” दोबारा चुनें, या pin-verified.txt को यहां से खुद हटा दें:
 
 {0}
 
 जिन फ़ोन ने पिन डाला था, वे भूले नहीं जा सके: उनकी सूची हटाई नहीं जा सकी। Edgepad के चलते रहने तक हर फ़ोन से हर कनेक्शन पर पिन मांगा जाएगा, पर Edgepad अगली बार शुरू होने पर वे फ़ोन स्तर 2 पर फिर पिन के बिना कनेक्ट होंगे।</value>
   </data>
   <data name="Error_ForgetLinks" xml:space="preserve">
-    <value>"सब भूल जाएं" दोबारा चुनें, या paired-links.txt को यहां से खुद हटा दें:
+    <value>“सब भूल जाएं” दोबारा चुनें, या paired-links.txt को यहां से खुद हटा दें:
 
 {0}
 
@@ -280,14 +280,14 @@
     <value>पिन मिट जाएगा, स्तर वापस 1 हो जाएगा और हर भरोसेमंद फ़ोन भुला दिया जाएगा। हर फ़ोन पर, कनेक्टेड फ़ोन पर भी, यहां फिर भरोसा करना होगा। भूला हुआ पिन वापस नहीं मिल सकता, सिर्फ़ रीसेट हो सकता है।</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
-    <value>फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर "पिन रीसेट करें और फ़ोन भूल जाएं" दोबारा चुनें, या उसे खुद हटा दें:
+    <value>फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर “पिन रीसेट करें और फ़ोन भूल जाएं” दोबारा चुनें, या उसे खुद हटा दें:
 
 {0}
 
 कुछ रीसेट नहीं हुआ: भरोसेमंद फ़ोन भूले नहीं जा सके, इसलिए पिन और स्तर जैसे थे वैसे रहे। Edgepad के चलते रहने तक कोई फ़ोन कनेक्ट नहीं हो सकता, पर अगली बार शुरू होने पर वे फ़ोन उसी पिन के साथ फिर भरोसेमंद हो जाएंगे।</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
-    <value>फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर "पिन रीसेट करें और फ़ोन भूल जाएं" दोबारा चुनें, या security.txt और pin-verified.txt को यहां से खुद हटा दें:
+    <value>फ़ाइल को जो भी रोके हुए है उसे बंद करें, फिर “पिन रीसेट करें और फ़ोन भूल जाएं” दोबारा चुनें, या security.txt और pin-verified.txt को यहां से खुद हटा दें:
 
 {0}
 
@@ -481,5 +481,328 @@
   </data>
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>वाई-फ़ाई और USB: हो सकता है फ़ोन इस लैपटॉप को न ढूंढ पाएं।</value>
+  </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>एडमिनिस्ट्रेटर के रूप में फिर से शुरू करें</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Edgepad को टास्क मैनेजर जैसी उच्च अधिकार वाली विंडो में टाइप करने देता है। लॉक स्क्रीन और UAC प्रॉम्प्ट पहुँच से बाहर रहते हैं।</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} इंस्टॉल करें</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>बाद में</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>यह संस्करण छोड़ें</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} उपलब्ध है। इंस्टॉल करने के लिए क्लिक करें।</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} की जाँच नहीं हो सकी, इसलिए इसे इंस्टॉल नहीं किया गया।</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0} इंस्टॉल नहीं हो सका। रिलीज़ पेज खोलने के लिए क्लिक करें।</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>यह एक बड़ा रिलीज़ है। फ़ोन पर भी Edgepad अपडेट करें, वरना दोनों एक-दूसरे को अस्वीकार कर देंगे। क्या अभी इंस्टॉल करें?</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>बंद हो रहा है</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>मीडिया खत्म हो गया। यह लैपटॉप {0} सेकंड में बंद हो जाएगा।</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>रद्द करें</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>फ़ोन पर फ़ाइल भेजें…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} फ़ोन से आ गई।</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0} प्राप्त नहीं हो सकी।</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>फ़ोन पर सूचनाएँ दिखाएँ</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>इंस्टॉल करें</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>अभी नहीं</value>
+  </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>क्लिपबोर्ड इतिहास (&amp;H)</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>इस लैपटॉप और फ़ोन की हाल की कॉपी। केवल मेमोरी में रखी जाती हैं।</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>क्लिपबोर्ड</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>अभी तक कुछ कॉपी नहीं किया गया</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>इस लैपटॉप और फ़ोन की कॉपी यहाँ दिखती हैं।</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>अपनी कॉपी यहाँ देखने के लिए ट्रे मेनू में क्लिपबोर्ड शेयर करें चालू करें।</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>सब साफ़ करें</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>यह लैपटॉप</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>फ़ोन</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>अभी-अभी</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} मिनट पहले</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} घंटे पहले</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} दिन पहले</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>फ़ोन पर भेजें</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>हटाएँ</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>फ़ोन पर भेजा गया</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>भेज नहीं सके। कनेक्शन जाँचें।</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>कॉपी हो गया। चिपकाने के लिए Ctrl+V दबाएँ।</value>
+  </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>क्लिपबोर्ड का उपयोग नहीं हो सका। फिर से कोशिश करें।</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V किसी दूसरे ऐप में उपयोग हो रहा है, इसलिए शॉर्टकट बंद है।</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>फ़ोन पर भेजा जा रहा है</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>फ़ोन से प्राप्त हो रहा है</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{1} में से {0}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{1} में से {0} · {2}/से</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{1} में से {0}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} भेजा गया</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>भेजी गई फ़ाइलें: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>भेजी गई फ़ाइलें: {1} में से {0}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>प्राप्त फ़ाइलें: {0}</value>
+  </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>प्राप्त फ़ाइलें: {1} में से {0}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} नहीं भेजा गया</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>न भेजी गई फ़ाइलें: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>रद्द किया जा रहा है…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>फिर कोशिश करें</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>बंद करें</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>कोई फ़ोन कनेक्ट नहीं है।</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} छोड़ा गया: खाली, गायब या 2 GB से बड़ा।</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>फ़ोन ने इसे अस्वीकार कर दिया। जगह कम हो सकती है।</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>यह खराब होकर पहुँचा। फिर कोशिश करें।</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>फ़ोन इसे सहेज नहीं सका।</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>फ़ोन किसी दूसरी फ़ाइल में व्यस्त था।</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>फ़ोन ने जवाब देना बंद कर दिया।</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>कनेक्शन टूट गया।</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>यह लैपटॉप फ़ाइल पढ़ नहीं सका।</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>रद्द किया गया।</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>नहीं भेजा गया।</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>इंटीग्रेशन… (&amp;I)</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>डेवलपर मोड</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>डेवलपर इंटीग्रेशन…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>इंटीग्रेशन</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>यहाँ सब कुछ तब तक बंद रहता है जब तक आप उसे चालू न करें।</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>फ़ोन पर सिस्टम आँकड़े दिखाएँ</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>फ़ोन पर मौसम दिखाएँ</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>शहर</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>open-meteo.com को सिर्फ़ शहर का नाम भेजा जाता है।</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>कनेक्ट करें</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>डिस्कनेक्ट करें</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>कनेक्टेड · आख़िरी संपर्क {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>कनेक्ट नहीं है</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>इस कंप्यूटर पर {0} नहीं मिला</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad यह आपके लिए नहीं चला सका। ये कमांड किसी टर्मिनल में चलाएँ:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>कॉपी करें</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Codex में /hooks खोलें और Edgepad पर भरोसा करें।</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Codex के प्लगिन पर भरोसा करने का इंतज़ार…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Codex को वर्शन 0.159 या नए पर अपडेट करें।</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>खुले सेशन फिर से शुरू करें, या Claude Code में /reload-plugins चलाएँ।</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>डेवलपर के लिए</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>GitHub से साइन इन करें</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>साइन आउट करें</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>आपका कोड: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device खोलें</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>ब्राउज़र में आपकी मंज़ूरी का इंतज़ार…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>निजी रिपॉज़िटरी शामिल करें</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>{0} के रूप में साइन इन</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>इस बिल्ड में साइन इन सेट अप नहीं है।</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>कभी नहीं</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>काम चल रहा है…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. अगर आपने अभी तक नहीं किया है, तो इस कंप्यूटर पर Claude Code इंस्टॉल करें: claude.com/claude-code
+2. कनेक्ट करें पर क्लिक करें। Edgepad अपना प्लगइन Claude Code में जोड़ देगा।
+3. खुले Claude Code सेशन फिर से शुरू करें, या उनमें /reload-plugins टाइप करें।
+4. अपने फ़ोन पर Controls > AI खोलें।</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. अगर आपने अभी तक नहीं किया है, तो इस कंप्यूटर पर Codex इंस्टॉल करें: developers.openai.com/codex
+2. कनेक्ट करें पर क्लिक करें। Edgepad अपना प्लगइन Codex में जोड़ देगा।
+3. Codex में /hooks टाइप करें और Edgepad पर भरोसा करें। Codex ऐप में: Settings > Hooks > Review hooks।
+4. अपने फ़ोन पर Controls > AI खोलें। यह तब दिखेगा जब Codex अपना पहला इवेंट भेजेगा।</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. GitHub से साइन इन करें पर क्लिक करें। github.com का एक पेज खुलेगा।
+2. यहाँ दिखाया गया कोड डालें और Authorize पर क्लिक करें।
+3. अपने फ़ोन पर Controls > GitHub खोलें।</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex को फिर से आपकी मंज़ूरी चाहिए</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad अपडेट हो गया है। Codex में /hooks टाइप करें और Edgepad पर भरोसा करें, नहीं तो मंज़ूरियाँ फ़ोन के बजाय टर्मिनल में ही रहेंगी।</value>
   </data>
 </root>

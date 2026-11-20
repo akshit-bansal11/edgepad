@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">Fermer l’astuce</string>
+  <string name="tip_presenter">Les touches de volume changent de diapositive tant que cet écran est ouvert.</string>
+  <string name="tip_capture">Région : touchez, puis glissez sur le pavé vers le coin opposé.</string>
+  <string name="tip_annotate">Dessinez ici. L’encre apparaît sur l’ordinateur au même endroit.</string>
+  <string name="tip_shapes">Tracez en un seul trait, puis levez le doigt.</string>
+  <string name="capture_to_phone">Vers le téléphone</string>
+</resources>

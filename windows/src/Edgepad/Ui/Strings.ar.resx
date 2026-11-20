@@ -482,4 +482,327 @@
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>عبر Wi-Fi وUSB: قد لا تعثر الهواتف على هذا اللابتوب.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>إعادة التشغيل كمسؤول</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>يتيح لـ Edgepad الكتابة في النوافذ ذات الصلاحيات المرتفعة مثل مدير المهام. تبقى شاشة القفل ومطالبات UAC بعيدة المنال.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>تثبيت Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>لاحقًا</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>تخطي هذا الإصدار</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>الإصدار {0} من Edgepad متاح. انقر للتثبيت.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>تعذر التحقق من الإصدار {0} من Edgepad، لذلك لم يُثبَّت.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>تعذر تثبيت الإصدار {0} من Edgepad. انقر لفتح صفحة الإصدار.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>هذا إصدار رئيسي. حدّث Edgepad على الهاتف أيضًا، وإلا سيرفض كل منهما الآخر. هل تثبّت التحديث الآن؟</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>جارٍ إيقاف التشغيل</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>انتهى المحتوى. سيتم إيقاف تشغيل هذا الحاسوب خلال {0} ثانية.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>إرسال ملف إلى الهاتف…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>وصل {0} من الهاتف.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>تعذر استلام {0}.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>عرض الإشعارات على الهاتف</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>تثبيت</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>ليس الآن</value>
+  </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>سجل الحافظة (&amp;H)</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>النسخ الأخيرة من هذا الحاسوب والهاتف. تُحفظ في الذاكرة فقط.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>الحافظة</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>لم يُنسخ شيء بعد</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>تظهر هنا النسخ من هذا الحاسوب والهاتف.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>فعّل مشاركة الحافظة من قائمة الشريط لترى نسخك هنا.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>مسح الكل</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>هذا الحاسوب</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>الهاتف</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>الآن</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>منذ {0} د</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>منذ {0} س</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>منذ {0} ي</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>إرسال إلى الهاتف</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>إزالة</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>أُرسل إلى الهاتف</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>تعذّر الإرسال. تحقق من الاتصال.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>تم النسخ. اضغط Ctrl+V للصق.</value>
+  </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>تعذّر استخدام الحافظة. حاول مرة أخرى.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>‏Win+Alt+V مستخدم في تطبيق آخر، لذا الاختصار متوقف.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>جارٍ الإرسال إلى الهاتف</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>جارٍ الاستلام من الهاتف</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} من {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} من {1} · {2}/ث</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} من {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>أُرسل {0}</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>الملفات المرسلة: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>الملفات المرسلة: {0} من {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>الملفات المستلمة: {0}</value>
+  </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>الملفات المستلمة: {0} من {1}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>لم يُرسل {0}</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>الملفات غير المرسلة: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>جارٍ الإلغاء…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>حاول مرة أخرى</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>إغلاق</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>لا يوجد هاتف متصل.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>تم تخطي {0}: فارغ أو مفقود أو أكبر من 2 غيغابايت.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>رفضه الهاتف. قد تكون المساحة ممتلئة.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>وصل تالفًا. حاول مرة أخرى.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>تعذّر على الهاتف حفظه.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>كان الهاتف مشغولًا بملف آخر.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>توقف الهاتف عن الاستجابة.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>فُقد الاتصال.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>تعذّر على هذا الحاسوب قراءة الملف.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>أُلغي.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>لم يُرسل.</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>التكاملات… (&amp;I)</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>وضع المطوّر</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>تكامل المطوّرين…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>التكاملات</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>كل ما هنا متوقف حتى تشغّله.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>عرض إحصاءات النظام على الهاتف</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>عرض الطقس على الهاتف</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>المدينة</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>يُرسَل اسم المدينة فقط إلى open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>اتصال</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>قطع الاتصال</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>متصل · آخر إشارة {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>غير متصل</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>لم يُعثر على {0} في هذا الكمبيوتر</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>تعذّر على Edgepad تشغيل هذا نيابةً عنك. شغّل هذه الأوامر في نافذة طرفية:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>نسخ</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>في Codex، افتح /hooks وامنح Edgepad الثقة.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>بانتظار أن يثق Codex بالإضافة…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>حدّث Codex إلى الإصدار 0.159 أو أحدث.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>أعد تشغيل الجلسات المفتوحة، أو شغّل /reload-plugins في Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>للمطورين</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>تسجيل الدخول باستخدام GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>تسجيل الخروج</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>رمزك: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>فتح github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>بانتظار موافقتك في المتصفح…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>تضمين المستودعات الخاصة</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>تم تسجيل الدخول باسم {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>تسجيل الدخول غير مُعدّ في هذا الإصدار.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>أبدًا</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>جارٍ العمل…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. ثبّت Claude Code على هذا الكمبيوتر إن لم تكن قد فعلت: claude.com/claude-code
+2. انقر «اتصال». يضيف Edgepad إضافته إلى Claude Code.
+3. أعد تشغيل جلسات Claude Code المفتوحة، أو اكتب /reload-plugins فيها.
+4. على هاتفك، افتح Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. ثبّت Codex على هذا الكمبيوتر إن لم تكن قد فعلت: developers.openai.com/codex
+2. انقر «اتصال». يضيف Edgepad إضافته إلى Codex.
+3. في Codex، اكتب /hooks وامنح Edgepad الثقة. في تطبيق Codex: Settings > Hooks > Review hooks.
+4. على هاتفك، افتح Controls > AI. يظهر بعد أن يرسل Codex أول حدث له.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. انقر «تسجيل الدخول باستخدام GitHub». تُفتح صفحة على github.com.
+2. أدخل الرمز المعروض هنا وانقر Authorize.
+3. على هاتفك، افتح Controls > GitHub.</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>يحتاج Codex إلى موافقتك مرة أخرى</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>تم تحديث Edgepad. في Codex، اكتب /hooks وامنح Edgepad الثقة، وإلا ستبقى الموافقات في الطرفية بدل الهاتف.</value>
+  </data>
 </root>

@@ -38,12 +38,12 @@ class LinkInitiatorTest {
     @Test
     fun infoReadsTheLaptopsIdVersionAndName() {
         val sent = ByteArrayOutputStream()
-        val reply = Vectors.frame(byteArrayOf(0) + laptopId + byteArrayOf(5) + nameL)
+        val reply = Vectors.frame(byteArrayOf(0) + laptopId + byteArrayOf(6) + nameL)
         val info = LinkInitiator().info(ByteArrayInputStream(reply), sent)
         assertArrayEquals(Vectors.frame(magic + byteArrayOf(1, 0)), sent.toByteArray())
         assertEquals(LinkWire.STATUS_OK, info.status)
         assertArrayEquals(laptopId, info.laptopId)
-        assertEquals(5, info.protocolVersion)
+        assertEquals(6, info.protocolVersion)
         assertEquals("Laptop", info.name)
     }
 

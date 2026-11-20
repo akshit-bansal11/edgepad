@@ -53,6 +53,13 @@ enum class ActionId(
     TOOL_ARROW(47),
     TOOL_RECTANGLE(48),
     TOOL_ELLIPSE(49),
+
+    /** The laser: the next [Frame.Pen] stroke is a dot that follows the finger and leaves nothing behind. */
+    TOOL_LASER(37),
+
+    /** The laser with a short red trail behind the dot. */
+    TOOL_LASER_TRAIL(38),
+
     SIGN_BEGIN(50),
     SIGN_SAVE(51),
 
@@ -86,6 +93,14 @@ enum class ActionId(
      */
     MACROS_WATCH(58),
     MACROS_UNWATCH(59),
+
+    /**
+     * Arm the laptop to sleep or shut down when the current media ends (END_SLEEP, END_SHUTDOWN), or disarm it (END_CANCEL).
+     * The laptop reports the armed state as [TextKind.END_ACTION]. Offered only for a laptop that sent [Feature.END_ACTION].
+     */
+    END_SLEEP(60),
+    END_SHUTDOWN(61),
+    END_CANCEL(62),
 
     /**
      * The first of 32 macro slots, 64..95; slot n is `MACRO_BASE + n`. The phone sends the index and never
@@ -147,6 +162,21 @@ enum class ControlId(
 
     /** The opacity of the strokes that start after this, 10 to 100 percent. The laptop drops anything else. */
     PEN_OPACITY(9),
+
+    /** Whether this link forwards the laptop's notifications, 1 or 0. The laptop forgets it when the session ends. */
+    NOTIFY(10),
+
+    /** Whether this link hears the app in front ([TextKind.FOREGROUND_APP]), 1 or 0. Forgotten at session end. */
+    FOREGROUND_WATCH(11),
+
+    /**
+     * A bitmask of what this phone draws right now: bit 0 (1) system-number widgets, bit 1 (2) the System screen, bit 2 (4) the weather
+     * widget, bit 3 (8) an AI widget or screen, bit 4 (16) the GitHub screen. 0 to 31; the laptop drops more and forgets it at session end.
+     */
+    DASH_WATCH(12),
+
+    /** Whether developer mode is on, 1 or 0, phone to laptop. The laptop keeps it; the phone shows it from FEATURES. */
+    DEVELOPER(13),
     ;
 
     fun set(value: Int): Frame = Frame.SetValue(id, value)
@@ -250,6 +280,54 @@ enum class TextKind(
 
     /** Laptop to phone: the audio output, "kind/name" split on the first "/", kind an [OutputKind] token. Empty means none known. */
     OUTPUT(20),
+
+    /**
+     * Laptop to phone: the app in front, "token/name" split on the first "/". Empty means nothing known. Sent only
+     * after [ControlId.FOREGROUND_WATCH] is 1, and never logged.
+     */
+    FOREGROUND_APP(21),
+
+    /** Laptop to phone: how many macro slots the laptop keeps, in decimal such as "15". */
+    MACRO_CAP(22),
+
+    /** Laptop to phone: a [CaptureStateToken], "idle" or "recording". Best effort. */
+    CAPTURE_STATE(23),
+
+    /** Laptop to phone: "feature:reason" entries joined by "/", reason an [UnavailableReason] token. Empty means none. */
+    UNAVAILABLE(24),
+
+    /** Laptop to phone: what END_SLEEP armed, as one [EndActionToken]. Sent on change. */
+    END_ACTION(25),
+
+    /** Laptop to phone: the title line before it is cleaned for [NOW_PLAYING], sent only when it differs from that text. */
+    NOW_PLAYING_FULL(26),
+
+    /** Laptop to phone: "cpu/ram/gpu/vram/down/up/ping/loss/ctemp/gtemp/gpower", -1 unknown. Once a second while [ControlId.DASH_WATCH] has bit 0 or 1. */
+    STATS(27),
+
+    /** Laptop to phone: "cpuName|ramMiB|gpuName|vramMiB|netName". Sent when a watch starts and when it changes. */
+    STATS_INFO(28),
+
+    /** Laptop to phone: "label:usedPct:totalGiB:freeGiB" entries joined by "|", at most 6. */
+    DISKS(29),
+
+    /** Laptop to phone: "agent:state:title" entries joined by "|", newest first, at most 8. Empty means none. */
+    SESSIONS(30),
+
+    /** Phone to laptop: exactly "id/a" or "id/d", the id 12 lowercase hex digits. */
+    PERM_ANSWER(31),
+
+    /** Laptop to phone: "id" of an approval that was answered elsewhere, timed out or died. */
+    PERM_GONE(32),
+
+    /** Laptop to phone: "agent:window:pct:resetAtMin:measuredAtMin" entries joined by "|"; the window is minutes, [LimitWindow.CONTEXT] or "~name". */
+    LIMITS(33),
+
+    /** Laptop to phone: "agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth" entries joined by "|". */
+    SPEND(34),
+
+    /** Laptop to phone: "tempTenthsC/wmoCode/city". Empty means none. */
+    WEATHER(35),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -336,12 +414,93 @@ enum class Feature(
 
     /** The laptop can tell which macro apps are running, in [TextKind.MACRO_OPEN]. */
     RUNNING("running"),
+
+    /** The laptop answers [ActionId.END_SLEEP], [ActionId.END_SHUTDOWN] and [ActionId.END_CANCEL]. */
+    END_ACTION("endaction"),
+
+    /** The laptop can forward its notifications once [ControlId.NOTIFY] is 1. */
+    NOTIFY("notify"),
+
+    /** The laptop can say which app is in front, in [TextKind.FOREGROUND_APP], once watched. */
+    FOREGROUND("foreground"),
+
+    /** The laptop sends [TextKind.STATS], [TextKind.STATS_INFO] and [TextKind.DISKS]. */
+    STATS("stats"),
+
+    /** The laptop sends [TextKind.WEATHER]. */
+    WEATHER("weather"),
+
+    /** The laptop's Claude Code integration is on and usable. */
+    CLAUDE("claude"),
+
+    /** The laptop's Codex integration is on and usable. */
+    CODEX("codex"),
+
+    /** The laptop is signed in to GitHub and sends [BlobKind.GITHUB]. */
+    GITHUB("github"),
+
+    /** Developer mode is on on the laptop: it names claude, codex and github only while this is here. */
+    DEVELOPER("developer"),
     ;
 
     companion object {
         /** Null for a token this build does not know: a feature it cannot offer is simply not there. */
         fun of(token: String): Feature? = entries.firstOrNull { it.token == token }
     }
+}
+
+/** The agent of a sessions, limits, spend or approval entry. Mirrors the AGENT rows of protocol/actions.txt. */
+enum class AgentToken(
+    val token: String,
+) {
+    CLAUDE("claude"),
+    CODEX("codex"),
+    ;
+
+    companion object {
+        /** Null for a token this build does not know: the entry is dropped. */
+        fun of(token: String): AgentToken? = entries.firstOrNull { it.token == token }
+    }
+}
+
+/** The state in a [TextKind.SESSIONS] entry. Mirrors the SESSION_STATE rows of protocol/actions.txt. */
+enum class SessionStateToken(
+    val token: String,
+) {
+    BUSY("busy"),
+    WAIT("wait"),
+    IDLE("idle"),
+    ;
+
+    companion object {
+        /** Null for a token this build does not know: the entry is dropped. */
+        fun of(token: String): SessionStateToken? = entries.firstOrNull { it.token == token }
+    }
+}
+
+/** The CI field of a [BlobKind.GITHUB] line. Mirrors the CI rows of protocol/actions.txt. */
+enum class CiToken(
+    val token: String,
+) {
+    OK("ok"),
+    FAIL("fail"),
+    PENDING("pending"),
+    NONE("none"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [NONE]. */
+        fun of(token: String): CiToken = entries.firstOrNull { it.token == token } ?: NONE
+    }
+}
+
+/** The non-minute forms of a [TextKind.LIMITS] window. Mirrors the LIMIT_WINDOW rows of protocol/actions.txt. */
+object LimitWindow {
+    /** The context window of a session, not a time window. */
+    const val CONTEXT = "ctx"
+
+    /** A limit with no duration is this character and a name, such as "~spend_limit". */
+    const val NAMED_PREFIX = "~"
 }
 
 /**
@@ -558,9 +717,65 @@ enum class BlobKind(
     CLIP_IMAGE(1),
     APP_LIST(2),
     APP_ICON(3),
+    MEDIA_ICON(4),
+    NOTIFICATION(5),
+
+    /** Laptop to phone: an approval request. The label is "id/f"; the body is UTF-8 agent, tool and text joined by line feeds. */
+    PERM_ASK(6),
+
+    /** Laptop to phone: GitHub pull requests and the notification count. The label is "gh"; the body is tab-separated lines. */
+    GITHUB(7),
     ;
 
     companion object {
         fun of(id: Int): BlobKind? = entries.firstOrNull { it.id == id }
+    }
+}
+
+/**
+ * The reason token of [TextKind.UNAVAILABLE]. A token the phone matches on, never prose, for the reason [PadStatus] is.
+ * Mirrors protocol/actions.txt.
+ */
+enum class UnavailableReason(
+    val token: String,
+) {
+    UNSUPPORTED("unsupported"),
+    OFF("off"),
+    NO_TOOL("no-tool"),
+    NO_PERMISSION("no-permission"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [UNSUPPORTED]: the feature is off either way. */
+        fun of(token: String): UnavailableReason = entries.firstOrNull { it.token == token } ?: UNSUPPORTED
+    }
+}
+
+/** The whole vocabulary of [TextKind.END_ACTION]. Mirrors protocol/actions.txt. */
+enum class EndActionToken(
+    val token: String,
+) {
+    NONE("none"),
+    SLEEP("sleep"),
+    SHUTDOWN("shutdown"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [NONE]: nothing is shown as armed that the phone cannot name. */
+        fun of(token: String): EndActionToken = entries.firstOrNull { it.token == token } ?: NONE
+    }
+}
+
+/** The whole vocabulary of [TextKind.CAPTURE_STATE]. Mirrors protocol/actions.txt. */
+enum class CaptureStateToken(
+    val token: String,
+) {
+    IDLE("idle"),
+    RECORDING("recording"),
+    ;
+
+    companion object {
+        /** An unknown token reads as [IDLE]. */
+        fun of(token: String): CaptureStateToken = entries.firstOrNull { it.token == token } ?: IDLE
     }
 }

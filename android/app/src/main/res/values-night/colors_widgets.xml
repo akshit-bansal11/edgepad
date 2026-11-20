@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The stat cards' hues, dark set: every one is above 7:1 on the dark card (#1B1C20). -->
+  <color name="stat_cpu">#4CC26A</color>
+  <color name="stat_gpu">#FF8A8A</color>
+  <color name="stat_ram">#4DA3FF</color>
+  <color name="stat_vram">#F29D38</color>
+  <color name="stat_net">#4FD1C5</color>
+</resources>

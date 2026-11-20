@@ -21,32 +21,33 @@
   <string name="device_connect">Connetti</string>
   <string name="connect_via">Connetti %2$s tramite %1$s</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">I portatili memorizzati si connettono all\'apertura di Edgepad. Dopo Disconnetti, non lo fanno più finché non tocchi di nuovo il portatile.</string>
+  <string name="devices_legend">I portatili memorizzati si connettono all’apertura di Edgepad. Dopo Disconnetti, non lo fanno più finché non tocchi di nuovo il portatile.</string>
   <string name="devices_stay_note">Resta connesso anche quando esci. Per disconnetterti, usa la notifica.</string>
   <string name="devices_legend_off">Tocca un portatile per connetterti.</string>
   <string name="devices_multi_hint">Puoi connettere più portatili insieme. Quello attivo è il portatile che stai comandando con i controlli; tocca Rendi attivo per cambiare.</string>
   <string name="add_by_address">Aggiungi tramite indirizzo</string>
   <string name="address_connect">Connetti</string>
-  <string name="address_looking">Ricerca di un portatile all\'indirizzo %1$s…</string>
+  <string name="address_looking">Ricerca di un portatile all’indirizzo %1$s…</string>
   <string name="address_invalid">Non è un indirizzo valido. Inserisci un nome host o un indirizzo IP, con la porta se non è 47321.</string>
-  <string name="address_no_laptop">Nessun portatile con Edgepad ha risposto a quell\'indirizzo.</string>
+  <string name="address_bad_port">La porta deve essere un numero da 1 a 65535.</string>
+  <string name="address_no_laptop">Nessun portatile con Edgepad ha risposto a quell’indirizzo.</string>
   <string name="usb_tethering">Tethering USB</string>
-  <string name="local_network_needed">Edgepad ha bisogno dell\'autorizzazione Dispositivi nelle vicinanze per trovare i portatili sulla tua rete Wi-Fi e via USB.</string>
+  <string name="local_network_needed">Edgepad ha bisogno dell’autorizzazione Dispositivi nelle vicinanze per trovare i portatili sulla tua rete Wi-Fi e via USB.</string>
   <string name="allow_local_network">Consenti Dispositivi nelle vicinanze</string>
   <string name="open_controls">Apri i controlli</string>
   <string name="open_controls_hint">Connettiti a un portatile per aprire i controlli.</string>
   <string name="open_bluetooth_settings">Impostazioni Bluetooth</string>
   <string name="bluetooth_tap_off">Il Bluetooth è spento. Accendilo per connetterti a questo portatile.</string>
-  <string name="refresh">Aggiorna l\'elenco</string>
-  <string name="bluetooth_off">Nessun portatile trovato. Attiva il Bluetooth e associa il portatile. Per il Wi-Fi o l\'USB, apri Edgepad sul portatile e attiva Connessioni Wi-Fi e USB nel suo menu; per l\'USB attiva anche qui il tethering USB.</string>
+  <string name="refresh">Aggiorna l’elenco</string>
+  <string name="bluetooth_off">Nessun portatile trovato. Attiva il Bluetooth e associa il portatile. Per il Wi-Fi o l’USB, apri Edgepad sul portatile e attiva Connessioni Wi-Fi e USB nel suo menu; per l’USB attiva anche qui il tethering USB.</string>
   <string name="usb_cable_tether_off">Cavo collegato. Attiva qui il tethering USB e, nel menu di Edgepad sul portatile, Connessioni Wi-Fi e USB.</string>
   <string name="status_no_wifi">Non connesso al Wi-Fi.</string>
   <string name="status_searched_wifi">Ricerca nella rete Wi-Fi completata; nessun portatile ha risposto.</string>
   <string name="status_searched_usb">Ricerca nel tethering USB completata; nessun portatile ha risposto.</string>
-  <string name="permission_needed">Edgepad ha bisogno dell\'autorizzazione Dispositivi nelle vicinanze per raggiungere il portatile.</string>
-  <string name="permission_reason">Per trovare il portatile, Edgepad richiede l\'autorizzazione Dispositivi nelle vicinanze.</string>
+  <string name="permission_needed">Edgepad ha bisogno dell’autorizzazione Dispositivi nelle vicinanze per raggiungere il portatile.</string>
+  <string name="permission_reason">Per trovare il portatile, Edgepad richiede l’autorizzazione Dispositivi nelle vicinanze.</string>
   <string name="local_network_reason">Per trovare i portatili sul tuo Wi-Fi e via USB, Edgepad richiede Dispositivi nelle vicinanze e controlla gli indirizzi della tua rete. Con Aggiungi tramite indirizzo questa ricerca non serve.</string>
-  <string name="no_paired">Nessun portatile trovato. Apri Edgepad sul portatile e associalo nelle impostazioni Bluetooth. Per il Wi-Fi o l\'USB, attiva Connessioni Wi-Fi e USB nel menu di Edgepad sul portatile; per l\'USB attiva anche qui il tethering USB.</string>
+  <string name="no_paired">Nessun portatile trovato. Apri Edgepad sul portatile e associalo nelle impostazioni Bluetooth. Per il Wi-Fi o l’USB, attiva Connessioni Wi-Fi e USB nel menu di Edgepad sul portatile; per l’USB attiva anche qui il tethering USB.</string>
   <string name="no_laptop_paired">Nessuno dei dispositivi associati a questo telefono risulta un computer. Se il tuo portatile è associato, mostra tutti i dispositivi.</string>
   <plurals name="show_all_paired">
     <item quantity="one">Mostra tutti i dispositivi associati (%1$d in più)</item>
@@ -62,13 +63,13 @@
   <string name="status_accept_on_laptop">In attesa del portatile. Scegli Autorizza sul portatile; potrebbe chiedere un PIN.</string>
   <string name="link_lost">La connessione è stata persa.</string>
   <string name="link_refused">Il portatile ha chiuso la comunicazione prima dello scambio iniziale. Guarda il portatile e scegli Autorizza se chiede di questo telefono. Se un altro telefono ha preso il controllo del portatile, riprova tra 30 secondi. Se continua a non funzionare, aggiorna Edgepad sul portatile.</string>
-  <string name="link_unreachable_bluetooth">Il portatile non ha accettato la connessione. Controlla che Edgepad sia in esecuzione e che il suo Bluetooth sia attivo. Se non funziona ancora, rimuovi l\'associazione sia da questo telefono sia dal portatile, poi associali di nuovo.</string>
+  <string name="link_unreachable_bluetooth">Il portatile non ha accettato la connessione. Controlla che Edgepad sia in esecuzione e che il suo Bluetooth sia attivo. Se non funziona ancora, rimuovi l’associazione sia da questo telefono sia dal portatile, poi associali di nuovo.</string>
   <string name="link_unreachable_network">Il portatile non ha risposto. Controlla che Edgepad sia in esecuzione e che Connessioni Wi-Fi e USB siano attive nel menu di Edgepad.</string>
   <string name="link_mismatch">Edgepad su %1$s e questa app provengono da versioni diverse. Installa entrambi dalla stessa versione.</string>
   <string name="link_mismatch_laptop_older">Edgepad su %1$s è più vecchio di questa app. Aggiorna Edgepad sul portatile. Le due parti devono provenire dalla stessa versione.</string>
   <string name="link_mismatch_phone_older">Questa app è più vecchia di Edgepad su %1$s. Aggiornala in Impostazioni di sistema › Aggiornamenti. Le due parti devono provenire dalla stessa versione.</string>
   <string name="link_unexpected">Il portatile ha risposto con qualcosa di diverso dallo scambio iniziale di Edgepad.</string>
-  <string name="link_no_permission">L\'autorizzazione Dispositivi nelle vicinanze è stata disattivata.</string>
+  <string name="link_no_permission">L’autorizzazione Dispositivi nelle vicinanze è stata disattivata.</string>
   <string name="link_no_answer">Il portatile ha accettato la connessione ma non ha mai risposto. Controlla che Edgepad sia in esecuzione lì, poi riprova.</string>
   <string name="link_not_paired">Il portatile non ha riconosciuto questo telefono. Tocca Associa di nuovo sulla sua riga per associarlo con un nuovo codice.</string>
   <string name="link_not_this_laptop">Un dispositivo ha risposto come questo portatile ma non ha potuto dimostrarlo. Controlla che il telefono sia sulla rete giusta.</string>
@@ -111,9 +112,9 @@
   <string name="pair_expires">Scade tra %1$s</string>
   <string name="pair_expired">Scaduto</string>
   <string name="pair_confirm_title">%1$s ha detto che il codice corrisponde?</string>
-  <string name="pair_confirm_body">Se ha detto che il codice era sbagliato, tocca No: un altro dispositivo potrebbe rispondere al suo posto.</string>
-  <string name="pair_confirm_yes">Sì, associato</string>
-  <string name="pair_confirm_no">No</string>
+  <string name="pair_confirm_body">Se ha detto che il codice era sbagliato, tocca “Non corrispondono”: un altro dispositivo potrebbe rispondere al suo posto.</string>
+  <string name="pair_confirm_yes">I codici corrispondono</string>
+  <string name="pair_confirm_no">Non corrispondono</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Portatile fuori portata</string>
@@ -133,11 +134,11 @@
   <string name="forget">Dimentica</string>
   <string name="pair_again">Associa di nuovo</string>
   <string name="forget_laptop_title">Dimenticare %1$s?</string>
-  <string name="forget_laptop_body">Viene rimosso da questo elenco e il suo codice di associazione viene eliminato. L\'associazione Bluetooth di Android resta; rimuovila nelle impostazioni Bluetooth.</string>
+  <string name="forget_laptop_body">Viene rimosso da questo elenco e il suo codice di associazione viene eliminato. L’associazione Bluetooth di Android resta; rimuovila nelle impostazioni Bluetooth.</string>
   <string name="reconnect_automatically">Riconnetti automaticamente</string>
-  <string name="reconnect_caption">Connette i portatili memorizzati all\'apertura di Edgepad e riprova quando una connessione cade.</string>
+  <string name="reconnect_caption">Connette i portatili memorizzati all’apertura di Edgepad e riprova quando una connessione cade.</string>
   <string name="stay_connected">Resta connesso in background</string>
-  <string name="stay_connected_caption">Mantiene connessi i tuoi portatili mentre Edgepad è ridotto a icona, con una notifica per disconnettere. Se è disattivato, si disconnettono poco dopo che esci dall\'app.</string>
+  <string name="stay_connected_caption">Mantiene connessi i tuoi portatili mentre Edgepad è ridotto a icona, con una notifica per disconnettere. Se è disattivato, si disconnettono poco dopo che esci dall’app.</string>
   <string name="link_channel">Connessione</string>
   <string name="link_notice">Connesso a %1$s</string>
   <plurals name="link_notice_more">
@@ -151,7 +152,7 @@
   <string name="link_notice_text_clipboard">Tocca per aprire Edgepad. Con la condivisione degli appunti attiva, viene inviato anche ciò che hai copiato.</string>
   <string name="settings_clipboard">Appunti</string>
   <string name="clipboard_share">Condividi appunti</string>
-  <string name="clipboard_share_caption">Copia su un dispositivo, incolla sull\'altro: testo e immagini. Per inviare da questo telefono, copia e poi torna su Edgepad.</string>
+  <string name="clipboard_share_caption">Copia su un dispositivo, incolla sull’altro: testo e immagini. Per inviare da questo telefono, copia e poi torna su Edgepad.</string>
   <string name="sharing_title">Prima di iniziare</string>
   <string name="sharing_body">Entrambe sono disattivate finché non scegli. Puoi cambiarle in seguito in Impostazioni di sistema.</string>
   <string name="sharing_continue">Continua</string>
@@ -169,8 +170,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 righelli, divisi</string>
   <string name="media_layout_title">Layout dei media</string>
-  <string name="media_layout_hint_upright">Questo è il layout verticale; ruota il telefono per sistemare quello orizzontale. Trascina un elemento per spostarlo. Si aggancia alla griglia e alle linee centrali.</string>
-  <string name="media_layout_hint_sideways">Questo è il layout orizzontale; ruota il telefono per sistemare quello verticale. Trascina un elemento per spostarlo. Si aggancia alla griglia e alle linee centrali.</string>
   <string name="piece_now_playing">In riproduzione</string>
   <string name="piece_transport">Indietro · riproduci · avanti</string>
   <string name="media_layout_reset">Reimposta posizioni</string>
@@ -235,7 +234,7 @@
   <string name="orientation">Orientamento</string>
   <string name="orientation_upright">Verticale</string>
   <string name="orientation_sideways">Orizzontale</string>
-  <string name="dial_preview_description">Anteprima di un righello d\'angolo alla dimensione scelta</string>
+  <string name="dial_preview_description">Anteprima di un righello d’angolo alla dimensione scelta</string>
   <string name="keyboard_text_size">Dimensione del testo della tastiera</string>
   <string name="control_color">Colore dei controlli</string>
   <string name="control_color_auto">Auto</string>
@@ -246,10 +245,10 @@
   <string name="background_gradient">Sfumatura</string>
   <string name="background_image">Immagine</string>
   <string name="background_pick_image">Scegli immagine</string>
-  <string name="background_image_set">È impostata un\'immagine</string>
+  <string name="background_image_set">È impostata un’immagine</string>
   <string name="background_image_none">Ancora nessuna immagine</string>
-  <string name="image_too_large">Quell\'immagine supera %1$d MB. Scegline una più piccola.</string>
-  <string name="image_unreadable">Edgepad non ha potuto usare quell\'immagine. Scegline un\'altra.</string>
+  <string name="image_too_large">Quell’immagine supera %1$d MB. Scegline una più piccola.</string>
+  <string name="image_unreadable">Edgepad non ha potuto usare quell’immagine. Scegline un’altra.</string>
   <string name="gradient_end">Secondo colore</string>
   <string name="gradient_angle">Angolo della sfumatura</string>
   <string name="degrees_value">%1$d°</string>
@@ -285,15 +284,14 @@
     <item quantity="other">%1$d disegnate</item>
   </plurals>
   <string name="shapes_none">Ancora nessuna</string>
-  <string name="shapes_footnote">Tieni ferme due dita sul touchpad finché la linea non diventa continua (se il feedback aptico è attivo senti anche un tic), poi sollevane uno e disegna con l\'altro.</string>
+  <string name="shapes_footnote">Tieni ferme due dita sul touchpad finché la linea non diventa continua (se il feedback aptico è attivo senti anche un tic), poi sollevane uno e disegna con l’altro.</string>
   <string name="shapes_empty_title">Ancora nessuna forma</string>
-  <string name="shapes_empty_body">Disegnane una qui e assegnale qualcosa da eseguire. Sul touchpad, tieni ferme due dita finché la linea non diventa continua, poi sollevane uno e disegnala con l\'altro.</string>
+  <string name="shapes_empty_body">Disegnane una qui e assegnale qualcosa da eseguire. Sul touchpad, tieni ferme due dita finché la linea non diventa continua, poi sollevane uno e disegnala con l’altro.</string>
   <string name="shapes_add">Disegna una forma</string>
   <string name="shapes_draw_title">Disegna la forma</string>
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Disegna</string>
   <string name="shapes_target_title">Cosa esegue</string>
-  <string name="shapes_draw_hint">Disegnala con un solo tratto e solleva il dito quando hai finito.</string>
   <string name="shapes_redraw">Ridisegna</string>
   <string name="shapes_save">Salva</string>
   <string name="shapes_delete">Elimina</string>
@@ -308,14 +306,14 @@
 
   <string name="settings_surface">Area di controllo</string>
   <string name="settings_controls">Colore dei controlli</string>
-  <string name="settings_surface_title">Impostazioni dell\'area di controllo</string>
+  <string name="settings_surface_title">Impostazioni dell’area di controllo</string>
   <string name="settings_system">Impostazioni di sistema</string>
   <string name="settings_help">Aiuto</string>
   <string name="settings_about">Info e aggiornamenti</string>
   <string name="keyboard_settings_title">Impostazioni della tastiera</string>
   <string name="gamepad_settings_title">Impostazioni del gamepad</string>
   <string name="updates_title">Aggiornamenti</string>
-  <string name="updates_notice_text">Tocca per terminare l\'aggiornamento di Edgepad</string>
+  <string name="updates_notice_text">Tocca per terminare l’aggiornamento di Edgepad</string>
   <string name="updates_auto">Controlla gli aggiornamenti ogni giorno</string>
   <string name="updates_checking">Controllo in corso…</string>
   <string name="updates_failed">Impossibile raggiungere GitHub</string>
@@ -328,11 +326,11 @@
   <string name="updates_updated">Aggiornato a %1$s</string>
   <string name="connected_to">Connesso a %1$s</string>
   <string name="updates_downloading">Download in corso: %1$d%%</string>
-  <string name="updates_download_failed">Impossibile scaricare l\'aggiornamento. Controlla la connessione e riprova.</string>
-  <string name="updates_blocked">Android ha bloccato l\'aggiornamento. Consenti a Edgepad di installare aggiornamenti nelle impostazioni di Android, poi riprova.</string>
-  <string name="updates_storage">Non c\'è abbastanza spazio per installare l\'aggiornamento. Libera dello spazio e riprova.</string>
+  <string name="updates_download_failed">Impossibile scaricare l’aggiornamento. Controlla la connessione e riprova.</string>
+  <string name="updates_blocked">Android ha bloccato l’aggiornamento. Consenti a Edgepad di installare aggiornamenti nelle impostazioni di Android, poi riprova.</string>
+  <string name="updates_storage">Non c’è abbastanza spazio per installare l’aggiornamento. Libera dello spazio e riprova.</string>
   <string name="updates_confirm_title">Aggiornare a %1$s?</string>
-  <string name="updates_confirm_body">Edgepad scarica l\'aggiornamento e si riavvia, e questo disconnette i tuoi portatili. Android potrebbe chiederti conferma.</string>
+  <string name="updates_confirm_body">Edgepad scarica l’aggiornamento e si riavvia, e questo disconnette i tuoi portatili. Android potrebbe chiederti conferma.</string>
   <string name="updates_confirm_major">È una versione principale: aggiorna alla stessa versione anche Edgepad sul portatile.</string>
   <string name="updates_confirm_action">Aggiorna</string>
   <string name="updates_release_notes">Note di rilascio</string>
@@ -340,7 +338,7 @@
   <string name="licences_title">Licenze</string>
   <string name="licences_body">Lato, il carattere: SIL Open Font License 1.1.\nLucide, le icone: ISC License.\nAndroidSVG, che disegna i loghi dei lettori: Apache License 2.0.</string>
   <string name="about_sends">Le uniche cose che Edgepad invia a internet sono il controllo degli aggiornamenti verso github.com e un aggiornamento che scegli di scaricare. Tutto il resto resta tra questo telefono e il tuo portatile.</string>
-  <string name="updates_install_failed">Impossibile installare l\'aggiornamento. Scaricalo dalla pagina di rilascio e installalo a mano.</string>
+  <string name="updates_install_failed">Impossibile installare l’aggiornamento. Scaricalo dalla pagina di rilascio e installalo a mano.</string>
   <string name="settings_version">Edgepad %1$s · protocollo %2$d</string>
   <string name="corners_title">Angoli</string>
   <string name="corners_pick">Scegli un angolo</string>
@@ -350,13 +348,13 @@
   <string name="dial_feel_title">Comportamento dei righelli</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
   <string name="dial_preview_caption">Anteprima. In senso orario aumenta.</string>
-  <string name="gestures_footnote">Tocca un gesto per cambiarne l\'azione. Con uno e due dita i gesti sono fissi: muovi per spostare il puntatore, tocca per fare clic, tieni fermo un attimo e poi muovi per trascinare; con due dita trascina per scorrere, pizzica per ingrandire, tocca per il clic destro.</string>
+  <string name="gestures_footnote">Tocca un gesto per cambiarne l’azione. Con uno e due dita i gesti sono fissi: muovi per spostare il puntatore, tocca per fare clic, tieni fermo un attimo e poi muovi per trascinare; con due dita trascina per scorrere, pizzica per ingrandire, tocca per il clic destro.</string>
   <string name="dial_feel_each">Ogni righello</string>
   <string name="dial_feel_shared">Condiviso</string>
   <string name="dial_feel_each_caption">Sono elencati solo i righelli presenti in un angolo. Togline uno da Condiviso per dargli una velocità tutta sua. Condiviso segue la sensibilità di scorrimento.</string>
   <string name="appearance_title">Aspetto</string>
   <string name="appearance_preview">Anteprima</string>
-  <string name="background_preview_description">Anteprima dello sfondo dell\'area di controllo</string>
+  <string name="background_preview_description">Anteprima dello sfondo dell’area di controllo</string>
   <string name="guide_title">Guida</string>
   <string name="documentation_title">Documentazione</string>
 
@@ -406,7 +404,7 @@
   <string name="surface_volume_down">Abbassa il volume</string>
   <string name="surface_brightness_up">Aumenta la luminosità</string>
   <string name="surface_brightness_down">Riduci la luminosità</string>
-  <string name="surface_mute_toggle">Disattiva o riattiva l\'audio</string>
+  <string name="surface_mute_toggle">Disattiva o riattiva l’audio</string>
   <string name="surface_next">Brano successivo</string>
   <string name="surface_previous">Brano precedente</string>
   <string name="surface_open_settings">Apri le impostazioni</string>
@@ -423,7 +421,11 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controlli</string>
-  <string name="controls_move_hint">Tieni premuto un riquadro per spostarlo.</string>
+  <string name="controls_edit">Modifica</string>
+  <string name="controls_edit_hint">Tocca un riquadro per nasconderlo o mostrarlo. Tienilo premuto e trascinalo per spostarlo.</string>
+  <string name="controls_hidden">Nascosto</string>
+  <string name="controls_all_hidden">Tutti i riquadri sono nascosti. Tocca Modifica per mostrarli di nuovo.</string>
+  <string name="controls_toggle_tile">Nascondi o mostra %1$s</string>
   <string name="controls_hide_dials">Nascondi righelli e media</string>
   <string name="controls_blackout">Schermo nero se inattivo</string>
   <string name="controls_open">Apri %1$s</string>
@@ -442,10 +444,8 @@
   <string name="capture_stop">Interrompi registrazione</string>
   <string name="capture_recording">Registrazione in corso sul portatile. Tocca Interrompi registrazione per terminare; con Salva in Telefono il file arriva a quel punto.</string>
   <string name="capture_sent">Inviato al portatile: %1$s</string>
-  <string name="capture_hint">Per un\'area, tocca Area, poi tieni fermo un dito sul touchpad per un attimo e muovilo per selezionarla.</string>
-  <string name="capture_save_to">Salva in</string>
+  <string name="capture_drag_caption">Trascina per selezionare l’area</string>
   <string name="capture_save_laptop">Portatile</string>
-  <string name="capture_save_phone">Telefono</string>
   <string name="capture_receiving">Ricezione di %1$s, %2$d%%</string>
   <string name="capture_saved">Salvato in %1$s</string>
   <string name="capture_bad_hash">La cattura è arrivata danneggiata. È ancora sul portatile.</string>
@@ -456,8 +456,6 @@
   <string name="capture_send_failed">Il portatile non è riuscito a inviare la cattura. È ancora sul portatile.</string>
   <string name="controls_annotate">Annota</string>
   <string name="annotate_description">Tavoletta con penna: un tocco disegna nello stesso punto dello schermo del portatile. Funziona solo al tocco.</string>
-  <string name="annotate_hint">Disegna qui. L\'inchiostro appare sul portatile nello stesso punto.</string>
-  <string name="annotate_hint_named">Disegna qui. L\'inchiostro appare su %1$s nello stesso punto.</string>
   <string name="annotate_menu">Strumenti di disegno</string>
   <string name="annotate_menu_expanded">Espanso</string>
   <string name="annotate_menu_collapsed">Compresso</string>
@@ -502,7 +500,7 @@
   <string name="macros_labels_caption">Nomi sotto le immagini. Una macro senza immagine mostra sempre il suo nome.</string>
   <string name="macros_icons_title">Icone</string>
   <string name="macros_icon_size">Dimensione delle icone</string>
-  <string name="macros_icon_size_caption">Quanto spazio di ogni pulsante occupa l\'immagine. Le immagini non vengono mai ingrandite oltre i loro pixel, così restano nitide. Su un pulsante grande possono risultare piccole finché il portatile non ne invia di più grandi.</string>
+  <string name="macros_icon_size_caption">Quanto spazio di ogni pulsante occupa l’immagine. Le immagini non vengono mai ingrandite oltre i loro pixel, così restano nitide. Su un pulsante grande possono risultare piccole finché il portatile non ne invia di più grandi.</string>
   <string name="macros_move_earlier">Sposta prima</string>
   <string name="macros_move_later">Sposta dopo</string>
   <string name="macros_moved">Spostata alla posizione %1$d di %2$d</string>
@@ -513,22 +511,22 @@
   <string name="macros_layout_grid_description">Righe: %1$d, colonne: %2$d</string>
   <string name="macros_layout_caption">Il primo numero indica le righe, il secondo le colonne. Auto sceglie la soluzione che rende i pulsanti più grandi.</string>
   <string name="macros_per_page">Macro sullo schermo</string>
-  <string name="macros_per_page_caption">Quante macro mostra una pagina. Le altre proseguono nelle pagine successive, a cui si arriva facendo scorrere un dito di lato. Tieni premuta una macro, poi trascinala per spostarla all\'interno della sua pagina. Tieni premuta una macro aperta per mostrare una croce, poi tocca la croce per chiudere l\'app.</string>
+  <string name="macros_per_page_caption">Quante macro mostra una pagina. Le altre proseguono nelle pagine successive, a cui si arriva facendo scorrere un dito di lato. Tieni premuta una macro, poi trascinala per spostarla all’interno della sua pagina. Tieni premuta una macro aperta per mostrare una croce, poi tocca la croce per chiudere l’app.</string>
   <string name="macros_page_of">Pagina %1$d di %2$d</string>
   <string name="macros_empty_title">Ancora nessuna macro</string>
-  <string name="macros_empty_body">Aggiungile dal menu Macro… di Edgepad nell\'area di notifica sul portatile. Compaiono qui non appena invia l\'elenco.</string>
-  <string name="macros_empty_body_mac">Aggiungile dal menu Macro… di Edgepad nella barra dei menu del Mac. Compaiono qui non appena invia l\'elenco.</string>
+  <string name="macros_empty_body">Aggiungile dal menu Macro… di Edgepad nell’area di notifica sul portatile. Compaiono qui non appena invia l’elenco.</string>
+  <string name="macros_empty_body_mac">Aggiungile dal menu Macro… di Edgepad nella barra dei menu del Mac. Compaiono qui non appena invia l’elenco.</string>
   <string name="macros_loading">Caricamento delle macro…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
   <string name="apps_add_from_laptop">Aggiungi dal portatile</string>
-  <string name="apps_add_caption">Scegli un\'app tra quelle elencate dal portatile e lì diventa una macro. Viene inviata solo la tua scelta.</string>
+  <string name="apps_add_caption">Scegli un’app tra quelle elencate dal portatile e lì diventa una macro. Viene inviata solo la tua scelta.</string>
   <string name="apps_title">Aggiungi una macro</string>
-  <string name="apps_search_hint">Cerca app</string>
+  <string name="apps_search_hint">Cerca app, ad es. Chrome</string>
   <string name="apps_loading">Ricerca di app su %1$s…</string>
   <string name="apps_none">%1$s non ha elencato app.</string>
   <string name="apps_no_match">Nessuna app corrisponde alla ricerca.</string>
-  <string name="apps_windows_hint">Non è nell\'elenco? Aggiungi l\'app al menu Start del portatile, poi aggiorna.</string>
+  <string name="apps_windows_hint">Non è nell’elenco? Aggiungi l’app al menu Start del portatile, poi aggiorna.</string>
   <string name="apps_confirm_title">Aggiungere %1$s a %2$s?</string>
   <string name="apps_confirm_body">Diventa una macro che apre questa app sul portatile.</string>
   <string name="apps_confirm_action">Aggiungi</string>
@@ -539,14 +537,14 @@
   <string name="apps_row_added_description">%1$s, già aggiunta</string>
   <string name="apps_row_full">Macro al completo</string>
   <plurals name="apps_full_note">
-    <item quantity="one">Questo portatile può contenere fino a %1$d macro e le ha tutte. Eliminane una per aggiungerne un\'altra.</item>
-    <item quantity="many">Questo portatile può contenere fino a %1$d di macro e le ha tutte. Eliminane una per aggiungerne un\'altra.</item>
-    <item quantity="other">Questo portatile può contenere fino a %1$d macro e le ha tutte. Eliminane una per aggiungerne un\'altra.</item>
+    <item quantity="one">Questo portatile può contenere fino a %1$d macro e le ha tutte. Eliminane una per aggiungerne un’altra.</item>
+    <item quantity="many">Questo portatile può contenere fino a %1$d di macro e le ha tutte. Eliminane una per aggiungerne un’altra.</item>
+    <item quantity="other">Questo portatile può contenere fino a %1$d macro e le ha tutte. Eliminane una per aggiungerne un’altra.</item>
   </plurals>
   <string name="apps_added">Aggiunta. Ora è tra le macro.</string>
   <string name="apps_full">Il portatile non può contenere altre macro. Rimuovine prima una.</string>
-  <string name="apps_duplicate">Quell\'app è già una macro.</string>
-  <string name="apps_stale">Quell\'elenco non è aggiornato. Aggiornalo e scegli di nuovo.</string>
+  <string name="apps_duplicate">Quell’app è già una macro.</string>
+  <string name="apps_stale">Quell’elenco non è aggiornato. Aggiornalo e scegli di nuovo.</string>
   <string name="apps_failed">Il portatile non è riuscito ad aggiungerla.</string>
   <string name="input_blocked">%1$s non può ancora ricevere input. Consenti Edgepad sul portatile; funziona non appena lo fai.</string>
   <string name="battery_title">Batterie</string>
@@ -564,4 +562,69 @@
   <string name="battery_percent">%1$d%%</string>
   <string name="battery_more">+%1$d</string>
   <string name="battery_summary">Batterie: %1$s</string>
+  <string name="updates_later">Più tardi</string>
+  <string name="updates_skip">Salta questa versione</string>
+  <string name="updates_notify_text">Edgepad %1$s è disponibile. Tocca per aggiornare.</string>
+  <string name="end_action_title">Sospendi al termine</string>
+  <string name="end_sleep">Sospendi il portatile</string>
+  <string name="end_shutdown">Spegni il portatile</string>
+  <string name="end_cancel">Annulla</string>
+  <string name="end_armed_sleep">Sospensione al termine</string>
+  <string name="end_armed_shutdown">Spegnimento al termine</string>
+  <string name="end_no_timeline">Non ha un orario di fine, quindi non c’è nulla da aspettare.</string>
+  <string name="unavailable_unsupported">Questo portatile non può farlo.</string>
+  <string name="unavailable_off">È disattivato sul portatile.</string>
+  <string name="unavailable_no_tool">Al portatile manca un programma necessario.</string>
+  <string name="unavailable_no_permission">Il portatile non l’ha ancora consentito.</string>
+  <string name="capture_recording_laptop">Registrazione sul portatile</string>
+  <string name="xfer_send">Invia un file</string>
+  <string name="xfer_sending">Invio di %1$s · %2$d%%</string>
+  <string name="xfer_receiving">Ricezione di %1$s · %2$d%%</string>
+  <string name="xfer_done">%1$s salvato</string>
+  <string name="xfer_failed">Impossibile inviare %1$s</string>
+  <string name="xfer_cancel">Annulla</string>
+  <plurals name="xfer_too_many">
+    <item quantity="one">Solo i primi %1$d file sono stati messi in coda</item>
+    <item quantity="many">Solo i primi %1$d file sono stati messi in coda</item>
+    <item quantity="other">Solo i primi %1$d file sono stati messi in coda</item>
+  </plurals>
+  <string name="xfer_sending_n">Invio di %1$s (%2$d di %3$d) · %4$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">%1$d file inviato</item>
+    <item quantity="many">%1$d file inviati</item>
+    <item quantity="other">%1$d file inviati</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">%1$d file ricevuto</item>
+    <item quantity="many">%1$d file ricevuti</item>
+    <item quantity="other">%1$d file ricevuti</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">Inviati %1$d di %2$d file</item>
+    <item quantity="many">Inviati %1$d di %2$d file</item>
+    <item quantity="other">Inviati %1$d di %2$d file</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d file non è stato inviato</item>
+    <item quantity="many">%1$d file non sono stati inviati</item>
+    <item quantity="other">%1$d file non sono stati inviati</item>
+  </plurals>
+  <plurals name="xfer_card_more">
+    <item quantity="one">e altri %1$d</item>
+    <item quantity="many">e altri %1$d</item>
+    <item quantity="other">e altri %1$d</item>
+  </plurals>
+  <plurals name="xfer_share_count">
+    <item quantity="one">%1$d file</item>
+    <item quantity="many">%1$d di file</item>
+    <item quantity="other">%1$d file</item>
+  </plurals>
+  <string name="xfer_card_cancelling">Annullamento…</string>
+  <string name="xfer_retry">Riprova</string>
+  <string name="xfer_card_a11y">Trasferimento file</string>
+  <string name="xfer_no_laptop">Collegati prima a un portatile</string>
+  <string name="xfer_channel">Trasferimenti di file</string>
+  <string name="notify_channel">Notifiche del portatile</string>
+  <string name="notify_setting">Mostra le notifiche del portatile</string>
+  <string name="notify_setting_hint">Richiede lo stesso interruttore attivo nel menu Edgepad del portatile.</string>
 </resources>

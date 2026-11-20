@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Edgepad.Bluetooth;
 using Edgepad.Dispatch;
 using Edgepad.Net;
+using Edgepad.Transfer;
 using Edgepad.Trust;
 
 namespace Edgepad.Platform;
@@ -23,6 +24,17 @@ internal sealed class SessionHost(
     private static readonly TimeSpan ExitGrace = TimeSpan.FromSeconds(2);
 
     private readonly Admission<LinuxSession> admission = new();
+
+    private readonly Lock gate = new();
+
+    // The admitted session, set under gate in the same step as the admission itself. A transfer socket attaches to this and
+    // to nothing else: never to a candidate, which Admission.Sessions would also list.
+    private LinuxSession? connected;
+
+    // Network sockets that have not yet said which they are (a phone's HELLO or a transfer socket's BULK_HELLO), with their
+    // phone's address. Bounded like TcpLinkListener's unauthenticated sockets, whose count ends once the link layer has
+    // proved the phone's key, before this host sees the socket.
+    private readonly Dictionary<LinuxSession, string> awaiting = [];
 
     /// <summary>The connected phone's address, or null.</summary>
     public string? CurrentAddress => admission.CurrentAddress;
@@ -117,7 +129,8 @@ internal sealed class SessionHost(
                     platform.Open();
                     return true;
                 },
-                OnSessionEnded);
+                OnSessionEnded,
+                LiveFor);
         }
         catch
         {
@@ -125,9 +138,12 @@ internal sealed class SessionHost(
             throw;
         }
 
-        if (!admission.AddCandidate(session, address))
+        platform.NotifyRequested = session.SetNotify;
+        var tooMany = link.Kind == LinkKind.Network && !TryAwait(session, address);
+        if (tooMany || !admission.AddCandidate(session, address))
         {
-            Log.Write($"Refused {address}: Edgepad is quitting, or the owner is changing security settings");
+            Log.Write(tooMany ? $"Refused {address}: too many sockets from it are waiting to say what they are" : $"Refused {address}: Edgepad is quitting, or the owner is changing security settings");
+            Forget(session);
             session.Dispose();
             platform.Dispose();
             return false;
@@ -135,6 +151,77 @@ internal sealed class SessionHost(
 
         session.Start();
         return true;
+    }
+
+    // Counted and added under one lock, so two sockets arriving together cannot both take the last place.
+    private bool TryAwait(LinuxSession session, string address)
+    {
+        lock (gate)
+        {
+            var fromAddress = awaiting.Values.Count(a => string.Equals(a, address, StringComparison.OrdinalIgnoreCase));
+            if (!CanAwait(awaiting.Count, fromAddress))
+            {
+                return false;
+            }
+
+            awaiting[session] = address;
+            return true;
+        }
+    }
+
+    private void Forget(LinuxSession session)
+    {
+        lock (gate)
+        {
+            _ = awaiting.Remove(session);
+        }
+    }
+
+    /// <summary>Whether another socket may wait for its first frame: the same limits as the link listener's unauthenticated ones.</summary>
+    internal static bool CanAwait(int total, int fromAddress) =>
+        total < TcpLinkListener.MaxUnauthenticated && fromAddress < TcpLinkListener.MaxUnauthenticatedPerHost;
+
+    /// <summary>
+    /// The session a transfer socket may attach to (<c>hasLiveSession</c>, D-BULK): the one admitted for exactly this socket's
+    /// address, still running, and holding no transfer socket yet. Reserved for the caller on the way out. Null otherwise.
+    /// This never creates, replaces or admits a session and never calls <see cref="OnAdmitted"/>, and it never reads
+    /// <c>Admission.Sessions</c>, which lists candidates too. The socket has said it is a transfer socket, so it stops
+    /// counting against the sockets still to identify themselves.
+    /// </summary>
+    private LinuxSession? LiveFor(LinuxSession bulk)
+    {
+        LinuxSession? live;
+        lock (gate)
+        {
+            _ = awaiting.Remove(bulk);
+            live = connected;
+            if (live is null
+                || !string.Equals(admission.CurrentAddress, bulk.Address, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(live.Address, bulk.Address, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+        }
+
+        // A session that ended is disposed before it is cleared here, and a disposed one refuses.
+        return live.ReserveBulk(bulk) ? live : null;
+    }
+
+    /// <summary>
+    /// Sends a file to the connected phone, on a pool thread. Null when no phone is connected; otherwise how it ended
+    /// (<see cref="XferCode.Saved"/> is a file the phone has whole and checked). A file that cannot be read faults the task.
+    /// </summary>
+    public Task<XferCode?> SendFile(string path, CancellationToken cancel = default)
+    {
+        LinuxSession? session;
+        lock (gate)
+        {
+            session = connected;
+        }
+
+        return session is null
+            ? Task.FromResult<XferCode?>(null)
+            : Task.Run(() => (XferCode?)session.SendFile(path, cancel), CancellationToken.None);
     }
 
     /// <summary>Ends every session of the phone at <paramref name="address"/>, the connected one and its candidates.</summary>
@@ -146,7 +233,20 @@ internal sealed class SessionHost(
     /// </summary>
     private bool OnAdmitted(LinuxSession session)
     {
-        if (!admission.Admit(session, out var replaced, out var refusal))
+        Forget(session);
+        bool admitted;
+        LinuxSession? replaced;
+        string refusal;
+        lock (gate)
+        {
+            admitted = admission.Admit(session, out replaced, out refusal);
+            if (admitted)
+            {
+                connected = session;
+            }
+        }
+
+        if (!admitted)
         {
             Log.Write($"Refused {session.Address}: {refusal}");
             return false;
@@ -185,6 +285,15 @@ internal sealed class SessionHost(
 
     private void OnSessionEnded(LinuxSession session)
     {
+        Forget(session);
+        lock (gate)
+        {
+            if (ReferenceEquals(connected, session))
+            {
+                connected = null;
+            }
+        }
+
         admission.Ended(session);
         onEnded();
     }

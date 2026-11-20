@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">未连接</string>
+  <string name="notice_play_pause">播放或暂停</string>
+  <string name="notice_volume_down">调低音量</string>
+  <string name="notice_volume_up">调高音量</string>
+  <string name="controls_clipboard">剪贴板</string>
+  <string name="controls_presenter">演示</string>
+  <string name="clip_history_title">剪贴板</string>
+  <string name="clip_history_empty">还没有复制任何内容</string>
+  <string name="clip_history_empty_hint">开启共享剪贴板后,笔记本和这部手机上的复制内容会显示在这里。</string>
+  <string name="clip_history_from_laptop">来自笔记本</string>
+  <string name="clip_history_from_phone">来自这部手机</string>
+  <string name="clip_history_just_now">刚刚</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s。%2$s。</string>
+  <string name="clip_history_sent">已发送到%1$s</string>
+  <string name="clip_history_failed">无法发送。请检查连接。</string>
+  <string name="clip_history_send_hint">再次发送</string>
+  <string name="presenter_title">演示</string>
+  <string name="presenter_next">下一张幻灯片</string>
+  <string name="presenter_previous">上一张幻灯片</string>
+  <string name="presenter_settings">演示设置</string>
+  <string name="presenter_laser_size">激光大小</string>
+  <string name="presenter_laser_trail">显示拖尾</string>
+  <string name="presenter_point_here">在此指向</string>
+  <string name="tool_laser">激光</string>
+</resources>

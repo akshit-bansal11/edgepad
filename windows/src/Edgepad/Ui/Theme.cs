@@ -32,8 +32,17 @@ internal sealed record Palette(
     Color Danger,
     bool IsDark)
 {
+    private const int HairlineAlpha = 31;
+
     /// <summary>True for the set built from Windows' contrast theme: borders are thicker and nothing relies on a tint.</summary>
     public bool HighContrast { get; init; }
+
+    /// <summary>
+    /// Dividers and outlines drawn on a card: the ink at low alpha, so the contrast is the same over any surface (DES-D22).
+    /// Line stays the opaque twin for what cannot take alpha, such as the window border Windows draws. A contrast theme
+    /// keeps its solid colour.
+    /// </summary>
+    public Color Hairline => HighContrast ? Line : Color.FromArgb(HairlineAlpha, Ink);
 
     public static readonly Palette Dark = new(
         Hex(0x1B1C20), Hex(0x2B2D33), Hex(0x24262B), Hex(0xF2F3F5), Hex(0x9A9CA3), Hex(0x4DA3FF),
@@ -257,6 +266,12 @@ internal static partial class Theme
         (int)Math.Round(from.G + ((to.G - from.G) * amount)),
         (int)Math.Round(from.B + ((to.B - from.B) * amount)));
 
+    /// <summary>
+    /// The radius of a shape set <paramref name="gap"/> inside one of radius <paramref name="outer"/>: the difference, never the
+    /// same number, so the two corners share a centre (DES-D20). Zero when the gap is wider than the outer radius.
+    /// </summary>
+    public static float Inner(float outer, float gap) => Math.Max(outer - gap, 0f);
+
     public static GraphicsPath Rounded(RectangleF bounds, float radius)
     {
         var path = new GraphicsPath();
@@ -286,16 +301,27 @@ internal static partial class Theme
     public static Color Connected => Color.FromArgb(0x22, 0xA5, 0x59);
 
     /// <summary>
-    /// The durations of every transition, in milliseconds. All at most 300, and all zero while Windows has animations
+    /// The three durations every transition is one of (UX-27), in milliseconds, and all zero while Windows has animations
     /// off, so a caller that steps by them simply jumps. Read live, never cached: the setting can change while the app runs.
+    /// The tray's rows and controls take none of them: they stay instant (UX-28).
     /// </summary>
     public static class Motion
     {
-        /// <summary>A panel appearing or going away.</summary>
-        /// <summary>A nudge: the failure shake.</summary>
-        public static int Fast => AnimationsEnabled ? 120 : 0;
+        public const int PressMs = 160;
+        public const int RevealMs = 300;
+        public const int SceneMs = 400;
 
-        public static int Base => AnimationsEnabled ? 220 : 0;
+        /// <summary>A control answering a touch, and the failure shake.</summary>
+        public static int Press => ScaledFor(AnimationsEnabled, PressMs);
+
+        /// <summary>A menu or window appearing, and the level readout fading away.</summary>
+        public static int Reveal => ScaledFor(AnimationsEnabled, RevealMs);
+
+        /// <summary>A change of whole screen. Nothing on Windows has one; kept so the three tiers are defined once.</summary>
+        public static int Scene => ScaledFor(AnimationsEnabled, SceneMs);
+
+        /// <summary><paramref name="milliseconds"/> while animations are on, else zero. Pure, so a test needs no system call.</summary>
+        public static int ScaledFor(bool animations, int milliseconds) => animations ? milliseconds : 0;
     }
 
     /// <summary>
@@ -388,5 +414,82 @@ internal static partial class Theme
 
         [LibraryImport("uxtheme.dll", StringMarshalling = StringMarshalling.Utf16)]
         public static partial int SetWindowTheme(nint window, string? application, string? idList);
+    }
+}
+
+/// <summary>Where a transition has got to, from the time spent. Pure.</summary>
+internal static class Progress
+{
+    /// <summary>
+    /// The share of <paramref name="durationMs"/> that <paramref name="elapsedMs"/> has covered, clamped to 0..1 and eased out
+    /// (fast first, settling last). A duration of zero or less is already done.
+    /// </summary>
+    public static double Of(long elapsedMs, int durationMs)
+    {
+        if (durationMs <= 0)
+        {
+            return 1;
+        }
+
+        var left = 1 - Math.Clamp(elapsedMs / (double)durationMs, 0, 1);
+        return 1 - (left * left * left);
+    }
+
+    /// <summary>
+    /// The share of <paramref name="durationMs"/> that <paramref name="elapsedMs"/> has covered for something leaving, clamped to 0..1
+    /// and eased in (slow first, quickening last), the mirror of <see cref="Of"/> (DES-D30). A duration of zero or less is already done.
+    /// </summary>
+    public static double Leaving(long elapsedMs, int durationMs)
+    {
+        if (durationMs <= 0)
+        {
+            return 1;
+        }
+
+        var spent = Math.Clamp(elapsedMs / (double)durationMs, 0, 1);
+        return spent * spent * spent;
+    }
+}
+
+/// <summary>
+/// How a menu or window appears (the reveal tier). WinForms has no interpolator and no scene transform, so these step by hand
+/// on a timer that exists only while the transition runs, and a window cannot grow from its source: it fades in and rises a
+/// short way toward its place, the same known limit as the level readout's fade.
+/// </summary>
+internal static class Reveal
+{
+    private const int StepMs = 15;
+    private const int RisePx = 10;
+
+    /// <summary>The part of a <paramref name="full"/> height that is showing at <paramref name="progress"/>.</summary>
+    public static int ClipHeight(double progress, int full) => (int)Math.Round(full * Math.Clamp(progress, 0, 1));
+
+    /// <summary>Fades <paramref name="form"/> in and lifts it into the place it was shown at. Does nothing while animations are off.</summary>
+    public static void Window(Form form)
+    {
+        var duration = Theme.Motion.Reveal;
+        if (duration == 0)
+        {
+            return;
+        }
+
+        var rest = form.Top;
+        var rise = Theme.Scale(RisePx, form.DeviceDpi);
+        var start = Environment.TickCount64;
+        var timer = new System.Windows.Forms.Timer { Interval = StepMs };
+        form.Opacity = 0;
+        form.Top = rest + rise;
+        timer.Tick += (_, _) =>
+        {
+            var progress = Progress.Of(Environment.TickCount64 - start, duration);
+            form.Opacity = progress;
+            form.Top = rest + (int)Math.Round(rise * (1 - progress));
+            if (progress >= 1)
+            {
+                timer.Dispose();
+            }
+        };
+        form.FormClosed += (_, _) => timer.Dispose();
+        timer.Start();
     }
 }

@@ -499,4 +499,71 @@ public sealed class StrokeBoardTests
         Assert.Empty(still.ArrowWings(1000, 1000));
         Assert.Empty(new Stroke(StrokeTool.Arrow, PenStyle.Default).ArrowWings(1000, 1000));
     }
+
+    [Fact]
+    public void ALaserStrokeKeepsOnlyItsLatestPointAndIsNeverStored()
+    {
+        var board = Started();
+        Assert.True(board.SetTool(StrokeTool.Laser));
+
+        Assert.True(board.Pen(10, 20, Down));
+        Assert.True(board.Pen(300, 400, Move));
+        Assert.Equal([new NormPoint(300, 400)], board.Active!.Points);
+
+        Assert.True(board.Pen(500, 600, Up));
+        Assert.Null(board.Active);
+        Assert.Empty(board.Strokes);
+    }
+
+    [Fact]
+    public void ATrailingLaserKeepsItsLatestPointsTheWidthSetBeforeItAndIsNeverStored()
+    {
+        var board = Started();
+        Assert.True(board.SetWidth(50));
+        Assert.True(board.SetTool(StrokeTool.LaserTrail));
+
+        Assert.True(board.Pen(0, 0, Down));
+        for (ushort i = 1; i <= 30; i++)
+        {
+            Assert.True(board.Pen(i, i, Move));
+        }
+
+        var trail = board.Active!;
+        Assert.True(trail.IsLaser);
+        Assert.Equal(Stroke.TrailPoints, trail.Points.Count);
+        Assert.Equal(new NormPoint(30, 30), trail.Points[^1]);
+        Assert.Equal(30f, trail.LaserRadiusPx(1000), 3);
+        Assert.Equal(12f, new Stroke(StrokeTool.Laser, PenStyle.Default).LaserRadiusPx(1000), 3);
+
+        Assert.True(board.Pen(31, 31, Up));
+        Assert.Null(board.Active);
+        Assert.Empty(board.Strokes);
+    }
+
+    [Fact]
+    public void ALaserIsRefusedWhileSigningAndLeavesUndoAlone()
+    {
+        Assert.False(Started(BoardMode.Sign).SetTool(StrokeTool.Laser));
+
+        var board = Started();
+        Draw(board, 1, 1, 5, 5);
+        Assert.True(board.SetTool(StrokeTool.Laser));
+        Draw(board, 2, 2, 6, 6);
+
+        Assert.Single(board.Strokes);
+        Assert.True(board.Undo());
+        Assert.Empty(board.Strokes);
+    }
+
+    [Fact]
+    public void AnEndedBoardLosesALaserInFlight()
+    {
+        var board = Started();
+        Assert.True(board.SetTool(StrokeTool.Laser));
+        Assert.True(board.Pen(1, 1, Down));
+
+        board.End();
+
+        Assert.Null(board.Active);
+    }
 }

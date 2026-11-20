@@ -482,4 +482,327 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi y USB: puede que los teléfonos no encuentren esta laptop.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Reiniciar como administrador</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Permite que Edgepad escriba en ventanas con permisos elevados, como el Administrador de tareas. La pantalla de bloqueo y los avisos de UAC siguen fuera de alcance.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Instalar Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Más tarde</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Omitir esta versión</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} está disponible. Haz clic para instalarlo.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>No se pudo comprobar Edgepad {0}, así que no se instaló.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>No se pudo instalar Edgepad {0}. Haz clic para abrir la página de la versión.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>Es una versión mayor. Actualiza también Edgepad en el teléfono, o se rechazarán entre sí. ¿Instalar ahora?</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Apagando</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>El contenido terminó. Este portátil se apaga en {0} segundos.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Enviar un archivo al teléfono…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} llegó desde el teléfono.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>No se pudo recibir {0}.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Mostrar notificaciones en el teléfono</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Instalar</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Ahora no</value>
+  </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>&amp;Historial del portapapeles</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Copias recientes de este portátil y del teléfono. Solo se guardan en memoria.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Portapapeles</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Aún no se ha copiado nada</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Las copias de este portátil y del teléfono aparecen aquí.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Activa Compartir portapapeles en el menú de la bandeja para ver aquí tus copias.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Borrar todo</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Este portátil</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Ahora mismo</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>hace {0} min</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>hace {0} h</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>hace {0} d</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Enviar al teléfono</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Enviado al teléfono</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>No se pudo enviar. Revisa la conexión.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Copiado. Pulsa Ctrl+V para pegar.</value>
+  </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>No se pudo usar el portapapeles. Inténtalo de nuevo.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V lo usa otra aplicación, así que el atajo está desactivado.</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Enviando al teléfono</value>
+  </data>
+  <data name="Xfer_Receiving" xml:space="preserve">
+    <value>Recibiendo del teléfono</value>
+  </data>
+  <data name="Xfer_Count" xml:space="preserve">
+    <value>{0} de {1}</value>
+  </data>
+  <data name="Xfer_Detail" xml:space="preserve">
+    <value>{0} de {1} · {2}/s</value>
+  </data>
+  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
+    <value>{0} de {1}</value>
+  </data>
+  <data name="Xfer_Percent" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} enviado</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Archivos enviados: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Archivos enviados: {0} de {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Archivos recibidos: {0}</value>
+  </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Archivos recibidos: {0} de {1}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} no se envió</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Archivos no enviados: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Cancelando…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Reintentar</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>No hay ningún teléfono conectado.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} omitido: vacío, inexistente o de más de 2 GB.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>El teléfono lo rechazó. Puede que no tenga espacio.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Llegó dañado. Inténtalo de nuevo.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>El teléfono no pudo guardarlo.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>El teléfono estaba ocupado con otro archivo.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>El teléfono dejó de responder.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>Se perdió la conexión.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Este portátil no pudo leer el archivo.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Cancelado.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>No enviado.</value>
+  </data>
+  <data name="Menu_Integrations" xml:space="preserve">
+    <value>&amp;Integraciones…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Modo desarrollador</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>Integraciones para desarrolladores…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integraciones</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Todo aquí está desactivado hasta que lo actives.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Mostrar estadísticas del sistema en el teléfono</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Mostrar el tiempo en el teléfono</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Ciudad</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Solo envía el nombre de la ciudad a open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Claude" xml:space="preserve">
+    <value>Claude Code</value>
+  </data>
+  <data name="Integrations_Codex" xml:space="preserve">
+    <value>Codex</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Conectar</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Desconectar</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Conectado · última señal {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>No conectado</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>No se encontró {0} en este equipo</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad no pudo ejecutar esto por ti. Ejecuta estos comandos en un terminal:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>En Codex, abre /hooks y confía en Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Esperando a que Codex confíe en el complemento…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Actualiza Codex a la versión 0.159 o posterior.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Reinicia las sesiones abiertas o ejecuta /reload-plugins en Claude Code.</value>
+  </data>
+  <data name="Integrations_GitHub" xml:space="preserve">
+    <value>GitHub</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Para desarrolladores</value>
+  </data>
+  <data name="Integrations_SignIn" xml:space="preserve">
+    <value>Iniciar sesión con GitHub</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Cerrar sesión</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Tu código: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Abrir github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Esperando a que lo apruebes en el navegador…</value>
+  </data>
+  <data name="Integrations_Private" xml:space="preserve">
+    <value>Incluir repositorios privados</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Sesión iniciada como {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>El inicio de sesión no está configurado en esta versión.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>nunca</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Trabajando…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Instala Claude Code en este equipo si aún no lo tienes: claude.com/claude-code
+2. Haz clic en Conectar. Edgepad añade su plugin a Claude Code.
+3. Reinicia las sesiones abiertas de Claude Code o escribe /reload-plugins en ellas.
+4. En tu teléfono, abre Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Instala Codex en este equipo si aún no lo tienes: developers.openai.com/codex
+2. Haz clic en Conectar. Edgepad añade su plugin a Codex.
+3. En Codex, escribe /hooks y confía en Edgepad. En la app de Codex: Settings > Hooks > Review hooks.
+4. En tu teléfono, abre Controls > AI. Aparece en cuanto Codex envía su primer evento.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Haz clic en Iniciar sesión con GitHub. Se abre una página de github.com.
+2. Introduce el código que se muestra aquí y haz clic en Authorize.
+3. En tu teléfono, abre Controls > GitHub.</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex necesita tu aprobación otra vez</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad se actualizó. En Codex, escribe /hooks y confía en Edgepad, o las aprobaciones seguirán en la terminal en lugar del teléfono.</value>
+  </data>
 </root>

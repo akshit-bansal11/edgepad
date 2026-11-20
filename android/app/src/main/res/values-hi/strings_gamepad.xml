@@ -29,7 +29,7 @@
   <string name="gamepad_label">नाम</string>
   <string name="gamepad_delete_control">कंट्रोल हटाएं</string>
   <string name="gamepad_delete_title">%1$s हटाएं?</string>
-  <string name="gamepad_delete_body">यह इस लेआउट से हट जाएगा। \"जोड़ें\" से कंट्रोल वापस आ जाता है।</string>
+  <string name="gamepad_delete_body">यह इस लेआउट से हट जाएगा। “जोड़ें” से कंट्रोल वापस आ जाता है।</string>
   <string name="gamepad_name_required">लेआउट को एक नाम दें</string>
 
   <!-- Adding a control: the kinds offered, in the order the menu lists them. -->

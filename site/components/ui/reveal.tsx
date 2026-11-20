@@ -37,7 +37,7 @@ export function Reveal({ children, className, ...props }: RevealProps) {
       ref={ref}
       initial={false}
       animate={armed && !isInView ? { opacity: 0, y: 8 } : { opacity: 1, y: 0 }}
-      transition={{ duration: seconds("base"), ease: "easeOut" }}
+      transition={{ duration: seconds("reveal"), ease: "easeOut" }}
       // Under prefers-reduced-motion nothing moves: these override the inline styles
       // motion writes, so the content is simply there. Done in CSS, not with a hook,
       // because the server cannot know the preference.
