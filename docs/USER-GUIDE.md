@@ -1,6 +1,6 @@
 # User guide
 
-Everything about using Edgepad that the [README](../README.md) leaves out: install steps for each platform, connecting, the control surface, security levels, annotate, sign and capture, the Mac, troubleshooting and settings. The full documentation is also at [edgepad.akshitbansal.dev/docs](https://edgepad.akshitbansal.dev/docs).
+Everything about using Edgepad that the [README](../README.md) leaves out: install steps for each platform, connecting, the control surface, security levels, annotate, sign and capture, the Mac, troubleshooting and settings. The full documentation is also at [getedgepad.com/docs](https://getedgepad.com/docs).
 
 ## Install
 

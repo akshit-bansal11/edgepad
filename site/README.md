@@ -3,7 +3,7 @@
 Two routes, built from the repository they document: a landing page at `/`, and the
 whole documentation on one page at `/docs`.
 
-**Live at [edgepad.akshitbansal.dev](https://edgepad.akshitbansal.dev).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see _Hosting_ below.
+**Live at [getedgepad.com](https://getedgepad.com).** Deployed to Vercel from the repository root (not from `site/`), because the build reads `../protocol/*.txt` — see _Hosting_ below.
 
 It is **not** part of either app's quality gate: `scripts/check.ps1` covers the Android, shared core, Windows, Linux and Mac apps and not `site/`. Its own gate and build run in `.github/workflows/site.yml` on every push and pull request that touches `site/` or `protocol/`.
 
@@ -153,7 +153,7 @@ Two deliberate omissions, both of which are project rules rather than oversights
 
 ## Hosting
 
-Live at [edgepad.akshitbansal.dev](https://edgepad.akshitbansal.dev), on Vercel, in a project named `edgepad`.
+Live at [getedgepad.com](https://getedgepad.com), on Vercel, in a project named `edgepad`.
 `vercel.json` 308s `edgepad-docs.vercel.app` to it whenever that host is attached to the
 project, because Edgepad.exe through 3.0.1 has that address in its tray menu; releases up
 to 3.4.0 link `edgepad.vercel.app` instead. `cleanUrls` there is what makes `/docs` serve

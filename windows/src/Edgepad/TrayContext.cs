@@ -29,7 +29,7 @@ internal sealed class TrayContext : ApplicationContext
 
     // The documentation site. The phone's Settings › Help offers the same link, so the
     // two halves point at one page rather than each explaining itself.
-    private const string DocumentationUrl = "https://edgepad.akshitbansal.dev/docs";
+    private const string DocumentationUrl = "https://getedgepad.com/docs";
 
     // ViGEmBus is a separate install the owner makes; this is where it is downloaded from.
     private const string DriverUrl = "https://github.com/nefarius/ViGEmBus/releases/latest";

@@ -14,7 +14,7 @@ internal static class UinputAccess
     /// <summary>The notification's body, which can carry what the status line cannot.</summary>
     public const string BlockedDetail =
         "Edgepad cannot open /dev/uinput, so the phone cannot move the pointer or type. Log out and back in once "
-            + "after installing, so your session gets access. More: https://edgepad.akshitbansal.dev/docs";
+            + "after installing, so your session gets access. More: https://getedgepad.com/docs";
 
     // 1 when blocked. An int so a flip is one atomic exchange: two threads probing at once raise Changed once.
     private static int blocked;

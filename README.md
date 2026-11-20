@@ -12,10 +12,10 @@
 <a href="LICENSE"><img src="https://img.shields.io/github/license/akshit-bansal11/edgepad" alt="License"></a>
 <a href="https://github.com/akshit-bansal11/edgepad/commits/main"><img src="https://img.shields.io/github/last-commit/akshit-bansal11/edgepad" alt="Last commit"></a>
 <img src="https://img.shields.io/badge/platforms-Android%20%C2%B7%20Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-informational" alt="Platforms: Android, Windows, macOS, Linux">
-<a href="https://edgepad.akshitbansal.dev/docs"><img src="https://img.shields.io/badge/docs-edgepad.akshitbansal.dev-black" alt="Documentation"></a>
+<a href="https://getedgepad.com/docs"><img src="https://img.shields.io/badge/docs-getedgepad.com-black" alt="Documentation"></a>
 </p>
 
-<p align="center"><a href="https://edgepad.akshitbansal.dev/#demo"><img src="assets/demo-poster.jpg" width="880" alt="The Edgepad demo: a phone as a trackpad, dials and controls for a laptop. Watch it on the website."></a></p>
+<p align="center"><a href="https://getedgepad.com/#demo"><img src="assets/demo-poster.jpg" width="880" alt="The Edgepad demo: a phone as a trackpad, dials and controls for a laptop. Watch it on the website."></a></p>
 
 ## Contents
 
@@ -158,7 +158,7 @@ sequenceDiagram
   Laptop-->>Phone: STATE changes as they happen
 ```
 
-Read more: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the apps, their threads and the trust model, [docs/PROTOCOL.md](docs/PROTOCOL.md) for the wire format, and the [online documentation](https://edgepad.akshitbansal.dev/docs).
+Read more: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the apps, their threads and the trust model, [docs/PROTOCOL.md](docs/PROTOCOL.md) for the wire format, and the [online documentation](https://getedgepad.com/docs).
 
 ## Optional extras
 

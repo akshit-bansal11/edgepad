@@ -14,7 +14,7 @@ namespace Edgepad.Ui;
 /// </summary>
 internal static class FirstRunWindow
 {
-    public const string DocumentationUrl = "https://edgepad.akshitbansal.dev/docs";
+    public const string DocumentationUrl = "https://getedgepad.com/docs";
 
     public static string NetworkBody => LinuxStrings.FirstRun_NetworkBody;
 

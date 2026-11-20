@@ -8,7 +8,7 @@ import ServiceManagement
 
 /// The whole UI: a menu-bar item whose menu is rebuilt each time it opens, so it never shows a stale state.
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
-    private static let documentationUrl = "https://edgepad.akshitbansal.dev/docs"
+    private static let documentationUrl = "https://getedgepad.com/docs"
     private static let accessibilityPaneUrl =
         // Still resolves on macOS 27, where the pane is Device Control and Data Access.
         "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
@@ -565,7 +565,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: [
             .credits: NSAttributedString(
-                string: "https://edgepad.akshitbansal.dev\n" + tr("Alert_Credits", "Fonts and icons: Lato, Lucide."))
+                string: "https://getedgepad.com\n" + tr("Alert_Credits", "Fonts and icons: Lato, Lucide."))
         ])
     }
 

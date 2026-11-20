@@ -36,6 +36,7 @@ Wire protocol 6. A 5.0 phone and a 4.x laptop (or the reverse) refuse each other
 
 ### Changed
 
+- **The website moved to https://getedgepad.com.** The Documentation links in every app, the Linux installer and the README point there, and the old address redirects to it.
 - **Protocol 6.** New frames BULK_HELLO and XFER_BEGIN, XFER_CHUNK, XFER_END, XFER_STATUS; ACTION 37, ACTION 38 (TOOL_LASER_TRAIL) and 60 to 62, CONTROL 10 to 12, TEXT 21 to 35 and BLOB kinds 4 to 7. See `docs/PROTOCOL.md`.
 - **Phone: motion that carries.** Presses answer within 160 ms, popovers and windows open from where they were opened within 300 ms, and a screen change takes at most 400 ms and carries across instead of cutting. The same tiers apply on Windows, Linux and the website.
 - **Phone: the battery strip is an underline** instead of pills.
