@@ -251,6 +251,12 @@ class Settings(
     /** The guide as one scrolling page rather than steps. */
     var guideScroll by flag("guideScroll", false)
 
+    /**
+     * The last Developer-mode state a laptop reported (its FEATURES); a cache for when no laptop is connected, never
+     * written from a tap.
+     */
+    var developerMode by flag("developerMode", false)
+
     /** Half a corner ruler's length along the edge, in dp. */
     var dialLength by bounded(KEY_DIAL_LENGTH, DEFAULT_DIAL_LENGTH, MIN_DIAL_LENGTH, MAX_DIAL_LENGTH)
 
@@ -501,12 +507,28 @@ class Settings(
             .apply()
     }
 
-    /** Puts every widget back where it started, in the current orientation's layout only. */
+    /** How large [widget] is drawn, as a multiple of its base box, in the current orientation's layout. */
+    fun widgetScale(widget: SurfaceWidget): Float =
+        prefs.getFloat(layoutKey(widgetKey(widget, "scale")), 1f).coerceIn(MIN_WIDGET_SCALE, MAX_WIDGET_SCALE)
+
+    /** Sizes [widget] in the current orientation's layout only. */
+    fun setWidgetScale(
+        widget: SurfaceWidget,
+        scale: Float,
+    ) {
+        prefs
+            .edit()
+            .putFloat(layoutKey(widgetKey(widget, "scale")), scale.coerceIn(MIN_WIDGET_SCALE, MAX_WIDGET_SCALE))
+            .apply()
+    }
+
+    /** Puts every widget back where it started and at its base size, in the current orientation's layout only. */
     fun resetWidgets() {
         val edit = prefs.edit()
         for (widget in SurfaceWidget.entries) {
             edit.remove(layoutKey(widgetKey(widget, "x")))
             edit.remove(layoutKey(widgetKey(widget, "y")))
+            edit.remove(layoutKey(widgetKey(widget, "scale")))
         }
         edit.apply()
     }
@@ -599,6 +621,11 @@ class Settings(
         const val MIN_MEDIA_SCALE = 0.5f
         const val MAX_MEDIA_SCALE = 1.5f
         const val DEFAULT_MEDIA_SCALE = 1f
+        const val MIN_WIDGET_SCALE = 0.75f
+        const val MAX_WIDGET_SCALE = 1.5f
+
+        /** The sizes a widget's long press offers. */
+        val WIDGET_SCALES = floatArrayOf(0.75f, 1f, 1.25f, 1.5f)
         const val MIN_KEY_TEXT_SCALE = 0.6f
         const val MAX_KEY_TEXT_SCALE = 2f
         const val DEFAULT_KEY_TEXT_SCALE = 1f
