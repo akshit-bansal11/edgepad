@@ -135,12 +135,19 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
             wrappingLabelWithString: tr("Integrations_WeatherNote", "Sends only the city name to open-meteo.com."))
         note.textColor = .secondaryLabelColor
         let gitHubTitle = Self.heading(tr("Integrations_GitHub", "GitHub"))
+        // Claude Code and Codex have no mark in the repo, so only GitHub gets one.
+        let gitHubMark = NSImageView(image: BrandMarks.image(path: BrandMarks.gitHub, grid: 16, size: 20))
+        gitHubMark.contentTintColor = .labelColor
+        let gitHubHeading = NSStackView(views: [gitHubMark, gitHubTitle])
+        gitHubHeading.orientation = .horizontal
+        gitHubHeading.spacing = 8
+        gitHubHeading.alignment = .centerY
         let developersTitle = Self.heading(tr("Integrations_ForDevelopers", "For developers"))
         developersTitle.textColor = .secondaryLabelColor
         let views: [NSView] =
             developer
             ? [
-                developersTitle, claude.view, codex.view, gitHubTitle, gitHubStatus, gitHubSteps, signButton,
+                developersTitle, claude.view, codex.view, gitHubHeading, gitHubStatus, gitHubSteps, signButton,
                 privateRepos, codeLabel, codeButtons, waitingLabel, close,
             ]
             : [intro, stats, weather, cityRow, note, close]
