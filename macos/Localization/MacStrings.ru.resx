@@ -619,6 +619,9 @@
   <data name="Integrations_GitHub" xml:space="preserve">
     <value>GitHub</value>
   </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Для разработчиков</value>
+  </data>
   <data name="Integrations_SignIn" xml:space="preserve">
     <value>Войти через GitHub</value>
   </data>

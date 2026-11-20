@@ -75,6 +75,7 @@ internal sealed class IntegrationsWindow : Form
     private readonly TextBox city = new() { BorderStyle = BorderStyle.None, MaxLength = IntegrationSettings.MaxCityLength, AccessibleName = Strings.Integrations_City };
     private readonly Framed cityFrame;
     private readonly Label weatherNote = new() { AutoSize = false, Text = Strings.Integrations_WeatherNote };
+    private readonly Label developers = new() { AutoSize = false, Text = Strings.Integrations_ForDevelopers, AccessibleName = Strings.Integrations_ForDevelopers };
     private readonly AgentRow claude;
     private readonly AgentRow codex;
 
@@ -175,7 +176,7 @@ internal sealed class IntegrationsWindow : Form
 
         Controls.AddRange(
         [
-            heading, intro, stats, weather, cityLabel, cityFrame, weatherNote,
+            heading, intro, stats, weather, cityLabel, cityFrame, weatherNote, developers,
             .. claude.Controls, .. codex.Controls,
             githubHeading, signIn, githubStatus, githubSteps, code, openPage, copyCode, waiting, cancelSignIn, includePrivate, close,
         ]);
@@ -510,6 +511,7 @@ internal sealed class IntegrationsWindow : Form
         order.Add(cityFrame);
         y += S(Box + 6);
         Put(weatherNote, 13f, Weight.Regular, palette.Dim, S(20));
+        Put(developers, 14f, Weight.Bold, palette.Dim, S(10));
 
         foreach (var row in new[] { claude, codex })
         {

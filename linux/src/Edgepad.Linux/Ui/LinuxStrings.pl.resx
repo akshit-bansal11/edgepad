@@ -473,6 +473,9 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Integrations_GitHub" xml:space="preserve">
     <value>GitHub</value>
   </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Dla programistów</value>
+  </data>
   <data name="Integrations_SignIn" xml:space="preserve">
     <value>Zaloguj się przez GitHub</value>
   </data>

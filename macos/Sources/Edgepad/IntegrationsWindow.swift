@@ -128,8 +128,10 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
             wrappingLabelWithString: tr("Integrations_WeatherNote", "Sends only the city name to open-meteo.com."))
         note.textColor = .secondaryLabelColor
         let gitHubTitle = Self.heading(tr("Integrations_GitHub", "GitHub"))
+        let developersTitle = Self.heading(tr("Integrations_ForDevelopers", "For developers"))
+        developersTitle.textColor = .secondaryLabelColor
         let views: [NSView] = [
-            intro, stats, weather, cityRow, note, claude.view, codex.view, gitHubTitle, gitHubStatus, gitHubSteps,
+            intro, stats, weather, cityRow, note, developersTitle, claude.view, codex.view, gitHubTitle, gitHubStatus, gitHubSteps,
             signButton,
             privateRepos, codeLabel, codeButtons, waitingLabel, close,
         ]
@@ -139,6 +141,7 @@ final class IntegrationsWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate 
         stack.spacing = 10
         stack.edgeInsets = NSEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
         stack.setCustomSpacing(18, after: note)
+        stack.setCustomSpacing(10, after: developersTitle)
         stack.setCustomSpacing(18, after: codex.view)
 
         let window = NSWindow(

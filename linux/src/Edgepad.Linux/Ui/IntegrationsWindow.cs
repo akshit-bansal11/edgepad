@@ -125,6 +125,10 @@ internal sealed class IntegrationsWindow
         note.Margin = new Thickness(28, 0, 0, 0);
         body.Children.Add(note);
 
+        var developers = look.Text(LinuxStrings.Integrations_ForDevelopers, 14, FontWeight.Bold, dim: true);
+        developers.Margin = new Thickness(0, 14, 0, 0);
+        body.Children.Add(developers);
+
         claude = new AgentRow(this, IntegrationSettings.Claude, LinuxStrings.Integrations_Claude);
         codex = new AgentRow(this, IntegrationSettings.Codex, LinuxStrings.Integrations_Codex);
         body.Children.Add(claude.Panel);
