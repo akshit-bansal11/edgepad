@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
-  <string name="controls_system">系统</string>
-  <string name="controls_ai">AI</string>
-  <string name="controls_github">GitHub</string>
   <string name="controls_dash_off">在笔记本电脑的 Edgepad 菜单中开启。</string>
   <string name="widgets_title">小组件</string>
   <string name="widgets_hint">显示在触控板后面。触摸会穿透。</string>
@@ -23,7 +20,6 @@
   <string name="sys_ram">内存</string>
   <string name="sys_vram">显存</string>
   <string name="sys_disks">磁盘</string>
-  <string name="sys_net">网络</string>
   <string name="sys_down">下载</string>
   <string name="sys_up">上传</string>
   <string name="sys_ping">Ping</string>

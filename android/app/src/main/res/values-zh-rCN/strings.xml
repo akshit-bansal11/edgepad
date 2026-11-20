@@ -280,7 +280,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">绘制</string>
   <string name="shapes_target_title">执行的操作</string>
-  <string name="shapes_draw_hint">一笔画完，画好后抬起手指。</string>
   <string name="shapes_redraw">重新绘制</string>
   <string name="shapes_save">保存</string>
   <string name="shapes_delete">删除</string>
@@ -409,7 +408,6 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">控制</string>
-  <string name="controls_move_hint">点按“编辑”可移动或隐藏图块。</string>
   <string name="controls_edit">编辑</string>
   <string name="controls_edit_hint">点按图块可隐藏或显示。长按并拖动可移动。</string>
   <string name="controls_hidden">已隐藏</string>
@@ -433,11 +431,8 @@
   <string name="capture_stop">停止录制</string>
   <string name="capture_recording">正在电脑上录制。完成后点“停止录制”；若“保存到”选的是手机，文件会在此时传来。</string>
   <string name="capture_sent">已发送到电脑：%1$s</string>
-  <string name="capture_hint">要截取区域，先把指针移到区域的一角，点“区域”，再在触控板上拖到对角。</string>
   <string name="capture_drag_caption">拖动以选择区域</string>
-  <string name="capture_save_to">保存到</string>
   <string name="capture_save_laptop">电脑</string>
-  <string name="capture_save_phone">手机</string>
   <string name="capture_receiving">正在接收 %1$s，%2$d%%</string>
   <string name="capture_saved">已保存到 %1$s</string>
   <string name="capture_bad_hash">截取的文件在传输中损坏了。它仍保存在电脑上。</string>
@@ -448,8 +443,6 @@
   <string name="capture_send_failed">电脑无法发送截取内容。它仍保存在电脑上。</string>
   <string name="controls_annotate">标注</string>
   <string name="annotate_description">手写板：触摸时，电脑屏幕的相同位置会同步绘制。仅支持触摸操作。</string>
-  <string name="annotate_hint">在这里绘制，墨迹会出现在电脑屏幕的相同位置。</string>
-  <string name="annotate_hint_named">在这里绘制，墨迹会出现在%1$s屏幕的相同位置。</string>
   <string name="annotate_menu">绘图工具</string>
   <string name="annotate_menu_expanded">已展开</string>
   <string name="annotate_menu_collapsed">已收起</string>
@@ -579,12 +572,6 @@
     <item quantity="other">仅将前 %1$d 个文件加入了队列</item>
   </plurals>
   <string name="xfer_sending_n">正在发送 %1$s（第 %2$d 个，共 %3$d 个） · %4$d%%</string>
-  <string name="xfer_card_sending_to">正在发送到 %1$s</string>
-  <string name="xfer_card_receiving_from">正在从 %1$s 接收</string>
-  <string name="xfer_card_position">第 %1$d 个，共 %2$d 个 · %3$s</string>
-  <string name="xfer_card_bytes">%1$s / %2$s</string>
-  <string name="xfer_card_speed">%1$s/秒</string>
-  <string name="xfer_card_percent">%1$d%%</string>
   <plurals name="xfer_card_sent">
     <item quantity="other">已发送 %1$d 个文件</item>
   </plurals>
@@ -605,17 +592,6 @@
   </plurals>
   <string name="xfer_card_cancelling">正在取消…</string>
   <string name="xfer_retry">重试</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">笔记本拒绝了此文件，可能空间不足。</string>
-  <string name="xfer_why_damaged">文件到达时已损坏，请重试。</string>
-  <string name="xfer_why_write">笔记本无法保存此文件。</string>
-  <string name="xfer_why_busy">笔记本正忙于处理另一个文件。</string>
-  <string name="xfer_why_timeout">笔记本已停止响应。</string>
-  <string name="xfer_why_lost">连接已断开。</string>
-  <string name="xfer_why_unreadable">此手机无法读取该文件。</string>
-  <string name="xfer_why_big">文件超过 2 GB。</string>
-  <string name="xfer_why_cancelled">已取消。</string>
-  <string name="xfer_why_skipped">未发送。</string>
   <string name="xfer_card_a11y">文件传输</string>
   <string name="xfer_no_laptop">请先连接笔记本</string>
   <string name="xfer_channel">文件传输</string>

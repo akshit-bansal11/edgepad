@@ -29,15 +29,12 @@ class XferCard(
     private var lastPhase = XferPhase.IDLE
 
     /** Shows [s], opening the window when it is not open; an idle snapshot closes it. */
-    fun show(
-        s: XferSnapshot,
-        laptopName: String,
-    ) {
+    fun show(s: XferSnapshot) {
         if (s.phase == XferPhase.IDLE) {
             hide()
             return
         }
-        view.bind(s, laptopName)
+        view.bind(s)
         if (s.phase != lastPhase) {
             lastPhase = s.phase
             owner.removeCallbacks(autoDone)
@@ -88,7 +85,7 @@ class XferCard(
         }
     }
 
-    private companion object {
+    companion object {
         const val MAX_WIDTH_DP = 320f
         const val ELEVATION_DP = 8f
         const val DONE_MS = 4_000L

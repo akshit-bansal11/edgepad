@@ -1794,7 +1794,7 @@ class MainActivity :
                     },
                     onDone = { Transfers.progress.dismiss() },
                 ).also { xferCard = it }
-        card.show(s, selected?.name.orEmpty())
+        card.show(s)
     }
 
     @Deprecated("The platform result API; the app has no library that wraps it.")

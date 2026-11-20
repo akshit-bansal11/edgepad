@@ -21,7 +21,6 @@
   <string name="presenter_title">Presentator</string>
   <string name="presenter_next">Volgende dia</string>
   <string name="presenter_previous">Vorige dia</string>
-  <string name="presenter_keys_note">De volumetoetsen wisselen van dia zolang dit scherm open is.</string>
   <string name="presenter_settings">Presentatorinstellingen</string>
   <string name="presenter_laser_size">Lasergrootte</string>
   <string name="presenter_laser_trail">Spoor tonen</string>

@@ -301,7 +301,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Рисование</string>
   <string name="shapes_target_title">Что запускать</string>
-  <string name="shapes_draw_hint">Рисуйте одним движением и отпустите палец, когда закончите.</string>
   <string name="shapes_redraw">Нарисовать заново</string>
   <string name="shapes_save">Сохранить</string>
   <string name="shapes_delete">Удалить</string>
@@ -430,7 +429,6 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Управление</string>
-  <string name="controls_move_hint">Нажмите «Изменить», чтобы переместить или скрыть плитки.</string>
   <string name="controls_edit">Изменить</string>
   <string name="controls_edit_hint">Нажмите на плитку, чтобы скрыть или показать её. Удерживайте и перетащите, чтобы переместить.</string>
   <string name="controls_hidden">Скрыто</string>
@@ -454,11 +452,8 @@
   <string name="capture_stop">Остановить запись</string>
   <string name="capture_recording">Идёт запись на ноутбуке. Нажмите «Остановить запись», чтобы закончить; если файл сохраняется на телефон, он придёт после этого.</string>
   <string name="capture_sent">Отправлено на ноутбук: %1$s</string>
-  <string name="capture_hint">Для области наведите указатель на один её угол, нажмите «Область» и проведите по тачпаду к противоположному углу.</string>
   <string name="capture_drag_caption">Проведите, чтобы выделить область</string>
-  <string name="capture_save_to">Куда сохранять</string>
   <string name="capture_save_laptop">Ноутбук</string>
-  <string name="capture_save_phone">Телефон</string>
   <string name="capture_receiving">Получение %1$s, %2$d&#160;%%</string>
   <string name="capture_saved">Сохранено: %1$s</string>
   <string name="capture_bad_hash">Файл пришёл повреждённым. Он остался на ноутбуке.</string>
@@ -469,8 +464,6 @@
   <string name="capture_send_failed">Ноутбуку не удалось отправить файл. Он остался на ноутбуке.</string>
   <string name="controls_annotate">Пометки</string>
   <string name="annotate_description">Планшет для пера: касание рисует в том же месте на экране ноутбука. Работает только от касания.</string>
-  <string name="annotate_hint">Рисуйте здесь. Чернила появятся на ноутбуке в том же месте.</string>
-  <string name="annotate_hint_named">Рисуйте здесь. Чернила появятся на ноутбуке «%1$s» в том же месте.</string>
   <string name="annotate_menu">Инструменты рисования</string>
   <string name="annotate_menu_expanded">Развёрнуто</string>
   <string name="annotate_menu_collapsed">Свёрнуто</string>
@@ -606,12 +599,6 @@
     <item quantity="other">В очередь добавлены только первые %1$d файлов</item>
   </plurals>
   <string name="xfer_sending_n">Отправка: %1$s (%2$d из %3$d) · %4$d%%</string>
-  <string name="xfer_card_sending_to">Отправка на %1$s</string>
-  <string name="xfer_card_receiving_from">Получение с %1$s</string>
-  <string name="xfer_card_position">%1$d из %2$d · %3$s</string>
-  <string name="xfer_card_bytes">%1$s из %2$s</string>
-  <string name="xfer_card_speed">%1$s/с</string>
-  <string name="xfer_card_percent">%1$d&#160;%%</string>
   <plurals name="xfer_card_sent">
     <item quantity="one">Отправлен %1$d файл</item>
     <item quantity="few">Отправлено %1$d файла</item>
@@ -650,17 +637,6 @@
   </plurals>
   <string name="xfer_card_cancelling">Отмена…</string>
   <string name="xfer_retry">Повторить</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">Ноутбук отказался его принять. Возможно, на нём нет места.</string>
-  <string name="xfer_why_damaged">Файл пришёл повреждённым. Повторите попытку.</string>
-  <string name="xfer_why_write">Ноутбук не смог его сохранить.</string>
-  <string name="xfer_why_busy">Ноутбук был занят другим файлом.</string>
-  <string name="xfer_why_timeout">Ноутбук перестал отвечать.</string>
-  <string name="xfer_why_lost">Соединение прервалось.</string>
-  <string name="xfer_why_unreadable">Этот телефон не смог прочитать файл.</string>
-  <string name="xfer_why_big">Файл больше 2 ГБ.</string>
-  <string name="xfer_why_cancelled">Отменено.</string>
-  <string name="xfer_why_skipped">Не отправлено.</string>
   <string name="xfer_card_a11y">Передача файлов</string>
   <string name="xfer_no_laptop">Сначала подключитесь к ноутбуку</string>
   <string name="xfer_channel">Передача файлов</string>

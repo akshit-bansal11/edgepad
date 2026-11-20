@@ -281,7 +281,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">描く</string>
   <string name="shapes_target_title">実行する操作</string>
-  <string name="shapes_draw_hint">一筆で描き、描き終わったら指を離します。</string>
   <string name="shapes_redraw">描き直す</string>
   <string name="shapes_save">保存</string>
   <string name="shapes_delete">削除</string>
@@ -412,7 +411,6 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">コントロール</string>
-  <string name="controls_move_hint">「編集」をタップするとタイルの移動や非表示ができます。</string>
   <string name="controls_edit">編集</string>
   <string name="controls_edit_hint">タイルをタップすると表示/非表示を切り替えます。長押ししてドラッグすると移動できます。</string>
   <string name="controls_hidden">非表示</string>
@@ -436,11 +434,8 @@
   <string name="capture_stop">録画を停止</string>
   <string name="capture_recording">ノートPCで録画中です。「録画を停止」をタップして終了します。保存先が「スマホ」の場合は、そのときファイルが届きます。</string>
   <string name="capture_sent">ノートPCに送信しました：%1$s</string>
-  <string name="capture_hint">範囲を選ぶには、範囲の角にポインターを合わせて「範囲」をタップし、トラックパッドで反対側の角までドラッグします。</string>
   <string name="capture_drag_caption">ドラッグして範囲を選択</string>
-  <string name="capture_save_to">保存先</string>
   <string name="capture_save_laptop">ノートPC</string>
-  <string name="capture_save_phone">スマホ</string>
   <string name="capture_receiving">%1$sを受信中 %2$d%%</string>
   <string name="capture_saved">%1$sに保存しました</string>
   <string name="capture_bad_hash">キャプチャが壊れた状態で届きました。ノートPCにはそのまま残っています。</string>
@@ -451,8 +446,6 @@
   <string name="capture_send_failed">ノートPCがキャプチャを送信できませんでした。ノートPCにはそのまま残っています。</string>
   <string name="controls_annotate">書き込み</string>
   <string name="annotate_description">ペンパッド：触れた位置と同じ場所に、ノートPCの画面へ描画されます。タッチ操作のみ対応です。</string>
-  <string name="annotate_hint">ここに描くと、ノートPCの同じ位置にインクが表示されます。</string>
-  <string name="annotate_hint_named">ここに描くと、%1$sの同じ位置にインクが表示されます。</string>
   <string name="annotate_menu">描画ツール</string>
   <string name="annotate_menu_expanded">展開中</string>
   <string name="annotate_menu_collapsed">折りたたみ中</string>
@@ -582,12 +575,6 @@
     <item quantity="other">最初の%1$d個のファイルだけを送信待ちにしました</item>
   </plurals>
   <string name="xfer_sending_n">%1$s を送信中（%3$d 件中 %2$d 件目） · %4$d%%</string>
-  <string name="xfer_card_sending_to">%1$s に送信中</string>
-  <string name="xfer_card_receiving_from">%1$s から受信中</string>
-  <string name="xfer_card_position">%2$d 件中 %1$d 件目 · %3$s</string>
-  <string name="xfer_card_bytes">%1$s / %2$s</string>
-  <string name="xfer_card_speed">%1$s/秒</string>
-  <string name="xfer_card_percent">%1$d%%</string>
   <plurals name="xfer_card_sent">
     <item quantity="other">%1$d 件のファイルを送信しました</item>
   </plurals>
@@ -608,17 +595,6 @@
   </plurals>
   <string name="xfer_card_cancelling">キャンセル中…</string>
   <string name="xfer_retry">再試行</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">ノートPCが拒否しました。空き容量が足りない可能性があります。</string>
-  <string name="xfer_why_damaged">破損した状態で届きました。もう一度お試しください。</string>
-  <string name="xfer_why_write">ノートPCが保存できませんでした。</string>
-  <string name="xfer_why_busy">ノートPCが別のファイルを処理中でした。</string>
-  <string name="xfer_why_timeout">ノートPCが応答しなくなりました。</string>
-  <string name="xfer_why_lost">接続が切れました。</string>
-  <string name="xfer_why_unreadable">このスマートフォンでファイルを読み取れませんでした。</string>
-  <string name="xfer_why_big">ファイルが 2 GB を超えています。</string>
-  <string name="xfer_why_cancelled">キャンセルしました。</string>
-  <string name="xfer_why_skipped">未送信です。</string>
   <string name="xfer_card_a11y">ファイル転送</string>
   <string name="xfer_no_laptop">先にノートPCに接続してください</string>
   <string name="xfer_channel">ファイル転送</string>

@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
-  <string name="controls_system">System</string>
-  <string name="controls_ai">AI</string>
-  <string name="controls_github">GitHub</string>
   <string name="controls_dash_off">Turn it on in the Edgepad menu on your laptop.</string>
   <string name="widgets_title">Widgets</string>
   <string name="widgets_hint">Drawn behind the trackpad. Touches pass through.</string>
@@ -23,7 +20,6 @@
   <string name="sys_ram">Memory</string>
   <string name="sys_vram">VRAM</string>
   <string name="sys_disks">Disks</string>
-  <string name="sys_net">Network</string>
   <string name="sys_down">Download</string>
   <string name="sys_up">Upload</string>
   <string name="sys_ping">Ping</string>

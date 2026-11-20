@@ -294,7 +294,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Dessin</string>
   <string name="shapes_target_title">Ce qu’elle lance</string>
-  <string name="shapes_draw_hint">Dessinez-la d’un seul trait, puis levez le doigt.</string>
   <string name="shapes_redraw">Redessiner</string>
   <string name="shapes_save">Enregistrer</string>
   <string name="shapes_delete">Supprimer</string>
@@ -423,7 +422,6 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Commandes</string>
-  <string name="controls_move_hint">Touchez Modifier pour déplacer ou masquer des tuiles.</string>
   <string name="controls_edit">Modifier</string>
   <string name="controls_edit_hint">Touchez une tuile pour la masquer ou l’afficher. Maintenez-la et faites-la glisser pour la déplacer.</string>
   <string name="controls_hidden">Masquée</string>
@@ -447,11 +445,8 @@
   <string name="capture_stop">Arrêter l’enregistrement</string>
   <string name="capture_recording">Enregistrement en cours sur l’ordinateur. Appuyez sur Arrêter l’enregistrement pour terminer ; si « Enregistrer sur » est réglé sur Téléphone, le fichier arrive alors.</string>
   <string name="capture_sent">Envoyé à l’ordinateur : %1$s</string>
-  <string name="capture_hint">Pour une zone, pointez l’un de ses coins, appuyez sur Zone, puis faites glisser sur le pavé tactile jusqu’au coin opposé.</string>
   <string name="capture_drag_caption">Faites glisser pour choisir la zone</string>
-  <string name="capture_save_to">Enregistrer sur</string>
   <string name="capture_save_laptop">Ordinateur</string>
-  <string name="capture_save_phone">Téléphone</string>
   <string name="capture_receiving">Réception de %1$s, %2$d %%</string>
   <string name="capture_saved">Enregistré dans %1$s</string>
   <string name="capture_bad_hash">La capture est arrivée endommagée. Elle est toujours sur l’ordinateur.</string>
@@ -462,8 +457,6 @@
   <string name="capture_send_failed">L’ordinateur n’a pas pu envoyer la capture. Elle est toujours sur l’ordinateur.</string>
   <string name="controls_annotate">Annoter</string>
   <string name="annotate_description">Tablette à stylet : un appui dessine au même endroit sur l’écran de l’ordinateur. Fonctionne uniquement au toucher.</string>
-  <string name="annotate_hint">Dessinez ici. L’encre apparaît au même endroit sur l’ordinateur.</string>
-  <string name="annotate_hint_named">Dessinez ici. L’encre apparaît au même endroit sur %1$s.</string>
   <string name="annotate_menu">Outils de dessin</string>
   <string name="annotate_menu_expanded">Développé</string>
   <string name="annotate_menu_collapsed">Réduit</string>
@@ -597,12 +590,6 @@
     <item quantity="other">Seuls les %1$d premiers fichiers ont été mis en file</item>
   </plurals>
   <string name="xfer_sending_n">Envoi de %1$s (%2$d sur %3$d) · %4$d%%</string>
-  <string name="xfer_card_sending_to">Envoi vers %1$s</string>
-  <string name="xfer_card_receiving_from">Réception depuis %1$s</string>
-  <string name="xfer_card_position">%1$d sur %2$d · %3$s</string>
-  <string name="xfer_card_bytes">%1$s sur %2$s</string>
-  <string name="xfer_card_speed">%1$s/s</string>
-  <string name="xfer_card_percent">%1$d %%</string>
   <plurals name="xfer_card_sent">
     <item quantity="one">%1$d fichier envoyé</item>
     <item quantity="many">%1$d fichiers envoyés</item>
@@ -635,17 +622,6 @@
   </plurals>
   <string name="xfer_card_cancelling">Annulation…</string>
   <string name="xfer_retry">Réessayer</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">L’ordinateur l’a refusé. Il manque peut-être d’espace.</string>
-  <string name="xfer_why_damaged">Il est arrivé endommagé. Réessayez.</string>
-  <string name="xfer_why_write">L’ordinateur n’a pas pu l’enregistrer.</string>
-  <string name="xfer_why_busy">L’ordinateur était occupé avec un autre fichier.</string>
-  <string name="xfer_why_timeout">L’ordinateur a cessé de répondre.</string>
-  <string name="xfer_why_lost">La connexion a été perdue.</string>
-  <string name="xfer_why_unreadable">Ce téléphone n’a pas pu lire le fichier.</string>
-  <string name="xfer_why_big">Le fichier dépasse 2 Go.</string>
-  <string name="xfer_why_cancelled">Annulé.</string>
-  <string name="xfer_why_skipped">Non envoyé.</string>
   <string name="xfer_card_a11y">Transfert de fichiers</string>
   <string name="xfer_no_laptop">Connectez-vous d’abord à un ordinateur</string>
   <string name="xfer_channel">Transferts de fichiers</string>

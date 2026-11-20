@@ -2,7 +2,6 @@
 <resources>
   <string name="controls_air_mouse">에어 마우스</string>
   <string name="air_how">트랙패드에 엄지를 올린 채 휴대폰을 좌우로 돌리고 위아래로 기울이세요. 켜져 있는 동안에는 손가락을 누르고 있어도 드래그되지 않습니다.</string>
-  <string name="air_title">에어 마우스</string>
   <string name="air_caption">트랙패드에 손가락을 올린 동안 휴대전화를 기울이면 포인터가 움직입니다. 모션 센서는 그때만 읽습니다.</string>
   <string name="air_sensitivity">감도</string>
   <string name="air_dead_zone">데드 존</string>

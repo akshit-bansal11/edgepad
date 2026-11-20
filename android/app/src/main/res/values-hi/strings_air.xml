@@ -2,7 +2,6 @@
 <resources>
   <string name="controls_air_mouse">एयर माउस</string>
   <string name="air_how">अंगूठा टचपैड पर टिकाएँ, फिर फ़ोन को बाएँ या दाएँ घुमाएँ और ऊपर या नीचे झुकाएँ। यह चालू रहते उंगली टिकाने से खींचना नहीं होता।</string>
-  <string name="air_title">एयर माउस</string>
   <string name="air_caption">ट्रैकपैड पर उँगली रखे हुए फ़ोन को झुकाकर पॉइंटर चलाएँ। मोशन सेंसर तभी पढ़ा जाता है।</string>
   <string name="air_sensitivity">संवेदनशीलता</string>
   <string name="air_dead_zone">डेड ज़ोन</string>

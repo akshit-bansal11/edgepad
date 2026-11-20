@@ -21,7 +21,6 @@
   <string name="presenter_title">プレゼンター</string>
   <string name="presenter_next">次のスライド</string>
   <string name="presenter_previous">前のスライド</string>
-  <string name="presenter_keys_note">この画面を開いている間、音量キーでスライドを切り替えます。</string>
   <string name="presenter_settings">プレゼンター設定</string>
   <string name="presenter_laser_size">レーザーのサイズ</string>
   <string name="presenter_laser_trail">軌跡を表示</string>

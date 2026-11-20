@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
-  <string name="controls_system">システム</string>
-  <string name="controls_ai">AI</string>
-  <string name="controls_github">GitHub</string>
   <string name="controls_dash_off">ノートパソコンの Edgepad メニューでオンにしてください。</string>
   <string name="widgets_title">ウィジェット</string>
   <string name="widgets_hint">トラックパッドの後ろに表示されます。タッチは通り抜けます。</string>
@@ -23,7 +20,6 @@
   <string name="sys_ram">メモリ</string>
   <string name="sys_vram">VRAM</string>
   <string name="sys_disks">ディスク</string>
-  <string name="sys_net">ネットワーク</string>
   <string name="sys_down">ダウンロード</string>
   <string name="sys_up">アップロード</string>
   <string name="sys_ping">Ping</string>

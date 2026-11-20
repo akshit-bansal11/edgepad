@@ -283,7 +283,6 @@
   <string name="shapes_draw_title">Şekli çizin</string>
   <string name="shapes_draw_back">Çiz</string>
   <string name="shapes_target_title">Ne çalıştıracak</string>
-  <string name="shapes_draw_hint">Tek hamlede çizin ve bitince parmağınızı kaldırın.</string>
   <string name="shapes_redraw">Yeniden çiz</string>
   <string name="shapes_save">Kaydet</string>
   <string name="shapes_delete">Sil</string>
@@ -410,7 +409,6 @@
 
   <!-- Macros -->
   <string name="controls_title">Kontroller</string>
-  <string name="controls_move_hint">Kutucukları taşımak veya gizlemek için Düzenle\'ye dokunun.</string>
   <string name="controls_edit">Düzenle</string>
   <string name="controls_edit_hint">Gizlemek veya göstermek için bir kutucuğa dokunun. Taşımak için basılı tutup sürükleyin.</string>
   <string name="controls_hidden">Gizli</string>
@@ -434,11 +432,8 @@
   <string name="capture_stop">Kaydı durdur</string>
   <string name="capture_recording">Bilgisayarda kayıt sürüyor. Bitirmek için “Kaydı durdur” düğmesine dokunun; “Kaydedilecek yer” olarak Telefon seçiliyse dosya o zaman gelir.</string>
   <string name="capture_sent">Bilgisayara gönderildi: %1$s</string>
-  <string name="capture_hint">Bölge için alanın bir köşesine işaret edin, “Bölge” düğmesine dokunun, sonra dokunmatik yüzeyde karşı köşeye sürükleyin.</string>
   <string name="capture_drag_caption">Alanı seçmek için sürükleyin</string>
-  <string name="capture_save_to">Kaydedilecek yer</string>
   <string name="capture_save_laptop">Bilgisayar</string>
-  <string name="capture_save_phone">Telefon</string>
   <string name="capture_receiving">Alınıyor: %1$s, %%%2$d</string>
   <string name="capture_saved">Kaydedildi: %1$s</string>
   <string name="capture_bad_hash">Yakalama bozuk geldi. Hâlâ bilgisayarda duruyor.</string>
@@ -449,8 +444,6 @@
   <string name="capture_send_failed">Bilgisayar yakalamayı gönderemedi. Hâlâ bilgisayarda duruyor.</string>
   <string name="controls_annotate">Çizim</string>
   <string name="annotate_description">Kalem tableti: dokunuşunuz bilgisayar ekranında aynı yere çizer. Yalnızca dokunmatikle çalışır.</string>
-  <string name="annotate_hint">Buraya çizin. Çizgiler bilgisayarda aynı yerde belirir.</string>
-  <string name="annotate_hint_named">Buraya çizin. Çizgiler %1$s üzerinde aynı yerde belirir.</string>
   <string name="annotate_menu">Çizim araçları</string>
   <string name="annotate_menu_expanded">Genişletildi</string>
   <string name="annotate_menu_collapsed">Daraltıldı</string>
@@ -582,12 +575,6 @@
     <item quantity="other">Yalnızca ilk %1$d dosya sıraya alındı</item>
   </plurals>
   <string name="xfer_sending_n">%1$s gönderiliyor (%2$d / %3$d) · %4$d%%</string>
-  <string name="xfer_card_sending_to">%1$s cihazına gönderiliyor</string>
-  <string name="xfer_card_receiving_from">%1$s cihazından alınıyor</string>
-  <string name="xfer_card_position">%1$d / %2$d · %3$s</string>
-  <string name="xfer_card_bytes">%1$s / %2$s</string>
-  <string name="xfer_card_speed">%1$s/sn</string>
-  <string name="xfer_card_percent">%%%1$d</string>
   <plurals name="xfer_card_sent">
     <item quantity="one">%1$d dosya gönderildi</item>
     <item quantity="other">%1$d dosya gönderildi</item>
@@ -614,17 +601,6 @@
   </plurals>
   <string name="xfer_card_cancelling">İptal ediliyor…</string>
   <string name="xfer_retry">Tekrar dene</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">Dizüstü reddetti. Yeri dolmuş olabilir.</string>
-  <string name="xfer_why_damaged">Bozuk ulaştı. Tekrar deneyin.</string>
-  <string name="xfer_why_write">Dizüstü kaydedemedi.</string>
-  <string name="xfer_why_busy">Dizüstü başka bir dosyayla meşguldü.</string>
-  <string name="xfer_why_timeout">Dizüstü yanıt vermeyi bıraktı.</string>
-  <string name="xfer_why_lost">Bağlantı koptu.</string>
-  <string name="xfer_why_unreadable">Bu telefon dosyayı okuyamadı.</string>
-  <string name="xfer_why_big">Dosya 2 GB üzerinde.</string>
-  <string name="xfer_why_cancelled">İptal edildi.</string>
-  <string name="xfer_why_skipped">Gönderilmedi.</string>
   <string name="xfer_card_a11y">Dosya aktarımı</string>
   <string name="xfer_no_laptop">Önce bir dizüstüne bağlanın</string>
   <string name="xfer_channel">Dosya aktarımları</string>

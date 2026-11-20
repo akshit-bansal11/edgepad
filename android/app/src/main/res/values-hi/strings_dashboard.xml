@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
-  <string name="controls_system">सिस्टम</string>
-  <string name="controls_ai">AI</string>
-  <string name="controls_github">GitHub</string>
   <string name="controls_dash_off">इसे अपने लैपटॉप पर Edgepad मेनू में चालू करें।</string>
   <string name="widgets_title">विजेट</string>
   <string name="widgets_hint">ट्रैकपैड के पीछे दिखाए जाते हैं। स्पर्श आगे निकल जाते हैं।</string>
@@ -23,7 +20,6 @@
   <string name="sys_ram">मेमोरी</string>
   <string name="sys_vram">VRAM</string>
   <string name="sys_disks">डिस्क</string>
-  <string name="sys_net">नेटवर्क</string>
   <string name="sys_down">डाउनलोड</string>
   <string name="sys_up">अपलोड</string>
   <string name="sys_ping">पिंग</string>

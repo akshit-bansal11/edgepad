@@ -2,7 +2,6 @@
 <resources>
   <string name="controls_air_mouse">Hava faresi</string>
   <string name="air_how">Başparmağınızı dokunmatik yüzeye koyun, sonra telefonu sola veya sağa çevirip yukarı veya aşağı eğin. Bu açıkken parmağı basılı tutmak sürüklemez.</string>
-  <string name="air_title">Hava faresi</string>
   <string name="air_caption">Parmağınız dokunmatik yüzeydeyken imleci hareket ettirmek için telefonu eğin. Hareket sensörü yalnızca o zaman okunur.</string>
   <string name="air_sensitivity">Hassasiyet</string>
   <string name="air_dead_zone">Ölü bölge</string>

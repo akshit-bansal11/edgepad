@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
-  <string name="controls_system">System</string>
-  <string name="controls_ai">KI</string>
-  <string name="controls_github">GitHub</string>
   <string name="controls_dash_off">Schalte es im Edgepad-Menü auf deinem Laptop ein.</string>
   <string name="widgets_title">Widgets</string>
   <string name="widgets_hint">Wird hinter dem Trackpad gezeichnet. Berührungen gehen durch.</string>
@@ -23,7 +20,6 @@
   <string name="sys_ram">Speicher</string>
   <string name="sys_vram">VRAM</string>
   <string name="sys_disks">Datenträger</string>
-  <string name="sys_net">Netzwerk</string>
   <string name="sys_down">Download</string>
   <string name="sys_up">Upload</string>
   <string name="sys_ping">Ping</string>

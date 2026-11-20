@@ -20,6 +20,7 @@ import me.akshitbansal.edgepad.link.xfer.XferSnapshot
 import me.akshitbansal.edgepad.protocol.BlobKind
 import me.akshitbansal.edgepad.screens.CardTitle
 import me.akshitbansal.edgepad.screens.Ui
+import me.akshitbansal.edgepad.screens.XferCard
 import me.akshitbansal.edgepad.screens.XferCardView
 import me.akshitbansal.edgepad.screens.titleKind
 import java.io.IOException
@@ -226,7 +227,7 @@ class ShareActivity : Activity() {
                 }
 
                 else -> {
-                    card.bind(s, name)
+                    card.bind(s)
                     if (dialog == null) {
                         dialog =
                             AlertDialog
@@ -237,7 +238,7 @@ class ShareActivity : Activity() {
                     }
                     card.removeCallbacks(autoDone)
                     if (s.phase == XferPhase.FINISHED && titleKind(s) == CardTitle.DONE_ALL) {
-                        card.postDelayed(autoDone, AUTO_DONE_MS)
+                        card.postDelayed(autoDone, XferCard.DONE_MS)
                     }
                 }
             }
@@ -368,7 +369,6 @@ class ShareActivity : Activity() {
         const val TEXT_TYPE = "text/plain"
         const val IMAGE_PREFIX = "image/"
         const val NAMES_SHOWN = 3
-        const val AUTO_DONE_MS = 5_000L
         const val KEY_TARGET = "watching"
     }
 }

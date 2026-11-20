@@ -98,12 +98,8 @@ class XferCardView(
         addView(bar, barParams)
     }
 
-    /** Shows [s]. [laptopName] is not shown on the one-line card; callers still pass it. */
-    @Suppress("UNUSED_PARAMETER")
-    fun bind(
-        s: XferSnapshot,
-        laptopName: String,
-    ) {
+    /** Shows [s]. */
+    fun bind(s: XferSnapshot) {
         val kind = titleKind(s)
         running = kind == CardTitle.RUNNING_SEND || kind == CardTitle.RUNNING_RECEIVE
         if (kind != lastKind) {

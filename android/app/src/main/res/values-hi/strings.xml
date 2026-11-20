@@ -286,7 +286,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">बनाएं</string>
   <string name="shapes_target_title">यह क्या चलाएगी</string>
-  <string name="shapes_draw_hint">इसे एक ही बार में बनाएं, और पूरा होने पर उंगली उठा लें।</string>
   <string name="shapes_redraw">दोबारा बनाएं</string>
   <string name="shapes_save">सेव करें</string>
   <string name="shapes_delete">हटाएं</string>
@@ -415,7 +414,6 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">कंट्रोल</string>
-  <string name="controls_move_hint">टाइलें खिसकाने या छिपाने के लिए संपादित करें पर टैप करें।</string>
   <string name="controls_edit">संपादित करें</string>
   <string name="controls_edit_hint">किसी टाइल को छिपाने या दिखाने के लिए उस पर टैप करें। खिसकाने के लिए उसे दबाए रखें और खींचें।</string>
   <string name="controls_hidden">छिपी हुई</string>
@@ -439,11 +437,8 @@
   <string name="capture_stop">रिकॉर्डिंग रोकें</string>
   <string name="capture_recording">लैपटॉप पर रिकॉर्डिंग चल रही है। खत्म करने के लिए “रिकॉर्डिंग रोकें” पर टैप करें; “यहां सेव करें” में फ़ोन चुना हो तो फ़ाइल तभी आएगी।</string>
   <string name="capture_sent">लैपटॉप पर भेजा गया: %1$s</string>
-  <string name="capture_hint">किसी हिस्से के लिए उसके एक कोने पर पॉइंटर रखें, “हिस्सा” पर टैप करें, फिर टचपैड पर खींचकर सामने वाले कोने तक ले जाएँ।</string>
   <string name="capture_drag_caption">हिस्सा चुनने के लिए खींचें</string>
-  <string name="capture_save_to">यहां सेव करें</string>
   <string name="capture_save_laptop">लैपटॉप</string>
-  <string name="capture_save_phone">फ़ोन</string>
   <string name="capture_receiving">%1$s आ रहा है, %2$d%%</string>
   <string name="capture_saved">%1$s में सेव हुआ</string>
   <string name="capture_bad_hash">कैप्चर खराब होकर पहुंचा। वह अब भी लैपटॉप पर है।</string>
@@ -454,8 +449,6 @@
   <string name="capture_send_failed">लैपटॉप कैप्चर नहीं भेज सका। वह अब भी लैपटॉप पर है।</string>
   <string name="controls_annotate">एनोटेट</string>
   <string name="annotate_description">पेन पैड: छूने पर लैपटॉप की स्क्रीन पर उसी जगह लिखाई होती है। यह सिर्फ़ टच से काम करता है।</string>
-  <string name="annotate_hint">यहां बनाएं। स्याही लैपटॉप पर उसी जगह दिखेगी।</string>
-  <string name="annotate_hint_named">यहां बनाएं। स्याही %1$s पर उसी जगह दिखेगी।</string>
   <string name="annotate_menu">ड्रॉइंग टूल</string>
   <string name="annotate_menu_expanded">खुला है</string>
   <string name="annotate_menu_collapsed">बंद है</string>
@@ -587,12 +580,6 @@
     <item quantity="other">केवल पहली %1$d फ़ाइलें कतार में जोड़ी गईं</item>
   </plurals>
   <string name="xfer_sending_n">%1$s भेजी जा रही है (%3$d में से %2$d) · %4$d%%</string>
-  <string name="xfer_card_sending_to">%1$s को भेजा जा रहा है</string>
-  <string name="xfer_card_receiving_from">%1$s से मिल रहा है</string>
-  <string name="xfer_card_position">%2$d में से %1$d · %3$s</string>
-  <string name="xfer_card_bytes">%2$s में से %1$s</string>
-  <string name="xfer_card_speed">%1$s/से.</string>
-  <string name="xfer_card_percent">%1$d%%</string>
   <plurals name="xfer_card_sent">
     <item quantity="one">%1$d फ़ाइल भेजी गई</item>
     <item quantity="other">%1$d फ़ाइलें भेजी गईं</item>
@@ -619,17 +606,6 @@
   </plurals>
   <string name="xfer_card_cancelling">रद्द किया जा रहा है…</string>
   <string name="xfer_retry">फिर से कोशिश करें</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">लैपटॉप ने इसे अस्वीकार कर दिया। शायद उसमें जगह नहीं है।</string>
-  <string name="xfer_why_damaged">यह खराब होकर पहुँची। फिर से कोशिश करें।</string>
-  <string name="xfer_why_write">लैपटॉप इसे सहेज नहीं सका।</string>
-  <string name="xfer_why_busy">लैपटॉप किसी दूसरी फ़ाइल में व्यस्त था।</string>
-  <string name="xfer_why_timeout">लैपटॉप ने जवाब देना बंद कर दिया।</string>
-  <string name="xfer_why_lost">कनेक्शन टूट गया।</string>
-  <string name="xfer_why_unreadable">यह फ़ोन फ़ाइल नहीं पढ़ सका।</string>
-  <string name="xfer_why_big">फ़ाइल 2 GB से बड़ी है।</string>
-  <string name="xfer_why_cancelled">रद्द किया गया।</string>
-  <string name="xfer_why_skipped">नहीं भेजी गई।</string>
   <string name="xfer_card_a11y">फ़ाइल ट्रांसफ़र</string>
   <string name="xfer_no_laptop">पहले लैपटॉप से कनेक्ट करें</string>
   <string name="xfer_channel">फ़ाइल ट्रांसफ़र</string>

@@ -287,7 +287,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Tekenen</string>
   <string name="shapes_target_title">Wat hij uitvoert</string>
-  <string name="shapes_draw_hint">Teken hem in één streek en til je vinger op als je klaar bent.</string>
   <string name="shapes_redraw">Opnieuw tekenen</string>
   <string name="shapes_save">Opslaan</string>
   <string name="shapes_delete">Verwijderen</string>
@@ -415,7 +414,6 @@
 
   <!-- Macros -->
   <string name="controls_title">Bediening</string>
-  <string name="controls_move_hint">Tik op Bewerken om tegels te verplaatsen of te verbergen.</string>
   <string name="controls_edit">Bewerken</string>
   <string name="controls_edit_hint">Tik op een tegel om hem te verbergen of te tonen. Houd hem ingedrukt en sleep om hem te verplaatsen.</string>
   <string name="controls_hidden">Verborgen</string>
@@ -439,11 +437,8 @@
   <string name="capture_stop">Opname stoppen</string>
   <string name="capture_recording">Opname loopt op de laptop. Tik op Opname stoppen om af te ronden; met Opslaan op Telefoon komt het bestand dan binnen.</string>
   <string name="capture_sent">Naar de laptop gestuurd: %1$s</string>
-  <string name="capture_hint">Wijs voor een gebied één hoek aan, tik op Gebied en sleep dan op het touchpad naar de tegenoverliggende hoek.</string>
   <string name="capture_drag_caption">Sleep om het gebied te kiezen</string>
-  <string name="capture_save_to">Opslaan op</string>
   <string name="capture_save_laptop">Laptop</string>
-  <string name="capture_save_phone">Telefoon</string>
   <string name="capture_receiving">%1$s ontvangen, %2$d%%</string>
   <string name="capture_saved">Opgeslagen in %1$s</string>
   <string name="capture_bad_hash">De opname is beschadigd aangekomen. Hij staat nog op de laptop.</string>
@@ -454,8 +449,6 @@
   <string name="capture_send_failed">De laptop kon de opname niet versturen. Hij staat nog op de laptop.</string>
   <string name="controls_annotate">Annoteren</string>
   <string name="annotate_description">Tekenpad: een aanraking tekent op dezelfde plek op het laptopscherm. Werkt alleen met aanraking.</string>
-  <string name="annotate_hint">Teken hier. De inkt verschijnt op de laptop op dezelfde plek.</string>
-  <string name="annotate_hint_named">Teken hier. De inkt verschijnt op %1$s op dezelfde plek.</string>
   <string name="annotate_menu">Tekengereedschap</string>
   <string name="annotate_menu_expanded">Uitgevouwen</string>
   <string name="annotate_menu_collapsed">Samengevouwen</string>
@@ -587,12 +580,6 @@
     <item quantity="other">Alleen de eerste %1$d bestanden zijn in de wachtrij gezet</item>
   </plurals>
   <string name="xfer_sending_n">%1$s wordt verzonden (%2$d van %3$d) · %4$d%%</string>
-  <string name="xfer_card_sending_to">Verzenden naar %1$s</string>
-  <string name="xfer_card_receiving_from">Ontvangen van %1$s</string>
-  <string name="xfer_card_position">%1$d van %2$d · %3$s</string>
-  <string name="xfer_card_bytes">%1$s van %2$s</string>
-  <string name="xfer_card_speed">%1$s/s</string>
-  <string name="xfer_card_percent">%1$d%%</string>
   <plurals name="xfer_card_sent">
     <item quantity="one">%1$d bestand verzonden</item>
     <item quantity="other">%1$d bestanden verzonden</item>
@@ -619,17 +606,6 @@
   </plurals>
   <string name="xfer_card_cancelling">Annuleren…</string>
   <string name="xfer_retry">Opnieuw proberen</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">De laptop weigerde het. Misschien is er geen ruimte meer.</string>
-  <string name="xfer_why_damaged">Het kwam beschadigd aan. Probeer het opnieuw.</string>
-  <string name="xfer_why_write">De laptop kon het niet opslaan.</string>
-  <string name="xfer_why_busy">De laptop was bezig met een ander bestand.</string>
-  <string name="xfer_why_timeout">De laptop reageerde niet meer.</string>
-  <string name="xfer_why_lost">De verbinding is verbroken.</string>
-  <string name="xfer_why_unreadable">Deze telefoon kon het bestand niet lezen.</string>
-  <string name="xfer_why_big">Het bestand is groter dan 2 GB.</string>
-  <string name="xfer_why_cancelled">Geannuleerd.</string>
-  <string name="xfer_why_skipped">Niet verzonden.</string>
   <string name="xfer_card_a11y">Bestandsoverdracht</string>
   <string name="xfer_no_laptop">Verbind eerst met een laptop</string>
   <string name="xfer_channel">Bestandsoverdrachten</string>

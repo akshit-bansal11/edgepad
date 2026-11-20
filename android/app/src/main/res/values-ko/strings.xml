@@ -271,7 +271,6 @@
   <string name="shapes_draw_title">도형 그리기</string>
   <string name="shapes_draw_back">그리기</string>
   <string name="shapes_target_title">실행할 동작</string>
-  <string name="shapes_draw_hint">한 번에 이어서 그리고, 끝나면 손가락을 떼세요.</string>
   <string name="shapes_redraw">다시 그리기</string>
   <string name="shapes_save">저장</string>
   <string name="shapes_delete">삭제</string>
@@ -396,7 +395,6 @@
   <string name="surface_locked_caption">트랙패드 잠김 · 잠금을 탭하면 해제돼요</string>
 
   <string name="controls_title">컨트롤</string>
-  <string name="controls_move_hint">편집을 탭하면 항목을 옮기거나 숨길 수 있습니다.</string>
   <string name="controls_edit">편집</string>
   <string name="controls_edit_hint">항목을 탭하면 숨기거나 표시합니다. 길게 누른 채 끌면 옮길 수 있습니다.</string>
   <string name="controls_hidden">숨김</string>
@@ -420,11 +418,8 @@
   <string name="capture_stop">녹화 중지</string>
   <string name="capture_recording">노트북에서 녹화 중이에요. 끝내려면 녹화 중지를 탭하세요. 저장 위치가 휴대전화이면 그때 파일이 도착해요.</string>
   <string name="capture_sent">노트북으로 보냄: %1$s</string>
-  <string name="capture_hint">영역을 캡처하려면 한쪽 모서리를 가리킨 뒤 영역을 탭하고, 트랙패드에서 반대쪽 모서리까지 드래그하세요.</string>
   <string name="capture_drag_caption">드래그해서 영역 선택</string>
-  <string name="capture_save_to">저장 위치</string>
   <string name="capture_save_laptop">노트북</string>
-  <string name="capture_save_phone">휴대전화</string>
   <string name="capture_receiving">수신 중 %1$s, %2$d%%</string>
   <string name="capture_saved">%1$s에 저장했어요</string>
   <string name="capture_bad_hash">캡처가 손상된 채로 도착했어요. 원본은 노트북에 남아 있어요.</string>
@@ -435,8 +430,6 @@
   <string name="capture_send_failed">노트북에서 캡처를 보내지 못했어요. 원본은 노트북에 남아 있어요.</string>
   <string name="controls_annotate">필기</string>
   <string name="annotate_description">펜 패드예요. 터치하면 노트북 화면의 같은 위치에 그려져요. 터치로만 쓸 수 있어요.</string>
-  <string name="annotate_hint">여기에 그리세요. 노트북의 같은 위치에 잉크가 나타나요.</string>
-  <string name="annotate_hint_named">여기에 그리세요. %1$s의 같은 위치에 잉크가 나타나요.</string>
   <string name="annotate_menu">그리기 도구</string>
   <string name="annotate_menu_expanded">펼쳐짐</string>
   <string name="annotate_menu_collapsed">접힘</string>
@@ -565,12 +558,6 @@
     <item quantity="other">처음 %1$d개 파일만 대기열에 추가했습니다</item>
   </plurals>
   <string name="xfer_sending_n">%1$s 보내는 중 (%3$d개 중 %2$d번째) · %4$d%%</string>
-  <string name="xfer_card_sending_to">%1$s(으)로 보내는 중</string>
-  <string name="xfer_card_receiving_from">%1$s에서 받는 중</string>
-  <string name="xfer_card_position">%2$d개 중 %1$d번째 · %3$s</string>
-  <string name="xfer_card_bytes">%1$s / %2$s</string>
-  <string name="xfer_card_speed">%1$s/초</string>
-  <string name="xfer_card_percent">%1$d%%</string>
   <plurals name="xfer_card_sent">
     <item quantity="other">파일 %1$d개를 보냈습니다</item>
   </plurals>
@@ -591,17 +578,6 @@
   </plurals>
   <string name="xfer_card_cancelling">취소하는 중…</string>
   <string name="xfer_retry">다시 시도</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">노트북이 거부했습니다. 저장 공간이 부족할 수 있습니다.</string>
-  <string name="xfer_why_damaged">손상된 상태로 도착했습니다. 다시 시도하세요.</string>
-  <string name="xfer_why_write">노트북이 저장하지 못했습니다.</string>
-  <string name="xfer_why_busy">노트북이 다른 파일을 처리하는 중이었습니다.</string>
-  <string name="xfer_why_timeout">노트북이 응답하지 않습니다.</string>
-  <string name="xfer_why_lost">연결이 끊어졌습니다.</string>
-  <string name="xfer_why_unreadable">이 휴대폰에서 파일을 읽지 못했습니다.</string>
-  <string name="xfer_why_big">파일이 2GB를 넘습니다.</string>
-  <string name="xfer_why_cancelled">취소되었습니다.</string>
-  <string name="xfer_why_skipped">보내지 않았습니다.</string>
   <string name="xfer_card_a11y">파일 전송</string>
   <string name="xfer_no_laptop">먼저 노트북에 연결하세요</string>
   <string name="xfer_channel">파일 전송</string>

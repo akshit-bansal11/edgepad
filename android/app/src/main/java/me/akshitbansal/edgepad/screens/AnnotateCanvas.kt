@@ -355,7 +355,7 @@ class AnnotateCanvas(
         invalidate()
     }
 
-    private companion object {
+    internal companion object {
         const val OPAQUE = 0xFF000000.toInt()
 
         // The laptop's laser red, with a soft glow of two fainter rings round it.

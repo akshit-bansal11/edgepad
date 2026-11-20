@@ -286,7 +286,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Zeichnen</string>
   <string name="shapes_target_title">Was sie auslöst</string>
-  <string name="shapes_draw_hint">Zeichne sie in einem Zug und setze am Ende ab.</string>
   <string name="shapes_redraw">Neu zeichnen</string>
   <string name="shapes_save">Speichern</string>
   <string name="shapes_delete">Löschen</string>
@@ -414,7 +413,6 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Steuerung</string>
-  <string name="controls_move_hint">Tippe auf Bearbeiten, um Kacheln zu verschieben oder auszublenden.</string>
   <string name="controls_edit">Bearbeiten</string>
   <string name="controls_edit_hint">Tippe auf eine Kachel, um sie aus- oder einzublenden. Halte sie gedrückt und ziehe sie, um sie zu verschieben.</string>
   <string name="controls_hidden">Ausgeblendet</string>
@@ -438,11 +436,8 @@
   <string name="capture_stop">Aufzeichnung beenden</string>
   <string name="capture_recording">Aufzeichnung läuft auf dem Laptop. Tippe auf „Aufzeichnung beenden“; bei „Speichern auf: Handy“ kommt die Datei dann an.</string>
   <string name="capture_sent">An den Laptop gesendet: %1$s</string>
-  <string name="capture_hint">Für einen Bereich zeige auf eine seiner Ecken, tippe auf „Bereich“ und ziehe dann auf dem Touchpad zur gegenüberliegenden Ecke.</string>
   <string name="capture_drag_caption">Ziehen, um den Bereich zu wählen</string>
-  <string name="capture_save_to">Speichern auf</string>
   <string name="capture_save_laptop">Laptop</string>
-  <string name="capture_save_phone">Handy</string>
   <string name="capture_receiving">Empfange %1$s, %2$d %%</string>
   <string name="capture_saved">Gespeichert unter %1$s</string>
   <string name="capture_bad_hash">Die Aufnahme ist beschädigt angekommen. Sie liegt weiterhin auf dem Laptop.</string>
@@ -453,8 +448,6 @@
   <string name="capture_send_failed">Der Laptop konnte die Aufnahme nicht senden. Sie liegt weiterhin auf dem Laptop.</string>
   <string name="controls_annotate">Zeichnen</string>
   <string name="annotate_description">Stiftfläche: Eine Berührung zeichnet an derselben Stelle auf dem Laptop-Bildschirm. Funktioniert nur per Touch.</string>
-  <string name="annotate_hint">Zeichne hier. Die Tinte erscheint an derselben Stelle auf dem Laptop.</string>
-  <string name="annotate_hint_named">Zeichne hier. Die Tinte erscheint an derselben Stelle auf %1$s.</string>
   <string name="annotate_menu">Zeichenwerkzeuge</string>
   <string name="annotate_menu_expanded">Ausgeklappt</string>
   <string name="annotate_menu_collapsed">Eingeklappt</string>
@@ -586,12 +579,6 @@
     <item quantity="other">Nur die ersten %1$d Dateien wurden eingereiht</item>
   </plurals>
   <string name="xfer_sending_n">%1$s wird gesendet (%2$d von %3$d) · %4$d%%</string>
-  <string name="xfer_card_sending_to">Senden an %1$s</string>
-  <string name="xfer_card_receiving_from">Empfangen von %1$s</string>
-  <string name="xfer_card_position">%1$d von %2$d · %3$s</string>
-  <string name="xfer_card_bytes">%1$s von %2$s</string>
-  <string name="xfer_card_speed">%1$s/s</string>
-  <string name="xfer_card_percent">%1$d %%</string>
   <plurals name="xfer_card_sent">
     <item quantity="one">%1$d Datei gesendet</item>
     <item quantity="other">%1$d Dateien gesendet</item>
@@ -618,17 +605,6 @@
   </plurals>
   <string name="xfer_card_cancelling">Wird abgebrochen…</string>
   <string name="xfer_retry">Erneut versuchen</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">Der Laptop hat sie abgelehnt. Vielleicht ist kein Speicherplatz mehr frei.</string>
-  <string name="xfer_why_damaged">Sie kam beschädigt an. Versuche es erneut.</string>
-  <string name="xfer_why_write">Der Laptop konnte sie nicht speichern.</string>
-  <string name="xfer_why_busy">Der Laptop war mit einer anderen Datei beschäftigt.</string>
-  <string name="xfer_why_timeout">Der Laptop hat nicht mehr geantwortet.</string>
-  <string name="xfer_why_lost">Die Verbindung wurde unterbrochen.</string>
-  <string name="xfer_why_unreadable">Dieses Telefon konnte die Datei nicht lesen.</string>
-  <string name="xfer_why_big">Die Datei ist größer als 2 GB.</string>
-  <string name="xfer_why_cancelled">Abgebrochen.</string>
-  <string name="xfer_why_skipped">Nicht gesendet.</string>
   <string name="xfer_card_a11y">Dateiübertragung</string>
   <string name="xfer_no_laptop">Verbinde zuerst einen Laptop</string>
   <string name="xfer_channel">Dateiübertragungen</string>

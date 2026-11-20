@@ -293,7 +293,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Draw</string>
   <string name="shapes_target_title">What it runs</string>
-  <string name="shapes_draw_hint">Draw it in one stroke, and lift when you are done.</string>
   <string name="shapes_redraw">Redraw</string>
   <string name="shapes_save">Save</string>
   <string name="shapes_delete">Delete</string>
@@ -427,7 +426,6 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controls</string>
-  <string name="controls_move_hint">Tap Edit to move or hide tiles.</string>
   <string name="controls_edit">Edit</string>
   <string name="controls_edit_hint">Tap a tile to hide or show it. Hold and drag to move it.</string>
   <string name="controls_hidden">Hidden</string>
@@ -452,11 +450,8 @@
   <string name="capture_stop">Stop recording</string>
   <string name="capture_recording">Recording on the laptop. Tap Stop recording to finish; with Save to Phone the file arrives then.</string>
   <string name="capture_sent">Sent to the laptop: %1$s</string>
-  <string name="capture_hint">For a region, point at one corner of it, tap Region, then drag on the trackpad to the opposite corner.</string>
   <string name="capture_drag_caption">Drag to select the area</string>
-  <string name="capture_save_to">Save to</string>
   <string name="capture_save_laptop">Laptop</string>
-  <string name="capture_save_phone">Phone</string>
   <string name="capture_receiving">Receiving %1$s, %2$d%%</string>
   <string name="capture_saved">Saved to %1$s</string>
   <string name="capture_bad_hash">The capture arrived damaged. It is still on the laptop.</string>
@@ -467,8 +462,6 @@
   <string name="capture_send_failed">The laptop could not send the capture. It is still on the laptop.</string>
   <string name="controls_annotate">Annotate</string>
   <string name="annotate_description">Pen pad: a touch draws at the same place on the laptop screen. It works by touch only.</string>
-  <string name="annotate_hint">Draw here. Ink appears on the laptop in the same place.</string>
-  <string name="annotate_hint_named">Draw here. Ink appears on %1$s in the same place.</string>
   <string name="annotate_menu">Drawing tools</string>
   <string name="annotate_menu_expanded">Expanded</string>
   <string name="annotate_menu_collapsed">Collapsed</string>
@@ -601,12 +594,6 @@
     <item quantity="other">Only the first %1$d files were queued</item>
   </plurals>
   <string name="xfer_sending_n">Sending %1$s (%2$d of %3$d) · %4$d%%</string>
-  <string name="xfer_card_sending_to">Sending to %1$s</string>
-  <string name="xfer_card_receiving_from">Receiving from %1$s</string>
-  <string name="xfer_card_position">%1$d of %2$d · %3$s</string>
-  <string name="xfer_card_bytes">%1$s of %2$s</string>
-  <string name="xfer_card_speed">%1$s/s</string>
-  <string name="xfer_card_percent">%1$d%%</string>
   <plurals name="xfer_card_sent">
     <item quantity="one">Sent %1$d file</item>
     <item quantity="other">Sent %1$d files</item>
@@ -633,17 +620,6 @@
   </plurals>
   <string name="xfer_card_cancelling">Cancelling…</string>
   <string name="xfer_retry">Try again</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">The laptop refused it. It may be out of space.</string>
-  <string name="xfer_why_damaged">It arrived damaged. Try again.</string>
-  <string name="xfer_why_write">The laptop could not save it.</string>
-  <string name="xfer_why_busy">The laptop was busy with another file.</string>
-  <string name="xfer_why_timeout">The laptop stopped answering.</string>
-  <string name="xfer_why_lost">The connection was lost.</string>
-  <string name="xfer_why_unreadable">This phone could not read the file.</string>
-  <string name="xfer_why_big">The file is over 2 GB.</string>
-  <string name="xfer_why_cancelled">Cancelled.</string>
-  <string name="xfer_why_skipped">Not sent.</string>
   <string name="xfer_card_a11y">File transfer</string>
   <string name="xfer_no_laptop">Connect to a laptop first</string>
   <string name="xfer_channel">File transfers</string>

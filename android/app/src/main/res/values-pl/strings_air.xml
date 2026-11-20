@@ -2,7 +2,6 @@
 <resources>
   <string name="controls_air_mouse">Mysz powietrzna</string>
   <string name="air_how">Połóż kciuk na touchpadzie, a potem obracaj telefon w lewo lub w prawo i przechylaj go w górę lub w dół. Gdy to jest włączone, przytrzymanie palca nie przeciąga.</string>
-  <string name="air_title">Mysz powietrzna</string>
   <string name="air_caption">Przechyl telefon, by ruszać wskaźnikiem, gdy palec spoczywa na gładziku. Czujnik ruchu jest wtedy odczytywany.</string>
   <string name="air_sensitivity">Czułość</string>
   <string name="air_dead_zone">Strefa martwa</string>

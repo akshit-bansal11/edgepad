@@ -294,7 +294,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Desenho</string>
   <string name="shapes_target_title">O que ela executa</string>
-  <string name="shapes_draw_hint">Desenhe em um só traço e levante o dedo ao terminar.</string>
   <string name="shapes_redraw">Desenhar de novo</string>
   <string name="shapes_save">Salvar</string>
   <string name="shapes_delete">Excluir</string>
@@ -423,7 +422,6 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controles</string>
-  <string name="controls_move_hint">Toque em Editar para mover ou ocultar blocos.</string>
   <string name="controls_edit">Editar</string>
   <string name="controls_edit_hint">Toque em um bloco para ocultá-lo ou mostrá-lo. Mantenha pressionado e arraste para movê-lo.</string>
   <string name="controls_hidden">Oculto</string>
@@ -447,11 +445,8 @@
   <string name="capture_stop">Parar gravação</string>
   <string name="capture_recording">Gravando no notebook. Toque em Parar gravação para terminar; com Salvar em Celular, o arquivo chega nesse momento.</string>
   <string name="capture_sent">Enviado ao notebook: %1$s</string>
-  <string name="capture_hint">Para uma região, aponte para um dos cantos, toque em Região e arraste no touchpad até o canto oposto.</string>
   <string name="capture_drag_caption">Arraste para selecionar a área</string>
-  <string name="capture_save_to">Salvar em</string>
   <string name="capture_save_laptop">Notebook</string>
-  <string name="capture_save_phone">Celular</string>
   <string name="capture_receiving">Recebendo %1$s, %2$d%%</string>
   <string name="capture_saved">Salvo em %1$s</string>
   <string name="capture_bad_hash">A captura chegou danificada. Ela continua no notebook.</string>
@@ -462,8 +457,6 @@
   <string name="capture_send_failed">O notebook não conseguiu enviar a captura. Ela continua no notebook.</string>
   <string name="controls_annotate">Anotar</string>
   <string name="annotate_description">Mesa digitalizadora: um toque desenha no mesmo lugar da tela do notebook. Funciona só por toque.</string>
-  <string name="annotate_hint">Desenhe aqui. A tinta aparece no notebook no mesmo lugar.</string>
-  <string name="annotate_hint_named">Desenhe aqui. A tinta aparece em %1$s no mesmo lugar.</string>
   <string name="annotate_menu">Ferramentas de desenho</string>
   <string name="annotate_menu_expanded">Expandido</string>
   <string name="annotate_menu_collapsed">Recolhido</string>
@@ -597,12 +590,6 @@
     <item quantity="other">Apenas os primeiros %1$d arquivos foram colocados na fila</item>
   </plurals>
   <string name="xfer_sending_n">Enviando %1$s (%2$d de %3$d) · %4$d%%</string>
-  <string name="xfer_card_sending_to">Enviando para %1$s</string>
-  <string name="xfer_card_receiving_from">Recebendo de %1$s</string>
-  <string name="xfer_card_position">%1$d de %2$d · %3$s</string>
-  <string name="xfer_card_bytes">%1$s de %2$s</string>
-  <string name="xfer_card_speed">%1$s/s</string>
-  <string name="xfer_card_percent">%1$d%%</string>
   <plurals name="xfer_card_sent">
     <item quantity="one">%1$d arquivo enviado</item>
     <item quantity="many">%1$d arquivos enviados</item>
@@ -635,17 +622,6 @@
   </plurals>
   <string name="xfer_card_cancelling">Cancelando…</string>
   <string name="xfer_retry">Tentar de novo</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">O notebook recusou. Talvez esteja sem espaço.</string>
-  <string name="xfer_why_damaged">Chegou danificado. Tente de novo.</string>
-  <string name="xfer_why_write">O notebook não conseguiu salvar.</string>
-  <string name="xfer_why_busy">O notebook estava ocupado com outro arquivo.</string>
-  <string name="xfer_why_timeout">O notebook parou de responder.</string>
-  <string name="xfer_why_lost">A conexão foi perdida.</string>
-  <string name="xfer_why_unreadable">Este celular não conseguiu ler o arquivo.</string>
-  <string name="xfer_why_big">O arquivo tem mais de 2 GB.</string>
-  <string name="xfer_why_cancelled">Cancelado.</string>
-  <string name="xfer_why_skipped">Não enviado.</string>
   <string name="xfer_card_a11y">Transferência de arquivos</string>
   <string name="xfer_no_laptop">Conecte-se a um notebook primeiro</string>
   <string name="xfer_channel">Transferências de arquivos</string>

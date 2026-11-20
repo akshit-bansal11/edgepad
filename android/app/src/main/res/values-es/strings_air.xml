@@ -2,7 +2,6 @@
 <resources>
   <string name="controls_air_mouse">Ratón aéreo</string>
   <string name="air_how">Apoya un pulgar en el panel táctil y gira el teléfono a izquierda o derecha o inclínalo arriba o abajo. Con esto activado, mantener un dedo no arrastra.</string>
-  <string name="air_title">Ratón aéreo</string>
   <string name="air_caption">Inclina el teléfono para mover el puntero mientras un dedo toca el panel táctil. El sensor de movimiento solo se lee entonces.</string>
   <string name="air_sensitivity">Sensibilidad</string>
   <string name="air_dead_zone">Zona muerta</string>

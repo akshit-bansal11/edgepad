@@ -21,7 +21,6 @@
   <string name="presenter_title">प्रेज़ेंटर</string>
   <string name="presenter_next">अगली स्लाइड</string>
   <string name="presenter_previous">पिछली स्लाइड</string>
-  <string name="presenter_keys_note">यह स्क्रीन खुली होने पर वॉल्यूम कुंजियाँ स्लाइड बदलती हैं।</string>
   <string name="presenter_settings">प्रेज़ेंटर सेटिंग्स</string>
   <string name="presenter_laser_size">लेज़र का आकार</string>
   <string name="presenter_laser_trail">ट्रेल दिखाएँ</string>

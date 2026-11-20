@@ -301,7 +301,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Rysowanie</string>
   <string name="shapes_target_title">Co uruchamia</string>
-  <string name="shapes_draw_hint">Narysuj go jednym pociągnięciem i unieś palec, gdy skończysz.</string>
   <string name="shapes_redraw">Narysuj ponownie</string>
   <string name="shapes_save">Zapisz</string>
   <string name="shapes_delete">Usuń</string>
@@ -431,7 +430,6 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Sterowanie</string>
-  <string name="controls_move_hint">Dotknij Edytuj, aby przenieść lub ukryć kafelki.</string>
   <string name="controls_edit">Edytuj</string>
   <string name="controls_edit_hint">Dotknij kafelka, aby go ukryć lub pokazać. Przytrzymaj i przeciągnij, aby go przenieść.</string>
   <string name="controls_hidden">Ukryty</string>
@@ -455,11 +453,8 @@
   <string name="capture_stop">Zatrzymaj nagrywanie</string>
   <string name="capture_recording">Trwa nagrywanie na laptopie. Stuknij „Zatrzymaj nagrywanie”, aby zakończyć; przy zapisie na telefonie plik dotrze wtedy.</string>
   <string name="capture_sent">Wysłano na laptop: %1$s</string>
-  <string name="capture_hint">Aby przechwycić obszar, wskaż jeden jego róg, stuknij „Obszar”, a potem przeciągnij po touchpadzie do przeciwległego rogu.</string>
   <string name="capture_drag_caption">Przeciągnij, by zaznaczyć obszar</string>
-  <string name="capture_save_to">Miejsce zapisu</string>
   <string name="capture_save_laptop">Laptop</string>
-  <string name="capture_save_phone">Telefon</string>
   <string name="capture_receiving">Odbieranie %1$s, %2$d%%</string>
   <string name="capture_saved">Zapisano: %1$s</string>
   <string name="capture_bad_hash">Plik dotarł uszkodzony. Nadal jest na laptopie.</string>
@@ -470,8 +465,6 @@
   <string name="capture_send_failed">Laptop nie mógł wysłać pliku. Nadal jest na laptopie.</string>
   <string name="controls_annotate">Adnotacje</string>
   <string name="annotate_description">Tablet z piórem: dotyk rysuje w tym samym miejscu na ekranie laptopa. Działa tylko dotykiem.</string>
-  <string name="annotate_hint">Rysuj tutaj. Ślad pojawi się na laptopie w tym samym miejscu.</string>
-  <string name="annotate_hint_named">Rysuj tutaj. Ślad pojawi się w tym samym miejscu na laptopie: %1$s.</string>
   <string name="annotate_menu">Narzędzia rysowania</string>
   <string name="annotate_menu_expanded">Rozwinięte</string>
   <string name="annotate_menu_collapsed">Zwinięte</string>
@@ -607,12 +600,6 @@
     <item quantity="other">Dodano do kolejki tylko pierwsze %1$d plików</item>
   </plurals>
   <string name="xfer_sending_n">Wysyłanie: %1$s (%2$d z %3$d) · %4$d%%</string>
-  <string name="xfer_card_sending_to">Wysyłanie do: %1$s</string>
-  <string name="xfer_card_receiving_from">Odbieranie z: %1$s</string>
-  <string name="xfer_card_position">%1$d z %2$d · %3$s</string>
-  <string name="xfer_card_bytes">%1$s z %2$s</string>
-  <string name="xfer_card_speed">%1$s/s</string>
-  <string name="xfer_card_percent">%1$d%%</string>
   <plurals name="xfer_card_sent">
     <item quantity="one">Wysłano %1$d plik</item>
     <item quantity="few">Wysłano %1$d pliki</item>
@@ -651,17 +638,6 @@
   </plurals>
   <string name="xfer_card_cancelling">Anulowanie…</string>
   <string name="xfer_retry">Spróbuj ponownie</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">Laptop go odrzucił. Może brakuje na nim miejsca.</string>
-  <string name="xfer_why_damaged">Dotarł uszkodzony. Spróbuj ponownie.</string>
-  <string name="xfer_why_write">Laptop nie mógł go zapisać.</string>
-  <string name="xfer_why_busy">Laptop był zajęty innym plikiem.</string>
-  <string name="xfer_why_timeout">Laptop przestał odpowiadać.</string>
-  <string name="xfer_why_lost">Połączenie zostało przerwane.</string>
-  <string name="xfer_why_unreadable">Ten telefon nie mógł odczytać pliku.</string>
-  <string name="xfer_why_big">Plik ma ponad 2 GB.</string>
-  <string name="xfer_why_cancelled">Anulowano.</string>
-  <string name="xfer_why_skipped">Nie wysłano.</string>
   <string name="xfer_card_a11y">Przesyłanie plików</string>
   <string name="xfer_no_laptop">Najpierw połącz z laptopem</string>
   <string name="xfer_channel">Przesyłanie plików</string>

@@ -294,7 +294,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Disegna</string>
   <string name="shapes_target_title">Cosa esegue</string>
-  <string name="shapes_draw_hint">Disegnala con un solo tratto e solleva il dito quando hai finito.</string>
   <string name="shapes_redraw">Ridisegna</string>
   <string name="shapes_save">Salva</string>
   <string name="shapes_delete">Elimina</string>
@@ -424,7 +423,6 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controlli</string>
-  <string name="controls_move_hint">Tocca Modifica per spostare o nascondere i riquadri.</string>
   <string name="controls_edit">Modifica</string>
   <string name="controls_edit_hint">Tocca un riquadro per nasconderlo o mostrarlo. Tienilo premuto e trascinalo per spostarlo.</string>
   <string name="controls_hidden">Nascosto</string>
@@ -448,11 +446,8 @@
   <string name="capture_stop">Interrompi registrazione</string>
   <string name="capture_recording">Registrazione in corso sul portatile. Tocca Interrompi registrazione per terminare; con Salva in Telefono il file arriva a quel punto.</string>
   <string name="capture_sent">Inviato al portatile: %1$s</string>
-  <string name="capture_hint">Per un’area, punta uno dei suoi angoli, tocca Area, poi trascina sul touchpad fino all’angolo opposto.</string>
   <string name="capture_drag_caption">Trascina per selezionare l’area</string>
-  <string name="capture_save_to">Salva in</string>
   <string name="capture_save_laptop">Portatile</string>
-  <string name="capture_save_phone">Telefono</string>
   <string name="capture_receiving">Ricezione di %1$s, %2$d%%</string>
   <string name="capture_saved">Salvato in %1$s</string>
   <string name="capture_bad_hash">La cattura è arrivata danneggiata. È ancora sul portatile.</string>
@@ -463,8 +458,6 @@
   <string name="capture_send_failed">Il portatile non è riuscito a inviare la cattura. È ancora sul portatile.</string>
   <string name="controls_annotate">Annota</string>
   <string name="annotate_description">Tavoletta con penna: un tocco disegna nello stesso punto dello schermo del portatile. Funziona solo al tocco.</string>
-  <string name="annotate_hint">Disegna qui. L’inchiostro appare sul portatile nello stesso punto.</string>
-  <string name="annotate_hint_named">Disegna qui. L’inchiostro appare su %1$s nello stesso punto.</string>
   <string name="annotate_menu">Strumenti di disegno</string>
   <string name="annotate_menu_expanded">Espanso</string>
   <string name="annotate_menu_collapsed">Compresso</string>
@@ -598,12 +591,6 @@
     <item quantity="other">Solo i primi %1$d file sono stati messi in coda</item>
   </plurals>
   <string name="xfer_sending_n">Invio di %1$s (%2$d di %3$d) · %4$d%%</string>
-  <string name="xfer_card_sending_to">Invio a %1$s</string>
-  <string name="xfer_card_receiving_from">Ricezione da %1$s</string>
-  <string name="xfer_card_position">%1$d di %2$d · %3$s</string>
-  <string name="xfer_card_bytes">%1$s di %2$s</string>
-  <string name="xfer_card_speed">%1$s/s</string>
-  <string name="xfer_card_percent">%1$d%%</string>
   <plurals name="xfer_card_sent">
     <item quantity="one">%1$d file inviato</item>
     <item quantity="many">%1$d file inviati</item>
@@ -636,17 +623,6 @@
   </plurals>
   <string name="xfer_card_cancelling">Annullamento…</string>
   <string name="xfer_retry">Riprova</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">Il portatile lo ha rifiutato. Potrebbe non avere spazio.</string>
-  <string name="xfer_why_damaged">È arrivato danneggiato. Riprova.</string>
-  <string name="xfer_why_write">Il portatile non è riuscito a salvarlo.</string>
-  <string name="xfer_why_busy">Il portatile era occupato con un altro file.</string>
-  <string name="xfer_why_timeout">Il portatile ha smesso di rispondere.</string>
-  <string name="xfer_why_lost">La connessione si è interrotta.</string>
-  <string name="xfer_why_unreadable">Questo telefono non è riuscito a leggere il file.</string>
-  <string name="xfer_why_big">Il file supera 2 GB.</string>
-  <string name="xfer_why_cancelled">Annullato.</string>
-  <string name="xfer_why_skipped">Non inviato.</string>
   <string name="xfer_card_a11y">Trasferimento file</string>
   <string name="xfer_no_laptop">Collegati prima a un portatile</string>
   <string name="xfer_channel">Trasferimenti di file</string>

@@ -2,7 +2,6 @@
 <resources>
   <string name="controls_air_mouse">エアマウス</string>
   <string name="air_how">トラックパッドに親指を置いたまま、スマホを左右に回し、上下に傾けます。オンの間は、指を置いたままにしてもドラッグしません。</string>
-  <string name="air_title">エアマウス</string>
   <string name="air_caption">トラックパッドに指を置いている間、スマホを傾けるとポインターが動きます。モーションセンサーはそのときだけ読み取ります。</string>
   <string name="air_sensitivity">感度</string>
   <string name="air_dead_zone">不感帯</string>

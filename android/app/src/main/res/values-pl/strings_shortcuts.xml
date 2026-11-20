@@ -21,7 +21,6 @@
   <string name="presenter_title">Prezenter</string>
   <string name="presenter_next">Następny slajd</string>
   <string name="presenter_previous">Poprzedni slajd</string>
-  <string name="presenter_keys_note">Klawisze głośności zmieniają slajdy, dopóki ten ekran jest otwarty.</string>
   <string name="presenter_settings">Ustawienia prezentera</string>
   <string name="presenter_laser_size">Rozmiar lasera</string>
   <string name="presenter_laser_trail">Pokaż smugę</string>

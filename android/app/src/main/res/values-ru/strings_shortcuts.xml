@@ -21,7 +21,6 @@
   <string name="presenter_title">Презентация</string>
   <string name="presenter_next">Следующий слайд</string>
   <string name="presenter_previous">Предыдущий слайд</string>
-  <string name="presenter_keys_note">Клавиши громкости листают слайды, пока открыт этот экран.</string>
   <string name="presenter_settings">Настройки презентации</string>
   <string name="presenter_laser_size">Размер лазера</string>
   <string name="presenter_laser_trail">Показывать след</string>

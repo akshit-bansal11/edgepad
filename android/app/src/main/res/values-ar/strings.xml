@@ -315,7 +315,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">الرسم</string>
   <string name="shapes_target_title">ما الذي يشغّله</string>
-  <string name="shapes_draw_hint">ارسمه بحركة واحدة، وارفع إصبعك عند الانتهاء.</string>
   <string name="shapes_redraw">إعادة الرسم</string>
   <string name="shapes_save">حفظ</string>
   <string name="shapes_delete">حذف</string>
@@ -445,7 +444,6 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">عناصر التحكم</string>
-  <string name="controls_move_hint">انقر على تعديل لنقل العناصر أو إخفائها.</string>
   <string name="controls_edit">تعديل</string>
   <string name="controls_edit_hint">انقر على عنصر لإخفائه أو إظهاره. اضغط مع الاستمرار واسحبه لنقله.</string>
   <string name="controls_hidden">مخفي</string>
@@ -469,11 +467,8 @@
   <string name="capture_stop">إيقاف التسجيل</string>
   <string name="capture_recording">يجري التسجيل على اللابتوب. انقر «إيقاف التسجيل» للإنهاء؛ ومع «الحفظ في» «الهاتف» يصل الملف حينها.</string>
   <string name="capture_sent">تم الإرسال إلى اللابتوب: %1$s</string>
-  <string name="capture_hint">لالتقاط منطقة، أشر إلى أحد أركانها، وانقر «منطقة»، ثم اسحب على لوحة اللمس إلى الركن المقابل.</string>
   <string name="capture_drag_caption">اسحب لتحديد المنطقة</string>
-  <string name="capture_save_to">الحفظ في</string>
   <string name="capture_save_laptop">اللابتوب</string>
-  <string name="capture_save_phone">الهاتف</string>
   <string name="capture_receiving">جارٍ استلام %1$s، %2$d%%</string>
   <string name="capture_saved">تم الحفظ في %1$s</string>
   <string name="capture_bad_hash">وصل الالتقاط تالفًا. ما زال موجودًا على اللابتوب.</string>
@@ -484,8 +479,6 @@
   <string name="capture_send_failed">تعذّر على اللابتوب إرسال الالتقاط. ما زال موجودًا عليه.</string>
   <string name="controls_annotate">الرسم</string>
   <string name="annotate_description">لوحة قلم: يرسم اللمس في المكان نفسه على شاشة اللابتوب. تعمل باللمس فقط.</string>
-  <string name="annotate_hint">ارسم هنا. يظهر الحبر على اللابتوب في المكان نفسه.</string>
-  <string name="annotate_hint_named">ارسم هنا. يظهر الحبر على %1$s في المكان نفسه.</string>
   <string name="annotate_menu">أدوات الرسم</string>
   <string name="annotate_menu_expanded">موسَّعة</string>
   <string name="annotate_menu_collapsed">مطويّة</string>
@@ -625,12 +618,6 @@
     <item quantity="other">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
   </plurals>
   <string name="xfer_sending_n">جارٍ إرسال %1$s (%2$d من %3$d) · %4$d%%</string>
-  <string name="xfer_card_sending_to">جارٍ الإرسال إلى %1$s</string>
-  <string name="xfer_card_receiving_from">جارٍ الاستلام من %1$s</string>
-  <string name="xfer_card_position">%1$d من %2$d · %3$s</string>
-  <string name="xfer_card_bytes">%1$s من %2$s</string>
-  <string name="xfer_card_speed">%1$s/ث</string>
-  <string name="xfer_card_percent">%1$d%%</string>
   <plurals name="xfer_card_sent">
     <item quantity="zero">لم يُرسَل أي ملف (%1$d)</item>
     <item quantity="one">أُرسل ملف واحد (%1$d)</item>
@@ -681,17 +668,6 @@
   </plurals>
   <string name="xfer_card_cancelling">جارٍ الإلغاء…</string>
   <string name="xfer_retry">إعادة المحاولة</string>
-  <string name="xfer_card_row">%1$s — %2$s</string>
-  <string name="xfer_why_refused">رفضه اللابتوب. ربما لا توجد مساحة كافية.</string>
-  <string name="xfer_why_damaged">وصل تالفًا. حاول مرة أخرى.</string>
-  <string name="xfer_why_write">تعذر على اللابتوب حفظه.</string>
-  <string name="xfer_why_busy">كان اللابتوب مشغولًا بملف آخر.</string>
-  <string name="xfer_why_timeout">توقف اللابتوب عن الرد.</string>
-  <string name="xfer_why_lost">انقطع الاتصال.</string>
-  <string name="xfer_why_unreadable">تعذر على هذا الهاتف قراءة الملف.</string>
-  <string name="xfer_why_big">الملف أكبر من 2 غيغابايت.</string>
-  <string name="xfer_why_cancelled">أُلغي.</string>
-  <string name="xfer_why_skipped">لم يُرسَل.</string>
   <string name="xfer_card_a11y">نقل الملفات</string>
   <string name="xfer_no_laptop">اتصل بلابتوب أولًا</string>
   <string name="xfer_channel">نقل الملفات</string>

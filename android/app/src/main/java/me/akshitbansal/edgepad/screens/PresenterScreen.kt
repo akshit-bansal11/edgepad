@@ -214,7 +214,7 @@ private class LaserDot(
     /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
     constructor(context: Context) : this(context, 0)
 
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = LASER_RED }
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = AnnotateCanvas.LASER_CORE }
 
     var size = Settings.MIN_LASER_SIZE
         set(value) {
@@ -235,8 +235,6 @@ private class LaserDot(
     }
 
     private companion object {
-        /** The phone laser's red, as the laptop draws it. */
-        const val LASER_RED = 0xFFFF1A1A.toInt()
         const val MIN_RADIUS = 0.08f
         const val MAX_RADIUS = 0.42f
     }
