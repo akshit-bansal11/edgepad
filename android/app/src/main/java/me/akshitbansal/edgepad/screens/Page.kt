@@ -381,7 +381,7 @@ class Ui(
             contentDescription = label
             val inset = (dp(Space.TOUCH) - dp(CHIP_DP)) / 2
             val dress = { on: Boolean ->
-                text = if (on) "✓ $label" else label
+                text = if (on) context.getString(R.string.chip_on, label) else label
                 setTextColor(if (on) palette.accent else palette.ink)
                 val fill = if (on) palette.accentSoft else palette.faint
                 background = InsetDrawable(rounded(fill, CHIP_DP / 2), 0, inset, 0, inset)

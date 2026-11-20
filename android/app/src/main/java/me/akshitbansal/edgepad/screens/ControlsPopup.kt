@@ -268,10 +268,13 @@ class ControlsPopup(
                 stateDescription = ui.string(R.string.air_no_sensor)
             }
         }
-        return ui.toggleChip(label, settings.airMouse) { _, on ->
-            settings.airMouse = on
-            if (on) toast(R.string.air_how)
-        }.apply { tooltipText = ui.string(R.string.air_how) }
+        val chip =
+            ui.toggleChip(label, settings.airMouse) { _, on ->
+                settings.airMouse = on
+                if (on) toast(R.string.air_how)
+            }
+        chip.tooltipText = ui.string(R.string.air_how)
+        return chip
     }
 
     private fun toast(text: Int) {
@@ -363,25 +366,29 @@ class ControlsPopup(
      * permission to draw over other apps. Missing one, the chip stays off and says which; the permission is
      * asked for from this tap only. A long press says what the dials are and what they need.
      */
-    private fun floatingChip(): View =
-        ui.toggleChip(ui.string(R.string.controls_floating), settings.floatingDials) { box, on ->
-            val refusal =
-                when {
-                    !on -> null
-                    !laptopConnected() -> R.string.floating_needs_link
-                    !settings.stayConnected -> R.string.floating_needs_stay
-                    !SystemSettings.canDrawOverlays(ui.context) -> R.string.floating_permission
-                    else -> null
+    private fun floatingChip(): View {
+        val chip =
+            ui.toggleChip(ui.string(R.string.controls_floating), settings.floatingDials) { box, on ->
+                val refusal =
+                    when {
+                        !on -> null
+                        !laptopConnected() -> R.string.floating_needs_link
+                        !settings.stayConnected -> R.string.floating_needs_stay
+                        !SystemSettings.canDrawOverlays(ui.context) -> R.string.floating_permission
+                        else -> null
+                    }
+                if (refusal == null) {
+                    settings.floatingDials = on
+                    onFloatingChanged()
+                } else {
+                    box.isChecked = false
+                    if (refusal == R.string.floating_permission) askOverlay()
+                    toast(refusal)
                 }
-            if (refusal == null) {
-                settings.floatingDials = on
-                onFloatingChanged()
-            } else {
-                box.isChecked = false
-                if (refusal == R.string.floating_permission) askOverlay()
-                toast(refusal)
             }
-        }.apply { tooltipText = ui.string(R.string.floating_caption) }
+        chip.tooltipText = ui.string(R.string.floating_caption)
+        return chip
+    }
 
     private fun askOverlay() {
         val context = ui.context
