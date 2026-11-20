@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.RenderNode
 import android.graphics.Typeface
@@ -23,6 +22,7 @@ import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.LimitEntry
 import me.akshitbansal.edgepad.link.StatsFormat
 import me.akshitbansal.edgepad.link.StatsRing
+import me.akshitbansal.edgepad.link.StatsSample
 import me.akshitbansal.edgepad.link.WeatherInfo
 import me.akshitbansal.edgepad.protocol.AgentToken
 import me.akshitbansal.edgepad.protocol.Feature
@@ -31,6 +31,7 @@ import me.akshitbansal.edgepad.screens.words
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.sin
 
 /**
  * Draws the widgets that are switched on, behind the trackpad and at about half strength, in the surface's own ink and
@@ -70,10 +71,10 @@ class WidgetPainter(
         var shownSecondary = ""
         var shownCompact = ""
 
-        /** The series the sparkline draws, or -1, and the top of its scale (0 = the running maximum). */
-        var series = -1
-        var fixedMax = 0
-        var latest = Int.MIN_VALUE
+        /** The stat cards: which metrics the laptop reports, their percents as text, and the ring's version drawn. */
+        val reported = BooleanArray(StatMetric.entries.size)
+        val percents = Array(StatMetric.entries.size) { "" }
+        var version = -1
 
         /** The ring's percent, or -1. */
         var pct = -1
@@ -109,7 +110,10 @@ class WidgetPainter(
             strokeJoin = Paint.Join.ROUND
             strokeWidth = dp(LINE_DP)
         }
-    private val path = Path()
+    private val cards = StatCards(context)
+    private val metricNames = Array(StatMetric.entries.size) { context.getString(StatMetric.entries[it].label) }
+    private val cardGap = dp(CARD_GAP_DP)
+    private val cell = RectF()
 
     // The widgets' picture, recorded only when it changed ([dirty]), so a touch that redraws the surface replays one
     // node instead of laying out every line of text again.
@@ -123,11 +127,7 @@ class WidgetPainter(
     private var seenStats = -1
     private var seenMinute = -1L
 
-    private val none = context.getString(R.string.sys_none)
-    private val fmt = StatsFormat(none)
-    private val cpu = context.getString(R.string.sys_cpu)
-    private val ram = context.getString(R.string.sys_ram)
-    private val gpu = context.getString(R.string.sys_gpu)
+    private val fmt = StatsFormat(context.getString(R.string.sys_none))
     private val fahrenheit = Locale.getDefault().country in FAHRENHEIT
     private var stats: StatsRing? = null
 
@@ -226,12 +226,15 @@ class WidgetPainter(
         state: LaptopState,
     ): Boolean {
         val weather = state.weather ?: return hide(slot)
-        val tenths = weather.tempTenthsC
-        val degrees = if (fahrenheit) Math.round(tenths * 9 / 50f + 32) else Math.round(tenths / 10f)
-        val temp = "$degrees°${if (fahrenheit) "F" else "C"}"
+        val temp = temperature(weather.tempTenthsC)
         val sky = condition(weather.wmoCode)?.let { context.getString(it) }.orEmpty()
         val detail = listOf(sky, weather.city).filter { it.isNotEmpty() }.joinToString(" · ")
         return set(slot, temp, detail, if (detail.isEmpty()) temp else "$temp · $detail")
+    }
+
+    private fun temperature(tenths: Int): String {
+        val degrees = if (fahrenheit) Math.round(tenths * 9 / 50f + 32) else Math.round(tenths / 10f)
+        return "$degrees°${if (fahrenheit) "F" else "C"}"
     }
 
     private fun system(
@@ -239,17 +242,26 @@ class WidgetPainter(
         state: LaptopState,
     ): Boolean {
         if (Feature.STATS !in state.features) return hide(slot)
-        val s = state.stats
-        val line =
-            listOf(
-                cpu to s.latest(StatsRing.CPU),
-                ram to s.latest(StatsRing.RAM),
-                gpu to s.latest(StatsRing.GPU),
-            ).filter { it.second >= 0 || it.first == cpu }
-                .joinToString(" · ") { "${it.first} ${fmt.percent(it.second)}" }
-        slot.series = StatsRing.CPU
-        slot.fixedMax = FULL
-        return set(slot, line, "", line) or sparked(slot, s)
+        return cardsOf(slot, state.stats)
+    }
+
+    /** Takes the percents of [s] for the cards. True when anything they draw changed, the graph included. */
+    private fun cardsOf(
+        slot: Slot,
+        s: StatsRing,
+    ): Boolean {
+        var changed = set(slot, "", "", "") or (slot.version != s.version)
+        slot.version = s.version
+        for (metric in StatMetric.entries) {
+            val at = metric.ordinal
+            val reported = metric.reported(s)
+            if (slot.reported[at] != reported) changed = true
+            slot.reported[at] = reported
+            val percent = fmt.percent(s.latest(metric.series))
+            if (slot.percents[at] != percent) changed = true
+            slot.percents[at] = percent
+        }
+        return changed
     }
 
     private fun network(
@@ -258,10 +270,9 @@ class WidgetPainter(
     ): Boolean {
         if (Feature.STATS !in state.features) return hide(slot)
         val s = state.stats
-        val line = "↓ ${fmt.rate(s.latest(StatsRing.DOWN))} · ↑ ${fmt.rate(s.latest(StatsRing.UP))}"
-        slot.series = StatsRing.DOWN
-        slot.fixedMax = 0
-        return set(slot, line, "", line) or sparked(slot, s)
+        val down = fmt.rate(s.latest(StatsRing.DOWN))
+        val up = fmt.rate(s.latest(StatsRing.UP))
+        return set(slot, down, up, "$down $up")
     }
 
     private fun ai(
@@ -285,22 +296,11 @@ class WidgetPainter(
         return set(slot, shown, "$name · $label", "$name $label $shown") or moved
     }
 
-    /** True when the newest sample of the widget's series is not the one drawn last. */
-    private fun sparked(
-        slot: Slot,
-        ring: StatsRing,
-    ): Boolean {
-        val latest = ring.latest(slot.series)
-        val moved = latest != slot.latest
-        slot.latest = latest
-        return moved
-    }
-
     /** Draws [slot] as nothing. True when it was showing something. */
     private fun hide(slot: Slot): Boolean {
         val changed = !slot.empty
         slot.empty = true
-        slot.series = -1
+        slot.version = -1
         slot.pct = -1
         return changed
     }
@@ -395,34 +395,101 @@ class WidgetPainter(
     }
 
     private fun paint(canvas: Canvas) {
-        for (index in slots.indices) {
-            val slot = slots[index]
-            val box = slot.box
-            if (box.isEmpty || slot.empty) continue
-            val s = slot.drawScale
-            if (s != 1f) {
-                canvas.save()
-                canvas.scale(s, s, box.centerX(), box.centerY())
+        for (slot in slots) paintSlot(canvas, slot)
+    }
+
+    private fun paintSlot(
+        canvas: Canvas,
+        slot: Slot,
+    ) {
+        val box = slot.box
+        if (box.isEmpty || slot.empty) return
+        val s = slot.drawScale
+        if (s != 1f) {
+            canvas.save()
+            canvas.scale(s, s, box.centerX(), box.centerY())
+        }
+        when {
+            slot.widget == SurfaceWidget.SYSTEM -> {
+                drawCards(canvas, slot)
             }
-            when {
-                box.height() < dp(COMPACT_BELOW_DP) -> {
-                    val paint = if (slot.widget == SurfaceWidget.CLOCK) bigPaint else valuePaint
-                    centred(canvas, slot.shownCompact, paint, box.centerX(), box.centerY())
+
+            slot.widget == SurfaceWidget.NETWORK -> {
+                drawRates(canvas, slot)
+            }
+
+            box.height() < dp(COMPACT_BELOW_DP) -> {
+                val paint = if (slot.widget == SurfaceWidget.CLOCK) bigPaint else valuePaint
+                centred(canvas, slot.shownCompact, paint, box.centerX(), box.centerY())
+            }
+
+            slot.widget == SurfaceWidget.AI -> {
+                drawAi(canvas, slot)
+            }
+
+            else -> {
+                drawTwoLines(canvas, slot)
+            }
+        }
+        if (s != 1f) canvas.restore()
+    }
+
+    /**
+     * The layout editor's picture of [widget] centred on [cx], [cy] on a surface [w] by [h] px at [scale], over the
+     * values [sample] made. It is drawn through the same code as the surface, so its footprint is the real one.
+     */
+    fun drawAt(
+        canvas: Canvas,
+        widget: SurfaceWidget,
+        cx: Float,
+        cy: Float,
+        w: Float,
+        h: Float,
+        scale: Float,
+    ) {
+        val slot = slots.firstOrNull { it.widget == widget } ?: return
+        val (bw, bh) = baseSize(widget, w, h, density)
+        val widthChanged = slot.box.width() != bw
+        slot.box.set(cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2)
+        slot.drawScale = fitScale(scale, bw, bh, w, h)
+        if (widthChanged) fit(slot)
+        paintSlot(canvas, slot)
+    }
+
+    /** Fills every widget with made-up values, for the layout editor. */
+    fun sample() {
+        tickClock()
+        val ring = StatsRing()
+        for (i in 0 until StatsRing.CAPACITY) {
+            val wave = SAMPLE_BASE + (SAMPLE_SWING * sin(i * SAMPLE_STEP)).toInt()
+            ring.push(StatsSample(wave, wave + 8, wave - 6, wave + 3, 1200, 300, 20, 0, 55, 50, 90))
+        }
+        stats = ring
+        for (slot in slots) {
+            when (slot.widget) {
+                SurfaceWidget.CLOCK -> {}
+
+                SurfaceWidget.WEATHER -> {
+                    val sky = context.getString(R.string.wx_clear)
+                    set(slot, temperature(SAMPLE_TENTHS_C), sky, "${temperature(SAMPLE_TENTHS_C)} · $sky")
                 }
 
-                slot.widget == SurfaceWidget.AI -> {
-                    drawAi(canvas, slot)
+                SurfaceWidget.SYSTEM -> {
+                    cardsOf(slot, ring)
                 }
 
-                slot.series >= 0 -> {
-                    drawSpark(canvas, slot)
+                SurfaceWidget.NETWORK -> {
+                    val down = fmt.rate(ring.latest(StatsRing.DOWN))
+                    val up = fmt.rate(ring.latest(StatsRing.UP))
+                    set(slot, down, up, "$down $up")
                 }
 
-                else -> {
-                    drawTwoLines(canvas, slot)
+                SurfaceWidget.AI -> {
+                    slot.pct = SAMPLE_PCT
+                    val name = context.getString(R.string.agent_claude)
+                    set(slot, fmt.percent(SAMPLE_PCT), name, "$name ${fmt.percent(SAMPLE_PCT)}")
                 }
             }
-            if (s != 1f) canvas.restore()
         }
     }
 
@@ -458,43 +525,38 @@ class WidgetPainter(
         )
     }
 
-    /** The text line at the top of the box and the last minute of the series under it. */
-    private fun drawSpark(
+    /** The metrics the laptop reports as square cards in a row, the row centred in the box. */
+    private fun drawCards(
         canvas: Canvas,
         slot: Slot,
     ) {
         val box = slot.box
-        valuePaint.textAlign = Paint.Align.CENTER
-        canvas.drawText(slot.shownPrimary, box.centerX(), box.top - valueMetrics.ascent, valuePaint)
-        val ring = stats ?: return
-        val left = box.left + dp(Space.S)
-        val right = box.right - dp(Space.S)
-        val upper = box.top + valueMetrics.descent - valueMetrics.ascent + dp(Space.S)
-        val lower = box.bottom - dp(Space.XS)
-        if (ring.size < 2 || lower <= upper) return
-        var scale = slot.fixedMax
-        if (scale <= 0) {
-            scale = 1
-            for (i in 0 until ring.size) scale = maxOf(scale, ring.value(slot.series, i))
+        val count = slot.reported.count { it }
+        if (count == 0) return
+        val side = minOf(box.height(), (box.width() - (count - 1) * cardGap) / count)
+        var x = box.centerX() - (count * side + (count - 1) * cardGap) / 2
+        val top = box.centerY() - side / 2
+        for (metric in StatMetric.entries) {
+            val at = metric.ordinal
+            if (!slot.reported[at]) continue
+            cell.set(x, top, x + side, top + side)
+            cards.card(canvas, cell, metric, metricNames[at], slot.percents[at], stats, STRONG_ALPHA)
+            x += side + cardGap
         }
-        val step = (right - left) / (StatsRing.CAPACITY - 1)
-        stroke.color = trackInk
-        canvas.drawLine(left, lower, right, lower, stroke)
-        path.reset()
-        var pen = false
-        for (i in 0 until ring.size) {
-            val v = ring.value(slot.series, i)
-            if (v < 0) {
-                pen = false
-                continue
-            }
-            val x = right - (ring.size - 1 - i) * step
-            val y = lower - (lower - upper) * minOf(v, scale) / scale
-            if (pen) path.lineTo(x, y) else path.moveTo(x, y)
-            pen = true
-        }
-        stroke.color = lineInk
-        canvas.drawPath(path, stroke)
+    }
+
+    /** The download and the upload, each an arrow in a small box with its speed, the pair centred in the box. */
+    private fun drawRates(
+        canvas: Canvas,
+        slot: Slot,
+    ) {
+        val box = slot.box
+        val gap = dp(Space.L)
+        val first = cards.rateWidth(slot.primary)
+        val total = first + gap + cards.rateWidth(slot.secondary)
+        val left = box.centerX() - total / 2
+        cards.rate(canvas, left, box.centerY(), false, slot.primary, STRONG_ALPHA)
+        cards.rate(canvas, left + first + gap, box.centerY(), true, slot.secondary, STRONG_ALPHA)
     }
 
     /** A ring with the percent beside it and the agent and window under that, the pair centred in the box. */
@@ -624,6 +686,9 @@ class WidgetPainter(
             val natural =
                 when (widget) {
                     SurfaceWidget.CLOCK -> CLOCK_HEIGHT_DP
+                    SurfaceWidget.NETWORK -> NETWORK_HEIGHT_DP
+                    // Four square cards across the width, so the box is as tall as one card.
+                    SurfaceWidget.SYSTEM -> (width / density - (CARDS - 1) * CARD_GAP_DP) / CARDS
                     else -> DEFAULT_HEIGHT_DP
                 }
             return width to minOf(natural * density, HEIGHT_SHARE * h)
@@ -631,5 +696,13 @@ class WidgetPainter(
 
         private const val CLOCK_HEIGHT_DP = 72f
         private const val DEFAULT_HEIGHT_DP = 64f
+        private const val NETWORK_HEIGHT_DP = 36f
+        private const val CARDS = 4
+        private const val CARD_GAP_DP = 6f
+        private const val SAMPLE_BASE = 50
+        private const val SAMPLE_SWING = 30
+        private const val SAMPLE_STEP = 0.5
+        private const val SAMPLE_TENTHS_C = 210
+        private const val SAMPLE_PCT = 42
     }
 }
