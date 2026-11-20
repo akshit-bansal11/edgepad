@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.screens
 
+import android.content.Context
 import android.graphics.Canvas
 import android.graphics.RectF
 import android.view.View
@@ -302,6 +303,9 @@ private class StatGridView(
     private val columns: Int,
     private val fmt: StatsFormat,
 ) : View(ui.context) {
+    /** For layout tools only (lint ViewConstructor); the app always passes its columns and format. */
+    constructor(context: Context) : this(Ui(context), 2, StatsFormat(""))
+
     private val cards = StatCards(ui.context, ui.palette.card)
     private val names = Array(StatMetric.entries.size) { ui.string(StatMetric.entries[it].label) }
     private val percents = Array(StatMetric.entries.size) { "" }
