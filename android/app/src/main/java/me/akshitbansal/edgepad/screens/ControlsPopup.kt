@@ -115,9 +115,16 @@ class ControlsPopup(
 
     private var dialog: AlertDialog? = null
 
-    /** The room the tiles have, in pixels: [across] is set by [show], [down] once the grid has been laid out. */
+    /**
+     * The room the tiles have, in pixels, worked out by [fit]: the popup's [room] less the note, the end row and the
+     * chips under the tiles. Not left to a weight: the dialog sizes its content to fit, so a weighted grid got no
+     * height at all and no tile was drawn.
+     */
     private var across = 0
     private var down = 0
+    private var popupWidth = 0
+    private var room = 0
+    private val under = ArrayList<View>()
     private lateinit var deck: Deck
 
     /** Over the chips: the choices "Sleep when this ends" opens, or the armed line and Cancel. Rebuilt by [drawEnd]. */
@@ -177,6 +184,8 @@ class ControlsPopup(
         val pad = ui.dp(Space.L)
         across = width - 2 * pad
         down = 0
+        popupWidth = width
+        room = height
         editing = false
         hidden = settings.deckHidden(DECK)
         endChoices = false
@@ -187,17 +196,16 @@ class ControlsPopup(
         holder.orientation = LinearLayout.VERTICAL
         holder.setPadding(pad, pad, pad, ui.dp(Space.S))
         deck = Deck(ui, holder)
-        // The grid is planned from the room it really has, known only once it is laid out; see [laidOut].
-        holder.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> laidOut() }
         tileNote.setPadding(pad, 0, pad, ui.dp(Space.S))
         endBox.setPadding(pad, 0, pad, 0)
         val body = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
-        body.addView(holder, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
-        body.addView(tileNote)
-        body.addView(endBox)
-        body.addView(chips(pad))
-        draw(capture, annotate)
+        val chipRow = chips(pad)
+        under.clear()
+        under += listOf(tileNote, endBox, chipRow)
+        body.addView(holder, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0))
+        under.forEach { body.addView(it) }
         drawEnd()
+        draw(capture, annotate)
         val shownDialog =
             AlertDialog
                 .Builder(ui.context)
@@ -209,19 +217,35 @@ class ControlsPopup(
             setTitle(ui.string(R.string.controls_title))
             setBackgroundDrawable(ui.rounded(ui.palette.popover, Space.CARD_RADIUS))
             setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL)
-            setLayout(width, height)
+            setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
             attributes = attributes.apply { y = offset }
         }
         holder.requestFocus()
     }
 
-    /** The grid's height changed (the popup opened, or the end row came or went): the tiles are planned again. */
-    private fun laidOut() {
-        val room = holder.height - holder.paddingTop - holder.paddingBottom
-        if (room <= 0 || room == down) return
-        down = room
-        // Not inside the layout pass that reported it: views added there would wait a frame anyway.
-        holder.post { drawShown() }
+    /**
+     * Gives the grid what the rows under it leave of [room], measured at the popup's width, and sets [down] to match.
+     * Run before every draw of the tiles, since the note and the end row come and go.
+     */
+    private fun fit() {
+        val wide = View.MeasureSpec.makeMeasureSpec(popupWidth, View.MeasureSpec.EXACTLY)
+        val free = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        val taken =
+            under.sumOf { view ->
+                if (view.visibility == View.GONE) {
+                    0
+                } else {
+                    view.measure(wide, free)
+                    view.measuredHeight
+                }
+            }
+        val grid = maxOf(room - taken, 0)
+        down = maxOf(grid - holder.paddingTop - holder.paddingBottom, 0)
+        val params = holder.layoutParams ?: return
+        if (params.height != grid) {
+            params.height = grid
+            holder.layoutParams = params
+        }
     }
 
     /**
@@ -287,14 +311,14 @@ class ControlsPopup(
         annotate: Boolean,
     ) {
         if (isOpen) {
-            draw(capture, annotate)
             drawEnd()
+            draw(capture, annotate)
         }
     }
 
     /** The laptop's armed state (TEXT 25) or its features changed: the end row follows. */
     fun refreshEnd() {
-        if (isOpen) drawEnd()
+        if (isOpen) endChanged()
     }
 
     /**
@@ -355,7 +379,13 @@ class ControlsPopup(
             return
         }
         endChoices = !endChoices
+        endChanged()
+    }
+
+    /** The end row came, went or changed: it takes room from the tiles, which are planned again. */
+    private fun endChanged() {
         drawEnd()
+        if (tiles.isNotEmpty()) drawShown()
     }
 
     private fun hasGyroscope(): Boolean =
@@ -431,12 +461,11 @@ class ControlsPopup(
             }
         tileNote.visibility = if (note == null) View.GONE else View.VISIBLE
         if (note != null) tileNote.text = ui.string(note)
-        if (visible.isEmpty()) {
+        fit()
+        if (visible.isEmpty() || down <= 0) {
             deck.clear()
             return
         }
-        // Until the grid is laid out there is no room to plan it in; [laidOut] draws it then.
-        if (down <= 0) return
         deck.render(
             across,
             down,
