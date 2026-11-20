@@ -688,6 +688,21 @@ public sealed class DispatcherTests : IDisposable
     }
 
     [Fact]
+    public void TheDeveloperValueReachesTheHostAndAnythingElseIsDropped()
+    {
+        List<bool> seen = [];
+        dispatcher.Handle(new SetValue((byte)ControlId.Developer, 1));
+        dispatcher.Developer = seen.Add;
+        dispatcher.Handle(new SetValue((byte)ControlId.Developer, 1));
+        dispatcher.Handle(new SetValue((byte)ControlId.Developer, 0));
+        dispatcher.Handle(new SetValue((byte)ControlId.Developer, 2));
+
+        Assert.Equal(2, dispatcher.Dropped);
+        Assert.Equal([true, false], seen);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
     public void APermAnswerTheBrokerTakesIsHandledAndOneItRefusesIsDropped()
     {
         List<string> seen = [];

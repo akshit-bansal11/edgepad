@@ -71,6 +71,7 @@ public sealed partial class IdsFixtureTests
             ["CLAUDE"] = Feature.Claude,
             ["CODEX"] = Feature.Codex,
             ["GITHUB"] = Feature.GitHub,
+            ["DEVELOPER"] = Feature.Developer,
         };
 
         Assert.Equal(expected, actual);

@@ -43,7 +43,7 @@ public sealed class IntegrationHostTests : IDisposable
 
     private void AllOn()
     {
-        foreach (var key in new[] { IntegrationSettings.Stats, IntegrationSettings.Weather, IntegrationSettings.Claude, IntegrationSettings.Codex, IntegrationSettings.GitHub })
+        foreach (var key in new[] { IntegrationSettings.Stats, IntegrationSettings.Weather, IntegrationSettings.Claude, IntegrationSettings.Codex, IntegrationSettings.GitHub, IntegrationSettings.Developer })
         {
             settings.SetFlag(key, true);
         }
@@ -121,7 +121,7 @@ public sealed class IntegrationHostTests : IDisposable
     {
         AllOn();
         using var host = New();
-        Assert.Equal([Feature.Stats, Feature.Weather, Feature.Claude, Feature.Codex, Feature.GitHub], host.Features());
+        Assert.Equal([Feature.Developer, Feature.Stats, Feature.Weather, Feature.Claude, Feature.Codex, Feature.GitHub], host.Features());
 
         secrets.Delete(GitHubApp.TokenName);
         using var noStats = New(withStats: false);
@@ -135,21 +135,34 @@ public sealed class IntegrationHostTests : IDisposable
     {
         settings.SetFlag(IntegrationSettings.Claude, true);
         settings.SetFlag(IntegrationSettings.Codex, true);
+        settings.SetFlag(IntegrationSettings.Developer, true);
         var parts = new DashboardParts { Sessions = sessions, AgentHeard = agent => usage.LastHeard(agent) >= 0 };
         using var host = New(shared: parts);
-        Assert.Empty(host.Features());
+        Assert.Equal([Feature.Developer], host.Features());
 
         usage.Touch(AgentToken.Claude, clock.Now);
-        Assert.Equal([Feature.Claude], host.Features());
+        Assert.Equal([Feature.Developer, Feature.Claude], host.Features());
 
         // Codex heard but not yet trusted in /hooks is not named; trusted but never heard is not either.
         usage.Touch(AgentToken.Codex, clock.Now);
         Assert.DoesNotContain(Feature.Codex, host.Features());
         settings.SetFlag(IntegrationSettings.CodexTrusted, true);
-        Assert.Equal([Feature.Claude, Feature.Codex], host.Features());
+        Assert.Equal([Feature.Developer, Feature.Claude, Feature.Codex], host.Features());
 
         usage.Forget(AgentToken.Codex);
-        Assert.Equal([Feature.Claude], host.Features());
+        Assert.Equal([Feature.Developer, Feature.Claude], host.Features());
+    }
+
+    [Fact]
+    public void TheDeveloperAgentsAreNamedOnlyWhileDeveloperModeIsOn()
+    {
+        AllOn();
+        settings.SetFlag(IntegrationSettings.Developer, false);
+        using var host = New();
+        Assert.Equal([Feature.Stats, Feature.Weather], host.Features());
+
+        settings.SetFlag(IntegrationSettings.Developer, true);
+        Assert.Equal([Feature.Developer, Feature.Stats, Feature.Weather, Feature.Claude, Feature.Codex, Feature.GitHub], host.Features());
     }
 
     [Fact]

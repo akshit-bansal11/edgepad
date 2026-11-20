@@ -378,6 +378,9 @@ internal static class Feature
 
     /// <summary>This laptop is signed in to GitHub and can send <see cref="BlobKind.Github"/>.</summary>
     public const string GitHub = "github";
+
+    /// <summary>Developer mode is on; <see cref="Claude"/>, <see cref="Codex"/> and <see cref="GitHub"/> are named only while it is.</summary>
+    public const string Developer = "developer";
 }
 
 /// <summary>The agent of a <see cref="TextKind.Sessions"/>, <see cref="TextKind.Limits"/>, <see cref="TextKind.Spend"/> or <see cref="BlobKind.PermAsk"/> entry. Tokens, never prose. Mirrors protocol/actions.txt.</summary>
@@ -476,6 +479,9 @@ internal enum ControlId : byte
     /// dropped and counted. Forgotten when the session ends. The only thing that makes the laptop sample, read usage files or poll.
     /// </summary>
     DashWatch = 12,
+
+    /// <summary>Developer mode, 1 or 0, phone to laptop. The laptop keeps it across sessions; the phone shows it from FEATURES <see cref="Feature.Developer"/>. Anything else is dropped and counted.</summary>
+    Developer = 13,
 }
 
 /// <summary>

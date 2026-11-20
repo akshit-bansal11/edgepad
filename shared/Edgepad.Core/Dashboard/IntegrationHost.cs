@@ -142,7 +142,7 @@ internal sealed class IntegrationHost : IDisposable
 
     private bool Heard(string agent) => parts.AgentHeard?.Invoke(agent) ?? true;
 
-    private bool AgentsOn => settings.Flag(IntegrationSettings.Claude) || settings.Flag(IntegrationSettings.Codex);
+    private bool AgentsOn => settings.Active(IntegrationSettings.Claude) || settings.Active(IntegrationSettings.Codex);
 
     /// <summary>Call once the session has sent FEATURES: sends the current sessions and lets the Codex watcher see the new phone.</summary>
     public void Start()
@@ -159,6 +159,11 @@ internal sealed class IntegrationHost : IDisposable
     public IReadOnlyList<string> Features()
     {
         var features = new List<string>();
+        if (settings.Flag(IntegrationSettings.Developer))
+        {
+            features.Add(Feature.Developer);
+        }
+
         if (settings.Flag(IntegrationSettings.Stats) && stats is not null)
         {
             features.Add(Feature.Stats);
@@ -170,17 +175,17 @@ internal sealed class IntegrationHost : IDisposable
         }
 
         // An agent counts once it actually works with Edgepad (heard from, Codex trusted), not as soon as its switch is on.
-        if (settings.Flag(IntegrationSettings.Claude) && parts.Sessions is not null && Heard(AgentToken.Claude))
+        if (settings.Active(IntegrationSettings.Claude) && parts.Sessions is not null && Heard(AgentToken.Claude))
         {
             features.Add(Feature.Claude);
         }
 
-        if (settings.Flag(IntegrationSettings.Codex) && parts.Sessions is not null && Heard(AgentToken.Codex) && settings.Flag(IntegrationSettings.CodexTrusted))
+        if (settings.Active(IntegrationSettings.Codex) && parts.Sessions is not null && Heard(AgentToken.Codex) && settings.Flag(IntegrationSettings.CodexTrusted))
         {
             features.Add(Feature.Codex);
         }
 
-        if (settings.Flag(IntegrationSettings.GitHub) && parts.GitHub is not null && parts.GitHubSignedIn?.Invoke() == true)
+        if (settings.Active(IntegrationSettings.GitHub) && parts.GitHub is not null && parts.GitHubSignedIn?.Invoke() == true)
         {
             features.Add(Feature.GitHub);
         }
@@ -197,7 +202,7 @@ internal sealed class IntegrationHost : IDisposable
             reasons.Add($"{Feature.Stats}:{UnavailableReason.Unsupported}");
         }
 
-        if (settings.Flag(IntegrationSettings.GitHub) && parts.GitHubSignedIn?.Invoke() != true)
+        if (settings.Active(IntegrationSettings.GitHub) && parts.GitHubSignedIn?.Invoke() != true)
         {
             reasons.Add($"{Feature.GitHub}:{UnavailableReason.NoPermission}");
         }
@@ -314,7 +319,7 @@ internal sealed class IntegrationHost : IDisposable
 
     private bool WeatherOn => settings.Flag(IntegrationSettings.Weather) && parts.Weather is not null;
 
-    private bool GitHubOn => settings.Flag(IntegrationSettings.GitHub) && parts.GitHub is not null;
+    private bool GitHubOn => settings.Active(IntegrationSettings.GitHub) && parts.GitHub is not null;
 
     private bool Watching(int bit)
     {

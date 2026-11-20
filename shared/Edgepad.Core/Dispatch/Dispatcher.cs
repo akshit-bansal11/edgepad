@@ -62,6 +62,9 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     /// </summary>
     public Action<int>? DashWatch { get; set; }
 
+    /// <summary>Told the phone's DEVELOPER (true on); set by the session; without one, or for a value above 1, the frame is dropped and counted.</summary>
+    public Action<bool>? Developer { get; set; }
+
     /// <summary>
     /// Takes a TEXT PERM_ANSWER (<c>id/a</c> or <c>id/d</c>) and says whether it answered an approval that waits. Set by the session
     /// (the permission broker's <c>Answer</c>); without one, or when it returns false, the frame is dropped and counted.
@@ -311,6 +314,7 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         ControlId.Clipboard => Clipboard?.SetShared(percent) ?? false,
         ControlId.ForegroundWatch => ForegroundWatch is { } watch && percent <= 1 && Do(() => watch(percent == 1)),
         ControlId.DashWatch => DashWatch is { } dash && percent <= MaxDashWatch && Do(() => dash(percent)),
+        ControlId.Developer => Developer is { } developer && percent <= 1 && Do(() => developer(percent == 1)),
         var id => Enum.IsDefined(id) && platform.Set(id, percent),
     };
 

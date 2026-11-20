@@ -20,6 +20,7 @@ internal sealed class IntegrationSettings(string path)
     public const string Claude = "claude";
     public const string Codex = "codex";
     public const string GitHub = "github";
+    public const string Developer = "developer";
     public const string GitHubPrivate = "githubPrivate";
     public const string City = "city";
     public const string Lat = "lat";
@@ -39,6 +40,9 @@ internal sealed class IntegrationSettings(string path)
 
     /// <summary>The app executable last stamped as <c>__APP__</c> for the agent.</summary>
     public static string PluginAppKey(string agent) => "pluginApp." + agent;
+
+    /// <summary>Whether the key is on and, for the developer keys (claude, codex, github), developer mode is on too.</summary>
+    public bool Active(string key) => Flag(key) && (key is not (Claude or Codex or GitHub) || Flag(Developer));
 
     /// <summary>True only when the stored value is exactly <c>1</c>.</summary>
     public bool Flag(string key)

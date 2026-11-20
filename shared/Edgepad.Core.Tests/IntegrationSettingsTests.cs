@@ -14,6 +14,7 @@ public sealed class IntegrationSettingsTests : IDisposable
         IntegrationSettings.GitHub,
         IntegrationSettings.GitHubPrivate,
         IntegrationSettings.CodexTrusted,
+        IntegrationSettings.Developer,
     ];
 
     private readonly DirectoryInfo dir = Directory.CreateTempSubdirectory("edgepad-integrations");
@@ -74,6 +75,22 @@ public sealed class IntegrationSettingsTests : IDisposable
         Assert.False(settings.Flag(IntegrationSettings.Weather));
         Assert.False(settings.Flag(IntegrationSettings.Claude));
         Assert.True(settings.Flag(IntegrationSettings.Codex));
+    }
+
+    [Fact]
+    public void TheDeveloperKeysAreActiveOnlyInDeveloperMode()
+    {
+        var settings = new IntegrationSettings(FilePath);
+        settings.SetFlag(IntegrationSettings.Claude, true);
+        settings.SetFlag(IntegrationSettings.Stats, true);
+        Assert.False(settings.Active(IntegrationSettings.Claude));
+        Assert.True(settings.Active(IntegrationSettings.Stats));
+        Assert.False(settings.Active(IntegrationSettings.Codex));
+
+        settings.SetFlag(IntegrationSettings.Developer, true);
+        Assert.True(settings.Active(IntegrationSettings.Claude));
+        Assert.True(settings.Active(IntegrationSettings.Stats));
+        Assert.False(settings.Active(IntegrationSettings.Codex));
     }
 
     [Fact]
