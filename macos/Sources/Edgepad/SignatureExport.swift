@@ -120,18 +120,8 @@ enum StrokePainter {
         let space = CGColorSpace(name: CGColorSpace.sRGB)
         func red(_ alpha: CGFloat) -> [CGFloat] { [1, 0.1, 0.1, alpha] }
 
-        // ponytail: count-based trail, a still finger keeps its trail; time-based if it looks wrong.
-        if stroke.tool == .laserTrail, points.count > 1 {
-            let last = CGFloat(points.count - 1)
-            g.setLineCap(.round)
-            for i in 1..<points.count {
-                let t = CGFloat(i) / last
-                g.setStrokeColor(CGColor(srgbRed: 1, green: 0.1, blue: 0.1, alpha: 0.6 * t))
-                g.setLineWidth(1 + (2 * radius - 1) * t)
-                g.move(to: points[i - 1])
-                g.addLine(to: points[i])
-                g.strokePath()
-            }
+        if stroke.tool == .laserTrail, points.count > 2, let space {
+            drawTail(points, radius: radius, space: space, in: g)
         }
 
         let glow = radius * 2.2
@@ -150,5 +140,44 @@ enum StrokePainter {
         let hot = radius * 0.35
         g.setFillColor(CGColor(srgbRed: 1, green: 0.816, blue: 0.816, alpha: 1))
         g.fillEllipse(in: CGRect(x: dot.x - hot, y: dot.y - hot, width: hot * 2, height: hot * 2))
+    }
+
+    /// The trail as one smooth ribbon: as wide as the dot at the head, tapering to nothing at the tail, and fading
+    /// with a single gradient, so no joints or dots show.
+    private static func drawTail(_ points: [CGPoint], radius: CGFloat, space: CGColorSpace, in g: CGContext) {
+        let n = points.count
+        guard let first = points.first, let last = points.last,
+            hypot(last.x - first.x, last.y - first.y) >= 1
+        else { return }
+
+        var edge = [CGPoint](repeating: .zero, count: n * 2)
+        var (nx, ny) = (CGFloat(0), CGFloat(1))
+        for i in 0..<n {
+            let a = points[max(i - 1, 0)]
+            let b = points[min(i + 1, n - 1)]
+            let length = hypot(b.x - a.x, b.y - a.y)
+            if length > 0.001 { (nx, ny) = (-(b.y - a.y) / length, (b.x - a.x) / length) }
+            let half = radius * CGFloat(i) / CGFloat(n - 1)
+            edge[i] = CGPoint(x: points[i].x + nx * half, y: points[i].y + ny * half)
+            edge[n * 2 - 1 - i] = CGPoint(x: points[i].x - nx * half, y: points[i].y - ny * half)
+        }
+
+        func mid(_ a: CGPoint, _ b: CGPoint) -> CGPoint { CGPoint(x: (a.x + b.x) / 2, y: (a.y + b.y) / 2) }
+        // A closed loop of quadratic curves through the edge points' midpoints: smooth, no corners but the tail.
+        let ribbon = CGMutablePath()
+        ribbon.move(to: mid(edge[n * 2 - 1], edge[0]))
+        for i in 0..<(n * 2) {
+            ribbon.addQuadCurve(to: mid(edge[i], edge[(i + 1) % (n * 2)]), control: edge[i])
+        }
+        ribbon.closeSubpath()
+
+        let components: [CGFloat] = [1, 0.1, 0.1, 0, 1, 0.1, 0.1, 0.86]
+        guard let gradient = CGGradient(colorSpace: space, colorComponents: components, locations: [0, 1], count: 2)
+        else { return }
+        g.saveGState()
+        g.addPath(ribbon)
+        g.clip()
+        g.drawLinearGradient(gradient, start: first, end: last, options: [])
+        g.restoreGState()
     }
 }
