@@ -1,10 +1,12 @@
 package me.akshitbansal.edgepad.screens
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.accessibility.AccessibilityNodeProvider
@@ -20,56 +22,64 @@ import me.akshitbansal.edgepad.surface.MediaPiece
 import me.akshitbansal.edgepad.surface.Perimeter
 import me.akshitbansal.edgepad.surface.SurfaceWidget
 import me.akshitbansal.edgepad.surface.WidgetPainter
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
- * Drag the media pieces on a full-size canvas with a snapping grid; where they land is where the surface
- * draws them. A piece near the middle snaps to it, and the centre line it sits on turns accent to say so.
+ * Drag the media pieces, or the widgets that are switched on, on a full-size canvas with a snapping grid; where they
+ * land is where the surface draws them. A piece near the middle snaps to it, and the centre line it sits on turns
+ * accent to say so. Editing the widgets, the media pieces are ghosts nothing is dropped on, and a long press on a
+ * widget picks its size.
  */
 object MediaLayoutScreen {
+    /** What the editor moves: the two media pieces, or the widgets. */
+    enum class Scope { MEDIA, WIDGETS }
+
     private val scaleRange = StepRange(Settings.MIN_MEDIA_SCALE, Settings.MAX_MEDIA_SCALE, 0.1f)
 
+    /** [developer]: whether the AI widget is offered, as the Widgets page offers it. */
     fun build(
         ui: Ui,
         settings: Settings,
+        scope: Scope = Scope.MEDIA,
+        developer: Boolean = false,
         onBack: () -> Unit,
     ): View {
-        val canvas = Editor(ui.context, settings)
+        val canvas = Editor(ui.context, settings, scope, developer)
+        val widgets = scope == Scope.WIDGETS
         return EditorFrame.build(
             ui,
-            ui.string(R.string.media_layout_title),
+            ui.string(if (widgets) R.string.widgets_layout_title else R.string.media_layout_title),
             canvas,
             onBack,
-            backLabel = ui.string(R.string.settings_surface_title),
+            backLabel = ui.string(if (widgets) R.string.widgets_title else R.string.settings_surface_title),
         ) { close ->
             LinearLayout(ui.context).apply {
                 orientation = LinearLayout.VERTICAL
-                addView(
-                    ui.slider(
-                        ui.string(R.string.media_scale),
-                        scaleRange.steps,
-                        scaleRange.stepOf(settings.mediaScale),
-                        { step -> ui.string(R.string.multiplier_value, scaleRange.valueAt(step)) },
-                    ) { step ->
-                        settings.mediaScale = scaleRange.valueAt(step)
-                        canvas.rescale()
-                    },
-                )
-                addView(
-                    ui
-                        .secondary(
-                            ui.string(
-                                if (isSideways(ui.context)) {
-                                    R.string.media_layout_hint_sideways
-                                } else {
-                                    R.string.media_layout_hint_upright
-                                },
-                            ),
-                            Type.SMALL,
-                            ui.palette.dim,
-                        ).apply {
-                            setLineSpacing(0f, Type.LEADING)
-                            setPadding(0, ui.dp(Space.XS), 0, ui.dp(Space.S))
+                if (!widgets) {
+                    addView(
+                        ui.slider(
+                            ui.string(R.string.media_scale),
+                            scaleRange.steps,
+                            scaleRange.stepOf(settings.mediaScale),
+                            { step -> ui.string(R.string.multiplier_value, scaleRange.valueAt(step)) },
+                        ) { step ->
+                            settings.mediaScale = scaleRange.valueAt(step)
+                            canvas.rescale()
                         },
+                    )
+                }
+                val hint =
+                    when {
+                        widgets -> R.string.widgets_layout_hint
+                        isSideways(ui.context) -> R.string.media_layout_hint_sideways
+                        else -> R.string.media_layout_hint_upright
+                    }
+                addView(
+                    ui.secondary(ui.string(hint), Type.SMALL, ui.palette.dim).apply {
+                        setLineSpacing(0f, Type.LEADING)
+                        setPadding(0, ui.dp(Space.XS), 0, ui.dp(Space.S))
+                    },
                 )
                 addView(
                     EditorFrame.resetAndDone(
@@ -78,8 +88,10 @@ object MediaLayoutScreen {
                         ui.string(R.string.media_layout_reset_confirm),
                         {
                             canvas.reset()
-                            settings.mediaScale = Settings.DEFAULT_MEDIA_SCALE
-                            canvas.rescale()
+                            if (!widgets) {
+                                settings.mediaScale = Settings.DEFAULT_MEDIA_SCALE
+                                canvas.rescale()
+                            }
                             close()
                         },
                         close,
@@ -94,15 +106,25 @@ object MediaLayoutScreen {
     private class Editor(
         context: Context,
         private val settings: Settings,
+        private val scope: Scope,
+        developer: Boolean,
     ) : LayoutCanvas(context) {
-        // The media pieces, then the widgets that are switched on: all are dragged and nudged the same way.
+        // The media pieces, or the widgets that are switched on (AI only in developer mode): all are dragged and
+        // nudged the same way.
         private val items: List<LayoutItem> =
-            MediaPiece.entries.map { LayoutItem.Piece(it, context.getString(it.nameRes)) } +
-                SurfaceWidget.entries
+            if (scope == Scope.MEDIA) {
+                MediaPiece.entries.map { LayoutItem.Piece(it, context.getString(it.nameRes)) }
+            } else {
+                WidgetsScreen
+                    .shown(developer)
                     .filter(settings::widgetOn)
-                    .map { LayoutItem.Widget(it, context.getString(it.nameRes)) }
+                    .map { LayoutItem.Widget(it, context.getString(it.nameRes), settings.widgetScale(it)) }
+            }
         private val positions = items.associateWith { stored(it) }.toMutableMap()
         private var dragging: LayoutItem? = null
+        private var downX = 0f
+        private var downY = 0f
+        private val holdTick = Runnable { performHapticFeedback(HapticFeedbackConstants.LONG_PRESS) }
         private val corner = CORNER_DP * density
         private val drop = Space.HAIR * density
         private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -113,7 +135,10 @@ object MediaLayoutScreen {
             }
 
         init {
-            contentDescription = context.getString(R.string.media_layout_title)
+            contentDescription =
+                context.getString(
+                    if (scope == Scope.WIDGETS) R.string.widgets_layout_title else R.string.media_layout_title,
+                )
         }
 
         // AND-A-25: what the surface keeps for itself, drawn as faint ghosts and kept clear of by a dragged piece.
@@ -165,6 +190,14 @@ object MediaLayoutScreen {
                 ghosts.add(RectF(x0, if (bottom) h - depth else 0f, x1, if (bottom) h.toFloat() else depth))
                 ghosts.add(RectF(if (right) w - depth else 0f, y0, if (right) w.toFloat() else depth, y1))
             }
+            // Editing the widgets, the media pieces stay where they are and nothing is dropped on them.
+            if (scope == Scope.WIDGETS) {
+                for (piece in MediaPiece.entries) {
+                    val ghost = RectF()
+                    pieceBounds(piece, settings.piece(piece), ghost)
+                    ghosts.add(ghost)
+                }
+            }
         }
 
         /** Whether a piece centred at [at] would sit on something the surface keeps for itself. */
@@ -193,7 +226,7 @@ object MediaLayoutScreen {
             }
         }
 
-        // ANDU-6: each piece is a node a screen reader can move a cell at a time; a piece has no menu to open.
+        // ANDU-6: each piece is a node a screen reader can move a cell at a time; a widget also offers its size.
         private val nodes =
             ControlNodes(
                 this,
@@ -202,8 +235,19 @@ object MediaLayoutScreen {
                 bounds = { i, out -> bounds(items[i], out) },
                 clickable = { false },
                 click = {},
-                actions = { i -> moveActions(context) { dx, dy -> nudge(items[i], dx, dy) } },
+                actions = { i -> actions(items[i]) },
             )
+
+        private fun actions(item: LayoutItem): List<NodeAction> {
+            val moves = moveActions(context) { dx, dy -> nudge(item, dx, dy) }
+            if (item !is LayoutItem.Widget) return moves
+            val size =
+                NodeAction(R.id.action_resize, context.getString(R.string.gamepad_size)) {
+                    showSizePicker(item)
+                    true
+                }
+            return moves + size
+        }
 
         override fun getAccessibilityNodeProvider(): AccessibilityNodeProvider = nodes
 
@@ -231,11 +275,31 @@ object MediaLayoutScreen {
             invalidate()
         }
 
+        /** Puts back what this editor moves, and nothing else: the pieces, or the widgets with their sizes. */
         fun reset() {
-            settings.resetPieces()
-            settings.resetWidgets()
-            for (item in items) positions[item] = stored(item)
+            if (scope == Scope.MEDIA) settings.resetPieces() else settings.resetWidgets()
+            for (item in items) {
+                positions[item] = stored(item)
+                if (item is LayoutItem.Widget) item.scale = settings.widgetScale(item.widget)
+            }
             invalidate()
+        }
+
+        /** The size picker the gamepad editor uses, over [Settings.WIDGET_SCALES] as percents. */
+        private fun showSizePicker(item: LayoutItem.Widget) {
+            val scales = Settings.WIDGET_SCALES
+            val current = scales.indexOfFirst { it == item.scale }.coerceAtLeast(0)
+            val labels =
+                Array(scales.size) { context.getString(R.string.percent_value, (scales[it] * PERCENT).roundToInt()) }
+            AlertDialog
+                .Builder(context)
+                .setTitle(R.string.gamepad_size)
+                .setSingleChoiceItems(labels, current) { dialog, which ->
+                    dialog.dismiss()
+                    settings.setWidgetScale(item.widget, scales[which])
+                    item.scale = settings.widgetScale(item.widget)
+                    invalidate()
+                }.showOver(this)
         }
 
         private fun bounds(
@@ -243,32 +307,44 @@ object MediaLayoutScreen {
             out: RectF,
             at: Pair<Float, Float> = positions.getValue(item),
         ) {
-            val (fx, fy) = at
-            val cx = fx * width
-            val cy = fy * height
             when (item) {
                 is LayoutItem.Widget -> {
                     // A widget is not scaled with the media; the surface sizes its box from the same numbers.
-                    val (bw, bh) = WidgetPainter.boxSize(item.widget, width.toFloat(), height.toFloat(), density)
+                    val (fx, fy) = at
+                    val cx = fx * width
+                    val cy = fy * height
+                    val (bw, bh) =
+                        WidgetPainter.boxSize(item.widget, width.toFloat(), height.toFloat(), density, item.scale)
                     out.set(cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2)
                 }
 
                 is LayoutItem.Piece -> {
-                    val (w, h) =
-                        when (item.piece) {
-                            MediaPiece.NOW_PLAYING -> {
-                                ControlSurface.NOW_PLAYING_WIDTH_DP to
-                                    ControlSurface.NOW_PLAYING_HEIGHT_DP
-                            }
-
-                            MediaPiece.TRANSPORT -> {
-                                ControlSurface.SKIP_GAP_DP * 2 + Space.TOUCH to ControlSurface.PLAY_DP
-                            }
-                        }
-                    val px = density * scale
-                    out.set(cx - w * px / 2, cy - h * px / 2, cx + w * px / 2, cy + h * px / 2)
+                    pieceBounds(item.piece, at, out)
                 }
             }
+        }
+
+        private fun pieceBounds(
+            piece: MediaPiece,
+            at: Pair<Float, Float>,
+            out: RectF,
+        ) {
+            val (fx, fy) = at
+            val cx = fx * width
+            val cy = fy * height
+            val (w, h) =
+                when (piece) {
+                    MediaPiece.NOW_PLAYING -> {
+                        ControlSurface.NOW_PLAYING_WIDTH_DP to
+                            ControlSurface.NOW_PLAYING_HEIGHT_DP
+                    }
+
+                    MediaPiece.TRANSPORT -> {
+                        ControlSurface.SKIP_GAP_DP * 2 + Space.TOUCH to ControlSurface.PLAY_DP
+                    }
+                }
+            val px = density * scale
+            out.set(cx - w * px / 2, cy - h * px / 2, cx + w * px / 2, cy + h * px / 2)
         }
 
         override fun onDraw(canvas: Canvas) {
@@ -302,18 +378,26 @@ object MediaLayoutScreen {
             return true
         }
 
+        private fun movedFar(event: MotionEvent): Boolean =
+            abs(event.x - downX) > LONG_PRESS_SLOP_DP * density || abs(event.y - downY) > LONG_PRESS_SLOP_DP * density
+
         override fun onTouchEvent(event: MotionEvent): Boolean {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
-                    dragging =
+                    downX = event.x
+                    downY = event.y
+                    val item =
                         items.lastOrNull {
                             bounds(it, box)
                             box.contains(event.x, event.y)
                         } ?: return false
+                    dragging = item
+                    if (item is LayoutItem.Widget) postDelayed(holdTick, LONG_PRESS_MS)
                 }
 
                 MotionEvent.ACTION_MOVE -> {
                     val item = dragging ?: return false
+                    if (movedFar(event)) removeCallbacks(holdTick)
                     val x = snap(event.x, width)
                     val y = snap(event.y, height)
                     // A move onto a ghost is not taken: the piece waits where it was until the finger is clear.
@@ -324,15 +408,24 @@ object MediaLayoutScreen {
                 }
 
                 MotionEvent.ACTION_UP -> {
+                    removeCallbacks(holdTick)
                     val item = dragging ?: return false
-                    val (x, y) = positions.getValue(item)
-                    save(item, x, y)
                     dragging = null
                     clearOnCentre()
+                    val held = !movedFar(event) && event.eventTime - event.downTime >= LONG_PRESS_MS
+                    if (held && item is LayoutItem.Widget) {
+                        // A hold is not a move: the widget stays where it was stored, and its size is asked for.
+                        positions[item] = stored(item)
+                        showSizePicker(item)
+                    } else {
+                        val (x, y) = positions.getValue(item)
+                        save(item, x, y)
+                    }
                     performClick()
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
+                    removeCallbacks(holdTick)
                     dragging = null
                     clearOnCentre()
                 }
@@ -348,6 +441,9 @@ object MediaLayoutScreen {
         private companion object {
             const val CORNER_DP = 12f
             const val RULER_DEPTH_DP = 44f
+            const val LONG_PRESS_MS = 500L
+            const val LONG_PRESS_SLOP_DP = 12f
+            const val PERCENT = 100
         }
     }
 }
@@ -364,6 +460,8 @@ private sealed interface LayoutItem {
     class Widget(
         val widget: SurfaceWidget,
         override val label: String,
+        /** Its stored size, kept here so drawing reads no setting. */
+        var scale: Float,
     ) : LayoutItem
 }
 

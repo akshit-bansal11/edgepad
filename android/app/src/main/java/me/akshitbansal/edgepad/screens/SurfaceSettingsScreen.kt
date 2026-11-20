@@ -6,7 +6,6 @@ import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.surface.Perimeter
 import me.akshitbansal.edgepad.surface.Shapes
-import me.akshitbansal.edgepad.surface.SurfaceWidget
 import kotlin.math.roundToInt
 
 /**
@@ -26,6 +25,7 @@ object SurfaceSettingsScreen {
         val profiles: () -> Unit,
         val system: () -> Unit,
         val back: () -> Unit,
+        val widgets: () -> Unit,
     )
 
     private const val NO_DIAL = "—"
@@ -66,17 +66,7 @@ object SurfaceSettingsScreen {
                 hairline()
                 add(ui.link(ui.string(R.string.settings_profiles), null, routes.profiles))
             }
-            section(ui.string(R.string.widgets_title))
-            card {
-                SurfaceWidget.entries.forEachIndexed { index, widget ->
-                    if (index > 0) hairline()
-                    val label = ui.string(widget.nameRes)
-                    add(ui.toggle(label, settings.widgetOn(widget)) { on -> settings.setWidgetOn(widget, on) })
-                }
-            }
-            footnote(ui.string(R.string.widgets_hint))
-            // Open-Meteo's licence (CC BY 4.0) asks for this credit wherever its data is shown.
-            footnote(ui.string(R.string.wx_credit))
+            card(Space.XL) { add(ui.link(ui.string(R.string.widgets_title), null, routes.widgets)) }
             if (settings.airMouse) {
                 section(ui.string(R.string.air_title))
                 card(Space.L) {

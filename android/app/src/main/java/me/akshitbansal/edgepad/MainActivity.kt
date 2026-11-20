@@ -154,6 +154,7 @@ import me.akshitbansal.edgepad.screens.SharingScreen
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
 import me.akshitbansal.edgepad.screens.SystemScreen
 import me.akshitbansal.edgepad.screens.Ui
+import me.akshitbansal.edgepad.screens.WidgetsScreen
 import me.akshitbansal.edgepad.screens.XferCard
 import me.akshitbansal.edgepad.screens.openOver
 import me.akshitbansal.edgepad.screens.showOver
@@ -233,6 +234,8 @@ class MainActivity :
         APPEARANCE,
         PROFILES,
         MEDIA_LAYOUT,
+        WIDGETS,
+        WIDGET_LAYOUT,
         GAMEPAD_LAYOUT,
         KEYBOARD_SETTINGS,
         GAMEPAD_SETTINGS,
@@ -730,6 +733,25 @@ class MainActivity :
         if (on) askNotifications(forced = true)
     }
 
+    /** Developer mode as the selected laptop reports it, or as the last one reported it while none is connected. */
+    private fun developerOn(): Boolean = if (connected) Feature.DEVELOPER in state.features else settings.developerMode
+
+    /**
+     * The Developer mode switch: the laptop keeps the value, so it is only told, and its FEATURES that follow are the
+     * confirmation. With no laptop connected the switch is disabled and this never runs.
+     */
+    private fun developerChanged(on: Boolean) {
+        if (connected) manager.send(ControlId.DEVELOPER.set(if (on) 1 else 0))
+    }
+
+    /** The selected laptop's FEATURES: the cache follows them, and a page showing developer mode is redrawn. */
+    private fun developerReported() {
+        val on = Feature.DEVELOPER in state.features
+        if (on == settings.developerMode) return
+        settings.developerMode = on
+        if (screen == Screen.SETTINGS || screen == Screen.WIDGETS) goTo(screen)
+    }
+
     // [forced] is the user's own tap, which asks again even when the service already did once.
     private fun askNotifications(forced: Boolean = false) {
         // Below Android 13 notifications need no permission, and the constant does not exist there.
@@ -849,7 +871,7 @@ class MainActivity :
                 onSurface = screen == Screen.SURFACE,
                 statsWidget = settings.widgetOn(SurfaceWidget.SYSTEM) || settings.widgetOn(SurfaceWidget.NETWORK),
                 weatherWidget = settings.widgetOn(SurfaceWidget.WEATHER),
-                aiWidget = settings.widgetOn(SurfaceWidget.AI),
+                aiWidget = settings.widgetOn(SurfaceWidget.AI) && developerOn(),
                 screen = dash,
             )
         if (mask == dashMask) return
@@ -1148,12 +1170,15 @@ class MainActivity :
                             },
                             stayConnected = ::syncService,
                             notify = ::notifyChanged,
+                            developer = ::developerChanged,
                             sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
                             },
                             back = { navigateBack() },
                         ),
+                        developer = developerOn(),
+                        developerEditable = connected,
                     )
                 }
 
@@ -1172,8 +1197,24 @@ class MainActivity :
                             profiles = { goTo(Screen.PROFILES) },
                             system = ::openSettings,
                             back = { navigateBack() },
+                            widgets = { goTo(Screen.WIDGETS) },
                         ),
                     )
+                }
+
+                Screen.WIDGETS -> {
+                    WidgetsScreen.build(
+                        ui,
+                        settings,
+                        developerOn(),
+                        WidgetsScreen.Routes(layout = { goTo(Screen.WIDGET_LAYOUT) }, back = { navigateBack() }),
+                    )
+                }
+
+                Screen.WIDGET_LAYOUT -> {
+                    MediaLayoutScreen.build(ui, settings, MediaLayoutScreen.Scope.WIDGETS, developerOn()) {
+                        navigateBack()
+                    }
                 }
 
                 Screen.PROFILES -> {
@@ -1565,9 +1606,13 @@ class MainActivity :
 
             // The surface's own pages go back to the surface's settings, which they are reached from.
             Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.MEDIA_LAYOUT,
-            Screen.SHAPES, Screen.PROFILES,
+            Screen.SHAPES, Screen.PROFILES, Screen.WIDGETS,
             -> {
                 goTo(Screen.SURFACE_SETTINGS)
+            }
+
+            Screen.WIDGET_LAYOUT -> {
+                goTo(Screen.WIDGETS)
             }
 
             Screen.GUIDE -> {
@@ -2824,6 +2869,7 @@ class MainActivity :
         }
         if (laptop !== selected) return
         if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) syncForegroundWatch()
+        if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) developerReported()
         if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) syncDashWatch()
         refreshDashboard(frame)
         if (frame is Frame.Text && frame.kind == TextKind.FOREGROUND_APP.id) followForeground()
@@ -3147,6 +3193,7 @@ class MainActivity :
                 Screen.ANNOTATE,
                 Screen.PRESENTER,
                 Screen.MEDIA_LAYOUT,
+                Screen.WIDGET_LAYOUT,
                 Screen.GAMEPAD_LAYOUT,
                 Screen.SHAPE_DRAW,
             )

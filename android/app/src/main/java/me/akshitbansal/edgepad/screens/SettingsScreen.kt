@@ -32,6 +32,8 @@ object SettingsScreen {
         val back: () -> Unit,
         /** The notifications switch changed: on asks for the Android 13 permission, and NOTIFY is sent either way. */
         val notify: (Boolean) -> Unit = {},
+        /** The Developer mode switch moved: DEVELOPER is sent to the laptop, whose FEATURES then confirm it. */
+        val developer: (Boolean) -> Unit = {},
     )
 
     /**
@@ -44,7 +46,11 @@ object SettingsScreen {
         val onSummary: (TextView) -> Unit,
     )
 
-    /** [backLabel] names the screen the back link returns to: Devices, the surface or the surface's settings. */
+    /**
+     * [backLabel] names the screen the back link returns to: Devices, the surface or the surface's settings.
+     * [developer] is developer mode as the laptop last reported it; [developerEditable] is false with no laptop
+     * connected, when the switch is dimmed, since only a laptop can change it.
+     */
     fun build(
         ui: Ui,
         settings: Settings,
@@ -52,6 +58,8 @@ object SettingsScreen {
         backLabel: String,
         update: Update,
         routes: Routes,
+        developer: Boolean = false,
+        developerEditable: Boolean = false,
     ): View =
         // The nav bar draws no title: the large title under it is the screen's name, and says so to a screen reader.
         ui.page(ui.bar("", routes.back, backLabel = backLabel)) {
@@ -99,6 +107,18 @@ object SettingsScreen {
                         )
                     }
                     footnote(ui.string(R.string.notify_setting_hint))
+
+                    card(Space.XL) {
+                        val toggle =
+                            ui.toggle(ui.string(R.string.developer_mode_title), developer) { routes.developer(it) }
+                        ui.enable(toggle, developerEditable)
+                        add(toggle)
+                    }
+                    footnote(
+                        ui.string(
+                            if (developerEditable) R.string.developer_mode_hint else R.string.developer_mode_offline,
+                        ),
+                    )
 
                     section(ui.string(R.string.settings_appearance))
                     card {
