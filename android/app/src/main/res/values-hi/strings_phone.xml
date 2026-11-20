@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="xfer_line_sending_files">फ़ाइलें भेजी जा रही हैं · %1$d में से %2$d · %3$d%%</string>
+  <string name="xfer_line_receiving_files">फ़ाइलें प्राप्त हो रही हैं · %1$d में से %2$d · %3$d%%</string>
+</resources>

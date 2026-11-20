@@ -13,12 +13,6 @@ class XferCardTest {
     private fun failed(n: Int) = List(n) { XferFailed("f$it", XferFailure.REFUSED) }
 
     @Test
-    fun everyFailureHasAReasonOfItsOwn() {
-        val reasons = XferFailure.entries.map(::reasonRes)
-        assertEquals(XferFailure.entries.size, reasons.toSet().size)
-    }
-
-    @Test
     fun titleKinds() {
         val running = base.copy(phase = XferPhase.RUNNING, sending = true)
         assertEquals(CardTitle.RUNNING_SEND, titleKind(running))

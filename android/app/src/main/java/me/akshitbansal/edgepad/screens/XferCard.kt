@@ -14,7 +14,7 @@ import me.akshitbansal.edgepad.link.xfer.XferSnapshot
 /**
  * Holds [XferCardView] in a floating window at the bottom of [owner], above the navigation bar: it never takes focus
  * or the touches outside it, so the app stays usable while a long file moves. A batch that all arrived closes itself
- * after a few seconds; one with failures stays until Done or Try again.
+ * after 4 s, one with failures after 8 s; Try again is on the card while it is open. It sits at the end edge.
  */
 class XferCard(
     private val ui: Ui,
@@ -41,8 +41,9 @@ class XferCard(
         if (s.phase != lastPhase) {
             lastPhase = s.phase
             owner.removeCallbacks(autoDone)
-            if (s.phase == XferPhase.FINISHED && titleKind(s) == CardTitle.DONE_ALL) {
-                owner.postDelayed(autoDone, AUTO_DONE_MS)
+            if (s.phase == XferPhase.FINISHED) {
+                val ok = titleKind(s) == CardTitle.DONE_ALL
+                owner.postDelayed(autoDone, if (ok) DONE_MS else FAILED_MS)
             }
         }
         if (window?.isShowing != true) open()
@@ -72,8 +73,9 @@ class XferCard(
                 elevation = ui.dp(ELEVATION_DP).toFloat()
             }
         window = popup
+        val side = maxOf(bars?.left ?: 0, bars?.right ?: 0) + ui.dp(Space.PAGE)
         val above = (bars?.bottom ?: 0) + ui.dp(Space.PAGE)
-        popup.showAtLocation(owner, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, above)
+        popup.showAtLocation(owner, Gravity.BOTTOM or Gravity.END, side, above)
         if (ValueAnimator.areAnimatorsEnabled()) {
             view.alpha = 0f
             view
@@ -87,8 +89,9 @@ class XferCard(
     }
 
     private companion object {
-        const val MAX_WIDTH_DP = 360f
+        const val MAX_WIDTH_DP = 320f
         const val ELEVATION_DP = 8f
-        const val AUTO_DONE_MS = 5_000L
+        const val DONE_MS = 4_000L
+        const val FAILED_MS = 8_000L
     }
 }

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="xfer_line_sending_files">Envoi des fichiers · %1$d sur %2$d · %3$d%%</string>
+  <string name="xfer_line_receiving_files">Réception des fichiers · %1$d sur %2$d · %3$d%%</string>
+</resources>
