@@ -7,6 +7,11 @@
   <string name="controls_dash_off">Activez-le dans le menu Edgepad de votre ordinateur portable.</string>
   <string name="widgets_title">Widgets</string>
   <string name="widgets_hint">Dessinés sous le pavé tactile. Les touchers passent à travers.</string>
+  <string name="developer_mode_title">Mode développeur</string>
+  <string name="developer_mode_hint">Affiche Claude Code, Codex et GitHub sur ce téléphone et l’ordinateur portable. Le désactiver conserve vos connexions.</string>
+  <string name="developer_mode_offline">Connectez un ordinateur portable pour modifier ce réglage. L’ordinateur le conserve.</string>
+  <string name="widgets_layout_title">Disposition des widgets</string>
+  <string name="widgets_layout_hint">Faites glisser un widget pour le déplacer. Maintenez-le appuyé pour changer sa taille.</string>
   <string name="widget_clock">Horloge</string>
   <string name="widget_weather">Météo</string>
   <string name="widget_system">Système</string>

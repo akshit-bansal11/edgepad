@@ -7,6 +7,11 @@
   <string name="controls_dash_off">Ative no menu do Edgepad no seu notebook.</string>
   <string name="widgets_title">Widgets</string>
   <string name="widgets_hint">Desenhados atrás do trackpad. Os toques passam por eles.</string>
+  <string name="developer_mode_title">Modo desenvolvedor</string>
+  <string name="developer_mode_hint">Mostra Claude Code, Codex e GitHub neste celular e no notebook. Desativar mantém suas conexões.</string>
+  <string name="developer_mode_offline">Conecte a um notebook para alterar isso. O notebook guarda a escolha.</string>
+  <string name="widgets_layout_title">Layout dos widgets</string>
+  <string name="widgets_layout_hint">Arraste um widget para movê-lo. Mantenha pressionado para mudar o tamanho.</string>
   <string name="widget_clock">Relógio</string>
   <string name="widget_weather">Clima</string>
   <string name="widget_system">Sistema</string>

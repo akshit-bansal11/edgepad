@@ -7,6 +7,11 @@
   <string name="controls_dash_off">노트북의 Edgepad 메뉴에서 켜 주세요.</string>
   <string name="widgets_title">위젯</string>
   <string name="widgets_hint">트랙패드 뒤에 그려집니다. 터치는 그대로 통과합니다.</string>
+  <string name="developer_mode_title">개발자 모드</string>
+  <string name="developer_mode_hint">이 휴대폰과 노트북에 Claude Code, Codex, GitHub를 표시합니다. 꺼도 연결은 유지됩니다.</string>
+  <string name="developer_mode_offline">변경하려면 노트북에 연결하세요. 설정은 노트북이 기억합니다.</string>
+  <string name="widgets_layout_title">위젯 배치</string>
+  <string name="widgets_layout_hint">위젯을 드래그해 옮기세요. 길게 눌러 크기를 바꾸세요.</string>
   <string name="widget_clock">시계</string>
   <string name="widget_weather">날씨</string>
   <string name="widget_system">시스템</string>

@@ -7,6 +7,11 @@
   <string name="controls_dash_off">Włącz to w menu Edgepad na laptopie.</string>
   <string name="widgets_title">Widżety</string>
   <string name="widgets_hint">Rysowane za gładzikiem. Dotknięcia przechodzą przez nie.</string>
+  <string name="developer_mode_title">Tryb programisty</string>
+  <string name="developer_mode_hint">Pokazuje Claude Code, Codex i GitHub na tym telefonie i laptopie. Wyłączenie zachowuje Twoje połączenia.</string>
+  <string name="developer_mode_offline">Połącz się z laptopem, aby to zmienić. Laptop to zapamiętuje.</string>
+  <string name="widgets_layout_title">Układ widżetów</string>
+  <string name="widgets_layout_hint">Przeciągnij widżet, aby go przenieść. Przytrzymaj go, aby zmienić rozmiar.</string>
   <string name="widget_clock">Zegar</string>
   <string name="widget_weather">Pogoda</string>
   <string name="widget_system">System</string>

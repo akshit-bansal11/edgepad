@@ -7,6 +7,11 @@
   <string name="controls_dash_off">इसे अपने लैपटॉप पर Edgepad मेनू में चालू करें।</string>
   <string name="widgets_title">विजेट</string>
   <string name="widgets_hint">ट्रैकपैड के पीछे दिखाए जाते हैं। स्पर्श आगे निकल जाते हैं।</string>
+  <string name="developer_mode_title">डेवलपर मोड</string>
+  <string name="developer_mode_hint">इस फ़ोन और लैपटॉप पर Claude Code, Codex और GitHub दिखाता है। बंद करने पर आपके कनेक्शन बने रहते हैं।</string>
+  <string name="developer_mode_offline">इसे बदलने के लिए किसी लैपटॉप से कनेक्ट करें। लैपटॉप इसे याद रखता है।</string>
+  <string name="widgets_layout_title">विजेट लेआउट</string>
+  <string name="widgets_layout_hint">विजेट को खिसकाने के लिए खींचें। आकार बदलने के लिए उसे दबाकर रखें।</string>
   <string name="widget_clock">घड़ी</string>
   <string name="widget_weather">मौसम</string>
   <string name="widget_system">सिस्टम</string>

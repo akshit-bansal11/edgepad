@@ -7,6 +7,11 @@
   <string name="controls_dash_off">Dizüstü bilgisayarınızdaki Edgepad menüsünden açın.</string>
   <string name="widgets_title">Widget’lar</string>
   <string name="widgets_hint">Dokunmatik yüzeyin arkasında çizilir. Dokunuşlar geçer.</string>
+  <string name="developer_mode_title">Geliştirici modu</string>
+  <string name="developer_mode_hint">Claude Code, Codex ve GitHub’ı bu telefonda ve dizüstü bilgisayarda gösterir. Kapatmak bağlantılarınızı korur.</string>
+  <string name="developer_mode_offline">Bunu değiştirmek için bir dizüstü bilgisayara bağlanın. Ayarı dizüstü bilgisayar saklar.</string>
+  <string name="widgets_layout_title">Widget düzeni</string>
+  <string name="widgets_layout_hint">Taşımak için bir widget’ı sürükleyin. Boyutunu değiştirmek için basılı tutun.</string>
   <string name="widget_clock">Saat</string>
   <string name="widget_weather">Hava durumu</string>
   <string name="widget_system">Sistem</string>

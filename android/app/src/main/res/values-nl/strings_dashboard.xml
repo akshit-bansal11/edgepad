@@ -7,6 +7,11 @@
   <string name="controls_dash_off">Zet dit aan in het Edgepad-menu op je laptop.</string>
   <string name="widgets_title">Widgets</string>
   <string name="widgets_hint">Wordt achter het trackpad getekend. Aanrakingen gaan erdoor heen.</string>
+  <string name="developer_mode_title">Ontwikkelaarsmodus</string>
+  <string name="developer_mode_hint">Toont Claude Code, Codex en GitHub op deze telefoon en de laptop. Uitzetten houdt je verbindingen.</string>
+  <string name="developer_mode_offline">Maak verbinding met een laptop om dit te wijzigen. De laptop onthoudt het.</string>
+  <string name="widgets_layout_title">Widgetindeling</string>
+  <string name="widgets_layout_hint">Sleep een widget om hem te verplaatsen. Houd hem vast om de grootte te wijzigen.</string>
   <string name="widget_clock">Klok</string>
   <string name="widget_weather">Weer</string>
   <string name="widget_system">Systeem</string>
