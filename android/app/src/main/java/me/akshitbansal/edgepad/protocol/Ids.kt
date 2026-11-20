@@ -174,6 +174,9 @@ enum class ControlId(
      * widget, bit 3 (8) an AI widget or screen, bit 4 (16) the GitHub screen. 0 to 31; the laptop drops more and forgets it at session end.
      */
     DASH_WATCH(12),
+
+    /** Whether developer mode is on, 1 or 0, phone to laptop. The laptop keeps it; the phone shows it from FEATURES. */
+    DEVELOPER(13),
     ;
 
     fun set(value: Int): Frame = Frame.SetValue(id, value)
@@ -435,6 +438,9 @@ enum class Feature(
 
     /** The laptop is signed in to GitHub and sends [BlobKind.GITHUB]. */
     GITHUB("github"),
+
+    /** Developer mode is on on the laptop: it names claude, codex and github only while this is here. */
+    DEVELOPER("developer"),
     ;
 
     companion object {
