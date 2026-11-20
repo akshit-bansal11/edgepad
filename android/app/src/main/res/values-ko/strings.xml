@@ -154,8 +154,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">다이얼 8개, 나눔</string>
   <string name="media_layout_title">미디어 레이아웃</string>
-  <string name="media_layout_hint_upright">세로 화면의 레이아웃이에요. 가로 화면 레이아웃은 휴대전화를 돌려서 배치하세요. 항목을 드래그해서 옮기세요. 격자와 중앙선에 맞춰져요.</string>
-  <string name="media_layout_hint_sideways">가로 화면의 레이아웃이에요. 세로 화면 레이아웃은 휴대전화를 돌려서 배치하세요. 항목을 드래그해서 옮기세요. 격자와 중앙선에 맞춰져요.</string>
   <string name="piece_now_playing">재생 중</string>
   <string name="piece_transport">이전 · 재생 · 다음</string>
   <string name="media_layout_reset">위치 초기화</string>

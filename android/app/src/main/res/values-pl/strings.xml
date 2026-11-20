@@ -175,8 +175,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 suwaków, podział</string>
   <string name="media_layout_title">Układ multimediów</string>
-  <string name="media_layout_hint_upright">To układ pionowy; obróć telefon, aby ułożyć poziomy. Przeciągnij element, aby go przesunąć. Przyciąga się do siatki i linii środkowych.</string>
-  <string name="media_layout_hint_sideways">To układ poziomy; obróć telefon, aby ułożyć pionowy. Przeciągnij element, aby go przesunąć. Przyciąga się do siatki i linii środkowych.</string>
   <string name="piece_now_playing">Teraz odtwarzane</string>
   <string name="piece_transport">Poprzedni · odtwórz · następny</string>
   <string name="media_layout_reset">Zresetuj położenie</string>

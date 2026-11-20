@@ -164,8 +164,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 डायल, बंटे हुए</string>
   <string name="media_layout_title">मीडिया लेआउट</string>
-  <string name="media_layout_hint_upright">यह पोर्ट्रेट लेआउट है; लैंडस्केप वाला सेट करने के लिए फ़ोन घुमाएं। किसी हिस्से को खींचकर खिसकाएं। वह ग्रिड और बीच की रेखाओं से चिपकता है।</string>
-  <string name="media_layout_hint_sideways">यह लैंडस्केप लेआउट है; पोर्ट्रेट वाला सेट करने के लिए फ़ोन घुमाएं। किसी हिस्से को खींचकर खिसकाएं। वह ग्रिड और बीच की रेखाओं से चिपकता है।</string>
   <string name="piece_now_playing">अभी चल रहा है</string>
   <string name="piece_transport">पिछला · प्ले · अगला</string>
   <string name="media_layout_reset">जगह रीसेट करें</string>

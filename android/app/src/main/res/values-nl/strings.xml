@@ -165,8 +165,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 regelaars, gesplitst</string>
   <string name="media_layout_title">Media-indeling</string>
-  <string name="media_layout_hint_upright">Dit is de staande indeling; draai de telefoon om de liggende in te delen. Sleep een onderdeel om het te verplaatsen. Het springt vast op het raster en de middenlijnen.</string>
-  <string name="media_layout_hint_sideways">Dit is de liggende indeling; draai de telefoon om de staande in te delen. Sleep een onderdeel om het te verplaatsen. Het springt vast op het raster en de middenlijnen.</string>
   <string name="piece_now_playing">Nu aan het spelen</string>
   <string name="piece_transport">Vorige · afspelen · volgende</string>
   <string name="media_layout_reset">Posities herstellen</string>

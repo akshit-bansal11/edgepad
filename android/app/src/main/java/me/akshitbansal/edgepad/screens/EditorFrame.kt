@@ -54,7 +54,7 @@ object EditorFrame {
         /** Handed a function that changes the title drawn between the round buttons, for a title that follows what is edited. */
         onRetitle: (((CharSequence) -> Unit) -> Unit)? = null,
         options: (close: () -> Unit) -> View,
-    ): View {
+    ): FrameLayout {
         val root = FrameLayout(ui.context).apply { setBackgroundColor(ui.palette.background) }
         root.addView(canvas, fill())
 

@@ -185,8 +185,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 مقاييس، مقسّمة</string>
   <string name="media_layout_title">تخطيط الوسائط</string>
-  <string name="media_layout_hint_upright">هذا هو التخطيط العمودي؛ أدر الهاتف لترتيب التخطيط الأفقي. اسحب عنصرًا لنقله. يلتصق بالشبكة وبخطوط المنتصف.</string>
-  <string name="media_layout_hint_sideways">هذا هو التخطيط الأفقي؛ أدر الهاتف لترتيب التخطيط العمودي. اسحب عنصرًا لنقله. يلتصق بالشبكة وبخطوط المنتصف.</string>
   <string name="piece_now_playing">قيد التشغيل</string>
   <string name="piece_transport">السابق · تشغيل · التالي</string>
   <string name="media_layout_reset">إعادة تعيين المواضع</string>

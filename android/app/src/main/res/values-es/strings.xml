@@ -170,8 +170,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 reglas, divididas</string>
   <string name="media_layout_title">Diseño multimedia</string>
-  <string name="media_layout_hint_upright">Este es el diseño en vertical; gira el teléfono para organizar el horizontal. Arrastra una pieza para moverla. Se ajusta a la cuadrícula y a las líneas centrales.</string>
-  <string name="media_layout_hint_sideways">Este es el diseño en horizontal; gira el teléfono para organizar el vertical. Arrastra una pieza para moverla. Se ajusta a la cuadrícula y a las líneas centrales.</string>
   <string name="piece_now_playing">En reproducción</string>
   <string name="piece_transport">Anterior · reproducir · siguiente</string>
   <string name="media_layout_reset">Restablecer posiciones</string>

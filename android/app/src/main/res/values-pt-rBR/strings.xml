@@ -170,8 +170,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 réguas, divididas</string>
   <string name="media_layout_title">Layout da mídia</string>
-  <string name="media_layout_hint_upright">Este é o layout em retrato; gire o celular para organizar o de paisagem. Arraste uma peça para movê-la. Ela se ajusta à grade e às linhas do centro.</string>
-  <string name="media_layout_hint_sideways">Este é o layout em paisagem; gire o celular para organizar o de retrato. Arraste uma peça para movê-la. Ela se ajusta à grade e às linhas do centro.</string>
   <string name="piece_now_playing">Tocando agora</string>
   <string name="piece_transport">Anterior · tocar · próxima</string>
   <string name="media_layout_reset">Redefinir posições</string>

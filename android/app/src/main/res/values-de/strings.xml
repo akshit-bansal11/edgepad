@@ -164,8 +164,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 Regler, geteilt</string>
   <string name="media_layout_title">Medienanordnung</string>
-  <string name="media_layout_hint_upright">Das ist die Anordnung im Hochformat; drehe das Handy, um die im Querformat einzurichten. Zieh ein Element, um es zu verschieben. Es rastet am Raster und an den Mittellinien ein.</string>
-  <string name="media_layout_hint_sideways">Das ist die Anordnung im Querformat; drehe das Handy, um die im Hochformat einzurichten. Zieh ein Element, um es zu verschieben. Es rastet am Raster und an den Mittellinien ein.</string>
   <string name="piece_now_playing">Aktuelle Wiedergabe</string>
   <string name="piece_transport">Zurück · Wiedergabe · Weiter</string>
   <string name="media_layout_reset">Positionen zurücksetzen</string>

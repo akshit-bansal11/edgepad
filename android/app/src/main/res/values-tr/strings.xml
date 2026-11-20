@@ -162,8 +162,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 kadran, bölünmüş</string>
   <string name="media_layout_title">Medya düzeni</string>
-  <string name="media_layout_hint_upright">Bu dikey düzen; yatay düzeni ayarlamak için telefonu çevirin. Taşımak için bir parçayı sürükleyin. Izgaraya ve orta çizgilere oturur.</string>
-  <string name="media_layout_hint_sideways">Bu yatay düzen; dikey düzeni ayarlamak için telefonu çevirin. Taşımak için bir parçayı sürükleyin. Izgaraya ve orta çizgilere oturur.</string>
   <string name="piece_now_playing">Şimdi çalıyor</string>
   <string name="piece_transport">Önceki · oynat · sonraki</string>
   <string name="media_layout_reset">Konumları sıfırla</string>

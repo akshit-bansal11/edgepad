@@ -2,7 +2,6 @@ package me.akshitbansal.edgepad.screens
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
@@ -47,59 +46,56 @@ object MediaLayoutScreen {
     ): View {
         val canvas = Editor(ui.context, settings, scope, developer)
         val widgets = scope == Scope.WIDGETS
-        return EditorFrame.build(
-            ui,
-            ui.string(if (widgets) R.string.widgets_layout_title else R.string.media_layout_title),
-            canvas,
-            onBack,
-            backLabel = ui.string(if (widgets) R.string.widgets_title else R.string.settings_surface_title),
-        ) { close ->
-            LinearLayout(ui.context).apply {
-                orientation = LinearLayout.VERTICAL
-                if (!widgets) {
+        val root =
+            EditorFrame.build(
+                ui,
+                ui.string(if (widgets) R.string.widgets_layout_title else R.string.media_layout_title),
+                canvas,
+                onBack,
+                backLabel = ui.string(if (widgets) R.string.widgets_title else R.string.settings_surface_title),
+            ) { close ->
+                LinearLayout(ui.context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    if (!widgets) {
+                        addView(
+                            ui.slider(
+                                ui.string(R.string.media_scale),
+                                scaleRange.steps,
+                                scaleRange.stepOf(settings.mediaScale),
+                                { step -> ui.string(R.string.multiplier_value, scaleRange.valueAt(step)) },
+                            ) { step ->
+                                settings.mediaScale = scaleRange.valueAt(step)
+                                canvas.rescale()
+                            },
+                        )
+                    }
                     addView(
-                        ui.slider(
-                            ui.string(R.string.media_scale),
-                            scaleRange.steps,
-                            scaleRange.stepOf(settings.mediaScale),
-                            { step -> ui.string(R.string.multiplier_value, scaleRange.valueAt(step)) },
-                        ) { step ->
-                            settings.mediaScale = scaleRange.valueAt(step)
-                            canvas.rescale()
-                        },
+                        EditorFrame.resetAndDone(
+                            ui,
+                            ui.string(R.string.media_layout_reset),
+                            ui.string(R.string.media_layout_reset_confirm),
+                            {
+                                canvas.reset()
+                                if (!widgets) {
+                                    settings.mediaScale = Settings.DEFAULT_MEDIA_SCALE
+                                    canvas.rescale()
+                                }
+                                close()
+                            },
+                            close,
+                            Ui.Style.OUTLINED,
+                        ),
                     )
                 }
-                val hint =
-                    when {
-                        widgets -> R.string.widgets_layout_hint
-                        isSideways(ui.context) -> R.string.media_layout_hint_sideways
-                        else -> R.string.media_layout_hint_upright
-                    }
-                addView(
-                    ui.secondary(ui.string(hint), Type.SMALL, ui.palette.dim).apply {
-                        setLineSpacing(0f, Type.LEADING)
-                        setPadding(0, ui.dp(Space.XS), 0, ui.dp(Space.S))
-                    },
-                )
-                addView(
-                    EditorFrame.resetAndDone(
-                        ui,
-                        ui.string(R.string.media_layout_reset),
-                        ui.string(R.string.media_layout_reset_confirm),
-                        {
-                            canvas.reset()
-                            if (!widgets) {
-                                settings.mediaScale = Settings.DEFAULT_MEDIA_SCALE
-                                canvas.rescale()
-                            }
-                            close()
-                        },
-                        close,
-                        Ui.Style.OUTLINED,
-                    ),
-                )
             }
-        }
+        TipCard.show(
+            root,
+            settings,
+            if (widgets) "layout_widgets" else "layout_media",
+            if (widgets) StencilIcon.Kind.SYSTEM else StencilIcon.Kind.MACROS,
+            if (widgets) R.string.widgets_layout_hint else R.string.tip_layout_media,
+        )
+        return root
     }
 
     /** The surface's own proportions: a piece is dragged by its centre and stored as fractions of the size. */
@@ -500,7 +496,3 @@ private sealed interface LayoutItem {
         var scale: Float,
     ) : LayoutItem
 }
-
-/** Positions are kept per orientation, so the hint names the one being edited. */
-private fun isSideways(context: Context): Boolean =
-    context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_layout_media">Drag a piece to move it. It snaps to the grid and the centre lines.</string>
+</resources>

@@ -160,8 +160,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 个标尺，已拆分</string>
   <string name="media_layout_title">媒体布局</string>
-  <string name="media_layout_hint_upright">这是竖屏布局；转动手机可排列横屏布局。拖动任意一块即可移动，它会吸附到网格和中心线。</string>
-  <string name="media_layout_hint_sideways">这是横屏布局；转动手机可排列竖屏布局。拖动任意一块即可移动，它会吸附到网格和中心线。</string>
   <string name="piece_now_playing">正在播放</string>
   <string name="piece_transport">上一首 · 播放 · 下一首</string>
   <string name="media_layout_reset">重置位置</string>

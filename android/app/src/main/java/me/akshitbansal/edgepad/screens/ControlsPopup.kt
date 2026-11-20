@@ -20,6 +20,9 @@ import me.akshitbansal.edgepad.protocol.UnavailableReason
 /** Which deck this is, to [Settings]: the order is kept per deck. It is the id the Controls screen used. */
 private const val DECK = "controls"
 
+/** The edit hint is shown during the first edit session only. */
+private const val EDIT_TIP = "controls_edit"
+
 /** The widest the popup grows upright, in dp: about a phone's portrait width. */
 private const val MAX_WIDTH_DP = 360f
 
@@ -164,6 +167,7 @@ class ControlsPopup(
         popupWidth = width
         // As much as the screen has between the bars, less a margin above and below.
         room = owner.height - barTop - barBottom - 2 * margin
+        if (editing) settings.setTipSeen(EDIT_TIP)
         editing = false
         hidden = settings.deckHidden(DECK)
         holder.orientation = LinearLayout.VERTICAL
@@ -255,7 +259,7 @@ class ControlsPopup(
         // The one place a note is shown: how edit mode works while editing, or how to bring hidden tiles back.
         val note =
             when {
-                editing -> R.string.controls_edit_hint
+                editing && !settings.tipSeen(EDIT_TIP) -> R.string.controls_edit_hint
                 visible.isEmpty() -> R.string.controls_all_hidden
                 else -> null
             }
@@ -314,6 +318,7 @@ class ControlsPopup(
     }
 
     private fun setEditing(on: Boolean) {
+        if (!on) settings.setTipSeen(EDIT_TIP)
         editing = on
         drawShown()
     }

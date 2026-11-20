@@ -170,8 +170,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 règles, coins doubles</string>
   <string name="media_layout_title">Disposition du média</string>
-  <string name="media_layout_hint_upright">Voici la disposition en portrait ; tournez le téléphone pour organiser celle en paysage. Faites glisser un élément pour le déplacer. Il s’aimante à la grille et aux lignes centrales.</string>
-  <string name="media_layout_hint_sideways">Voici la disposition en paysage ; tournez le téléphone pour organiser celle en portrait. Faites glisser un élément pour le déplacer. Il s’aimante à la grille et aux lignes centrales.</string>
   <string name="piece_now_playing">Lecture en cours</string>
   <string name="piece_transport">Précédent · lecture · suivant</string>
   <string name="media_layout_reset">Réinitialiser les positions</string>

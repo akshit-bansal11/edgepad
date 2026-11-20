@@ -170,8 +170,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 righelli, divisi</string>
   <string name="media_layout_title">Layout dei media</string>
-  <string name="media_layout_hint_upright">Questo è il layout verticale; ruota il telefono per sistemare quello orizzontale. Trascina un elemento per spostarlo. Si aggancia alla griglia e alle linee centrali.</string>
-  <string name="media_layout_hint_sideways">Questo è il layout orizzontale; ruota il telefono per sistemare quello verticale. Trascina un elemento per spostarlo. Si aggancia alla griglia e alle linee centrali.</string>
   <string name="piece_now_playing">In riproduzione</string>
   <string name="piece_transport">Indietro · riproduci · avanti</string>
   <string name="media_layout_reset">Reimposta posizioni</string>

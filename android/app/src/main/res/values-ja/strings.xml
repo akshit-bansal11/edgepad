@@ -161,8 +161,6 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">ダイヤル8つ（分割）</string>
   <string name="media_layout_title">メディアのレイアウト</string>
-  <string name="media_layout_hint_upright">縦向きのレイアウトです。横向きのレイアウトを編集するには、スマホを横に回してください。パーツをドラッグして移動します。グリッドや中心線に吸着します。</string>
-  <string name="media_layout_hint_sideways">横向きのレイアウトです。縦向きのレイアウトを編集するには、スマホを縦に回してください。パーツをドラッグして移動します。グリッドや中心線に吸着します。</string>
   <string name="piece_now_playing">再生中</string>
   <string name="piece_transport">前へ · 再生 · 次へ</string>
   <string name="media_layout_reset">位置をリセット</string>
