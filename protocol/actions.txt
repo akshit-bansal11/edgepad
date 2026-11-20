@@ -130,6 +130,9 @@ CONTROL 11 FOREGROUND_WATCH
 # screen. Values 0..31; larger is dropped and counted. Forgotten when the session ends. It is the ONLY thing that makes the
 # laptop sample, read usage files or poll.
 CONTROL 12 DASH_WATCH
+# Developer mode: 1 on, 0 off, phone to laptop. Any other value is dropped and counted. The laptop keeps it across sessions,
+# and the phone shows the laptop's state from FEATURES "developer".
+CONTROL 13 DEVELOPER
 
 TEXT 0 NOW_PLAYING
 TEXT 1 APP
@@ -296,6 +299,8 @@ FEATURE weather WEATHER
 FEATURE claude CLAUDE
 FEATURE codex CODEX
 FEATURE github GITHUB
+# Developer mode is on. claude, codex and github are named only while it is.
+FEATURE developer DEVELOPER
 
 # The whole vocabulary of TEXT kind 13's second field, as "<token on the wire> <the name both apps call it>". The phone
 # uses it only to word hints that differ by OS; an unknown token reads as no OS known.

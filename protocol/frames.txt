@@ -212,6 +212,8 @@ XFER_STATUS 255 7 18446744073709551615 = 5a ff 07 ff ff ff ff ff ff ff ff
 # Dashboard ids (protocol 6). CONTROL 12 DASH_WATCH, phone to laptop: 31 is every bit set, the most the laptop accepts.
 SET 12 31 = 21 0c 1f
 SET 12 0 = 21 0c 00
+SET 13 1 = 21 0d 01
+SET 13 0 = 21 0d 00
 # TEXT 27 STATS, laptop to phone: eleven fields, -1 unknown.
 TEXT 27 12/48/-1/-1/1200/340/9/0/55/-1/-1 = 41 1b 21 31 32 2f 34 38 2f 2d 31 2f 2d 31 2f 31 32 30 30 2f 33 34 30 2f 39 2f 30 2f 35 35 2f 2d 31 2f 2d 31
 # TEXT 28 STATS_INFO, names split on "|"; the network name has an e-acute (c3 a9).

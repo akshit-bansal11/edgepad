@@ -155,6 +155,7 @@ The laptop deletes its copy only after a FILE_RESULT of 0 that arrives after its
 | NOTIFY | 10 | whether this link forwards the laptop's notifications: 1 yes, 0 no; forgotten when the session ends; anything else is dropped and counted; see [Notifications](#notifications) | not reported |
 | FOREGROUND_WATCH | 11 | whether this link hears which app is in front (TEXT 21): 1 yes, 0 no; forgotten when the session ends; anything else is dropped and counted | not reported |
 | DASH_WATCH | 12 | the bitmask of what the phone draws now, 0 to 31 (bit 0 system numbers, bit 1 System screen, bit 2 weather, bit 3 AI, bit 4 GitHub); larger is dropped and counted; forgotten when the session ends; the only thing that makes the laptop sample or poll; see [Dashboard widgets and screens](#dashboard-widgets-and-screens) | not reported |
+| DEVELOPER | 13 | developer mode: 1 on, 0 off; anything else is dropped and counted; the laptop keeps it across sessions and the phone shows it from FEATURES `developer`; see [Dashboard widgets and screens](#dashboard-widgets-and-screens) | not reported |
 
 REFRESH_RATE's value is an index into TEXT 4's list, never a rate in hertz: SET carries value u8 and the laptop drops anything above 100, so 120 or 144 could not cross the wire at all. An index also makes a rate the laptop does not have unrepresentable rather than merely rejected. A laptop that names no rates has none to offer, and the dial has nothing to show.
 
@@ -532,7 +533,9 @@ Any other window drops that entry. pct is 0 to 100, floats rounded and clamped. 
 
 **Clean.** Clean(n) turns control characters, tab, `|`, `/`, `:`, and the bidi and zero-width characters into a space. It collapses runs of spaces, trims, and cuts to n code points, never inside a surrogate pair. Approval text is cleaned differently: line feeds and tabs are kept, and bidi and zero-width characters are shown as `<U+XXXX>`.
 
-**Features.** TEXT 9 names `stats`, `weather`, `claude`, `codex` and `github` only while that Integrations switch on the laptop is on and usable. `github` also needs a signed-in account. Empty states use TEXT 24 with these reasons: `stats:unsupported`, `claude:no-tool`, `codex:no-tool`, `codex:unsupported` (Codex too old), and `github:no-permission` (not signed in).
+**Developer mode.** CONTROL 13 (DEVELOPER) is 1 or 0, phone to laptop; anything else is dropped and counted. The laptop keeps the value across sessions (unlike NOTIFY) and can change it from its own tray too; either way it re-sends TEXT 9 so the phone follows. The phone never sends it on connect: the laptop is the truth, shown as FEATURE `developer`. Off hides and stops advertising `claude`, `codex` and `github`, and closes the hook channel, so approvals go back to the agent's own prompt. It never deletes a connection, plugin or sign-in.
+
+**Features.** TEXT 9 names `stats`, `weather`, `claude`, `codex` and `github` only while that Integrations switch on the laptop is on and usable. `claude`, `codex` and `github` also need developer mode (`developer` is named while it is on). `github` also needs a signed-in account. Empty states use TEXT 24 with these reasons: `stats:unsupported`, `claude:no-tool`, `codex:no-tool`, `codex:unsupported` (Codex too old), and `github:no-permission` (not signed in).
 
 **Approvals.** BLOB 6 carries the ask to every linked phone with the feature. Its body is the agent, the tool name (1 to 24 of `A-Za-z0-9_.-`) and the text, joined by line feeds, at most 4096 bytes. Over that cap the laptop sends `f` 0 and an empty text. The first valid TEXT 31 answer wins. TEXT 32 tells the other phones it was answered elsewhere. Nothing from the phone changes the approval except its `id/a` or `id/d`.
 
@@ -562,7 +565,7 @@ This channel is on the laptop only. The plugin's hooks run the Edgepad app itsel
 | 3 | 0.6.0 | TEXT kind 3; actions 31 to 34 arrived in 0.5.0, CONTROL 4, TEXT 4 and 5 and the macro block in 1.1.0, and TEXT 6 and 7 in 2.3.0 |
 | 4 | 3.0.0 | PAD_STATE, a new frame type; actions 35 and 36 and TEXT 8 came with it and would not have needed one |
 | 5 | 4.0.0 | PIN_REQUEST and PIN_ANSWER, PEN, and FILE_BEGIN, FILE_CHUNK, FILE_END and FILE_RESULT, all new frame types; actions 40 to 55, CONTROL 5 and 6 and TEXT 9 to 12 came with them and would not have needed a bump |
-| 6 | 5.0.0 | BULK_HELLO and XFER_BEGIN, XFER_CHUNK, XFER_END and XFER_STATUS, all new frame types; ACTION 37 and 60 to 62, CONTROL 10 and 11, TEXT 21 to 26 and BLOB kinds 4 and 5 came with them and would not have needed a bump; CONTROL 12, TEXT 27 to 35, BLOB kinds 6 and 7 and the dashboard FEATURE tokens are new ids in the same release and would not have needed a bump either |
+| 6 | 5.0.0 | BULK_HELLO and XFER_BEGIN, XFER_CHUNK, XFER_END and XFER_STATUS, all new frame types; ACTION 37 and 60 to 62, CONTROL 10 and 11, TEXT 21 to 26 and BLOB kinds 4 and 5 came with them and would not have needed a bump; CONTROL 12 and 13, TEXT 27 to 35, BLOB kinds 6 and 7 and the dashboard FEATURE tokens are new ids in the same release and would not have needed a bump either |
 
 Version 4 was a new frame type. PAD_STATE's type byte `0x23` is
 the whole reason: an unknown type closes the connection, so a v3 laptop meeting a v4 phone's PAD_STATE would
