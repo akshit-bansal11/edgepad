@@ -159,7 +159,8 @@ internal sealed class CodeBoxes : Control
         var corner = Theme.Scale(8f, DeviceDpi);
         var thin = palette.HighContrast ? Theme.Scale(2f, DeviceDpi) : 1f;
         var active = Focused ? Math.Min(cursor, LinkCrypto.CodeDigits - 1) : -1;
-        using var font = Theme.Font(Theme.Scale(26f, DeviceDpi), Weight.Bold);
+        // Theme.Font hands out a shared, cached font: disposing it here broke every paint after the first (a red X).
+        var font = Theme.Font(Theme.Scale(26f, DeviceDpi), Weight.Bold);
         var ink = Enabled ? palette.Ink : palette.Off;
 
         for (var i = 0; i < LinkCrypto.CodeDigits; i++)
