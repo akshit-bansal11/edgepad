@@ -12,7 +12,6 @@
   <string name="widget_system">System</string>
   <string name="widget_network">Sieć</string>
   <string name="widget_ai">Użycie AI</string>
-  <string name="widget_need_laptop">Skonfiguruj w menu Edgepad na laptopie.</string>
   <string name="sys_title">System</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>

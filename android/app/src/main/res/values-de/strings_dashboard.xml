@@ -12,7 +12,6 @@
   <string name="widget_system">System</string>
   <string name="widget_network">Netzwerk</string>
   <string name="widget_ai">KI-Nutzung</string>
-  <string name="widget_need_laptop">Richte es im Edgepad-Menü auf deinem Laptop ein.</string>
   <string name="sys_title">System</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>

@@ -12,7 +12,6 @@
   <string name="widget_system">Система</string>
   <string name="widget_network">Сеть</string>
   <string name="widget_ai">Использование ИИ</string>
-  <string name="widget_need_laptop">Настройте в меню Edgepad на ноутбуке.</string>
   <string name="sys_title">Система</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>

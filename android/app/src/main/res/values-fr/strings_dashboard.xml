@@ -12,7 +12,6 @@
   <string name="widget_system">Système</string>
   <string name="widget_network">Réseau</string>
   <string name="widget_ai">Utilisation de l’IA</string>
-  <string name="widget_need_laptop">Configurez-le dans le menu Edgepad de votre ordinateur portable.</string>
   <string name="sys_title">Système</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>

@@ -12,7 +12,6 @@
   <string name="widget_system">Sistema</string>
   <string name="widget_network">Red</string>
   <string name="widget_ai">Uso de IA</string>
-  <string name="widget_need_laptop">Configúralo en el menú de Edgepad en tu portátil.</string>
   <string name="sys_title">Sistema</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>

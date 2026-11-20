@@ -12,7 +12,12 @@ class StatsRing {
     var size = 0
         private set
 
+    /** Moves on every [push] and [clear], so a reader can tell the ring changed without reading it. */
+    var version = 0
+        private set
+
     fun push(s: StatsSample) {
+        version++
         data[CPU][next] = s.cpu
         data[RAM][next] = s.ram
         data[GPU][next] = s.gpu
@@ -38,6 +43,7 @@ class StatsRing {
     fun latest(series: Int): Int = if (size == 0) -1 else value(series, size - 1)
 
     fun clear() {
+        version++
         size = 0
         next = 0
     }

@@ -8,6 +8,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.RenderNode
 import android.graphics.Typeface
 import android.text.TextPaint
 import android.text.TextUtils
@@ -19,8 +20,10 @@ import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.LaptopState
+import me.akshitbansal.edgepad.link.LimitEntry
 import me.akshitbansal.edgepad.link.StatsFormat
 import me.akshitbansal.edgepad.link.StatsRing
+import me.akshitbansal.edgepad.link.WeatherInfo
 import me.akshitbansal.edgepad.protocol.AgentToken
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.screens.LimitWindowLabel
@@ -37,7 +40,9 @@ import java.util.Locale
  * Nothing is made while drawing. [update] and [tickClock] build every string, and [layout] fits it to the box, so
  * [draw] only places text, arcs and one reused [Path]. The surface calls [update] when the laptop sent something, and
  * the clock follows the system's minute tick for as long as the surface is attached ([attach]); no widget keeps a timer
- * of its own, and a widget that is off costs nothing.
+ * of its own, and a widget that is off costs nothing. The picture is kept in a [RenderNode] and recorded again only
+ * when it changed, so the surface redrawing for a touch costs the widgets one replay. A widget with nothing to show
+ * draws nothing.
  */
 class WidgetPainter(
     private val context: Context,
@@ -49,12 +54,15 @@ class WidgetPainter(
     private class Slot(
         val widget: SurfaceWidget,
         val at: Pair<Float, Float>,
+        val scale: Float,
     ) {
+        /** The unscaled box; [draw] scales the canvas about its centre by [drawScale]. */
         val box = RectF()
         val ring = RectF()
+        var drawScale = 1f
 
-        /** Shows [primary] alone, as a note: the laptop cannot provide this widget. */
-        var note = false
+        /** Nothing to show (the laptop does not provide this widget, or sent nothing yet): drawn as nothing at all. */
+        var empty = true
         var primary = ""
         var secondary = ""
         var compact = ""
@@ -75,7 +83,9 @@ class WidgetPainter(
     private val density = metrics.density
     private val slots =
         if (enabled) {
-            SurfaceWidget.entries.filter(settings::widgetOn).map { Slot(it, settings.widget(it)) }
+            SurfaceWidget.entries
+                .filter(settings::widgetOn)
+                .map { Slot(it, settings.widget(it), settings.widgetScale(it)) }
         } else {
             emptyList()
         }
@@ -101,9 +111,20 @@ class WidgetPainter(
         }
     private val path = Path()
 
+    // The widgets' picture, recorded only when it changed ([dirty]), so a touch that redraws the surface replays one
+    // node instead of laying out every line of text again.
+    private val node = RenderNode("widgets")
+    private var dirty = true
+
+    // What [update] last read, so a call with nothing new returns before building any string.
+    private var seenFeatures: Set<Feature>? = null
+    private var seenWeather: WeatherInfo? = null
+    private var seenLimits: List<LimitEntry>? = null
+    private var seenStats = -1
+    private var seenMinute = -1L
+
     private val none = context.getString(R.string.sys_none)
     private val fmt = StatsFormat(none)
-    private val needLaptop = context.getString(R.string.widget_need_laptop)
     private val cpu = context.getString(R.string.sys_cpu)
     private val ram = context.getString(R.string.sys_ram)
     private val gpu = context.getString(R.string.sys_gpu)
@@ -156,11 +177,24 @@ class WidgetPainter(
         val time = DateFormat.getTimeFormat(context).format(now)
         val pattern = DateFormat.getBestDateTimePattern(Locale.getDefault(), DATE_SKELETON)
         val date = SimpleDateFormat(pattern, Locale.getDefault()).format(now)
-        return set(slot, time, date, time)
+        val changed = set(slot, time, date, time)
+        if (changed) dirty = true
+        return changed
     }
 
-    /** Takes what the laptop last said. True when something a visible widget shows changed. */
+    /**
+     * Takes what the laptop last said. True when something a visible widget shows changed. Returns false before
+     * reading further when nothing it reads has moved since the last call: the laptop's lists are replaced, not
+     * edited, when they change, so comparing them by identity is enough.
+     */
     fun update(state: LaptopState): Boolean {
+        val minute = System.currentTimeMillis() / MS_PER_MIN
+        if (slots.isEmpty() || unchanged(state, minute)) return false
+        seenFeatures = state.features
+        seenWeather = state.weather
+        seenLimits = state.limits
+        seenStats = state.stats.version
+        seenMinute = minute
         stats = state.stats
         var changed = false
         for (slot in slots) {
@@ -170,18 +204,28 @@ class WidgetPainter(
                     SurfaceWidget.WEATHER -> weather(slot, state)
                     SurfaceWidget.SYSTEM -> system(slot, state)
                     SurfaceWidget.NETWORK -> network(slot, state)
-                    SurfaceWidget.AI -> ai(slot, state)
+                    SurfaceWidget.AI -> ai(slot, state, minute)
                 }
         }
+        if (changed) dirty = true
         return changed
     }
+
+    private fun unchanged(
+        state: LaptopState,
+        minute: Long,
+    ): Boolean =
+        state.features === seenFeatures &&
+            state.weather === seenWeather &&
+            state.limits === seenLimits &&
+            state.stats.version == seenStats &&
+            minute == seenMinute
 
     private fun weather(
         slot: Slot,
         state: LaptopState,
     ): Boolean {
-        val weather = state.weather
-        if (weather == null) return note(slot, if (Feature.WEATHER in state.features) none else needLaptop)
+        val weather = state.weather ?: return hide(slot)
         val tenths = weather.tempTenthsC
         val degrees = if (fahrenheit) Math.round(tenths * 9 / 50f + 32) else Math.round(tenths / 10f)
         val temp = "$degrees°${if (fahrenheit) "F" else "C"}"
@@ -194,7 +238,7 @@ class WidgetPainter(
         slot: Slot,
         state: LaptopState,
     ): Boolean {
-        if (Feature.STATS !in state.features) return note(slot, needLaptop)
+        if (Feature.STATS !in state.features) return hide(slot)
         val s = state.stats
         val line =
             listOf(
@@ -212,7 +256,7 @@ class WidgetPainter(
         slot: Slot,
         state: LaptopState,
     ): Boolean {
-        if (Feature.STATS !in state.features) return note(slot, needLaptop)
+        if (Feature.STATS !in state.features) return hide(slot)
         val s = state.stats
         val line = "↓ ${fmt.rate(s.latest(StatsRing.DOWN))} · ↑ ${fmt.rate(s.latest(StatsRing.UP))}"
         slot.series = StatsRing.DOWN
@@ -223,18 +267,18 @@ class WidgetPainter(
     private fun ai(
         slot: Slot,
         state: LaptopState,
+        minute: Long,
     ): Boolean {
         val agents = AGENTS.filter { it.second in state.features }.map { it.first }
-        if (agents.isEmpty()) return note(slot, needLaptop)
         val entry =
             agents.firstNotNullOfOrNull { agent ->
                 state.limits.filter { it.agent == agent }.minWithOrNull(LimitWindowLabel.shortestFirst)
-            } ?: return note(slot, none)
+            } ?: return hide(slot)
         val agentName = if (entry.agent == AgentToken.CLAUDE) R.string.agent_claude else R.string.agent_codex
         val name = context.getString(agentName)
         val label = LimitWindowLabel.of(entry.window).words(context)
         // A window that has reset since it was measured shows a dash, not the old use.
-        val pct = entry.pctAt(System.currentTimeMillis() / MS_PER_MIN)
+        val pct = entry.pctAt(minute)
         val moved = slot.pct != pct
         slot.pct = pct
         val shown = fmt.percent(pct)
@@ -252,16 +296,12 @@ class WidgetPainter(
         return moved
     }
 
-    private fun note(
-        slot: Slot,
-        words: String,
-    ): Boolean {
-        val changed = !slot.note || slot.primary != words
-        slot.note = true
-        slot.primary = words
+    /** Draws [slot] as nothing. True when it was showing something. */
+    private fun hide(slot: Slot): Boolean {
+        val changed = !slot.empty
+        slot.empty = true
         slot.series = -1
         slot.pct = -1
-        if (changed) fit(slot)
         return changed
     }
 
@@ -271,8 +311,8 @@ class WidgetPainter(
         secondary: String,
         compact: String,
     ): Boolean {
-        val changed = slot.note || slot.primary != primary || slot.secondary != secondary || slot.compact != compact
-        slot.note = false
+        val changed = slot.empty || slot.primary != primary || slot.secondary != secondary || slot.compact != compact
+        slot.empty = false
         slot.primary = primary
         slot.secondary = secondary
         slot.compact = compact
@@ -285,13 +325,19 @@ class WidgetPainter(
         w: Float,
         h: Float,
     ) {
+        node.setPosition(0, 0, w.toInt(), h.toInt())
+        dirty = true
         for (slot in slots) {
             val (bw, bh) = boxSize(slot.widget, w, h, density)
+            val s = fitScale(slot.scale, bw, bh, w, h)
             val (fx, fy) = slot.at
-            // Kept on the screen whatever the fraction says.
-            val cx = (fx * w).coerceIn(bw / 2, maxOf(w - bw / 2, bw / 2))
-            val cy = (fy * h).coerceIn(bh / 2, maxOf(h - bh / 2, bh / 2))
+            // Kept on the screen whatever the fraction says, at the size it is drawn.
+            val halfW = bw * s / 2
+            val halfH = bh * s / 2
+            val cx = (fx * w).coerceIn(halfW, maxOf(w - halfW, halfW))
+            val cy = (fy * h).coerceIn(halfH, maxOf(h - halfH, halfH))
             slot.box.set(cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2)
+            slot.drawScale = s
             fit(slot)
         }
     }
@@ -300,7 +346,7 @@ class WidgetPainter(
         val room = slot.box.width() - 2 * dp(Space.S)
         if (room <= 0f) return
         val beside = if (slot.widget == SurfaceWidget.AI) room - dp(RING_DP + Space.M) else room
-        slot.shownPrimary = ellipsize(slot.primary, if (slot.note) smallPaint else primaryPaint(slot.widget), room)
+        slot.shownPrimary = ellipsize(slot.primary, primaryPaint(slot.widget), room)
         slot.shownSecondary = ellipsize(slot.secondary, smallPaint, beside)
         val compactPaint = if (slot.widget == SurfaceWidget.CLOCK) bigPaint else valuePaint
         slot.shownCompact = ellipsize(slot.compact, compactPaint, room)
@@ -327,16 +373,38 @@ class WidgetPainter(
             else -> smallMetrics
         }
 
+    /**
+     * Replays the recorded picture, recording it again first only when something changed. A canvas that is not
+     * hardware accelerated (a software snapshot) cannot replay a node and is painted directly.
+     */
     fun draw(canvas: Canvas) {
+        if (!canvas.isHardwareAccelerated) {
+            paint(canvas)
+            return
+        }
+        if (dirty || !node.hasDisplayList()) {
+            val recording = node.beginRecording()
+            try {
+                paint(recording)
+            } finally {
+                node.endRecording()
+            }
+            dirty = false
+        }
+        canvas.drawRenderNode(node)
+    }
+
+    private fun paint(canvas: Canvas) {
         for (index in slots.indices) {
             val slot = slots[index]
             val box = slot.box
-            if (box.isEmpty) continue
+            if (box.isEmpty || slot.empty) continue
+            val s = slot.drawScale
+            if (s != 1f) {
+                canvas.save()
+                canvas.scale(s, s, box.centerX(), box.centerY())
+            }
             when {
-                slot.note -> {
-                    centred(canvas, slot.shownPrimary, smallPaint, box.centerX(), box.centerY())
-                }
-
                 box.height() < dp(COMPACT_BELOW_DP) -> {
                     val paint = if (slot.widget == SurfaceWidget.CLOCK) bigPaint else valuePaint
                     centred(canvas, slot.shownCompact, paint, box.centerX(), box.centerY())
@@ -354,6 +422,7 @@ class WidgetPainter(
                     drawTwoLines(canvas, slot)
                 }
             }
+            if (s != 1f) canvas.restore()
         }
     }
 
@@ -516,9 +585,31 @@ class WidgetPainter(
 
         /**
          * A widget's box on a surface [w] by [h] px, in px: no wider than 260 dp or 60 percent of the width upright,
-         * 220 dp or 30 percent sideways. The layout editor draws its boxes from the same numbers.
+         * 220 dp or 30 percent sideways, then times [scale] as far as the screen allows. The layout editor draws its
+         * boxes from the same numbers.
          */
         fun boxSize(
+            widget: SurfaceWidget,
+            w: Float,
+            h: Float,
+            density: Float,
+            scale: Float = 1f,
+        ): Pair<Float, Float> {
+            val (bw, bh) = baseSize(widget, w, h, density)
+            val s = fitScale(scale, bw, bh, w, h)
+            return bw * s to bh * s
+        }
+
+        /** [scale], made smaller where a [bw] by [bh] box would not fit on a [w] by [h] screen. */
+        private fun fitScale(
+            scale: Float,
+            bw: Float,
+            bh: Float,
+            w: Float,
+            h: Float,
+        ): Float = if (bw <= 0f || bh <= 0f) scale else minOf(scale, w / bw, h / bh)
+
+        private fun baseSize(
             widget: SurfaceWidget,
             w: Float,
             h: Float,

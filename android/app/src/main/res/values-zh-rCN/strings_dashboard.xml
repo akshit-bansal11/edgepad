@@ -12,7 +12,6 @@
   <string name="widget_system">系统</string>
   <string name="widget_network">网络</string>
   <string name="widget_ai">AI 用量</string>
-  <string name="widget_need_laptop">在笔记本电脑的 Edgepad 菜单中设置。</string>
   <string name="sys_title">系统</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>

@@ -12,7 +12,6 @@
   <string name="widget_system">النظام</string>
   <string name="widget_network">الشبكة</string>
   <string name="widget_ai">استخدام الذكاء الاصطناعي</string>
-  <string name="widget_need_laptop">اضبطها من قائمة Edgepad على الحاسوب المحمول.</string>
   <string name="sys_title">النظام</string>
   <string name="sys_cpu">المعالج</string>
   <string name="sys_gpu">معالج الرسوميات</string>

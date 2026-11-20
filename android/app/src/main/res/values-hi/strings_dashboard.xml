@@ -12,7 +12,6 @@
   <string name="widget_system">सिस्टम</string>
   <string name="widget_network">नेटवर्क</string>
   <string name="widget_ai">AI उपयोग</string>
-  <string name="widget_need_laptop">अपने लैपटॉप पर Edgepad मेनू में सेट करें।</string>
   <string name="sys_title">सिस्टम</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>
