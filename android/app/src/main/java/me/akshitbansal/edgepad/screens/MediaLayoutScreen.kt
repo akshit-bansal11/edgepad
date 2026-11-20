@@ -134,6 +134,15 @@ object MediaLayoutScreen {
                 color = palette.line
             }
 
+        // The widgets are drawn by the painter the surface uses, with made-up values, so what is dragged is what the
+        // surface shows, at the size the chosen scale gives it.
+        private val painter =
+            if (scope == Scope.WIDGETS) {
+                WidgetPainter(context, settings, palette.ink, palette.accent, true).also { it.sample() }
+            } else {
+                null
+            }
+
         init {
             contentDescription =
                 context.getString(
@@ -355,6 +364,10 @@ object MediaLayoutScreen {
                 // A piece at rest is a card, with a soft line under it on the light ground; the one being
                 // dragged turns accent and lifts off the grid on a shadow.
                 val lifted = item == dragging
+                if (item is LayoutItem.Widget && painter != null) {
+                    drawWidget(canvas, painter, item, lifted)
+                    continue
+                }
                 if (lifted) {
                     canvas.drawRoundRect(box, corner, corner, lift)
                 } else if (!palette.dark) {
@@ -369,6 +382,33 @@ object MediaLayoutScreen {
                 val y = box.centerY() + text.textSize * Type.CAP_CENTRE
                 text.drawFitted(canvas, item.label, box.centerX(), y, room)
             }
+        }
+
+        /** A widget as the surface draws it, on a plate its size; lifted, the plate turns soft accent. */
+        private fun drawWidget(
+            canvas: Canvas,
+            painter: WidgetPainter,
+            item: LayoutItem.Widget,
+            lifted: Boolean,
+        ) {
+            if (lifted) canvas.drawRoundRect(box, corner, corner, lift)
+            fill.color = if (lifted) palette.accentSoft else palette.line
+            canvas.drawRoundRect(box, corner, corner, fill)
+            val cx = box.centerX()
+            val cy = box.centerY()
+            painter.drawAt(canvas, item.widget, cx, cy, width.toFloat(), height.toFloat(), item.scale)
+        }
+
+        /** Whether a touch at [x], [y] is on [item], whose target is at least 48 dp each way. */
+        private fun hit(
+            item: LayoutItem,
+            x: Float,
+            y: Float,
+        ): Boolean {
+            bounds(item, box)
+            val touch = Space.TOUCH * density
+            box.inset(-maxOf(0f, (touch - box.width()) / 2), -maxOf(0f, (touch - box.height()) / 2))
+            return box.contains(x, y)
         }
 
         // Lint's ClickableViewAccessibility wants this on the same class that overrides onTouchEvent;
@@ -386,11 +426,7 @@ object MediaLayoutScreen {
                 MotionEvent.ACTION_DOWN -> {
                     downX = event.x
                     downY = event.y
-                    val item =
-                        items.lastOrNull {
-                            bounds(it, box)
-                            box.contains(event.x, event.y)
-                        } ?: return false
+                    val item = items.lastOrNull { hit(it, event.x, event.y) } ?: return false
                     dragging = item
                     if (item is LayoutItem.Widget) postDelayed(holdTick, LONG_PRESS_MS)
                 }
