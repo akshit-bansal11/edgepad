@@ -129,6 +129,9 @@ class Ui(
                     Column(this@Ui, this).build()
                 }
             }
+        // The padding is the column's, not the scroll view's: a scroll view draws its fades inside its own padding,
+        // so padding there put the bottom fade well above the screen's edge as a band with a hard line under it.
+        column.setPadding(side, top, side, end)
         val scroll =
             ScrollView(context).apply {
                 isFillViewport = true
@@ -136,8 +139,6 @@ class Ui(
                 // DES-D26: content fades at an edge it scrolls under; the platform draws nothing when it fits.
                 isVerticalFadingEdgeEnabled = true
                 setFadingEdgeLength(dp(FADE_EDGE_DP))
-                setPadding(side, top, side, end)
-                clipToPadding = false
                 addView(
                     column,
                     ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
@@ -159,7 +160,7 @@ class Ui(
             val bottom = maxOf(bars.bottom, insets.getInsets(WindowInsets.Type.ime()).bottom)
             page.setPadding(bars.left, bars.top, bars.right, 0)
             if (pinned == null) {
-                scroll.setPadding(side, top, side, end + bottom)
+                column.setPadding(side, top, side, end + bottom)
             } else {
                 pinned.setPadding(side, 0, side, dp(Space.S) + bottom)
             }

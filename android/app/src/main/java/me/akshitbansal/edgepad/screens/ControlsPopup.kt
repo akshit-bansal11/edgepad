@@ -253,7 +253,12 @@ class ControlsPopup(
      * Sleep when this ends, then the on/off ones. A chip that cannot be used here is dimmed and says why when tapped.
      */
     private fun chips(pad: Int): View {
-        val row = LinearLayout(ui.context).apply { orientation = LinearLayout.HORIZONTAL }
+        // Padded inside the row, not the scroll view, which draws its fades inside its own padding (see Ui.page).
+        val row =
+            LinearLayout(ui.context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(pad, 0, pad, pad)
+            }
         val gap = ui.dp(Space.S)
 
         fun add(chip: View) {
@@ -274,8 +279,6 @@ class ControlsPopup(
             isHorizontalScrollBarEnabled = false
             isHorizontalFadingEdgeEnabled = true
             setFadingEdgeLength(ui.dp(FADE_EDGE_DP))
-            setPadding(pad, 0, pad, pad)
-            clipToPadding = false
             addView(row)
         }
     }
