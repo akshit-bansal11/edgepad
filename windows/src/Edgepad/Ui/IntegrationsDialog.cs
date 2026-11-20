@@ -83,6 +83,7 @@ internal sealed class IntegrationsWindow : Form
     private readonly AgentRow codex;
 
     private readonly Label githubHeading = new() { AutoSize = false, Text = Strings.Integrations_GitHub, TextAlign = ContentAlignment.MiddleLeft };
+    private readonly MarkBox githubMark;
     private readonly Label githubStatus = new() { AutoSize = false };
     private readonly Label githubSteps = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Integrations_GitHubSteps };
     private readonly Label code = new() { AutoSize = false };
@@ -125,6 +126,7 @@ internal sealed class IntegrationsWindow : Form
         BackColor = palette.Card;
 
         cityFrame = new Framed(city, palette, radius: 8, inset: 12);
+        githubMark = new MarkBox(() => palette.Ink) { AccessibleName = Strings.Integrations_GitHub, AccessibleRole = AccessibleRole.Graphic, Visible = false };
         claude = new AgentRow(IntegrationSettings.Claude, Strings.Integrations_Claude, palette);
         codex = new AgentRow(IntegrationSettings.Codex, Strings.Integrations_Codex, palette);
         signIn = new FlatButton(Strings.Integrations_SignIn, ButtonKind.Outline, palette);
@@ -185,7 +187,7 @@ internal sealed class IntegrationsWindow : Form
         Controls.Add(close);
         Controls.AddRange(
             developer
-                ? [.. claude.Controls, .. codex.Controls, githubHeading, signIn, githubStatus, githubSteps, code, openPage, copyCode, waiting, cancelSignIn, includePrivate]
+                ? [.. claude.Controls, .. codex.Controls, githubHeading, githubMark, signIn, githubStatus, githubSteps, code, openPage, copyCode, waiting, cancelSignIn, includePrivate]
                 : [intro, stats, weather, cityLabel, cityFrame, weatherNote]);
 
         // A plugin stamped by an older Edgepad, or for a Node.js that moved, is brought up to date before its row is read.
@@ -485,7 +487,16 @@ internal sealed class IntegrationsWindow : Form
             title.ForeColor = palette.Ink;
             title.BackColor = palette.Card;
             button.SetBounds(left + width - button.FitWidth(DeviceDpi), y, button.FitWidth(DeviceDpi), S(Box));
-            title.SetBounds(left, y, button.Left - left - S(8), S(Box));
+            // GitHub gets its mark before the name, 20 px with a gap; Claude Code and Codex have no mark in the repo.
+            var indent = title == githubHeading ? S(28) : 0;
+            if (indent > 0)
+            {
+                githubMark.BackColor = palette.Card;
+                githubMark.SetBounds(left, y + ((S(Box) - S(20)) / 2), S(20), S(20));
+                githubMark.Visible = true;
+            }
+
+            title.SetBounds(left + indent, y, button.Left - left - indent - S(8), S(Box));
             order.Add(button);
             y += S(Box + 4);
         }
@@ -647,6 +658,16 @@ internal sealed class IntegrationsWindow : Form
     {
         button.Text = text;
         button.AccessibleName = Mnemonic.Plain(text);
+    }
+
+    /// <summary>A small control that paints GitHub's mark in the text colour.</summary>
+    private sealed class MarkBox(Func<Color> ink) : Control
+    {
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            Icons.Fill(e.Graphics, Icons.GitHubMark, new RectangleF(0, 0, Width, Height), ink(), 16f);
+        }
     }
 
     /// <summary>One agent's controls: title and Connect or Disconnect, the status, notes, the commands box with Copy, and the Node.js link.</summary>
