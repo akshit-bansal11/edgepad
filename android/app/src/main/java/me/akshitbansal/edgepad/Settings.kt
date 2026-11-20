@@ -368,8 +368,10 @@ class Settings(
     }
 
     /** The keys of the tiles the person hid from a deck, stored the same way as [deckOrder]. */
-    fun deckHidden(deck: String): Set<String> =
-        prefs.getString("deck.$deck.hidden", null)?.split('\n')?.filter { it.isNotEmpty() }?.toSet() ?: emptySet()
+    fun deckHidden(deck: String): Set<String> {
+        val stored = prefs.getString("deck.$deck.hidden", null) ?: return emptySet()
+        return stored.split('\n').filter { it.isNotEmpty() }.toSet()
+    }
 
     fun setDeckHidden(
         deck: String,
