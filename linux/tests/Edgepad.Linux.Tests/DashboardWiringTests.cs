@@ -81,6 +81,24 @@ public sealed class DashboardWiringTests : IDisposable
         Assert.Equal($"capture/{Feature.Stats}", sent.Value);
     }
 
+    [Fact]
+    public void DeveloperModeIsNamedInFeaturesAndAgentsNeedIt()
+    {
+        using var dashboard = new LinuxDashboard(dir.FullName, "5.0.0");
+        dashboard.Start();
+        using var link = new DashboardLink(dashboard, _ => { }, Blobs());
+        dashboard.Settings.SetFlag(IntegrationSettings.Claude, true);
+        dashboard.Apply();
+        var off = Assert.IsType<Text>(link.Annotate(new Text((byte)TextKind.Features, "capture")));
+        Assert.Equal("capture", off.Value);
+        Assert.Null(dashboard.Parts.Sessions);
+
+        dashboard.Settings.SetFlag(IntegrationSettings.Claude, false);
+        dashboard.SetDeveloper(true);
+        var on = Assert.IsType<Text>(link.Annotate(new Text((byte)TextKind.Features, "capture")));
+        Assert.Contains(Feature.Developer, on.Value.Split('/'));
+    }
+
     [Theory]
     [InlineData("", "", "")]
     [InlineData("capture", "", "capture")]

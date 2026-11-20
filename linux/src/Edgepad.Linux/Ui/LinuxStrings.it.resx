@@ -413,6 +413,12 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
   <data name="Menu_Integrations" xml:space="preserve">
     <value>Integrazioni…</value>
   </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Modalità sviluppatore</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>Integrazioni per sviluppatori…</value>
+  </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>Integrazioni</value>
   </data>

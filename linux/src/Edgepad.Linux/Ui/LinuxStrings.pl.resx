@@ -413,6 +413,12 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Menu_Integrations" xml:space="preserve">
     <value>Integracje…</value>
   </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Tryb programisty</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>Integracje dla programistów…</value>
+  </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>Integracje</value>
   </data>

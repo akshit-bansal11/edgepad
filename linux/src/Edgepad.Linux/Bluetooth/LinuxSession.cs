@@ -225,6 +225,7 @@ internal sealed class LinuxSession : IDisposable
                 dashboard = dash;
                 dispatcher.DashWatch = dash.OnWatch;
                 dispatcher.PermAnswer = dash.Answer;
+                dispatcher.Developer = shared.SetDeveloper;
                 report = frame => frames.Send(dash.Annotate(frame));
             }
 

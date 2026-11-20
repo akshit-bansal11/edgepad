@@ -65,6 +65,9 @@ internal sealed class LinuxDashboard : IDisposable
     /// <summary>The pieces changed: each link builds its host again on <see cref="Parts"/>. Raised off the UI thread.</summary>
     public event Action? Changed;
 
+    /// <summary>Raised after <see cref="SetDeveloper"/>, on the calling thread.</summary>
+    public event Action? DeveloperChanged;
+
     public DashboardParts Parts
     {
         get
@@ -80,7 +83,7 @@ internal sealed class LinuxDashboard : IDisposable
     public void Start()
     {
         Apply();
-        if (AgentKeys.Any(Settings.Flag))
+        if (AgentKeys.Any(Settings.Active))
         {
             _ = Task.Run(EnsureCurrent);
         }
@@ -101,7 +104,7 @@ internal sealed class LinuxDashboard : IDisposable
                     return;
                 }
 
-                var agentsOn = AgentKeys.Any(Settings.Flag);
+                var agentsOn = AgentKeys.Any(Settings.Active);
                 if (agentsOn && agents is null)
                 {
                     agents = OpenAgents();
@@ -112,10 +115,10 @@ internal sealed class LinuxDashboard : IDisposable
                     agents = null;
                 }
 
-                if (Settings.Flag(IntegrationSettings.Codex) && agents is { } a)
+                if (Settings.Active(IntegrationSettings.Codex) && agents is { } a)
                 {
                     codex ??= new CodexWatcher(
-                        () => Settings.Flag(IntegrationSettings.Codex),
+                        () => Settings.Active(IntegrationSettings.Codex),
                         PhoneLinked,
                         a.Sessions,
                         a.Limits,
@@ -130,10 +133,10 @@ internal sealed class LinuxDashboard : IDisposable
                     codex = null;
                 }
 
-                if (Settings.Flag(IntegrationSettings.Claude) && agents is { } c)
+                if (Settings.Active(IntegrationSettings.Claude) && agents is { } c)
                 {
                     claude ??= new ClaudeSpendWatcher(
-                        () => Settings.Flag(IntegrationSettings.Claude),
+                        () => Settings.Active(IntegrationSettings.Claude),
                         PhoneLinked,
                         c.Spend,
                         () => DateTimeOffset.UtcNow,
@@ -147,7 +150,7 @@ internal sealed class LinuxDashboard : IDisposable
                 }
 
                 weather = Settings.Flag(IntegrationSettings.Weather) ? weather ?? new WeatherClient() : null;
-                github = Settings.Flag(IntegrationSettings.GitHub) ? github ?? new GitHubApi(secrets.Value) : null;
+                github = Settings.Active(IntegrationSettings.GitHub) ? github ?? new GitHubApi(secrets.Value) : null;
 
                 // Kept until exit once made: a reporter of a host being replaced may still be reading it.
                 if (Settings.Flag(IntegrationSettings.Stats))
@@ -179,6 +182,14 @@ internal sealed class LinuxDashboard : IDisposable
         }
     }
 
+    /// <summary>Turns developer mode on or off (the tray or the phone): keeps it, makes or drops the developer pieces and tells every phone.</summary>
+    public void SetDeveloper(bool on)
+    {
+        _ = Settings.SetFlag(IntegrationSettings.Developer, on);
+        Apply();
+        DeveloperChanged?.Invoke();
+    }
+
     /// <summary>A new host for one phone link on the current pieces.</summary>
     public IntegrationHost NewHost(Action<Frame> send, BlobSender blobs)
     {
@@ -190,7 +201,7 @@ internal sealed class LinuxDashboard : IDisposable
 
     /// <summary>TEXT 24 entries for agents switched on that cannot work here (no XDG_RUNTIME_DIR, or the hook socket failed: approvals and live sessions; spend and limits still read the files).</summary>
     public string[] Unsupported() =>
-        Parts.Broker is not null ? [] : [.. AgentKeys.Where(Settings.Flag).Select(agent => $"{agent}:{UnavailableReason.Unsupported}")];
+        Parts.Broker is not null ? [] : [.. AgentKeys.Where(Settings.Active).Select(agent => $"{agent}:{UnavailableReason.Unsupported}")];
 
     /// <summary>The phone's PERM_ANSWER. False (counted as dropped) when no ask waits for it.</summary>
     public bool Answer(string wire) => Parts.Broker?.Answer(wire) ?? false;
@@ -200,16 +211,22 @@ internal sealed class LinuxDashboard : IDisposable
     /// <summary>Call before disposing that phone's host, so its Dispose sees the phone gone and defers what waited on it.</summary>
     public void PhoneDown() => Interlocked.Decrement(ref phones);
 
-    /// <summary>Opens the Integrations window, or shows the open one again. UI thread.</summary>
-    public void ShowWindow()
+    /// <summary>Opens the Integrations window (or, with <paramref name="developer"/>, the developer one), or shows the open one again. UI thread.</summary>
+    public void ShowWindow(bool developer)
     {
         if (window is { } open)
         {
-            open.Show();
-            return;
+            if (open.IsDeveloper == developer)
+            {
+                open.Show();
+                return;
+            }
+
+            open.Close();
+            window = null;
         }
 
-        var made = new IntegrationsWindow(Settings, signIn.Value, secrets.Value, new IntegrationsHooks
+        var made = new IntegrationsWindow(developer, Settings, signIn.Value, secrets.Value, new IntegrationsHooks
         {
             Agent = AgentStateOf,
             Connect = ConnectAsync,
@@ -220,6 +237,16 @@ internal sealed class LinuxDashboard : IDisposable
         window = made;
         _ = made.Closed.ContinueWith(_ => OnUi(() => window = ReferenceEquals(window, made) ? null : window), TaskScheduler.Default);
         made.Show();
+    }
+
+    /// <summary>Closes the developer window if it is the one open (developer mode went off). UI thread.</summary>
+    public void CloseDeveloperWindow()
+    {
+        if (window is { IsDeveloper: true } open)
+        {
+            open.Close();
+            window = null;
+        }
     }
 
     public void Dispose()

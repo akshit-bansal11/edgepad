@@ -420,6 +420,12 @@ The trusted phones were forgotten, but the PIN could not be reset: a settings fi
   <data name="Menu_Integrations" xml:space="preserve">
     <value>Integrations…</value>
   </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Developer mode</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>Developer integrations…</value>
+  </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>Integrations</value>
   </data>

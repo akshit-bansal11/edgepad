@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Edgepad.Bluetooth;
+using Edgepad.Dashboard;
 using Edgepad.Macros;
 using Edgepad.Net;
 using Edgepad.Network;
@@ -308,6 +309,7 @@ internal sealed class Shell : IDisposable
             () => networkHint,
             () => ClipboardSetting.Enabled,
             () => NotifySetting.Enabled,
+            () => LinuxDashboard.Shared?.Settings.Flag(IntegrationSettings.Developer) == true,
             () => autostart.Enabled,
             () => updateSetting.Enabled,
             () => _ = Guard(ShowSecurityAsync),
@@ -316,12 +318,19 @@ internal sealed class Shell : IDisposable
             () => _ = Guard(ToggleNetworkAsync),
             () => _ = Guard(ToggleClipboardAsync),
             () => _ = Guard(ToggleNotifyAsync),
+            () => _ = Guard(ToggleDeveloperAsync),
+            () => LinuxDashboard.Shared?.ShowWindow(developer: true),
             () => _ = Guard(ToggleAutostartAsync),
             () => _ = Guard(ToggleUpdatesAsync),
             () => _ = Guard(InstallUpdateAsync),
             LaterUpdate,
             SkipUpdate,
             RequestQuit);
+        if (LinuxDashboard.Shared is { } shared)
+        {
+            shared.DeveloperChanged += () => Dispatcher.UIThread.Post(OnDeveloperChanged);
+        }
+
         var menu = new Tray(hooks);
         tray = menu;
         menu.SetStatus(status);
@@ -492,6 +501,29 @@ internal sealed class Shell : IDisposable
         if (!saved)
         {
             await Dialogs.Inform(null, LinuxStrings.Error_NotSavedAfterRestart);
+        }
+
+        RefreshViews();
+    }
+
+    /// <summary>The Developer mode switch. The dashboard applies it off the UI thread and tells every phone.</summary>
+    private async Task ToggleDeveloperAsync()
+    {
+        if (LinuxDashboard.Shared is not { } shared)
+        {
+            return;
+        }
+
+        var on = !shared.Settings.Flag(IntegrationSettings.Developer);
+        await Task.Run(() => shared.SetDeveloper(on));
+    }
+
+    /// <summary>Developer mode moved, from the tray or the phone (UI thread): the rows follow and a developer window closes when it went off.</summary>
+    private void OnDeveloperChanged()
+    {
+        if (LinuxDashboard.Shared is { } shared && !shared.Settings.Flag(IntegrationSettings.Developer))
+        {
+            shared.CloseDeveloperWindow();
         }
 
         RefreshViews();

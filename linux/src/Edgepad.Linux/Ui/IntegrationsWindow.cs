@@ -63,6 +63,7 @@ internal sealed class IntegrationsWindow
     private const double Width = 520;
     private static readonly FontFamily Mono = new("monospace");
 
+    private readonly bool developer;
     private readonly IntegrationSettings settings;
     private readonly GitHubSignIn signIn;
     private readonly LinuxSecretStore secrets;
@@ -83,22 +84,27 @@ internal sealed class IntegrationsWindow
     private bool signingIn;
     private string? gitHubProblem;
 
-    public IntegrationsWindow(IntegrationSettings settings, GitHubSignIn signIn, LinuxSecretStore secrets, IntegrationsHooks hooks)
+    /// <param name="developer">False: the intro, stats, weather and city. True: only Claude Code, Codex and GitHub.</param>
+    public IntegrationsWindow(bool developer, IntegrationSettings settings, GitHubSignIn signIn, LinuxSecretStore secrets, IntegrationsHooks hooks)
     {
+        this.developer = developer;
         this.settings = settings;
         this.signIn = signIn;
         this.secrets = secrets;
         this.hooks = hooks;
 
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 8 };
-        body.Children.Add(look.Text(LinuxStrings.Integrations_Title, 18, FontWeight.Bold));
-        body.Children.Add(look.Text(LinuxStrings.Integrations_Intro, 14, dim: true));
+        body.Children.Add(look.Text(developer ? LinuxStrings.Integrations_ForDevelopers : LinuxStrings.Integrations_Title, 18, FontWeight.Bold));
+        if (!developer)
+        {
+            body.Children.Add(look.Text(LinuxStrings.Integrations_Intro, 14, dim: true));
+        }
 
         stats = Check(LinuxStrings.Integrations_Stats, settings.Flag(IntegrationSettings.Stats), on => Switch(IntegrationSettings.Stats, on));
-        body.Children.Add(stats);
+        AddUnless(developer, body, stats);
 
         weather = Check(LinuxStrings.Integrations_Weather, settings.Flag(IntegrationSettings.Weather), on => Switch(IntegrationSettings.Weather, on));
-        body.Children.Add(weather);
+        AddUnless(developer, body, weather);
         city = new TextBox
         {
             Text = settings.Text(IntegrationSettings.City),
@@ -120,22 +126,20 @@ internal sealed class IntegrationsWindow
         var cityRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Margin = new Thickness(28, 0, 0, 0) };
         cityRow.Children.Add(cityLabel);
         cityRow.Children.Add(city);
-        body.Children.Add(cityRow);
+        AddUnless(developer, body, cityRow);
         var note = look.Text(LinuxStrings.Integrations_WeatherNote, 13, dim: true);
         note.Margin = new Thickness(28, 0, 0, 0);
-        body.Children.Add(note);
-
-        var developers = look.Text(LinuxStrings.Integrations_ForDevelopers, 14, FontWeight.Bold, dim: true);
-        developers.Margin = new Thickness(0, 14, 0, 0);
-        body.Children.Add(developers);
+        AddUnless(developer, body, note);
 
         claude = new AgentRow(this, IntegrationSettings.Claude, LinuxStrings.Integrations_Claude);
         codex = new AgentRow(this, IntegrationSettings.Codex, LinuxStrings.Integrations_Codex);
-        body.Children.Add(claude.Panel);
-        body.Children.Add(codex.Panel);
-
-        body.Children.Add(Heading(LinuxStrings.Integrations_GitHub));
-        body.Children.Add(github);
+        if (developer)
+        {
+            body.Children.Add(claude.Panel);
+            body.Children.Add(codex.Panel);
+            body.Children.Add(Heading(LinuxStrings.Integrations_GitHub));
+            body.Children.Add(github);
+        }
 
         var close = look.Button(LinuxStrings.Common_Close, primary: true);
         close.IsDefault = true;
@@ -143,7 +147,7 @@ internal sealed class IntegrationsWindow
         footer.Margin = new Thickness(0, 10, 0, 0);
         body.Children.Add(footer);
 
-        window = look.Dialog(LinuxStrings.Integrations_Title, Width, body);
+        window = look.Dialog(developer ? LinuxStrings.Integrations_ForDevelopers : LinuxStrings.Integrations_Title, Width, body);
         close.Click += (_, _) => window.Close();
         window.KeyDown += (_, e) =>
         {
@@ -159,6 +163,20 @@ internal sealed class IntegrationsWindow
             signIn.Cancel();
             closed.TrySetResult();
         };
+    }
+
+    /// <summary>True for the developer window (Claude Code, Codex, GitHub), false for the other.</summary>
+    public bool IsDeveloper => developer;
+
+    /// <summary>Closes the window. Call on the UI thread.</summary>
+    public void Close() => window.Close();
+
+    private static void AddUnless(bool skip, StackPanel body, Control child)
+    {
+        if (!skip)
+        {
+            body.Children.Add(child);
+        }
     }
 
     /// <summary>Completes when the window has closed, however it closed.</summary>

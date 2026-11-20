@@ -17,6 +17,7 @@ internal sealed record TrayHooks(
     Func<string> NetworkHint,
     Func<bool> ClipboardOn,
     Func<bool> NotifyOn,
+    Func<bool> DeveloperOn,
     Func<bool> AutostartOn,
     Func<bool> UpdatesOn,
     Action Security,
@@ -25,6 +26,8 @@ internal sealed record TrayHooks(
     Action ToggleNetwork,
     Action ToggleClipboard,
     Action ToggleNotify,
+    Action ToggleDeveloper,
+    Action DeveloperIntegrations,
     Action ToggleAutostart,
     Action ToggleUpdates,
     Action InstallUpdate,
@@ -63,6 +66,8 @@ internal sealed class Tray : IDisposable
     private readonly NativeMenuItem sendRow = new(LinuxStrings.Menu_SendFile);
     private readonly NativeMenuItem macrosRow = new(LinuxStrings.Menu_Macros);
     private readonly NativeMenuItem integrationsRow = new(LinuxStrings.Menu_Integrations) { IsVisible = LinuxDashboard.Shared is not null };
+    private readonly NativeMenuItem developerRow = Toggle(LinuxStrings.Menu_DeveloperMode);
+    private readonly NativeMenuItem developerIntegrationsRow = new(LinuxStrings.Menu_DeveloperIntegrations) { IsVisible = false };
     private readonly NativeMenuItem securityRow = new(LinuxStrings.Menu_Security);
     private readonly TrayIcon icon;
     private readonly Bus portal = Bus.OnSession();
@@ -85,7 +90,10 @@ internal sealed class Tray : IDisposable
         updatesRow.Click += (_, _) => Safe(hooks.ToggleUpdates, "Check for updates daily");
         sendRow.Click += (_, _) => Safe(hooks.SendFile, "Send a file");
         macrosRow.Click += (_, _) => Safe(hooks.Macros, "Macros");
-        integrationsRow.Click += (_, _) => Safe(() => LinuxDashboard.Shared?.ShowWindow(), "Integrations");
+        integrationsRow.Click += (_, _) => Safe(() => LinuxDashboard.Shared?.ShowWindow(developer: false), "Integrations");
+        developerRow.IsVisible = LinuxDashboard.Shared is not null;
+        developerRow.Click += (_, _) => Safe(hooks.ToggleDeveloper, "Developer mode");
+        developerIntegrationsRow.Click += (_, _) => Safe(hooks.DeveloperIntegrations, "Developer integrations");
         securityRow.Click += (_, _) => Safe(hooks.Security, "Security");
         var docs = new NativeMenuItem(LinuxStrings.Menu_Documentation);
         docs.Click += (_, _) => Safe(() => OpenWithDesktop(DocumentationUrl, LinuxStrings.What_Documentation), "Documentation");
@@ -111,6 +119,8 @@ internal sealed class Tray : IDisposable
         menu.Add(sendRow);
         menu.Add(macrosRow);
         menu.Add(integrationsRow);
+        menu.Add(developerRow);
+        menu.Add(developerIntegrationsRow);
         menu.Add(securityRow);
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(docs);
@@ -184,6 +194,9 @@ internal sealed class Tray : IDisposable
         networkRow.IsChecked = hooks.NetworkOn();
         clipboardRow.IsChecked = hooks.ClipboardOn();
         notifyRow.IsChecked = hooks.NotifyOn();
+        var developer = hooks.DeveloperOn();
+        developerRow.IsChecked = developer;
+        developerIntegrationsRow.IsVisible = developer;
         autostartRow.IsChecked = hooks.AutostartOn();
         updatesRow.IsChecked = hooks.UpdatesOn();
     }

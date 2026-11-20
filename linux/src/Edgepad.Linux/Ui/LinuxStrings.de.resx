@@ -413,6 +413,12 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Menu_Integrations" xml:space="preserve">
     <value>Integrationen…</value>
   </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Entwicklermodus</value>
+  </data>
+  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
+    <value>Entwickler-Integrationen…</value>
+  </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>Integrationen</value>
   </data>
