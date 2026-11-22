@@ -14,6 +14,9 @@ public final class TransferReceiver {
     public var reply: (Frame) -> Void = { _ in }
     /// Told when the file arriving starts or stops being held by either end.
     public var pausedChanged: ((Bool) -> Void)?
+    /// Told the name, bytes held and size of the file arriving when it starts and as each chunk lands, and with
+    /// `active` false when it ends.
+    public var changed: ((_ name: String, _ done: UInt64, _ size: UInt64, _ active: Bool) -> Void)?
 
     private final class Active {
         let id: UInt8
@@ -149,6 +152,7 @@ public final class TransferReceiver {
         }
         a.hash.update(data: data)
         a.held += UInt64(data.count)
+        changed?(a.name, a.held, a.size, true)
         if a.held - a.reported >= TransferLimits.progressEveryBytes {
             a.reported = a.held
             status(id, .progress, a.held)
@@ -307,6 +311,7 @@ public final class TransferReceiver {
                 id: id, size: size, name: name, partPath: partPath, file: file, hash: hash, held: held,
                 lastActive: clock())
             active = made
+            changed?(name, held, size, true)
             watchIdle(made)
             status(id, .ready, held)
         } catch {
@@ -352,6 +357,7 @@ public final class TransferReceiver {
         guard let a = active else { return }
         active = nil
         a.close()
+        changed?(a.name, a.held, a.size, false)
         if a.heldSince != nil {
             pausedChanged?(false)
         }

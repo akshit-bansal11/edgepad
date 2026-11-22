@@ -55,6 +55,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// The Wi-Fi row's hint: off, listening, or why not.
     private var networkHint = NetworkHint.off
     private var status = StatusText.starting
+    /// The card for the file moving to or from the phone; the menu's Transfers row brings it back after Close.
+    private lazy var transfers = TransferPanel()
     /// The "allow Edgepad again" line while it is still the status, so a grant clears it whatever language it is in.
     private var updatedNotice: String?
     private var newerVersion: Version?
@@ -131,11 +133,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // inputReady, not Accessibility alone: with event posting denied every tap is dropped, so the phone must hear it.
         host.inputBlocked = { [weak self] in !(self?.inputReady ?? true) }
         host.onFileArrived = { [weak self] path in
-            self?.setStatus(
+            self?.transfers.finished(
                 tr(
                     "Status_Received", "Received %1$@ in Downloads/Edgepad",
-                    StatusText.middleTruncated((path as NSString).lastPathComponent)))
+                    StatusText.middleTruncated((path as NSString).lastPathComponent)),
+                failed: false)
         }
+        host.onTransfer = { [weak self] sending, phone, name, done, size, active in
+            self?.transfers.progress(
+                sending: sending, phone: phone, name: name, done: done, size: size, active: active)
+        }
+        host.onTransferHeld = { [weak self] held in self?.transfers.held(held) }
+        transfers.onPause = { [weak host] sending in host?.pauseTransfer(sending: sending) ?? false }
+        transfers.onResume = { [weak host] sending in host?.resumeTransfer(sending: sending) ?? false }
+        transfers.onStop = { [weak host] sending in host?.stopTransfer(sending: sending) }
         // Off the main queue: a file read and rewrite has no place on the path that admits a phone.
         // The generation is read here, at admit, so a Forget that lands before the write leaves the phone forgotten.
         host.onVerified = { [lastConnected] address in
@@ -414,6 +425,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             host?.hasPhone == true
                 ? item(tr("Menu_SendFile", "Send a file…"), #selector(sendFile))
                 : disabled(tr("Menu_SendFileNoPhone", "Send a file… (no phone connected)")))
+        if transfers.running {
+            menu.addItem(item(tr("Menu_Transfers", "Transfers"), #selector(showTransfers)))
+        }
         menu.addItem(item(tr("Menu_Macros", "Macros…"), #selector(showMacros)))
         let clipboardMenu = NSMenu()
         let clipboard = item(tr("Menu_Clipboard", "Share clipboard"), #selector(toggleClipboard))
@@ -819,6 +833,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         send(panel.urls.map(\.path))
     }
 
+    @objc private func showTransfers() {
+        transfers.showAgain()
+    }
+
     /// Queues each regular file for the phone in use; the sender takes them one at a time.
     private func send(_ paths: [String]) {
         for path in paths {
@@ -828,7 +846,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 continue
             }
             let name = StatusText.middleTruncated((path as NSString).lastPathComponent)
-            host?.sendFile(path) { [weak self] code in self?.setStatus(Self.sentLine(name, code)) }
+            transfers.expect(files: 1)
+            host?.sendFile(path) { [weak self] code in
+                self?.transfers.finished(Self.sentLine(name, code), failed: code != .saved)
+            }
         }
     }
 

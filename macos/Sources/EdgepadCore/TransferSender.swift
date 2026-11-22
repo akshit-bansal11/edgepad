@@ -17,6 +17,9 @@ public final class TransferSender {
     public var backlog: () -> Int = { 0 }
     /// Told when the file being sent starts or stops being held by either end.
     public var pausedChanged: ((Bool) -> Void)?
+    /// Told the name, bytes the phone holds and size of the file being sent when it starts and as the phone answers
+    /// PROGRESS, and with `active` false when it ends.
+    public var changed: ((_ name: String, _ done: UInt64, _ size: UInt64, _ active: Bool) -> Void)?
 
     private static let rehashBytesPerTick = 4 * 1024 * 1024
 
@@ -29,6 +32,7 @@ public final class TransferSender {
     private final class Run {
         let id: UInt8
         let size: UInt64
+        let name: String
         let file: FileHandle
         let finished: (XferCode) -> Void
         var phase = Phase.awaitingReady
@@ -57,9 +61,10 @@ public final class TransferSender {
 
         var held: Bool { paused || peerPaused }
 
-        init(id: UInt8, size: UInt64, file: FileHandle, finished: @escaping (XferCode) -> Void) {
+        init(id: UInt8, size: UInt64, name: String, file: FileHandle, finished: @escaping (XferCode) -> Void) {
             self.id = id
             self.size = size
+            self.name = name
             self.file = file
             self.finished = finished
         }
@@ -131,6 +136,9 @@ public final class TransferSender {
             if let rewound = run.rewoundTo, run.phase == .sending {
                 if offset <= rewound { return true }
                 run.rewoundTo = nil
+            }
+            if offset <= run.size {
+                changed?(run.name, offset, run.size, true)
             }
             let repeated = run.lastProgress == offset
             run.lastProgress = offset
@@ -209,9 +217,10 @@ public final class TransferSender {
             return
         }
         lastId = lastId % 255 + 1
-        let run = Run(id: lastId, size: size, file: file, finished: job.finished)
-        current = run
         let name = URL(fileURLWithPath: job.path).lastPathComponent
+        let run = Run(id: lastId, size: size, name: name, file: file, finished: job.finished)
+        current = run
+        changed?(name, 0, size, true)
         guard emit(.xferBegin(id: run.id, size: size, name: name), run) else { return }
         armTimeout(run)
     }
@@ -382,6 +391,7 @@ public final class TransferSender {
         if run.notifiedHeld {
             pausedChanged?(false)
         }
+        changed?(run.name, run.at, run.size, false)
         try? run.file.close()
         run.finished(code)
         next()

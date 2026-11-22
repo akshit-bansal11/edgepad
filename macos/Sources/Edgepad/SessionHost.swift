@@ -73,6 +73,42 @@ final class SessionHost {
     /// Told the final path of each file the phone sent, once it is saved and marked as downloaded.
     var onFileArrived: ((String) -> Void)?
 
+    /// Told how the file in flight with the phone in use stands: direction, the phone as the owner reads it, the file's
+    /// name, bytes moved and size, and false once it has ended.
+    var onTransfer:
+        ((_ sending: Bool, _ phone: String, _ name: String, _ done: UInt64, _ size: UInt64, _ active: Bool) -> Void)?
+
+    /// Told when either end starts or stops holding the file in flight.
+    var onTransferHeld: ((Bool) -> Void)?
+
+    /// Each session's file sender and receiver, for the panel's buttons.
+    private var fileTransfers: [ObjectIdentifier: (sender: TransferSender, receiver: TransferReceiver)] = [:]
+
+    private func transferTick(
+        _ address: String, sending: Bool, _ name: String, _ done: UInt64, _ size: UInt64, _ active: Bool
+    ) {
+        guard let current, current.address == address else { return }
+        onTransfer?(sending, shown(address), name, done, size, active)
+    }
+
+    /// Holds the file in flight with the phone in use; false when none is, or it is held already.
+    func pauseTransfer(sending: Bool) -> Bool {
+        guard let current, let pair = fileTransfers[ObjectIdentifier(current)] else { return false }
+        return sending ? pair.sender.pause() : pair.receiver.pause()
+    }
+
+    /// Lets go of this Mac's hold on the file in flight; false when the phone holds it, or none is.
+    func resumeTransfer(sending: Bool) -> Bool {
+        guard let current, let pair = fileTransfers[ObjectIdentifier(current)] else { return false }
+        return sending ? pair.sender.resume() : pair.receiver.resume()
+    }
+
+    /// Stops the file in flight, and the ones waiting behind it when this Mac is sending.
+    func stopTransfer(sending: Bool) {
+        guard let current, let pair = fileTransfers[ObjectIdentifier(current)] else { return }
+        _ = sending ? pair.sender.cancel() : pair.receiver.cancel()
+    }
+
     /// Told the address of each phone as it is admitted, for the Security window's "last connected".
     var onVerified: ((String) -> Void)?
 
@@ -178,13 +214,24 @@ final class SessionHost {
         dispatcher.media = MacMediaSource(hub: nowPlaying)
         dispatcher.mediaBlobs = sender
         // Per connection too: files come in and go out on whichever socket the phone has open.
-        dispatcher.transfers = TransferReceiver(
+        let fileReceiver = TransferReceiver(
             destination: MacTransfers.destination, partialFolder: MacTransfers.partialFolder,
             arrived: { [weak self] path in self?.onFileArrived?(path) },
             mark: MacTransfers.markDownloaded)
-        dispatcher.sending = TransferSender(
+        let fileSender = TransferSender(
             link: link == "Bluetooth" ? .bluetooth : .network,
             lastInput: { [weak dispatcher] in dispatcher?.lastInput ?? 0 })
+        // The panel hears both directions; a session that is not the phone in use stays silent.
+        fileReceiver.changed = { [weak self] name, done, size, active in
+            self?.transferTick(address, sending: false, name, done, size, active)
+        }
+        fileSender.changed = { [weak self] name, done, size, active in
+            self?.transferTick(address, sending: true, name, done, size, active)
+        }
+        fileReceiver.pausedChanged = { [weak self] held in self?.onTransferHeld?(held) }
+        fileSender.pausedChanged = { [weak self] held in self?.onTransferHeld?(held) }
+        dispatcher.transfers = fileReceiver
+        dispatcher.sending = fileSender
         dispatcher.endPerform = MacEndPower.perform
         let ask = askTrust
         let status = onStatus
@@ -227,6 +274,7 @@ final class SessionHost {
             makeDashboard: makeDashboard,
             setDeveloper: setDeveloper)
         candidates.append((session: session, transport: transport, shownAs: shownAs, link: link))
+        fileTransfers[ObjectIdentifier(session)] = (fileSender, fileReceiver)
 
         let helloTimeout = Timer(timeInterval: Session.helloTimeoutSeconds, repeats: false) { [weak session] _ in
             session?.helloTimedOut()
@@ -361,6 +409,7 @@ final class SessionHost {
     /// The phone in use ending leaves this Mac waiting. A candidate ending puts back the status of the phone still
     /// in use, which the candidate's question or refusal replaced.
     private func sessionEnded(_ ended: Session) {
+        fileTransfers[ObjectIdentifier(ended)] = nil
         if current === ended {
             current = nil
             endActivity()
