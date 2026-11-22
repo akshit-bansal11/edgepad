@@ -107,7 +107,7 @@ test('gemini hooks run the app for sessions only and carry our name', () => {
 test('opencode plugin forwards session events to the app and is marked as ours', () => {
     const text = read('opencode/edgepad.ts')
     assert.match(text.split('\n')[0], /Edgepad OpenCode plugin/)
-    assert.match(stamp(text), /const APP = "C:\\Users\\a b\\AppData\\Local\\Programs\\Edgepad\\Edgepad\.exe"/)
+    assert.ok(stamp(text).includes(`const APP = ${JSON.stringify(VALUES.__APP__)}`))
     assert.match(text, /'--hook', 'opencode', 'session'/)
     for (const name of ['session.created', 'session.idle', 'session.deleted', 'permission.asked', 'session.busy']) {
         assert.ok(text.includes(name), name)
