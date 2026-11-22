@@ -36,9 +36,10 @@ internal sealed record GitRepo(string FullName, bool Private, string Language, i
 
 /// <summary>
 /// One pull request or issue. <see cref="Ci"/> is a <see cref="Edgepad.Protocol.CiToken"/>, <see cref="UpdatedMin"/> UTC minutes since the
-/// Unix epoch (0 when unknown), <see cref="Url"/> laptop-private like <see cref="GitRepo.Url"/>.
+/// Unix epoch (0 when unknown), <see cref="Url"/> laptop-private like <see cref="GitRepo.Url"/>. <see cref="Label"/> is the text id of a
+/// host whose numbers are not integers (Gitee); when set it is sent in place of <see cref="Number"/>.
 /// </summary>
-internal sealed record GitItem(GitSection Section, string Repo, long Number, string Title, string State, bool IsPull, bool Draft, string Ci, long UpdatedMin, string Url);
+internal sealed record GitItem(GitSection Section, string Repo, long Number, string Title, string State, bool IsPull, bool Draft, string Ci, long UpdatedMin, string Url, string? Label = null);
 
 /// <summary>What one host knows about the account: at most <see cref="GitLimits.MaxRepos"/> repositories, recent first, and at most <see cref="GitLimits.MaxItemsPerGroup"/> items per section.</summary>
 internal sealed record GitSnapshot(GitProfile Profile, IReadOnlyList<GitRepo> Repos, IReadOnlyList<GitItem> Items, int? Unread = null);

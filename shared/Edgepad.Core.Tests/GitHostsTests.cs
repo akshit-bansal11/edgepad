@@ -53,6 +53,14 @@ public sealed class GitHostsTests : IDisposable
         [{"full_name":"ana/zh","public":true,"language":"Java","stargazers_count":8,"open_issues_count":3,"html_url":"https://gitee.com/ana/zh","updated_at":"2026-11-01T00:00:00Z"}]
         """;
 
+    private const string GiteeIssuesMine = """
+        [{"number":"I1ABCD","title":"Bug","state":"open","html_url":"https://gitee.com/ana/zh/issues/I1ABCD","updated_at":"2026-11-02T00:00:00Z","repository":{"full_name":"ana/zh"}}]
+        """;
+
+    private const string GiteeIssuesAssigned = """
+        [{"number":"I2XYZ","title":"Fix","state":"open","html_url":"https://gitee.com/ana/zh/issues/I2XYZ","updated_at":"2026-11-03T00:00:00Z","repository":{"full_name":"ana/zh"}}]
+        """;
+
     private readonly DirectoryInfo dir = Directory.CreateTempSubdirectory("edgepad-githosts");
     private readonly FakeClock clock = new();
     private readonly Secrets secrets = new();
@@ -208,16 +216,40 @@ public sealed class GitHostsTests : IDisposable
         Assert.Equal(GitHubResult.Ok, (await host.RefreshAsync(Ct)).Result);
 
         Assert.Equal(
-            string.Join('\n', "H\tgitee\tana\tAna B\t9\t4\t1", "P\tana/zh\t\tJava\t8\t3\t0"),
+            string.Join(
+                '\n',
+                "H\tgitee\tana\tAna B\t9\t4\t1",
+                "P\tana/zh\t\tJava\t8\t3\t0",
+                $"M\tana/zh\tI1ABCD\tBug\ti\tnone\topen\t{Min("2026-11-02T00:00:00Z")}",
+                $"A\tana/zh\tI2XYZ\tFix\ti\tnone\topen\t{Min("2026-11-03T00:00:00Z")}"),
             host.Page!.Body);
-        Assert.Equal(new List<string> { "https://gitee.com/ana/zh" }, host.Page.Urls);
+        Assert.Equal(new List<string> { "https://gitee.com/ana/zh", "https://gitee.com/ana/zh/issues/I1ABCD", "https://gitee.com/ana/zh/issues/I2XYZ" }, host.Page.Urls);
         Assert.All(http.Seen, s =>
         {
             Assert.Equal(HttpMethod.Get, s.Method);
             Assert.Equal("gitee.com", s.Uri.Host);
-            Assert.Equal("Bearer " + Token, s.Header("Authorization"));
-            Assert.DoesNotContain(Token, s.Uri.AbsoluteUri, StringComparison.Ordinal);
+            Assert.Null(s.Header("Authorization"));
+            Assert.Contains("access_token=" + Token, s.Uri.Query, StringComparison.Ordinal);
         });
+    }
+
+    [Fact]
+    public async Task AFailingGiteeRequestNeverPutsItsAddressOrTokenInAnErrorOrTheLog()
+    {
+        var http = new FakeHttp(s => throw new HttpRequestException("failed " + s.Uri.AbsoluteUri));
+        var host = new GiteeHost(secrets, settings, http, () => clock.Now);
+        Assert.Equal(GitHubResult.Failed, (await host.RefreshAsync(Ct)).Result);
+
+        using var refused = new HttpRequestMessage(HttpMethod.Put, "https://gitee.com/api/v5/user?access_token=" + Token);
+        var gate = new ReadOnlyViolation("x");
+        using (var client = new HttpClient(new ReadOnlyGate(new FakeHttp(_ => FakeHttp.Status(HttpStatusCode.OK)))))
+        {
+            gate = await Assert.ThrowsAsync<ReadOnlyViolation>(() => client.SendAsync(refused, Ct));
+        }
+
+        Assert.DoesNotContain(Token, gate.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("access_token", gate.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain(Token, LogText.Read(), StringComparison.Ordinal);
     }
 
     [Theory]
@@ -453,6 +485,7 @@ public sealed class GitHostsTests : IDisposable
     {
         "/api/v5/user" => FakeHttp.Json(GiteeUser),
         "/api/v5/user/repos" => FakeHttp.Json(GiteeRepos),
+        "/api/v5/user/issues" => FakeHttp.Json(s.Uri.Query.Contains("filter=created", StringComparison.Ordinal) ? GiteeIssuesMine : GiteeIssuesAssigned),
         _ => throw new InvalidOperationException($"Asked {s.Uri}"),
     };
 

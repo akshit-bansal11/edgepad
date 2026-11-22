@@ -38,12 +38,12 @@ internal static class GitBlob
 
         foreach (var section in new[] { GitSection.Mine, GitSection.Review, GitSection.Assigned })
         {
-            foreach (var item in snapshot.Items.Where(i => i.Section == section && i.Number > 0 && GitHubParse.IsRepo(i.Repo)).Take(GitLimits.MaxItemsPerGroup))
+            foreach (var item in snapshot.Items.Where(i => i.Section == section && (i.Number > 0 || i.Label is { Length: > 0 }) && GitHubParse.IsRepo(i.Repo)).Take(GitLimits.MaxItemsPerGroup))
             {
                 var flags = (item.Draft ? "d" : string.Empty) + (item.IsPull ? string.Empty : "i");
                 var state = item.State is GitState.Closed or GitState.Merged ? item.State : GitState.Open;
                 var ci = item.Ci is CiToken.Ok or CiToken.Fail or CiToken.Pending ? item.Ci : CiToken.None;
-                rows.Add((Join(Letter(section), item.Repo, Num(item.Number), DashWire.Clean(item.Title, GitLimits.MaxTitle), flags, ci, state, Num(item.UpdatedMin)), item.Url));
+                rows.Add((Join(Letter(section), item.Repo, item.Label is { Length: > 0 } label ? DashWire.Clean(label, 20) : Num(item.Number),DashWire.Clean(item.Title, GitLimits.MaxTitle), flags, ci, state, Num(item.UpdatedMin)), item.Url));
             }
         }
 

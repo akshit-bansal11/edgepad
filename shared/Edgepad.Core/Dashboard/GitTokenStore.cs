@@ -191,8 +191,11 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
     /// <summary>The API root for a configured web address (ignored by hosts with a fixed API); null when unusable.</summary>
     protected abstract Uri? ApiFor(string configuredUrl);
 
-    /// <summary>The Authorization header for this token (and name, for Basic).</summary>
-    protected abstract AuthenticationHeaderValue Auth(string token, string user);
+    /// <summary>The Authorization header for this token (and name, for Basic); null for a host that takes the token in the address.</summary>
+    protected abstract AuthenticationHeaderValue? Auth(string token, string user);
+
+    /// <summary>The address a request is sent to. A host whose API documents only a token query parameter (Gitee) adds it here; nothing else may reach a message or log with this address.</summary>
+    protected virtual Uri Sign(Uri uri, string token) => uri;
 
     /// <summary>The account's login from the <see cref="UserPath"/> reply; null when it is not one.</summary>
     protected abstract string? ParseLogin(byte[] body);
@@ -350,7 +353,7 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
 
     private GitGet Getter(string token, string user) => async (uri, ct) =>
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+        using var request = new HttpRequestMessage(HttpMethod.Get, Sign(uri, token));
         request.Headers.Authorization = Auth(token, user);
         request.Headers.Accept.ParseAdd("application/json");
         request.Headers.UserAgent.ParseAdd("Edgepad");
