@@ -141,10 +141,17 @@ public final class HookServer {
             servePerm(stream, perm)
             return
         case .session(let s):
-            let hook =
-                s.agent == AgentToken.claude.rawValue
-                ? HookEvent.fromClaude(s.event, s.notificationType, sessionId: s.session, cwd: s.cwd)
-                : HookEvent.fromCodex(s.event, sessionId: s.session, cwd: s.cwd)
+            let hook: HookEvent?
+            switch s.agent {
+            case AgentToken.claude.rawValue:
+                hook = HookEvent.fromClaude(s.event, s.notificationType, sessionId: s.session, cwd: s.cwd)
+            case AgentToken.gemini.rawValue:
+                hook = HookEvent.fromGemini(s.event, s.notificationType, sessionId: s.session, cwd: s.cwd)
+            case AgentToken.opencode.rawValue:
+                hook = HookEvent.fromOpenCode(s.event, sessionId: s.session, cwd: s.cwd)
+            default:
+                hook = HookEvent.fromCodex(s.event, sessionId: s.session, cwd: s.cwd)
+            }
             if let hook {
                 sessions.apply(hook)
             }

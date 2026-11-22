@@ -75,7 +75,8 @@ done
 # (PluginStamp). Its hooks run this app (`--hook`), so the Node scripts are left out: nobody needs Node. Missing, the
 # build stops: Connect would have nothing to install.
 plugin="../plugins/edgepad"
-if [ ! -f "$plugin/hooks/hooks.claude.json" ] || [ ! -f "$plugin/hooks/hooks.codex.json" ]; then
+if [ ! -f "$plugin/hooks/hooks.claude.json" ] || [ ! -f "$plugin/hooks/hooks.codex.json" ] \
+    || [ ! -f "$plugin/hooks/hooks.gemini.json" ] || [ ! -f "$plugin/opencode/edgepad.ts" ]; then
     echo "bundle.sh: plugins/edgepad is missing or has no hooks templates" >&2
     exit 1
 fi

@@ -149,6 +149,10 @@ public enum PluginStamp {
     // copied.
     private static func target(_ agent: String, _ entry: String) -> String? {
         if entry == marketplaceTemplate { return marketplace }
+        // The Gemini CLI and OpenCode templates are written by HookConfigInstaller, not copied into a plugin.
+        if entry == HookConfigInstaller.geminiTemplate || entry.hasPrefix(HookConfigInstaller.openCodeFolder) {
+            return nil
+        }
         if entry == claudeHooks || entry == codexHooks {
             return entry == (agent == AgentToken.claude.rawValue ? claudeHooks : codexHooks) ? hooks : nil
         }

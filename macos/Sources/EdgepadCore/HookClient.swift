@@ -24,11 +24,18 @@ public enum HookClient {
     /// The perm hook's own timeout is 120 s; the laptop answers within 30 s.
     public static let replyWait: TimeInterval = 35
 
-    private static let agents = [AgentToken.claude.rawValue, AgentToken.codex.rawValue]
+    private static let agents = [
+        AgentToken.claude.rawValue, AgentToken.codex.rawValue, AgentToken.gemini.rawValue, AgentToken.opencode.rawValue,
+    ]
     private static let kinds = [HookProtocol.perm, HookProtocol.session, HookProtocol.usage, HookProtocol.spend]
     // The lifecycle events the laptop's SessionBoard maps, and the Notification types that mean "the agent waits".
-    private static let events = ["SessionStart", "UserPromptSubmit", "Notification", "Stop", "SessionEnd"]
-    private static let notifications = ["permission_prompt", "idle_prompt", "agent_needs_input"]
+    // Gemini CLI adds BeforeAgent, AfterAgent and its own Notification type; OpenCode's plugin sends dotted names.
+    private static let events = [
+        "SessionStart", "UserPromptSubmit", "Notification", "Stop", "SessionEnd",
+        "BeforeAgent", "AfterAgent",
+        "session.created", "session.busy", "session.idle", "permission.asked", "session.deleted",
+    ]
+    private static let notifications = ["permission_prompt", "idle_prompt", "agent_needs_input", "ToolPermission"]
     // Bash `command`; Edit/Write/MultiEdit/Read/NotebookEdit `file_path`; WebFetch `url`. The laptop picks per tool.
     private static let inputFields = ["command", "file_path", "url"]
 
@@ -57,6 +64,10 @@ public enum HookClient {
         else { return nil }
         let agent = arguments[1]
         let kind = arguments[2]
+        // Gemini CLI and OpenCode report their sessions only: approvals and limits stay with Claude Code and Codex.
+        if agent == AgentToken.gemini.rawValue || agent == AgentToken.opencode.rawValue, kind != HookProtocol.session {
+            return nil
+        }
         let input: Data?
         if kind == HookProtocol.perm || kind == HookProtocol.session {
             input = stdin()

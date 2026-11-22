@@ -37,6 +37,41 @@ public struct HookEvent: Equatable {
         return HookEvent(agent: AgentToken.codex.rawValue, sessionId: sessionId, event: .start, cwd: cwd)
     }
 
+    /// Gemini CLI hooks: SessionStart idle, BeforeAgent working, a ToolPermission Notification waiting, AfterAgent
+    /// idle, SessionEnd gone. The twin of the core's HookEvent.FromGemini.
+    public static func fromGemini(_ hookEventName: String?, _ notificationType: String?, sessionId: String, cwd: String)
+        -> HookEvent?
+    {
+        let event: SessionEvent?
+        switch hookEventName {
+        case "SessionStart": event = .start
+        case "BeforeAgent": event = .prompt
+        case "Notification": event = notificationType == "ToolPermission" ? .needsYou : nil
+        case "AfterAgent": event = .stop
+        case "SessionEnd": event = .end
+        default: event = nil
+        }
+        guard let event else { return nil }
+        return HookEvent(agent: AgentToken.gemini.rawValue, sessionId: sessionId, event: event, cwd: cwd)
+    }
+
+    /// OpenCode plugin events as the shipped plugin names them: session.created idle, session.busy working,
+    /// permission.asked waiting, session.idle idle, session.deleted gone. The twin of the core's
+    /// HookEvent.FromOpenCode.
+    public static func fromOpenCode(_ hookEventName: String?, sessionId: String, cwd: String) -> HookEvent? {
+        let event: SessionEvent?
+        switch hookEventName {
+        case "session.created": event = .start
+        case "session.busy": event = .prompt
+        case "permission.asked": event = .needsYou
+        case "session.idle": event = .stop
+        case "session.deleted": event = .end
+        default: event = nil
+        }
+        guard let event else { return nil }
+        return HookEvent(agent: AgentToken.opencode.rawValue, sessionId: sessionId, event: event, cwd: cwd)
+    }
+
     private static func map(_ name: String?, _ notificationType: String?) -> SessionEvent? {
         switch name {
         case "SessionStart": return .start
