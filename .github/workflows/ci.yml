@@ -237,8 +237,15 @@ jobs:
           echo no | "$sdk/avdmanager" create avd -n gallery -k "system-images;android-34;google_apis;x86_64" -d pixel_5
           nohup "$ANDROID_HOME/emulator/emulator" -avd gallery -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot > emulator.log 2>&1 &
           adb="$ANDROID_HOME/platform-tools/adb"
-          "$adb" wait-for-device
-          until [ "$("$adb" shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; do sleep 3; done
+          # Bounded: a crashed emulator must fail here with its log, not sit out the job's timeout.
+          timeout 120 "$adb" wait-for-device || { tail -n 60 emulator.log; exit 1; }
+          for _ in $(seq 1 120); do
+            [ "$("$adb" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ] && exit 0
+            sleep 3
+          done
+          echo "The emulator did not finish booting in 6 minutes." >&2
+          tail -n 60 emulator.log
+          exit 1
       - name: Screenshots
         run: |
           export PATH="$ANDROID_HOME/platform-tools:$PATH"
