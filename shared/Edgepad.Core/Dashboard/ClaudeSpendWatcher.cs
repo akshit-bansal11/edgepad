@@ -305,6 +305,123 @@ internal sealed class ClaudeSpendWatcher : IDisposable
         return rows;
     }
 
+    /// <summary>The most bytes read from the end of one transcript to find its last record.</summary>
+    public const int TailBytes = 64 * 1024;
+
+    /// <summary>
+    /// The sessions behind the newest transcripts (<c>projects/&lt;folder&gt;/&lt;id&gt;.jsonl</c>) written within the
+    /// <see cref="SessionBoard.Expiry"/>, at most <see cref="SessionBoard.Capacity"/>, for <see cref="SessionBoard.Seed"/>. One
+    /// directory listing and at most <see cref="TailBytes"/> read per file, run at start and per connect, never on a timer. A
+    /// session is working when its last record is unfinished (a prompt, a tool call or a tool result) and the file was written
+    /// within <see cref="CodexWatcher.Fresh"/>, else idle; waiting is only ever known from a hook.
+    /// </summary>
+    public List<SeedSession> ListSessions()
+    {
+        var now = clock();
+        var oldest = now.UtcDateTime - SessionBoard.Expiry;
+        var found = new List<SeedSession>();
+        foreach (var file in Transcripts()
+            .Where(f => f.LastWriteTimeUtc > oldest && Path.GetRelativePath(projects, f.FullName).Split('\\', '/').Length == 2)
+            .OrderByDescending(f => f.LastWriteTimeUtc)
+            .Take(SessionBoard.Capacity))
+        {
+            var id = Path.GetFileNameWithoutExtension(file.Name);
+            if (id.Length is 0 or > SessionBoard.MaxIdLength)
+            {
+                continue;
+            }
+
+            try
+            {
+                using var stream = open(file.FullName);
+                var (unfinished, cwd) = LastRecord(stream);
+                var busy = unfinished && now.UtcDateTime - file.LastWriteTimeUtc <= CodexWatcher.Fresh;
+                found.Add(new SeedSession(AgentToken.Claude, id, busy ? SessionStateToken.Busy : SessionStateToken.Idle, cwd, new DateTimeOffset(file.LastWriteTimeUtc, TimeSpan.Zero)));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // removed or locked: skipped this time
+            }
+        }
+
+        return found;
+    }
+
+    // Reads only the last TailBytes. unfinished: the last turn record is not an ended turn. cwd: the newest one seen, else empty.
+    private static (bool Unfinished, string Cwd) LastRecord(Stream stream)
+    {
+        if (!stream.CanSeek)
+        {
+            return (false, string.Empty);
+        }
+
+        var length = stream.Length;
+        var start = Math.Max(0, length - TailBytes);
+        stream.Seek(start, SeekOrigin.Begin);
+        var buffer = new byte[length - start];
+        var read = 0;
+        while (read < buffer.Length)
+        {
+            var n = stream.Read(buffer, read, buffer.Length - read);
+            if (n <= 0)
+            {
+                break;
+            }
+
+            read += n;
+        }
+
+        var text = System.Text.Encoding.UTF8.GetString(buffer, 0, read);
+        if (start > 0)
+        {
+            var cut = text.IndexOf('\n', StringComparison.Ordinal);
+            text = cut < 0 ? string.Empty : text[(cut + 1)..];
+        }
+
+        bool? unfinished = null;
+        var cwd = string.Empty;
+        foreach (var line in text.Split('\n').Reverse())
+        {
+            if (line.Length == 0 || (unfinished is not null && cwd.Length > 0))
+            {
+                continue;
+            }
+
+            try
+            {
+                using var doc = JsonDocument.Parse(line, new JsonDocumentOptions { MaxDepth = 16 });
+                var r = doc.RootElement;
+                if (r.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                if (cwd.Length == 0 && Str(r, "cwd") is { Length: > 0 } dir)
+                {
+                    cwd = dir;
+                }
+
+                if (unfinished is null)
+                {
+                    unfinished = Str(r, "type") switch
+                    {
+                        "user" => true,
+                        "assistant" => !(r.TryGetProperty("message", out var m) && m.ValueKind == JsonValueKind.Object
+                            && Str(m, "stop_reason") is "end_turn" or "stop_sequence" or "max_tokens"),
+                        "system" when Str(r, "subtype") == "turn_duration" => false,
+                        _ => null,
+                    };
+                }
+            }
+            catch (JsonException)
+            {
+                // a torn or foreign line: look further back
+            }
+        }
+
+        return (unfinished ?? false, cwd);
+    }
+
     // Every regular *.jsonl under projects/, links skipped.
     private List<FileInfo> Transcripts()
     {

@@ -213,9 +213,21 @@ public sealed class CodexWatcherTests : IDisposable
     }
 
     [Fact]
-    public void AFileOlderThanTenMinutesNeverStartsASession()
+    public void AFileFiveMinutesOldIsBusyAndFiveHoursOldIsIdle()
     {
-        Today("rollout-a.jsonl", RolloutText.Join(RolloutText.Meta, RolloutText.Started), TimeSpan.FromMinutes(30));
+        Today("rollout-a.jsonl", RolloutText.Join(RolloutText.Meta, RolloutText.Started), TimeSpan.FromMinutes(5));
+        Today("rollout-b.jsonl", RolloutText.Join(RolloutText.Meta, RolloutText.Started), TimeSpan.FromHours(5));
+
+        Watcher.Poll();
+
+        var states = Sessions.Snapshot().Select(s => s.State).Order().ToList();
+        Assert.Equal([SessionStateToken.Busy, SessionStateToken.Idle], states);
+    }
+
+    [Fact]
+    public void AFileOlderThanSixHoursNeverStartsASession()
+    {
+        Today("rollout-a.jsonl", RolloutText.Join(RolloutText.Meta, RolloutText.Started), TimeSpan.FromHours(7));
 
         Watcher.Poll();
 
@@ -224,17 +236,17 @@ public sealed class CodexWatcherTests : IDisposable
     }
 
     [Fact]
-    public void AtMostFourFilesAreLookedAt()
+    public void AtMostEightFilesAreLookedAt()
     {
-        for (var i = 0; i < 7; i++)
+        for (var i = 0; i < 11; i++)
         {
             Today($"rollout-{i}.jsonl", RolloutText.Join(RolloutText.Meta, RolloutText.Started), TimeSpan.FromMinutes(1 + i));
         }
 
         Watcher.Poll();
 
-        Assert.Equal(4, Sessions.Snapshot().Count);
-        Assert.Equal(4, opened.Count);
+        Assert.Equal(8, Sessions.Snapshot().Count);
+        Assert.Equal(8, opened.Count);
     }
 
     [Fact]

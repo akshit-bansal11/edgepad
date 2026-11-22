@@ -34,6 +34,9 @@ internal sealed record HookEvent(string Agent, string SessionId, SessionEvent Ev
     };
 }
 
+/// <summary>A session found on disk before any hook spoke of it: its id, state token, folder and when its file was last written.</summary>
+internal sealed record SeedSession(string Agent, string SessionId, string State, string Cwd, DateTimeOffset Touched);
+
 /// <summary>
 /// Which agent sessions exist and what each is doing, newest first, for TEXT SESSIONS. Start and Stop mean idle, Prompt busy,
 /// NeedsYou waiting, End gone. A session with a permission ask pending reads as waiting until the ask is answered. At most 8
@@ -91,6 +94,35 @@ internal sealed class SessionBoard(Func<DateTimeOffset> clock)
             Touch(session);
         });
     }
+
+    /// <summary>
+    /// Adds sessions found on disk (a transcript written before Edgepad ran or the phone linked). A session the board already knows
+    /// is left alone (hook-fed state wins), one past <see cref="Expiry"/> is ignored, and a full board takes no more: seeds never
+    /// push out a live session. The next hook event for the same id replaces the seeded state through <see cref="Apply"/>.
+    /// </summary>
+    internal void Seed(IEnumerable<SeedSession> found) =>
+        Run(() =>
+        {
+            var cutoff = clock() - Expiry;
+            var fresh = found
+                .Where(s => s.Touched > cutoff && DashWire.IsAgent(s.Agent) && s.SessionId.Length is > 0 and <= MaxIdLength)
+                .Where(s => !sessions.ContainsKey((s.Agent, s.SessionId)))
+                .GroupBy(s => (s.Agent, s.SessionId))
+                .Select(g => g.OrderByDescending(s => s.Touched).First())
+                .OrderByDescending(s => s.Touched)
+                .Take(Capacity - sessions.Count)
+                .Reverse();
+            foreach (var seed in fresh)
+            {
+                sessions[(seed.Agent, seed.SessionId)] = new Session
+                {
+                    State = seed.State,
+                    Title = seed.Cwd.Length > 0 ? TitleOf(seed.Cwd) : string.Empty,
+                    Touched = seed.Touched,
+                    Order = ++order,
+                };
+            }
+        });
 
     /// <summary>The permission broker's callback: a session with an ask pending reads as waiting. An unknown session is ignored.</summary>
     public void SetWaiting(string sessionId, bool waiting) =>

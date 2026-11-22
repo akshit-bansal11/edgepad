@@ -12,8 +12,8 @@ namespace Edgepad.Dashboard;
 /// regular files only, never <c>auth.json</c>, the databases or the config, and nothing from a rollout leaves this class except
 /// a state, percentages, token counts and the last folder name of a working directory.
 /// <para>
-/// Every 5 seconds it looks at the files of today and yesterday that changed in the last 10 minutes (at most 4) and tells the
-/// <see cref="SessionBoard"/> busy or idle. While the phone draws the AI widget or screen (DASH_WATCH bit 3) it also refreshes the
+/// Every 5 seconds it looks at the files of today and yesterday that changed in the last 6 hours (at most 8) and tells the
+/// <see cref="SessionBoard"/> busy (written in the last 10 minutes, task open) or idle. While the phone draws the AI widget or screen (DASH_WATCH bit 3) it also refreshes the
 /// limits and the spend once a minute; spend is cached per file by size and modification time, so an unchanged month costs stats only.
 /// </para>
 /// </summary>
@@ -23,12 +23,15 @@ internal sealed class CodexWatcher : IDisposable
     public static readonly TimeSpan Every = TimeSpan.FromSeconds(5);
     public static readonly TimeSpan Fresh = TimeSpan.FromMinutes(10);
 
+    /// <summary>A rollout written within this is a session on the board (idle once it was <see cref="Fresh"/> ago): the board's own expiry.</summary>
+    public static readonly TimeSpan Window = SessionBoard.Expiry;
+
     /// <summary>A rollout written this recently with no task marker in its tail is taken as working.</summary>
     public static readonly TimeSpan JustWritten = TimeSpan.FromSeconds(30);
     public const string CacheName = "dashboard-codex-cache.json";
 
     private const int UsageEvery = 12;
-    private const int MaxFiles = 4;
+    private const int MaxFiles = SessionBoard.Capacity;
     private const int LimitFiles = 5;
     private const int MaxTails = 32;
     private const int CacheVersion = 1;
@@ -205,7 +208,7 @@ internal sealed class CodexWatcher : IDisposable
         var today = Today();
         var recent = Rollouts(DayDir(today))
             .Concat(Rollouts(DayDir(today.AddDays(-1))))
-            .Where(f => nowUtc - f.LastWriteTimeUtc <= Fresh)
+            .Where(f => nowUtc - f.LastWriteTimeUtc <= Window)
             .OrderByDescending(f => f.LastWriteTimeUtc)
             .Take(MaxFiles)
             .ToList();
@@ -215,8 +218,16 @@ internal sealed class CodexWatcher : IDisposable
             seen.Add(file.FullName);
             var size = file.Length;
             var ticks = file.LastWriteTimeUtc.Ticks;
+            var stale = nowUtc - file.LastWriteTimeUtc > Fresh;
             if (tracked.TryGetValue(file.FullName, out var before) && before.Size == size && before.Ticks == ticks)
             {
+                // Untouched for ten minutes: whatever it said last, it is not working now.
+                if (stale && before.State == SessionStateToken.Busy)
+                {
+                    sessions.Apply(new HookEvent(AgentToken.Codex, before.Id, SessionEvent.Stop, string.Empty));
+                    tracked[file.FullName] = before with { State = SessionStateToken.Idle };
+                }
+
                 continue;
             }
 
@@ -235,8 +246,13 @@ internal sealed class CodexWatcher : IDisposable
                 continue;
             }
 
+            if (stale && state == SessionStateToken.Busy)
+            {
+                state = SessionStateToken.Idle;
+            }
+
             var id = Path.GetFileNameWithoutExtension(file.Name);
-            if (tail.State is not null || before is null)
+            if (tail.State is not null || before is null || state != before.State)
             {
                 sessions.Apply(new HookEvent(AgentToken.Codex, id, state == SessionStateToken.Busy ? SessionEvent.Prompt : SessionEvent.Stop, tail.Cwd));
             }
