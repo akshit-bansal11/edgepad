@@ -83,6 +83,7 @@ internal sealed class DevelopersWindow : Form
     // Set while the window writes its own controls, so their Changed events do not echo into the settings.
     private bool filling;
     private bool fitScreen = true;
+    private bool skipReveal;
 
     // Developer mode is on: while it is off every row is shown disabled, and the phone gets no developer data.
     private bool developerOn;
@@ -234,26 +235,22 @@ internal sealed class DevelopersWindow : Form
     }
 
     /// <summary>
-    /// For the design gallery: the window as a bitmap, without showing it. A form that was never shown creates no child handles
-    /// of its own, so DrawToBitmap on it paints an empty client area; each placed child is drawn at its place instead, back to front.
+    /// For the design gallery: the window as a bitmap, taken with the window shown far off screen (Show returns at once and needs
+    /// no message loop). A window that was never shown has no child handles, so DrawToBitmap on it paints an empty client area.
     /// </summary>
     internal Bitmap Render()
     {
-        _ = Handle;
-        var bitmap = new Bitmap(ClientSize.Width, ClientSize.Height);
-        using var g = Graphics.FromImage(bitmap);
-        g.Clear(BackColor);
-        for (var i = Controls.Count - 1; i >= 0; i--)
-        {
-            var control = Controls[i];
-            if (shown.Contains(control))
-            {
-                using var part = new Bitmap(control.Width, control.Height);
-                control.DrawToBitmap(part, new Rectangle(Point.Empty, control.Size));
-                g.DrawImageUnscaled(part, control.Location);
-            }
-        }
-
+        skipReveal = true;
+        StartPosition = FormStartPosition.Manual;
+        Location = new Point(-20000, -20000);
+        ShowInTaskbar = false;
+        Show();
+        Relayout();
+        var origin = PointToScreen(Point.Empty);
+        using var full = new Bitmap(Width, Height);
+        DrawToBitmap(full, new Rectangle(Point.Empty, Size));
+        var bitmap = full.Clone(new Rectangle(origin.X - Left, origin.Y - Top, ClientSize.Width, ClientSize.Height), full.PixelFormat);
+        Hide();
         return bitmap;
     }
 
@@ -289,7 +286,10 @@ internal sealed class DevelopersWindow : Form
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
-        Reveal.Window(this);
+        if (!skipReveal)
+        {
+            Reveal.Window(this);
+        }
     }
 
     protected override void OnHandleCreated(EventArgs e)
@@ -814,7 +814,7 @@ internal sealed class DevelopersWindow : Form
         }
 
         var room = Math.Max(textWidth - (statusX - textX) - howToWidth, S(80));
-        var natural = TextRenderer.MeasureText(view.Status, row.Line.Font, Size.Empty, TextFormatFlags.NoPadding).Width + S(2);
+        var natural = TextRenderer.MeasureText(view.Status, row.Line.Font, Size.Empty, TextFormatFlags.NoPadding).Width + S(12);
         var statusWidth = Math.Min(natural, room);
         var statusHeight = Math.Max(S(18), Measure(view.Status, row.Line.Font, statusWidth));
         if (view.Dot)
