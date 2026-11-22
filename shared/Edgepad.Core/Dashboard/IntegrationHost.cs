@@ -35,6 +35,9 @@ internal sealed class DashboardParts
     /// <summary>Whether a GitHub token is saved (<see cref="GitHubSignIn.IsSignedIn"/>).</summary>
     public Func<bool>? GitHubSignedIn { get; init; }
 
+    /// <summary>The token-pasting git hosts that are set up (Gitea, Bitbucket, Gitee); each one is used only while its settings switch is on.</summary>
+    public IReadOnlyList<IGitHost>? GitHosts { get; init; }
+
     /// <summary>Opens an address a git host's page named, in the default browser. Each laptop app supplies it (C26); without one, GIT_OPEN is dropped and counted.</summary>
     public IUrlOpener? UrlOpener { get; init; }
 
@@ -647,8 +650,10 @@ internal sealed class IntegrationHost : IDisposable
         return true;
     }
 
-    // C22 and C23 add the other hosts here.
-    private IGitHost? Git(string id) => parts.GitHub is { } github && GitHubOn && github.Id == id ? github : null;
+    // C22 adds GitLab here. A token host counts only while its own switch (the settings key named by its id) is on.
+    private IGitHost? Git(string id) => parts.GitHub is { } github && GitHubOn && github.Id == id
+        ? github
+        : settings.Active(id) ? parts.GitHosts?.FirstOrDefault(host => host.Id == id) : null;
 
     private void Push(Text text) => Guard(() => send(text));
 
