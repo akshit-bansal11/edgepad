@@ -152,6 +152,8 @@ public final class IntegrationHost {
     private var weatherRetrying = false
     // What a phone that has been sent no git page holds is the empty body.
     private var gitHubSent = ""
+    // What this phone was last sent for each token host (by id), so an unchanged page is not sent again.
+    private var gitSent: [String: String] = [:]
     // When this phone's recent link opens happened, oldest first.
     private var opens: [Date] = []
     private static let maxOpens = 3
@@ -214,8 +216,18 @@ public final class IntegrationHost {
         parts.agentHeard?(agent.rawValue) ?? true
     }
 
+    private static let agentKeys = [
+        AgentToken.claude.rawValue, AgentToken.codex.rawValue, AgentToken.gemini.rawValue,
+        AgentToken.opencode.rawValue,
+    ]
+
     private var agentsOn: Bool {
-        settings.active(IntegrationSettings.claude) || settings.active(IntegrationSettings.codex)
+        Self.agentKeys.contains(where: settings.active)
+    }
+
+    // Whether any token-pasting git host (Gitea, Bitbucket, Gitee) is on and was handed to this host.
+    private var tokenHostsOn: Bool {
+        parts.gitHosts?.contains { settings.active($0.id) } ?? false
     }
 
     private var weatherOn: Bool {
@@ -259,8 +271,20 @@ public final class IntegrationHost {
         {
             features.append(Feature.codex.rawValue)
         }
+        if settings.active(AgentToken.gemini.rawValue) && parts.sessions != nil && heard(AgentToken.gemini) {
+            features.append(Feature.gemini.rawValue)
+        }
+        if settings.active(AgentToken.opencode.rawValue) && parts.sessions != nil && heard(AgentToken.opencode) {
+            features.append(Feature.opencode.rawValue)
+        }
         if gitHubOn && parts.gitHubSignedIn?() == true {
             features.append(Feature.github.rawValue)
+        }
+        // A token host counts once its token is saved and its switch is on.
+        for host in parts.gitHosts ?? [] where settings.active(host.id) {
+            if (host as? TokenGitHost)?.isSignedIn == true, let provider = DevProviders.find(host.id) {
+                features.append(provider.featureToken)
+            }
         }
         if settings.flag(IntegrationSettings.developer) {
             features.append(Feature.developer.rawValue)
@@ -331,8 +355,9 @@ public final class IntegrationHost {
         if mask & Self.gitHubBit == 0 {
             gitHubTimer?.stop()
             gitHubTimer = nil
-        } else if gitHubTimer == nil && gitHubOn {
-            gitHubTimer = startTimer({ [weak self] in self?.refreshGitHub() }, GitHubRefresh.every)
+            gitSent = [:]
+        } else if gitHubTimer == nil && (gitHubOn || tokenHostsOn) {
+            gitHubTimer = startTimer({ [weak self] in self?.refreshGit() }, GitHubRefresh.every)
         }
         gate.unlock()
 
@@ -345,6 +370,9 @@ public final class IntegrationHost {
         }
         if gitHubGained && gitHubOn && parts.gitHub?.page != nil {
             sendGitHub(force: true)
+        }
+        if gitHubGained && tokenHostsOn {
+            sendGitHosts()
         }
         if netGained, let last = speed.last {
             push(.text(kind: TextKind.speedResult.rawValue, value: SpeedWire.encode(last)))
@@ -369,7 +397,7 @@ public final class IntegrationHost {
         var refresh = false
         if gitHubTimer == nil {
             // The new timer runs the first refresh now.
-            gitHubTimer = startTimer({ [weak self] in self?.refreshGitHub() }, GitHubRefresh.every)
+            gitHubTimer = startTimer({ [weak self] in self?.refreshGit() }, GitHubRefresh.every)
         } else if gitHubLast.map({ clock().timeIntervalSince($0) >= Self.justRefreshed }) ?? true {
             gitHubLast = nil
             refresh = true
@@ -521,6 +549,44 @@ public final class IntegrationHost {
         weatherSent = text
         gate.unlock()
         push(.text(kind: TextKind.weather.rawValue, value: text))
+    }
+
+    // One tick of the git timer: GitHub, then every token host that is on.
+    private func refreshGit() {
+        refreshGitHub()
+        refreshGitHosts()
+    }
+
+    private func refreshGitHosts() {
+        let hosts = (parts.gitHosts ?? []).filter { settings.active($0.id) }
+        guard !hosts.isEmpty else { return }
+        Task { [weak self] in
+            for host in hosts {
+                _ = await host.refresh()
+            }
+            guard let self, self.watching(Self.gitHubBit) else { return }
+            self.sendGitHosts()
+        }
+    }
+
+    // Each token host that is on gets its page sent when it differs from what this phone holds; a host that went off or
+    // signed out sends nothing.
+    private func sendGitHosts() {
+        for host in (parts.gitHosts ?? []) where settings.active(host.id) {
+            let text = host.page?.body ?? ""
+            gate.lock()
+            let skip = disposed || text == (gitSent[host.id] ?? "")
+            if !skip {
+                gitSent[host.id] = text
+            }
+            gate.unlock()
+            if skip { continue }
+            let body = Array(text.utf8)
+            onMain { [weak self] in
+                guard let self, !self.isDisposed else { return }
+                self.blobs?.send(.git, label: "git", data: body)
+            }
+        }
     }
 
     private func refreshGitHub() {

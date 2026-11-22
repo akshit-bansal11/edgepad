@@ -553,9 +553,6 @@
   <data name="Macro_New" xml:space="preserve">
     <value>Новый макрос</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>Интеграции…</value>
-  </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>Режим разработчика</value>
   </data>
@@ -595,12 +592,6 @@
   <data name="Integrations_WeatherNote" xml:space="preserve">
     <value>Отправляет на open-meteo.com только название города.</value>
   </data>
-  <data name="Integrations_Claude" xml:space="preserve">
-    <value>Claude Code</value>
-  </data>
-  <data name="Integrations_Codex" xml:space="preserve">
-    <value>Codex</value>
-  </data>
   <data name="Integrations_Connect" xml:space="preserve">
     <value>Подключить</value>
   </data>
@@ -637,14 +628,8 @@
   <data name="Integrations_Restart" xml:space="preserve">
     <value>Перезапустите открытые сеансы или выполните /reload-plugins в Claude Code.</value>
   </data>
-  <data name="Integrations_GitHub" xml:space="preserve">
-    <value>GitHub</value>
-  </data>
   <data name="Integrations_ForDevelopers" xml:space="preserve">
     <value>Для разработчиков</value>
-  </data>
-  <data name="Integrations_SignIn" xml:space="preserve">
-    <value>Войти через GitHub</value>
   </data>
   <data name="Integrations_SignOut" xml:space="preserve">
     <value>Выйти</value>
@@ -673,6 +658,9 @@
   <data name="Integrations_SignInFailed" xml:space="preserve">
     <value>Вход не завершён. Попробуйте ещё раз.</value>
   </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Выполняется…</value>
+  </data>
   <data name="Integrations_ClaudeSteps" xml:space="preserve">
     <value>1. Установите Claude Code на этот компьютер, если ещё не сделали этого: claude.com/claude-code
 2. Нажмите «Подключить». Edgepad добавит свой плагин в Claude Code.
@@ -686,9 +674,82 @@
 4. На телефоне откройте Controls > AI. Раздел появится, когда Codex отправит первое событие.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Нажмите «Войти через GitHub». Откроется страница github.com.
+    <value>1. Нажмите «Войти». Откроется страница github.com.
 2. Введите показанный здесь код и нажмите Authorize.
 3. На телефоне откройте Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Подключите ИИ-инструменты и хостинги Git, чтобы видеть их на телефоне.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>ИИ-инструменты</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Хостинги Git</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>Как подключить</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Войти</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Добавить…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Скоро</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Адрес сервера</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Имя пользователя или e-mail</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Токен доступа</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Проверьте адрес сервера, имя и токен и повторите попытку.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>Сервер не принял этот токен.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>У этого токена нет права на чтение. Создайте токен с доступом на чтение.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>По этому адресу сервер не найден.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>Не удалось связаться с сервером. Проверьте подключение.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить токен. Повторите попытку.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Установите Gemini CLI на этот компьютер, если ещё не установили.
+2. Нажмите «Подключить». Edgepad добавит свои хуки в настройки Gemini CLI.
+3. Перезапустите открытые сеансы Gemini CLI.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Установите OpenCode на этот компьютер, если ещё не установили.
+2. Нажмите «Подключить». Edgepad добавит свой плагин в папку плагинов OpenCode.
+3. Перезапустите открытые сеансы OpenCode.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. На своём сервере откройте «Настройки &gt; Приложения» и создайте токен доступа с правом на чтение.
+2. Нажмите «Добавить», проверьте адрес сервера (по умолчанию Codeberg) и вставьте токен.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. В учётной записи Atlassian создайте API-токен с доступом на чтение к Bitbucket.
+2. Нажмите «Добавить», введите e-mail Bitbucket и вставьте токен.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. На gitee.com откройте «Настройки &gt; Персональные токены доступа» и создайте токен с правом на чтение.
+2. Нажмите «Добавить» и вставьте токен.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Включите режим разработчика, чтобы ими пользоваться.</value>
   </data>
   <data name="Note_CodexTrustTitle" xml:space="preserve">
     <value>Codex снова нужно ваше подтверждение</value>

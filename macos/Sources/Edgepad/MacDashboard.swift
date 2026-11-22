@@ -7,7 +7,8 @@ import Foundation
 /// stats source). One `DashboardLink` per live phone session draws on them. With every integration off nothing is made:
 /// no socket, no hook.json, no timer, and FEATURES is what it always was. Main queue only.
 final class MacDashboard {
-    private static let agentKeys = [IntegrationSettings.claude, IntegrationSettings.codex]
+    // The four AI tools: Claude Code and Codex install a plugin, Gemini CLI and OpenCode get an entry in their config.
+    private static let agentKeys = DevProviders.of(.ai).map(\.id)
 
     let settings: IntegrationSettings
     /// Live phones, counted by their `DashboardLink`s; the broker and the readers ask it from their own threads.
@@ -19,6 +20,7 @@ final class MacDashboard {
 
     private let folder: String
     private let installer: PluginInstaller
+    private let hookConfig: HookConfigInstaller
     private let secrets = KeychainSecretStore()
     private lazy var signIn = GitHubSignIn(store: secrets)
     private lazy var usage = UsageStore(path: folder + "/" + UsageStore.fileName, now: Date())
@@ -27,17 +29,19 @@ final class MacDashboard {
     private var claude: ClaudeSpend?
     private var weather: WeatherClient?
     private var gitHub: GitHubApi?
-    // Gitea (Forgejo, Codeberg), Bitbucket and Gitee: idle until their switch is on and a token is saved.
-    private lazy var tokenHosts: [GitHost] = [
-        GiteaHost(store: secrets, settings: settings), BitbucketHost(store: secrets, settings: settings),
-        GiteeHost(store: secrets, settings: settings),
-    ]
+    // Gitea (Forgejo, Codeberg), Bitbucket and Gitee: idle until their switch is on and a token is saved. Tokens live
+    // in the Keychain.
+    private lazy var tokenHosts = DevTokenHosts(
+        hosts: [
+            GiteaHost(store: secrets, settings: settings), BitbucketHost(store: secrets, settings: settings),
+            GiteeHost(store: secrets, settings: settings),
+        ], settings: settings)
     private let urlOpener = MacUrlOpener()
     private var stats: MacStats?
     private lazy var net = MacNetInfo()
     private var parts = DashboardParts()
     private var window: IntegrationsWindow?
-    private var windowIsDeveloper = false
+    private var developersWindow: DevelopersWindow?
 
     /// - Parameter version: This app's version, stamped into the plugin copies.
     init(version: String) {
@@ -48,9 +52,12 @@ final class MacDashboard {
         settings = IntegrationSettings(path: folder + "/" + IntegrationSettings.fileName)
         // bundle.sh copies plugins/edgepad here; a build without it fails Connect with a logged reason, nothing more.
         let plugin = (Bundle.main.resourcePath ?? "") + "/plugins/edgepad"
+        let bundle = DirectoryPluginSource(root: plugin)
         installer = PluginInstaller(
-            bundle: DirectoryPluginSource(root: plugin), settings: settings, pluginsRoot: PluginInstaller.defaultRoot(),
-            version: version)
+            bundle: bundle, settings: settings, pluginsRoot: PluginInstaller.defaultRoot(), version: version)
+        hookConfig = HookConfigInstaller(
+            bundle: bundle, settings: settings, home: NSHomeDirectory(), version: version,
+            appPath: Bundle.main.executablePath ?? CommandLine.arguments[0])
     }
 
     /// At launch: makes what the saved switches ask for, and re-stamps a connected agent's copy when the app moved or
@@ -61,13 +68,37 @@ final class MacDashboard {
         Task { @MainActor [weak self] in _ = await self?.ensureCurrent() }
     }
 
-    /// The installer's `ensureCurrent`, saying once, through `codexRetrust`, when Codex must trust Edgepad again.
+    /// The installers' `ensureCurrent`, saying once, through `codexRetrust`, when Codex must trust Edgepad again.
     @MainActor func ensureCurrent() async -> [(agent: String, state: PluginState)] {
-        let notices = await installer.ensureCurrent()
+        var notices = await installer.ensureCurrent()
         if notices.contains(where: { $0.agent == AgentToken.codex.rawValue && $0.state == .awaitingTrust }) {
             codexRetrust?()
         }
+        notices += hookConfig.ensureCurrent()
         return notices
+    }
+
+    // Gemini CLI and OpenCode have no plugin CLI: Edgepad writes its own entry into their config instead.
+    private static func isHookConfig(_ agent: String) -> Bool {
+        agent == AgentToken.gemini.rawValue || agent == AgentToken.opencode.rawValue
+    }
+
+    private func status(_ agent: String) -> PluginState {
+        Self.isHookConfig(agent) ? hookConfig.status(agent) : installer.status(agent)
+    }
+
+    @MainActor private func connect(_ agent: String) async -> PluginResult {
+        if Self.isHookConfig(agent) {
+            return hookConfig.connect(agent)
+        }
+        return await installer.connect(agent)
+    }
+
+    @MainActor private func disconnect(_ agent: String) async -> PluginResult {
+        if Self.isHookConfig(agent) {
+            return hookConfig.disconnect(agent)
+        }
+        return await installer.disconnect(agent)
     }
 
     /// On quit: closes the hook socket and deletes hook.json, and stops the readers.
@@ -92,37 +123,43 @@ final class MacDashboard {
             unsupported: { [weak self] in self?.unsupported() ?? [] })
     }
 
-    /// Developer mode on or off, from the menu or the phone. Off hides Claude Code, Codex and GitHub and closes the hook
-    /// channel but keeps every connection. Main queue only.
+    /// Developer mode on or off, from the window, the menu or the phone. Off stops every AI tool and git host (no
+    /// developer data reaches the phone) and closes the hook channel but keeps every connection. The For developers
+    /// window stays open: its switch is how it is turned back on. Main queue only.
     func setDeveloper(_ on: Bool) {
         settings.setFlag(IntegrationSettings.developer, on)
-        if !on && window != nil && windowIsDeveloper {
-            window?.close()
-            window = nil
-        }
         apply()
+        developersWindow?.refresh()
     }
 
-    /// Opens the Integrations window (the developer one when `developer`), or brings it to the front. A window open in
-    /// the other mode is closed.
-    func showWindow(developer: Bool = false) {
-        if window != nil && windowIsDeveloper != developer {
-            window?.close()
-            window = nil
-        }
-        windowIsDeveloper = developer
+    /// Opens the Integrations window (stats and weather), or brings it to the front.
+    func showWindow() {
         if window == nil {
-            let secrets = secrets
-            let usage = usage
-            let hooks = IntegrationsHooks(
-                settings: settings, installer: installer, signIn: signIn,
-                login: { await GitHubApi(store: secrets).login() },
-                lastHeard: { usage.lastHeard($0) },
-                switched: { [weak self] key, on in self?.switched(key, on) },
-                ensureCurrent: { [weak self] in await self?.ensureCurrent() ?? [] })
-            window = IntegrationsWindow(hooks: hooks, developer: developer)
+            window = IntegrationsWindow(
+                hooks: IntegrationsHooks(
+                    settings: settings, switched: { [weak self] key, on in self?.switched(key, on) }))
         }
         window?.show()
+    }
+
+    /// Opens the For developers window, or brings it to the front.
+    func showDevelopers() {
+        if developersWindow == nil {
+            let secrets = secrets
+            let usage = usage
+            developersWindow = DevelopersWindow(
+                hooks: DevelopersHooks(
+                    settings: settings, signIn: signIn, login: { await GitHubApi(store: secrets).login() },
+                    status: { [weak self] in self?.status($0) ?? .notConnected },
+                    lastHeard: { usage.lastHeard($0) },
+                    connect: { [weak self] in await self?.connect($0) ?? PluginResult(.failed) },
+                    disconnect: { [weak self] in await self?.disconnect($0) ?? PluginResult(.failed) },
+                    ensureCurrent: { [weak self] in await self?.ensureCurrent() ?? [] },
+                    setDeveloper: { [weak self] in self?.setDeveloper($0) },
+                    switched: { [weak self] key, on in self?.switched(key, on) },
+                    gitChanged: { [weak self] in self?.apply() }, hosts: tokenHosts))
+        }
+        developersWindow?.show()
     }
 
     /// Makes the pieces the switches now ask for and lets go of the rest, then tells the phone in use.
@@ -169,11 +206,11 @@ final class MacDashboard {
         }
         let signIn = signIn
         let usage = usage
-        let tokenHostsOn = ["gitea", "bitbucket", "gitee"].contains(where: settings.active)
+        let tokenHostsOn = DevTokenHosts.ids.contains(where: settings.active)
         parts = DashboardParts(
             sessions: agents?.sessions, limits: agents?.limits, spend: agents?.spend, broker: agents?.broker,
             codex: codex, claude: claude, weather: weather, gitHub: gitHub,
-            gitHubSignedIn: gitHub == nil ? nil : { signIn.isSignedIn }, gitHosts: tokenHostsOn ? tokenHosts : nil,
+            gitHubSignedIn: gitHub == nil ? nil : { signIn.isSignedIn }, gitHosts: tokenHostsOn ? tokenHosts.all : nil,
             urlOpener: urlOpener, agentHeard: { usage.lastHeard($0) >= 0 })
 
         // The phone moves to the new pieces before the old ones close under it.
@@ -225,7 +262,7 @@ final class MacDashboard {
             server.agentReady = { [weak self] _ in
                 DispatchQueue.main.async {
                     self?.changed?()
-                    self?.window?.refresh()
+                    self?.developersWindow?.refresh()
                 }
             }
             server.start()

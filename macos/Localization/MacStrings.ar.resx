@@ -553,9 +553,6 @@
   <data name="Macro_New" xml:space="preserve">
     <value>ماكرو جديد</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>عمليات الدمج…</value>
-  </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>وضع المطوّر</value>
   </data>
@@ -595,12 +592,6 @@
   <data name="Integrations_WeatherNote" xml:space="preserve">
     <value>يرسل اسم المدينة فقط إلى open-meteo.com.</value>
   </data>
-  <data name="Integrations_Claude" xml:space="preserve">
-    <value>Claude Code</value>
-  </data>
-  <data name="Integrations_Codex" xml:space="preserve">
-    <value>Codex</value>
-  </data>
   <data name="Integrations_Connect" xml:space="preserve">
     <value>اتصال</value>
   </data>
@@ -637,14 +628,8 @@
   <data name="Integrations_Restart" xml:space="preserve">
     <value>أعد تشغيل الجلسات المفتوحة، أو شغّل /reload-plugins في Claude Code.</value>
   </data>
-  <data name="Integrations_GitHub" xml:space="preserve">
-    <value>GitHub</value>
-  </data>
   <data name="Integrations_ForDevelopers" xml:space="preserve">
     <value>للمطورين</value>
-  </data>
-  <data name="Integrations_SignIn" xml:space="preserve">
-    <value>تسجيل الدخول باستخدام GitHub</value>
   </data>
   <data name="Integrations_SignOut" xml:space="preserve">
     <value>تسجيل الخروج</value>
@@ -673,6 +658,9 @@
   <data name="Integrations_SignInFailed" xml:space="preserve">
     <value>لم يكتمل تسجيل الدخول. حاول مرة أخرى.</value>
   </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>جارٍ العمل…</value>
+  </data>
   <data name="Integrations_ClaudeSteps" xml:space="preserve">
     <value>1. ثبّت Claude Code على هذا الكمبيوتر إن لم تكن قد فعلت: claude.com/claude-code
 2. انقر «اتصال». يضيف Edgepad إضافته إلى Claude Code.
@@ -686,9 +674,82 @@
 4. على هاتفك، افتح Controls > AI. يظهر بعد أن يرسل Codex أول حدث له.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. انقر «تسجيل الدخول باستخدام GitHub». تُفتح صفحة على github.com.
+    <value>1. انقر «تسجيل الدخول». تُفتح صفحة على github.com.
 2. أدخل الرمز المعروض هنا وانقر Authorize.
 3. على هاتفك، افتح Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>اربط أدوات الذكاء الاصطناعي ومضيفي Git لتراها على هاتفك.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>أدوات الذكاء الاصطناعي</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>مضيفو Git</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>كيفية الاتصال</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>تسجيل الدخول</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>إضافة…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>قريبًا</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>عنوان الخادم</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>اسم المستخدم أو البريد الإلكتروني</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>رمز الوصول</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>تحقق من عنوان الخادم والاسم والرمز ثم حاول مرة أخرى.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>لم يقبل الخادم هذا الرمز.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>ليس لهذا الرمز إذن بالقراءة. أنشئ رمزًا بصلاحية القراءة.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>لم يُعثر على خادم في هذا العنوان.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>تعذّر الوصول إلى الخادم. تحقق من اتصالك.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>تعذّر حفظ الرمز. حاول مرة أخرى.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. ثبّت Gemini CLI على هذا الكمبيوتر إن لم تفعل بعد.
+2. انقر «اتصال». يضيف Edgepad خطافاته إلى إعدادات Gemini CLI.
+3. أعد تشغيل جلسات Gemini CLI المفتوحة.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. ثبّت OpenCode على هذا الكمبيوتر إن لم تفعل بعد.
+2. انقر «اتصال». يضيف Edgepad إضافته إلى مجلد إضافات OpenCode.
+3. أعد تشغيل جلسات OpenCode المفتوحة.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. على خادمك، افتح الإعدادات &gt; التطبيقات وأنشئ رمز وصول بصلاحية القراءة.
+2. انقر «إضافة»، وتحقق من عنوان الخادم (Codeberg هو الافتراضي) والصق الرمز.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. في حساب Atlassian، أنشئ رمز API بصلاحية القراءة إلى Bitbucket.
+2. انقر «إضافة» وأدخل بريد Bitbucket الإلكتروني والصق الرمز.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. في gitee.com، افتح الإعدادات &gt; رموز الوصول الشخصية وأنشئ رمزًا بصلاحية القراءة.
+2. انقر «إضافة» والصق الرمز.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>شغّل وضع المطوّر لاستخدام هذه الأدوات.</value>
   </data>
   <data name="Note_CodexTrustTitle" xml:space="preserve">
     <value>يحتاج Codex إلى موافقتك مرة أخرى</value>

@@ -456,10 +456,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let developerOn = dashboard?.settings.flag(IntegrationSettings.developer) == true
         developer.state = developerOn ? .on : .off
         integrationsMenu.addItem(developer)
-        if developerOn {
-            integrationsMenu.addItem(
-                item(tr("Menu_ForDevelopers", "For developers…"), #selector(showDeveloperIntegrations)))
-        }
+        integrationsMenu.addItem(
+            item(tr("Menu_ForDevelopers", "For developers…"), #selector(showDeveloperIntegrations)))
         menu.addItem(group(tr("Menu_Group_Integrations", "Integrations"), integrationsMenu))
         let settingsMenu = NSMenu()
         let login = item(tr("Menu_Login", "Start at login"), #selector(toggleLogin))
@@ -898,7 +896,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @objc private func showDeveloperIntegrations() {
-        dashboard?.showWindow(developer: true)
+        dashboard?.showDevelopers()
     }
 
     @objc private func showIntegrations() {

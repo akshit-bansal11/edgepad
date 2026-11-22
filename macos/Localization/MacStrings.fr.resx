@@ -553,9 +553,6 @@
   <data name="Macro_New" xml:space="preserve">
     <value>Nouvelle macro</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>Intégrations…</value>
-  </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>Mode développeur</value>
   </data>
@@ -595,12 +592,6 @@
   <data name="Integrations_WeatherNote" xml:space="preserve">
     <value>N’envoie que le nom de la ville à open-meteo.com.</value>
   </data>
-  <data name="Integrations_Claude" xml:space="preserve">
-    <value>Claude Code</value>
-  </data>
-  <data name="Integrations_Codex" xml:space="preserve">
-    <value>Codex</value>
-  </data>
   <data name="Integrations_Connect" xml:space="preserve">
     <value>Connecter</value>
   </data>
@@ -637,14 +628,8 @@
   <data name="Integrations_Restart" xml:space="preserve">
     <value>Redémarrez les sessions ouvertes ou exécutez /reload-plugins dans Claude Code.</value>
   </data>
-  <data name="Integrations_GitHub" xml:space="preserve">
-    <value>GitHub</value>
-  </data>
   <data name="Integrations_ForDevelopers" xml:space="preserve">
     <value>Pour les développeurs</value>
-  </data>
-  <data name="Integrations_SignIn" xml:space="preserve">
-    <value>Se connecter avec GitHub</value>
   </data>
   <data name="Integrations_SignOut" xml:space="preserve">
     <value>Se déconnecter</value>
@@ -673,6 +658,9 @@
   <data name="Integrations_SignInFailed" xml:space="preserve">
     <value>La connexion n’a pas abouti. Réessayez.</value>
   </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>En cours…</value>
+  </data>
   <data name="Integrations_ClaudeSteps" xml:space="preserve">
     <value>1. Installez Claude Code sur cet ordinateur si ce n’est pas déjà fait : claude.com/claude-code
 2. Cliquez sur Connecter. Edgepad ajoute son plugin à Claude Code.
@@ -686,9 +674,82 @@
 4. Sur votre téléphone, ouvrez Controls > AI. Il apparaît dès que Codex envoie son premier événement.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Cliquez sur Se connecter avec GitHub. Une page github.com s’ouvre.
+    <value>1. Cliquez sur Se connecter. Une page github.com s’ouvre.
 2. Saisissez le code affiché ici et cliquez sur Authorize.
 3. Sur votre téléphone, ouvrez Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Connectez vos outils d’IA et vos hébergeurs Git pour les voir sur votre téléphone.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>Outils d’IA</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Hébergeurs Git</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>Comment connecter</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Se connecter</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Ajouter…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Bientôt disponible</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Adresse du serveur</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Nom d’utilisateur ou e-mail</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Jeton d’accès</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Vérifiez l’adresse du serveur, le nom et le jeton, puis réessayez.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>Le serveur n’a pas accepté ce jeton.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>Ce jeton n’a pas le droit de lecture. Créez-en un avec un accès en lecture.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>Aucun serveur à cette adresse.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>Impossible de joindre le serveur. Vérifiez votre connexion.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>Impossible d’enregistrer le jeton. Réessayez.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Installez Gemini CLI sur cet ordinateur si ce n’est pas fait.
+2. Cliquez sur Connecter. Edgepad ajoute ses hooks aux paramètres de Gemini CLI.
+3. Redémarrez les sessions Gemini CLI ouvertes.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Installez OpenCode sur cet ordinateur si ce n’est pas fait.
+2. Cliquez sur Connecter. Edgepad ajoute son plugin au dossier des plugins d’OpenCode.
+3. Redémarrez les sessions OpenCode ouvertes.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. Sur votre serveur, ouvrez Paramètres &gt; Applications et créez un jeton d’accès en lecture.
+2. Cliquez sur Ajouter, vérifiez l’adresse du serveur (Codeberg par défaut) et collez le jeton.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. Dans votre compte Atlassian, créez un jeton d’API avec accès en lecture à Bitbucket.
+2. Cliquez sur Ajouter, saisissez votre e-mail Bitbucket et collez le jeton.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. Sur gitee.com, ouvrez Paramètres &gt; Jetons d’accès personnels et créez un jeton en lecture.
+2. Cliquez sur Ajouter et collez le jeton.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Activez le mode développeur pour les utiliser.</value>
   </data>
   <data name="Note_CodexTrustTitle" xml:space="preserve">
     <value>Codex a de nouveau besoin de votre accord</value>

@@ -58,10 +58,13 @@ public final class IntegrationSettings {
         return values[key] == "1"
     }
 
-    /// Whether `key` is on and in force: claude, codex and github also need developer mode; every other key is its flag.
+    /// The keys that need developer mode: every AI tool and git host of `DevProviders`.
+    public static let developerKeys: Set<String> = Set(DevProviders.all.map(\.id))
+
+    /// Whether `key` is on and in force: every developer key (`developerKeys`) also needs developer mode; every other
+    /// key is its flag.
     public func active(_ key: String) -> Bool {
-        let gated = key == Self.claude || key == Self.codex || key == Self.gitHub
-        return flag(key) && (!gated || flag(Self.developer))
+        flag(key) && (!Self.developerKeys.contains(key) || flag(Self.developer))
     }
 
     /// The stored text, or empty.

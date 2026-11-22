@@ -553,9 +553,6 @@
   <data name="Macro_New" xml:space="preserve">
     <value>Nova macro</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>Integrações…</value>
-  </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>Modo desenvolvedor</value>
   </data>
@@ -595,12 +592,6 @@
   <data name="Integrations_WeatherNote" xml:space="preserve">
     <value>Envia só o nome da cidade para open-meteo.com.</value>
   </data>
-  <data name="Integrations_Claude" xml:space="preserve">
-    <value>Claude Code</value>
-  </data>
-  <data name="Integrations_Codex" xml:space="preserve">
-    <value>Codex</value>
-  </data>
   <data name="Integrations_Connect" xml:space="preserve">
     <value>Conectar</value>
   </data>
@@ -637,14 +628,8 @@
   <data name="Integrations_Restart" xml:space="preserve">
     <value>Reinicie as sessões abertas ou execute /reload-plugins no Claude Code.</value>
   </data>
-  <data name="Integrations_GitHub" xml:space="preserve">
-    <value>GitHub</value>
-  </data>
   <data name="Integrations_ForDevelopers" xml:space="preserve">
     <value>Para desenvolvedores</value>
-  </data>
-  <data name="Integrations_SignIn" xml:space="preserve">
-    <value>Entrar com o GitHub</value>
   </data>
   <data name="Integrations_SignOut" xml:space="preserve">
     <value>Sair</value>
@@ -673,6 +658,9 @@
   <data name="Integrations_SignInFailed" xml:space="preserve">
     <value>O login não foi concluído. Tente de novo.</value>
   </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Trabalhando…</value>
+  </data>
   <data name="Integrations_ClaudeSteps" xml:space="preserve">
     <value>1. Instale o Claude Code neste computador, se ainda não tiver: claude.com/claude-code
 2. Clique em Conectar. O Edgepad adiciona o plugin dele ao Claude Code.
@@ -686,9 +674,82 @@
 4. No celular, abra Controls > AI. Ele aparece assim que o Codex envia o primeiro evento.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Clique em Entrar com o GitHub. Uma página do github.com será aberta.
+    <value>1. Clique em Entrar. Uma página do github.com será aberta.
 2. Digite o código mostrado aqui e clique em Authorize.
 3. No celular, abra Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Conecte suas ferramentas de IA e hosts Git para vê-los no celular.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>Ferramentas de IA</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Hosts Git</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>Como conectar</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Entrar</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Adicionar…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Em breve</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Endereço do servidor</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Nome de usuário ou e-mail</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Token de acesso</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Verifique o endereço do servidor, o nome e o token e tente novamente.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>O servidor não aceitou este token.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>Este token não tem permissão de leitura. Crie um com acesso de leitura.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>Nenhum servidor encontrado nesse endereço.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>Não foi possível alcançar o servidor. Verifique sua conexão.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>Não foi possível salvar o token. Tente novamente.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Instale o Gemini CLI neste computador, se ainda não tiver.
+2. Clique em Conectar. O Edgepad adiciona seus hooks às configurações do Gemini CLI.
+3. Reinicie as sessões abertas do Gemini CLI.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Instale o OpenCode neste computador, se ainda não tiver.
+2. Clique em Conectar. O Edgepad adiciona seu plugin à pasta de plugins do OpenCode.
+3. Reinicie as sessões abertas do OpenCode.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. No seu servidor, abra Configurações &gt; Aplicativos e crie um token de acesso com permissão de leitura.
+2. Clique em Adicionar, confira o endereço do servidor (o padrão é o Codeberg) e cole o token.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. Na sua conta Atlassian, crie um token de API com acesso de leitura ao Bitbucket.
+2. Clique em Adicionar, digite seu e-mail do Bitbucket e cole o token.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. No gitee.com, abra Configurações &gt; Tokens de acesso pessoal e crie um token com permissão de leitura.
+2. Clique em Adicionar e cole o token.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Ative o modo desenvolvedor para usá-los.</value>
   </data>
   <data name="Note_CodexTrustTitle" xml:space="preserve">
     <value>O Codex precisa do seu OK de novo</value>
