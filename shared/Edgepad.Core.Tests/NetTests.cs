@@ -48,10 +48,10 @@ public sealed class NetTests : IDisposable
     [Fact]
     public void ASpeedResultSurvivesTheWire()
     {
-        var result = new SpeedResult(SpeedState.Done, 93500, 21400, 11, 2, 29499900, 180000000);
+        var result = new SpeedResult(SpeedState.Done, 93500, 21400, 11, 2, 29499900, 163400000);
         var text = SpeedWire.Encode(result);
 
-        Assert.Equal("done|93500|21400|11|2|29499900|180000000", text);
+        Assert.Equal("done|93500|21400|11|2|29499900|163400000", text);
         Assert.Equal(result, SpeedWire.Parse(text));
         Assert.Null(SpeedWire.Parse("done|1|2|3|4|5"));
         Assert.Null(SpeedWire.Parse("fast|1|2|3|4|5|6"));
@@ -129,7 +129,8 @@ public sealed class NetTests : IDisposable
         Assert.Equal(11, done.LatencyMs);
         Assert.Equal(3, done.JitterMs);
         Assert.Equal(new DateTimeOffset(2026, 11, 22, 12, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds() / 60, done.AtUnixMin);
-        Assert.Equal(SpeedTest.MaxTotalBytes, done.Bytes);
+        Assert.Equal(SpeedTest.MaxTotalBytes, done.Bytes); // a capped run moved exactly its caps
+        Assert.Equal(0, reports[0].Bytes);
         Assert.Equal(done, test.Last);
     }
 

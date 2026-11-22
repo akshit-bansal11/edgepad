@@ -7,8 +7,8 @@ namespace Edgepad.Dashboard;
 
 /// <summary>
 /// TEXT SPEED_RESULT: <see cref="State"/> is a <see cref="SpeedState"/> token, the speeds are Kbit/s, the times ms, -1 when unknown.
-/// <see cref="AtUnixMin"/> is when the test began, in minutes since the Unix epoch. <see cref="Bytes"/> is the most one test may
-/// move (<see cref="SpeedTest.MaxTotalBytes"/>), so the phone can say "up to ~180 MB" under its button.
+/// <see cref="AtUnixMin"/> is when the test began, in minutes since the Unix epoch. <see cref="Bytes"/> is what the test actually moved
+/// (download plus upload, 0 while it starts), so the phone can show how much data it used. The most one test moves is <see cref="SpeedTest.MaxTotalBytes"/>.
 /// </summary>
 internal sealed record SpeedResult(string State, int DownKbps, int UpKbps, int LatencyMs, int JitterMs, long AtUnixMin, long Bytes);
 
@@ -130,7 +130,7 @@ internal sealed class SpeedTest : IDisposable
         return Task.Run(async () =>
         {
             var at = clock().ToUnixTimeSeconds() / 60;
-            Send(report, new SpeedResult(SpeedState.Running, -1, -1, -1, -1, at, MaxTotalBytes));
+            Send(report, new SpeedResult(SpeedState.Running, -1, -1, -1, -1, at, 0));
             var result = await MeasureAsync(at, cts.Token).ConfigureAwait(false);
             lock (gate)
             {
@@ -208,6 +208,7 @@ internal sealed class SpeedTest : IDisposable
     private async Task<SpeedResult> MeasureAsync(long at, CancellationToken cancel)
     {
         int latency = -1, jitter = -1, down = -1, up = -1;
+        long downBytes = 0, upBytes = 0;
         var state = SpeedState.Done;
         try
         {
@@ -227,14 +228,12 @@ internal sealed class SpeedTest : IDisposable
             latency = (int)Math.Round(Median(samples));
             jitter = (int)Math.Round(Jitter(samples));
 
-            var downBytes = 0L;
             var downMs = await RunStreamsAsync(MaxDownloadBytes, DownloadChunk, cancel, async (ask, token) =>
             {
                 await DrainAsync(client, new HttpRequestMessage(HttpMethod.Get, Down(ask)), n => Interlocked.Add(ref downBytes, n), token).ConfigureAwait(false);
             }).ConfigureAwait(false);
             down = Kbps(downBytes, downMs);
 
-            var upBytes = 0L;
             var upMs = await RunStreamsAsync(MaxUploadBytes, UploadChunk, cancel, async (ask, token) =>
             {
                 var request = new HttpRequestMessage(HttpMethod.Post, UpUri) { Content = new ZeroContent(ask) };
@@ -258,7 +257,7 @@ internal sealed class SpeedTest : IDisposable
             state = SpeedState.Failed;
         }
 
-        return new SpeedResult(state, down, up, latency, jitter, at, MaxTotalBytes);
+        return new SpeedResult(state, down, up, latency, jitter, at, Volatile.Read(ref downBytes) + Volatile.Read(ref upBytes));
     }
 
     /// <summary>

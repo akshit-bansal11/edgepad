@@ -257,7 +257,7 @@ TEXT 35 WEATHER
 TEXT 36 NET_INFO
 # Laptop to phone: "state|downKbps|upKbps|latencyMs|jitterMs|atUnixMin|bytes". state one of running, done, failed, cancelled, capped;
 # the speeds are Kbit/s, the times ms, -1 unknown; atUnixMin is when the test began (UTC minutes since the Unix epoch); bytes is the
-# most one test moves (180000000), the phone shows it as the data cost. Sent when a test starts, when it ends, and again to a phone
+# bytes the test actually moved, download plus upload (0 while it starts); the phone shows it as the data used. Sent when a test starts, when it ends, and again to a phone
 # that starts watching bit5 while a result is held.
 TEXT 37 SPEED_RESULT
 
