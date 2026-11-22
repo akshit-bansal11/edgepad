@@ -199,7 +199,7 @@ final class HookServerTests: XCTestCase {
 
     func testMalformedRequestsGetNoReply() {
         let server = newServer()
-        for text in ["not json\n", "[]\n", line("gemini", "session", "{\"hook_event_name\":\"Stop\"}")] {
+        for text in ["not json\n", "[]\n", line("grok", "session", "{\"hook_event_name\":\"Stop\"}")] {
             XCTAssertNil(exchange(server, text), text)
         }
     }
@@ -449,7 +449,7 @@ final class HookServerTests: XCTestCase {
 
         var connected = false
         let none = HookClient.run(
-            ["--hook", "gemini", "perm"], stdin: { Data(hook.utf8) }, file: folder + "/hook.json",
+            ["--hook", "grok", "perm"], stdin: { Data(hook.utf8) }, file: folder + "/hook.json",
             connect: { _ in
                 connected = true
                 return nil

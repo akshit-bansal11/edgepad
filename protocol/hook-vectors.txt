@@ -81,7 +81,7 @@ SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash"
 SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","truncated":1,"tool_input":{"command":"ls"}}} => NONE
 SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","truncated":"true","tool_input":{"command":"ls"}}} => NONE
 SERVER {"v":1,"token":"T","agent":"claude","kind":"perm","d":{"tool_name":"Bash","session_id":5}} => NONE
-SERVER {"v":1,"token":"T","agent":"gemini","kind":"perm","d":{"tool_name":"Bash"}} => NONE
+SERVER {"v":1,"token":"T","agent":"grok","kind":"perm","d":{"tool_name":"Bash"}} => NONE
 SERVER {"v":1,"token":"T","agent":"Claude","kind":"perm","d":{"tool_name":"Bash"}} => NONE
 SERVER {"v":1,"token":"T","agent":"claude","kind":"shell","d":{}} => NONE
 SERVER {"v":2,"token":"T","agent":"claude","kind":"session","d":{"hook_event_name":"Stop"}} => NONE
