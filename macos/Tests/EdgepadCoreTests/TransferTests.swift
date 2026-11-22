@@ -427,6 +427,277 @@ final class TransferTests: XCTestCase {
         XCTAssertEqual(results.count, 3)
     }
 
+    // MARK: Pause and resume
+
+    private var senderHeld: [Bool] = []
+    private var receiverHeld: [Bool] = []
+
+    /// A sender that has begun a 500 byte file at `offset` with the link backed up, so no chunk has gone yet.
+    private func heldBack(from offset: UInt64 = 0) throws -> (TransferSender, [UInt8]) {
+        let body = (0..<500).map { UInt8($0 % 241) }
+        let outgoing = sender()
+        outgoing.pausedChanged = { [unowned self] in self.senderHeld.append($0) }
+        outgoing.send(path: try file(body)) { [unowned self] in self.results.append($0) }
+        backlog = BlobSender.maxBacklog
+        _ = outgoing.take(status: XferCode.ready.rawValue, id: 1, offset: offset)
+        return (outgoing, body)
+    }
+
+    private func chunkOffsets() -> [UInt64] {
+        sent.compactMap {
+            if case .xferChunk(_, let offset, _) = $0 { return offset }
+            return nil
+        }
+    }
+
+    func testTheLocalOnlyCodesAreOutOfTheWireRange() {
+        XCTAssertEqual(XferCode.paused.rawValue, 8)
+        XCTAssertEqual(XferCode.resume.rawValue, 9)
+        XCTAssertEqual(XferCode.timedOut.rawValue, 0xF0)
+        XCTAssertEqual(XferCode.sessionEnded.rawValue, 0xF1)
+        XCTAssertEqual(TransferLimits.pauseCap, 600)
+    }
+
+    func testASenderPauseHoldsTheFileAndResumeFinishesItWithTheSameHash() throws {
+        let (outgoing, body) = try heldBack()
+        XCTAssertTrue(outgoing.pause())
+        XCTAssertEqual(sent.last, status(1, .paused, 0))
+        XCTAssertEqual(senderHeld, [true])
+        backlog = 0
+        runTicks()
+        XCTAssertTrue(chunkOffsets().isEmpty)
+        XCTAssertTrue(outgoing.resume())
+        XCTAssertEqual(sent.last, status(1, .resume, 0))
+        // Nothing goes until the receiver names where it stands.
+        runTicks()
+        XCTAssertTrue(chunkOffsets().isEmpty)
+        XCTAssertTrue(outgoing.take(status: XferCode.ready.rawValue, id: 1, offset: 0))
+        runTicks()
+        XCTAssertEqual(sent.last, .xferEnd(id: 1, sha256: sha(body)))
+        XCTAssertTrue(outgoing.take(status: XferCode.saved.rawValue, id: 1, offset: 500))
+        XCTAssertEqual(results, [.saved])
+        XCTAssertEqual(senderHeld, [true, false])
+    }
+
+    func testAReadyBelowWhatWasSentRewindsTheSenderAndTheHashStaysWhole() throws {
+        let (outgoing, body) = try heldBack(from: 300)
+        XCTAssertTrue(outgoing.pause())
+        XCTAssertTrue(outgoing.resume())
+        backlog = 0
+        XCTAssertTrue(outgoing.take(status: XferCode.ready.rawValue, id: 1, offset: 100))
+        runTicks()
+        XCTAssertEqual(chunkOffsets().first, 100)
+        XCTAssertEqual(sent.last, .xferEnd(id: 1, sha256: sha(body)))
+    }
+
+    func testTheReceiversPauseHoldsTheSenderUntilItsResumeAndReady() throws {
+        let (outgoing, _) = try heldBack()
+        XCTAssertTrue(outgoing.take(status: XferCode.paused.rawValue, id: 1, offset: 0))
+        XCTAssertEqual(senderHeld, [true])
+        backlog = 0
+        runTicks()
+        XCTAssertTrue(chunkOffsets().isEmpty)
+        XCTAssertTrue(outgoing.take(status: XferCode.resume.rawValue, id: 1, offset: 0))
+        XCTAssertEqual(senderHeld, [true, false])
+        runTicks()
+        XCTAssertTrue(chunkOffsets().isEmpty)
+        XCTAssertTrue(outgoing.take(status: XferCode.ready.rawValue, id: 1, offset: 0))
+        runTicks()
+        XCTAssertEqual(chunkOffsets().first, 0)
+    }
+
+    func testWhenBothEndsPauseEachLetsGoOnItsOwnAndNeitherStaysStuck() throws {
+        for senderFirst in [true, false] {
+            sent = []
+            timers = []
+            results = []
+            senderHeld = []
+            let (outgoing, _) = try heldBack()
+            XCTAssertTrue(outgoing.pause())
+            XCTAssertTrue(outgoing.take(status: XferCode.paused.rawValue, id: 1, offset: 0))
+            backlog = 0
+            if senderFirst {
+                XCTAssertTrue(outgoing.resume())
+                XCTAssertEqual(senderHeld, [true])
+                XCTAssertTrue(outgoing.take(status: XferCode.resume.rawValue, id: 1, offset: 0))
+            } else {
+                XCTAssertTrue(outgoing.take(status: XferCode.resume.rawValue, id: 1, offset: 0))
+                XCTAssertEqual(senderHeld, [true])
+                XCTAssertTrue(outgoing.resume())
+            }
+            XCTAssertEqual(senderHeld, [true, false])
+            XCTAssertTrue(outgoing.take(status: XferCode.ready.rawValue, id: 1, offset: 0))
+            runTicks()
+            XCTAssertEqual(chunkOffsets().first, 0)
+            XCTAssertTrue(outgoing.cancel())
+            backlog = BlobSender.maxBacklog
+        }
+    }
+
+    func testNoAnswerTimeoutRunsWhileHeldAndItRunsAgainAfterTheRelease() throws {
+        let (outgoing, _) = try heldBack()
+        XCTAssertTrue(outgoing.pause())
+        while let index = timers.firstIndex(where: { $0.delay == TransferLimits.answerTimeout }) {
+            timers.remove(at: index).work()
+        }
+        XCTAssertTrue(results.isEmpty)
+        XCTAssertTrue(outgoing.resume())
+        guard let index = timers.lastIndex(where: { $0.delay == TransferLimits.answerTimeout }) else {
+            return XCTFail("No answer timeout armed after the release")
+        }
+        timers[index].work()
+        XCTAssertEqual(results, [.timedOut])
+    }
+
+    func testAHoldOlderThanTenMinutesEndsItCancelledWithoutTellingThePhone() throws {
+        for peer in [false, true] {
+            sent = []
+            timers = []
+            results = []
+            senderHeld = []
+            let (outgoing, _) = try heldBack()
+            if peer {
+                XCTAssertTrue(outgoing.take(status: XferCode.paused.rawValue, id: 1, offset: 0))
+            } else {
+                XCTAssertTrue(outgoing.pause())
+            }
+            guard let index = timers.firstIndex(where: { $0.delay == TransferLimits.pauseCap }) else {
+                return XCTFail("No cap armed")
+            }
+            sent = []
+            timers.remove(at: index).work()
+            XCTAssertEqual(results, [.cancelled])
+            XCTAssertTrue(sent.isEmpty)
+            XCTAssertEqual(senderHeld, [true, false])
+        }
+    }
+
+    func testACapArmedForAnEarlierHoldDoesNotEndALaterOne() throws {
+        let (outgoing, _) = try heldBack()
+        XCTAssertTrue(outgoing.pause())
+        guard let index = timers.firstIndex(where: { $0.delay == TransferLimits.pauseCap }) else {
+            return XCTFail("No cap armed")
+        }
+        let first = timers.remove(at: index)
+        XCTAssertTrue(outgoing.resume())
+        XCTAssertTrue(outgoing.pause())
+        first.work()
+        XCTAssertTrue(results.isEmpty)
+    }
+
+    func testTheSendersCancelWhilePausedTellsThePhoneAndEndsItCancelled() throws {
+        let (outgoing, _) = try heldBack()
+        XCTAssertTrue(outgoing.pause())
+        XCTAssertTrue(outgoing.cancel())
+        XCTAssertEqual(sent.last, status(1, .cancelled))
+        XCTAssertEqual(results, [.cancelled])
+        XCTAssertEqual(senderHeld, [true, false])
+    }
+
+    func testAPauseOrResumeThatMeansNothingIsRefused() throws {
+        let idle = sender()
+        XCTAssertFalse(idle.pause())
+        XCTAssertFalse(idle.resume())
+        let (outgoing, _) = try heldBack()
+        XCTAssertFalse(outgoing.resume())
+        XCTAssertTrue(outgoing.pause())
+        XCTAssertFalse(outgoing.pause())
+        XCTAssertTrue(outgoing.resume())
+        XCTAssertFalse(outgoing.resume())
+        // After END the answer is only waited for.
+        backlog = 0
+        XCTAssertTrue(outgoing.take(status: XferCode.ready.rawValue, id: 1, offset: 0))
+        runTicks()
+        XCTAssertFalse(outgoing.pause())
+        // A status for another file changes nothing, and neither does a local-only code arriving on the wire.
+        XCTAssertFalse(outgoing.take(status: XferCode.paused.rawValue, id: 2, offset: 0))
+        XCTAssertFalse(outgoing.take(status: XferCode.timedOut.rawValue, id: 1, offset: 0))
+        XCTAssertTrue(results.isEmpty)
+    }
+
+    func testTheReceiversPauseTellsTheSenderStillTakesTheChunkInFlightAndResumeAnswersReady() throws {
+        var held: [Bool] = []
+        let incoming = receiver()
+        incoming.pausedChanged = { held.append($0) }
+        _ = incoming.take(begin: 1, size: 6, name: "a.txt")
+        _ = incoming.take(chunk: 1, offset: 0, data: [1, 2])
+        XCTAssertTrue(incoming.pause())
+        XCTAssertEqual(replies.last, status(1, .paused, 2))
+        XCTAssertFalse(incoming.pause())
+        _ = incoming.take(chunk: 1, offset: 2, data: [3])
+        XCTAssertTrue(incoming.resume())
+        XCTAssertEqual(Array(replies.suffix(2)), [status(1, .resume, 3), status(1, .ready, 3)])
+        XCTAssertEqual(held, [true, false])
+        XCTAssertFalse(incoming.resume())
+    }
+
+    func testARemoteResumeIsAnsweredWithReadyAtTheHeldOffsetAndNotBeforeTheOwnHoldEnds() {
+        var held: [Bool] = []
+        let incoming = receiver()
+        incoming.pausedChanged = { held.append($0) }
+        _ = incoming.take(begin: 1, size: 6, name: "a.txt")
+        _ = incoming.take(chunk: 1, offset: 0, data: [1, 2])
+        XCTAssertTrue(incoming.take(status: XferCode.paused.rawValue, id: 1))
+        XCTAssertEqual(held, [true])
+        XCTAssertTrue(incoming.take(status: XferCode.resume.rawValue, id: 1))
+        XCTAssertEqual(replies.last, status(1, .ready, 2))
+        XCTAssertEqual(held, [true, false])
+
+        // Both hold: the peer's resume alone is not answered; this end's own resume then sends both.
+        replies = []
+        XCTAssertTrue(incoming.pause())
+        XCTAssertTrue(incoming.take(status: XferCode.paused.rawValue, id: 1))
+        XCTAssertTrue(incoming.take(status: XferCode.resume.rawValue, id: 1))
+        XCTAssertEqual(replies, [status(1, .paused, 2)])
+        XCTAssertTrue(incoming.resume())
+        XCTAssertEqual(Array(replies.suffix(2)), [status(1, .resume, 2), status(1, .ready, 2)])
+
+        // Both hold, this end lets go first: only RESUME goes, and the peer's resume is answered with READY.
+        replies = []
+        XCTAssertTrue(incoming.pause())
+        XCTAssertTrue(incoming.take(status: XferCode.paused.rawValue, id: 1))
+        XCTAssertTrue(incoming.resume())
+        XCTAssertEqual(replies, [status(1, .paused, 2), status(1, .resume, 2)])
+        XCTAssertTrue(incoming.take(status: XferCode.resume.rawValue, id: 1))
+        XCTAssertEqual(replies.last, status(1, .ready, 2))
+    }
+
+    func testNoIdleDropRunsWhilePausedAndTenMinutesEndsItCancelledWithThePartKept() throws {
+        var held: [Bool] = []
+        let incoming = receiver()
+        incoming.pausedChanged = { held.append($0) }
+        _ = incoming.take(begin: 1, size: 9, name: "a.txt")
+        _ = incoming.take(chunk: 1, offset: 0, data: [1, 2])
+        XCTAssertTrue(incoming.pause())
+        receiverClock = 100
+        receiverTimers.removeFirst().work()
+        XCTAssertTrue(incoming.busy)
+        XCTAssertEqual(receiverTimers.map(\.delay), [TransferLimits.idleTimeout])
+        receiverClock = TransferLimits.pauseCap + 1
+        receiverTimers.removeFirst().work()
+        XCTAssertFalse(incoming.busy)
+        XCTAssertEqual(replies.last, status(1, .cancelled))
+        XCTAssertEqual(held, [true, false])
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: partial), ["a.txt.9.part"])
+    }
+
+    func testTheSenderPausingHoldsTheReceiverToo() throws {
+        var held: [Bool] = []
+        let incoming = receiver()
+        incoming.pausedChanged = { held.append($0) }
+        _ = incoming.take(begin: 1, size: 9, name: "a.txt")
+        XCTAssertTrue(incoming.take(status: XferCode.paused.rawValue, id: 1))
+        // A status for another file is not this transfer's.
+        XCTAssertFalse(incoming.take(status: XferCode.paused.rawValue, id: 7))
+        receiverClock = 100
+        receiverTimers.removeFirst().work()
+        XCTAssertTrue(incoming.busy)
+        // Ending the session while held lets the owner know.
+        incoming.end()
+        XCTAssertEqual(held, [true, false])
+        XCTAssertFalse(incoming.pause())
+    }
+
     // MARK: The transfer socket
 
     func testTheFirstFrameTellsATransferSocketFromAHello() {

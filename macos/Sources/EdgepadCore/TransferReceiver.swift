@@ -12,6 +12,8 @@ import Foundation
 public final class TransferReceiver {
     /// Where XFER_STATUS goes. Set by the session once it has a link to write to.
     public var reply: (Frame) -> Void = { _ in }
+    /// Told when the file arriving starts or stops being held by either end.
+    public var pausedChanged: ((Bool) -> Void)?
 
     private final class Active {
         let id: UInt8
@@ -24,6 +26,10 @@ public final class TransferReceiver {
         var reported: UInt64
         var lastActive: TimeInterval
         var closed = false
+        /// This end holds the file, the sender does, and when a hold began (nil when no end holds it).
+        var paused = false
+        var peerPaused = false
+        var heldSince: TimeInterval?
 
         init(
             id: UInt8, size: UInt64, name: String, partPath: String, file: FileHandle, hash: SHA256, held: UInt64,
@@ -161,10 +167,52 @@ public final class TransferReceiver {
         return true
     }
 
-    /// The sender's CANCELLED. Any other status is the sender's to receive, not this side's.
+    /// The sender's CANCELLED, PAUSED or RESUME. Any other status is the sender's to receive, not this side's. PAUSED
+    /// holds the transfer here too (no idle drop). RESUME is answered with READY at the bytes held, unless this end
+    /// holds it as well, when `resume` answers.
     public func take(status code: UInt8, id: UInt8) -> Bool {
-        guard code == XferCode.cancelled.rawValue, let a = active, a.id == id else { return false }
-        finish(deletePart: true)
+        guard let a = active, a.id == id else { return false }
+        switch code {
+        case XferCode.cancelled.rawValue:
+            finish(deletePart: true)
+            return true
+        case XferCode.paused.rawValue:
+            setHold(a, peer: true)
+            return true
+        case XferCode.resume.rawValue:
+            setHold(a, peer: false)
+            a.lastActive = clock()
+            if !a.paused {
+                status(a.id, .ready, a.held)
+            }
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Holds the file arriving: the sender is told with PAUSED and stops after its chunk in flight, which is still
+    /// taken; the idle drop stops until `resume`. False when none arrives or it is held already.
+    @discardableResult
+    public func pause() -> Bool {
+        guard let a = active, !a.paused else { return false }
+        setHold(a, own: true)
+        status(a.id, .paused, a.held)
+        return true
+    }
+
+    /// Lets go of this end's hold: RESUME, then READY at the bytes held so the sender goes on from there. Where the
+    /// sender still holds it, only RESUME goes and the sender's own RESUME is answered with the READY. False when this
+    /// end does not hold it.
+    @discardableResult
+    public func resume() -> Bool {
+        guard let a = active, a.paused else { return false }
+        setHold(a, own: false)
+        a.lastActive = clock()
+        status(a.id, .resume, a.held)
+        if !a.peerPaused {
+            status(a.id, .ready, a.held)
+        }
         return true
     }
 
@@ -193,6 +241,18 @@ public final class TransferReceiver {
     private func watchIdle(_ a: Active, after delay: TimeInterval = TransferLimits.idleTimeout) {
         schedule(delay) { [weak self] in
             guard let self, self.active === a else { return }
+            // Held by either end: no idle drop, only the cap, and that ends it as CANCELLED, the part kept. Looked at
+            // each idle period, so a release is back under the idle rule within one.
+            if let since = a.heldSince {
+                if self.clock() - since >= TransferLimits.pauseCap {
+                    Log.write("A file from the phone was held too long and was dropped; its part is kept.")
+                    self.finish(deletePart: false)
+                    self.status(a.id, .cancelled, 0)
+                } else {
+                    self.watchIdle(a)
+                }
+                return
+            }
             let idle = self.clock() - a.lastActive
             if idle >= TransferLimits.idleTimeout {
                 Log.write("A file from the phone went quiet and was dropped; its part is kept.")
@@ -201,6 +261,18 @@ public final class TransferReceiver {
             } else {
                 self.watchIdle(a, after: TransferLimits.idleTimeout - idle)
             }
+        }
+    }
+
+    /// Sets this end's hold, the sender's, or both, and tells the owner when the file starts or stops being held.
+    private func setHold(_ a: Active, own: Bool? = nil, peer: Bool? = nil) {
+        let was = a.paused || a.peerPaused
+        a.paused = own ?? a.paused
+        a.peerPaused = peer ?? a.peerPaused
+        let held = a.paused || a.peerPaused
+        a.heldSince = held ? (a.heldSince ?? clock()) : nil
+        if held != was {
+            pausedChanged?(held)
         }
     }
 
@@ -275,6 +347,9 @@ public final class TransferReceiver {
         guard let a = active else { return }
         active = nil
         a.close()
+        if a.heldSince != nil {
+            pausedChanged?(false)
+        }
         if deletePart {
             // A part that will not delete is purged by age.
             try? FileManager.default.removeItem(atPath: a.partPath)

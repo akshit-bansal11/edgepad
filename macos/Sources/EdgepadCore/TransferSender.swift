@@ -15,6 +15,8 @@ public final class TransferSender {
     public var output: ((Frame) -> Bool)?
     /// What the link still holds. Set by the session along with `output`.
     public var backlog: () -> Int = { 0 }
+    /// Told when the file being sent starts or stops being held by either end.
+    public var pausedChanged: ((Bool) -> Void)?
 
     private static let rehashBytesPerTick = 4 * 1024 * 1024
 
@@ -42,6 +44,18 @@ public final class TransferSender {
         var rewoundTo: UInt64?
         /// Moves on at a rewind, so ticks scheduled before it do not run a second chain of chunks.
         var epoch = 0
+        /// READY has named where to start.
+        var started = false
+        /// This end holds the file, the receiver does, and whether the owner was last told it is held.
+        var paused = false
+        var peerPaused = false
+        var notifiedHeld = false
+        /// Moves on whenever the file starts or stops being held, so a cap armed for one hold cannot end another.
+        var holdToken = 0
+        /// A hold ended and the receiver's READY at the bytes it holds is awaited before sending goes on.
+        var resuming = false
+
+        var held: Bool { paused || peerPaused }
 
         init(id: UInt8, size: UInt64, file: FileHandle, finished: @escaping (XferCode) -> Void) {
             self.id = id
@@ -93,13 +107,23 @@ public final class TransferSender {
     /// The phone's answer to the file being sent. False when it is not about that file, or not a status this build
     /// knows.
     public func take(status code: UInt8, id: UInt8, offset: UInt64) -> Bool {
-        guard let run = current, run.id == id, let known = XferCode(rawValue: code), code <= XferCode.busy.rawValue
+        guard let run = current, run.id == id, let known = XferCode(rawValue: code), code <= XferCode.resume.rawValue
         else { return false }
         switch known {
         case .ready:
             if run.phase == .awaitingReady {
-                begin(run, at: offset)
+                if !run.started {
+                    begin(run, at: offset)
+                } else if run.resuming, !run.held {
+                    continueAfterHold(run, at: offset)
+                }
             }
+        case .paused:
+            run.peerPaused = true
+            holdChanged(run)
+        case .resume:
+            run.peerPaused = false
+            holdChanged(run)
         case .progress:
             // A PROGRESS trailing what was sent is normal, the chunks are still in flight. The same offset twice
             // (the receiver answers every chunk it cannot place), or any short answer to END, means a chunk was
@@ -116,6 +140,29 @@ public final class TransferSender {
         case .saved, .badHash, .rejected, .writeFailed, .cancelled, .busy, .timedOut, .sessionEnded:
             finish(known)
         }
+        return true
+    }
+
+    /// Holds the file after the chunk in flight: the phone is told with PAUSED and nothing more is sent, and the answer
+    /// timeout stops, until `resume`. False when no file is being sent, it is held already, or END has gone (the answer
+    /// is then only waited for).
+    @discardableResult
+    public func pause() -> Bool {
+        guard let run = current, run.phase != .awaitingFinal, !run.paused else { return false }
+        run.paused = true
+        guard emit(.xferStatus(id: run.id, status: XferCode.paused.rawValue, offset: run.at), run) else { return false }
+        holdChanged(run)
+        return true
+    }
+
+    /// Lets go of this end's hold: the phone is told with RESUME, and the file goes on from the offset READY then
+    /// names. While the phone still holds it, it stays held. False when this end does not hold it.
+    @discardableResult
+    public func resume() -> Bool {
+        guard let run = current, run.paused else { return false }
+        run.paused = false
+        guard emit(.xferStatus(id: run.id, status: XferCode.resume.rawValue, offset: run.at), run) else { return false }
+        holdChanged(run)
         return true
     }
 
@@ -176,10 +223,49 @@ public final class TransferSender {
             finish(.rejected)
             return
         }
+        run.started = true
         run.phase = .sending
         run.start = offset
         run.at = offset
         step(run)
+    }
+
+    /// The file started or stopped being held by either end. A hold stops the answer timeout and ticks, and is ended
+    /// after `pauseCap` as CANCELLED without telling the phone, which has the same cap and so keeps its part; a user's
+    /// cancel tells it, as everywhere else. A release waits for READY at the bytes the phone holds.
+    private func holdChanged(_ run: Run) {
+        guard run.held != run.notifiedHeld else { return }
+        run.notifiedHeld = run.held
+        run.holdToken += 1
+        if run.held {
+            generation += 1
+            let token = run.holdToken
+            schedule(TransferLimits.pauseCap) { [weak self] in
+                guard let self, self.current === run, run.holdToken == token else { return }
+                self.finish(.cancelled)
+            }
+        } else {
+            run.epoch += 1
+            if run.started, run.phase != .awaitingFinal {
+                run.phase = .awaitingReady
+                run.resuming = true
+            }
+            armTimeout(run)
+        }
+        pausedChanged?(run.held)
+    }
+
+    /// READY after a hold: on from the bytes the phone holds, back to them when that is less than was sent.
+    private func continueAfterHold(_ run: Run, at offset: UInt64) {
+        generation += 1
+        run.resuming = false
+        if offset < run.at {
+            rewind(run, to: offset)
+        } else {
+            run.lastProgress = nil
+            run.phase = .sending
+            step(run)
+        }
     }
 
     /// Sends again from `offset`: the digest starts over and the bytes before it are hashed from disk, as at a resume.
@@ -211,7 +297,7 @@ public final class TransferSender {
     /// One turn: the rest of the bytes before the start are hashed a few MiB at a time, then one tick's worth of
     /// chunks, then the next turn; XFER_END at the end.
     private func step(_ run: Run) {
-        guard current === run, run.phase == .sending else { return }
+        guard current === run, run.phase == .sending, !run.held else { return }
         var rehashed = 0
         while run.hashed < run.start {
             let count = Int(min(UInt64(64 * 1024), run.start - run.hashed))
@@ -293,6 +379,9 @@ public final class TransferSender {
         guard let run = current else { return }
         current = nil
         generation += 1
+        if run.notifiedHeld {
+            pausedChanged?(false)
+        }
         try? run.file.close()
         run.finished(code)
         next()

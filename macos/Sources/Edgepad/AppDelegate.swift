@@ -824,7 +824,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         switch code {
         case .saved:
             return tr("Xfer_Sent", "Sent %1$@ to the phone", name)
-        case .ready, .progress:
+        case .ready, .progress, .paused, .resume:
             return tr("Xfer_Sending", "Sending %1$@", name)
         case .badHash:
             return tr("Xfer_BadHash", "%1$@ arrived damaged on the phone; send it again", name)
