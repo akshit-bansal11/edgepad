@@ -201,15 +201,6 @@
   <data name="Send_Sent" xml:space="preserve">
     <value>{0} foi enviado ao celular.</value>
   </data>
-  <data name="Send_Cancelled" xml:space="preserve">
-    <value>O envio de {0} foi cancelado.</value>
-  </data>
-  <data name="Send_NotSent" xml:space="preserve">
-    <value>{0} não foi enviado ({1}).</value>
-  </data>
-  <data name="Send_Failed" xml:space="preserve">
-    <value>Não foi possível enviar {0}. O registro tem o motivo.</value>
-  </data>
   <data name="Security_Title" xml:space="preserve">
     <value>Segurança</value>
   </data>
@@ -549,5 +540,71 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   </data>
   <data name="Notice_CodexTrust" xml:space="preserve">
     <value>O Edgepad foi atualizado. No Codex, digite /hooks e confie no Edgepad, ou as aprovações continuarão no terminal em vez de no celular.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>Transferências</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Enviando para {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Recebendo de {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} de {2} · {3}/s</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} de {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/s</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · Pausado</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Pausar</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Retomar</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Parar</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Não recebido: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>Não enviado: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>chegou danificado</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>não pôde ser salvo</value>
+  </data>
+  <data name="Xfer_ReasonRejectedHere" xml:space="preserve">
+    <value>este notebook não conseguiu recebê-lo</value>
+  </data>
+  <data name="Xfer_ReasonRejectedPhone" xml:space="preserve">
+    <value>o celular não conseguiu recebê-lo</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>foi cancelado</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>o celular parou de responder</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>o celular foi desconectado</value>
+  </data>
+  <data name="Xfer_ReasonBusy" xml:space="preserve">
+    <value>o celular estava ocupado com outro arquivo</value>
+  </data>
+  <data name="Xfer_ReasonUnreadable" xml:space="preserve">
+    <value>este notebook não conseguiu lê-lo</value>
+  </data>
+  <data name="Xfer_ReasonNotSent" xml:space="preserve">
+    <value>não foi enviado</value>
   </data>
 </root>

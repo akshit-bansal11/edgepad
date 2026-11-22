@@ -201,15 +201,6 @@
   <data name="Send_Sent" xml:space="preserve">
     <value>{0} をスマホに送信しました。</value>
   </data>
-  <data name="Send_Cancelled" xml:space="preserve">
-    <value>{0} の送信をキャンセルしました。</value>
-  </data>
-  <data name="Send_NotSent" xml:space="preserve">
-    <value>{0} を送信できませんでした({1})。</value>
-  </data>
-  <data name="Send_Failed" xml:space="preserve">
-    <value>{0} を送信できませんでした。理由はログに記録されています。</value>
-  </data>
   <data name="Security_Title" xml:space="preserve">
     <value>セキュリティ</value>
   </data>
@@ -549,5 +540,71 @@
   </data>
   <data name="Notice_CodexTrust" xml:space="preserve">
     <value>Edgepad が更新されました。Codex で /hooks と入力して Edgepad を信頼してください。そうしないと、承認はスマホではなくターミナルに残ります。</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>転送</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>{0} に送信中</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>{0} から受信中</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {2} 件中 {1} · {3}/秒</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {2} 件中 {1}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/秒</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · 一時停止中</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>一時停止</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>再開</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>受信できませんでした: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>送信できませんでした: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>破損した状態で届きました</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>保存できませんでした</value>
+  </data>
+  <data name="Xfer_ReasonRejectedHere" xml:space="preserve">
+    <value>このノートPCでは受け取れませんでした</value>
+  </data>
+  <data name="Xfer_ReasonRejectedPhone" xml:space="preserve">
+    <value>スマホでは受け取れませんでした</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>キャンセルされました</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>スマホが応答しなくなりました</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>スマホの接続が切れました</value>
+  </data>
+  <data name="Xfer_ReasonBusy" xml:space="preserve">
+    <value>スマホが別のファイルを処理中でした</value>
+  </data>
+  <data name="Xfer_ReasonUnreadable" xml:space="preserve">
+    <value>このノートPCでは読み取れませんでした</value>
+  </data>
+  <data name="Xfer_ReasonNotSent" xml:space="preserve">
+    <value>送信されませんでした</value>
   </data>
 </root>

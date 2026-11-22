@@ -201,15 +201,6 @@
   <data name="Send_Sent" xml:space="preserve">
     <value>{0} è stato inviato al telefono.</value>
   </data>
-  <data name="Send_Cancelled" xml:space="preserve">
-    <value>L’invio di {0} è stato annullato.</value>
-  </data>
-  <data name="Send_NotSent" xml:space="preserve">
-    <value>{0} non è stato inviato ({1}).</value>
-  </data>
-  <data name="Send_Failed" xml:space="preserve">
-    <value>Impossibile inviare {0}. Il motivo è nel log.</value>
-  </data>
   <data name="Security_Title" xml:space="preserve">
     <value>Sicurezza</value>
   </data>
@@ -549,5 +540,71 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
   </data>
   <data name="Notice_CodexTrust" xml:space="preserve">
     <value>Edgepad è stato aggiornato. In Codex, digita /hooks e dai fiducia a Edgepad, altrimenti le approvazioni restano nel terminale invece che sul telefono.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>Trasferimenti</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Invio a {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Ricezione da {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} di {2} · {3}/s</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} di {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/s</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · In pausa</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Pausa</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Riprendi</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Interrompi</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Non ricevuto: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>Non inviato: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>è arrivato danneggiato</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>non è stato possibile salvarlo</value>
+  </data>
+  <data name="Xfer_ReasonRejectedHere" xml:space="preserve">
+    <value>questo computer non è riuscito a riceverlo</value>
+  </data>
+  <data name="Xfer_ReasonRejectedPhone" xml:space="preserve">
+    <value>il telefono non è riuscito a riceverlo</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>è stato annullato</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>il telefono ha smesso di rispondere</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>il telefono si è disconnesso</value>
+  </data>
+  <data name="Xfer_ReasonBusy" xml:space="preserve">
+    <value>il telefono era occupato con un altro file</value>
+  </data>
+  <data name="Xfer_ReasonUnreadable" xml:space="preserve">
+    <value>questo computer non è riuscito a leggerlo</value>
+  </data>
+  <data name="Xfer_ReasonNotSent" xml:space="preserve">
+    <value>non è stato inviato</value>
   </data>
 </root>

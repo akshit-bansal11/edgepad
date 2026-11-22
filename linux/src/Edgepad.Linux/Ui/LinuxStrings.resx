@@ -208,15 +208,6 @@
   <data name="Send_Sent" xml:space="preserve">
     <value>Sent {0} to the phone.</value>
   </data>
-  <data name="Send_Cancelled" xml:space="preserve">
-    <value>Sending {0} was cancelled.</value>
-  </data>
-  <data name="Send_NotSent" xml:space="preserve">
-    <value>{0} was not sent ({1}).</value>
-  </data>
-  <data name="Send_Failed" xml:space="preserve">
-    <value>{0} could not be sent. The log has the reason.</value>
-  </data>
   <data name="Security_Title" xml:space="preserve">
     <value>Security</value>
   </data>

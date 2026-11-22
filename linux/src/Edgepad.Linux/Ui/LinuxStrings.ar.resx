@@ -201,15 +201,6 @@
   <data name="Send_Sent" xml:space="preserve">
     <value>تم إرسال {0} إلى الهاتف.</value>
   </data>
-  <data name="Send_Cancelled" xml:space="preserve">
-    <value>أُلغي إرسال {0}.</value>
-  </data>
-  <data name="Send_NotSent" xml:space="preserve">
-    <value>لم يُرسَل {0} ({1}).</value>
-  </data>
-  <data name="Send_Failed" xml:space="preserve">
-    <value>تعذّر إرسال {0}. السبب في السجل.</value>
-  </data>
   <data name="Security_Title" xml:space="preserve">
     <value>الأمان</value>
   </data>
@@ -549,5 +540,71 @@
   </data>
   <data name="Notice_CodexTrust" xml:space="preserve">
     <value>تم تحديث Edgepad. في Codex، اكتب /hooks وامنح Edgepad الثقة، وإلا ستبقى الموافقات في الطرفية بدل الهاتف.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>عمليات النقل</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>جارٍ الإرسال إلى {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>جارٍ الاستلام من {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} من {2} · {3}/ث</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} من {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/ث</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · متوقف مؤقتاً</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>إيقاف مؤقت</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>متابعة</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>إنهاء</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>لم يُستلم: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>لم يُرسل: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>وصل تالفاً</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>تعذّر حفظه</value>
+  </data>
+  <data name="Xfer_ReasonRejectedHere" xml:space="preserve">
+    <value>لم يتمكن هذا الحاسوب من استقباله</value>
+  </data>
+  <data name="Xfer_ReasonRejectedPhone" xml:space="preserve">
+    <value>لم يتمكن الهاتف من استقباله</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>أُلغي</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>توقف الهاتف عن الرد</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>انقطع اتصال الهاتف</value>
+  </data>
+  <data name="Xfer_ReasonBusy" xml:space="preserve">
+    <value>الهاتف مشغول بملف آخر</value>
+  </data>
+  <data name="Xfer_ReasonUnreadable" xml:space="preserve">
+    <value>لم يتمكن هذا الحاسوب من قراءته</value>
+  </data>
+  <data name="Xfer_ReasonNotSent" xml:space="preserve">
+    <value>لم يُرسل</value>
   </data>
 </root>

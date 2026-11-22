@@ -201,15 +201,6 @@
   <data name="Send_Sent" xml:space="preserve">
     <value>已将 {0} 发送到手机。</value>
   </data>
-  <data name="Send_Cancelled" xml:space="preserve">
-    <value>已取消发送 {0}。</value>
-  </data>
-  <data name="Send_NotSent" xml:space="preserve">
-    <value>{0} 未发送（{1}）。</value>
-  </data>
-  <data name="Send_Failed" xml:space="preserve">
-    <value>无法发送 {0}。原因见日志。</value>
-  </data>
   <data name="Security_Title" xml:space="preserve">
     <value>安全</value>
   </data>
@@ -549,5 +540,71 @@
   </data>
   <data name="Notice_CodexTrust" xml:space="preserve">
     <value>Edgepad 已更新。请在 Codex 中输入 /hooks 并信任 Edgepad，否则审批会留在终端里，而不会到达手机。</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>传输</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>正在发送到 {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>正在从 {0} 接收</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} / {2} · {3}/秒</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} / {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/秒</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · 已暂停</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>暂停</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>继续</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>未收到：{0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>未发送：{0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>文件到达时已损坏</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>无法保存</value>
+  </data>
+  <data name="Xfer_ReasonRejectedHere" xml:space="preserve">
+    <value>这台电脑无法接收</value>
+  </data>
+  <data name="Xfer_ReasonRejectedPhone" xml:space="preserve">
+    <value>手机无法接收</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>手机停止响应</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>手机已断开连接</value>
+  </data>
+  <data name="Xfer_ReasonBusy" xml:space="preserve">
+    <value>手机正在处理另一个文件</value>
+  </data>
+  <data name="Xfer_ReasonUnreadable" xml:space="preserve">
+    <value>这台电脑无法读取它</value>
+  </data>
+  <data name="Xfer_ReasonNotSent" xml:space="preserve">
+    <value>未发送</value>
   </data>
 </root>
