@@ -146,6 +146,8 @@ jobs:
       # Never gates: a runner that cannot draw a window fails this step and nothing else.
       - name: Design gallery
         continue-on-error: true
+        # A window that waits for input must fail this step, not hold the whole job to its timeout.
+        timeout-minutes: 5
         env:
           EDGEPAD_GALLERY_OUT: ${{ runner.temp }}\gallery
         run: dotnet test --project windows/tests/Edgepad.Tests -c Release --filter-class "*DesignGallery"
