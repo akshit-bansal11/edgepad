@@ -6,8 +6,7 @@ import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
-import android.view.WindowInsets
-import android.view.WindowInsetsController
+import me.akshitbansal.edgepad.screens.hideBars
 
 /**
  * Debug-only. Renders one named screen with sample state so CI can screenshot it:
@@ -30,10 +29,7 @@ class GalleryActivity : Activity() {
             } else {
                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
-        window.insetsController?.apply {
-            hide(WindowInsets.Type.systemBars())
-            systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
+        window.hideBars()
         val samples = GallerySamples(this)
         val screen = intent.getStringExtra(SCREEN).orEmpty()
         val view: View = samples.build(screen) ?: samples.blank()

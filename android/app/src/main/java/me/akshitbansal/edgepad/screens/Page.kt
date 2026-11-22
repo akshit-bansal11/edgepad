@@ -1042,7 +1042,10 @@ private class NavBar(
  * of its own and brings the bars back unless it hides them too, so every dialog goes through [openOver].
  */
 fun Window.hideBars() {
-    insetsController?.let {
+    // Through decorView, which builds the decor first: a dialog before show() has none yet, and
+    // Window.insetsController then throws instead of returning null. The decor's controller holds
+    // the request until the window is attached.
+    decorView.windowInsetsController?.let {
         it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         it.hide(WindowInsets.Type.systemBars())
     }
