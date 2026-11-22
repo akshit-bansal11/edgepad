@@ -124,10 +124,12 @@ class SessionPill(
     /** Fits the title to the room between the circle and the state, with an ellipsis; done here so drawing does not. */
     private fun shorten() {
         if (width <= 0) return
-        val state = TextUtils.ellipsize(stateLabel, statePaint, SessionRow.stateRoom(width.toFloat()), TextUtils.TruncateAt.END)
+        val stateRoom = SessionRow.stateRoom(width.toFloat())
+        val state = TextUtils.ellipsize(stateLabel, statePaint, stateRoom, TextUtils.TruncateAt.END)
         shownState = state.toString()
         stateWidth = statePaint.measureText(shownState)
-        val room = SessionRow.titleRoom(width.toFloat(), circle.right, (Space.M * 3 + DOT_DP + Space.S) * density, stateWidth)
+        val gaps = (Space.M * 3 + DOT_DP + Space.S) * density
+        val room = SessionRow.titleRoom(width.toFloat(), circle.right, gaps, stateWidth)
         if (room <= 0f) return
         shownTitle = TextUtils.ellipsize(title, titlePaint, room, TextUtils.TruncateAt.END).toString()
     }
