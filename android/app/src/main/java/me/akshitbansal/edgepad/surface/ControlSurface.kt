@@ -32,7 +32,6 @@ import me.akshitbansal.edgepad.drawFitted
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.Output
 import me.akshitbansal.edgepad.link.OutputName
-import me.akshitbansal.edgepad.link.blob.MediaIconStore
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.Frame
@@ -202,14 +201,15 @@ class ControlSurface(
     // Drawn behind the trackpad; none are on until the user switches them on, and a pad that is only a pad has none.
     private val widgets = WidgetPainter(context, settings, ink, accent, !trackpadOnly)
     private val mediaScale = settings.mediaScale
-    private val logo = AppLogo(context, backdrop.isDark)
 
-    // Lucide icons, tinted once: the buttons in the dim ink, skips in ink, play and pause on the accent disc.
-    // The lock button gets a second copy of its own icon in the accent, drawn on a round accent tint whenever
-    // the pad is out of normal. Focus announces itself — the dials and the media are simply gone —
-    // but a locked pad looks exactly like a working one, and a surface that silently swallows every touch
-    // reads as a crash rather than as a mode. Both are tinted here because onDraw may not make a Drawable.
-    private val lockIconOn = icon(R.drawable.ic_lock, accent)
+    // Everything drawn but the fingers, hints and widgets lives in one painter, so the layout editors draw the same.
+    private val surfacePainter =
+        SurfacePainter(context, ink, accent, dim, faint, onAccent, backdrop.isDark, mediaScale, painter)
+
+    // Lucide icons, tinted once: the buttons in the dim ink. The painter holds the lock's accent copy, drawn on a
+    // round accent tint whenever the pad is out of normal. Focus announces itself — the dials and the media are
+    // simply gone — but a locked pad looks exactly like a working one, and a surface that silently swallows every
+    // touch reads as a crash rather than as a mode. Tinted once because onDraw may not make a Drawable.
 
     // AND-A-16: hiding the dials wears its own icon, so the one lock button no longer looks the same in both modes.
     private val focusIconOn = icon(R.drawable.ic_eye_off, accent)
@@ -233,10 +233,6 @@ class ControlSurface(
     private var shownOutput: Output? = null
     private var outputName: String? = null
     private var outputIcon: Drawable? = null
-    private val skipBackIcon = icon(R.drawable.ic_skip_back, ink)
-    private val skipForwardIcon = icon(R.drawable.ic_skip_forward, ink)
-    private val playIcon = icon(R.drawable.ic_play, onAccent)
-    private val pauseIcon = icon(R.drawable.ic_pause, onAccent)
 
     private val muteText = context.getString(R.string.surface_mute)
     private val unknownText = context.getString(R.string.surface_unknown)
@@ -293,6 +289,7 @@ class ControlSurface(
     private val prevHit = RectF()
     private val playHit = RectF()
     private val nextHit = RectF()
+    private val transportRects = FloatArray(PieceGeometry.TRANSPORT_RECTS)
     private var titleLine = ""
     private var subLine = ""
 
@@ -369,23 +366,9 @@ class ControlSurface(
         }
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
 
-    // The play disc casts a soft accent glow downward, the one control on the surface that is lifted.
-    private val playPaint =
-        Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = accent
-            setShadowLayer(media(PLAY_GLOW_DP), 0f, media(PLAY_GLOW_DROP_DP), withAlpha(accent, PLAY_GLOW_ALPHA))
-        }
-    private val titlePaint =
-        TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = Type.bold
-            textSize = sp(TITLE_SP) * mediaScale
-        }
-    private val subPaint =
-        TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = Type.face
-            textSize = sp(Type.MICRO) * mediaScale
-            color = dim
-        }
+    // The now-playing lines are measured and cut here in the very paints the painter draws them with.
+    private val titlePaint = surfacePainter.titlePaint
+    private val subPaint = surfacePainter.subPaint
     private val hintPaint =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = Type.face
@@ -406,8 +389,7 @@ class ControlSurface(
             textSize = sp(Type.SMALL)
             color = accent
         }
-    private val lockTint = withAlpha(accent, LOCK_TINT_ALPHA)
-    private val captionTint = withAlpha(accent, CAPTION_TINT_ALPHA)
+    private val captionTint = SurfacePainter.withAlpha(accent, CAPTION_TINT_ALPHA)
 
     // Low is the theme's red even under a control colour the user chose, so it is never tinted through it.
     private val strip = BatteryStrip(context, ink, accent, dim, palette.danger)
@@ -576,11 +558,10 @@ class ControlSurface(
     ) {
         val touch = dp(Space.TOUCH) / 2
         val (tx, ty) = pieces.getValue(MediaPiece.TRANSPORT)
-        val play = maxOf(media(PLAY_DP) / 2, touch)
-        playHit.set(tx * w - play, ty * h - play, tx * w + play, ty * h + play)
-        val gap = maxOf(media(SKIP_GAP_DP), play + touch)
-        prevHit.set(tx * w - gap - touch, ty * h - touch, tx * w - gap + touch, ty * h + touch)
-        nextHit.set(tx * w + gap - touch, ty * h - touch, tx * w + gap + touch, ty * h + touch)
+        PieceGeometry.transport(w, h, tx, ty, density, mediaScale, Space.TOUCH, transportRects)
+        playHit.set(transportRects[0], transportRects[1], transportRects[2], transportRects[3])
+        prevHit.set(transportRects[4], transportRects[5], transportRects[6], transportRects[7])
+        nextHit.set(transportRects[8], transportRects[9], transportRects[10], transportRects[11])
         layoutNowPlaying(w, h)
         val offset = dp(topButtonOffsetDp(w, h))
         val top = dp(TOP_DP) + topShift
@@ -748,36 +729,41 @@ class ControlSurface(
         // Behind everything else, and gone with the dials when focus hides them.
         if (widgets.active && !dialsHidden) widgets.draw(canvas)
         if (mediaShown()) {
-            drawNowPlaying(canvas)
-            drawTransport(canvas)
+            surfacePainter.drawNowPlaying(
+                canvas,
+                nowPlayingBox,
+                state.app,
+                titleLine,
+                subLine,
+                scrubOnADial,
+                scrubbing,
+                if (scrubbing) scrubFraction else playedFraction(),
+                state.mediaIcons,
+            )
+            surfacePainter.drawTransport(
+                canvas,
+                prevHit,
+                playHit,
+                nextHit,
+                state.flag(ControlId.MEDIA_POSITION),
+                buttonDown,
+            )
         }
         for (button in topButtons) {
             // Both tints were made in the constructor; picking between them here allocates nothing.
             val lit = button === lockButton && locked
-            val cx = button.hit.centerX()
-            val cy = button.hit.centerY()
-            if (button === pressedTop) pressDisc(canvas, cx, cy, dp(LOCK_TINT_DP) / 2)
-            if (lit) {
-                fill.color = lockTint
-                canvas.drawCircle(button.hit.centerX(), button.hit.centerY(), dp(LOCK_TINT_DP) / 2, fill)
-            }
-            drawIcon(
-                canvas,
-                if (lit) lockIconOn else button.icon,
-                button.hit.centerX(),
-                button.hit.centerY(),
-                dp(ICON_DP),
-            )
+            surfacePainter.drawTopButton(canvas, button.hit, button.icon, button === pressedTop, lit)
         }
-        strip.draw(canvas)
-        if (pressedStrip) {
-            val radius = strip.hit.height() / 2
-            fill.color = faint
-            canvas.drawRoundRect(strip.hit, radius, radius, fill)
-        }
+        surfacePainter.drawBatteryStrip(canvas, strip, pressedStrip)
         // AND-A-16: the eye-off mark sits under the lock button for as long as the dials are hidden.
         if (dialsHidden && !trackpadOnly) {
-            drawIcon(canvas, focusIconOn, lockButton.hit.centerX(), lockButton.hit.bottom + dp(Space.M), dp(EYE_DP))
+            surfacePainter.drawIcon(
+                canvas,
+                focusIconOn,
+                lockButton.hit.centerX(),
+                lockButton.hit.bottom + dp(Space.M),
+                dp(EYE_DP),
+            )
         }
         if (showHints) drawHints(canvas)
         // Non-modal and drawn from a layout made when the laptop's word arrived, so the frame allocates nothing.
@@ -853,50 +839,6 @@ class ControlSurface(
     private fun trailX(back: Int): Float = trail[((trailHead - back + TRAIL) % TRAIL) * 2]
 
     private fun trailY(back: Int): Float = trail[((trailHead - back + TRAIL) % TRAIL) * 2 + 1]
-
-    private fun drawNowPlaying(canvas: Canvas) {
-        val box = nowPlayingBox
-        val size = media(LOGO_DP)
-        val cx = box.left + size / 2
-        val cy = box.centerY() - (if (scrubOnADial) 0f else dp(PROGRESS_BELOW_DP) / 2)
-        if (state.app.isEmpty()) {
-            stroke.color = faint
-            val corner = size * LOGO_ROUNDING
-            canvas.drawRoundRect(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2, corner, corner, stroke)
-        } else {
-            logo.draw(
-                canvas,
-                state.app,
-                cx,
-                cy,
-                size,
-                ink,
-                state.mediaIcons.get(state.app),
-                state.mediaIcons.get(MediaIconStore.ARTWORK),
-            )
-        }
-        val textX = box.left + size + dp(Space.M)
-        canvas.drawText(titleLine, textX, cy - dp(Space.XS), titlePaint)
-        canvas.drawText(subLine, textX, cy + subPaint.textSize + dp(Space.S), subPaint)
-        // The progress line only when no dial scrubs; then it can be slid itself.
-        if (scrubOnADial) return
-        val progressY = box.bottom
-        stroke.color = faint
-        stroke.strokeWidth = dp(PROGRESS_STROKE_DP)
-        canvas.drawLine(box.left, progressY, box.right, progressY, stroke)
-        // What has played is live, so it takes the accent, as a level dial's held notches do.
-        stroke.color = accent
-        val fraction = if (scrubbing) scrubFraction else playedFraction()
-        canvas.drawLine(box.left, progressY, box.left + box.width() * fraction, progressY, stroke)
-        stroke.strokeWidth = dp(Space.HAIR)
-        fill.color = accent
-        canvas.drawCircle(
-            box.left + box.width() * fraction,
-            progressY,
-            dp(if (scrubbing) THUMB_HELD_DP else THUMB_DP) / 2,
-            fill,
-        )
-    }
 
     /**
      * The media pieces exist only while the laptop has a player open; otherwise their room is trackpad.
@@ -1013,44 +955,6 @@ class ControlSurface(
         captionHalfWidth = captionPaint.measureText(captionLine) / 2 + dp(CAPTION_PAD_X_DP)
     }
 
-    private fun drawTransport(canvas: Canvas) {
-        val skipRadius = dp(Space.TOUCH) / 2
-        if (buttonDown == ActionId.PREVIOUS_TRACK) pressDisc(canvas, prevHit.centerX(), prevHit.centerY(), skipRadius)
-        if (buttonDown == ActionId.NEXT_TRACK) pressDisc(canvas, nextHit.centerX(), nextHit.centerY(), skipRadius)
-        drawIcon(canvas, skipBackIcon, prevHit.centerX(), prevHit.centerY(), media(SKIP_DP))
-        drawIcon(canvas, skipForwardIcon, nextHit.centerX(), nextHit.centerY(), media(SKIP_DP))
-        val cx = playHit.centerX()
-        val cy = playHit.centerY()
-        canvas.drawCircle(cx, cy, media(PLAY_DP) / 2, playPaint)
-        if (buttonDown == ActionId.PLAY_PAUSE) pressDisc(canvas, cx, cy, media(PLAY_DP) / 2)
-        // On the accent disc in its own on-accent colour: a pause while playing, else a play.
-        val glyph = if (state.flag(ControlId.MEDIA_POSITION)) pauseIcon else playIcon
-        drawIcon(canvas, glyph, cx, cy, media(PLAY_ICON_DP))
-    }
-
-    /** The pressed state of a button: a fill step drawn while the finger is down, no animation (UX-28). */
-    private fun pressDisc(
-        canvas: Canvas,
-        cx: Float,
-        cy: Float,
-        radius: Float,
-    ) {
-        fill.color = faint
-        canvas.drawCircle(cx, cy, radius, fill)
-    }
-
-    private fun drawIcon(
-        canvas: Canvas,
-        icon: Drawable,
-        cx: Float,
-        cy: Float,
-        size: Float,
-    ) {
-        val half = (size / 2).toInt()
-        icon.setBounds(cx.toInt() - half, cy.toInt() - half, cx.toInt() + half, cy.toInt() + half)
-        icon.draw(canvas)
-    }
-
     private fun icon(
         id: Int,
         color: Int,
@@ -1061,22 +965,16 @@ class ControlSurface(
         i: Int,
     ) {
         val dial = dials[i]
-        painter.draw(
+        surfacePainter.drawDial(
             canvas,
             perimeter,
+            dial,
             centres[i],
             after[i],
             before[i],
-            dial.rulerDp,
-            if (dial.control != null) dial.rulerLengthDp else null,
-            dial.armed,
-            ink,
-            accent,
-            dim,
-            dial.label,
             valueText(dial),
             pt,
-            if (dial.kind == DialKind.VOLUME) outputName else null,
+            outputName,
             outputIcon,
         )
     }
@@ -1677,12 +1575,6 @@ class ControlSurface(
 
     private fun dp(value: Float): Float = value * density
 
-    /** [color] with its alpha replaced by [fraction] of opaque. */
-    private fun withAlpha(
-        color: Int,
-        fraction: Float,
-    ): Int = color and RGB_MASK or ((fraction * MAX_ALPHA).roundToInt() shl ALPHA_SHIFT)
-
     /** A media piece's dp, at the user's media size. */
     private fun media(value: Float): Float = value * density * mediaScale
 
@@ -1715,7 +1607,6 @@ class ControlSurface(
                 RoundedCorner.POSITION_BOTTOM_LEFT,
             )
         private const val RGB_MASK = 0x00FFFFFF
-        private const val MAX_ALPHA = 255
 
         /**
          * The dark and light themes' accents, and the dark one's colour on it. The palette holds only the theme
@@ -1725,17 +1616,11 @@ class ControlSurface(
         private const val LIGHT_ACCENT = 0xFF0068D6.toInt()
         private const val DARK_ON_ACCENT = 0xFF0B1A2E.toInt()
 
-        /** The lit lock's round tint, and the caption pill's fill and padding. */
-        private const val LOCK_TINT_DP = 44f
-        private const val LOCK_TINT_ALPHA = 0.16f
+        /** The caption pill's fill and padding. */
         private const val CAPTION_TINT_ALPHA = 0.14f
         private const val CAPTION_PAD_X_DP = 14f
         private const val CAPTION_PAD_Y_DP = 7f
 
-        /** The play disc's glow: how soft, how far down it falls, and how strong. */
-        private const val PLAY_GLOW_DP = 14f
-        private const val PLAY_GLOW_DROP_DP = 6f
-        private const val PLAY_GLOW_ALPHA = 0.35f
         private const val DIM_ALPHA = 0x8C000000.toInt()
         private const val FAINT_ALPHA = 0x40000000
         private const val CORNER_HIT_DP = 96f
@@ -1744,20 +1629,9 @@ class ControlSurface(
         /** Corners 0 and 1 are the top two, where the hit zone may reach further down the screen. */
         private const val FIRST_BOTTOM_CORNER = 2
 
-        private const val ICON_DP = 24f
         private const val EYE_DP = 16f
-        private const val SKIP_DP = 24f
-        private const val PLAY_ICON_DP = 24f
         private const val HIT_SLACK_DP = 12f
         private const val SAMPLE_DP = 8f
-        private const val TITLE_SP = 15f
-
-        /** An empty logo slot's corners, as a fraction of its size: an app icon's rounding. */
-        private const val LOGO_ROUNDING = 0.22f
-        private const val PROGRESS_BELOW_DP = 16f
-        private const val PROGRESS_STROKE_DP = 2f
-        private const val THUMB_DP = 8f
-        private const val THUMB_HELD_DP = 14f
         private const val HINT_GAP_DP = 16f
 
         /**
