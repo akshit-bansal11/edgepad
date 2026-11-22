@@ -117,6 +117,7 @@ public final class DashboardParts {
 public final class IntegrationHost {
     public static let widgetsBit = StatsReporter.widgetsBit
     public static let screenBit = StatsReporter.screenBit
+    public static let netBit = StatsReporter.netBit
     public static let weatherBit = 4
     public static let aiBit = CodexWatcher.aiBit
     public static let gitHubBit = 16
@@ -127,6 +128,8 @@ public final class IntegrationHost {
     private let settings: IntegrationSettings
     private let parts: DashboardParts
     private let stats: StatsSource?
+    private let net: NetInfoSource?
+    private let speed: SpeedTest
     private let clock: () -> Date
     private let onMain: (@escaping () -> Void) -> Void
     private let startTimer: (@escaping () -> Void, TimeInterval) -> Stoppable
@@ -156,6 +159,9 @@ public final class IntegrationHost {
     ///   - onMain: Runs work on the session's queue, the main one. Tests run it inline.
     ///   - startTimer: Runs the action now and then every interval on another queue until stopped. Tests pass their own,
     ///     which the stats reporter then uses too.
+    ///   - net: The Mac's connection facts, when this build has them; with it the phone gets NET_INFO and may run a
+    ///     speed test.
+    ///   - speedTest: The speed test runner; tests pass one with a fake transport.
     public init(
         send: @escaping (Frame) -> Void,
         blobs: BlobSender?,
@@ -165,9 +171,13 @@ public final class IntegrationHost {
         clock: @escaping () -> Date = Date.init,
         onMain: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) },
         startTimer: ((@escaping () -> Void, TimeInterval) -> Stoppable)? = nil,
-        weatherRetryAfter: TimeInterval = WeatherClient.retryAfter
+        weatherRetryAfter: TimeInterval = WeatherClient.retryAfter,
+        net: NetInfoSource? = nil,
+        speedTest: SpeedTest? = nil
     ) {
         self.weatherRetryAfter = weatherRetryAfter
+        self.net = net
+        speed = speedTest ?? SpeedTest()
         self.send = send
         self.blobs = blobs
         self.settings = settings
@@ -216,6 +226,9 @@ public final class IntegrationHost {
         var features: [String] = []
         if settings.flag(IntegrationSettings.stats) && stats != nil {
             features.append(Feature.stats.rawValue)
+            if net != nil {
+                features.append(Feature.netinfo.rawValue)
+            }
         }
         if weatherOn && WeatherClient.cityFrom(settings.text(IntegrationSettings.city)) != nil {
             features.append(Feature.weather.rawValue)
@@ -255,7 +268,24 @@ public final class IntegrationHost {
         parts.broker?.answer(wire) ?? false
     }
 
-    /// The phone's DASH_WATCH, 0..31 (the Dispatcher drops anything larger).
+    /// The phone's SPEED_TEST: true starts one speed test (ignored while one runs, and when this Mac does not name
+    /// `Feature.netinfo`), false cancels the running one. The result is pushed as TEXT SPEED_RESULT. Never blocks the
+    /// caller.
+    public func onSpeedTest(_ start: Bool) {
+        gate.lock()
+        let live = !disposed
+        gate.unlock()
+        guard live else { return }
+        if !start {
+            speed.cancel()
+        } else if net != nil, stats != nil, settings.flag(IntegrationSettings.stats) {
+            speed.start { [weak self] result in
+                self?.push(.text(kind: TextKind.speedResult.rawValue, value: SpeedWire.encode(result)))
+            }
+        }
+    }
+
+    /// The phone's DASH_WATCH, 0..63 (the Dispatcher drops anything larger).
     public func onWatch(_ mask: Int) {
         gate.lock()
         guard !disposed else {
@@ -266,11 +296,12 @@ public final class IntegrationHost {
         watch = mask
         let aiGained = before & Self.aiBit == 0 && mask & Self.aiBit != 0
         let gitHubGained = before & Self.gitHubBit == 0 && mask & Self.gitHubBit != 0
-        if mask & (Self.widgetsBit | Self.screenBit) != 0, reporter == nil, let stats,
+        let netGained = before & Self.netBit == 0 && mask & Self.netBit != 0
+        if mask & (Self.widgetsBit | Self.screenBit | Self.netBit) != 0, reporter == nil, let stats,
             settings.flag(IntegrationSettings.stats)
         {
             reporter = StatsReporter(
-                source: stats, send: { [weak self] frame in self?.push(frame) }, startTimer: reporterTimer)
+                source: stats, send: { [weak self] frame in self?.push(frame) }, startTimer: reporterTimer, net: net)
         }
         let statsReporter = reporter
         if mask & Self.weatherBit == 0 {
@@ -297,6 +328,9 @@ public final class IntegrationHost {
         }
         if gitHubGained && gitHubOn && !(parts.gitHub?.lines.isEmpty ?? true) {
             sendGitHub(force: true)
+        }
+        if netGained, let last = speed.last {
+            push(.text(kind: TextKind.speedResult.rawValue, value: SpeedWire.encode(last)))
         }
     }
 
@@ -340,6 +374,7 @@ public final class IntegrationHost {
         disposed = true
         let statsReporter = reporter
         reporter = nil
+        speed.dispose()
         weatherTimer?.stop()
         weatherTimer = nil
         gitHubTimer?.stop()
@@ -564,6 +599,11 @@ public final class DashboardLink {
     public func onWatch(_ mask: Int) {
         watch = mask
         host.onWatch(mask)
+    }
+
+    /// The phone's SPEED_TEST.
+    public func onSpeedTest(_ start: Bool) {
+        host.onSpeedTest(start)
     }
 
     /// The phone's PERM_ANSWER.

@@ -325,10 +325,11 @@ final class DashboardHostTests: XCTestCase {
             return wire.hasSuffix("/a")
         }
         dispatcher.handle(.setValue(control: ControlId.dashWatch.rawValue, value: 31))
-        dispatcher.handle(.setValue(control: ControlId.dashWatch.rawValue, value: 32))
+        dispatcher.handle(.setValue(control: ControlId.dashWatch.rawValue, value: 63))
+        dispatcher.handle(.setValue(control: ControlId.dashWatch.rawValue, value: 64))
         dispatcher.handle(.text(kind: TextKind.permAnswer.rawValue, value: "0123456789ab/a"))
         dispatcher.handle(.text(kind: TextKind.permAnswer.rawValue, value: "0123456789ab/d"))
-        XCTAssertEqual(masks, [31])
+        XCTAssertEqual(masks, [31, 63])
         XCTAssertEqual(wires, ["0123456789ab/a", "0123456789ab/d"])
         XCTAssertEqual(dispatcher.dropped, 4)
     }

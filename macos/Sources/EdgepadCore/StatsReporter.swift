@@ -105,8 +105,10 @@ public final class LossMeter {
     }
 }
 
-/// Sends the phone the Mac's numbers, and only while the phone draws them. `setWatch` takes DASH_WATCH: bit 0 (widgets)
-/// or bit 1 (System screen) starts a one-second timer, a mask with neither stops it, and with the timer stopped nothing
+/// Sends the phone the Mac's numbers, and only while the phone draws them. `setWatch` takes DASH_WATCH: bit 5 (the
+/// Network page) also sends NET_INFO, read each tick and sent only when it changed, when there is a `NetInfoSource`.
+/// Bit 0 (widgets) or bit 1 (System screen) starts a one-second timer, a mask with none of bits 0, 1 and 5 stops it,
+/// and with the timer stopped nothing
 /// is read, pinged or sent. Ping runs every third tick on a queue of its own (never two at once, so a stuck one never
 /// blocks a tick), disks every tenth and only for bit 1, names every thirtieth. A text identical to the last one sent
 /// is not sent again. An unreadable source publishes unknowns and is logged once. The twin of the laptop core's
@@ -114,12 +116,14 @@ public final class LossMeter {
 public final class StatsReporter {
     public static let widgetsBit = 1
     public static let screenBit = 2
+    public static let netBit = 32
 
     private static let pingEvery = 3
     private static let disksEvery = 10
     private static let infoEvery = 30
 
     private let source: StatsSource
+    private let net: NetInfoSource?
     private let send: (Frame) -> Void
     private let startTimer: (@escaping () -> Void) -> Stoppable
     private let runPing: (@escaping () -> Void) -> Void
@@ -141,8 +145,10 @@ public final class StatsReporter {
     private var lastStats: String?
     private var lastInfo: String?
     private var lastDisks: String?
+    private var lastNet: String?
 
     /// - Parameters:
+    ///   - net: The Mac's connection facts, when it has them; read only while bit 5 is set.
     ///   - startTimer: Runs the action every second until stopped, on another queue, never inline. Tests pass their
     ///     own.
     ///   - runPing: Runs the blocking ping off the timer's queue.
@@ -152,9 +158,11 @@ public final class StatsReporter {
         send: @escaping (Frame) -> Void,
         startTimer: ((@escaping () -> Void) -> Stoppable)? = nil,
         runPing: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.global(qos: .utility).async(execute: $0) },
-        runDisks: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.global(qos: .utility).async(execute: $0) }
+        runDisks: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.global(qos: .utility).async(execute: $0) },
+        net: NetInfoSource? = nil
     ) {
         self.source = source
+        self.net = net
         self.send = send
         let queue = DispatchQueue(label: "edgepad.stats", qos: .utility)
         self.startTimer = startTimer ?? { Stoppable.repeating(every: 1, on: queue, $0) }
@@ -169,12 +177,12 @@ public final class StatsReporter {
         return timer != nil
     }
 
-    /// Applies the phone's DASH_WATCH. Anything outside 0..31 is the caller's to drop; only bits 0 and 1 matter here.
+    /// Applies the phone's DASH_WATCH. Anything outside 0..63 is the caller's to drop; only bits 0, 1 and 5 matter here.
     public func setWatch(_ watch: Int) {
         gate.lock()
         defer { gate.unlock() }
         guard !disposed else { return }
-        let wanted = watch & (Self.widgetsBit | Self.screenBit)
+        let wanted = watch & (Self.widgetsBit | Self.screenBit | Self.netBit)
         let before = mask
         mask = wanted
         if wanted == 0 {
@@ -184,11 +192,16 @@ public final class StatsReporter {
         if timer == nil {
             generation += 1
             (pingIn, disksIn, infoIn) = (0, 0, 0)
-            (lastStats, lastInfo, lastDisks) = (nil, nil, nil)
+            (lastStats, lastInfo, lastDisks, lastNet) = (nil, nil, nil, nil)
             timer = startTimer { [weak self] in self?.tick() }
-        } else if before & Self.screenBit == 0 && wanted & Self.screenBit != 0 {
-            disksIn = 0
-            lastDisks = nil
+        } else {
+            if before & Self.screenBit == 0 && wanted & Self.screenBit != 0 {
+                disksIn = 0
+                lastDisks = nil
+            }
+            if before & Self.netBit == 0 && wanted & Self.netBit != 0 {
+                lastNet = nil  // a phone that just opened the page has none yet
+            }
         }
     }
 
@@ -226,11 +239,15 @@ public final class StatsReporter {
                 disksRunning = disksRunning || disksDue
             }
         }
+        let netSource = mask & Self.netBit != 0 ? net : nil
         gate.unlock()
 
         // Readings happen outside the lock, so a slow source never blocks setWatch, dispose or a ping result.
         let stats = readStats(ping: ping, loss: lost)
         let info = infoDue ? guarded({ try source.readInfo() }) : nil
+        let netText = netSource.map { source in
+            NetInfoWire.encode(guarded({ try source.read() }) ?? NetInfo.unknown)
+        }
         if disksDue {
             readDisksAway(generation: mine)
         }
@@ -242,6 +259,9 @@ public final class StatsReporter {
         sendIfChanged(.stats, stats, &lastStats)
         if let info {
             sendIfChanged(.statsInfo, DashWire.encodeStatsInfo(info), &lastInfo)
+        }
+        if let netText {
+            sendIfChanged(.netInfo, netText, &lastNet)
         }
     }
 

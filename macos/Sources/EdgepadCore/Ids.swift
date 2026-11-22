@@ -223,6 +223,26 @@ public enum Feature: String, CaseIterable {
     case gitee = "gitee"
 }
 
+/// The first field of a `TextKind.netInfo`: a token the phone matches on, never prose. The raw value is literally the
+/// bytes that cross the wire.
+public enum NetKind: String, CaseIterable {
+    case wifi = "wifi"
+    case ethernet = "ethernet"
+    case cellular = "cellular"
+    case other = "other"
+    case none = "none"
+}
+
+/// The first field of a `TextKind.speedResult`: a token the phone matches on, never prose. The raw value is literally
+/// the bytes that cross the wire.
+public enum SpeedState: String, CaseIterable {
+    case running = "running"
+    case done = "done"
+    case failed = "failed"
+    case cancelled = "cancelled"
+    case capped = "capped"
+}
+
 /// The whole vocabulary of `TextKind.padStatus`: a token the phone matches on, never prose, so the wording
 /// of the app stays changeable. The raw value is literally the bytes that cross the wire.
 public enum PadStatus: String, CaseIterable {

@@ -319,6 +319,7 @@ public final class Session {
         dispatcher.apps?.end()
         dispatcher.appAddReply = nil
         dispatcher.dashWatch = nil
+        dispatcher.speedTest = nil
         dispatcher.permAnswer = nil
         // Stops counting this phone before its host goes, so an approval waiting on it goes back to the agent.
         dashboard?.dispose()
@@ -649,6 +650,7 @@ public final class Session {
             dashboard = link
             features += link.features()
             dispatcher.dashWatch = { [weak link] mask in link?.onWatch(mask) }
+            dispatcher.speedTest = { [weak link] start in link?.onSpeedTest(start) }
             dispatcher.developer = setDeveloper
             dispatcher.permAnswer = { [weak link] wire in link?.answer(wire) ?? false }
         }

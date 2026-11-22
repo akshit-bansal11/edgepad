@@ -86,7 +86,11 @@ public final class Dispatcher {
     /// XFER_STATUS is dropped and counted.
     public var sending: TransferSender?
 
-    /// Told the phone's DASH_WATCH, 0 to 31. Set by the session once it names a dashboard feature; without one, or for
+    /// Told the phone's SPEED_TEST, true to start one test and false to cancel the running one. Set by the session;
+    /// without one, or for a larger value, SPEED_TEST is dropped and counted.
+    public var speedTest: ((Bool) -> Void)?
+
+    /// Told the phone's DASH_WATCH, 0 to 63. Set by the session once it names a dashboard feature; without one, or for
     /// a larger value, DASH_WATCH is dropped and counted.
     public var dashWatch: ((Int) -> Void)?
 
@@ -409,8 +413,8 @@ public final class Dispatcher {
             foregroundWatch(value == 1)
             return true
         case .dashWatch:
-            // A bit mask of what the phone draws; anything over 31 is dropped and counted.
-            guard let dashWatch, value <= 31 else { return false }
+            // A bit mask of what the phone draws; anything over 63 is dropped and counted.
+            guard let dashWatch, value <= 63 else { return false }
             dashWatch(value)
             return true
         case .developer:
@@ -418,8 +422,9 @@ public final class Dispatcher {
             developer(value == 1)
             return true
         case .speedTest:
-            // Not handled on this port yet (step C10 wires it); dropped and counted, as a laptop with no source does.
-            return false
+            guard let speedTest, value <= 1 else { return false }
+            speedTest(value == 1)
+            return true
         }
     }
 }

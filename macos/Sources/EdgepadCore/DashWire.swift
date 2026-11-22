@@ -606,3 +606,73 @@ public enum GitHubBlob {
         return (1...maxRepoPart).contains(scalars.count) && scalars.allSatisfy(PermAskBody.isToolChar)
     }
 }
+
+/// TEXT NET_INFO: how this Mac is connected. `kind` is a `NetKind` token, `band` is "2.4", "5", "6" or "?", the numbers
+/// are -1 when unknown, the addresses are IPv4 text or empty. There is deliberately no field for a network name, and
+/// never one for a hardware address. The twin of the laptop core's NetInfo.
+public struct NetInfo: Equatable {
+    public let kind: String
+    public let band: String
+    public let linkMbps: Int
+    public let signalPct: Int
+    public let localIp: String
+    public let gateway: String
+
+    public init(kind: String, band: String, linkMbps: Int, signalPct: Int, localIp: String, gateway: String) {
+        self.kind = kind
+        self.band = band
+        self.linkMbps = linkMbps
+        self.signalPct = signalPct
+        self.localIp = localIp
+        self.gateway = gateway
+    }
+
+    /// Nothing known; what a source that threw publishes.
+    public static let unknown = NetInfo(
+        kind: NetKind.none.rawValue, band: "?", linkMbps: -1, signalPct: -1, localIp: "", gateway: "")
+}
+
+/// Where the Mac's connection facts come from: the app's `MacNetInfo`. May throw; the reporter then publishes
+/// `NetInfo.unknown`. The twin of the laptop core's INetInfoSource.
+public protocol NetInfoSource: AnyObject {
+    /// The connection as it is now. Called about once a second on a worker while the phone shows the Network page, so
+    /// it must be cheap.
+    func read() throws -> NetInfo
+}
+
+/// The text of `TextKind.netInfo`.
+public enum NetInfoWire {
+    private static let maxIp = 15
+
+    public static func encode(_ info: NetInfo) -> String {
+        [
+            NetKind(rawValue: info.kind)?.rawValue ?? NetKind.other.rawValue,
+            ["2.4", "5", "6"].contains(info.band) ? info.band : "?",
+            number(info.linkMbps),
+            number(min(info.signalPct, 100)),
+            DashWire.clean(info.localIp, maxIp),
+            DashWire.clean(info.gateway, maxIp),
+        ].joined(separator: "|")
+    }
+
+    /// The record for a text, or nil when it is not six fields with a known kind and numbers. For tests; the phone has
+    /// its own parser.
+    public static func parse(_ text: String) -> NetInfo? {
+        let f = text.split(separator: "|", omittingEmptySubsequences: false).map(String.init)
+        guard f.count == 6, NetKind(rawValue: f[0]) != nil, ["2.4", "5", "6", "?"].contains(f[1]),
+            let link = Int(f[2]), let signal = Int(f[3])
+        else { return nil }
+        return NetInfo(kind: f[0], band: f[1], linkMbps: link, signalPct: signal, localIp: f[4], gateway: f[5])
+    }
+
+    /// 0..100 from a Wi-Fi RSSI in dBm: -50 or better is 100, -100 or worse is 0; 0 (not associated) and anything
+    /// positive is unknown.
+    public static func signalPercent(rssi: Int) -> Int {
+        guard rssi < 0 else { return -1 }
+        return max(0, min(100, 2 * (rssi + 100)))
+    }
+
+    private static func number(_ value: Int) -> String {
+        String(value < 0 ? -1 : value)
+    }
+}

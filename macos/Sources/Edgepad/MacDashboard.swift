@@ -28,6 +28,7 @@ final class MacDashboard {
     private var weather: WeatherClient?
     private var gitHub: GitHubApi?
     private var stats: MacStats?
+    private lazy var net = MacNetInfo()
     private var parts = DashboardParts()
     private var window: IntegrationsWindow?
     private var windowIsDeveloper = false
@@ -79,7 +80,8 @@ final class MacDashboard {
             phones: phones,
             makeHost: { [unowned self] in
                 IntegrationHost(
-                    send: send, blobs: blobs, settings: self.settings, parts: self.parts, stats: self.stats)
+                    send: send, blobs: blobs, settings: self.settings, parts: self.parts, stats: self.stats,
+                    net: self.stats == nil ? nil : self.net)
             },
             unsupported: { [weak self] in self?.unsupported() ?? [] })
     }
