@@ -430,7 +430,7 @@ public final class ClaudeSpend {
             guard (1...SessionBoard.maxIdLength).contains(id.utf16.count),
                 let last = Self.lastRecord(file.path)
             else { continue }
-            let busy = last.unfinished && now.timeIntervalSince(file.mtime) <= seedBusy
+            let busy = last.unfinished && now.timeIntervalSince(file.mtime) <= Self.seedBusy
             let state = busy ? SessionStateToken.busy : SessionStateToken.idle
             found.append(
                 SeedSession(
