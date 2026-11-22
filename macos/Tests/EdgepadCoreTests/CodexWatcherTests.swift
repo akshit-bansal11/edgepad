@@ -194,8 +194,18 @@ final class CodexWatcherTests: XCTestCase {
         XCTAssertEqual(sessions.snapshot().map(\.state), [SessionStateToken.idle.rawValue])
     }
 
-    func testAFileOlderThanTenMinutesNeverStartsASession() throws {
-        try today("rollout-a.jsonl", working, age: 30 * minutes)
+    func testAFileFiveMinutesOldIsBusyAndFiveHoursOldIsIdle() throws {
+        try today("rollout-a.jsonl", working, age: 5 * minutes)
+        try today("rollout-b.jsonl", working, age: 5 * hours)
+
+        watcher.poll()
+
+        let states = sessions.snapshot().map(\.state).sorted()
+        XCTAssertEqual(states, [SessionStateToken.busy.rawValue, SessionStateToken.idle.rawValue].sorted())
+    }
+
+    func testAFileOlderThanSixHoursNeverStartsASession() throws {
+        try today("rollout-a.jsonl", working, age: 7 * hours)
 
         watcher.poll()
 
@@ -203,15 +213,15 @@ final class CodexWatcherTests: XCTestCase {
         XCTAssertTrue(openedNow.isEmpty)
     }
 
-    func testAtMostFourFilesAreLookedAt() throws {
-        for i in 0..<7 {
+    func testAtMostEightFilesAreLookedAt() throws {
+        for i in 0..<11 {
             try today("rollout-\(i).jsonl", working, age: Double(1 + i) * minutes)
         }
 
         watcher.poll()
 
-        XCTAssertEqual(sessions.snapshot().count, 4)
-        XCTAssertEqual(openedNow.count, 4)
+        XCTAssertEqual(sessions.snapshot().count, 8)
+        XCTAssertEqual(openedNow.count, 8)
     }
 
     func testYesterdaysFolderIsLookedAtToo() throws {

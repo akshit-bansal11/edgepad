@@ -6,10 +6,10 @@ import Foundation
 /// Codex folder, regular files only, never `auth.json`, the databases or the config, and nothing from a rollout leaves
 /// this class except a state, percentages, token counts and the last folder name of a working directory.
 ///
-/// Every 5 seconds it looks at the files of today and yesterday that changed in the last 10 minutes (at most 4) and
-/// tells the `SessionBoard` busy or idle. While the phone draws the AI widget or screen (DASH_WATCH bit 3) it also
-/// refreshes the limits and the spend once a minute; spend is cached per file by size and modification time, so an
-/// unchanged month costs stats only. The twin of the laptop core's CodexWatcher.
+/// Every 5 seconds it looks at the files of today and yesterday that changed in the last 6 hours (at most 8) and
+/// tells the `SessionBoard` busy (written in the last 10 minutes, task open) or idle. While the phone draws the AI
+/// widget or screen (DASH_WATCH bit 3) it also refreshes the limits and the spend once a minute; spend is cached per
+/// file by size and modification time, so an unchanged month costs stats only. The twin of the laptop core's CodexWatcher.
 public final class CodexWatcher {
     public static let aiBit = 8
     public static let every: TimeInterval = 5
@@ -18,7 +18,7 @@ public final class CodexWatcher {
 
     private static let usageEvery = 12
     private static let recentWrite: TimeInterval = 30
-    private static let maxFiles = 4
+    private static let maxFiles = SessionBoard.capacity
     private static let limitFiles = 5
     private static let maxTails = 32
     private static let cacheVersion = 1
@@ -181,20 +181,28 @@ public final class CodexWatcher {
         let now = clock()
         let today = Self.calendar.startOfDay(for: now)
         let recent = (rollouts(dayDir(today)) + rollouts(dayDir(Self.addDays(today, -1))))
-            .filter { now.timeIntervalSince($0.mtime) <= Self.fresh }
+            .filter { now.timeIntervalSince($0.mtime) <= SessionBoard.expiry }
             .sorted { $0.mtime > $1.mtime }
             .prefix(Self.maxFiles)
         var seen = Set<String>()
         for file in recent {
             seen.insert(file.path)
+            let stale = now.timeIntervalSince(file.mtime) > Self.fresh
             if let before = tracked[file.path], before.size == file.size, before.stamp == file.stamp {
+                // Untouched for ten minutes: whatever it said last, it is not working now.
+                if stale && before.state == SessionStateToken.busy.rawValue {
+                    sessions.apply(
+                        HookEvent(agent: AgentToken.codex.rawValue, sessionId: before.id, event: .stop, cwd: ""))
+                    tracked[file.path] = Tracked(
+                        size: before.size, stamp: before.stamp, state: SessionStateToken.idle.rawValue, id: before.id)
+                }
                 continue
             }
             guard let tail = tailOf(file) else { continue }
             let id = (file.name as NSString).deletingPathExtension
             // No marker in the tail: keep what was known; a file written in the last 30 s is working; otherwise
             // nothing is known, and idle is never assumed.
-            let known: String
+            var known: String
             if let state = tail.state {
                 known = state
             } else if let before = tracked[file.path] {
@@ -203,6 +211,9 @@ public final class CodexWatcher {
                 known = SessionStateToken.busy.rawValue
             } else {
                 continue
+            }
+            if stale && known == SessionStateToken.busy.rawValue {
+                known = SessionStateToken.idle.rawValue
             }
             let event: SessionEvent = known == SessionStateToken.busy.rawValue ? .prompt : .stop
             // Measured when the file was written, not when it was looked at.

@@ -216,6 +216,9 @@ public final class IntegrationHost {
     public func start() {
         parts.codex?.evaluate()
         parts.claude?.evaluate()
+        if settings.active(IntegrationSettings.claude), let board = parts.sessions, let claude = parts.claude {
+            board.seed(claude.listSessions())
+        }
         if agentsOn && parts.sessions != nil {
             sessionsChanged()
         }

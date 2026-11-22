@@ -51,6 +51,23 @@ public struct HookEvent: Equatable {
     }
 }
 
+/// A session found on disk before any hook spoke of it: its id, state token, folder and when its file was last written.
+public struct SeedSession: Equatable {
+    public let agent: String
+    public let sessionId: String
+    public let state: String
+    public let cwd: String
+    public let touched: Date
+
+    public init(agent: String, sessionId: String, state: String, cwd: String, touched: Date) {
+        self.agent = agent
+        self.sessionId = sessionId
+        self.state = state
+        self.cwd = cwd
+        self.touched = touched
+    }
+}
+
 /// Which agent sessions exist and what each is doing, newest first, for TEXT SESSIONS. Start and Stop mean idle, Prompt
 /// busy, NeedsYou waiting, End gone. A session with a permission ask pending reads as waiting until the ask is
 /// answered. At most 8 are kept (the oldest idle one makes room) and one nobody touched for 6 hours is forgotten.
@@ -124,6 +141,31 @@ public final class SessionBoard {
                 session.title = Self.titleOf(hook.cwd)
             }
             touch(session, at: at)
+        }
+    }
+
+    /// Adds sessions found on disk (a transcript written before Edgepad ran or the phone linked). A session the board
+    /// already knows is left alone (hook-fed state wins), one past `expiry` is ignored, and a full board takes no more:
+    /// seeds never push out a live session. The next hook event for the same id replaces the seeded state via `apply`.
+    public func seed(_ found: [SeedSession]) {
+        run {
+            let cutoff = clock().addingTimeInterval(-Self.expiry)
+            var best: [Key: SeedSession] = [:]
+            for item in found where item.touched > cutoff && DashWire.isAgent(item.agent) {
+                guard (1...Self.maxIdLength).contains(item.sessionId.utf16.count) else { continue }
+                let key = Key(agent: item.agent, id: item.sessionId)
+                if sessions[key] != nil { continue }
+                if let have = best[key], have.touched >= item.touched { continue }
+                best[key] = item
+            }
+            let room = max(0, Self.capacity - sessions.count)
+            for item in best.values.sorted(by: { $0.touched > $1.touched }).prefix(room).reversed() {
+                let session = Session()
+                session.state = item.state
+                session.title = item.cwd.isEmpty ? "" : Self.titleOf(item.cwd)
+                touch(session, at: item.touched)
+                sessions[Key(agent: item.agent, id: item.sessionId)] = session
+            }
         }
     }
 
