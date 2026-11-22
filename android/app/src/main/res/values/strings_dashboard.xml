@@ -45,13 +45,12 @@
   <string name="ai_updated">Updated %1$s ago</string>
   <string name="ai_today">Today</string>
   <string name="ai_week">This week</string>
-  <string name="ai_month">This month</string>
   <string name="ai_tokens">%1$s tokens</string>
   <string name="ai_estimate">Estimated at API prices</string>
   <string name="ai_unpriced">Some models have no price yet</string>
   <string name="ai_sessions">Sessions</string>
   <string name="ai_none">Nothing to show yet.</string>
-  <string name="ai_no_limits">No usage limit reported</string>
+  <string name="ai_limits_na">Limits not available</string>
   <string name="ai_setup">Connect Claude Code or Codex in the Edgepad menu on your laptop.</string>
   <string name="ai_need_mods">Claude limits need Claude Code with plugin mods.</string>
   <string name="state_busy">Working</string>
@@ -63,6 +62,8 @@
   <!-- Not translated: product names. -->
   <string name="agent_claude" translatable="false">Claude</string>
   <string name="agent_codex" translatable="false">Codex</string>
+  <string name="agent_gemini" translatable="false">Gemini CLI</string>
+  <string name="agent_opencode" translatable="false">OpenCode</string>
   <string name="gh_title">GitHub</string>
   <string name="gh_review">Review requested</string>
   <string name="gh_mine">Your pull requests</string>

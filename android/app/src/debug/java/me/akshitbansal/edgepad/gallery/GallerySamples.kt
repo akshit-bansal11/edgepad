@@ -26,6 +26,7 @@ import me.akshitbansal.edgepad.link.xfer.XferSnapshot
 import me.akshitbansal.edgepad.protocol.BatteryKind
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.TextKind
+import me.akshitbansal.edgepad.screens.AiScreen
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.FnMode
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
@@ -77,6 +78,11 @@ class GallerySamples(
                 NetworkScreen(ui, sysBar(), { sampleLaptop }, { SAMPLE_RTT_MS }, {})
                     .apply { phoneChanged(samplePhone) }
                     .view
+            }
+
+            "ai-two", "ai-four" -> {
+                val laptop = aiLaptop(four = name == "ai-four")
+                AiScreen(ui, { laptop }, ui.hubBar(ui.string(R.string.dev_title), SAMPLE_LAPTOP, {}, {})).view
             }
 
             "keyboard" -> {
@@ -141,6 +147,43 @@ class GallerySamples(
             take(TextKind.BATTERIES.frame("laptop:97:1:$SAMPLE_LAPTOP|mouse:64:0:MX Master 3|headphones:18:0:WH-1000"))
             take(TextKind.NET_INFO.frame("wifi|5|1200|85|192.168.1.23|192.168.1.1"))
             take(TextKind.SPEED_RESULT.frame("done|94200|38100|9|2|$SAMPLE_TEST_MINUTE|96000000"))
+        }
+    }
+
+    /** A laptop with Claude and Codex, and with Gemini CLI and OpenCode too when [four]: limits, spend and sessions. */
+    private fun aiLaptop(four: Boolean): LaptopState {
+        val now = System.currentTimeMillis() / MS_PER_MIN
+        val measured = now - 1
+        return LaptopState().apply {
+            take(TextKind.DEVICE.frame("0123456789abcdef0123456789abcdef/windows/$SAMPLE_LAPTOP"))
+            take(TextKind.FEATURES.frame(if (four) "claude/codex/gemini/opencode" else "claude/codex"))
+            val limits =
+                listOf(
+                    "claude:300:34:${now + 180}:$measured",
+                    "claude:10080:62:${now + 4_320}:$measured",
+                    "claude:ctx:81:-1:$measured",
+                    "codex:300:12:${now + 240}:$measured",
+                    "codex:10080:93:${now + 1_440}:$measured",
+                    "codex:ctx:40:-1:$measured",
+                )
+            take(TextKind.LIMITS.frame(limits.joinToString("|")))
+            val spend =
+                listOf(
+                    "claude/$measured/1200000/210/9400000/1480/30000000/5200/0",
+                    "codex/$measured/260000/40/3100000/620/11000000/2100/0",
+                    "gemini/$measured/182000/0/940000/0/3000000/0/0",
+                    "opencode/$measured/64000/0/410000/0/1900000/0/0",
+                )
+            take(TextKind.SPEND.frame(spend.take(if (four) 4 else 2).joinToString("|")))
+            val sessions =
+                listOf(
+                    "claude:busy:edgepad",
+                    "claude:idle:plimsoll",
+                    "codex:wait:spotatui",
+                    "gemini:idle:site",
+                    "opencode:busy:notes",
+                )
+            take(TextKind.SESSIONS.frame(sessions.joinToString("|")))
         }
     }
 
@@ -240,6 +283,7 @@ class GallerySamples(
     private companion object {
         const val SAMPLE_LAPTOP = "Akshit's M42"
         const val SAMPLE_RTT_MS = 6
+        const val MS_PER_MIN = 60_000L
         const val SAMPLE_SECONDS = 60
         const val SAMPLE_BASE = 30
         const val SAMPLE_SWING = 20

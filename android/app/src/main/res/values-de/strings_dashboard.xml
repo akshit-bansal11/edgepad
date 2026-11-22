@@ -44,13 +44,12 @@
   <string name="ai_updated">Aktualisiert vor %1$s</string>
   <string name="ai_today">Heute</string>
   <string name="ai_week">Diese Woche</string>
-  <string name="ai_month">Dieser Monat</string>
   <string name="ai_tokens">%1$s Tokens</string>
   <string name="ai_estimate">Geschätzt zu API-Preisen</string>
   <string name="ai_unpriced">Für einige Modelle gibt es noch keinen Preis</string>
   <string name="ai_sessions">Sitzungen</string>
   <string name="ai_none">Noch nichts anzuzeigen.</string>
-  <string name="ai_no_limits">Keine Nutzungsgrenze gemeldet</string>
+  <string name="ai_limits_na">Limits nicht verfügbar</string>
   <string name="ai_setup">Verbinde Claude Code oder Codex im Edgepad-Menü auf deinem Laptop.</string>
   <string name="ai_need_mods">Claude-Grenzen brauchen Claude Code mit Plugin-Mods.</string>
   <string name="state_busy">Arbeitet</string>

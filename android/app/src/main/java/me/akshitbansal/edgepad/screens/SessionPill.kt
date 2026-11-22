@@ -9,7 +9,6 @@ import android.text.TextUtils
 import android.util.TypedValue
 import android.view.View
 import me.akshitbansal.edgepad.Palette
-import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.protocol.AgentToken
@@ -41,8 +40,6 @@ class SessionPill(
     private val metrics = resources.displayMetrics
     private val density = metrics.density
     private val palette = Palette.of(context)
-    private val claude = context.getString(R.string.agent_claude).take(1)
-    private val codex = context.getString(R.string.agent_codex).take(1)
     private val body = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.faint }
     private val badge = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.accent }
     private val dot = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.track }
@@ -85,7 +82,7 @@ class SessionPill(
         state: SessionStateToken,
         stateLabel: String,
     ) {
-        initial = if (agent == AgentToken.CLAUDE) claude else codex
+        initial = agent.token.take(1).uppercase()
         this.title = title
         this.stateLabel = stateLabel
         dot.color =

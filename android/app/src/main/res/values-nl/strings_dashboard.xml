@@ -44,13 +44,12 @@
   <string name="ai_updated">Bijgewerkt %1$s geleden</string>
   <string name="ai_today">Vandaag</string>
   <string name="ai_week">Deze week</string>
-  <string name="ai_month">Deze maand</string>
   <string name="ai_tokens">%1$s tokens</string>
   <string name="ai_estimate">Geschat op basis van API-prijzen</string>
   <string name="ai_unpriced">Sommige modellen hebben nog geen prijs</string>
   <string name="ai_sessions">Sessies</string>
   <string name="ai_none">Nog niets om te tonen.</string>
-  <string name="ai_no_limits">Geen gebruikslimiet gemeld</string>
+  <string name="ai_limits_na">Limieten niet beschikbaar</string>
   <string name="ai_setup">Verbind Claude Code of Codex via het Edgepad-menu op je laptop.</string>
   <string name="ai_need_mods">Claude-limieten vereisen Claude Code met plugin-mods.</string>
   <string name="state_busy">Bezig</string>

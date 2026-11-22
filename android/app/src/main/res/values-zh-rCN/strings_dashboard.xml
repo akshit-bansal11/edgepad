@@ -44,13 +44,12 @@
   <string name="ai_updated">%1$s前更新</string>
   <string name="ai_today">今天</string>
   <string name="ai_week">本周</string>
-  <string name="ai_month">本月</string>
   <string name="ai_tokens">%1$s 个词元</string>
   <string name="ai_estimate">按 API 价格估算</string>
   <string name="ai_unpriced">部分模型尚无价格</string>
   <string name="ai_sessions">会话</string>
   <string name="ai_none">暂无内容。</string>
-  <string name="ai_no_limits">未报告用量上限</string>
+  <string name="ai_limits_na">用量上限不可用</string>
   <string name="ai_setup">在笔记本电脑的 Edgepad 菜单中连接 Claude Code 或 Codex。</string>
   <string name="ai_need_mods">Claude 用量上限需要安装了插件模组的 Claude Code。</string>
   <string name="state_busy">工作中</string>

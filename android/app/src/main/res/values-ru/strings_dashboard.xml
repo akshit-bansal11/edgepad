@@ -44,13 +44,12 @@
   <string name="ai_updated">Обновлено %1$s назад</string>
   <string name="ai_today">Сегодня</string>
   <string name="ai_week">На этой неделе</string>
-  <string name="ai_month">В этом месяце</string>
   <string name="ai_tokens">Токенов: %1$s</string>
   <string name="ai_estimate">Оценка по ценам API</string>
   <string name="ai_unpriced">У некоторых моделей пока нет цены</string>
   <string name="ai_sessions">Сеансы</string>
   <string name="ai_none">Пока нечего показать.</string>
-  <string name="ai_no_limits">Лимит использования не сообщён</string>
+  <string name="ai_limits_na">Лимиты недоступны</string>
   <string name="ai_setup">Подключите Claude Code или Codex в меню Edgepad на ноутбуке.</string>
   <string name="ai_need_mods">Для лимитов Claude нужен Claude Code с модами плагинов.</string>
   <string name="state_busy">Работает</string>

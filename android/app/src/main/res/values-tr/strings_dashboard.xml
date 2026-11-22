@@ -44,13 +44,12 @@
   <string name="ai_updated">%1$s önce güncellendi</string>
   <string name="ai_today">Bugün</string>
   <string name="ai_week">Bu hafta</string>
-  <string name="ai_month">Bu ay</string>
   <string name="ai_tokens">%1$s token</string>
   <string name="ai_estimate">API fiyatlarına göre tahmini</string>
   <string name="ai_unpriced">Bazı modellerin henüz fiyatı yok</string>
   <string name="ai_sessions">Oturumlar</string>
   <string name="ai_none">Henüz gösterilecek bir şey yok.</string>
-  <string name="ai_no_limits">Bildirilen bir kullanım sınırı yok</string>
+  <string name="ai_limits_na">Sınırlar kullanılamıyor</string>
   <string name="ai_setup">Dizüstü bilgisayarınızdaki Edgepad menüsünden Claude Code veya Codex’i bağlayın.</string>
   <string name="ai_need_mods">Claude sınırları için eklenti modları olan Claude Code gerekir.</string>
   <string name="state_busy">Çalışıyor</string>

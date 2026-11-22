@@ -44,13 +44,12 @@
   <string name="ai_updated">حُدّث قبل %1$s</string>
   <string name="ai_today">اليوم</string>
   <string name="ai_week">هذا الأسبوع</string>
-  <string name="ai_month">هذا الشهر</string>
   <string name="ai_tokens">%1$s رمز</string>
   <string name="ai_estimate">مُقدَّر بأسعار واجهة البرمجة</string>
   <string name="ai_unpriced">لبعض النماذج لا سعر بعد</string>
   <string name="ai_sessions">الجلسات</string>
   <string name="ai_none">لا شيء يُعرض بعد.</string>
-  <string name="ai_no_limits">لم يُبلَّغ عن حد للاستخدام</string>
+  <string name="ai_limits_na">الحدود غير متاحة</string>
   <string name="ai_setup">اربط Claude Code أو Codex من قائمة Edgepad على الحاسوب المحمول.</string>
   <string name="ai_need_mods">تحتاج حدود Claude إلى Claude Code مع تعديلات الإضافات.</string>
   <string name="state_busy">يعمل</string>

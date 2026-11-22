@@ -44,13 +44,12 @@
   <string name="ai_updated">%1$s前に更新</string>
   <string name="ai_today">今日</string>
   <string name="ai_week">今週</string>
-  <string name="ai_month">今月</string>
   <string name="ai_tokens">%1$s トークン</string>
   <string name="ai_estimate">API 料金での概算</string>
   <string name="ai_unpriced">料金が未設定のモデルがあります</string>
   <string name="ai_sessions">セッション</string>
   <string name="ai_none">まだ表示するものがありません。</string>
-  <string name="ai_no_limits">使用上限は報告されていません</string>
+  <string name="ai_limits_na">上限は利用できません</string>
   <string name="ai_setup">ノートパソコンの Edgepad メニューで Claude Code または Codex を接続してください。</string>
   <string name="ai_need_mods">Claude の上限表示には、プラグイン mod を入れた Claude Code が必要です。</string>
   <string name="state_busy">作業中</string>
