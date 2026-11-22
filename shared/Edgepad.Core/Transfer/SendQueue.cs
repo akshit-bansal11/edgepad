@@ -17,7 +17,8 @@ internal sealed class SendQueue(
     TransferFeed feed,
     Func<string, long?> sizeOf,
     Func<bool>? pauseCurrent = null,
-    Func<bool>? resumeCurrent = null)
+    Func<bool>? resumeCurrent = null,
+    CancellationToken sessionEnded = default)
 {
     private readonly Lock gate = new();
     private readonly Queue<string> pending = new();
@@ -215,7 +216,23 @@ internal sealed class SendQueue(
                 if (hold is not null)
                 {
                     feed.SetPaused(true);
-                    await hold.ConfigureAwait(false);
+
+                    // Held between files too long, or the session ended under the hold: the rest is not sent, as for a cancel.
+                    using var watch = CancellationTokenSource.CreateLinkedTokenSource(sessionEnded);
+                    var expiry = Task.Delay(TransferLimits.PauseCap, watch.Token);
+                    var over = await Task.WhenAny(hold, expiry).ConfigureAwait(false) != hold;
+                    await watch.CancelAsync().ConfigureAwait(false);
+                    if (over)
+                    {
+                        lock (gate)
+                        {
+                            held = null;
+                            rest ??= TransferFailure.NotSent;
+                        }
+
+                        resumeCurrent?.Invoke();
+                    }
+
                     feed.SetPaused(false);
                     continue;
                 }

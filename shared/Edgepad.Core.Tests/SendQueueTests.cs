@@ -303,6 +303,37 @@ public sealed class SendQueueTests
     }
 
     [Fact]
+    public async Task TheSessionEndingWhileHeldBetweenFilesEndsTheBatchAndClearsPaused()
+    {
+        using var session = new CancellationTokenSource();
+        var resumed = 0;
+        var held = new SendQueue(SendOne, feed, SizeOf, () => true, () => Interlocked.Increment(ref resumed) > 0, session.Token);
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource<XferCode?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        script["a.txt"] = _ =>
+        {
+            started.SetResult();
+            return release.Task;
+        };
+
+        held.Enqueue(["a.txt", "b.txt"]);
+        await started.Task.WaitAsync(Patience, TestContext.Current.CancellationToken);
+        Assert.True(held.Pause());
+        release.SetResult(XferCode.Saved);
+        await Until(() => feed.View.Paused);
+
+        await session.CancelAsync();
+        await held.Completion.WaitAsync(Patience, TestContext.Current.CancellationToken);
+
+        Assert.Equal(["a.txt"], Sent());
+        Assert.Equal([new TransferFailed("b.txt", TransferFailure.NotSent)], feed.View.Failed);
+        Assert.False(feed.View.Paused);
+        Assert.False(held.IsPaused);
+        Assert.False(held.IsRunning);
+        Assert.Equal(1, Volatile.Read(ref resumed));
+    }
+
+    [Fact]
     public async Task APauseThatIsNeverResumedDoesNotCarryOverToTheNextBatch()
     {
         var held = new SendQueue(SendOne, feed, SizeOf);

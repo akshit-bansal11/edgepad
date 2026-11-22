@@ -56,7 +56,8 @@ public sealed class TransferPauseTests : IDisposable
             freeSpace: _ => Plenty,
             now: () => new DateTimeOffset(Interlocked.Read(ref clockTicks), TimeSpan.Zero),
             failed: (name, code) => failed.Enqueue((name, code)),
-            pausedChanged: receiverHeld.Enqueue);
+            pausedChanged: receiverHeld.Enqueue,
+            holdWatch: TimeSpan.FromMilliseconds(20));
     }
 
     private string Destination => Path.Combine(dir, "Downloads", "Edgepad");
@@ -431,6 +432,290 @@ public sealed class TransferPauseTests : IDisposable
         var statuses = SentStatuses().Concat(replies).ToArray();
         Assert.NotEmpty(statuses);
         Assert.All(statuses, s => Assert.True(s.Status < 0xF0, $"status {s.Status} was put on the wire"));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TheSessionEndingWhileHeldEndsBothSidesAndKeepsThePart(bool bySender)
+    {
+        wire = frame =>
+        {
+            if (frame is XferChunk && Interlocked.Increment(ref chunks) == 3)
+            {
+                Assert.True(bySender ? sender.Pause() : receiver.Pause());
+            }
+
+            return frame;
+        };
+
+        var send = StartSend(Source("end.bin", RandomNumberGenerator.GetBytes(Chunk * 6)));
+        await Until(() => senderHeld.Contains(true) && receiverHeld.Contains(true));
+        Assert.False(await Finishes(send, TimeSpan.FromMilliseconds(200)));
+
+        await ended.CancelAsync();
+        Assert.Equal(XferCode.SessionEnded, await send.WaitAsync(Patience, TestContext.Current.CancellationToken));
+        receiver.Dispose();
+
+        Assert.Equal<(string, XferCode)>([("end.bin", XferCode.SessionEnded)], failed);
+        Assert.Single(Directory.GetFiles(Partial));
+        Assert.Equal<bool>([true, false], receiverHeld);
+        Assert.Equal<bool>([true, false], senderHeld);
+        Assert.All(SentStatuses().Concat(replies), s => Assert.True(s.Status < 0xF0));
+    }
+
+    [Fact]
+    public async Task ASenderCapWithAPeerThatNeverHeardOfTheHoldEndsCancelledAndThePeerIdleDropsKeepingThePart()
+    {
+        var data = RandomNumberGenerator.GetBytes(Chunk * 6);
+        var pausing = true;
+        wire = frame =>
+        {
+            // An old build drops PAUSED and RESUME as unknown.
+            if (frame is XferStatus { Status: (byte)XferCode.Paused or (byte)XferCode.Resume })
+            {
+                return null;
+            }
+
+            if (pausing && frame is XferChunk && Interlocked.Increment(ref chunks) == 3)
+            {
+                Assert.True(sender.Pause());
+            }
+
+            return frame;
+        };
+        var path = Source("one.bin", data);
+
+        var send = StartSend(path);
+        await Until(() => SentStatuses().Any(s => s.Status == (byte)XferCode.Paused));
+        Assert.False(await Finishes(send, TimeSpan.FromMilliseconds(200)));
+
+        Advance(TransferLimits.PauseCap + TimeSpan.FromSeconds(1));
+
+        Assert.Equal(XferCode.Cancelled, await send.WaitAsync(Patience, TestContext.Current.CancellationToken));
+        Assert.DoesNotContain(SentStatuses(), s => s.Status == (byte)XferCode.Cancelled);
+        Assert.False(receiver.Busy);
+        Assert.Equal<(string, XferCode)>([("one.bin", XferCode.TimedOut)], failed);
+        Assert.Single(Directory.GetFiles(Partial));
+
+        pausing = false;
+        Assert.Equal(XferCode.Saved, await StartSend(path).WaitAsync(Patience, TestContext.Current.CancellationToken));
+        Assert.Equal(data, File.ReadAllBytes(Path.Combine(Destination, "one.bin")));
+    }
+
+    [Fact]
+    public async Task APauseAskedBetweenFilesStartsTheNextSendHeld()
+    {
+        Assert.False(sender.Pause());
+        var data = RandomNumberGenerator.GetBytes(Chunk * 3);
+
+        var send = StartSend(Source("pend.bin", data));
+        await Until(() => SentStatuses().Any(s => s.Status == (byte)XferCode.Paused));
+
+        Assert.False(await Finishes(send, TimeSpan.FromMilliseconds(200)));
+        Assert.Empty(sentFrames.OfType<XferChunk>());
+        Assert.Equal<bool>([true], senderHeld);
+
+        Assert.True(sender.Resume());
+        Assert.Equal(XferCode.Saved, await send.WaitAsync(Patience, TestContext.Current.CancellationToken));
+        Assert.Equal(data, File.ReadAllBytes(Path.Combine(Destination, "pend.bin")));
+    }
+
+    [Fact]
+    public async Task AResumeBetweenFilesTakesBackAPendingPause()
+    {
+        Assert.False(sender.Pause());
+        Assert.False(sender.Resume());
+
+        Assert.Equal(XferCode.Saved, await StartSend(Source("clear.bin", new byte[50])).WaitAsync(Patience, TestContext.Current.CancellationToken));
+        Assert.Empty(senderHeld);
+    }
+
+    [Fact]
+    public async Task AHeldReceiverEndsAtTheCapOnItsOwnWithNoCallToTouchIt()
+    {
+        receiver.Take(new XferBegin(1, 100, "own.bin"));
+        receiver.Take(new XferChunk(1, 0, new byte[10]));
+        Assert.True(receiver.Pause());
+
+        Advance(TransferLimits.PauseCap + TimeSpan.FromSeconds(1));
+
+        await Until(() => !failed.IsEmpty);
+        Assert.Equal<(string, XferCode)>([("own.bin", XferCode.Cancelled)], failed);
+        Assert.Equal<bool>([true, false], receiverHeld);
+        Assert.Single(Directory.GetFiles(Partial));
+    }
+
+    [Fact]
+    public void ABeginForTheSameHeldFileTakesItOverFromItsOffsetAndAnyOtherIsBusy()
+    {
+        receiver.Take(new XferBegin(1, 100, "re.bin"));
+        receiver.Take(new XferChunk(1, 0, new byte[10]));
+
+        // Not held: a second begin is BUSY, as always.
+        replies.Clear();
+        receiver.Take(new XferBegin(2, 100, "re.bin"));
+        Assert.Equal<XferStatus>([new XferStatus(2, (byte)XferCode.Busy, 0)], replies);
+
+        Assert.True(receiver.Pause());
+        replies.Clear();
+        receiver.Take(new XferBegin(3, 101, "re.bin"));
+        receiver.Take(new XferBegin(4, 100, "other.bin"));
+        Assert.Equal<XferStatus>([new XferStatus(3, (byte)XferCode.Busy, 0), new XferStatus(4, (byte)XferCode.Busy, 0)], replies);
+
+        replies.Clear();
+        receiver.Take(new XferBegin(5, 100, "re.bin"));
+        Assert.Equal<XferStatus>([new XferStatus(5, (byte)XferCode.Ready, 10)], replies);
+        Assert.Empty(failed);
+        Assert.Equal<bool>([true, false], receiverHeld);
+        Assert.True(receiver.Busy);
+    }
+
+    public static TheoryData<int, int> StateTable()
+    {
+        var table = new TheoryData<int, int>();
+        for (var state = 0; state < 4; state++)
+        {
+            for (var action = 0; action < 4; action++)
+            {
+                table.Add(state, action);
+            }
+        }
+
+        return table;
+    }
+
+    // State: 0 not held, 1 this end holds, 2 the peer holds, 3 both. Event: 0 this end pauses, 1 this end resumes,
+    // 2 the peer's PAUSED arrives, 3 the peer's RESUME arrives.
+    [Theory]
+    [MemberData(nameof(StateTable))]
+    public void TheReceiverTableGivesTheSameFinalStateAndAnswersForEveryStateAndEvent(int state, int action)
+    {
+        receiver.Take(new XferBegin(1, 100, "tab.bin"));
+        receiver.Take(new XferChunk(1, 0, new byte[10]));
+        var own = state is 1 or 3;
+        var peer = state is 2 or 3;
+        if (own)
+        {
+            Assert.True(receiver.Pause());
+        }
+
+        if (peer)
+        {
+            Assert.True(receiver.Take(new XferStatus(1, (byte)XferCode.Paused, 10)));
+        }
+
+        var heldBefore = own || peer;
+        replies.Clear();
+        receiverHeld.Clear();
+        var expected = new List<XferStatus>();
+        bool result;
+        switch (action)
+        {
+            case 0:
+                result = receiver.Pause();
+                Assert.Equal(!own, result);
+                if (!own)
+                {
+                    expected.Add(new XferStatus(1, (byte)XferCode.Paused, 10));
+                }
+
+                own = true;
+                break;
+            case 1:
+                result = receiver.Resume();
+                Assert.Equal(own, result);
+                if (own)
+                {
+                    expected.Add(new XferStatus(1, (byte)XferCode.Resume, 10));
+                    if (!peer)
+                    {
+                        expected.Add(new XferStatus(1, (byte)XferCode.Ready, 10));
+                    }
+                }
+
+                own = false;
+                break;
+            case 2:
+                Assert.True(receiver.Take(new XferStatus(1, (byte)XferCode.Paused, 10)));
+                peer = true;
+                break;
+            default:
+                Assert.True(receiver.Take(new XferStatus(1, (byte)XferCode.Resume, 10)));
+                if (!own)
+                {
+                    expected.Add(new XferStatus(1, (byte)XferCode.Ready, 10));
+                }
+
+                peer = false;
+                break;
+        }
+
+        var held = own || peer;
+        Assert.Equal<XferStatus>(expected, replies);
+        Assert.Equal<bool>(heldBefore == held ? Array.Empty<bool>() : new[] { held }, receiverHeld);
+        Assert.All(replies, s => Assert.True(s.Status < 0xF0));
+
+        // Held, the 30 second idle drop does not run; not held, it does.
+        Advance(TimeSpan.FromSeconds(31));
+        Assert.Equal(held, receiver.Busy);
+    }
+
+    [Theory]
+    [MemberData(nameof(StateTable))]
+    public async Task TheSenderTableGivesTheSameFinalStateForEveryStateAndEvent(int state, int action)
+    {
+        wire = _ => null;
+        var send = StartSend(Source("st.bin", new byte[10]));
+        await Until(() => sentFrames.OfType<XferBegin>().Any());
+        var own = state is 1 or 3;
+        var peer = state is 2 or 3;
+        if (own)
+        {
+            Assert.True(sender.Pause());
+        }
+
+        if (peer)
+        {
+            Assert.True(sender.Take(new XferStatus(1, (byte)XferCode.Paused, 0)));
+        }
+
+        var heldBefore = own || peer;
+        senderHeld.Clear();
+        switch (action)
+        {
+            case 0:
+                Assert.Equal(!own, sender.Pause());
+                own = true;
+                break;
+            case 1:
+                Assert.Equal(own, sender.Resume());
+                own = false;
+                break;
+            case 2:
+                Assert.True(sender.Take(new XferStatus(1, (byte)XferCode.Paused, 0)));
+                peer = true;
+                break;
+            default:
+                Assert.True(sender.Take(new XferStatus(1, (byte)XferCode.Resume, 0)));
+                peer = false;
+                break;
+        }
+
+        var held = own || peer;
+        Assert.Equal<bool>(heldBefore == held ? Array.Empty<bool>() : new[] { held }, senderHeld);
+
+        // Held, the 30 second answer timeout does not run; not held, it does and ends the send.
+        Assert.False(await Finishes(send, TimeSpan.FromMilliseconds(200)));
+        Advance(TimeSpan.FromSeconds(31));
+        Assert.Equal(!held, await Finishes(send, TimeSpan.FromMilliseconds(held ? 400 : 5000)));
+        if (held)
+        {
+            Assert.True(sender.Take(new XferStatus(1, (byte)XferCode.Rejected, 0)));
+        }
+
+        Assert.Equal(held ? XferCode.Rejected : XferCode.TimedOut, await send.WaitAsync(Patience, TestContext.Current.CancellationToken));
+        Assert.All(SentStatuses(), s => Assert.True(s.Status < 0xF0));
     }
 
     private Task<XferCode> StartSend(string path, CancellationTokenSource? cancel = null) =>

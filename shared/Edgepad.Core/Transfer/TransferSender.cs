@@ -27,6 +27,9 @@ internal sealed class TransferSender(
 {
     private const int SliceMs = 50;
 
+    // A hold is woken by every change to it; the slice only bounds how late a cancel or the session ending is seen.
+    private const int HoldSliceMs = 250;
+
     private readonly Lock lane = new();
     private readonly object gate = new();
     private readonly TimeSpan timeout = answerTimeout ?? TransferLimits.AnswerTimeout;
@@ -52,6 +55,10 @@ internal sealed class TransferSender(
     private long? heldSince;
     private bool lastHeld;
 
+    // A Pause that came when no file was being sent (between a queue's files): the next Send starts held.
+    private bool pausePending;
+    private readonly object notify = new();
+
     /// <summary>
     /// Holds the file after the chunk in flight: the peer is told with PAUSED and nothing more is sent, and the answer timeout
     /// stops, until <see cref="Resume"/>. False when no file is being sent, it is already held, or END has gone (the answer is
@@ -61,7 +68,14 @@ internal sealed class TransferSender(
     {
         lock (gate)
         {
-            if (!sending || endSent || paused)
+            if (!sending)
+            {
+                // Still False: nothing is held yet. The next Send starts held, so a file dequeued a moment before its Send is not missed.
+                pausePending = true;
+                return false;
+            }
+
+            if (endSent || paused)
             {
                 return false;
             }
@@ -83,7 +97,13 @@ internal sealed class TransferSender(
     {
         lock (gate)
         {
-            if (!sending || !paused)
+            if (!sending)
+            {
+                pausePending = false;
+                return false;
+            }
+
+            if (!paused)
             {
                 return false;
             }
@@ -121,8 +141,15 @@ internal sealed class TransferSender(
                 resendAt = null;
                 endSent = false;
                 ResetPause();
+                if (pausePending)
+                {
+                    pausePending = false;
+                    paused = true;
+                    Touch();
+                }
             }
 
+            Notify();
             try
             {
                 return Run(file, Path.GetFileName(path), id, progress, cancel);
@@ -225,21 +252,25 @@ internal sealed class TransferSender(
     }
 
     // Outside the gate: tells the owner when the transfer starts or stops being held by either end.
+    // The state is read and delivered under one lock, so the owner sees the changes in the order they happened.
     private void Notify()
     {
-        bool held;
-        lock (gate)
+        lock (notify)
         {
-            held = paused || peerPaused;
-            if (held == lastHeld)
+            bool held;
+            lock (gate)
             {
-                return;
+                held = paused || peerPaused;
+                if (held == lastHeld)
+                {
+                    return;
+                }
+
+                lastHeld = held;
             }
 
-            lastHeld = held;
+            pausedChanged?.Invoke(held);
         }
-
-        pausedChanged?.Invoke(held);
     }
 
     private XferCode Run(FileStream file, string name, byte id, Action<ulong>? progress, CancellationToken cancel)
@@ -391,7 +422,7 @@ internal sealed class TransferSender(
                 }
                 else
                 {
-                    Monitor.Wait(gate, SliceMs);
+                    Monitor.Wait(gate, HoldSliceMs);
                 }
             }
 
@@ -503,8 +534,14 @@ internal sealed class TransferSender(
                 }
 
                 // Held by either end: the wait starts over, until the hold has run out its cap.
-                if (heldSince is { } since && now() - since < (long)TransferLimits.PauseCap.TotalMilliseconds)
+                // Past the cap it ends as CANCELLED without telling the peer, as in Hold: its CANCELLED would delete the part.
+                if (heldSince is { } since)
                 {
+                    if (now() - since >= (long)TransferLimits.PauseCap.TotalMilliseconds)
+                    {
+                        return XferCode.Cancelled;
+                    }
+
                     deadline = now() + (long)timeout.TotalMilliseconds;
                 }
 

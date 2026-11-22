@@ -29,6 +29,7 @@ internal sealed class TransferReceiver : IDisposable
     private readonly Action<string, ulong, ulong>? progress;
     private readonly Action<string, XferCode>? failed;
     private readonly Action<bool>? pausedChanged;
+    private readonly TimeSpan holdWatch;
     private Active? active;
 
     /// <summary>The name the failed hook gives a file whose own name could not be made safe; language-neutral.</summary>
@@ -44,9 +45,11 @@ internal sealed class TransferReceiver : IDisposable
         Action<string>? beforeSave = null,
         Action<string, ulong, ulong>? progress = null,
         Action<string, XferCode>? failed = null,
-        Action<bool>? pausedChanged = null)
+        Action<bool>? pausedChanged = null,
+        TimeSpan? holdWatch = null)
     {
         this.pausedChanged = pausedChanged;
+        this.holdWatch = holdWatch ?? TimeSpan.FromSeconds(5);
         this.destination = destination;
         this.partialFolder = partialFolder;
         this.reply = reply;
@@ -77,13 +80,20 @@ internal sealed class TransferReceiver : IDisposable
         lock (gate)
         {
             DropIfIdle();
-            if (active is not null)
+            var name = SafeFileName.Clean(begin.Name);
+            if (active is { } current)
             {
-                Reply(begin.Id, XferCode.Busy, 0);
-                return true;
+                // The same file begun again while held: the sender gave up first (its cap runs out before ours) and is
+                // back. The held transfer is let go, its part kept, and the begin resumes from it.
+                if (current.HeldSince is null || name is null || name != current.Name || begin.Size != current.Size)
+                {
+                    Reply(begin.Id, XferCode.Busy, 0);
+                    return true;
+                }
+
+                Finish(deletePart: false);
             }
 
-            var name = SafeFileName.Clean(begin.Name);
             // The phone's raw name (control, format, bidi characters) never reaches the UI: the cleaned one or a stand-in.
             var shown = name ?? UnnamedFile;
             if (name is null || begin.Size > TransferLimits.MaxBytes)
@@ -384,6 +394,17 @@ internal sealed class TransferReceiver : IDisposable
         }
     }
 
+    private void Watch(Active a)
+    {
+        lock (gate)
+        {
+            if (ReferenceEquals(active, a))
+            {
+                DropIfIdle();
+            }
+        }
+    }
+
     // Under the gate: sets this end's hold, the sender's, or both, and tells the owner when the file starts or stops being held.
     private void SetHold(Active a, bool? own = null, bool? peer = null)
     {
@@ -394,6 +415,9 @@ internal sealed class TransferReceiver : IDisposable
         a.HeldSince = held ? a.HeldSince ?? clock() : null;
         if (held != was)
         {
+            // While held nothing else would look at the clock, so a timer does: the cap shows without a touch.
+            a.Watch?.Dispose();
+            a.Watch = held ? new Timer(_ => Watch(a), null, holdWatch, holdWatch) : null;
             pausedChanged?.Invoke(held);
         }
     }
@@ -478,6 +502,7 @@ internal sealed class TransferReceiver : IDisposable
         }
 
         active = null;
+        a.Watch?.Dispose();
         a.File.Dispose();
         a.Hash.Dispose();
         if (a.HeldSince is not null)
@@ -555,5 +580,8 @@ internal sealed class TransferReceiver : IDisposable
 
         /// <summary>When the hold began, or null when no end holds the file.</summary>
         public DateTimeOffset? HeldSince { get; set; }
+
+        /// <summary>Looks at the cap while held; null otherwise.</summary>
+        public Timer? Watch { get; set; }
     }
 }

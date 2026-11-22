@@ -321,7 +321,7 @@ Either end may hold a transfer. The sender sends PAUSED after the chunk in fligh
 
 An end lets go with RESUME. The receiver follows its own RESUME with READY at the bytes it holds, and answers the sender's RESUME with READY the same way, unless it still holds the transfer itself, when its own RESUME is the answer. The sender goes on from READY's offset: below the bytes it sent, it rewinds there as it does for a lost chunk. If both ends hold, each lets go on its own, and the transfer runs again once neither does.
 
-A transfer held for 10 minutes ends as CANCELLED, the part kept: the receiver sends CANCELLED and keeps its part; the sender ends the file the same way without sending it, because its CANCELLED would make the receiver delete the part. Stop, as everywhere, is CANCELLED and deletes the part. A build that does not know PAUSED or RESUME drops them and counts them; the transfer then ends by the 30 second rules.
+A transfer held for 10 minutes ends as CANCELLED, the part kept: the receiver sends CANCELLED and keeps its part; the sender ends the file the same way without sending it, because its CANCELLED would make the receiver delete the part. The same holds when the cap runs out during the wait for READY. A receiver that still holds a transfer and gets an XFER_BEGIN for the same name and size lets the held one go, keeps its part and answers READY at the bytes held, so a sender whose cap ran out first can begin again at once; any other XFER_BEGIN is BUSY. Stop, as everywhere, is CANCELLED and deletes the part. A build that does not know PAUSED or RESUME drops them and counts them; the transfer then ends by the 30 second rules.
 
 ## The second socket
 
