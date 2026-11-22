@@ -15,6 +15,22 @@ import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.protocol.AgentToken
 import me.akshitbansal.edgepad.protocol.SessionStateToken
 
+/** The widths a session row shares between its title and its state word. */
+object SessionRow {
+    private const val STATE_SHARE = 0.4f
+
+    /** The most the state word may take: 40 percent of the row, so the title always keeps the rest. */
+    fun stateRoom(rowWidth: Float): Float = rowWidth * STATE_SHARE
+
+    /** What is left for the title once the circle, the fixed gaps and the (already clamped) state are taken. */
+    fun titleRoom(
+        rowWidth: Float,
+        circleRight: Float,
+        gaps: Float,
+        stateWidth: Float,
+    ): Float = rowWidth - circleRight - gaps - stateWidth
+}
+
 /**
  * One agent session as a plain row: the agent's initial in a circle, the session's title, and at the end a state dot
  * with its word. It draws the initial, never a vendor logo. The row is [HEIGHT_DP] tall and the parent's width.
@@ -59,6 +75,7 @@ class SessionPill(
     private var title = ""
     private var stateLabel = ""
     private var shownTitle = ""
+    private var shownState = ""
     private var stateWidth = 0f
 
     /** Shows a session of [agent] called [title] in [state], whose words are [stateLabel] from the screen's strings. */
@@ -106,8 +123,11 @@ class SessionPill(
 
     /** Fits the title to the room between the circle and the state, with an ellipsis; done here so drawing does not. */
     private fun shorten() {
-        stateWidth = statePaint.measureText(stateLabel)
-        val room = width - circle.right - (Space.M * 3 + DOT_DP + Space.S) * density - stateWidth
+        if (width <= 0) return
+        val state = TextUtils.ellipsize(stateLabel, statePaint, SessionRow.stateRoom(width.toFloat()), TextUtils.TruncateAt.END)
+        shownState = state.toString()
+        stateWidth = statePaint.measureText(shownState)
+        val room = SessionRow.titleRoom(width.toFloat(), circle.right, (Space.M * 3 + DOT_DP + Space.S) * density, stateWidth)
         if (room <= 0f) return
         shownTitle = TextUtils.ellipsize(title, titlePaint, room, TextUtils.TruncateAt.END).toString()
     }
@@ -124,7 +144,7 @@ class SessionPill(
         canvas.drawText(shownTitle, circle.right + Space.M * density, titleY, titlePaint)
         val stateX = width - Space.M * density - stateWidth
         val stateY = centreY - (stateMetrics.ascent + stateMetrics.descent) / 2f
-        canvas.drawText(stateLabel, stateX, stateY, statePaint)
+        canvas.drawText(shownState, stateX, stateY, statePaint)
         val radius = DOT_DP * density / 2f
         canvas.drawCircle(stateX - Space.S * density - radius, centreY, radius, dot)
     }
