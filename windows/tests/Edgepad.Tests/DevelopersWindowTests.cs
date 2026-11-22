@@ -9,6 +9,9 @@ namespace Edgepad.Tests;
 
 public sealed class DevelopersWindowTests : IDisposable
 {
+    private static readonly string[] AiIds = ["claude", "codex", "gemini", "opencode"];
+    private static readonly string[] GitIds = ["github", "gitlab", "gitea", "bitbucket", "gitee"];
+
     private readonly DirectoryInfo dir = Directory.CreateTempSubdirectory("edgepad-dev-window-");
 
     public void Dispose() => dir.Delete(recursive: true);
@@ -115,7 +118,7 @@ public sealed class DevelopersWindowTests : IDisposable
     [Fact]
     public void TheRegistryListsFourAiToolsAndFiveGitHosts()
     {
-        Assert.Equal(new[] { "claude", "codex", "gemini", "opencode" }, DevProviders.Of(DevKind.Ai).Select(p => p.Id));
-        Assert.Equal(new[] { "github", "gitlab", "gitea", "bitbucket", "gitee" }, DevProviders.Of(DevKind.Git).Select(p => p.Id));
+        Assert.Equal(AiIds, DevProviders.Of(DevKind.Ai).Select(p => p.Id));
+        Assert.Equal(GitIds, DevProviders.Of(DevKind.Git).Select(p => p.Id));
     }
 }
