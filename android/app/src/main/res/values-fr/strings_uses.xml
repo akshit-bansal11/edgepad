@@ -131,7 +131,7 @@
   <string-array name="uses_linux_values">
     <item>/dev/uinput, ouvert pour la personne devant le clavier grâce à une règle udev et à un réglage de module que l’installateur ajoute une fois, en administrateur.</item>
     <item>BlueZ, sur le bus système, pour écouter le téléphone que vous avez associé.</item>
-    <item>Sur le bus de session : notifications, lecteurs multimédias (MPRIS), alimentation (UPower), veille et verrouillage (login1), NetworkManager pour la page Réseau, le réglage du mode sombre du bureau, les fréquences d’actualisation de l’écran, la zone de notification et le Secret Service pour les jetons de connexion.</item>
+    <item>Sur le bus de session : notifications, lecteurs multimédias (MPRIS), alimentation (UPower), veille et verrouillage (systemd-logind), NetworkManager pour la page Réseau, le réglage du mode sombre du bureau, les fréquences d’actualisation de l’écran, la zone de notification et le Secret Service pour les jetons de connexion.</item>
     <item>Une entrée de démarrage automatique dans votre propre dossier de configuration, lorsque vous l’activez.</item>
   </string-array>
   <string-array name="uses_ai_keys">

@@ -131,7 +131,7 @@
   <string-array name="uses_linux_values">
     <item>/dev/uinput, otwierane dla osoby przy klawiaturze przez regułę udev i ustawienie modułu, które instalator dodaje raz, jako administrator.</item>
     <item>BlueZ, na szynie systemowej, aby nasłuchiwać telefonu, który sparowano.</item>
-    <item>Na szynie sesji: powiadomienia, odtwarzacze multimediów (MPRIS), zasilanie (UPower), uśpienie i blokada (login1), NetworkManager dla strony Sieć, ustawienie trybu ciemnego pulpitu, częstotliwości odświeżania ekranu, obszar powiadomień oraz Secret Service dla tokenów logowania.</item>
+    <item>Na szynie sesji: powiadomienia, odtwarzacze multimediów (MPRIS), zasilanie (UPower), uśpienie i blokada (systemd-logind), NetworkManager dla strony Sieć, ustawienie trybu ciemnego pulpitu, częstotliwości odświeżania ekranu, obszar powiadomień oraz Secret Service dla tokenów logowania.</item>
     <item>Wpis autostartu w Twoim folderze konfiguracji, gdy go włączysz.</item>
   </string-array>
   <string-array name="uses_ai_keys">

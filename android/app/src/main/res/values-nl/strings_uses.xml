@@ -131,7 +131,7 @@
   <string-array name="uses_linux_values">
     <item>/dev/uinput, geopend voor de persoon achter het toetsenbord via een udev-regel en een moduleinstelling die het installatieprogramma één keer toevoegt, als beheerder.</item>
     <item>BlueZ, op de systeembus, om te luisteren naar de telefoon die je hebt gekoppeld.</item>
-    <item>Op de sessiebus: meldingen, mediaspelers (MPRIS), energie (UPower), slapen en vergrendelen (login1), NetworkManager voor de pagina Netwerk, de donkere-modusinstelling van het bureaublad, schermverversingsfrequenties, het systeemvak en de Secret Service voor aanmeldtokens.</item>
+    <item>Op de sessiebus: meldingen, mediaspelers (MPRIS), energie (UPower), slapen en vergrendelen (systemd-logind), NetworkManager voor de pagina Netwerk, de donkere-modusinstelling van het bureaublad, schermverversingsfrequenties, het systeemvak en de Secret Service voor aanmeldtokens.</item>
     <item>Een autostartinvoer in je eigen configuratiemap, als je dat aanzet.</item>
   </string-array>
   <string-array name="uses_ai_keys">

@@ -131,7 +131,7 @@
   <string-array name="uses_linux_values">
     <item>/dev/uinput, abierto para la persona frente al teclado mediante una regla de udev y un ajuste de módulo que el instalador añade una vez, como administrador.</item>
     <item>BlueZ, en el bus del sistema, para escuchar al teléfono que vinculaste.</item>
-    <item>En el bus de sesión: notificaciones, reproductores multimedia (MPRIS), energía (UPower), suspensión y bloqueo (login1), NetworkManager para la página Red, el ajuste de modo oscuro del escritorio, las frecuencias de actualización de pantalla, el área de notificaciones y Secret Service para los tokens de inicio de sesión.</item>
+    <item>En el bus de sesión: notificaciones, reproductores multimedia (MPRIS), energía (UPower), suspensión y bloqueo (systemd-logind), NetworkManager para la página Red, el ajuste de modo oscuro del escritorio, las frecuencias de actualización de pantalla, el área de notificaciones y Secret Service para los tokens de inicio de sesión.</item>
     <item>Una entrada de inicio automático en tu propia carpeta de configuración, cuando la activas.</item>
   </string-array>
   <string-array name="uses_ai_keys">

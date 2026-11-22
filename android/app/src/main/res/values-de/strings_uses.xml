@@ -131,7 +131,7 @@
   <string-array name="uses_linux_values">
     <item>/dev/uinput, geöffnet für die Person an der Tastatur über eine udev-Regel und eine Moduleinstellung, die der Installer einmal als Administrator hinzufügt.</item>
     <item>BlueZ, auf dem Systembus, um auf das gekoppelte Handy zu hören.</item>
-    <item>Auf dem Sitzungsbus: Benachrichtigungen, Medienplayer (MPRIS), Energie (UPower), Ruhezustand und Sperre (login1), NetworkManager für die Netzwerkseite, die Dunkelmodus-Einstellung des Desktops, Bildwiederholraten, den Infobereich und den Secret Service für Anmelde-Token.</item>
+    <item>Auf dem Sitzungsbus: Benachrichtigungen, Medienplayer (MPRIS), Energie (UPower), Ruhezustand und Sperre (systemd-logind), NetworkManager für die Netzwerkseite, die Dunkelmodus-Einstellung des Desktops, Bildwiederholraten, den Infobereich und den Secret Service für Anmelde-Token.</item>
     <item>Ein Autostart-Eintrag in deinem eigenen Konfigurationsordner, wenn du ihn einschaltest.</item>
   </string-array>
   <string-array name="uses_ai_keys">

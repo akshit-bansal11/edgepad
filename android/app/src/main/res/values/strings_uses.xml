@@ -134,7 +134,7 @@
   <string-array name="uses_linux_values">
     <item>/dev/uinput, opened for the person at the keyboard through a udev rule and a module setting that the installer adds once, as administrator.</item>
     <item>BlueZ, on the system bus, to listen for the phone you paired.</item>
-    <item>On the session bus: notifications, media players (MPRIS), power (UPower), sleep and lock (login1), NetworkManager for the Network page, the desktop’s dark-mode setting, display refresh rates, the tray, and the Secret Service for sign-in tokens.</item>
+    <item>On the session bus: notifications, media players (MPRIS), power (UPower), sleep and lock (systemd-logind), NetworkManager for the Network page, the desktop’s dark-mode setting, display refresh rates, the tray, and the Secret Service for sign-in tokens.</item>
     <item>An autostart entry in your own config folder, when you turn it on.</item>
   </string-array>
   <string-array name="uses_ai_keys">

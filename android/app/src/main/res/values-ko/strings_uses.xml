@@ -131,7 +131,7 @@
   <string-array name="uses_linux_values">
     <item>/dev/uinput. 설치 프로그램이 관리자 권한으로 한 번 추가하는 udev 규칙과 모듈 설정을 통해, 키보드 앞의 사용자를 위해 열려요.</item>
     <item>BlueZ. 시스템 버스에서, 내가 페어링한 휴대전화의 연결을 기다려요.</item>
-    <item>세션 버스에서: 알림, 미디어 플레이어(MPRIS), 전원(UPower), 절전과 잠금(login1), 네트워크 페이지용 NetworkManager, 데스크톱의 다크 모드 설정, 디스플레이 주사율, 트레이, 그리고 로그인 토큰용 Secret Service.</item>
+    <item>세션 버스에서: 알림, 미디어 플레이어(MPRIS), 전원(UPower), 절전과 잠금(systemd-logind), 네트워크 페이지용 NetworkManager, 데스크톱의 다크 모드 설정, 디스플레이 주사율, 트레이, 그리고 로그인 토큰용 Secret Service.</item>
     <item>내가 켰을 때, 내 설정 폴더에 있는 자동 시작 항목.</item>
   </string-array>
   <string-array name="uses_ai_keys">

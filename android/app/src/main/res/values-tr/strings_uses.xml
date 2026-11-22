@@ -131,7 +131,7 @@
   <string-array name="uses_linux_values">
     <item>/dev/uinput, klavyenin başındaki kişi için, yükleyicinin bir kez ve yönetici olarak eklediği bir udev kuralı ve modül ayarı üzerinden açılır.</item>
     <item>Eşleştirdiğiniz telefonu dinlemek için sistem veri yolunda BlueZ.</item>
-    <item>Oturum veri yolunda: bildirimler, medya oynatıcıları (MPRIS), güç (UPower), uyku ve kilit (login1), Ağ sayfası için NetworkManager, masaüstünün koyu mod ayarı, ekran yenileme hızları, tepsi ve oturum belirteçleri için Secret Service.</item>
+    <item>Oturum veri yolunda: bildirimler, medya oynatıcıları (MPRIS), güç (UPower), uyku ve kilit (systemd-logind), Ağ sayfası için NetworkManager, masaüstünün koyu mod ayarı, ekran yenileme hızları, tepsi ve oturum belirteçleri için Secret Service.</item>
     <item>Açtığınızda, kendi yapılandırma klasörünüzde bir otomatik başlatma girdisi.</item>
   </string-array>
   <string-array name="uses_ai_keys">

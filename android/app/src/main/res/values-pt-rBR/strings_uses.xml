@@ -131,7 +131,7 @@
   <string-array name="uses_linux_values">
     <item>/dev/uinput, aberto para a pessoa que está no teclado por meio de uma regra udev e de uma configuração de módulo que o instalador adiciona uma vez, como administrador.</item>
     <item>BlueZ, no barramento do sistema, para escutar o celular que você pareou.</item>
-    <item>No barramento da sessão: notificações, players de mídia (MPRIS), energia (UPower), suspensão e bloqueio (login1), NetworkManager para a página Rede, a configuração de modo escuro da área de trabalho, taxas de atualização da tela, a bandeja e o Secret Service para os tokens de login.</item>
+    <item>No barramento da sessão: notificações, players de mídia (MPRIS), energia (UPower), suspensão e bloqueio (systemd-logind), NetworkManager para a página Rede, a configuração de modo escuro da área de trabalho, taxas de atualização da tela, a bandeja e o Secret Service para os tokens de login.</item>
     <item>Uma entrada de inicialização automática na sua própria pasta de configuração, quando você ativar.</item>
   </string-array>
   <string-array name="uses_ai_keys">
