@@ -131,7 +131,7 @@
   <string-array name="uses_linux_values">
     <item>/dev/uinput，为键盘前的用户打开，通过 udev 规则和安装程序一次性以管理员身份添加的模块设置。</item>
     <item>BlueZ，位于系统总线上，用于监听你配对的手机。</item>
-    <item>会话总线上：通知、媒体播放器（MPRIS）、电源（UPower）、睡眠与锁定（login1）、“网络”页面所用的 NetworkManager、桌面的深色模式设置、显示刷新率、托盘，以及用于登录令牌的 Secret Service。</item>
+    <item>会话总线上：通知、媒体播放器（MPRIS）、电源（UPower）、睡眠与锁定（systemd-logind）、“网络”页面所用的 NetworkManager、桌面的深色模式设置、显示刷新率、托盘，以及用于登录令牌的 Secret Service。</item>
     <item>开启时，在你自己的配置文件夹中添加一个自动启动项。</item>
   </string-array>
   <string-array name="uses_ai_keys">

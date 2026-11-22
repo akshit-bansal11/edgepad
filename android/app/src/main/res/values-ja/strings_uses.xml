@@ -131,7 +131,7 @@
   <string-array name="uses_linux_values">
     <item>/dev/uinput。キーボードを使っている人のために開かれます。udevルールと、インストーラーが管理者として一度追加するモジュール設定を通じて開かれます。</item>
     <item>BlueZ。システムバス上で、ペアリングしたスマホの接続を待ち受けます。</item>
-    <item>セッションバス上で: 通知、メディアプレーヤー（MPRIS）、電源（UPower）、スリープとロック（login1）、ネットワークページ用のNetworkManager、デスクトップのダークモード設定、ディスプレイのリフレッシュレート、トレイ、そしてサインイン用トークンのためのSecret Service。</item>
+    <item>セッションバス上で: 通知、メディアプレーヤー（MPRIS）、電源（UPower）、スリープとロック（systemd-logind）、ネットワークページ用のNetworkManager、デスクトップのダークモード設定、ディスプレイのリフレッシュレート、トレイ、そしてサインイン用トークンのためのSecret Service。</item>
     <item>オンにしたときに、ご自身の設定フォルダーに作られる自動起動の項目。</item>
   </string-array>
   <string-array name="uses_ai_keys">
