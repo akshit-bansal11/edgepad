@@ -527,10 +527,13 @@ class ControlSurface(
         backdrop.resize(w, h)
         // A punch-hole or notch over the middle of the top edge pushes the strip below it, and the button row
         // the same distance with it, so neither sits under the camera.
-        topShift = strip.cutoutShift(w, insets?.displayCutout?.boundingRects.orEmpty(), dp(Space.XS))
+        val topReach = (topButtons.maxOfOrNull { abs(it.side) } ?: 0f) * topButtonOffsetDp(w.toFloat(), h.toFloat())
+        // The battery strip is never wider than the button row, so the row's keep-out zone covers it too.
+        val stripRoom = BatteryStrip.roomDp(topReach)
+        topShift = strip.cutoutShift(w, insets?.displayCutout?.boundingRects.orEmpty(), dp(Space.XS), dp(stripRoom))
         layoutPieces(w.toFloat(), h.toFloat())
         widgets.layout(w.toFloat(), h.toFloat())
-        strip.layout(w, topShift)
+        strip.layout(w, topShift, dp(stripRoom))
         // No ruler runs under the buttons at the top, and neighbours stop short of each other — which is
         // what keeps two dials on the same edge clear of each other.
         // A dial the user puts in the top-middle slot is the one exception: it is centred inside the
@@ -543,10 +546,8 @@ class ControlSurface(
         // the 16dp the tighter step saves at each end goes back to the top corner dials. See
         // [TOP_BUTTON_OFFSET_PORTRAIT_DP].
         val topCentre = perimeter.lengthAt(TOP_CENTRE)
-        val reach = (topButtons.maxOfOrNull { abs(it.side) } ?: 0f) * topButtonOffsetDp(w.toFloat(), h.toFloat())
-        // The battery strip above the row is centred on the same edge and must stay inside the same zone: at
-        // 240dp it is wider than the row, so the zone is the strip's half-width plus the margin.
-        val zone = dp(maxOf(reach + Space.TOUCH / 2, BatteryStrip.WIDTH_DP / 2) + Space.M)
+        // The battery strip above the row is centred on the same edge and never wider than the row ([stripRoom]).
+        val zone = dp(maxOf(topReach + Space.TOUCH / 2, stripRoom / 2) + Space.M)
         keepOut[0] = topCentre - zone
         keepOut[1] = topCentre + zone
         // A split corner's text stays out of the same zone, which is centred on the top edge.
@@ -1787,8 +1788,10 @@ class ControlSurface(
         private const val ALPHA_SHIFT = 24
 
         /**
-         * The button row's centre. 60dp rather than 40 so the battery strip above it, whose tap rect ends at
-         * [BatteryStrip.HIT_BOTTOM_DP], stops where the row's own rects begin.
+         * The button row's centre. 60dp rather than 40 so the battery strip's shapes, which end by
+         * [BatteryStrip.CENTRE_DP] plus half of [BatteryStrip.HEIGHT_DP], stop where the row's own rects begin.
+         * The strip's tap rect is [BatteryStrip.HIT_BOTTOM_DP] tall to meet the touch target, so it runs into the
+         * row's top; [down] tries the buttons first, so the row keeps its taps.
          */
         const val TOP_DP = 60f
 

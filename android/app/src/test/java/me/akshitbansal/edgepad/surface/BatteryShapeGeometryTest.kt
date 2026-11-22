@@ -48,9 +48,10 @@ class BatteryShapeGeometryTest {
     }
 
     @Test
-    fun twoChargingDevicesAt100FitTheStrip() {
-        // "100%" at 13sp bold is about 36dp wide.
-        val one = BatteryShape.fixedWidth(device = true, icon = true, charging = true) + 36f
-        assertTrue(2 * one + BatteryShape.SPACING_DP <= BatteryStrip.WIDTH_DP)
+    fun aChargingLaptopAt97AndAPhoneAt52FitTheUprightRoomAtFullSize() {
+        // "97%" and "52%" at 13sp bold are about 27dp wide each.
+        val laptop = BatteryShape.fixedWidth(device = true, icon = true, charging = true) + 27f
+        val phone = BatteryShape.fixedWidth(device = true, icon = true, charging = false) + 27f
+        assertTrue(laptop + phone + BatteryShape.SPACING_DP <= BatteryStrip.MIN_ROOM_DP)
     }
 }

@@ -138,7 +138,7 @@ object BatteryShape {
         fixed: Float,
         textAtBase: Float,
         available: Float,
-    ): Float = if (textAtBase <= 0f) 1f else minOf(1f, (available - fixed) / textAtBase)
+    ): Float = if (textAtBase <= 0f) 1f else ((available - fixed) / textAtBase).coerceIn(0f, 1f)
 
     /** Low is red whatever else is true, charging is the accent, and the rest is plain ink. */
     fun fillColor(
