@@ -9,6 +9,7 @@ public sealed class ProcessUrlOpenerTests
     private static readonly Uri Repo = new("https://github.com/me/repo/pull/3?a=1&b=2");
 
     private readonly List<ProcessStartInfo> launched = [];
+    private readonly List<string> logged = [];
 
     private bool Launch(ProcessStartInfo info)
     {
@@ -19,7 +20,7 @@ public sealed class ProcessUrlOpenerTests
     [Fact]
     public void WindowsShellExecutesTheExactAddressWithNoArgumentsAndNoCmd()
     {
-        Assert.True(new ProcessUrlOpener(ProcessUrlOpener.Windows, Launch).Open(Repo));
+        Assert.True(new ProcessUrlOpener(ProcessUrlOpener.Windows, Launch, logged.Add).Open(Repo));
 
         var info = Assert.Single(launched);
         Assert.True(info.UseShellExecute);
@@ -32,7 +33,7 @@ public sealed class ProcessUrlOpenerTests
     [Fact]
     public void LinuxRunsXdgOpenWithTheAddressAsItsOneArgumentAndNoShell()
     {
-        Assert.True(new ProcessUrlOpener(ProcessUrlOpener.Linux, Launch).Open(Repo));
+        Assert.True(new ProcessUrlOpener(ProcessUrlOpener.Linux, Launch, logged.Add).Open(Repo));
 
         var info = Assert.Single(launched);
         Assert.False(info.UseShellExecute);
@@ -48,15 +49,21 @@ public sealed class ProcessUrlOpenerTests
     [InlineData("mailto:a@b.example")]
     public void AnythingButHttpsIsNeverLaunched(string address)
     {
-        Assert.False(new ProcessUrlOpener(ProcessUrlOpener.Windows, Launch).Open(new Uri(address)));
-        Assert.False(new ProcessUrlOpener(ProcessUrlOpener.Linux, Launch).Open(new Uri(address)));
+        Assert.False(new ProcessUrlOpener(ProcessUrlOpener.Windows, Launch, logged.Add).Open(new Uri(address)));
+        Assert.False(new ProcessUrlOpener(ProcessUrlOpener.Linux, Launch, logged.Add).Open(new Uri(address)));
         Assert.Empty(launched);
     }
 
     [Fact]
     public void ALaunchThatFailsToStartIsReportedNotThrown()
     {
-        var opener = new ProcessUrlOpener(ProcessUrlOpener.Linux, _ => throw new InvalidOperationException("no xdg-open"));
+        var opener = new ProcessUrlOpener(ProcessUrlOpener.Linux, _ => throw new InvalidOperationException("no xdg-open"), logged.Add);
         Assert.False(opener.Open(Repo));
+        Assert.Equal(1, opener.Failed);
+
+        // Host and path only: the query never reaches the log.
+        var line = Assert.Single(logged);
+        Assert.Contains("github.com/me/repo/pull/3", line, StringComparison.Ordinal);
+        Assert.DoesNotContain("a=1", line, StringComparison.Ordinal);
     }
 }

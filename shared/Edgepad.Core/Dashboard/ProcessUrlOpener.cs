@@ -11,13 +11,21 @@ internal sealed class ProcessUrlOpener : IUrlOpener
     private readonly Func<Uri, ProcessStartInfo> plan;
     private readonly Func<ProcessStartInfo, bool> launch;
 
+    private readonly Action<string> log;
+    private int failed;
+
     /// <param name="plan">The process that opens an address. See <see cref="Windows"/> and <see cref="Linux"/>.</param>
     /// <param name="launch">Starts it and says whether it started; tests pass a fake. Default <see cref="Process.Start(ProcessStartInfo)"/>.</param>
-    public ProcessUrlOpener(Func<Uri, ProcessStartInfo> plan, Func<ProcessStartInfo, bool>? launch = null)
+    /// <param name="log">Where a failed open is reported; tests pass a fake. Default the app log.</param>
+    public ProcessUrlOpener(Func<Uri, ProcessStartInfo> plan, Func<ProcessStartInfo, bool>? launch = null, Action<string>? log = null)
     {
         this.plan = plan;
         this.launch = launch ?? Start;
+        this.log = log ?? Log.Write;
     }
+
+    /// <summary>Opens that were refused or could not start.</summary>
+    public int Failed => Volatile.Read(ref failed);
 
     /// <summary>ShellExecute on the exact address (no cmd.exe, no arguments).</summary>
     public static ProcessStartInfo Windows(Uri url) => new(url.AbsoluteUri) { UseShellExecute = true };
@@ -34,18 +42,25 @@ internal sealed class ProcessUrlOpener : IUrlOpener
     {
         if (url.Scheme != Uri.UriSchemeHttps || url.Host.Length == 0)
         {
-            return false;
+            return Fail("refused, not an https address", url);
         }
 
         try
         {
-            return launch(plan(url));
+            return launch(plan(url)) || Fail("did not start", url);
         }
         catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException or PlatformNotSupportedException)
         {
-            // No browser or opener on this machine: the link is not opened, nothing else to do.
-            return false;
+            return Fail($"could not start: {e.GetType().Name}", url);
         }
+    }
+
+    // Host and path only: the query may hold a token or a search the person typed.
+    private bool Fail(string why, Uri url)
+    {
+        Interlocked.Increment(ref failed);
+        log($"Opening a link {why}: {url.Host}{url.AbsolutePath}");
+        return false;
     }
 
     private static bool Start(ProcessStartInfo info)
