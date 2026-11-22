@@ -289,6 +289,13 @@ internal enum TextKind : byte
     /// <see cref="ControlId.SpeedTest"/> runs and when it ends, and again when the phone watches bit 5 and a result is held.
     /// </summary>
     SpeedResult = 37,
+
+    /// <summary>
+    /// Phone to laptop: exactly "host/listRevision/index": the host a git provider id, the revision from the first line of
+    /// the <see cref="BlobKind.Git"/> blob, and the zero-based position among that blob's repository and item lines. The laptop opens only the
+    /// https address it fetched itself for that revision and index, in the default browser; anything else is dropped and counted.
+    /// </summary>
+    GitOpen = 38,
 }
 
 /// <summary>
@@ -389,7 +396,7 @@ internal static class Feature
     /// <summary>This laptop's Codex integration is on and usable, as <see cref="Claude"/> is for Claude Code.</summary>
     public const string Codex = "codex";
 
-    /// <summary>This laptop is signed in to GitHub and can send <see cref="BlobKind.Github"/>.</summary>
+    /// <summary>This laptop is signed in to GitHub and can send <see cref="BlobKind.Git"/>.</summary>
     public const string GitHub = "github";
 
     /// <summary>Developer mode is on; <see cref="Claude"/>, <see cref="Codex"/> and <see cref="GitHub"/> are named only while it is.</summary>
@@ -459,7 +466,7 @@ internal static class SessionStateToken
     public const string Idle = "idle";
 }
 
-/// <summary>The CI field of a <see cref="BlobKind.Github"/> line. Mirrors protocol/actions.txt.</summary>
+/// <summary>The CI field of a <see cref="BlobKind.Git"/> item line. Mirrors protocol/actions.txt.</summary>
 internal static class CiToken
 {
     public const string Ok = "ok";
@@ -761,8 +768,11 @@ internal enum BlobKind : byte
     /// </summary>
     PermAsk = 6,
 
-    /// <summary>Laptop to phone: GitHub pull requests and the notification count. The label is "gh"; the body is tab-separated lines, see protocol/actions.txt.</summary>
-    Github = 7,
+    /// <summary>
+    /// Laptop to phone: one git host's account, repositories, pull requests and issues. The label is "git"; the body is tab-separated lines whose
+    /// first line names the host and the list revision, see protocol/actions.txt. Answered, for a link, by <see cref="TextKind.GitOpen"/>.
+    /// </summary>
+    Git = 7,
 }
 
 /// <summary>

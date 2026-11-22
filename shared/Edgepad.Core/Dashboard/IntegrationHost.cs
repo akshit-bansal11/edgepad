@@ -35,6 +35,9 @@ internal sealed class DashboardParts
     /// <summary>Whether a GitHub token is saved (<see cref="GitHubSignIn.IsSignedIn"/>).</summary>
     public Func<bool>? GitHubSignedIn { get; init; }
 
+    /// <summary>Opens an address a git host's page named, in the default browser. Each laptop app supplies it (C26); without one, GIT_OPEN is dropped and counted.</summary>
+    public IUrlOpener? UrlOpener { get; init; }
+
     /// <summary>Whether the agent's hook was heard since it was connected (<see cref="UsageStore.LastHeard"/> at least 0). Null counts every agent as heard.</summary>
     public Func<string, bool>? AgentHeard { get; init; }
 }
@@ -65,8 +68,8 @@ internal sealed class IntegrationHost : IDisposable
     // A refresh this recent already answers a sign-in, so SignedInChanged does not ask GitHub twice.
     private static readonly TimeSpan JustRefreshed = TimeSpan.FromSeconds(5);
 
-    // What a phone that has been sent no GitHub lines holds.
-    private static readonly string NothingSent = GitHubBlob.Encode([]);
+    // What a phone that has been sent no git page holds.
+    private const string NothingSent = "";
 
     private readonly Action<Frame> send;
     private readonly BlobSender blobs;
@@ -287,7 +290,7 @@ internal sealed class IntegrationHost : IDisposable
             SendSpend();
         }
 
-        if (githubGained && GitHubOn && parts.GitHub!.Lines.Count > 0)
+        if (githubGained && GitHubOn && parts.GitHub!.Page is not null)
         {
             run(SendGitHub);
         }
@@ -612,7 +615,7 @@ internal sealed class IntegrationHost : IDisposable
     {
         if (parts.GitHub is { } github)
         {
-            var text = GitHubBlob.Encode(github.Lines);
+            var text = github.Page?.Body ?? NothingSent;
             lock (gate)
             {
                 if (text == githubSent || disposed)
@@ -624,9 +627,28 @@ internal sealed class IntegrationHost : IDisposable
             }
 
             var body = Encoding.UTF8.GetBytes(text);
-            Guard(() => blobs.Send(BlobKind.Github, "gh", body));
+            Guard(() => blobs.Send(BlobKind.Git, "git", body));
         }
     }
+
+    /// <summary>
+    /// The phone's TEXT GIT_OPEN (<c>host/listRevision/index</c>). Opens the address this laptop fetched for that revision and index in the
+    /// default browser, off the caller's thread, and says whether it was accepted; anything else is refused and the caller drops and
+    /// counts it (see <see cref="GitOpenGate"/>).
+    /// </summary>
+    public bool OpenGit(string wire)
+    {
+        if (disposed || parts.UrlOpener is not { } opener || !GitOpenGate.TryResolve(wire, Git, out var url))
+        {
+            return false;
+        }
+
+        run(() => opener.Open(url));
+        return true;
+    }
+
+    // C22 and C23 add the other hosts here.
+    private IGitHost? Git(string id) => parts.GitHub is { } github && GitHubOn && github.Id == id ? github : null;
 
     private void Push(Text text) => Guard(() => send(text));
 

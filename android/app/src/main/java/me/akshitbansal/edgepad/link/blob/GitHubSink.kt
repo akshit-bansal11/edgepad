@@ -6,9 +6,10 @@ import me.akshitbansal.edgepad.protocol.BlobKind
 import me.akshitbansal.edgepad.protocol.Frame
 
 /**
- * Puts the laptop's GitHub list back together on the link's reading thread and hands the parsed rows over. Only
- * [BlobKind.GITHUB] is taken and nothing over [MAX_BYTES]: anything else is drained and dropped by the receiver, and
- * the next blob starts clean. Nothing is kept on disk, and each finished blob replaces the one before it.
+ * Puts the laptop's git page back together on the link's reading thread and hands the parsed rows over. Only
+ * [BlobKind.GIT] is taken and nothing over [MAX_BYTES]: anything else is drained and dropped by the receiver, and
+ * the next blob starts clean. Nothing is kept on disk, and each finished blob replaces the one before it. The rows are
+ * still the older GitHub grammar (the notification line only); the page's repositories and items are read from C25 on.
  *
  * @param completed Handed the rows of each checked blob, on the reading thread. It must not touch the UI.
  */
@@ -16,7 +17,7 @@ class GitHubSink(
     private val completed: (List<GithubRow>) -> Unit,
 ) {
     private val receiver =
-        BlobReceiver({ kind -> if (kind == BlobKind.GITHUB.id) MAX_BYTES.toLong() else null }) { _, data, _ ->
+        BlobReceiver({ kind -> if (kind == BlobKind.GIT.id) MAX_BYTES.toLong() else null }) { _, data, _ ->
             completed(DashWire.github(data))
             true
         }
@@ -27,7 +28,7 @@ class GitHubSink(
     }
 
     companion object {
-        /** The most a GitHub blob may hold: 8 KiB. */
-        const val MAX_BYTES = 8 * 1024
+        /** The most a git blob may hold: 16 KiB. */
+        const val MAX_BYTES = 16 * 1024
     }
 }

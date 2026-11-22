@@ -25,6 +25,7 @@ public sealed class IntegrationHostTests : IDisposable
     private readonly FakeHttp github;
     private readonly FakeHttp weather = new(_ => FakeHttp.Status(HttpStatusCode.InternalServerError));
     private readonly Secrets secrets = new();
+    private readonly List<Uri> opened = [];
     private Func<SeenRequest, HttpResponseMessage> githubReply = _ => FakeHttp.Status(HttpStatusCode.InternalServerError);
 
     public IntegrationHostTests()
@@ -69,7 +70,17 @@ public sealed class IntegrationHostTests : IDisposable
         Weather = new WeatherClient(weather, () => clock.Now),
         GitHub = new GitHubApi(secrets, github, () => clock.Now),
         GitHubSignedIn = () => GitHubApp.IsToken(secrets.Get(GitHubApp.TokenName)),
+        UrlOpener = new Opener(opened),
     };
+
+    private sealed class Opener(List<Uri> opened) : IUrlOpener
+    {
+        public bool Open(Uri url)
+        {
+            opened.Add(url);
+            return true;
+        }
+    }
 
     private FakeTimer StartOnce(Action action, TimeSpan due)
     {
@@ -355,7 +366,48 @@ public sealed class IntegrationHostTests : IDisposable
         await Task.Run(tick.Fire, Ct);
         Assert.Equal(string.Empty, Texts(TextKind.Unavailable)[^1].Value);
         Assert.Equal(2, Texts(TextKind.Unavailable).Count);
-        Assert.Single(Blobs(BlobKind.Github));
+        Assert.Single(Blobs(BlobKind.Git));
+    }
+
+    [Fact]
+    public async Task OpenGitOpensOnlyWhatThisLaptopFetchedForTheCurrentRevisionAndIndex()
+    {
+        AllOn();
+        githubReply = GitHubOk;
+        using var host = New();
+        Assert.False(host.OpenGit("github/1/0"));
+
+        host.OnWatch(IntegrationHost.GitHubBit);
+        await Task.Run(Assert.Single(timers, t => t.Every == GitHubRefresh.Every).Fire, Ct);
+
+        // Index 0 and 1 are the repositories, 2 the first item of "mine".
+        Assert.True(host.OpenGit("github/1/2"));
+        Assert.Equal(new Uri("https://github.com/me/my_repo-2/pull/3"), Assert.Single(opened));
+
+        Assert.False(host.OpenGit("github/2/0"));
+        Assert.False(host.OpenGit("github/1/7"));
+        Assert.False(host.OpenGit("github/1/6"));
+        Assert.False(host.OpenGit("gitlab/1/0"));
+        Assert.False(host.OpenGit("https://evil.example/"));
+        Assert.Single(opened);
+    }
+
+    [Fact]
+    public async Task OpenGitDoesNothingWhileGitHubIsOffOrThereIsNoOpener()
+    {
+        AllOn();
+        githubReply = GitHubOk;
+        using var host = New();
+        host.OnWatch(IntegrationHost.GitHubBit);
+        await Task.Run(Assert.Single(timers, t => t.Every == GitHubRefresh.Every).Fire, Ct);
+
+        settings.SetFlag(IntegrationSettings.GitHub, false);
+        Assert.False(host.OpenGit("github/1/0"));
+
+        settings.SetFlag(IntegrationSettings.GitHub, true);
+        using var bare = New(shared: new DashboardParts { GitHub = new GitHubApi(secrets, github, () => clock.Now) });
+        Assert.False(bare.OpenGit("github/1/0"));
+        Assert.Empty(opened);
     }
 
     [Fact]
@@ -380,8 +432,8 @@ public sealed class IntegrationHostTests : IDisposable
         await Task.Run(timers[^2].Fire, Ct);
         await Task.Run(timers[^1].Fire, Ct);
 
-        Assert.Single(Blobs(BlobKind.Github));
-        Assert.Single(second.OfType<BlobBegin>(), b => b.Kind == (byte)BlobKind.Github);
+        Assert.Single(Blobs(BlobKind.Git));
+        Assert.Single(second.OfType<BlobBegin>(), b => b.Kind == (byte)BlobKind.Git);
     }
 
     [Fact]
@@ -396,11 +448,11 @@ public sealed class IntegrationHostTests : IDisposable
         host.SignedInChanged();
         var asked = github.Seen.Count;
         Assert.True(asked > 0);
-        Assert.Single(Blobs(BlobKind.Github));
+        Assert.Single(Blobs(BlobKind.Git));
 
         host.SignedInChanged();
         Assert.Equal(asked, github.Seen.Count);
-        Assert.Single(Blobs(BlobKind.Github));
+        Assert.Single(Blobs(BlobKind.Git));
     }
 
     [Fact]
@@ -416,7 +468,7 @@ public sealed class IntegrationHostTests : IDisposable
 
         Assert.Empty(github.Seen);
         Assert.Equal(started, timers.Count);
-        Assert.Empty(Blobs(BlobKind.Github));
+        Assert.Empty(Blobs(BlobKind.Git));
         Assert.Empty(Texts(TextKind.Unavailable));
     }
 

@@ -337,6 +337,9 @@ enum class TextKind(
 
     /** Laptop to phone: "state|downKbps|upKbps|latencyMs|jitterMs|atUnixMin|bytes"; state running, done, failed, cancelled or capped, -1 unknown. */
     SPEED_RESULT(37),
+
+    /** Phone to laptop: exactly "host/listRevision/index", a place in the [BlobKind.GIT] page the phone shows. Never an address. */
+    GIT_OPEN(38),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -445,7 +448,7 @@ enum class Feature(
     /** The laptop's Codex integration is on and usable. */
     CODEX("codex"),
 
-    /** The laptop is signed in to GitHub and sends [BlobKind.GITHUB]. */
+    /** The laptop is signed in to GitHub and sends [BlobKind.GIT]. */
     GITHUB("github"),
 
     /** Developer mode is on on the laptop: it names claude, codex and github only while this is here. */
@@ -510,7 +513,7 @@ enum class SessionStateToken(
     }
 }
 
-/** The CI field of a [BlobKind.GITHUB] line. Mirrors the CI rows of protocol/actions.txt. */
+/** The CI field of a [BlobKind.GIT] item line. Mirrors the CI rows of protocol/actions.txt. */
 enum class CiToken(
     val token: String,
 ) {
@@ -755,8 +758,8 @@ enum class BlobKind(
     /** Laptop to phone: an approval request. The label is "id/f"; the body is UTF-8 agent, tool and text joined by line feeds. */
     PERM_ASK(6),
 
-    /** Laptop to phone: GitHub pull requests and the notification count. The label is "gh"; the body is tab-separated lines. */
-    GITHUB(7),
+    /** Laptop to phone: one git host's account, repositories, pull requests and issues. The label is "git"; the body is tab-separated lines. */
+    GIT(7),
     ;
 
     companion object {

@@ -544,7 +544,11 @@ internal static class PermAskBody
     }
 }
 
-/// <summary>The body of a BLOB GITHUB: lines of <c>section TAB repo TAB number TAB title TAB flags TAB ci</c> joined by line feeds, at most 8 KiB.</summary>
+/// <summary>
+/// The body of the older BLOB 7 (GITHUB): lines of <c>section TAB repo TAB number TAB title TAB flags TAB ci</c> joined by line feeds, at most 8 KiB.
+/// Nothing sends it any more (<see cref="GitBlob"/> replaced it); it stays only for protocol/dashboard-vectors.txt, which the Swift and
+/// Kotlin ports still read until their git steps (C24, C25) retire the vectors with it.
+/// </summary>
 internal static class GitHubBlob
 {
     public const int MaxBytes = 8192;

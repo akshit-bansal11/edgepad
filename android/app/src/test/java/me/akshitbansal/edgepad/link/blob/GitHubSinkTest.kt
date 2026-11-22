@@ -27,7 +27,7 @@ class GitHubSinkTest {
     @Test
     fun rowsArriveParsed() {
         send(
-            BlobKind.GITHUB,
+            BlobKind.GIT,
             lines("N\t\t3\t\t\tnone", "R\tme/app\t12\tFix the thing\td\tfail"),
         )
         val rows = got.single()
@@ -38,22 +38,22 @@ class GitHubSinkTest {
 
     @Test
     fun aSecondBlobIsAnotherDelivery() {
-        send(BlobKind.GITHUB, lines("N\t\t1\t\t\tnone"))
-        send(BlobKind.GITHUB, lines("N\t\t2\t\t\tnone"))
+        send(BlobKind.GIT, lines("N\t\t1\t\t\tnone"))
+        send(BlobKind.GIT, lines("N\t\t2\t\t\tnone"))
         assertEquals(2, got.size)
         assertEquals(2, got.last().single().number)
     }
 
     @Test
     fun overTheCapAndOtherKindsAreDropped() {
-        send(BlobKind.GITHUB, ByteArray(GitHubSink.MAX_BYTES + 1) { 'a'.code.toByte() })
+        send(BlobKind.GIT, ByteArray(GitHubSink.MAX_BYTES + 1) { 'a'.code.toByte() })
         send(BlobKind.PERM_ASK, lines("N\t\t1\t\t\tnone"))
         assertTrue(got.isEmpty())
     }
 
     @Test
     fun hostileTitlesStayLiteral() {
-        send(BlobKind.GITHUB, lines("M\tme/app\t1\t<b>bold</b> \u202e x\t\tok"))
+        send(BlobKind.GIT, lines("M\tme/app\t1\t<b>bold</b> \u202e x\t\tok"))
         assertEquals("<b>bold</b> \u202e x", got.single().single().title)
     }
 }

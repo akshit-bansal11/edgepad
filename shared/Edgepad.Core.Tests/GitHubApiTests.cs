@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Edgepad.Dashboard;
-using Edgepad.Protocol;
 using Xunit;
 
 namespace Edgepad.Tests;
@@ -30,6 +29,7 @@ public sealed class GitHubApiTests
         Assert.Equal(2, http.Seen.Count);
 
         var graphql = http.Seen[0];
+        Assert.DoesNotContain("mutation", GitHubApi.Query, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(HttpMethod.Post, graphql.Method);
         Assert.Equal("https://api.github.com/graphql", graphql.Uri.AbsoluteUri);
         using (var body = JsonDocument.Parse(graphql.Body))
@@ -53,15 +53,46 @@ public sealed class GitHubApiTests
             Assert.Equal("Edgepad", s.Header("User-Agent"));
         });
 
+        var min = GitHubParseTests.UpdatedMin;
+        var page = api.Page!;
+        Assert.Equal(1, page.Rev);
         Assert.Equal(
-            new List<GitHubLine>
+            string.Join(
+                '\n',
+                "H\tgithub\tocto-cat\tOcto Cat\t34\t12\t1",
+                "N\t\t2\t\t\tnone",
+                "P\tocto-cat/edgepad\t\tC#\t5\t2\t1",
+                "P\tocto-cat/secret\tp\t\t0\t0\t0",
+                $"M\tme/my_repo-2\t3\tMine\t\tfail\tmerged\t{min}",
+                $"M\tme/my_repo-2\t9\tCrash on pair\ti\tnone\topen\t{min}",
+                $"R\tocto/edgepad\t12\tFix the pairing timeout\t\tok\topen\t{min}",
+                $"R\tocto/other.repo\t7\tDraft idea\td\tnone\topen\t{min}",
+                "A\tocto/edgepad\t4\tAssigned to me\ti\tnone\tclosed\t0"),
+            page.Body);
+        Assert.Equal(
+            new List<string>
             {
-                new("N", string.Empty, 2, string.Empty, false, CiToken.None),
-                new("R", "octo/edgepad", 12, "Fix the pairing timeout", false, CiToken.Ok),
-                new("R", "octo/other.repo", 7, "Draft idea", true, CiToken.None),
-                new("M", "me/my_repo-2", 3, "Mine", false, CiToken.Fail),
+                "https://github.com/octo-cat/edgepad",
+                "https://github.com/octo-cat/secret",
+                "https://github.com/me/my_repo-2/pull/3",
+                "https://github.com/me/my_repo-2/issues/9",
+                "https://github.com/octo/edgepad/pull/12",
+                "https://github.com/octo/other.repo/pull/7",
+                string.Empty,
             },
-            api.Lines);
+            page.Urls);
+    }
+
+    [Fact]
+    public async Task TheRevisionOnlyGoesUpWhenThePageChanges()
+    {
+        var http = Serve(GitHubParseTests.Normal, TwoUnread);
+        var api = New(http);
+        var ct = TestContext.Current.CancellationToken;
+
+        await api.RefreshAsync(ct);
+        Assert.Equal(new GitHubRefreshResult(GitHubResult.Ok, false), await api.RefreshAsync(ct));
+        Assert.Equal(1, api.Page!.Rev);
     }
 
     [Fact]
@@ -125,7 +156,7 @@ public sealed class GitHubApiTests
         Assert.Equal(new GitHubRefreshResult(GitHubResult.Ok, false), again);
         Assert.Null(http.Seen[1].Header("If-None-Match"));
         Assert.Equal("\"abc123\"", http.Seen[3].Header("If-None-Match"));
-        Assert.Equal(2, api.Lines[0].Number);
+        Assert.Contains("\nN\t\t2\t\t\tnone", api.Page!.Body, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -144,7 +175,7 @@ public sealed class GitHubApiTests
 
         Assert.Equal(new GitHubRefreshResult(GitHubResult.NoPermission, true), result);
         Assert.Null(secrets.Get(GitHubApp.TokenName));
-        Assert.Empty(api.Lines);
+        Assert.Null(api.Page);
         Assert.Equal(3, http.Seen.Count);
     }
 
@@ -169,10 +200,10 @@ public sealed class GitHubApiTests
         var ct = TestContext.Current.CancellationToken;
 
         await api.RefreshAsync(ct);
-        var kept = api.Lines;
+        var kept = api.Page;
         limited = true;
         Assert.Equal(GitHubResult.RateLimited, (await api.RefreshAsync(ct)).Result);
-        Assert.Equal(kept, api.Lines);
+        Assert.Equal(kept, api.Page);
         Assert.Equal(3, http.Seen.Count);
 
         clock.Advance(TimeSpan.FromMinutes(9));
@@ -233,10 +264,10 @@ public sealed class GitHubApiTests
         var ct = TestContext.Current.CancellationToken;
 
         await api.RefreshAsync(ct);
-        var kept = api.Lines;
+        var kept = api.Page;
         fail = true;
         Assert.Equal(new GitHubRefreshResult(GitHubResult.Failed, false), await api.RefreshAsync(ct));
-        Assert.Equal(kept, api.Lines);
+        Assert.Equal(kept, api.Page);
         Assert.All(http.Seen, s => Assert.Equal("api.github.com", s.Uri.Host));
     }
 
@@ -248,7 +279,7 @@ public sealed class GitHubApiTests
         var api = New(http);
 
         Assert.Equal(GitHubResult.Failed, (await api.RefreshAsync(TestContext.Current.CancellationToken)).Result);
-        Assert.Equal(CiToken.None, Assert.Single(api.Lines).Ci);
+        Assert.Null(api.Page);
     }
 
     [Fact]

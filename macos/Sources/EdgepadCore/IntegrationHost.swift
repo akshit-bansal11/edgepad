@@ -547,7 +547,7 @@ public final class IntegrationHost {
         if same && !force { return }
         onMain { [weak self] in
             guard let self, !self.isDisposed else { return }
-            self.blobs?.send(.github, label: "gh", data: body)
+            self.blobs?.send(.git, label: "git", data: body)
         }
     }
 

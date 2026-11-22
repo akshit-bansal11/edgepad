@@ -11,7 +11,7 @@ internal sealed record CappedReply(HttpStatusCode Status, IReadOnlyDictionary<st
 }
 
 /// <summary>
-/// One request to a fixed address the caller built from constants, for the dashboard's weather and GitHub clients. Redirects
+/// One request to a fixed address the caller built from constants, for the dashboard's weather and git clients. Redirects
 /// are never followed (a 3xx comes back as its status, which no caller accepts), the body is capped both by its announced
 /// length and by the bytes actually read, and a deadline bounds the whole exchange. Nothing about the request is logged:
 /// its address may carry the user's city and its headers a token.
@@ -30,9 +30,10 @@ internal static class CappedHttp
         var token = deadline.Token;
         try
         {
+            // Every request passes the read-only gate: nothing here can change anything on a host (see ReadOnlyGate).
             using var client = handler is null
-                ? new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
-                : new HttpClient(handler, disposeHandler: false);
+                ? new HttpClient(new ReadOnlyGate(new HttpClientHandler { AllowAutoRedirect = false }))
+                : new HttpClient(new ReadOnlyGate(handler), disposeHandler: false);
             client.Timeout = Timeout.InfiniteTimeSpan;
             using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
             if (response.Content.Headers.ContentLength > maxBytes)

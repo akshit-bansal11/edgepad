@@ -75,6 +75,12 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     public Func<string, bool>? PermAnswer { get; set; }
 
     /// <summary>
+    /// Takes a TEXT GIT_OPEN (<c>host/listRevision/index</c>) and says whether it named an address this laptop fetched and may open. Set by
+    /// the session (the integration host's <c>OpenGit</c>); without one, or when it returns false, the frame is dropped and counted.
+    /// </summary>
+    public Func<string, bool>? GitOpen { get; set; }
+
+    /// <summary>
     /// Shares the clipboard when the phone asks for that. Set by the session, like <see cref="Capture"/>; without one,
     /// SET CLIPBOARD and the blob frames are dropped and counted.
     /// </summary>
@@ -186,6 +192,8 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         Text t when t.Kind == (byte)TextKind.AppAdd => AddApp(t.Value),
         // Only ever "id/a" or "id/d" for an approval that waits; the broker refuses anything else.
         Text t when t.Kind == (byte)TextKind.PermAnswer => PermAnswer?.Invoke(t.Value) ?? false,
+        // Only a place in a list the laptop sent: GitOpenGate opens an address the laptop fetched itself, never one the phone names.
+        Text t when t.Kind == (byte)TextKind.GitOpen => GitOpen?.Invoke(t.Value) ?? false,
         Key k => Do(() => platform.Key(k.Code, k.Down)),
         // A pad frame with no pad plugged in is dropped and counted like any other id this laptop
         // cannot act on. The phone is not meant to send one before its PAD_ATTACH was answered

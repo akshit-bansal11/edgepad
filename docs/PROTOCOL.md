@@ -186,7 +186,7 @@ The kind is data, not a codec error:
 | 4 | MEDIA_ICON | laptop to phone: a 64 px PNG; the label is the app's name, or `artwork` for a browser's media artwork; see [Media icons](#media-icons) |
 | 5 | NOTIFICATION | laptop to phone: `app`, `title` and `body` joined by line feeds, in UTF-8, the label being the notification's id; see [Notifications](#notifications) |
 | 6 | PERM_ASK | laptop to phone: an approval the phone can answer with TEXT 31; label `id/f`, `f` 1 when complete and 0 when over the cap; see [Dashboard widgets and screens](#dashboard-widgets-and-screens) |
-| 7 | GITHUB | laptop to phone: the GitHub lists, tab-separated lines; label `gh`; see [Dashboard widgets and screens](#dashboard-widgets-and-screens) |
+| 7 | GIT | laptop to phone: one git host's account, repositories, pull requests and issues, tab-separated lines; label `git`; see [Dashboard widgets and screens](#dashboard-widgets-and-screens) |
 
 A receiver reads a kind it does not know to its BLOB_END and drops it, counting it. Which side sends which kind, the size caps and the pacing belong to the feature that uses each kind; this section fixes only the frames.
 ## Annotate and sign
@@ -508,7 +508,7 @@ After a pairing the laptop calls `TrustStore.Grant("link:<phoneIdHex>")`, where 
 
 ## Dashboard widgets and screens
 
-The trackpad widgets and the System, AI and GitHub screens show data from the laptop. None of it is a new frame type. It uses CONTROL 12 (what the phone draws), TEXT 27 to 37 (the data), BLOB kinds 6 and 7 (approvals and the GitHub lists) and FEATURE tokens. A build that does not know an id drops and counts it.
+The trackpad widgets and the System, AI and GitHub screens show data from the laptop. None of it is a new frame type. It uses CONTROL 12 (what the phone draws), TEXT 27 to 38 (the data, and the phone's request to open a git link), BLOB kinds 6 and 7 (approvals and the git pages) and FEATURE tokens. A build that does not know an id drops and counts it.
 
 **The watch.** The phone sends DASH_WATCH (CONTROL 12), a bitmask of what it draws now:
 
@@ -536,6 +536,7 @@ Values are 0 to 63; larger values are dropped and counted. The mask is forgotten
 - TEXT 35 WEATHER, laptop to phone: `tempTenthsC/wmoCode/city`, city Clean(24). Empty means none.
 - TEXT 36 NET_INFO, laptop to phone: `kind|band|linkMbps|signalPct|localIp|gateway`. `kind` is `wifi`, `ethernet`, `cellular`, `other` or `none`; `band` is `2.4`, `5`, `6` or `?`; `linkMbps` and `signalPct` (0 to 100) are -1 when unknown (Windows never reports a signal); the two addresses are IPv4 text, Clean(15), empty when none. There is no field for a network name or a hardware address. Sent while bit 5 is set, at most once a second, and only when the text changed.
 - TEXT 37 SPEED_RESULT, laptop to phone: `state|downKbps|upKbps|latencyMs|jitterMs|atUnixMin|bytes`. `state` is `running`, `done`, `failed`, `cancelled` or `capped` (a byte cap ended it); the speeds are in Kbit/s and the times in ms, -1 unknown; `atUnixMin` is when the test began, in UTC minutes since the Unix epoch; `bytes` is what the test actually moved, download plus upload (0 while it starts), which the phone shows as the data used; one test moves at most 180000000. The laptop sends it when a test starts, when it ends, and again to a phone that starts watching bit 5 while it holds a result. The test runs only after CONTROL 14 SPEED_TEST is 1, one at a time, against `speed.cloudflare.com` over HTTPS and nowhere else, and stops at about 10 seconds per direction or 150 MB down and 30 MB up, whichever comes first. Latency is the median of ten empty downloads, jitter the mean absolute difference of consecutive ones.
+- TEXT 38 GIT_OPEN, phone to laptop: exactly `host/listRevision/index`. `host` is a git provider id, `listRevision` the revision in the first line of the BLOB 7 the phone shows, `index` the zero-based position among that blob's `P`, `M`, `R` and `A` lines. The phone never sends an address. The laptop opens, in the default browser, only an https address it fetched itself for that host, that exact revision and that index, on the host's own domain; a stale revision, an index out of range, a host that is not connected, a non-https address or any other shape is dropped and counted.
 
 **Tokens.** AGENT is `claude`, `codex`, `gemini` or `opencode`. SESSION_STATE is `busy`, `wait` or `idle`. CI is `ok`, `fail`, `pending` or `none`. An unknown token drops its entry.
 
@@ -557,7 +558,9 @@ Any other window drops that entry. pct is 0 to 100, floats rounded and clamped. 
 
 **Approvals.** BLOB 6 carries the ask to every linked phone with the feature. Its body is the agent, the tool name (1 to 24 of `A-Za-z0-9_.-`) and the text, joined by line feeds, at most 4096 bytes. Over that cap the laptop sends `f` 0 and an empty text. The first valid TEXT 31 answer wins. TEXT 32 tells the other phones it was answered elsewhere. Nothing from the phone changes the approval except its `id/a` or `id/d`.
 
-**GitHub.** BLOB 7 is UTF-8 lines, each tab-separated: `section`, `repo`, `number`, `title`, `flags`, `ci`. Section `R` is review requested, `M` is your pull requests, and `N` is notifications, which have an empty repo and a count as number. Title is Clean(80). Flags `d` means draft. CI is a CI token. At most 10 lines per section and 8 KiB in all. Sent while bit 4 is set and after each refresh that changed it.
+**Git.** BLOB 7 (label `git`, formerly GITHUB) is one host's page: UTF-8 lines joined by line feeds, fields by tabs, at most 16 KiB, the last lines dropped until it fits. Line 1 is `H`, `host`, `login`, `name`, `repos`, `followers`, `rev`: `host` a git provider id, `name` Clean(40), `repos` and `followers` counts, `rev` a number that only goes up and only when the page changed. An optional `N` line keeps the older six-field shape (GitHub's unread count as number). Then at most 30 `P` lines (`repo`, `private` as `p` or empty, `language` Clean(30), `stars`, open `issues`, open `pulls`), most recently pushed first; then at most 20 lines each of `M` (mine), `R` (review requested) and `A` (assigned): `repo`, `number`, `title` Clean(80), `flags`, `ci`, `state`, `updatedMin`. Flags: `d` a draft, `i` an issue (a pull request has neither). CI is a CI token, `state` is `open`, `closed` or `merged`, `updatedMin` is UTC minutes since the Unix epoch (0 unknown). No address is in the body: TEXT 38 names a `P`, `M`, `R` or `A` line by its index. Sent while bit 4 is set and after each refresh that changed the page. A phone that predates this shape reads only the `N` line and shows no list until updated.
+
+**Read only.** The laptop never changes anything on a git host. Every request of every host client passes a gate that refuses anything but GET and HEAD, and allows exactly two other things: a POST to `https://api.github.com/graphql` whose query contains no `mutation`, and the OAuth device-flow calls to a host's own sign-in endpoints (GitHub `/login/device/code` and `/login/oauth/access_token`, GitLab `/oauth/authorize_device` and `/oauth/token`). A refused request throws; a test asserts it.
 
 ## Local hook channel
 
@@ -583,7 +586,7 @@ This channel is on the laptop only. The plugin's hooks run the Edgepad app itsel
 | 3 | 0.6.0 | TEXT kind 3; actions 31 to 34 arrived in 0.5.0, CONTROL 4, TEXT 4 and 5 and the macro block in 1.1.0, and TEXT 6 and 7 in 2.3.0 |
 | 4 | 3.0.0 | PAD_STATE, a new frame type; actions 35 and 36 and TEXT 8 came with it and would not have needed one |
 | 5 | 4.0.0 | PIN_REQUEST and PIN_ANSWER, PEN, and FILE_BEGIN, FILE_CHUNK, FILE_END and FILE_RESULT, all new frame types; actions 40 to 55, CONTROL 5 and 6 and TEXT 9 to 12 came with them and would not have needed a bump |
-| 6 | 5.0.0 | BULK_HELLO and XFER_BEGIN, XFER_CHUNK, XFER_END and XFER_STATUS, all new frame types (XFER_STATUS 8 PAUSED and 9 RESUME are new statuses in the same release); ACTION 37 and 60 to 62, CONTROL 10 and 11, TEXT 21 to 26 and BLOB kinds 4 and 5 came with them and would not have needed a bump; CONTROL 12 to 14, TEXT 27 to 37, BLOB kinds 6 and 7 and the dashboard FEATURE tokens are new ids in the same release and would not have needed a bump either |
+| 6 | 5.0.0 | BULK_HELLO and XFER_BEGIN, XFER_CHUNK, XFER_END and XFER_STATUS, all new frame types (XFER_STATUS 8 PAUSED and 9 RESUME are new statuses in the same release); ACTION 37 and 60 to 62, CONTROL 10 and 11, TEXT 21 to 26 and BLOB kinds 4 and 5 came with them and would not have needed a bump; CONTROL 12 to 14, TEXT 27 to 38, BLOB kinds 6 and 7 (kind 7 is GIT, once GITHUB) and the dashboard FEATURE tokens are new ids in the same release and would not have needed a bump either |
 
 Version 4 was a new frame type. PAD_STATE's type byte `0x23` is
 the whole reason: an unknown type closes the connection, so a v3 laptop meeting a v4 phone's PAD_STATE would

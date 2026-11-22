@@ -260,6 +260,12 @@ TEXT 36 NET_INFO
 # bytes the test actually moved, download plus upload (0 while it starts); the phone shows it as the data used. Sent when a test starts, when it ends, and again to a phone
 # that starts watching bit5 while a result is held.
 TEXT 37 SPEED_RESULT
+# Phone to laptop: exactly "host/listRevision/index". host is a git PROVIDER id (1 to 16 characters), listRevision the revision in the first line
+# of the BLOB 7 the phone is showing, index the zero-based position among that blob's P, M, R and A lines (H and N lines are not counted). The
+# phone never sends an address. The laptop opens only an https address it fetched itself for that host, that exact revision and that index,
+# on the host's own domain, in the default browser. A stale revision, an index out of range, a host that is not connected, an address that
+# is not https, or any other shape is dropped and counted.
+TEXT 38 GIT_OPEN
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -371,10 +377,16 @@ BLOB_KIND 5 NOTIFICATION
 # kept, other control characters removed and bidi or zero-width characters shown as <U+XXXX>; body at most 4096 bytes, over it the
 # laptop sends f=0 and an empty text. Sent urgently. Answered with TEXT 31.
 BLOB_KIND 6 PERM_ASK
-# GITHUB: label "gh"; UTF-8 lines "section TAB repo TAB number TAB title TAB flags TAB ci"; section R review requested, M mine,
-# N notifications (repo empty, number the count); title Clean(80); flags d for draft; ci a CI token; at most 10 lines per section
-# and 8 KiB. Sent while DASH_WATCH has bit4 and after each refresh that changed it.
-BLOB_KIND 7 GITHUB
+# GIT (was GITHUB): laptop to phone, label "git", one git host's page: UTF-8 lines joined by line feeds, fields by tabs, at most 16 KiB (the last
+# lines are dropped until it fits). Line 1 is "H host login name repos followers rev": host a git PROVIDER id, login at most 39 characters, name
+# Clean(40), repos and followers counts, rev the list revision (a number that only goes up, and only when the page changed), all free text
+# cleaned. An optional "N, empty, count, empty, empty, none" line (GitHub's unread count, the older six-field shape). Then at most 30 lines
+# "P repo private language stars issues pulls" (repo owner/name, private "p" or empty, language Clean(30), the three numbers open counts), recent
+# first, then at most 20 lines each of "M repo number title flags ci state updatedMin" for items that are mine, "R ..." review requested and "A ..."
+# assigned: title Clean(80), flags d for draft and i for an issue (empty for a pull request), ci a CI token, state open, closed or merged,
+# updatedMin UTC minutes since the Unix epoch (0 unknown). No address is ever in the body; TEXT 38 names a line by its index among the P, M, R and
+# A lines. Sent while DASH_WATCH has bit4 and after each refresh that changed the page.
+BLOB_KIND 7 GIT
 
 # The whole vocabulary of TEXT kind 24's reason, as "<token on the wire> <the name both apps call it>". Tokens for the reason
 # PAD_STATUS is. An unknown token reads as UNSUPPORTED.

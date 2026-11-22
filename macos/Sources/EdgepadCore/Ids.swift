@@ -195,6 +195,8 @@ public enum TextKind: UInt8, CaseIterable {
     case netInfo = 36
     /// Computer to phone: "state|downKbps|upKbps|latencyMs|jitterMs|atUnixMin|bytes", -1 unknown.
     case speedResult = 37
+    /// Phone to computer: exactly "host/listRevision/index", a place in the `BlobKind.git` page the phone shows. Never an address.
+    case gitOpen = 38
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
@@ -401,8 +403,8 @@ public enum BlobKind: UInt8, CaseIterable {
     case notification = 5
     /// Computer to phone: an approval request. The label is "id/f"; the body is UTF-8 agent, tool and text joined by line feeds.
     case permAsk = 6
-    /// Computer to phone: GitHub pull requests and the notification count. The label is "gh"; the body is tab-separated lines.
-    case github = 7
+    /// Computer to phone: one git host's account, repositories, pull requests and issues. The label is "git"; the body is tab-separated lines.
+    case git = 7
 }
 
 /// The reason token of `TextKind.unavailable`: a token the phone matches on, never prose. The raw value is literally
@@ -442,7 +444,7 @@ public enum SessionStateToken: String, CaseIterable {
     case idle = "idle"
 }
 
-/// The CI field of a `BlobKind.github` line. The raw value is literally the bytes that cross the wire.
+/// The CI field of a `BlobKind.git` item line. The raw value is literally the bytes that cross the wire.
 public enum CiToken: String, CaseIterable {
     case ok = "ok"
     case fail = "fail"

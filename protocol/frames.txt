@@ -161,6 +161,8 @@ BLOB_BEGIN 0 1234 clip = 54 00 08 d2 04 00 00 63 6c 69 70
 BLOB_BEGIN 3 8192 chrome = 54 03 0a 00 20 00 00 63 68 72 6f 6d 65
 # An unknown kind is data, not a codec error: the receiver reads it to its BLOB_END and drops it.
 BLOB_BEGIN 9 1 x = 54 09 05 01 00 00 00 78
+# Kind 7 GIT (was GITHUB), label "git": 1234 = 0x04d2, length 7 = 4 + 3.
+BLOB_BEGIN 7 1234 git = 54 07 07 d2 04 00 00 67 69 74
 # BLOB_CHUNK seq bytes, FILE_CHUNK's shape.
 BLOB_CHUNK 0 68656c6c6f = 55 00 05 68 65 6c 6c 6f
 BLOB_CHUNK 255 ff00 = 55 ff 02 ff 00
@@ -245,6 +247,8 @@ TEXT 36 none|?|-1|-1|| = 41 24 0e 6e 6f 6e 65 7c 3f 7c 2d 31 7c 2d 31 7c 7c
 # TEXT 37 SPEED_RESULT, laptop to phone: state|downKbps|upKbps|latencyMs|jitterMs|atUnixMin|bytes.
 TEXT 37 done|93500|21400|11|2|29499900|163400000 = 41 25 28 64 6f 6e 65 7c 39 33 35 30 30 7c 32 31 34 30 30 7c 31 31 7c 32 7c 32 39 34 39 39 39 30 30 7c 31 36 33 34 30 30 30 30 30
 TEXT 37 running|-1|-1|-1|-1|29499900|0 = 41 25 1e 72 75 6e 6e 69 6e 67 7c 2d 31 7c 2d 31 7c 2d 31 7c 2d 31 7c 32 39 34 39 39 39 30 30 7c 30
+# TEXT 38 GIT_OPEN, phone to laptop: host/listRevision/index.
+TEXT 38 github/3/12 = 41 26 0b 67 69 74 68 75 62 2f 33 2f 31 32
 # CONTROL 14 SPEED_TEST, phone to laptop: 1 start, 0 cancel. SET 12 63 is DASH_WATCH with every bit, the Network page (bit 5) included.
 SET 14 1 = 21 0e 01
 SET 14 0 = 21 0e 00

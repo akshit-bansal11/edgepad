@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using Edgepad.Protocol;
 
 namespace Edgepad.Dashboard;
 
@@ -28,7 +27,7 @@ internal enum GitHubResult
     Busy,
 }
 
-/// <summary>A refresh's outcome, and whether <see cref="GitHubApi.Lines"/> changed so the blob is worth sending again.</summary>
+/// <summary>A refresh's outcome, and whether <see cref="GitHubApi.Page"/> changed so the blob is worth sending again.</summary>
 internal readonly record struct GitHubRefreshResult(GitHubResult Result, bool Changed);
 
 /// <summary>When the GitHub screen may be refreshed: only while the phone shows it (DASH_WATCH bit4), at least 60 s apart.</summary>
@@ -41,28 +40,61 @@ internal static class GitHubRefresh
 }
 
 /// <summary>
-/// The GitHub screen's data, over https from api.github.com only: one GraphQL query that never changes (pull requests waiting
-/// for the user's review, and the user's own open ones) and one REST call for the unread notification count, kept by ETag.
-/// The token is read from the <see cref="ISecretStore"/> for each refresh and goes only into the Authorization header of
-/// these requests; it is never held, logged, or put in anything the phone receives. Redirects are refused, a reply is capped
-/// at 1 MiB and 15 s, and refreshes never overlap.
+/// The GitHub screen's data, over https from api.github.com only: one GraphQL query that never changes (the account, its newest
+/// repositories, and the pull requests and issues that are the user's, wait for the user's review or are assigned to the user)
+/// and one REST call for the unread notification count, kept by ETag. It only reads: every request goes through the
+/// <see cref="ReadOnlyGate"/>. The token is read from the <see cref="ISecretStore"/> for each refresh and goes only into the
+/// Authorization header of these requests; it is never held, logged, or put in anything the phone receives. Redirects are
+/// refused, a reply is capped at 1 MiB and 15 s, and refreshes never overlap.
 /// </summary>
-internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler = null, Func<DateTimeOffset>? clock = null)
+internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler = null, Func<DateTimeOffset>? clock = null) : IGitHost
 {
     public const int MaxBytes = 1024 * 1024;
 
-    /// <summary>The one GraphQL query this app sends. Constant: nothing from the user, the phone or a reply is ever put into it.</summary>
+    /// <summary>The one GraphQL query this app sends. Constant: nothing from the user, the phone or a reply is ever put into it, and it has no mutation.</summary>
     public const string Query = """
         query {
-          review: search(query: "is:pr is:open archived:false review-requested:@me sort:updated-desc", type: ISSUE, first: 10) { nodes { ...pr } }
-          mine: search(query: "is:pr is:open archived:false author:@me sort:updated-desc", type: ISSUE, first: 10) { nodes { ...pr } }
+          viewer {
+            login
+            name
+            followers { totalCount }
+            repositories(first: 30, ownerAffiliations: OWNER, orderBy: { field: PUSHED_AT, direction: DESC }) {
+              totalCount
+              nodes {
+                nameWithOwner
+                isPrivate
+                url
+                stargazerCount
+                primaryLanguage { name }
+                issues(states: OPEN) { totalCount }
+                pullRequests(states: OPEN) { totalCount }
+              }
+            }
+          }
+          mine: search(query: "is:open archived:false author:@me sort:updated-desc", type: ISSUE, first: 20) { nodes { ...item } }
+          review: search(query: "is:pr is:open archived:false review-requested:@me sort:updated-desc", type: ISSUE, first: 20) { nodes { ...item } }
+          assigned: search(query: "is:open archived:false assignee:@me sort:updated-desc", type: ISSUE, first: 20) { nodes { ...item } }
         }
-        fragment pr on PullRequest {
-          number
-          title
-          isDraft
-          repository { nameWithOwner }
-          commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }
+        fragment item on SearchResultItem {
+          __typename
+          ... on PullRequest {
+            number
+            title
+            isDraft
+            state
+            url
+            updatedAt
+            repository { nameWithOwner }
+            commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }
+          }
+          ... on Issue {
+            number
+            title
+            state
+            url
+            updatedAt
+            repository { nameWithOwner }
+          }
         }
         """;
 
@@ -82,23 +114,20 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
     private readonly Func<DateTimeOffset> now = clock ?? (() => DateTimeOffset.UtcNow);
     private readonly Lock gate = new();
 
-    private IReadOnlyList<GitHubLine> pulls = [];
+    private readonly GitBook book = new("github");
+
+    private GitSnapshot? snapshot;
     private int? unread;
     private string? etag;
     private DateTimeOffset backoffUntil;
     private int running;
 
-    /// <summary>The last good result as BLOB GITHUB lines: the N line once the count is known, then R and M lines.</summary>
-    public IReadOnlyList<GitHubLine> Lines
-    {
-        get
-        {
-            lock (gate)
-            {
-                return unread is int count ? [new GitHubLine("N", string.Empty, count, string.Empty, false, CiToken.None), .. pulls] : pulls;
-            }
-        }
-    }
+    public string Id => "github";
+
+    public string Domain => GitHubParse.Domain;
+
+    /// <summary>The last good result as BLOB GIT and the addresses behind its indexes; null before the first one and after a refused token.</summary>
+    public GitPage? Page => book.Page;
 
     /// <summary>The request body: <c>{"query": Query}</c>.</summary>
     public static byte[] QueryBody()
@@ -114,7 +143,7 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
         return buffer.ToArray();
     }
 
-    /// <summary>Asks for the pull requests, then the notification count. Never throws but on cancellation.</summary>
+    /// <summary>Asks for the account, repositories, pull requests and issues, then the notification count. Never throws but on cancellation.</summary>
     public async Task<GitHubRefreshResult> RefreshAsync(CancellationToken ct)
     {
         if (Interlocked.Exchange(ref running, 1) == 1)
@@ -129,7 +158,7 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
                 return new GitHubRefreshResult(GitHubResult.RateLimited, false);
             }
 
-            var before = GitHubBlob.Encode(Lines);
+            var before = book.Page?.Rev;
             var result = await RefreshPullsAsync(ct).ConfigureAwait(false);
             if (result is GitHubResult.Ok or GitHubResult.Failed)
             {
@@ -137,7 +166,8 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
                 result = result == GitHubResult.Ok || notifications is not (GitHubResult.Ok or GitHubResult.Failed) ? notifications : result;
             }
 
-            return new GitHubRefreshResult(result, GitHubBlob.Encode(Lines) != before);
+            Rebuild();
+            return new GitHubRefreshResult(result, book.Page?.Rev != before);
         }
         finally
         {
@@ -185,17 +215,34 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
             return result;
         }
 
-        if (GitHubParse.Pulls(reply.Body) is not { } parsed)
+        if (GitHubParse.Snapshot(reply.Body) is not { } parsed)
         {
             return GitHubResult.Failed;
         }
 
         lock (gate)
         {
-            pulls = parsed;
+            snapshot = parsed;
         }
 
         return GitHubResult.Ok;
+    }
+
+    /// <summary>Makes the page from the last good snapshot and unread count; a revision is spent only when what the phone sees changed.</summary>
+    private void Rebuild()
+    {
+        GitSnapshot? current;
+        int? count;
+        lock (gate)
+        {
+            current = snapshot;
+            count = unread;
+        }
+
+        if (current is not null)
+        {
+            book.Update(current with { Unread = count });
+        }
     }
 
     private async Task<GitHubResult> RefreshUnreadAsync(CancellationToken ct)
@@ -278,10 +325,12 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
             store.Delete(GitHubApp.TokenName);
             lock (gate)
             {
-                pulls = [];
+                snapshot = null;
                 unread = null;
                 etag = null;
             }
+
+            book.Clear();
 
             return GitHubResult.NoPermission;
         }
