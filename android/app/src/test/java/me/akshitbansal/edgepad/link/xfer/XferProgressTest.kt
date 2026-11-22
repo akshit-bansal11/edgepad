@@ -35,6 +35,8 @@ class XferProgressTest {
                 XferCode.BUSY to XferFailure.BUSY,
                 XferCode.TIMED_OUT to XferFailure.TIMED_OUT,
                 XferCode.SESSION_ENDED to XferFailure.LINK_LOST,
+                XferCode.PAUSED to XferFailure.NOT_SENT,
+                XferCode.RESUME to XferFailure.NOT_SENT,
             )
         assertEquals(XferCode.entries.size, expected.size)
         for ((code, failure) in expected) assertEquals(code.name, failure, failureOf(code))
@@ -113,6 +115,21 @@ class XferProgressTest {
         assertEquals(4_000_000L, meter.bytesPerSecond)
         meter.reset()
         assertEquals(0L, meter.bytesPerSecond)
+    }
+
+    @Test
+    fun aHoldShowsOnARunningBatchAndEndsWithIt() {
+        val p = progress()
+        p.setPaused(true)
+        assertFalse(p.snapshot.paused)
+        p.beginBatch(sending = true, total = 1)
+        p.setPaused(true)
+        assertTrue(p.snapshot.paused)
+        p.setPaused(false)
+        assertFalse(p.snapshot.paused)
+        p.setPaused(true)
+        p.endBatch()
+        assertFalse(p.snapshot.paused)
     }
 
     @Test

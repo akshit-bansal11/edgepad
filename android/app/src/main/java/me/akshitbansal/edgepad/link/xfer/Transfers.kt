@@ -83,6 +83,18 @@ object Transfers {
         for (link in links.values.toList()) link.cancel()
     }
 
+    /** Whether either end holds the transfer on the card now. */
+    val isPaused: Boolean get() = progress.snapshot.paused
+
+    /**
+     * Holds whatever is moving, in either direction, after the chunk in flight; the receiving side keeps its part.
+     * Asked between the files of a batch it holds the next one. True when a link took it. Main thread, like [cancel].
+     */
+    fun pause(): Boolean = links.values.toList().fold(false) { taken, link -> link.pause() || taken }
+
+    /** Lets go of this end's hold on whatever is held. True when a link had one to let go. Main thread. */
+    fun resume(): Boolean = links.values.toList().fold(false) { taken, link -> link.resume() || taken }
+
     /** Try again: the failed files of the last send batch, on the link that ran it. False when it is not connected. */
     fun retryLast(): Boolean {
         val link = lastSender?.get()?.takeIf { it.connected } ?: return false
@@ -169,6 +181,20 @@ object Transfers {
         }
     }
 
+    // The receiver's file started or stopped being held, called in order under the receiver's lock. Held, the stall
+    // check stops (the receiver's own cap is the only timer); let go, it starts over. Only a receive on the card shows it.
+    private fun receiveHeld(held: Boolean) {
+        synchronized(receiveLock) {
+            if (!receiveOpen) return
+            if (held) {
+                main.removeCallbacks(endReceive)
+            } else {
+                arm(SystemClock.uptimeMillis(), XferLimits.IDLE_MS + RECEIVE_END_MS)
+            }
+            progress.setPaused(held)
+        }
+    }
+
     // Under receiveLock.
     private fun arm(
         now: Long,
@@ -224,6 +250,7 @@ object Transfers {
                 lastInputMs = link::lastInputMs,
                 ended = { !link.connected },
                 backlog = link::queued,
+                pausedChanged = progress::setPaused,
             )
 
         // Built on the first XFER frame: its start purges old parts, which is file work the main thread must not do.
@@ -246,6 +273,7 @@ object Transfers {
                         val stop: () -> Unit = { idle.removeCallbacks(task) }
                         stop
                     },
+                    pausedChanged = { held -> receiveHeld(held) },
                 )
             }
         private val receiver by receiverOnce
@@ -263,8 +291,31 @@ object Transfers {
             routeXfer(frame, sender) { receiver }
         }
 
+        // The link is gone. A file held by either end keeps its part (the next BEGIN of it resumes); any other is dropped.
         internal fun end() {
-            cancel()
+            if (receiverOnce.isInitialized() && receiver.held) {
+                batcher.cancel()
+                receiver.close()
+                closeReceive(XferFailure.LINK_LOST)
+            } else {
+                cancel()
+            }
+        }
+
+        /** Holds the file moving, or the next of a batch. True when there is a transfer on this link to hold. */
+        internal fun pause(): Boolean {
+            if (batcher.busy) {
+                sender.pause()
+                return true
+            }
+            return receiverOnce.isInitialized() && receiver.pause()
+        }
+
+        /** Lets go of this end's hold. True when one was let go. */
+        internal fun resume(): Boolean {
+            val sent = batcher.busy && sender.resume()
+            val received = receiverOnce.isInitialized() && receiver.resume()
+            return sent || received
         }
 
         internal fun cancel() {
@@ -338,6 +389,7 @@ object Transfers {
 
         private fun finished(result: XferBatchResult) {
             sendEnded()
+            sender.clearPending()
             if (result.total <= 1) {
                 notice.finish(result.failed.firstOrNull()?.name ?: progress.snapshot.name, result.allSent)
             } else {

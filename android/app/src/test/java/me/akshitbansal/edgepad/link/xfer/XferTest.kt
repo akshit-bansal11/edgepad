@@ -6,11 +6,16 @@ import me.akshitbansal.edgepad.protocol.FrameCodec
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.concurrent.thread
 
 /** The phone's receiver and sender wired back to back in memory, and the receiver alone for what a loopback hides. */
 class XferTest {
@@ -337,6 +342,281 @@ class XferTest {
         assertTrue(gate.pass(10, 1000))
         assertFalse(gate.pass(19, 1000))
         assertTrue(gate.pass(1000, 1000))
+    }
+
+    @Test
+    fun theLocalOnlyCodesAreOutOfTheWireRangeAndNoReceiverTakesThem() {
+        assertEquals(8, XferCode.PAUSED.value)
+        assertEquals(9, XferCode.RESUME.value)
+        assertEquals(0xF0, XferCode.TIMED_OUT.value)
+        assertEquals(0xF1, XferCode.SESSION_ENDED.value)
+        assertEquals(XferCode.RESUME, XferCode.of(9))
+        for (local in listOf(0xF0, 0xF1, 10)) assertNull(XferCode.of(local))
+        val receiver = receiver()
+        receiver.take(Frame.XferBegin(1, 10uL, "z.bin"))
+        assertFalse(receiver.take(Frame.XferStatus(1, XferCode.TIMED_OUT.value, 0uL)))
+        assertFalse(receiver.take(Frame.XferStatus(1, XferCode.SESSION_ENDED.value, 0uL)))
+    }
+
+    @Test
+    fun aReceiverPauseKeepsThePartAndResumeAnswersReadyAtTheBytesHeld() {
+        val held = ArrayList<Boolean>()
+        val receiver = XferReceiver(store, { replies += it }, runner = { it() }, pausedChanged = { held += it })
+        receiver.take(Frame.XferBegin(1, 10uL, "r.bin"))
+        receiver.take(Frame.XferChunk(1, 0uL, bytes(4)))
+        assertTrue(receiver.pause())
+        assertFalse(receiver.pause())
+        assertEquals(XferCode.PAUSED.value, replies.last().status)
+        assertEquals(4uL, replies.last().offset)
+        // The chunk in flight is still taken.
+        receiver.take(Frame.XferChunk(1, 4uL, bytes(2)))
+        assertTrue(receiver.resume())
+        val tail = replies.takeLast(2)
+        assertEquals(listOf(XferCode.RESUME.value, XferCode.READY.value), tail.map { it.status })
+        assertEquals(6uL, tail.last().offset)
+        assertEquals(listOf(true, false), held)
+        assertFalse(receiver.resume())
+    }
+
+    @Test
+    fun theLaptopsPauseSuspendsTheIdleDropAndItsResumeIsAnsweredWithReady() {
+        var now = 1_000L
+        val timers = ArrayList<Pair<Long, () -> Unit>>()
+        val held = ArrayList<Boolean>()
+        val receiver =
+            XferReceiver(
+                store,
+                { replies += it },
+                runner = { it() },
+                now = { now },
+                after = { delay, work ->
+                    timers += delay to work
+                    {}
+                },
+                pausedChanged = { held += it },
+            )
+        receiver.take(Frame.XferBegin(1, 10uL, "l.bin"))
+        receiver.take(Frame.XferChunk(1, 0uL, bytes(4)))
+        assertTrue(receiver.take(Frame.XferStatus(1, XferCode.PAUSED.value, 4uL)))
+        assertEquals(XferLimits.PAUSE_CAP_MS, timers.last().first)
+        now += 60_000
+        timers.last().second()
+        assertTrue(receiver.busy)
+        assertTrue(receiver.held)
+        val before = replies.size
+        assertTrue(receiver.take(Frame.XferStatus(1, XferCode.RESUME.value, 4uL)))
+        assertEquals(XferCode.READY.value, replies.last().status)
+        assertEquals(4uL, replies.last().offset)
+        assertEquals(before + 1, replies.size)
+        assertEquals(XferLimits.IDLE_MS, timers.last().first)
+        assertEquals(listOf(true, false), held)
+    }
+
+    @Test
+    fun aHoldOlderThanTenMinutesEndsCancelledAndKeepsThePart() {
+        var now = 1_000L
+        val timers = ArrayList<Pair<Long, () -> Unit>>()
+        val held = ArrayList<Boolean>()
+        val receiver =
+            XferReceiver(
+                store,
+                { replies += it },
+                runner = { it() },
+                now = { now },
+                after = { delay, work ->
+                    timers += delay to work
+                    {}
+                },
+                pausedChanged = { held += it },
+            )
+        receiver.take(Frame.XferBegin(1, 10uL, "c.bin"))
+        receiver.take(Frame.XferChunk(1, 0uL, bytes(4)))
+        assertTrue(receiver.pause())
+        now += 5 * 60_000
+        timers.last().second()
+        assertTrue(receiver.busy)
+        assertEquals(5 * 60_000L, timers.last().first)
+        now += 5 * 60_000
+        timers.last().second()
+        assertFalse(receiver.busy)
+        assertEquals(XferCode.CANCELLED.value, replies.last().status)
+        assertEquals(1, parts.listFiles()!!.size)
+        assertEquals(listOf(true, false), held)
+    }
+
+    @Test
+    fun aBeginForTheSameHeldFileTakesItOverFromItsOffsetAndAnyOtherIsBusy() {
+        val receiver = receiver()
+        receiver.take(Frame.XferBegin(1, 10uL, "h.bin"))
+        receiver.take(Frame.XferChunk(1, 0uL, bytes(4)))
+        receiver.pause()
+        receiver.take(Frame.XferBegin(2, 11uL, "h.bin"))
+        assertEquals(XferCode.BUSY.value, replies.last().status)
+        assertTrue(receiver.held)
+        receiver.take(Frame.XferBegin(3, 10uL, "h.bin"))
+        assertEquals(XferCode.READY.value, replies.last().status)
+        assertEquals(3, replies.last().id)
+        assertEquals(4uL, replies.last().offset)
+        assertFalse(receiver.held)
+        // Not held now: a further BEGIN is BUSY.
+        receiver.take(Frame.XferBegin(4, 10uL, "h.bin"))
+        assertEquals(XferCode.BUSY.value, replies.last().status)
+    }
+
+    @Test
+    fun theSessionEndingWhileHeldKeepsThePartAndLetsGo() {
+        val held = ArrayList<Boolean>()
+        val receiver = XferReceiver(store, { replies += it }, runner = { it() }, pausedChanged = { held += it })
+        receiver.take(Frame.XferBegin(1, 10uL, "e.bin"))
+        receiver.take(Frame.XferChunk(1, 0uL, bytes(4)))
+        receiver.pause()
+        receiver.close()
+        assertFalse(receiver.busy)
+        assertEquals(1, parts.listFiles()!!.size)
+        assertEquals(listOf(true, false), held)
+    }
+
+    @Test
+    fun aSenderPauseHoldsTheFileAfterTheChunkInFlightAndResumeFinishesItWithTheSameHash() {
+        val data = bytes(FrameCodec.MAX_XFER_CHUNK_BYTES * 3)
+        val rig = HeldRig()
+        val sending = thread { rig.result = rig.sender.send({ data.inputStream() }, "p.bin", data.size.toLong(), 1) }
+        waitFor { rig.receiver.held }
+        Thread.sleep(100)
+        assertEquals(1, rig.chunks.get())
+        val told = rig.frames.filterIsInstance<Frame.XferStatus>().first { it.status == XferCode.PAUSED.value }
+        assertEquals(FrameCodec.MAX_XFER_CHUNK_BYTES.toULong(), told.offset)
+        assertEquals(listOf(true), rig.held)
+        assertTrue(rig.sender.resume())
+        sending.join(5_000)
+        assertEquals(XferCode.SAVED, rig.result)
+        assertArrayEquals(data, File(dest, "p.bin").readBytes())
+        assertEquals(listOf(true, false), rig.held)
+        assertTrue(rig.frames.any { it is Frame.XferStatus && it.status == XferCode.RESUME.value })
+        assertTrue(rig.statuses().none { it >= 0xF0 })
+    }
+
+    @Test
+    fun aPauseAskedBeforeAFileStartsHoldsTheNextOne() {
+        val data = bytes(FrameCodec.MAX_XFER_CHUNK_BYTES * 2)
+        val rig = HeldRig(pauseAtChunk = 0)
+        assertFalse(rig.sender.pause())
+        assertEquals(listOf(true), rig.held)
+        val sending = thread { rig.result = rig.sender.send({ data.inputStream() }, "q.bin", data.size.toLong(), 1) }
+        waitFor { rig.receiver.held }
+        Thread.sleep(100)
+        assertEquals(0, rig.chunks.get())
+        assertTrue(rig.sender.resume())
+        sending.join(5_000)
+        assertEquals(XferCode.SAVED, rig.result)
+        assertEquals(listOf(true, false), rig.held)
+    }
+
+    @Test
+    fun aResumeBetweenFilesTakesBackAPendingPause() {
+        val rig = HeldRig(pauseAtChunk = 0)
+        rig.sender.pause()
+        assertFalse(rig.sender.resume())
+        assertEquals(listOf(true, false), rig.held)
+    }
+
+    @Test
+    fun theLaptopsPauseHoldsTheSenderAndNoAnswerTimeoutRunsWhileHeld() {
+        val data = bytes(FrameCodec.MAX_XFER_CHUNK_BYTES * 2)
+        val now = AtomicLong()
+        val rig = HeldRig(pauseAtChunk = 0, receiverPausesAtChunk = 1, clock = { now.get() }, answerTimeoutMs = 1_000)
+        val sending = thread { rig.result = rig.sender.send({ data.inputStream() }, "t.bin", data.size.toLong(), 1) }
+        // The laptop holds the file: PAUSED from it, and the clock runs far past the answer timeout.
+        waitFor { rig.held.isNotEmpty() }
+        now.addAndGet(60_000)
+        Thread.sleep(400)
+        assertTrue(sending.isAlive)
+        rig.receiver.resume()
+        sending.join(5_000)
+        assertEquals(XferCode.SAVED, rig.result)
+    }
+
+    @Test
+    fun aHoldOlderThanTenMinutesEndsTheSendCancelledWithoutTellingTheLaptop() {
+        val data = bytes(FrameCodec.MAX_XFER_CHUNK_BYTES * 2)
+        val now = AtomicLong()
+        val rig = HeldRig(clock = { now.get() })
+        val sending = thread { rig.result = rig.sender.send({ data.inputStream() }, "x.bin", data.size.toLong(), 1) }
+        waitFor { rig.receiver.held }
+        now.addAndGet(XferLimits.PAUSE_CAP_MS + 1)
+        sending.join(5_000)
+        assertEquals(XferCode.CANCELLED, rig.result)
+        assertTrue(rig.frames.none { it is Frame.XferStatus && it.status == XferCode.CANCELLED.value })
+        assertEquals(1, parts.listFiles()!!.size)
+    }
+
+    @Test
+    fun theLinkEndingWhileHeldEndsTheSend() {
+        val data = bytes(FrameCodec.MAX_XFER_CHUNK_BYTES * 2)
+        val rig = HeldRig()
+        val sending = thread { rig.result = rig.sender.send({ data.inputStream() }, "e.bin", data.size.toLong(), 1) }
+        waitFor { rig.receiver.held }
+        rig.linkEnded = true
+        sending.join(5_000)
+        assertEquals(XferCode.SESSION_ENDED, rig.result)
+        assertEquals(listOf(true, false), rig.held)
+    }
+
+    // A sender and a receiver back to back; the sender pauses itself after the chunk numbered [pauseAtChunk], and the
+    // receiver after [receiverPausesAtChunk] (0: never).
+    private inner class HeldRig(
+        pauseAtChunk: Int = 1,
+        receiverPausesAtChunk: Int = 0,
+        clock: () -> Long = { System.nanoTime() / 1_000_000 },
+        answerTimeoutMs: Long = XferLimits.ANSWER_TIMEOUT_MS,
+    ) {
+        val frames = CopyOnWriteArrayList<Frame>()
+        val held = CopyOnWriteArrayList<Boolean>()
+        val chunks = AtomicInteger()
+
+        @Volatile var linkEnded = false
+
+        @Volatile var result: XferCode? = null
+
+        val receiver: XferReceiver =
+            XferReceiver(
+                store,
+                { status ->
+                    frames += status
+                    sender.take(status)
+                },
+                { arrived += it },
+                runner = { it() },
+            )
+        val sender: XferSender =
+            XferSender(
+                { frame ->
+                    frames += frame
+                    receiver.take(frame)
+                    if (frame is Frame.XferChunk) {
+                        val n = chunks.incrementAndGet()
+                        if (n == pauseAtChunk) sender.pause()
+                        if (n == receiverPausesAtChunk) receiver.pause()
+                    }
+                },
+                Transport.WIFI,
+                { 0L },
+                { linkEnded },
+                answerTimeoutMs = answerTimeoutMs,
+                clock = clock,
+                pause = { true },
+                pausedChanged = { held += it },
+            )
+
+        fun statuses() = frames.filterIsInstance<Frame.XferStatus>().map { it.status }
+    }
+
+    private fun waitFor(what: () -> Boolean) {
+        val end = System.nanoTime() + 5_000_000_000L
+        while (!what()) {
+            check(System.nanoTime() < end) { "timed out" }
+            Thread.sleep(5)
+        }
     }
 
     private var replyTo: XferSender? = null

@@ -27,7 +27,7 @@ fun failureOf(code: XferCode): XferFailure? =
         XferCode.BUSY -> XferFailure.BUSY
         XferCode.TIMED_OUT -> XferFailure.TIMED_OUT
         XferCode.SESSION_ENDED -> XferFailure.LINK_LOST
-        XferCode.READY, XferCode.PROGRESS -> XferFailure.NOT_SENT
+        XferCode.READY, XferCode.PROGRESS, XferCode.PAUSED, XferCode.RESUME -> XferFailure.NOT_SENT
     }
 
 /** Whether a batch goes on to its next file after one failed for [failure]: only a fault of that one file does. */
@@ -72,6 +72,8 @@ data class XferSnapshot(
     val done: Int,
     val failed: List<XferFailed>,
     val cancelling: Boolean,
+    /** Either end holds the current file (or a hold waits for the next one). */
+    val paused: Boolean = false,
 ) {
     /** The current file's percent; an empty file is whole. */
     val percent: Int get() = if (size <= 0) 100 else (sent * 100 / size).toInt().coerceIn(0, 100)
@@ -205,7 +207,11 @@ class XferProgress(
 
     fun requestCancel() = change { if (it.phase == XferPhase.RUNNING) it.copy(cancelling = true) else it }
 
-    fun endBatch() = change { if (it.phase == XferPhase.RUNNING) it.copy(phase = XferPhase.FINISHED) else it }
+    /** Whether either end holds the transfer now. Called in the order the holds changed; only a running batch shows it. */
+    fun setPaused(held: Boolean) = change { if (it.phase == XferPhase.RUNNING) it.copy(paused = held) else it }
+
+    fun endBatch() =
+        change { if (it.phase == XferPhase.RUNNING) it.copy(phase = XferPhase.FINISHED, paused = false) else it }
 
     /** Whether the card shows a send batch that ended with failures, which a receive must not replace. */
     fun holdsFailedSend(): Boolean =

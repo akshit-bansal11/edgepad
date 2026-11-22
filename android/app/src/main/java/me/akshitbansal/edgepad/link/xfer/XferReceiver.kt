@@ -21,7 +21,10 @@ import kotlin.concurrent.thread
  * @param runner Runs the publish; tests run it in place.
  * @param after Runs the work once after the delay and answers how to cancel it. One is pending per file arriving: it
  * drops a file that has been [XferLimits.IDLE_MS] without a chunk (the part stays, the laptop is told CANCELLED), so
- * a sender that gave up does not leave the receiver answering BUSY.
+ * a sender that gave up does not leave the receiver answering BUSY. While either end holds the file that same check
+ * is the only one pending, set for [XferLimits.PAUSE_CAP_MS]: a held file is never idle-dropped, and a hold that runs
+ * out ends CANCELLED with the part kept.
+ * @param pausedChanged Told, in order and under the receiver's lock, when the file starts or stops being held.
  */
 class XferReceiver(
     private val store: XferStore,
@@ -31,6 +34,7 @@ class XferReceiver(
     private val runner: (() -> Unit) -> Unit = { work -> thread(name = "edgepad-xfer-save", block = work) },
     private val now: () -> Long = System::currentTimeMillis,
     private val after: (Long, () -> Unit) -> (() -> Unit) = { _, _ -> {} },
+    private val pausedChanged: (Boolean) -> Unit = {},
 ) {
     private val lock = Any()
     private var active: Active? = null
@@ -41,6 +45,9 @@ class XferReceiver(
 
     /** Whether a file is arriving. */
     val busy: Boolean get() = synchronized(lock) { active != null }
+
+    /** Whether a file is arriving and either end holds it. */
+    val held: Boolean get() = synchronized(lock) { (active?.heldSince ?: -1L) >= 0 }
 
     /** Takes any XFER frame. False when it is not for the file arriving, or is not this side's to take. */
     fun take(frame: Frame): Boolean =
@@ -61,6 +68,33 @@ class XferReceiver(
             true
         }
 
+    /**
+     * Holds the file arriving: the laptop is told with PAUSED and stops after its chunk in flight, which is still
+     * taken; the idle drop stops until [resume]. False when none arrives, it is being saved, or it is held already.
+     */
+    fun pause(): Boolean =
+        synchronized(lock) {
+            val a = active?.takeUnless { it.saving || it.paused } ?: return false
+            setHold(a, own = true)
+            say(a.id, XferCode.PAUSED, a.held)
+            true
+        }
+
+    /**
+     * Lets go of this end's hold: RESUME, then READY at the bytes held so the sender goes on from there. Where the
+     * laptop still holds it, only RESUME goes and the laptop's own RESUME is answered with the READY. False when this
+     * end does not hold it.
+     */
+    fun resume(): Boolean =
+        synchronized(lock) {
+            val a = active?.takeUnless { it.saving || !it.paused } ?: return false
+            a.lastChunkAt = now()
+            setHold(a, own = false)
+            say(a.id, XferCode.RESUME, a.held)
+            if (!a.peerPaused) say(a.id, XferCode.READY, a.held)
+            true
+        }
+
     /** The session is over: the part stays, for the next BEGIN of the same name and size. */
     fun close() {
         synchronized(lock) {
@@ -70,11 +104,18 @@ class XferReceiver(
 
     private fun begin(frame: Frame.XferBegin): Boolean =
         synchronized(lock) {
-            if (active != null) {
-                say(frame.id, XferCode.BUSY, 0)
-                return true
-            }
             val name = SafeName.clean(frame.name)
+            active?.let { current ->
+                // The same file begun again while held: the sender gave up first (its cap runs out before ours) and
+                // is back. The held transfer is let go, its part kept, and the begin resumes from it.
+                val sameFile = name == current.name && frame.size == current.size.toULong()
+                val same = current.heldSince >= 0 && !current.saving && sameFile
+                if (!same) {
+                    say(frame.id, XferCode.BUSY, 0)
+                    return true
+                }
+                finish(deletePart = false)
+            }
             if (name == null || frame.size > XferLimits.MAX_BYTES.toULong()) {
                 say(frame.id, XferCode.REJECTED, 0)
                 return true
@@ -171,14 +212,55 @@ class XferReceiver(
             true
         }
 
-    /** The laptop's CANCELLED. Any other status is the sender's to receive, not this side's. */
+    /**
+     * The laptop's CANCELLED, PAUSED or RESUME. Any other status is the sender's to receive, not this side's. PAUSED
+     * holds the transfer here too (no idle drop). RESUME is answered with READY at the bytes held, unless this end
+     * holds it as well, when [resume] answers.
+     */
     private fun status(frame: Frame.XferStatus): Boolean =
         synchronized(lock) {
             val a = active?.takeIf { it.id == frame.id && !it.saving } ?: return false
-            if (frame.status != XferCode.CANCELLED.value) return false
-            finish(deletePart = true)
-            true
+            when (frame.status) {
+                XferCode.CANCELLED.value -> {
+                    finish(deletePart = true)
+                    true
+                }
+
+                XferCode.PAUSED.value -> {
+                    setHold(a, peer = true)
+                    true
+                }
+
+                XferCode.RESUME.value -> {
+                    a.lastChunkAt = now()
+                    setHold(a, peer = false)
+                    if (!a.paused) say(a.id, XferCode.READY, a.held)
+                    true
+                }
+
+                else -> {
+                    false
+                }
+            }
         }
+
+    // Under the lock: sets this end's hold, the laptop's, or both. The one pending check follows it: the cap while
+    // held, the idle drop otherwise. The owner is told when the file starts or stops being held.
+    private fun setHold(
+        a: Active,
+        own: Boolean? = null,
+        peer: Boolean? = null,
+    ) {
+        val was = a.paused || a.peerPaused
+        a.paused = own ?: a.paused
+        a.peerPaused = peer ?: a.peerPaused
+        val holding = a.paused || a.peerPaused
+        a.heldSince = if (!holding) -1 else if (a.heldSince >= 0) a.heldSince else now()
+        if (holding == was) return
+        a.stopTimer()
+        arm(a, if (holding) XferLimits.PAUSE_CAP_MS else XferLimits.IDLE_MS)
+        pausedChanged(holding)
+    }
 
     private fun save(a: Active) {
         val published =
@@ -207,6 +289,17 @@ class XferReceiver(
     private fun idle(a: Active) {
         synchronized(lock) {
             if (active !== a || a.saving) return
+            if (a.heldSince >= 0) {
+                // Held: no idle drop, only the cap, and that ends it as CANCELLED with the part kept.
+                val over = XferLimits.PAUSE_CAP_MS - (now() - a.heldSince)
+                if (over > 0) {
+                    arm(a, over)
+                    return
+                }
+                finish(deletePart = false)
+                say(a.id, XferCode.CANCELLED, 0)
+                return
+            }
             val left = XferLimits.IDLE_MS - (now() - a.lastChunkAt)
             if (left > 0) {
                 arm(a, left)
@@ -221,6 +314,7 @@ class XferReceiver(
         val a = active ?: return
         active = null
         a.stopTimer()
+        if (a.heldSince >= 0) pausedChanged(false)
         try {
             a.file.close()
         } catch (e: IOException) {
@@ -247,6 +341,11 @@ class XferReceiver(
         var reported = held
         var saving = false
         var lastChunkAt = 0L
+
+        // This end holds the file, the laptop does, and since when either began (-1 when none does).
+        var paused = false
+        var peerPaused = false
+        var heldSince = -1L
         var stopTimer: () -> Unit = {}
     }
 }
