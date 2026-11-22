@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug builds only: the design gallery renders one screen to a PNG for review. Release never sees it. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <activity
+      android:name=".gallery.GalleryActivity"
+      android:exported="true" />
+  </application>
+</manifest>
