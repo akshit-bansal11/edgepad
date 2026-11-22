@@ -51,6 +51,7 @@ import me.akshitbansal.edgepad.link.DashMask
 import me.akshitbansal.edgepad.link.Discovery
 import me.akshitbansal.edgepad.link.Found
 import me.akshitbansal.edgepad.link.HostPort
+import me.akshitbansal.edgepad.link.HubPages
 import me.akshitbansal.edgepad.link.KeptEvents
 import me.akshitbansal.edgepad.link.Laptop
 import me.akshitbansal.edgepad.link.LaptopConnections
@@ -887,15 +888,11 @@ class MainActivity :
         val dash =
             when (screen) {
                 Screen.SYSTEM -> {
-                    when (statsPage) {
-                        SystemHub.PHONE_PAGE -> null
-                        SystemHub.NETWORK_PAGE -> DashMask.Screen.NETWORK
-                        else -> DashMask.Screen.SYSTEM
-                    }
+                    HubPages.system(statsPage)
                 }
 
                 Screen.DEVELOPER -> {
-                    if (statsPage == DeveloperHub.GIT_PAGE) DashMask.Screen.GITHUB else DashMask.Screen.AI
+                    HubPages.developer(statsPage)
                 }
 
                 else -> {
@@ -961,9 +958,18 @@ class MainActivity :
             return
         }
         when (kind) {
-            TextKind.STATS, TextKind.STATS_INFO, TextKind.DISKS, TextKind.BATTERIES -> systemScreen?.refresh()
+            TextKind.STATS -> {
+                systemScreen?.refresh()
+                // The Network page shows the gateway ping and loss that ride on STATS.
+                if (statsPage == HubPages.NETWORK) networkScreen?.refresh()
+            }
+
+            TextKind.STATS_INFO, TextKind.DISKS, TextKind.BATTERIES -> systemScreen?.refresh()
+
             TextKind.NET_INFO, TextKind.SPEED_RESULT -> networkScreen?.refresh()
+
             TextKind.SESSIONS, TextKind.LIMITS, TextKind.SPEND -> aiScreen?.refresh()
+
             else -> Unit
         }
     }

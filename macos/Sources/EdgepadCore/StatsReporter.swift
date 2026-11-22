@@ -240,10 +240,11 @@ public final class StatsReporter {
             }
         }
         let netSource = mask & Self.netBit != 0 ? net : nil
+        let fast = mask & (Self.widgetsBit | Self.screenBit) != 0
         gate.unlock()
 
         // Readings happen outside the lock, so a slow source never blocks setWatch, dispose or a ping result.
-        let stats = readStats(ping: ping, loss: lost)
+        let stats = readStats(ping: ping, loss: lost, fast: fast)
         let info = infoDue ? guarded({ try source.readInfo() }) : nil
         let netText = netSource.map { source in
             NetInfoWire.encode(guarded({ try source.read() }) ?? NetInfo.unknown)
@@ -288,9 +289,16 @@ public final class StatsReporter {
         source.idle()
     }
 
-    private func readStats(ping: Int, loss lost: Int) -> String {
+    // The Network page alone (not fast) reads no CPU or GPU: only the gateway ping and loss, which it shows, go out.
+    private func readStats(ping: Int, loss lost: Int, fast: Bool) -> String {
         let sample: StatsSample
         do {
+            guard fast else {
+                return DashWire.encodeStats(
+                    StatsSample(
+                        cpu: -1, ram: -1, gpu: -1, vram: -1, down: -1, up: -1, ping: ping, loss: lost, cpuTemp: -1,
+                        gpuTemp: -1, gpuPower: -1))
+            }
             let s = try source.readFast()
             sample = StatsSample(
                 cpu: s.cpu, ram: s.ram, gpu: s.gpu, vram: s.vram, down: s.down, up: s.up, ping: ping,

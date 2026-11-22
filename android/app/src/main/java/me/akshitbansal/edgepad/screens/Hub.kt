@@ -9,6 +9,7 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.NetBand
+import me.akshitbansal.edgepad.link.NetFormat
 import me.akshitbansal.edgepad.link.NetKind
 import me.akshitbansal.edgepad.link.SignalLevel
 import java.text.NumberFormat
@@ -21,10 +22,7 @@ private const val CHEVRON_TURN = 90f
 private const val KV_ROW_DP = 36f
 private const val METER_DP = 6f
 private const val WHOLE = 100
-private const val GBPS_FROM = 1000
-private const val SIGNAL_STRONG_FROM = 75
-private const val SIGNAL_GOOD_FROM = 50
-private const val SIGNAL_FAIR_FROM = 25
+private const val GBPS_DIV = 1000.0
 
 /** The laptop's name with a chevron, at the end of a hub's nav bar; a tap opens the device switcher. */
 internal fun Ui.laptopChip(
@@ -175,7 +173,7 @@ internal class NetText(
     fun linkSpeed(mbps: Int): String =
         when {
             mbps < 0 -> none
-            mbps >= GBPS_FROM -> ui.string(R.string.net_gbps, decimal(mbps / GBPS_FROM.toDouble()))
+            NetFormat.inGbps(mbps) -> ui.string(R.string.net_gbps, decimal(mbps / GBPS_DIV))
             else -> ui.string(R.string.net_mbps, decimal(mbps.toDouble()))
         }
 
@@ -189,14 +187,7 @@ internal class NetText(
         }
 
     /** The laptop's signal as a percent, -1 when it does not say (Windows never does). */
-    fun signal(pct: Int): String =
-        when {
-            pct < 0 -> none
-            pct >= SIGNAL_STRONG_FROM -> signal(SignalLevel.EXCELLENT)
-            pct >= SIGNAL_GOOD_FROM -> signal(SignalLevel.GOOD)
-            pct >= SIGNAL_FAIR_FROM -> signal(SignalLevel.FAIR)
-            else -> signal(SignalLevel.WEAK)
-        }
+    fun signal(pct: Int): String = signal(NetFormat.signal(pct))
 
     fun address(ip: String): String = ip.ifEmpty { none }
 }

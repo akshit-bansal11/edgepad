@@ -22,8 +22,4 @@ class DeveloperHub(
     val ai = AiScreen(ui, state, ui.hubBar(title, laptopName(), onSwitch, onBack))
     val github = GitHubScreen(ui, state, ui.hubBar(title, laptopName(), onSwitch, onBack))
     val view: View = ui.hubView(listOf(ai.view, github.view), onPage)
-
-    companion object {
-        const val GIT_PAGE = 1
-    }
 }

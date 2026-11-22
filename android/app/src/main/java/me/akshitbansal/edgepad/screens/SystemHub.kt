@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.screens
 
 import android.view.View
 import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.link.HubPages
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.PhoneStats
 
@@ -51,12 +52,6 @@ class SystemHub(
     }
 
     private fun sync() {
-        if (active && page != LAPTOP_PAGE) stats.observe() else stats.stop()
-    }
-
-    companion object {
-        const val LAPTOP_PAGE = 0
-        const val PHONE_PAGE = 1
-        const val NETWORK_PAGE = 2
+        if (active && HubPages.readsPhone(page)) stats.observe() else stats.stop()
     }
 }

@@ -519,7 +519,7 @@ The trackpad widgets and the System, AI and GitHub screens show data from the la
 | 2 | 4 | the weather widget |
 | 3 | 8 | an AI widget or the AI screen |
 | 4 | 16 | the GitHub screen |
-| 5 | 32 | the Network page |
+| 5 | 32 | the Network page: NET_INFO, and STATS carrying only the gateway ping and loss (every other field -1) unless bit 0 or 1 is also set |
 
 Values are 0 to 63; larger values are dropped and counted. The mask is forgotten when the session ends. With no bit set the laptop sends no dashboard data, and it never samples, reads usage files or polls GitHub on its own.
 

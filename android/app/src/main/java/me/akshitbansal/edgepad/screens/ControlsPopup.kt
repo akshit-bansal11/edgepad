@@ -328,7 +328,7 @@ class ControlsPopup(
         tiles =
             buildList {
                 for (target in Target.entries) {
-                    if (target == Target.DEVELOPER && !developer()) continue
+                    if (!tileDrawn(target, developer())) continue
                     if (target == Target.SYSTEM) add(sendTile())
                     add(tile(target, available(target, capture, annotate)))
                 }
@@ -488,6 +488,12 @@ class ControlsPopup(
     private fun dashNote(reason: UnavailableReason?): Int =
         if (reason == null) R.string.controls_dash_off else reasonText(reason)
 }
+
+/** Whether a tile is drawn at all: every one is, except Developer, which needs Developer mode. */
+internal fun tileDrawn(
+    target: ControlsPopup.Target,
+    developerMode: Boolean,
+): Boolean = target != ControlsPopup.Target.DEVELOPER || developerMode
 
 /** What the Developer tile needs one of: a developer integration that is on and usable. */
 private val DEVELOPER_PAGES = setOf(Feature.CLAUDE, Feature.CODEX, Feature.GITHUB)

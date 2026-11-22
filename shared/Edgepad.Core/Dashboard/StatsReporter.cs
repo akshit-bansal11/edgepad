@@ -146,6 +146,7 @@ internal sealed class StatsReporter : IDisposable
             bool info;
             bool disks;
             bool netNow;
+            bool fast;
             lock (gate)
             {
                 if (disposed || mask == 0)
@@ -158,6 +159,7 @@ internal sealed class StatsReporter : IDisposable
                 netNow = net is not null && (mask & NetBit) != 0;
                 ping = lastPing;
                 lossPct = loss.Percent;
+                fast = (mask & (WidgetsBit | ScreenBit)) != 0;
                 info = --infoIn <= 0;
                 if (info)
                 {
@@ -173,7 +175,7 @@ internal sealed class StatsReporter : IDisposable
                 }
             }
 
-            var stats = ReadStats(ping, lossPct);
+            var stats = ReadStats(ping, lossPct, fast);
             var infoText = info ? Read(() => DashWire.EncodeStatsInfo(source.ReadInfo())) : null;
             var netText = netNow ? Read(() => NetInfoWire.Encode(net!.Read())) ?? NetInfoWire.Encode(NetInfo.Unknown) : null;
             lock (gate)
@@ -237,12 +239,15 @@ internal sealed class StatsReporter : IDisposable
         }
     }
 
-    private string ReadStats(int ping, int lossPct)
+    // The Network page alone (not fast) reads no CPU or GPU: only the gateway ping and loss, which it shows, go out.
+    private string ReadStats(int ping, int lossPct, bool fast)
     {
         StatsSample sample;
         try
         {
-            sample = source.ReadFast() with { Ping = ping, Loss = lossPct };
+            sample = fast
+                ? source.ReadFast() with { Ping = ping, Loss = lossPct }
+                : new StatsSample(-1, -1, -1, -1, -1, -1, ping, lossPct, -1, -1, -1);
         }
         catch (Exception)
         {

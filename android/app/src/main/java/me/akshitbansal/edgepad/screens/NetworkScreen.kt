@@ -14,8 +14,9 @@ import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.PhoneSnapshot
 import me.akshitbansal.edgepad.link.SignalLevel
 import me.akshitbansal.edgepad.link.SpeedResult
-import me.akshitbansal.edgepad.link.SpeedState
+import me.akshitbansal.edgepad.link.SpeedStrip
 import me.akshitbansal.edgepad.link.StatsRing
+import me.akshitbansal.edgepad.link.StripKind
 
 /**
  * The Network page of System: the laptop's connection and the phone's side by side (stacked upright), then a speed
@@ -115,7 +116,7 @@ class NetworkScreen(
 
     /** The speed test of the laptop: its last result, one button that starts or stops it, and what a test costs. */
     private fun Column.speedCard(speed: SpeedResult?) {
-        val running = speed?.state == SpeedState.RUNNING
+        val running = SpeedStrip.running(speed)
         card(Space.M) {
             val title = ui.text(ui.string(R.string.net_speed_title), Type.BODY, ui.palette.ink, face = Type.bold)
             val button =
@@ -131,18 +132,15 @@ class NetworkScreen(
     }
 
     private fun Column.results(speed: SpeedResult?) {
-        if (speed == null) {
-            secondary(ui.string(R.string.net_speed_none), Type.VALUE)
-            return
-        }
         val note =
-            when (speed.state) {
-                SpeedState.RUNNING -> R.string.net_speed_running
-                SpeedState.FAILED -> R.string.net_speed_failed
-                SpeedState.CANCELLED -> R.string.net_speed_stopped
-                SpeedState.DONE, SpeedState.CAPPED -> 0
+            when (SpeedStrip.kind(speed)) {
+                StripKind.IDLE -> R.string.net_speed_none
+                StripKind.RUNNING -> R.string.net_speed_running
+                StripKind.FAILED -> R.string.net_speed_failed
+                StripKind.STOPPED -> R.string.net_speed_stopped
+                StripKind.DONE -> 0
             }
-        if (note != 0) {
+        if (speed == null || note != 0) {
             secondary(ui.string(note), Type.VALUE)
             return
         }
