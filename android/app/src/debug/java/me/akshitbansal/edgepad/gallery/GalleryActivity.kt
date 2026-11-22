@@ -6,6 +6,7 @@ import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
+import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.screens.hideBars
 
 /**
@@ -30,6 +31,8 @@ class GalleryActivity : Activity() {
                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
         window.hideBars()
+        // The app's fonts, as MainActivity loads them; every screen reads them.
+        Type.load(this)
         val samples = GallerySamples(this)
         val screen = intent.getStringExtra(SCREEN).orEmpty()
         val view: View = samples.build(screen) ?: samples.blank()
