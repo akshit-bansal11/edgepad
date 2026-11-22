@@ -698,6 +698,92 @@ final class TransferTests: XCTestCase {
         XCTAssertFalse(incoming.pause())
     }
 
+    func testABeginForTheSameNameAndSizeReplacesAHeldFileAndResumesFromItsPart() {
+        var held: [Bool] = []
+        let incoming = receiver()
+        incoming.pausedChanged = { held.append($0) }
+        _ = incoming.take(begin: 1, size: 6, name: "a.txt")
+        _ = incoming.take(chunk: 1, offset: 0, data: [1, 2])
+        XCTAssertTrue(incoming.pause())
+        XCTAssertTrue(incoming.take(begin: 2, size: 6, name: "a.txt"))
+        XCTAssertEqual(replies.last, status(2, .ready, 2))
+        XCTAssertEqual(held, [true, false])
+        // Another file, or a file not held, is still busy.
+        _ = incoming.take(begin: 3, size: 6, name: "b.txt")
+        XCTAssertEqual(replies.last, status(3, .busy))
+    }
+
+    func testAReceiverHeldOnlyByTheSenderEndsCancelledAtTheCapWithThePartKept() throws {
+        let incoming = receiver()
+        _ = incoming.take(begin: 1, size: 9, name: "a.txt")
+        _ = incoming.take(chunk: 1, offset: 0, data: [1, 2])
+        XCTAssertTrue(incoming.take(status: XferCode.paused.rawValue, id: 1))
+        receiverClock = TransferLimits.pauseCap + 1
+        receiverTimers.removeFirst().work()
+        XCTAssertFalse(incoming.busy)
+        XCTAssertEqual(replies.last, status(1, .cancelled))
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: partial), ["a.txt.9.part"])
+    }
+
+    func testAPauseDuringTheReadyWaitThatOutlastsTheCapEndsCancelledWithoutTellingThePhone() throws {
+        let outgoing = sender()
+        outgoing.pausedChanged = { [unowned self] in self.senderHeld.append($0) }
+        senderHeld = []
+        outgoing.send(path: try file([1, 2, 3])) { [unowned self] in self.results.append($0) }
+        XCTAssertTrue(outgoing.pause())
+        guard let index = timers.firstIndex(where: { $0.delay == TransferLimits.pauseCap }) else {
+            return XCTFail("No cap armed")
+        }
+        sent = []
+        timers.remove(at: index).work()
+        XCTAssertEqual(results, [.cancelled])
+        XCTAssertTrue(sent.isEmpty)
+        XCTAssertEqual(senderHeld, [true, false])
+    }
+
+    func testTheSessionEndingWhileTheSenderIsHeldEndsItSessionEndedAndLetsTheOwnerKnow() throws {
+        for peer in [false, true] {
+            results = []
+            senderHeld = []
+            let (outgoing, _) = try heldBack()
+            if peer {
+                XCTAssertTrue(outgoing.take(status: XferCode.paused.rawValue, id: 1, offset: 0))
+            } else {
+                XCTAssertTrue(outgoing.pause())
+            }
+            outgoing.end()
+            XCTAssertEqual(results, [.sessionEnded])
+            XCTAssertEqual(senderHeld, [true, false])
+            XCTAssertFalse(outgoing.pause())
+        }
+    }
+
+    func testADeadLinkWhileTheSenderPausesOrResumesEndsItSessionEnded() throws {
+        let (outgoing, _) = try heldBack()
+        alive = false
+        XCTAssertFalse(outgoing.pause())
+        XCTAssertEqual(results, [.sessionEnded])
+    }
+
+    func testTheSessionEndingWhileTheReceiverIsHeldKeepsThePart() throws {
+        for own in [true, false] {
+            var held: [Bool] = []
+            let incoming = receiver()
+            incoming.pausedChanged = { held.append($0) }
+            _ = incoming.take(begin: 1, size: 9, name: "a.txt")
+            _ = incoming.take(chunk: 1, offset: 0, data: [1, 2])
+            if own {
+                XCTAssertTrue(incoming.pause())
+            } else {
+                XCTAssertTrue(incoming.take(status: XferCode.paused.rawValue, id: 1))
+            }
+            incoming.end()
+            XCTAssertFalse(incoming.busy)
+            XCTAssertEqual(held, [true, false])
+            XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: partial), ["a.txt.9.part"])
+        }
+    }
+
     // MARK: The transfer socket
 
     func testTheFirstFrameTellsATransferSocketFromAHello() {

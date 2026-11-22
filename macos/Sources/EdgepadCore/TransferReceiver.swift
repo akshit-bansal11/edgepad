@@ -98,6 +98,11 @@ public final class TransferReceiver {
     public var busy: Bool { active != nil }
 
     public func take(begin id: UInt8, size: UInt64, name raw: String) -> Bool {
+        // A held file begun again under the same name and size (the sender came back) is replaced: its part is kept
+        // and the new begin resumes from it.
+        if let a = active, a.heldSince != nil, a.size == size, SafeFileName.clean(raw) == a.name {
+            finish(deletePart: false)
+        }
         guard active == nil else {
             status(id, .busy, 0)
             return true

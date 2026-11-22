@@ -410,44 +410,50 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             menu.addItem(steps)
         }
         menu.addItem(.separator())
-        let wifi = item(wifiTitle(), #selector(toggleNetwork))
-        wifi.state = networkSettings.load().enabled ? .on : .off
-        wifi.toolTip = tr(
-            "Menu_WifiTip", "Wi-Fi only on a Mac: USB tethering needs a driver macOS does not include.")
-        menu.addItem(wifi)
-        let clipboard = item(tr("Menu_Clipboard", "Share clipboard"), #selector(toggleClipboard))
-        clipboard.state = ClipboardSetting.enabled ? .on : .off
-        clipboard.toolTip = tr("Menu_ClipboardTip", "Copy on one, paste on the other: text and images.")
-        menu.addItem(clipboard)
-        let login = item(tr("Menu_Login", "Start at login"), #selector(toggleLogin))
-        login.state = SMAppService.mainApp.status == .enabled ? .on : .off
-        menu.addItem(login)
-        let updates = item(tr("Menu_DailyUpdates", "Check for updates daily"), #selector(toggleDailyUpdates))
-        updates.state = checksDaily ? .on : .off
-        menu.addItem(updates)
-        menu.addItem(.separator())
         menu.addItem(
             host?.hasPhone == true
                 ? item(tr("Menu_SendFile", "Send a file…"), #selector(sendFile))
                 : disabled(tr("Menu_SendFileNoPhone", "Send a file… (no phone connected)")))
         menu.addItem(item(tr("Menu_Macros", "Macros…"), #selector(showMacros)))
-        menu.addItem(item(IntegrationsWindow.menuTitle, #selector(showIntegrations)))
+        let clipboardMenu = NSMenu()
+        let clipboard = item(tr("Menu_Clipboard", "Share clipboard"), #selector(toggleClipboard))
+        clipboard.state = ClipboardSetting.enabled ? .on : .off
+        clipboard.toolTip = tr("Menu_ClipboardTip", "Copy on one, paste on the other: text and images.")
+        clipboardMenu.addItem(clipboard)
+        menu.addItem(group(tr("Menu_Group_Clipboard", "Clipboard"), clipboardMenu))
+        menu.addItem(.separator())
+        let connectionsMenu = NSMenu()
+        let wifi = item(wifiTitle(), #selector(toggleNetwork))
+        wifi.state = networkSettings.load().enabled ? .on : .off
+        wifi.toolTip = tr(
+            "Menu_WifiTip", "Wi-Fi only on a Mac: USB tethering needs a driver macOS does not include.")
+        connectionsMenu.addItem(wifi)
+        let names = SecurityPanel.levelNames
+        let level = names.indices.contains(pin.level - 1) ? names[pin.level - 1] : ""
+        connectionsMenu.addItem(item(tr("Menu_Security", "Security… (%1$@)", level), #selector(showSecurity)))
+        menu.addItem(group(tr("Menu_Group_Connections", "Connections"), connectionsMenu))
+        let integrationsMenu = NSMenu()
+        integrationsMenu.addItem(item(tr("Menu_StatsWeather", "Stats and weather…"), #selector(showIntegrations)))
         let developer = item(tr("Menu_DeveloperMode", "Developer mode"), #selector(toggleDeveloper))
         let developerOn = dashboard?.settings.flag(IntegrationSettings.developer) == true
         developer.state = developerOn ? .on : .off
-        menu.addItem(developer)
+        integrationsMenu.addItem(developer)
         if developerOn {
-            menu.addItem(
-                item(
-                    tr("Menu_DeveloperIntegrations", "Developer integrations…"), #selector(showDeveloperIntegrations)))
+            integrationsMenu.addItem(
+                item(tr("Menu_ForDevelopers", "For developers…"), #selector(showDeveloperIntegrations)))
         }
-        let names = SecurityPanel.levelNames
-        let level = names.indices.contains(pin.level - 1) ? names[pin.level - 1] : ""
-        menu.addItem(item(tr("Menu_Security", "Security… (%1$@)", level), #selector(showSecurity)))
-        menu.addItem(.separator())
-        menu.addItem(item(tr("Menu_Documentation", "Documentation"), #selector(openDocumentation)))
-        menu.addItem(item(tr("Menu_OpenLog", "Open log"), #selector(openLog)))
-        menu.addItem(item(tr("Menu_About", "About Edgepad"), #selector(showAbout)))
+        menu.addItem(group(tr("Menu_Group_Integrations", "Integrations"), integrationsMenu))
+        let settingsMenu = NSMenu()
+        let login = item(tr("Menu_Login", "Start at login"), #selector(toggleLogin))
+        login.state = SMAppService.mainApp.status == .enabled ? .on : .off
+        settingsMenu.addItem(login)
+        let updates = item(tr("Menu_DailyUpdates", "Check for updates daily"), #selector(toggleDailyUpdates))
+        updates.state = checksDaily ? .on : .off
+        settingsMenu.addItem(updates)
+        settingsMenu.addItem(item(tr("Menu_Documentation", "Documentation"), #selector(openDocumentation)))
+        settingsMenu.addItem(item(tr("Menu_OpenLog", "Open log"), #selector(openLog)))
+        settingsMenu.addItem(item(tr("Menu_About", "About Edgepad"), #selector(showAbout)))
+        menu.addItem(group(tr("Menu_Group_Settings", "Settings"), settingsMenu))
         menu.addItem(.separator())
         let quit = item(tr("Menu_Quit", "Quit Edgepad"), #selector(quit))
         quit.keyEquivalent = "q"
@@ -485,6 +491,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func item(_ title: String, _ action: Selector) -> NSMenuItem {
         let row = NSMenuItem(title: title, action: action, keyEquivalent: "")
         row.target = self
+        return row
+    }
+
+    private func group(_ title: String, _ submenu: NSMenu) -> NSMenuItem {
+        let row = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        row.submenu = submenu
         return row
     }
 
