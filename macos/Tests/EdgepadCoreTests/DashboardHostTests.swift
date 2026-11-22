@@ -220,7 +220,7 @@ final class DashboardHostTests: XCTestCase {
         for wire in ["github/2/0", "github/1/7", "github/1/6", "gitlab/1/0", "https://evil.example/"] {
             XCTAssertFalse(host.openGit(wire), wire)
         }
-        Thread.sleep(forTimeInterval: 0.1)
+        try? await Task.sleep(nanoseconds: 100_000_000)
         XCTAssertEqual(opener.opened.count, 1)
         host.dispose()
     }
@@ -261,7 +261,7 @@ final class DashboardHostTests: XCTestCase {
         XCTAssertTrue(settings.setFlag(IntegrationSettings.gitHub, true))
         let bare = newHost(DashboardParts(gitHub: api, gitHubSignedIn: { true }))
         XCTAssertFalse(bare.openGit("github/1/0"))
-        Thread.sleep(forTimeInterval: 0.1)
+        try? await Task.sleep(nanoseconds: 100_000_000)
         XCTAssertTrue(opener.opened.isEmpty)
         host.dispose()
         bare.dispose()
