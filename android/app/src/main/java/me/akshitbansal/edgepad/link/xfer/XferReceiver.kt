@@ -255,7 +255,14 @@ class XferReceiver(
         a.paused = own ?: a.paused
         a.peerPaused = peer ?: a.peerPaused
         val holding = a.paused || a.peerPaused
-        a.heldSince = if (!holding) -1 else if (a.heldSince >= 0) a.heldSince else now()
+        a.heldSince =
+            if (!holding) {
+                -1
+            } else if (a.heldSince >= 0) {
+                a.heldSince
+            } else {
+                now()
+            }
         if (holding == was) return
         a.stopTimer()
         arm(a, if (holding) XferLimits.PAUSE_CAP_MS else XferLimits.IDLE_MS)

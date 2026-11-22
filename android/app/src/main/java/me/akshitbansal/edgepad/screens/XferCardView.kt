@@ -29,7 +29,10 @@ internal fun titleKind(s: XferSnapshot): CardTitle =
         else -> CardTitle.FAILED_MANY
     }
 
-/** Which buttons the card shows: [hold] is Pause or Resume, [resume] says it reads Resume, [stop] and [retry] as named. */
+/**
+ * Which buttons the card shows: [hold] is Pause or Resume, [resume] says it reads Resume, [stop] and
+ * [retry] as named.
+ */
 internal data class CardButtons(
     val hold: Boolean,
     val resume: Boolean,
@@ -132,7 +135,15 @@ class XferCardView(
             lastHeld = hold
             held = hold
             val bad = kind == CardTitle.FAILED_ONE || kind == CardTitle.FAILED_MANY || kind == CardTitle.DONE_SOME
-            icon.setColorFilter(if (bad) p.danger else if (hold) p.dim else p.accent)
+            icon.setColorFilter(
+                if (bad) {
+                    p.danger
+                } else if (hold) {
+                    p.dim
+                } else {
+                    p.accent
+                },
+            )
             fillShape.setColor(if (hold) p.track else p.accent)
             pause.setImageResource(if (hold) R.drawable.ic_play else R.drawable.ic_pause)
             pause.contentDescription = ui.string(if (hold) R.string.xfer_resume else R.string.xfer_pause)
@@ -197,7 +208,13 @@ class XferCardView(
             CardTitle.RUNNING_SEND, CardTitle.RUNNING_RECEIVE -> {
                 // The name alone: the figures are the line under it. Before a file is named, the old words.
                 val send = kind == CardTitle.RUNNING_SEND
-                name.ifEmpty { ui.string(if (send) R.string.xfer_sending else R.string.xfer_receiving, name, s.percent) }
+                name.ifEmpty {
+                    ui.string(
+                        if (send) R.string.xfer_sending else R.string.xfer_receiving,
+                        name,
+                        s.percent,
+                    )
+                }
             }
 
             CardTitle.DONE_ALL -> {

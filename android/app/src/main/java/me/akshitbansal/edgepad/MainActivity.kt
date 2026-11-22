@@ -147,10 +147,10 @@ import me.akshitbansal.edgepad.screens.PresenterScreen
 import me.akshitbansal.edgepad.screens.ProfilesScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
-import me.akshitbansal.edgepad.screens.SheetRegistry
 import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.SharingScreen
+import me.akshitbansal.edgepad.screens.SheetRegistry
 import me.akshitbansal.edgepad.screens.StatsScreen
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
 import me.akshitbansal.edgepad.screens.SystemScreen
@@ -786,7 +786,10 @@ class MainActivity :
         }
     }
 
-    /** Points every link's clipboard at the selected laptop alone; see [me.akshitbansal.edgepad.link.ClipboardLinks]. */
+    /**
+     * Points every link's clipboard at the selected laptop alone; see
+     * [me.akshitbansal.edgepad.link.ClipboardLinks].
+     */
     private fun shareClipboard() = clipboard.links.refresh(manager.laptops, manager.selected)
 
     /** Everything a link's blobs feed, brought in line with the laptops: the clipboard and the app lists. */
@@ -956,7 +959,10 @@ class MainActivity :
         manager.send(ActionId.MACROS_UNWATCH.frame())
     }
 
-    /** Asks the laptop for the apps it could add as macros, if it can say. One that never named `apps` is never asked. */
+    /**
+     * Asks the laptop for the apps it could add as macros, if it can say. One that never named `apps` is
+     * never asked.
+     */
     private fun listApps() {
         if (listingApps || Feature.APPS !in state.features || !connected) return
         // The old list's tokens mean nothing to the new epoch, so none is kept to be tapped before the new one lands.
@@ -1605,7 +1611,10 @@ class MainActivity :
             }
     }
 
-    /** From Android 16 back arrives only through a callback; it is registered while there is a screen to go back from. */
+    /**
+     * From Android 16 back arrives only through a callback; it is registered while there is a screen to go
+     * back from.
+     */
     private fun updateBack() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA) return
         val callback =
@@ -1629,7 +1638,8 @@ class MainActivity :
 
     private fun stepBack(): Boolean {
         when (screen) {
-            // AND-A-18: a stray edge swipe while sliding a dial must not drop the user on Devices; the second back does.
+            // AND-A-18: a stray edge swipe while sliding a dial must not drop the user on Devices;
+            // the second back does.
             Screen.SURFACE -> {
                 val now = SystemClock.uptimeMillis()
                 if (now - lastSurfaceBack <= BACK_AGAIN_MS) {
