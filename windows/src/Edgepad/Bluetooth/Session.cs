@@ -421,6 +421,7 @@ internal sealed class Session(
             dispatcher.DashWatch = dash.OnWatch;
             dispatcher.SpeedTest = dash.OnSpeedTest;
             dispatcher.PermAnswer = dash.Answer;
+            dispatcher.GitOpen = dash.OpenGit;
             dispatcher.Developer = on => integrations?.SetDeveloper(on);
 
             // An agent that starts working with Edgepad while linked (first hook heard, Codex trusted) is named at once.

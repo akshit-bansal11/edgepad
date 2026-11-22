@@ -152,6 +152,10 @@ public final class IntegrationHost {
     private var weatherRetrying = false
     // What a phone that has been sent no git page holds is the empty body.
     private var gitHubSent = ""
+    // When this phone's recent link opens happened, oldest first.
+    private var opens: [Date] = []
+    private static let maxOpens = 3
+    private static let openWindow: TimeInterval = 1
     private let weatherRetryAfter: TimeInterval
     private var watch = 0
     private var disposed = false
@@ -566,10 +570,24 @@ public final class IntegrationHost {
     /// and index in the default browser, and says whether it was accepted; anything else is refused and the caller
     /// drops and counts it (see `GitOpenGate`).
     public func openGit(_ wire: String) -> Bool {
-        guard !isDisposed, let opener = parts.urlOpener, let url = GitOpenGate.resolve(wire, hosts: git) else {
+        guard !isDisposed, let opener = parts.urlOpener, let url = GitOpenGate.resolve(wire, hosts: git),
+            openAllowed()
+        else {
             return false
         }
         DispatchQueue.global(qos: .utility).async { _ = opener.open(url) }
+        return true
+    }
+
+    // At most `maxOpens` opens per `openWindow` seconds for this phone, so a hostile or buggy phone cannot flood the
+    // browser with tabs.
+    private func openAllowed() -> Bool {
+        let now = clock()
+        gate.lock()
+        defer { gate.unlock() }
+        opens.removeAll { now.timeIntervalSince($0) >= Self.openWindow }
+        guard opens.count < Self.maxOpens else { return false }
+        opens.append(now)
         return true
     }
 

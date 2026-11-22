@@ -39,6 +39,8 @@ internal sealed class LinuxDashboard : IDisposable
     private GitHubApi? github;
     private LinuxStats? stats;
     private LinuxNetInfo? netInfo;
+    private static readonly ProcessUrlOpener BrowserOpener = new(ProcessUrlOpener.Linux);
+
     private DashboardParts parts = new();
     private bool disposed;
 
@@ -171,6 +173,7 @@ internal sealed class LinuxDashboard : IDisposable
                     Weather = weather,
                     GitHub = github,
                     GitHubSignedIn = github is null ? null : () => signIn.Value.IsSignedIn,
+                    UrlOpener = BrowserOpener,
                     AgentHeard = agent => usage.Value.LastHeard(agent) >= 0,
                 };
             }
@@ -561,6 +564,9 @@ internal sealed class DashboardLink : IDisposable
 
     /// <summary>The phone's PERM_ANSWER.</summary>
     public bool Answer(string wire) => dashboard.Answer(wire);
+
+    /// <summary>The phone's GIT_OPEN, to whichever host this link has now. False when refused.</summary>
+    public bool OpenGit(string wire) => Host.OpenGit(wire);
 
     public void Dispose()
     {

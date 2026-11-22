@@ -242,6 +242,7 @@ internal sealed class LinuxSession : IDisposable
                 dispatcher.DashWatch = dash.OnWatch;
                 dispatcher.SpeedTest = dash.OnSpeedTest;
                 dispatcher.PermAnswer = dash.Answer;
+                dispatcher.GitOpen = dash.OpenGit;
                 dispatcher.Developer = shared.SetDeveloper;
                 report = frame => frames.Send(dash.Annotate(frame));
             }

@@ -225,6 +225,25 @@ final class DashboardHostTests: XCTestCase {
         host.dispose()
     }
 
+    func testOpenGitAllowsAFewOpensASecondAndRefusesTheRestUntilTheWindowPasses() async {
+        let secrets = MemorySecrets()
+        _ = secrets.set(GitHubApp.tokenName, "gho_SecretTokenValue1234567890abcdef")
+        let clock = TestClock()
+        let api = GitHubApi(store: secrets, http: gitHubReplies(), clock: { clock.now })
+        _ = await api.refresh()
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.developer, true))
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.gitHub, true))
+        let opener = RecordingOpener()
+        let host = newHost(DashboardParts(gitHub: api, gitHubSignedIn: { true }, urlOpener: opener))
+
+        XCTAssertTrue(host.openGit("github/1/2"))
+        XCTAssertTrue(host.openGit("github/1/2"))
+        XCTAssertTrue(host.openGit("github/1/2"))
+        XCTAssertFalse(host.openGit("github/1/2"))
+        XCTAssertTrue(wait { opener.opened.count == 3 })
+        host.dispose()
+    }
+
     func testOpenGitDoesNothingWhileGitHubIsOffOrThereIsNoOpener() async {
         let secrets = MemorySecrets()
         _ = secrets.set(GitHubApp.tokenName, "gho_SecretTokenValue1234567890abcdef")

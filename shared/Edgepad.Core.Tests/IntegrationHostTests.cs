@@ -393,6 +393,26 @@ public sealed class IntegrationHostTests : IDisposable
     }
 
     [Fact]
+    public async Task OpenGitAllowsAFewOpensASecondAndRefusesTheRestUntilTheWindowPasses()
+    {
+        AllOn();
+        githubReply = GitHubOk;
+        using var host = New();
+        host.OnWatch(IntegrationHost.GitHubBit);
+        await Task.Run(Assert.Single(timers, t => t.Every == GitHubRefresh.Every).Fire, Ct);
+
+        Assert.True(host.OpenGit("github/1/2"));
+        Assert.True(host.OpenGit("github/1/2"));
+        Assert.True(host.OpenGit("github/1/2"));
+        Assert.False(host.OpenGit("github/1/2"));
+        Assert.Equal(3, opened.Count);
+
+        clock.Advance(TimeSpan.FromSeconds(1));
+        Assert.True(host.OpenGit("github/1/2"));
+        Assert.Equal(4, opened.Count);
+    }
+
+    [Fact]
     public async Task OpenGitDoesNothingWhileGitHubIsOffOrThereIsNoOpener()
     {
         AllOn();

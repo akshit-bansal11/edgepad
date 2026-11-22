@@ -74,6 +74,9 @@ internal sealed class IntegrationHost : IDisposable
     // What a phone that has been sent no git page holds.
     private const string NothingSent = "";
 
+    private const int MaxOpens = 3;
+    private static readonly TimeSpan OpenWindow = TimeSpan.FromSeconds(1);
+
     private readonly Action<Frame> send;
     private readonly BlobSender blobs;
     private readonly IntegrationSettings settings;
@@ -91,6 +94,9 @@ internal sealed class IntegrationHost : IDisposable
     // The last MaxGone ask ids that ended, so a PERM_ASK blob still queued for one is never sent.
     private readonly HashSet<string> gone = [];
     private readonly Queue<string> goneOrder = new();
+
+    // When this phone's recent link opens happened, oldest first.
+    private readonly Queue<DateTimeOffset> opens = new();
 
     private StatsReporter? reporter;
     private IDisposable? weatherTimer;
@@ -722,13 +728,34 @@ internal sealed class IntegrationHost : IDisposable
     /// </summary>
     public bool OpenGit(string wire)
     {
-        if (disposed || parts.UrlOpener is not { } opener || !GitOpenGate.TryResolve(wire, Git, out var url))
+        if (disposed || parts.UrlOpener is not { } opener || !GitOpenGate.TryResolve(wire, Git, out var url) || !OpenAllowed())
         {
             return false;
         }
 
         run(() => opener.Open(url));
         return true;
+    }
+
+    // At most MaxOpens opens per OpenWindow for this phone, so a hostile or buggy phone cannot flood the browser with tabs.
+    private bool OpenAllowed()
+    {
+        var now = clock();
+        lock (gate)
+        {
+            while (opens.Count > 0 && now - opens.Peek() >= OpenWindow)
+            {
+                opens.Dequeue();
+            }
+
+            if (opens.Count >= MaxOpens)
+            {
+                return false;
+            }
+
+            opens.Enqueue(now);
+            return true;
+        }
     }
 
     // C22 adds GitLab here. A token host counts only while its own switch (the settings key named by its id) is on.

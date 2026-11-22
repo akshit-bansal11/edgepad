@@ -444,6 +444,8 @@ internal sealed partial class WindowsIntegrations : IDisposable
         github = Settings.Active(IntegrationSettings.GitHub) ? github ?? new GitHubApi(Secrets) : null;
     }
 
+    private static readonly ProcessUrlOpener BrowserOpener = new(ProcessUrlOpener.Windows);
+
     // Under gate. The pieces a host gets now; the broker only while an agent is on and its channel is open.
     private DashboardParts Parts()
     {
@@ -461,6 +463,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
             GitHub = Settings.Active(IntegrationSettings.GitHub) ? github : null,
             GitHubSignedIn = () => SignIn.IsSignedIn,
             GitHosts = [.. gitHosts.Values],
+            UrlOpener = BrowserOpener,
             AgentHeard = agent => store?.LastHeard(agent) >= 0,
         };
     }
@@ -646,6 +649,9 @@ internal sealed partial class WindowsIntegrations : IDisposable
 
         /// <summary>The phone's PERM_ANSWER, to whichever broker this link has now. False when none.</summary>
         public bool Answer(string wire) => Broker?.Answer(wire) ?? false;
+
+        /// <summary>The phone's GIT_OPEN, to whichever host this link has now. False when refused.</summary>
+        public bool OpenGit(string wire) => Host.OpenGit(wire);
 
         public void Dispose()
         {
