@@ -77,7 +77,8 @@ final class HookConfigInstallerTests: XCTestCase {
 
         let root = try read(installer.geminiFile)
         let hooks = try XCTUnwrap(root["hooks"] as? [String: Any])
-        XCTAssertEqual(hooks.keys.sorted(), ["AfterAgent", "BeforeAgent", "Notification", "SessionEnd", "SessionStart"])
+        let names = ["AfterAgent", "BeforeAgent", "Notification", "SessionEnd", "SessionStart"]
+        XCTAssertEqual(hooks.keys.sorted(), names)
         XCTAssertEqual(ours(root).count, 5)
         XCTAssertEqual(ours(root)[0]["command"] as? String, "\"\(app)\" --hook gemini session")
         XCTAssertTrue(settings.flag(AgentToken.gemini.rawValue))
