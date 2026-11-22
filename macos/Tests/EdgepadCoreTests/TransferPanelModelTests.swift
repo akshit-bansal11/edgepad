@@ -58,3 +58,20 @@ final class TransferPanelModelTests: XCTestCase {
         XCTAssertFalse(model.held)
     }
 }
+
+final class TransferFailureTests: XCTestCase {
+    func testEachReceiveOutcomeHasItsReason() {
+        XCTAssertEqual(TransferFailure.receive(.badHash), .damaged)
+        XCTAssertEqual(TransferFailure.receive(.writeFailed), .writeFailed)
+        XCTAssertEqual(TransferFailure.receive(.rejected), .rejected)
+        XCTAssertEqual(TransferFailure.receive(.cancelled), .cancelled)
+        XCTAssertEqual(TransferFailure.receive(.timedOut), .timedOut)
+        XCTAssertEqual(TransferFailure.receive(.sessionEnded), .linkLost)
+    }
+
+    func testSavedAndInProgressCodesAreNotFailures() {
+        XCTAssertNil(TransferFailure.receive(.saved))
+        XCTAssertNil(TransferFailure.receive(.progress))
+        XCTAssertNil(TransferFailure.receive(.ready))
+    }
+}

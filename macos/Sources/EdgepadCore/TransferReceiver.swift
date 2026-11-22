@@ -18,6 +18,10 @@ public final class TransferReceiver {
     /// `active` false when it ends.
     public var changed: ((_ name: String, _ done: UInt64, _ size: UInt64, _ active: Bool) -> Void)?
 
+    /// Told how the file ended, after `changed` said it did: `.saved`, or why it was not (`.badHash`, `.writeFailed`,
+    /// `.rejected`, `.cancelled` by either end, `.timedOut` for a silent or over-held sender, `.sessionEnded`).
+    public var ended: ((_ name: String, _ code: XferCode) -> Void)?
+
     private final class Active {
         let id: UInt8
         let size: UInt64
@@ -139,14 +143,14 @@ public final class TransferReceiver {
             return true
         }
         guard a.held + UInt64(data.count) <= a.size else {
-            finish(deletePart: true)
+            finish(deletePart: true, as: .rejected)
             status(id, .rejected, 0)
             return true
         }
         do {
             try a.file.write(contentsOf: Data(data))
         } catch {
-            finish(deletePart: true)
+            finish(deletePart: true, as: .writeFailed)
             status(id, .writeFailed, 0)
             return true
         }
@@ -168,7 +172,7 @@ public final class TransferReceiver {
             return true
         }
         guard Array(a.hash.finalize()) == sha256 else {
-            finish(deletePart: true)
+            finish(deletePart: true, as: .badHash)
             status(id, .badHash, 0)
             return true
         }
@@ -183,7 +187,7 @@ public final class TransferReceiver {
         guard let a = active, a.id == id else { return false }
         switch code {
         case XferCode.cancelled.rawValue:
-            finish(deletePart: true)
+            finish(deletePart: true, as: .cancelled)
             return true
         case XferCode.paused.rawValue:
             setHold(a, peer: true)
@@ -229,14 +233,14 @@ public final class TransferReceiver {
     @discardableResult
     public func cancel() -> Bool {
         guard let a = active else { return false }
-        finish(deletePart: true)
+        finish(deletePart: true, as: .cancelled)
         status(a.id, .cancelled, 0)
         return true
     }
 
     /// The session is over: the part stays, for the next BEGIN of the same name and size.
     public func end() {
-        finish(deletePart: false)
+        finish(deletePart: false, as: .sessionEnded)
     }
 
     /// Free bytes on the volume holding `folder`; -1 when that cannot be read, which refuses the file.
@@ -255,7 +259,7 @@ public final class TransferReceiver {
             if let since = a.heldSince {
                 if self.clock() - since >= TransferLimits.pauseCap {
                     Log.write("A file from the phone was held too long and was dropped; its part is kept.")
-                    self.finish(deletePart: false)
+                    self.finish(deletePart: false, as: .timedOut)
                     self.status(a.id, .cancelled, 0)
                 } else {
                     self.watchIdle(a)
@@ -265,7 +269,7 @@ public final class TransferReceiver {
             let idle = self.clock() - a.lastActive
             if idle >= TransferLimits.idleTimeout {
                 Log.write("A file from the phone went quiet and was dropped; its part is kept.")
-                self.finish(deletePart: false)
+                self.finish(deletePart: false, as: .timedOut)
                 self.status(a.id, .cancelled, 0)
             } else {
                 self.watchIdle(a, after: TransferLimits.idleTimeout - idle)
@@ -342,22 +346,25 @@ public final class TransferReceiver {
             }
         } catch {
             Log.write("A file from the phone could not be saved: \(error.localizedDescription)")
-            finish(deletePart: false)
+            finish(deletePart: false, as: .writeFailed)
             status(a.id, .writeFailed, 0)
             return
         }
-        finish(deletePart: false)
+        finish(deletePart: false, as: .saved)
         status(a.id, .saved, a.size)
         if let finalPath {
             arrived?(finalPath)
         }
     }
 
-    private func finish(deletePart: Bool) {
+    private func finish(deletePart: Bool, as code: XferCode? = nil) {
         guard let a = active else { return }
         active = nil
         a.close()
         changed?(a.name, a.held, a.size, false)
+        if let code {
+            ended?(a.name, code)
+        }
         if a.heldSince != nil {
             pausedChanged?(false)
         }

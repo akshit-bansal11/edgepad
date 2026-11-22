@@ -729,6 +729,27 @@
   <data name="Xfer_Resume" xml:space="preserve">
     <value>Resume</value>
   </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Not received: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>it arrived damaged</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>it could not be saved</value>
+  </data>
+  <data name="Xfer_ReasonRejected" xml:space="preserve">
+    <value>this Mac could not take it</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>it was cancelled</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>the phone stopped answering</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>the phone disconnected</value>
+  </data>
   <data name="Xfer_Stop" xml:space="preserve">
     <value>Stop</value>
   </data>

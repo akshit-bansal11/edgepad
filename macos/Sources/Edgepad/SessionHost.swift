@@ -78,6 +78,9 @@ final class SessionHost {
     var onTransfer:
         ((_ sending: Bool, _ phone: String, _ name: String, _ done: UInt64, _ size: UInt64, _ active: Bool) -> Void)?
 
+    /// Told the name and how a file from the phone ended, saved or not.
+    var onReceiveEnded: ((_ name: String, _ code: XferCode) -> Void)?
+
     /// Told when either end starts or stops holding the file in flight.
     var onTransferHeld: ((Bool) -> Void)?
 
@@ -228,7 +231,8 @@ final class SessionHost {
         fileSender.changed = { [weak self] name, done, size, active in
             self?.transferTick(address, sending: true, name, done, size, active)
         }
-        fileReceiver.pausedChanged = { [weak self] held in self?.onTransferHeld?(held) }
+        fileReceiver.ended = { [weak self] name, code in self?.onReceiveEnded?(name, code) }
+        fileReceiver.pausedChanged ={ [weak self] held in self?.onTransferHeld?(held) }
         fileSender.pausedChanged = { [weak self] held in self?.onTransferHeld?(held) }
         dispatcher.transfers = fileReceiver
         dispatcher.sending = fileSender

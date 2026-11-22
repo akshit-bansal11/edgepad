@@ -92,3 +92,26 @@ public struct TransferPanelModel: Equatable {
         sampleDone = done
     }
 }
+
+/// Why a file from the phone was not kept, in the owner's terms.
+public enum TransferFailure: Equatable {
+    case damaged
+    case writeFailed
+    case rejected
+    case cancelled
+    case timedOut
+    case linkLost
+
+    /// The reason for a receive that ended with `code`; nil for `.saved` and for codes that end nothing.
+    public static func receive(_ code: XferCode) -> TransferFailure? {
+        switch code {
+        case .badHash: return .damaged
+        case .writeFailed: return .writeFailed
+        case .rejected: return .rejected
+        case .cancelled: return .cancelled
+        case .timedOut: return .timedOut
+        case .sessionEnded: return .linkLost
+        case .saved, .ready, .progress, .busy, .paused, .resume: return nil
+        }
+    }
+}

@@ -143,7 +143,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             self?.transfers.progress(
                 sending: sending, phone: phone, name: name, done: done, size: size, active: active)
         }
-        host.onTransferHeld = { [weak self] held in self?.transfers.held(held) }
+        host.onReceiveEnded = { [weak self] _, code in
+            guard let failure = TransferFailure.receive(code) else { return }
+            self?.transfers.finished(Self.notReceivedLine(failure), failed: true)
+        }
+        host.onTransferHeld ={ [weak self] held in self?.transfers.held(held) }
         transfers.onPause = { [weak host] sending in host?.pauseTransfer(sending: sending) ?? false }
         transfers.onResume = { [weak host] sending in host?.resumeTransfer(sending: sending) ?? false }
         transfers.onStop = { [weak host] sending in host?.stopTransfer(sending: sending) }
@@ -851,6 +855,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 self?.transfers.finished(Self.sentLine(name, code), failed: code != .saved)
             }
         }
+    }
+
+    private static func notReceivedLine(_ failure: TransferFailure) -> String {
+        let reason: String
+        switch failure {
+        case .damaged: reason = tr("Xfer_ReasonDamaged", "it arrived damaged")
+        case .writeFailed: reason = tr("Xfer_ReasonWrite", "it could not be saved")
+        case .rejected: reason = tr("Xfer_ReasonRejected", "this Mac could not take it")
+        case .cancelled: reason = tr("Xfer_ReasonCancelled", "it was cancelled")
+        case .timedOut: reason = tr("Xfer_ReasonTimedOut", "the phone stopped answering")
+        case .linkLost: reason = tr("Xfer_ReasonLost", "the phone disconnected")
+        }
+        return tr("Xfer_NotReceived", "Not received: %1$@", reason)
     }
 
     private static func sentLine(_ name: String, _ code: XferCode) -> String {
