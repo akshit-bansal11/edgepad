@@ -6,19 +6,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BatteryStripTest {
-    /** The buttons' half of the keep-out, before the margin, as [ControlSurface.onSizeChanged] works it out. */
-    private fun rowHalf(step: Float) = step + Space.TOUCH / 2
-
-    @Test
-    fun theStripFitsTheButtonsKeepOutUpright() {
-        assertTrue(BatteryStrip.WIDTH_DP / 2 <= rowHalf(ControlSurface.TOP_BUTTON_OFFSET_PORTRAIT_DP))
-    }
-
-    @Test
-    fun theStripFitsTheButtonsKeepOutSideways() {
-        assertTrue(BatteryStrip.WIDTH_DP / 2 <= rowHalf(ControlSurface.TOP_BUTTON_OFFSET_LANDSCAPE_DP))
-    }
-
     @Test
     fun theStripsTapRectEndsWhereTheButtonsBegin() {
         assertEquals(ControlSurface.TOP_DP - Space.TOUCH / 2, BatteryStrip.HIT_BOTTOM_DP, 0f)
@@ -28,7 +15,8 @@ class BatteryStripTest {
     }
 
     @Test
-    fun theLineFitsInsideTheStripsHeight() {
-        assertTrue(BatteryStrip.LINE_DP + BatteryStrip.ICON_DP <= BatteryStrip.HEIGHT_DP)
+    fun theShapesFitInsideTheStripsHeight() {
+        assertTrue(BatteryShape.ICON_DP <= BatteryStrip.HEIGHT_DP)
+        assertTrue(BatteryShape.BODY_H_DP <= BatteryStrip.HEIGHT_DP)
     }
 }

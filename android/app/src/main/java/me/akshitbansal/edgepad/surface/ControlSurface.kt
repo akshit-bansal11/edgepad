@@ -410,7 +410,7 @@ class ControlSurface(
     private val captionTint = withAlpha(accent, CAPTION_TINT_ALPHA)
 
     // Low is the theme's red even under a control colour the user chose, so it is never tinted through it.
-    private val strip = BatteryStrip(context, ink, accent, faint, dim, palette.danger)
+    private val strip = BatteryStrip(context, ink, accent, dim, palette.danger)
 
     /** How far a display cutout pushed the battery strip and the button row down, in px; set in onSizeChanged. */
     private var topShift = 0f
@@ -530,7 +530,7 @@ class ControlSurface(
         topShift = strip.cutoutShift(w, insets?.displayCutout?.boundingRects.orEmpty(), dp(Space.XS))
         layoutPieces(w.toFloat(), h.toFloat())
         widgets.layout(w.toFloat(), h.toFloat())
-        strip.layout(w, topShift, backdrop.isDark)
+        strip.layout(w, topShift)
         // No ruler runs under the buttons at the top, and neighbours stop short of each other — which is
         // what keeps two dials on the same edge clear of each other.
         // A dial the user puts in the top-middle slot is the one exception: it is centred inside the
@@ -545,7 +545,7 @@ class ControlSurface(
         val topCentre = perimeter.lengthAt(TOP_CENTRE)
         val reach = (topButtons.maxOfOrNull { abs(it.side) } ?: 0f) * topButtonOffsetDp(w.toFloat(), h.toFloat())
         // The battery strip above the row is centred on the same edge and must stay inside the same zone: at
-        // 144dp it fits the upright row's 72dp either side exactly, and the zone widens only if it ever does not.
+        // 240dp it is wider than the row, so the zone is the strip's half-width plus the margin.
         val zone = dp(maxOf(reach + Space.TOUCH / 2, BatteryStrip.WIDTH_DP / 2) + Space.M)
         keepOut[0] = topCentre - zone
         keepOut[1] = topCentre + zone
@@ -768,7 +768,7 @@ class ControlSurface(
                 dp(ICON_DP),
             )
         }
-        strip.draw(canvas, backdrop.hasImage)
+        strip.draw(canvas)
         if (pressedStrip) {
             val radius = strip.hit.height() / 2
             fill.color = faint

@@ -10,6 +10,7 @@ import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.LaptopState
+import me.akshitbansal.edgepad.protocol.BatteryKind
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.FnMode
@@ -19,6 +20,10 @@ import me.akshitbansal.edgepad.screens.KeyboardSize
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.RingGauge
 import me.akshitbansal.edgepad.screens.Ui
+import me.akshitbansal.edgepad.surface.BatteryGroup
+import me.akshitbansal.edgepad.surface.BatteryGroups
+import me.akshitbansal.edgepad.surface.BatteryRow
+import me.akshitbansal.edgepad.surface.BatterySource
 import me.akshitbansal.edgepad.surface.ControlSurface
 
 /** The sample state behind each gallery screen name. A new screen adds one case to [build]. */
@@ -63,12 +68,23 @@ class GallerySamples(
             }
 
             "surface" -> {
-                ControlSurface(context, settings, LaptopState(), {}, {}, {})
+                ControlSurface(context, settings, LaptopState(), {}, {}, {}, batteries = chargingLaptopAndPhone)
             }
 
             else -> {
                 null
             }
+        }
+
+    /** A charging laptop at 97% and this phone at 52%, for the surface's battery strip. */
+    private val chargingLaptopAndPhone =
+        BatterySource {
+            val laptop = BatteryRow("Akshit's M42", BatteryKind.LAPTOP, false, 97, true, "Akshit's M42")
+            BatteryGroups(
+                BatteryGroup("Akshit's M42", listOf(laptop)),
+                emptyList(),
+                BatteryRow("Pixel", null, true, 52, false, "Pixel"),
+            )
         }
 
     /** Four usage rings at 34, 62, 81 and 93 percent, one per level colour, on a card. */
