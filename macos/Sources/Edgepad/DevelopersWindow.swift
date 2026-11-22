@@ -614,7 +614,6 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
     }
 }
 
-
 /// One provider's controls: logo, name, status line with its dot, the How to connect link, one button, then (under it,
 /// indented) the steps, notes, Copy, GitHub's code panel and a token host's form.
 final class DevRowControl: NSObject, NSTextFieldDelegate {

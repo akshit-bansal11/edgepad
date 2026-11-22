@@ -61,7 +61,11 @@ final class DevelopersWiringTests: XCTestCase {
         XCTAssertTrue(off.canHowTo)
         XCTAssertFalse(off.dot)
 
-        let on = DevRowModel.view(claude, input { $0.connected = true; $0.agent = .connected })
+        let onInput = input {
+            $0.connected = true
+            $0.agent = .connected
+        }
+        let on = DevRowModel.view(claude, onInput)
         XCTAssertEqual(on.button, .disconnect)
         XCTAssertTrue(on.dot)
         XCTAssertFalse(on.canHowTo)
@@ -108,10 +112,18 @@ final class DevelopersWiringTests: XCTestCase {
         XCTAssertEqual(asking.button, .cancel)
         XCTAssertTrue(asking.buttonEnabled)
 
-        let code = DevRowModel.view(github, input { $0.signingIn = true; $0.codeShown = true })
+        let codeInput = input {
+            $0.signingIn = true
+            $0.codeShown = true
+        }
+        let code = DevRowModel.view(github, codeInput)
         XCTAssertEqual(code.line, .notConnected)
 
-        let signed = DevRowModel.view(github, input { $0.signedIn = true; $0.account = "ana" })
+        let signedInput = input {
+            $0.signedIn = true
+            $0.account = "ana"
+        }
+        let signed = DevRowModel.view(github, signedInput)
         XCTAssertEqual(signed.line, .signedIn("ana"))
         XCTAssertEqual(signed.button, .signOut)
         XCTAssertTrue(signed.dot)
@@ -125,7 +137,12 @@ final class DevelopersWiringTests: XCTestCase {
         XCTAssertTrue(add.canHowTo)
         XCTAssertFalse(DevRowModel.view(gitea, input { $0.saving = true }).buttonEnabled)
 
-        let signed = DevRowModel.view(gitea, input { $0.signedIn = true; $0.account = "ana"; $0.saving = true })
+        let signedInput = input {
+            $0.signedIn = true
+            $0.account = "ana"
+            $0.saving = true
+        }
+        let signed = DevRowModel.view(gitea, signedInput)
         XCTAssertEqual(signed.button, .signOut)
         XCTAssertTrue(signed.buttonEnabled)
         XCTAssertTrue(signed.dot)
