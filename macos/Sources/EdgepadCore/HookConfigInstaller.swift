@@ -151,6 +151,8 @@ public final class HookConfigInstaller {
     private func loadGemini() throws -> (root: [String: Any], bytes: Data) {
         let data = try Data(contentsOf: URL(fileURLWithPath: geminiFile))
         guard data.count <= Self.maxBytes else { throw Refused(reason: "The Gemini settings file is too large") }
+        // Foundation's parser forgives some things (a trailing comma); rewriting such a file is refused, not repaired.
+        guard Self.isStrictJSON([UInt8](data)) else { throw Refused(reason: "The Gemini settings are not strict JSON") }
         guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw Refused(reason: "The Gemini settings are not an object")
         }
@@ -279,6 +281,115 @@ public final class HookConfigInstaller {
         let data = try JSONSerialization.data(
             withJSONObject: root, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
         return String(decoding: data, as: UTF8.self)
+    }
+
+    // MARK: Strict JSON (RFC 8259: no comments, no trailing comma, no single quotes, no bare words)
+
+    private static func isStrictJSON(_ bytes: [UInt8]) -> Bool {
+        var i = skipSpace(bytes, 0)
+        guard value(bytes, &i, depth: 0) else { return false }
+        return skipSpace(bytes, i) == bytes.count
+    }
+
+    private static func value(_ bytes: [UInt8], _ i: inout Int, depth: Int) -> Bool {
+        guard depth < 256, i < bytes.count else { return false }
+        switch bytes[i] {
+        case 0x7B: return container(bytes, &i, depth: depth, close: 0x7D)
+        case 0x5B: return container(bytes, &i, depth: depth, close: 0x5D)
+        case 0x22: return string(bytes, &i)
+        case 0x74: return word(bytes, &i, "true")
+        case 0x66: return word(bytes, &i, "false")
+        case 0x6E: return word(bytes, &i, "null")
+        default: return number(bytes, &i)
+        }
+    }
+
+    private static func container(_ bytes: [UInt8], _ i: inout Int, depth: Int, close: UInt8) -> Bool {
+        let isObject = close == 0x7D
+        i = skipSpace(bytes, i + 1)
+        if i < bytes.count, bytes[i] == close {
+            i += 1
+            return true
+        }
+        while true {
+            if isObject {
+                guard i < bytes.count, bytes[i] == 0x22, string(bytes, &i) else { return false }
+                i = skipSpace(bytes, i)
+                guard i < bytes.count, bytes[i] == 0x3A else { return false }
+                i = skipSpace(bytes, i + 1)
+            }
+            guard value(bytes, &i, depth: depth + 1) else { return false }
+            i = skipSpace(bytes, i)
+            guard i < bytes.count else { return false }
+            if bytes[i] == close {
+                i += 1
+                return true
+            }
+            guard bytes[i] == 0x2C else { return false }
+            i = skipSpace(bytes, i + 1)
+        }
+    }
+
+    private static func word(_ bytes: [UInt8], _ i: inout Int, _ literal: String) -> Bool {
+        let expected = Array(literal.utf8)
+        guard i + expected.count <= bytes.count, Array(bytes[i..<i + expected.count]) == expected else { return false }
+        i += expected.count
+        return true
+    }
+
+    private static func string(_ bytes: [UInt8], _ i: inout Int) -> Bool {
+        i += 1
+        while i < bytes.count {
+            let c = bytes[i]
+            if c == 0x22 {
+                i += 1
+                return true
+            }
+            if c < 0x20 { return false }
+            if c == 0x5C {
+                guard i + 1 < bytes.count else { return false }
+                if bytes[i + 1] == 0x75 {
+                    guard i + 5 < bytes.count, bytes[i + 2...i + 5].allSatisfy({ isHex($0) }) else { return false }
+                    i += 6
+                } else {
+                    guard "\"\\/bfnrt".utf8.contains(bytes[i + 1]) else { return false }
+                    i += 2
+                }
+            } else {
+                i += 1
+            }
+        }
+        return false
+    }
+
+    private static func isHex(_ c: UInt8) -> Bool {
+        (c >= 0x30 && c <= 0x39) || (c >= 0x41 && c <= 0x46) || (c >= 0x61 && c <= 0x66)
+    }
+
+    private static func digits(_ bytes: [UInt8], _ i: inout Int) -> Bool {
+        let start = i
+        while i < bytes.count, bytes[i] >= 0x30, bytes[i] <= 0x39 { i += 1 }
+        return i > start
+    }
+
+    private static func number(_ bytes: [UInt8], _ i: inout Int) -> Bool {
+        if i < bytes.count, bytes[i] == 0x2D { i += 1 }
+        guard i < bytes.count else { return false }
+        if bytes[i] == 0x30 {
+            i += 1
+        } else {
+            guard bytes[i] >= 0x31, bytes[i] <= 0x39, digits(bytes, &i) else { return false }
+        }
+        if i < bytes.count, bytes[i] == 0x2E {
+            i += 1
+            guard digits(bytes, &i) else { return false }
+        }
+        if i < bytes.count, bytes[i] == 0x65 || bytes[i] == 0x45 {
+            i += 1
+            if i < bytes.count, bytes[i] == 0x2B || bytes[i] == 0x2D { i += 1 }
+            guard digits(bytes, &i) else { return false }
+        }
+        return true
     }
 
     // MARK: Text scanning (the file is already known to be strict JSON, so this only has to find the edges)
