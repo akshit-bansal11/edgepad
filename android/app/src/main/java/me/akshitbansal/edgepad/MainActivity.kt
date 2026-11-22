@@ -29,7 +29,6 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.EditText
@@ -157,6 +156,7 @@ import me.akshitbansal.edgepad.screens.SystemScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.screens.WidgetsScreen
 import me.akshitbansal.edgepad.screens.XferCard
+import me.akshitbansal.edgepad.screens.hideBars
 import me.akshitbansal.edgepad.screens.openOver
 import me.akshitbansal.edgepad.screens.showOver
 import me.akshitbansal.edgepad.surface.BackgroundImage
@@ -775,7 +775,10 @@ class MainActivity :
     // A copy made in another app is readable only once this window has focus.
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) clipboard.bridge.focused()
+        if (hasFocus) {
+            window.hideBars()
+            clipboard.bridge.focused()
+        }
     }
 
     /** Points every link's clipboard at the selected laptop alone; see [me.akshitbansal.edgepad.link.ClipboardLinks]. */
@@ -1539,14 +1542,9 @@ class MainActivity :
                 WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
                     WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
             bars.setSystemBarsAppearance(if (ui.palette.dark) 0 else light, light)
-            // The surface and everything laid out to match it hide the bars, so the proportions agree.
-            if (next in immersive) {
-                bars.hide(WindowInsets.Type.systemBars())
-                bars.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            } else {
-                bars.show(WindowInsets.Type.systemBars())
-            }
         }
+        // Every screen hides the bars; an edge swipe shows them for a moment (see hideBars).
+        window.hideBars()
         updateBack()
     }
 

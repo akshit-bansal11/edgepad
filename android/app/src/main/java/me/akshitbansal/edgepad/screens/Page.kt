@@ -18,7 +18,9 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -1036,6 +1038,17 @@ private class NavBar(
 }
 
 /**
+ * Hides the status and navigation bars on this window; an edge swipe shows them for a moment. A dialog is a window
+ * of its own and brings the bars back unless it hides them too, so every dialog goes through [openOver].
+ */
+fun Window.hideBars() {
+    insetsController?.let {
+        it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        it.hide(WindowInsets.Type.systemBars())
+    }
+}
+
+/**
  * Shows the dialog, and closes it if [owner] leaves the window first. Left to itself a dialog outlives the
  * page that opened it: a rotation or a theme change rebuilds the activity underneath, and the window the
  * dialog still holds leaks. Nothing it asked about is on screen any more by then, so closing it loses nothing.
@@ -1049,6 +1062,7 @@ fun AlertDialog.Builder.openOver(owner: View): AlertDialog {
     val dialog = create()
     // The platform's own entrance is swapped for the carry from the tapped control (UX-32).
     dialog.window?.setWindowAnimations(0)
+    dialog.window?.hideBars()
     dialog.show()
     dialog.window?.let { Carry.reveal(it, owner) }
     val closer =
