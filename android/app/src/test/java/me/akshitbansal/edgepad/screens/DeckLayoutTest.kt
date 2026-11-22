@@ -191,4 +191,50 @@ class DeckLayoutTest {
         assertEquals(listOf(4, 0, 1, 2, 3), DeckLayout.moveShown(order, shown, 2, 0))
         assertEquals(order, DeckLayout.moveShown(order, shown, 0, 3))
     }
+
+    private fun popup(
+        count: Int,
+        sideways: Boolean,
+        screenWidth: Int,
+        screenHeight: Int,
+    ) = DeckLayout.fixedPlan(count, sideways, screenWidth, screenHeight, 16, 104, 88, 8, 16, 30, 16)
+
+    @Test
+    fun tenTilesSidewaysStandInTwoRowsOfFive() {
+        val plan = popup(10, true, 800, 360)
+        assertEquals(5, plan.columns)
+        assertEquals(2, plan.rows)
+        assertEquals(104, plan.tile)
+        assertEquals(584, plan.width)
+        assertEquals(30 + 2 * 88 + 8 + 16, plan.height)
+        assertFalse(plan.scrolls)
+        assertTrue(plan.width <= 800 - 32)
+        assertTrue(plan.height <= 360 - 32)
+    }
+
+    @Test
+    fun tenTilesUprightStandInFourRowsOfThreeAndNarrowToTheScreen() {
+        val plan = popup(10, false, 360, 800)
+        assertEquals(3, plan.columns)
+        assertEquals(4, plan.rows)
+        assertEquals(360 - 32, plan.width)
+        assertTrue(plan.tile in 1..104)
+        assertFalse(plan.scrolls)
+        assertTrue(plan.width <= 360 - 32)
+        assertTrue(plan.height <= 800 - 32)
+    }
+
+    @Test
+    fun aScreenTooShortForTheRowsScrollsInsteadOfOverflowing() {
+        val plan = popup(10, false, 360, 300)
+        assertTrue(plan.scrolls)
+        assertEquals(300 - 32, plan.height)
+    }
+
+    @Test
+    fun noTilesLeaveOnlyThePadding() {
+        val plan = popup(0, true, 800, 360)
+        assertEquals(0, plan.rows)
+        assertEquals(46, plan.height)
+    }
 }

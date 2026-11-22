@@ -40,10 +40,6 @@ class GallerySamples(
                 rings()
             }
 
-            "controls" -> {
-                blank()
-            }
-
             "keyboard" -> {
                 KeyboardScreen.build(
                     ui,
@@ -67,7 +63,8 @@ class GallerySamples(
                 MediaLayoutScreen.build(ui, settings) {}
             }
 
-            "surface" -> {
+            // The Controls popup opens over the surface it grows from (see showControls).
+            "surface", "controls" -> {
                 ControlSurface(context, settings, LaptopState(), {}, {}, {}, batteries = chargingLaptopAndPhone)
             }
 
@@ -108,7 +105,7 @@ class GallerySamples(
         }
     }
 
-    /** An empty page in the app's background: what the Controls popup opens over, and the answer to an unknown name. */
+    /** An empty page in the app's background: the answer to an unknown name. */
     fun blank(): View = FrameLayout(context).apply { setBackgroundColor(ui.palette.background) }
 
     /** Opens the layout editor's options panel by tapping its options button inside [root]. */

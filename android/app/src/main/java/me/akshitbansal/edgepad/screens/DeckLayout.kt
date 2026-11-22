@@ -9,6 +9,53 @@ import me.akshitbansal.edgepad.link.LaptopState
  * came from.
  */
 object DeckLayout {
+    /** The Controls popup's columns: five sideways, three upright. */
+    const val POPUP_COLUMNS_SIDEWAYS = 5
+    const val POPUP_COLUMNS_UPRIGHT = 3
+
+    /**
+     * The Controls popup worked out from fixed-size tiles: [columns] across and [rows] down, the popup [width] by
+     * [height], the [grid] part of that height, and the width one [tile] gets. [scrolls] when the rows do not fit.
+     */
+    class FixedPlan(
+        val columns: Int,
+        val rows: Int,
+        val width: Int,
+        val height: Int,
+        val grid: Int,
+        val tile: Int,
+        val scrolls: Boolean,
+    )
+
+    /**
+     * The popup for [count] tiles of [tileWidth] by [tileHeight], [gap] apart, inside [padSide], [padTop] and
+     * [padBottom], on a screen [screenWidth] by [screenHeight] that leaves [margin] on every side. One unit
+     * throughout (dp or pixels). Never wider or taller than the screen less the margins: a narrow screen makes the
+     * tiles narrower, a short one makes the grid scroll.
+     */
+    fun fixedPlan(
+        count: Int,
+        sideways: Boolean,
+        screenWidth: Int,
+        screenHeight: Int,
+        margin: Int,
+        tileWidth: Int,
+        tileHeight: Int,
+        gap: Int,
+        padSide: Int,
+        padTop: Int,
+        padBottom: Int,
+    ): FixedPlan {
+        val columns = if (sideways) POPUP_COLUMNS_SIDEWAYS else POPUP_COLUMNS_UPRIGHT
+        val rows = if (count <= 0) 0 else (count + columns - 1) / columns
+        val width = minOf(columns * tileWidth + (columns - 1) * gap + 2 * padSide, screenWidth - 2 * margin)
+        val tile = ((width - 2 * padSide - (columns - 1) * gap) / columns).coerceAtLeast(1)
+        val grid = if (rows == 0) 0 else rows * tileHeight + (rows - 1) * gap
+        val wanted = padTop + grid + padBottom
+        val room = screenHeight - 2 * margin
+        return FixedPlan(columns, rows, width, minOf(wanted, room), grid, tile, wanted > room)
+    }
+
     /**
      * The (rows, columns) grids that fit [count] tiles. A row count is offered only if every row has a
      * tile in it: 15 tiles in 6 rows of 3 would leave the sixth empty, and that is the same grid as 5 rows.

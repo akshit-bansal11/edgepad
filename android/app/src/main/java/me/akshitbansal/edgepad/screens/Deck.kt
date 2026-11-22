@@ -72,6 +72,18 @@ data class DeckTile(
 )
 
 /**
+ * Opt-in sizing for a grid of tiles that are the same size whatever the room: [columns] across, each [height] tall
+ * with a [icon]-pixel picture, [gap] pixels above the label, which is [labelSp] big, on a filled rounded tile.
+ */
+class FixedCell(
+    val columns: Int,
+    val height: Int,
+    val icon: Int,
+    val labelSp: Float,
+    val gap: Int,
+)
+
+/**
  * A grid of tiles spread over the whole room it is given: three tiles are drawn as large as the room
  * allows and fifteen as small as they have to be, because a grid of three huddled at the top of an empty
  * page wastes the one thing a wall-mounted phone has plenty of. The tiles sit on the page's ground with
@@ -106,6 +118,7 @@ class Deck(
     private var wantedRows: Int? = null
     private var iconZoom = 1f
     private var opens = true
+    private var fixed: FixedCell? = null
 
     /** The side, in pixels, a picture is planned at once the grid is drawn; 0 before that. */
     val iconSide: Int get() = grid?.icon ?: 0
@@ -189,7 +202,9 @@ class Deck(
         onClose: (DeckTile) -> Unit = {},
         iconZoom: Float = 1f,
         opens: Boolean = true,
+        fixed: FixedCell? = null,
     ) {
+        this.fixed = fixed
         this.iconZoom = iconZoom
         this.opens = opens
         this.planFor = slots
@@ -251,6 +266,7 @@ class Deck(
                 onClose,
                 iconZoom = iconZoom,
                 opens = opens,
+                fixed = fixed,
             )
             return
         }
@@ -287,6 +303,10 @@ class Deck(
         val metrics = ui.context.resources.displayMetrics
         val count = maxOf(planFor, tiles.size)
         val gap = ui.dp(Space.S)
+        fixed?.let {
+            val cell = ((across - (it.columns - 1) * gap) / it.columns).coerceAtLeast(1)
+            return Grid(it.columns, it.height, it.labelSp, lineHeight(metrics, it.labelSp), it.icon, cell, bare)
+        }
         val pad = 2 * ui.dp(Space.S)
         // The column count that leaves the cell's shorter side longest, which is the largest a button can be
         // drawn without one of its sides being wasted on the other. Counted up to the number of tiles rather
@@ -460,7 +480,8 @@ class Deck(
         ui.text("", grid.labelSp, ui.palette.ink, face = Type.bold).apply {
             gravity = Gravity.CENTER
             minHeight = ui.dp(Space.BUTTON)
-            ui.tappable(this, Space.PANEL_RADIUS) { launch(tile, this) }
+            if (fixed != null) background = ui.rounded(ui.palette.faint, Space.CARD_RADIUS)
+            ui.tappable(this, if (fixed != null) Space.CARD_RADIUS else Space.PANEL_RADIUS) { launch(tile, this) }
             reorderable(this, tile, position)
             // A long name is cut rather than wrapped, so every button in the grid stays one row tall.
             maxLines = 1
@@ -742,7 +763,7 @@ class Deck(
         val side = ui.dp(Space.S)
         // A button with nothing to read reserves neither the gap under the picture nor the line under that,
         // whether it is alone in a grid of pictures or the one tile in a named grid whose picture arrived.
-        val gap = if (shown.isEmpty()) 0 else ui.dp(Space.XS)
+        val gap = if (shown.isEmpty()) 0 else fixed?.gap ?: ui.dp(Space.XS)
         val reserved = if (shown.isEmpty()) 0 else grid.line
         button.text = shown
         // A long name in a narrow cell shrinks toward a floor before the end of it is cut with an ellipsis.
