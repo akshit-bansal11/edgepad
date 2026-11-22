@@ -449,9 +449,11 @@ class Settings(
      * Where a media piece sits, as fractions of the surface's width and height. Portrait and landscape each
      * keep their own layout, chosen by [landscape], because a spot that suits one rarely suits the other.
      */
-    fun piece(piece: MediaPiece): Pair<Float, Float> =
-        prefs.getFloat(layoutKey(pieceKey(piece, "x")), piece.defaultX).coerceIn(0f, 1f) to
-            prefs.getFloat(layoutKey(pieceKey(piece, "y")), piece.defaultY).coerceIn(0f, 1f)
+    fun piece(piece: MediaPiece): Pair<Float, Float> {
+        val defaultY = if (landscape) piece.landscapeY else piece.defaultY
+        return prefs.getFloat(layoutKey(pieceKey(piece, "x")), piece.defaultX).coerceIn(0f, 1f) to
+            prefs.getFloat(layoutKey(pieceKey(piece, "y")), defaultY).coerceIn(0f, 1f)
+    }
 
     /** Moves [piece] in the current orientation's layout only. */
     fun setPiece(

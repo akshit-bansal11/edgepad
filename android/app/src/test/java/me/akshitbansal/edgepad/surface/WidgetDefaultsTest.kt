@@ -102,7 +102,7 @@ class WidgetDefaultsTest {
         out.add(
             piece(
                 nowPlaying.defaultX * w,
-                nowPlaying.defaultY * h,
+                (if (w > h) nowPlaying.landscapeY else nowPlaying.defaultY) * h,
                 ControlSurface.NOW_PLAYING_WIDTH_DP * density,
                 ControlSurface.NOW_PLAYING_HEIGHT_DP * density,
             ),

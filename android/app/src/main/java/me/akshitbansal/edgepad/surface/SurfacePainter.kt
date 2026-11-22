@@ -42,6 +42,22 @@ object PieceGeometry {
         rect(out, 8, cx + gap - touch, cy - touch, cx + gap + touch, cy + touch)
     }
 
+    /** The now-playing piece's nominal box centred at fractions [nx], [ny], as left, top, right, bottom in [out]. */
+    fun nowPlaying(
+        w: Float,
+        h: Float,
+        nx: Float,
+        ny: Float,
+        density: Float,
+        mediaScale: Float,
+        out: FloatArray,
+    ) {
+        val px = density * mediaScale
+        val halfW = ControlSurface.NOW_PLAYING_WIDTH_DP * px / 2
+        val halfH = ControlSurface.NOW_PLAYING_HEIGHT_DP * px / 2
+        rect(out, 0, nx * w - halfW, ny * h - halfH, nx * w + halfW, ny * h + halfH)
+    }
+
     private fun rect(
         out: FloatArray,
         at: Int,

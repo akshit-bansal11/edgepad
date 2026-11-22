@@ -159,6 +159,10 @@ object KeyboardScreen {
         private val wantedTextSize =
             TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, LABEL_SP, resources.displayMetrics) * textScale
 
+        /** The board's label size after the height fit, and each key's width share of it; set in [fitLabels]. */
+        private var baseTextSize = wantedTextSize
+        private val keyFit = FloatArray(caps.size) { 1f }
+
         private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
         private val shadowPaint =
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -263,10 +267,16 @@ object KeyboardScreen {
                 val availableHeight = maxOf(0f, rects[i].height() - 2 * labelInset)
                 val fnWidth = caps[i].fnLabel?.let { labelOn.measureText(it) } ?: 0f
                 val width = maxOf(labelOn.measureText(legends[i]), fnWidth)
-                if (width > 0f) fit = minOf(fit, availableWidth / width)
+                // Only the key's own width shrinks its label: one long legend on a narrow key must not shrink the board.
+                keyFit[i] = if (width > 0f) minOf(1f, availableWidth / width) else 1f
                 if (lineHeight > 0f) fit = minOf(fit, availableHeight / lineHeight)
             }
-            labelOn.textSize = wantedTextSize * fit
+            baseTextSize = wantedTextSize * fit
+        }
+
+        /** Sizes the label paints for key [i]: the board's size, shrunk only as far as that key's own width needs. */
+        private fun sizeFor(i: Int) {
+            labelOn.textSize = baseTextSize * keyFit[i]
             labelOff.textSize = labelOn.textSize
             labelDim.textSize = labelOn.textSize
             secondaryOn.textSize = labelOn.textSize * SECONDARY_SHARE
@@ -302,6 +312,7 @@ object KeyboardScreen {
                 val fnSide = out === cap.fn
                 val primary = if (fnSide) cap.fnLabel ?: legends[i] else legends[i]
                 val other = if (fnSide) legends[i] else cap.fnLabel
+                sizeFor(i)
                 val label =
                     when {
                         held -> labelOn

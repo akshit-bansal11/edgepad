@@ -11,9 +11,11 @@ enum class MediaPiece(
     val nameRes: Int,
     val defaultX: Float,
     val defaultY: Float,
+    /** The landscape screen is short, so the two pieces need more of its height between them. */
+    val landscapeY: Float = defaultY,
 ) {
     /** The app's logo, the title and the time, with the progress line under them; the time and the line only when no corner scrubs. */
-    NOW_PLAYING(R.string.piece_now_playing, 0.5f, 0.78f),
+    NOW_PLAYING(R.string.piece_now_playing, 0.5f, 0.78f, 0.66f),
 
     /** Previous, play/pause and next in a row. */
     TRANSPORT(R.string.piece_transport, 0.5f, 0.9f),

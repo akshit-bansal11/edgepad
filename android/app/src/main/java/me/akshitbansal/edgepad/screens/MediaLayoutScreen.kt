@@ -490,21 +490,19 @@ object MediaLayoutScreen {
             out: RectF,
         ) {
             val (fx, fy) = at
-            val cx = fx * width
-            val cy = fy * height
-            val (w, h) =
-                when (piece) {
-                    MediaPiece.NOW_PLAYING -> {
-                        ControlSurface.NOW_PLAYING_WIDTH_DP to
-                            ControlSurface.NOW_PLAYING_HEIGHT_DP
-                    }
-
-                    MediaPiece.TRANSPORT -> {
-                        ControlSurface.SKIP_GAP_DP * 2 + Space.TOUCH to ControlSurface.PLAY_DP
-                    }
+            val w = width.toFloat()
+            val h = height.toFloat()
+            when (piece) {
+                MediaPiece.NOW_PLAYING -> {
+                    PieceGeometry.nowPlaying(w, h, fx, fy, density, scale, rects)
+                    out.set(rects[0], rects[1], rects[2], rects[3])
                 }
-            val px = density * scale
-            out.set(cx - w * px / 2, cy - h * px / 2, cx + w * px / 2, cy + h * px / 2)
+
+                MediaPiece.TRANSPORT -> {
+                    PieceGeometry.transport(w, h, fx, fy, density, scale, Space.TOUCH, rects)
+                    out.set(rects[4], rects[1], rects[10], rects[3])
+                }
+            }
         }
 
         // Under the grid: the surface at 38 % where it cannot be moved, then the movable pieces at full strength.
