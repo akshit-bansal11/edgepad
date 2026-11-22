@@ -29,6 +29,19 @@ internal fun titleKind(s: XferSnapshot): CardTitle =
         else -> CardTitle.FAILED_MANY
     }
 
+/** Which buttons the card shows: [hold] is Pause or Resume, [resume] says it reads Resume, [stop] and [retry] as named. */
+internal data class CardButtons(
+    val hold: Boolean,
+    val resume: Boolean,
+    val stop: Boolean,
+    val retry: Boolean,
+)
+
+internal fun buttonsOf(s: XferSnapshot): CardButtons {
+    val running = s.phase != XferPhase.FINISHED
+    return CardButtons(running, running && s.paused, running, !running && s.sending && s.failed.isNotEmpty())
+}
+
 /**
  * The small card of the batch of files moving: a file icon, the file's name, a line of figures, a thin bar while it
  * moves, and three buttons: Pause or Resume, Stop, and Close, which only hides the card. After the end only Close (and
@@ -109,7 +122,8 @@ class XferCardView(
     fun bind(s: XferSnapshot) {
         val kind = titleKind(s)
         val running = kind == CardTitle.RUNNING_SEND || kind == CardTitle.RUNNING_RECEIVE
-        val hold = running && s.paused
+        val buttons = buttonsOf(s)
+        val hold = buttons.resume
         if (kind != lastKind || hold != lastHeld) {
             lastKind = kind
             lastHeld = hold
@@ -129,9 +143,9 @@ class XferCardView(
         if (detail.text.toString() != figures) detail.text = figures
         show(detail, running)
         show(bar, running)
-        show(pause, running)
-        show(stop, running)
-        show(retry, !running && s.sending && s.failed.isNotEmpty())
+        show(pause, buttons.hold)
+        show(stop, buttons.stop)
+        show(retry, buttons.retry)
         pause.isEnabled = !s.cancelling
         stop.isEnabled = !s.cancelling
         if (running) fill.level = s.percent * LEVEL_PER_PERCENT

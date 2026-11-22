@@ -257,7 +257,10 @@ object Transfers {
                 lastInputMs = link::lastInputMs,
                 ended = { !link.connected },
                 backlog = link::queued,
-                pausedChanged = progress::setPaused,
+                pausedChanged = { held ->
+                    progress.setPaused(held)
+                    notice.held(held)
+                },
             )
 
         // Built on the first XFER frame: its start purges old parts, which is file work the main thread must not do.
@@ -280,7 +283,10 @@ object Transfers {
                         val stop: () -> Unit = { idle.removeCallbacks(task) }
                         stop
                     },
-                    pausedChanged = { held -> receiveHeld(held) },
+                    pausedChanged = { held ->
+                        receiveHeld(held)
+                        notice.held(held)
+                    },
                 )
             }
         private val receiver by receiverOnce

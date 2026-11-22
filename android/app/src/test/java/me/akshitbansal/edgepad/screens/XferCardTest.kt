@@ -25,6 +25,18 @@ class XferCardTest {
     }
 
     @Test
+    fun buttonsFollowTheState() {
+        val running = base.copy(phase = XferPhase.RUNNING, sending = true)
+        assertEquals(CardButtons(hold = true, resume = false, stop = true, retry = false), buttonsOf(running))
+        val held = CardButtons(hold = true, resume = true, stop = true, retry = false)
+        assertEquals(held, buttonsOf(running.copy(paused = true)))
+        val failedSend = running.copy(phase = XferPhase.FINISHED, failed = failed(1))
+        assertEquals(CardButtons(hold = false, resume = false, stop = false, retry = true), buttonsOf(failedSend))
+        val received = failedSend.copy(sending = false)
+        assertEquals(CardButtons(hold = false, resume = false, stop = false, retry = false), buttonsOf(received))
+    }
+
+    @Test
     fun oneFailureBesideOneArrivedIsPartialNotFailedOne() {
         val finished = base.copy(phase = XferPhase.FINISHED, sending = true, done = 1, failed = failed(1))
         assertEquals(CardTitle.DONE_SOME, titleKind(finished))

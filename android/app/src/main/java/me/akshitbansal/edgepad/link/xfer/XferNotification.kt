@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
+import android.text.format.Formatter
 import me.akshitbansal.edgepad.R
 
 /** Lets a progress through at most once per percent: a notification is rebuilt 100 times a file, not per chunk. */
@@ -69,6 +70,10 @@ class XferNotification(
     private val context: Context = context.applicationContext
     private var gate = PercentGate()
     private var gateIndex = 0
+    private var paused = false
+    private var lastTitle: String? = null
+    private var lastDone = 0L
+    private var lastTotal = 0L
 
     /**
      * Shows [done] of [total] bytes of [name] if that is a new percent; [name] is file [index] of [count] in a batch
@@ -95,6 +100,18 @@ class XferNotification(
                 sending -> context.getString(R.string.xfer_sending, shown, percent)
                 else -> context.getString(R.string.xfer_receiving, shown, percent)
             }
+        lastTitle = title
+        lastDone = done
+        lastTotal = total
+        post(title, ongoing = true, percent = percent)
+    }
+
+    /** The transfer was held or let go: rebuilds the notification now, so its action and text follow. No timer. */
+    fun held(held: Boolean) {
+        if (held == paused) return
+        paused = held
+        val title = lastTitle ?: return
+        val percent = if (lastTotal <= 0) 100 else (lastDone * 100 / lastTotal).toInt()
         post(title, ongoing = true, percent = percent)
     }
 
@@ -126,6 +143,8 @@ class XferNotification(
         ongoing: Boolean,
         percent: Int = 0,
     ) {
+        // The end of a batch lets go of any hold.
+        if (!ongoing) paused = false
         if (context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return
         }
@@ -148,9 +167,14 @@ class XferNotification(
         }
         if (ongoing) {
             builder.setProgress(100, percent, false)
+            if (paused) {
+                val sent = Formatter.formatFileSize(context, lastDone)
+                val size = Formatter.formatFileSize(context, lastTotal)
+                builder.setContentText(context.getString(R.string.xfer_detail_paused, sent, size))
+            }
             val icon = Icon.createWithResource(context, R.drawable.ic_laptop)
             pause?.let {
-                val label = context.getString(if (Transfers.isPaused) R.string.xfer_resume else R.string.xfer_pause)
+                val label = context.getString(if (paused) R.string.xfer_resume else R.string.xfer_pause)
                 builder.addAction(Notification.Action.Builder(icon, label, it).build())
             }
             cancel?.let {
