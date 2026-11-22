@@ -82,10 +82,14 @@ class WidgetDefaultsTest {
         val step =
             if (w > h) ControlSurface.TOP_BUTTON_OFFSET_LANDSCAPE_DP else ControlSurface.TOP_BUTTON_OFFSET_PORTRAIT_DP
         val top = ControlSurface.TOP_DP * density
-        for (side in -1..1) {
-            val cx = w / 2f + side * step * density
+        // The four top buttons sit at -1.5, -0.5, 0.5 and 1.5 steps from the middle, as the surface places them.
+        for (i in 0 until TOP_BUTTONS) {
+            val cx = w / 2f + (i - 1.5f) * step * density
             out.add(Box(cx - touch / 2, top - touch / 2, cx + touch / 2, top + touch / 2))
         }
+        // The battery strip's tap rect: as wide as its room, from the top edge down 48 dp.
+        val room = BatteryStrip.roomDp(1.5f * step) * density
+        out.add(Box(w / 2f - room / 2, 0f, w / 2f + room / 2, BatteryStrip.HIT_BOTTOM_DP * density))
         val along = Settings.DEFAULT_DIAL_LENGTH * density
         val depth = RULER_DEPTH_DP * density
         for (at in 0 until CORNERS) {
@@ -129,6 +133,7 @@ class WidgetDefaultsTest {
     private companion object {
         const val RULER_DEPTH_DP = 44f
         const val CORNERS = 4
+        const val TOP_BUTTONS = 4
         const val EPSILON = 0.001f
         val DENSITIES = floatArrayOf(1f, 2.75f)
         val SCREENS =

@@ -56,7 +56,7 @@ class GallerySamples(
     private val context: Context,
 ) {
     private val ui = Ui(context)
-    private val settings = Settings(context)
+    private val settings = Settings(context).also { it.landscape = ui.landscape }
 
     /** The screen called [name], or null when there is none. */
     fun build(name: String): View? =

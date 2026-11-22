@@ -6,7 +6,6 @@ import android.graphics.Canvas
 import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.drawable.Drawable
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.RoundedCorner
@@ -16,9 +15,6 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.link.blob.MediaIconStore
-import me.akshitbansal.edgepad.protocol.BatteryKind
-import me.akshitbansal.edgepad.surface.BatteryChips
-import me.akshitbansal.edgepad.surface.BatteryRow
 import me.akshitbansal.edgepad.surface.BatteryStrip
 import me.akshitbansal.edgepad.surface.Clock
 import me.akshitbansal.edgepad.surface.ControlSurface
@@ -189,27 +185,6 @@ object MediaLayoutScreen {
         private val before = FloatArray(dials.size)
         private val keepOut = FloatArray(2)
         private val pt = FloatArray(4)
-        private val strip =
-            BatteryStrip(
-                context,
-                faded(palette.ink),
-                faded(palette.accent),
-                faded(palette.dim),
-                faded(palette.danger),
-            ).also {
-                it.refresh(
-                    BatteryChips(
-                        BatteryRow("", BatteryKind.LAPTOP, false, SAMPLE_LAPTOP_PERCENT, true, ""),
-                        BatteryRow("", null, true, SAMPLE_PHONE_PERCENT, false, ""),
-                        0,
-                        false,
-                    ),
-                )
-            }
-        private val topIcons: List<Drawable> =
-            listOf(R.drawable.ic_controls, R.drawable.ic_battery_keyboard, R.drawable.ic_lock, R.drawable.ic_settings)
-                .map { checkNotNull(context.getDrawable(it)).mutate().apply { setTint(faded(palette.dim)) } }
-        private val topHits = List(topIcons.size) { RectF() }
         private val rects = FloatArray(PieceGeometry.TRANSPORT_RECTS)
         private val playHit = RectF()
         private val prevHit = RectF()
@@ -287,8 +262,8 @@ object MediaLayoutScreen {
                     ControlSurface.TOP_BUTTON_OFFSET_PORTRAIT_DP * density
                 }
             val top = ControlSurface.TOP_DP * density
-            for (side in -1..1) {
-                val cx = w / 2f + side * step
+            for (i in 0 until TOP_BUTTONS) {
+                val cx = w / 2f + (i - 1.5f) * step
                 ghosts.add(RectF(cx - touch / 2, top - touch / 2, cx + touch / 2, top + touch / 2))
             }
             val along = settings.dialLength * density
@@ -343,19 +318,12 @@ object MediaLayoutScreen {
                 }
             val reachDp = TOP_REACH * offsetDp
             val roomDp = BatteryStrip.roomDp(reachDp)
-            strip.layout(w, 0f, roomDp * density)
             val zone = (maxOf(reachDp + Space.TOUCH / 2, roomDp / 2) + Space.M) * density
             val topCentre = perimeter.lengthAt(TOP_CENTRE)
             keepOut[0] = topCentre - zone
             keepOut[1] = topCentre + zone
             ruler.clearOf(w / 2f - zone, w / 2f + zone)
             DialSpan.compute(centres, along, perimeter.length, keepOut, DIAL_GAP_DP * density, after, before)
-            val touch = Space.TOUCH * density / 2
-            val top = ControlSurface.TOP_DP * density
-            topHits.forEachIndexed { i, hit ->
-                val cx = w / 2f + (i - 1.5f) * offsetDp * density
-                hit.set(cx - touch, top - touch, cx + touch, top + touch)
-            }
         }
 
         /** Whether a piece centred at [at] would sit on something the surface keeps for itself. */
@@ -521,8 +489,6 @@ object MediaLayoutScreen {
                     null,
                 )
             }
-            dimPainter.drawBatteryStrip(canvas, strip, false)
-            for (i in topHits.indices) dimPainter.drawTopButton(canvas, topHits[i], topIcons[i], false, false)
             // Editing the widgets, the media pieces are part of the surface that stays put.
             if (scope == Scope.WIDGETS) {
                 for (piece in MediaPiece.entries) {
@@ -688,12 +654,11 @@ object MediaLayoutScreen {
             const val DIAL_GAP_DP = 16f
             const val TOP_CENTRE = 0.5f
             const val TOP_REACH = 1.5f
+            const val TOP_BUTTONS = 4
             const val SAMPLE_LEVEL = 50
             const val SAMPLE_POSITION = 84
             const val SAMPLE_DURATION = 210
             const val SAMPLE_PLAYED = 0.4f
-            const val SAMPLE_LAPTOP_PERCENT = 97
-            const val SAMPLE_PHONE_PERCENT = 52
 
             /** Any name the logo store has no icon for: the surface then draws its generic note. */
             const val SAMPLE_APP = "player"
