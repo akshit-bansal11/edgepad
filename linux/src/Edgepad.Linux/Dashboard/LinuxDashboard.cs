@@ -38,6 +38,7 @@ internal sealed class LinuxDashboard : IDisposable
     private WeatherClient? weather;
     private GitHubApi? github;
     private LinuxStats? stats;
+    private LinuxNetInfo? netInfo;
     private DashboardParts parts = new();
     private bool disposed;
 
@@ -156,6 +157,7 @@ internal sealed class LinuxDashboard : IDisposable
                 if (Settings.Flag(IntegrationSettings.Stats))
                 {
                     stats ??= new LinuxStats();
+                    netInfo ??= new LinuxNetInfo();
                 }
 
                 parts = new DashboardParts
@@ -195,7 +197,7 @@ internal sealed class LinuxDashboard : IDisposable
     {
         lock (gate)
         {
-            return new IntegrationHost(send, blobs, Settings, parts, stats);
+            return new IntegrationHost(send, blobs, Settings, parts, stats, net: netInfo);
         }
     }
 
@@ -263,6 +265,7 @@ internal sealed class LinuxDashboard : IDisposable
             claude?.Dispose();
             agents?.Dispose();
             stats?.Dispose();
+            netInfo?.Dispose();
             codex = null;
             claude = null;
             agents = null;
@@ -552,6 +555,9 @@ internal sealed class DashboardLink : IDisposable
 
         current.OnWatch(mask);
     }
+
+    /// <summary>The phone's SPEED_TEST (true starts, false cancels).</summary>
+    public void OnSpeedTest(bool start) => Host.OnSpeedTest(start);
 
     /// <summary>The phone's PERM_ANSWER.</summary>
     public bool Answer(string wire) => dashboard.Answer(wire);

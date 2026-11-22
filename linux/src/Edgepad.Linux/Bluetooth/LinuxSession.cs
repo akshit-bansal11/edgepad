@@ -240,6 +240,7 @@ internal sealed class LinuxSession : IDisposable
                 var dash = new DashboardLink(shared, frames.Send, sender);
                 dashboard = dash;
                 dispatcher.DashWatch = dash.OnWatch;
+                dispatcher.SpeedTest = dash.OnSpeedTest;
                 dispatcher.PermAnswer = dash.Answer;
                 dispatcher.Developer = shared.SetDeveloper;
                 report = frame => frames.Send(dash.Annotate(frame));
