@@ -160,14 +160,19 @@ public final class SpeedTest: @unchecked Sendable {
                 SpeedResult(
                     state: begun, downKbps: -1, upKbps: -1, latencyMs: -1, jitterMs: -1, atUnixMin: at, bytes: 0))
             let result = await measure(at: at)
-            gate.lock()
-            lastResult = result
-            running = nil
-            gate.unlock()
+            finish(result)
             report(result)
         }
         running = task
         return task
+    }
+
+    // Not async, so the lock is taken in a synchronous context.
+    private func finish(_ result: SpeedResult) {
+        gate.withLock {
+            lastResult = result
+            running = nil
+        }
     }
 
     /// Stops the running test; it ends as cancelled. Nothing happens when none runs.
