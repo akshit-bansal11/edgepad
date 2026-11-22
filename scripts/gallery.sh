@@ -6,7 +6,7 @@ set -eu
 
 out="${1:-.}/shots"
 mkdir -p "$out"
-screens="controls keyboard"
+screens="surface controls keyboard"
 
 adb shell wm size 945x2100
 adb shell wm density 420
