@@ -1,9 +1,9 @@
 package me.akshitbansal.edgepad.screens
 
-import java.io.File
-import kotlin.math.pow
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
+import kotlin.math.pow
 
 class PaletteContrastTest {
     private fun colour(
