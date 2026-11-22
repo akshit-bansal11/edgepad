@@ -45,6 +45,11 @@ public final class DashboardParts {
     public let gitHub: GitHubApi?
     /// Whether a GitHub token is saved (`GitHubSignIn.isSignedIn`).
     public let gitHubSignedIn: (() -> Bool)?
+    /// The token-pasting git hosts that are set up (Gitea, Bitbucket, Gitee); each one is used only while its settings
+    /// switch is on.
+    public let gitHosts: [GitHost]?
+    /// Opens an address a git host's page named, in the default browser. Without one, GIT_OPEN is dropped and counted.
+    public let urlOpener: UrlOpening?
     /// Whether the agent's hook was heard since it was connected (`UsageStore.lastHeard` at least 0). Nil counts every
     /// agent as heard.
     public let agentHeard: ((String) -> Bool)?
@@ -62,6 +67,8 @@ public final class DashboardParts {
         weather: WeatherClient? = nil,
         gitHub: GitHubApi? = nil,
         gitHubSignedIn: (() -> Bool)? = nil,
+        gitHosts: [GitHost]? = nil,
+        urlOpener: UrlOpening? = nil,
         agentHeard: ((String) -> Bool)? = nil
     ) {
         self.sessions = sessions
@@ -73,6 +80,8 @@ public final class DashboardParts {
         self.weather = weather
         self.gitHub = gitHub
         self.gitHubSignedIn = gitHubSignedIn
+        self.gitHosts = gitHosts
+        self.urlOpener = urlOpener
         self.agentHeard = agentHeard
         sessions?.changed = { [weak self] in self?.each { $0.sessionsChanged() } }
         limits?.changed = { [weak self] in self?.each { $0.limitsChanged() } }
@@ -111,7 +120,7 @@ public final class DashboardParts {
 /// switch moves. Nothing runs until the phone asks: `onWatch` (DASH_WATCH) starts the stats reporter for bits 0 and 1,
 /// the weather for bit 2 (asked again every 30 min while it stays set; the client caches), sends limit and spend
 /// snapshots for bit 3 and then their changes, and refreshes GitHub for bit 4 (at most once a minute) and sends BLOB
-/// GITHUB after each refresh that changed it. Sessions are sent on every change whatever the mask. Approvals go out as
+/// GIT after each refresh that changed it, and opens the address a TEXT GIT_OPEN names (`openGit`). Sessions are sent on every change whatever the mask. Approvals go out as
 /// BLOB PERM_ASK, their end as TEXT PERM_GONE. Every frame and blob is handed to the session on the main queue, which
 /// is the only one a `Session` may be called on. The twin of the laptop core's IntegrationHost.
 public final class IntegrationHost {
@@ -141,7 +150,8 @@ public final class IntegrationHost {
     private var gitHubLast: Date?
     private var weatherSent: String?
     private var weatherRetrying = false
-    private var gitHubSent: [UInt8]?
+    // What a phone that has been sent no git page holds is the empty body.
+    private var gitHubSent = ""
     private let weatherRetryAfter: TimeInterval
     private var watch = 0
     private var disposed = false
@@ -329,7 +339,7 @@ public final class IntegrationHost {
             sendLimits()
             sendSpend()
         }
-        if gitHubGained && gitHubOn && !(parts.gitHub?.lines.isEmpty ?? true) {
+        if gitHubGained && gitHubOn && parts.gitHub?.page != nil {
             sendGitHub(force: true)
         }
         if netGained, let last = speed.last {
@@ -539,16 +549,37 @@ public final class IntegrationHost {
     // unchanged list is not sent twice. `force` resends when the phone opens the screen again.
     private func sendGitHub(force: Bool = false) {
         guard let gitHub = parts.gitHub else { return }
-        let body = Array(GitHubBlob.encode(gitHub.lines).utf8)
+        let text = gitHub.page?.body ?? ""
         gate.lock()
-        let same = gitHubSent == body
-        gitHubSent = body
+        let same = gitHubSent == text
+        gitHubSent = text
         gate.unlock()
         if same && !force { return }
+        let body = Array(text.utf8)
         onMain { [weak self] in
             guard let self, !self.isDisposed else { return }
             self.blobs?.send(.git, label: "git", data: body)
         }
+    }
+
+    /// The phone's TEXT GIT_OPEN (`host/listRevision/index`). Opens the address this laptop fetched for that revision
+    /// and index in the default browser, and says whether it was accepted; anything else is refused and the caller
+    /// drops and counts it (see `GitOpenGate`).
+    public func openGit(_ wire: String) -> Bool {
+        guard !isDisposed, let opener = parts.urlOpener, let url = GitOpenGate.resolve(wire, hosts: git) else {
+            return false
+        }
+        DispatchQueue.global(qos: .utility).async { _ = opener.open(url) }
+        return true
+    }
+
+    // A token host counts only while its own switch (the settings key named by its id) is on.
+    private func git(_ id: String) -> GitHost? {
+        if let gitHub = parts.gitHub, gitHubOn, gitHub.id == id {
+            return gitHub
+        }
+        guard settings.active(id) else { return nil }
+        return parts.gitHosts?.first(where: { $0.id == id })
     }
 
     // Only queued here; the dead-link check and the write happen on the session's queue.
@@ -612,6 +643,11 @@ public final class DashboardLink {
     /// The phone's PERM_ANSWER.
     public func answer(_ wire: String) -> Bool {
         host.answer(wire)
+    }
+
+    /// The phone's GIT_OPEN.
+    public func openGit(_ wire: String) -> Bool {
+        host.openGit(wire)
     }
 
     /// A switch moved: the host is made again on the newest parts and given the phone's watch.

@@ -27,6 +27,12 @@ final class MacDashboard {
     private var claude: ClaudeSpend?
     private var weather: WeatherClient?
     private var gitHub: GitHubApi?
+    // Gitea (Forgejo, Codeberg), Bitbucket and Gitee: idle until their switch is on and a token is saved.
+    private lazy var tokenHosts: [GitHost] = [
+        GiteaHost(store: secrets, settings: settings), BitbucketHost(store: secrets, settings: settings),
+        GiteeHost(store: secrets, settings: settings),
+    ]
+    private let urlOpener = MacUrlOpener()
     private var stats: MacStats?
     private lazy var net = MacNetInfo()
     private var parts = DashboardParts()
@@ -163,11 +169,12 @@ final class MacDashboard {
         }
         let signIn = signIn
         let usage = usage
+        let tokenHostsOn = ["gitea", "bitbucket", "gitee"].contains(where: settings.active)
         parts = DashboardParts(
             sessions: agents?.sessions, limits: agents?.limits, spend: agents?.spend, broker: agents?.broker,
             codex: codex, claude: claude, weather: weather, gitHub: gitHub,
-            gitHubSignedIn: gitHub == nil ? nil : { signIn.isSignedIn },
-            agentHeard: { usage.lastHeard($0) >= 0 })
+            gitHubSignedIn: gitHub == nil ? nil : { signIn.isSignedIn }, gitHosts: tokenHostsOn ? tokenHosts : nil,
+            urlOpener: urlOpener, agentHeard: { usage.lastHeard($0) >= 0 })
 
         // The phone moves to the new pieces before the old ones close under it.
         changed?()

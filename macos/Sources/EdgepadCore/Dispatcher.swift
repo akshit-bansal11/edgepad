@@ -102,6 +102,11 @@ public final class Dispatcher {
     /// without one, or for an answer nothing waits for, the frame is dropped and counted.
     public var permAnswer: ((String) -> Bool)?
 
+    /// Takes the phone's GIT_OPEN (`host/listRevision/index`) and says whether it named an address this laptop fetched
+    /// and may open. Set by the session (the integration host's `openGit`); without one, or when it returns false, the
+    /// frame is dropped and counted.
+    public var gitOpen: ((String) -> Bool)?
+
     /// When the phone last sent input, by system uptime: a capture on its way slows down for it.
     public private(set) var lastInput: TimeInterval = 0
 
@@ -164,6 +169,10 @@ public final class Dispatcher {
             if kind == TextKind.permAnswer.rawValue {
                 // Exactly `id/a` or `id/d` for an approval still waiting; the broker refuses anything else.
                 return permAnswer?(value) ?? false
+            }
+            if kind == TextKind.gitOpen.rawValue {
+                // Only a place in a list the laptop sent: `GitOpenGate` opens an address the laptop fetched itself.
+                return gitOpen?(value) ?? false
             }
             guard kind == TextKind.type.rawValue else { return false }
             input.type(value)

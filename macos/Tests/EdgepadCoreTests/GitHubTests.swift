@@ -371,17 +371,40 @@ final class GitHubApiTests: XCTestCase {
             XCTAssertEqual(seen.headers["X-GitHub-Api-Version"], "2022-11-28")
             XCTAssertEqual(seen.headers["User-Agent"], "Edgepad")
         }
+        XCTAssertFalse(GitHubApi.query.lowercased().contains("mutation"))
+        let min = GitHubParseTests.updatedMin
+        let page = try XCTUnwrap(api.page)
+        XCTAssertEqual(page.rev, 1)
         XCTAssertEqual(
-            api.lines,
+            page.body,
             [
-                GitHubLine(section: "N", repo: "", number: 2, title: "", draft: false, ci: "none"),
-                GitHubLine(
-                    section: "R", repo: "octo/edgepad", number: 12, title: "Fix the pairing timeout", draft: false,
-                    ci: "ok"),
-                GitHubLine(
-                    section: "R", repo: "octo/other.repo", number: 7, title: "Draft idea", draft: true, ci: "none"),
-                GitHubLine(section: "M", repo: "me/my_repo-2", number: 3, title: "Mine", draft: false, ci: "fail"),
+                "H\tgithub\tocto-cat\tOcto Cat\t34\t12\t1",
+                "N\t\t2\t\t\tnone",
+                "P\tocto-cat/edgepad\t\tC#\t5\t2\t1",
+                "P\tocto-cat/secret\tp\t\t0\t0\t0",
+                "M\tme/my_repo-2\t3\tMine\t\tfail\tmerged\t\(min)",
+                "M\tme/my_repo-2\t9\tCrash on pair\ti\tnone\topen\t\(min)",
+                "R\tocto/edgepad\t12\tFix the pairing timeout\t\tok\topen\t\(min)",
+                "R\tocto/other.repo\t7\tDraft idea\td\tnone\topen\t\(min)",
+                "A\tocto/edgepad\t4\tAssigned to me\ti\tnone\tclosed\t0",
+            ].joined(separator: "\n"))
+        XCTAssertEqual(
+            page.urls,
+            [
+                "https://github.com/octo-cat/edgepad", "https://github.com/octo-cat/secret",
+                "https://github.com/me/my_repo-2/pull/3", "https://github.com/me/my_repo-2/issues/9",
+                "https://github.com/octo/edgepad/pull/12", "https://github.com/octo/other.repo/pull/7", "",
             ])
+    }
+
+    func testTheRevisionOnlyGoesUpWhenThePageChanges() async {
+        let api = newApi(serve(GitHubParseTests.normal, twoUnread))
+
+        _ = await api.refresh()
+        let again = await api.refresh()
+
+        XCTAssertEqual(again, GitHubRefreshResult(result: .ok, changed: false))
+        XCTAssertEqual(api.page?.rev, 1)
     }
 
     func testWithoutATokenNobodyIsAsked() async {
@@ -400,7 +423,7 @@ final class GitHubApiTests: XCTestCase {
         XCTAssertTrue(http.seen.isEmpty)
     }
 
-    func testTheETagIsSentBackAndANotModifiedKeepsTheCount() async {
+    func testTheETagIsSentBackAndANotModifiedKeepsTheCount() async throws {
         var first = true
         let http = FakeHttp { request in
             if request.url?.path == "/graphql" { return FakeHttp.json200(GitHubParseTests.normal) }
@@ -418,7 +441,7 @@ final class GitHubApiTests: XCTestCase {
         XCTAssertEqual(again, GitHubRefreshResult(result: .ok, changed: false))
         XCTAssertNil(http.seen[1].headers["If-None-Match"])
         XCTAssertEqual(http.seen[3].headers["If-None-Match"], #""abc123""#)
-        XCTAssertEqual(api.lines.first?.number, 2)
+        XCTAssertTrue(try XCTUnwrap(api.page).body.contains("\nN\t\t2\t\t\tnone"))
     }
 
     func testARefusedTokenIsDeletedAndTheScreenEmptied() async {
@@ -435,7 +458,7 @@ final class GitHubApiTests: XCTestCase {
 
         XCTAssertEqual(result, GitHubRefreshResult(result: .noPermission, changed: true))
         XCTAssertNil(secrets.get(GitHubApp.tokenName))
-        XCTAssertTrue(api.lines.isEmpty)
+        XCTAssertNil(api.page)
     }
 
     func testARateLimitKeepsTheLastResultAndWaitsForTheReset() async {
@@ -450,11 +473,11 @@ final class GitHubApiTests: XCTestCase {
         let api = newApi(http)
 
         _ = await api.refresh()
-        let kept = api.lines
+        let kept = api.page
         limited = true
         let first = await api.refresh()
         XCTAssertEqual(first.result, .rateLimited)
-        XCTAssertEqual(api.lines, kept)
+        XCTAssertEqual(api.page, kept)
         XCTAssertEqual(http.seen.count, 3)
 
         clock.advance(9 * 60)
@@ -502,11 +525,11 @@ final class GitHubApiTests: XCTestCase {
             }
             let api = newApi(http)
             _ = await api.refresh()
-            let kept = api.lines
+            let kept = api.page
             broken = true
             let result = await api.refresh()
             XCTAssertEqual(result, GitHubRefreshResult(result: .failed, changed: false))
-            XCTAssertEqual(api.lines, kept)
+            XCTAssertEqual(api.page, kept)
         }
     }
 
@@ -535,114 +558,6 @@ final class GitHubApiTests: XCTestCase {
             let lastDate = last.map { base + TimeInterval($0) }
             XCTAssertEqual(
                 GitHubRefresh.shouldRun(last: lastDate, now: base + TimeInterval(now), watchBit4: watched), expected)
-        }
-    }
-}
-
-final class GitHubParseTests: XCTestCase {
-    static let normal = """
-        {"data":{
-          "review":{"nodes":[
-            {"number":12,"title":"Fix the pairing timeout","isDraft":false,"repository":{"nameWithOwner":"octo/edgepad"},
-             "commits":{"nodes":[{"commit":{"statusCheckRollup":{"state":"SUCCESS"}}}]}},
-            {"number":7,"title":"Draft idea","isDraft":true,"repository":{"nameWithOwner":"octo/other.repo"},
-             "commits":{"nodes":[{"commit":{"statusCheckRollup":null}}]}}
-          ]},
-          "mine":{"nodes":[
-            {"number":3,"title":"Mine","isDraft":false,"repository":{"nameWithOwner":"me/my_repo-2"},
-             "commits":{"nodes":[{"commit":{"statusCheckRollup":{"state":"FAILURE"}}}]}},
-            {}
-          ]}
-        }}
-        """
-
-    private func mine(_ node: String) -> Data {
-        Data((#"{"data":{"review":{"nodes":[]},"mine":{"nodes":["# + node + "]}}}").utf8)
-    }
-
-    func testAnEmptyReplyGivesNoLines() {
-        XCTAssertEqual(GitHubParse.pulls(Data(#"{"data":{"review":{"nodes":[]},"mine":{"nodes":[]}}}"#.utf8)), [])
-    }
-
-    func testAReplyWithoutDataIsNil() {
-        for body in [#"{"errors":[{"message":"Bad credentials"}]}"#, #"{"data":null}"#, "[]", "not json", ""] {
-            XCTAssertNil(GitHubParse.pulls(Data(body.utf8)), body)
-        }
-    }
-
-    func testHostileTitlesAreCleanedAndCut() throws {
-        let escape = String(UnicodeScalar(92))
-        let title =
-            "Tab" + escape + "there" + escape + "u001b[31mred" + escape + "u001b[0m new" + escape + "nline " + escape
-            + "u202eevil" + String(repeating: "x", count: 100)
-        let node = #"{"number":1,"title":""# + title + #"","isDraft":false,"repository":{"nameWithOwner":"a/b"}}"#
-
-        let lines = try XCTUnwrap(GitHubParse.pulls(mine(node)))
-
-        XCTAssertEqual(lines.count, 1)
-        let clean = try XCTUnwrap(lines.first).title
-        let hidden = clean.unicodeScalars.contains { $0.properties.generalCategory == .control || $0.value == 0x202E }
-        XCTAssertFalse(hidden)
-        XCTAssertTrue(clean.hasPrefix("Tab here [31mred [0m new line evil"), clean)
-        XCTAssertEqual(clean.unicodeScalars.count, GitHubParse.maxTitle)
-        XCTAssertEqual(lines.first?.ci, "none")
-    }
-
-    func testARowWithAnOddRepositoryIsDropped() {
-        for repo in ["octo/my repo", "octo", "a/b/c", "octo/rep@", "/repo"] {
-            let node = #"{"number":1,"title":"x","repository":{"nameWithOwner":""# + repo + #""}}"#
-            XCTAssertEqual(GitHubParse.pulls(mine(node)), [], repo)
-        }
-    }
-
-    func testARowMissingItsNumberOrRepositoryIsDropped() {
-        let nodes = [
-            #"{"number":0,"title":"x","repository":{"nameWithOwner":"a/b"}}"#,
-            #"{"number":-4,"title":"x","repository":{"nameWithOwner":"a/b"}}"#,
-            #"{"number":"5","title":"x","repository":{"nameWithOwner":"a/b"}}"#,
-            #"{"title":"x","repository":{"nameWithOwner":"a/b"}}"#,
-            #"{"number":5,"title":"x","repository":null}"#, "17",
-        ]
-        for node in nodes {
-            XCTAssertEqual(GitHubParse.pulls(mine(node)), [], node)
-        }
-    }
-
-    func testAtMostTenRowsPerSectionAreKept() {
-        let node = #"{"number":1,"title":"x","repository":{"nameWithOwner":"a/b"}}"#
-        let lines = GitHubParse.pulls(mine(Array(repeating: node, count: 15).joined(separator: ",")))
-        XCTAssertEqual(lines?.count, GitHubBlob.maxPerSection)
-    }
-
-    func testAReplyNestedPastTheLimitIsRefused() {
-        let deep = String(repeating: "[", count: 20) + String(repeating: "]", count: 20)
-        XCTAssertNil(GitHubParse.pulls(Data((#"{"data":"# + deep + "}").utf8)))
-    }
-
-    func testRollupStatesMapToCiTokens() {
-        let cases: [(String?, String)] = [
-            ("SUCCESS", "ok"), ("FAILURE", "fail"), ("ERROR", "fail"), ("PENDING", "pending"), ("EXPECTED", "pending"),
-            ("success", "none"), (nil, "none"),
-        ]
-        for (state, expected) in cases {
-            XCTAssertEqual(GitHubParse.ci(state), expected)
-        }
-    }
-
-    func testTheUnreadCountIsTheListLengthCappedAtFifty() {
-        XCTAssertEqual(GitHubParse.unread(Data("[{},{},5]".utf8)), 2)
-        let eighty = "[" + Array(repeating: "{}", count: 80).joined(separator: ",") + "]"
-        XCTAssertEqual(GitHubParse.unread(Data(eighty.utf8)), 50)
-        XCTAssertNil(GitHubParse.unread(Data("{}".utf8)))
-    }
-
-    func testTheLoginMustLookLikeOne() {
-        let cases: [(String, String?)] = [
-            (#"{"login":"octo-cat"}"#, "octo-cat"), (#"{"login":"evil name"}"#, nil), (#"{"login":""}"#, nil),
-            (#"{"login":"a234567890123456789012345678901234567890"}"#, nil), (#"{"id":1}"#, nil),
-        ]
-        for (body, expected) in cases {
-            XCTAssertEqual(GitHubParse.login(Data(body.utf8)), expected, body)
         }
     }
 }

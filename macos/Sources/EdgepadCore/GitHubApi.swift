@@ -16,10 +16,15 @@ public enum GitHubResult: Equatable {
     case busy
 }
 
-/// A refresh's outcome, and whether `GitHubApi.lines` changed so the blob is worth sending again.
+/// A refresh's outcome, and whether `GitHost.page` changed so the blob is worth sending again.
 public struct GitHubRefreshResult: Equatable {
     public let result: GitHubResult
     public let changed: Bool
+
+    public init(result: GitHubResult, changed: Bool) {
+        self.result = result
+        self.changed = changed
+    }
 }
 
 /// When the GitHub screen may be refreshed: only while the phone shows it (DASH_WATCH bit 4), at least 60 s apart.
@@ -33,27 +38,61 @@ public enum GitHubRefresh {
     }
 }
 
-/// The GitHub screen's data, over https from api.github.com only: one GraphQL query that never changes (pull requests
-/// waiting for the user's review, and the user's own open ones) and one REST call for the unread notification count,
-/// kept by ETag. The token is read from the `SecretStore` for each refresh and goes only into the Authorization header
-/// of these requests; it is never held, logged, or put in anything the phone receives. Redirects are refused, a reply
-/// is capped at 1 MiB and 15 s, and refreshes never overlap. The twin of the laptop core's GitHubApi.
-public final class GitHubApi {
+/// The GitHub screen's data, over https from api.github.com only: one GraphQL query that never changes (the account,
+/// its newest repositories, and the pull requests and issues that are the user's, wait for the user's review or are
+/// assigned to the user) and one REST call for the unread notification count, kept by ETag. It only reads: every
+/// request passes the `ReadOnlyGate`. The token is read from the `SecretStore` for each refresh and goes only into the
+/// Authorization header of these requests; it is never held, logged, or put in anything the phone receives. Redirects
+/// are refused, a reply is capped at 1 MiB and 15 s, and refreshes never overlap. The twin of the laptop core's
+/// GitHubApi.
+public final class GitHubApi: GitHost {
     public static let maxBytes = 1024 * 1024
 
     /// The one GraphQL query this app sends, the same text as GitHubApi.cs. Constant: nothing from the user, the phone
-    /// or a reply is ever put into it.
+    /// or a reply is ever put into it, and it has no mutation.
     public static let query = """
         query {
-          review: search(query: "is:pr is:open archived:false review-requested:@me sort:updated-desc", type: ISSUE, first: 10) { nodes { ...pr } }
-          mine: search(query: "is:pr is:open archived:false author:@me sort:updated-desc", type: ISSUE, first: 10) { nodes { ...pr } }
+          viewer {
+            login
+            name
+            followers { totalCount }
+            repositories(first: 30, ownerAffiliations: OWNER, orderBy: { field: PUSHED_AT, direction: DESC }) {
+              totalCount
+              nodes {
+                nameWithOwner
+                isPrivate
+                url
+                stargazerCount
+                primaryLanguage { name }
+                issues(states: OPEN) { totalCount }
+                pullRequests(states: OPEN) { totalCount }
+              }
+            }
+          }
+          mine: search(query: "is:open archived:false author:@me sort:updated-desc", type: ISSUE, first: 20) { nodes { ...item } }
+          review: search(query: "is:pr is:open archived:false review-requested:@me sort:updated-desc", type: ISSUE, first: 20) { nodes { ...item } }
+          assigned: search(query: "is:open archived:false assignee:@me sort:updated-desc", type: ISSUE, first: 20) { nodes { ...item } }
         }
-        fragment pr on PullRequest {
-          number
-          title
-          isDraft
-          repository { nameWithOwner }
-          commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }
+        fragment item on SearchResultItem {
+          __typename
+          ... on PullRequest {
+            number
+            title
+            isDraft
+            state
+            url
+            updatedAt
+            repository { nameWithOwner }
+            commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }
+          }
+          ... on Issue {
+            number
+            title
+            state
+            url
+            updatedAt
+            repository { nameWithOwner }
+          }
         }
         """
 
@@ -73,7 +112,8 @@ public final class GitHubApi {
     private let http: HttpSender
     private let now: () -> Date
     private let gate = NSLock()
-    private var pulls: [GitHubLine] = []
+    private let book = GitBook(host: "github")
+    private var snapshot: GitSnapshot?
     private var unread: Int?
     private var etag: String?
     private var backoffUntil = Date.distantPast
@@ -85,21 +125,20 @@ public final class GitHubApi {
         self.now = clock
     }
 
-    /// The last good result as BLOB GITHUB lines: the N line once the count is known, then R and M lines.
-    public var lines: [GitHubLine] {
-        gate.lock()
-        defer { gate.unlock() }
-        guard let count = unread else { return pulls }
-        let none = CiToken.none.rawValue
-        return [GitHubLine(section: "N", repo: "", number: Int64(count), title: "", draft: false, ci: none)] + pulls
-    }
+    public var id: String { "github" }
+
+    public var domain: String { GitHubParse.domain }
+
+    /// The last good result as BLOB GIT and the addresses behind its indexes; nil before the first one and after a
+    /// refused token.
+    public var page: GitPage? { book.page }
 
     /// The request body: `{"query": query}`.
     public static func queryBody() -> Data {
         (try? JSONSerialization.data(withJSONObject: ["query": query])) ?? Data()
     }
 
-    /// Asks for the pull requests, then the notification count.
+    /// Asks for the account, repositories, pull requests and issues, then the notification count.
     public func refresh() async -> GitHubRefreshResult {
         let (busy, waiting) = gate.withLock { () -> (Bool, Bool) in
             if running { return (true, false) }
@@ -113,14 +152,15 @@ public final class GitHubApi {
         if waiting {
             return GitHubRefreshResult(result: .rateLimited, changed: false)
         }
-        let before = GitHubBlob.encode(lines)
+        let before = book.page?.rev
         var result = await refreshPulls()
         if result == .ok || result == .failed {
             let notifications = await refreshUnread()
             let replace = result == .ok || !(notifications == .ok || notifications == .failed)
             result = replace ? notifications : result
         }
-        return GitHubRefreshResult(result: result, changed: GitHubBlob.encode(lines) != before)
+        rebuild()
+        return GitHubRefreshResult(result: result, changed: book.page?.rev != before)
     }
 
     /// The signed-in user's login, for display only; nil when it cannot be read. A refused token is deleted.
@@ -138,9 +178,18 @@ public final class GitHubApi {
         let reply = await http.send(request, maxBytes: Self.maxBytes, what: "Asking GitHub for pull requests")
         let result = judge(reply)
         guard result == .ok, let reply else { return result }
-        guard let parsed = GitHubParse.pulls(reply.body) else { return .failed }
-        gate.withLock { pulls = parsed }
+        guard let parsed = GitHubParse.snapshot(reply.body) else { return .failed }
+        gate.withLock { snapshot = parsed }
         return .ok
+    }
+
+    /// Makes the page from the last good snapshot and unread count; a revision is spent only when what the phone sees
+    /// changed.
+    private func rebuild() {
+        let (current, count) = gate.withLock { (snapshot, unread) }
+        guard var current else { return }
+        current.unread = count
+        book.update(current)
     }
 
     private func refreshUnread() async -> GitHubResult {
@@ -184,17 +233,16 @@ public final class GitHubApi {
         if reply.isSuccess { return .ok }
         if reply.status == 401 {
             store.delete(GitHubApp.tokenName)
-            gate.lock()
-            pulls = []
-            unread = nil
-            etag = nil
-            gate.unlock()
+            gate.withLock {
+                snapshot = nil
+                unread = nil
+                etag = nil
+            }
+            book.clear()
             return .noPermission
         }
         if reply.status == 403 || reply.status == 429, let end = rateLimitEnd(reply) {
-            gate.lock()
-            backoffUntil = end
-            gate.unlock()
+            gate.withLock { backoffUntil = end }
             return .rateLimited
         }
         return .failed
@@ -223,24 +271,43 @@ public final class GitHubApi {
     }
 }
 
-/// Reads GitHub's replies into BLOB GITHUB lines. Everything here came from the network: every string is cleaned and
-/// cut, a repository that is not plain `owner/name` drops its row, and a reply that does not read gives nil. The twin
-/// of the laptop core's GitHubParse.
+/// Reads GitHub's replies into a `GitSnapshot`. Everything here came from the network: every string is cleaned and
+/// cut, a repository that is not plain `owner/name` drops its row, an address that is not https on github.com is kept
+/// as empty, and a reply that does not read gives nil. The twin of the laptop core's GitHubParse.
 public enum GitHubParse {
     /// The GraphQL reply nests ten deep; two to spare.
     public static let maxDepth = 12
     public static let maxTitle = 80
     public static let maxUnread = 50
 
+    /// The web host every address kept from a reply must be on.
+    public static let domain = "github.com"
+
     private static let maxRepoPart = 100
     private static let maxLogin = 39
 
-    /// Review-requested pull requests as R lines, then the user's own as M lines; nil when the reply carries no data.
-    public static func pulls(_ body: Data) -> [GitHubLine]? {
-        guard let root = JsonRead.object(body, maxDepth: maxDepth), let data = root["data"] as? [String: Any] else {
-            return nil
+    /// The account, its newest repositories and its pull requests and issues, from the reply to `GitHubApi.query`; nil
+    /// when the reply carries no data or no viewer. A row that does not read is dropped, never the whole reply.
+    public static func snapshot(_ body: Data) -> GitSnapshot? {
+        guard let root = JsonRead.object(body, maxDepth: maxDepth), let data = root["data"] as? [String: Any],
+            let viewer = data["viewer"] as? [String: Any], let login = viewer["login"] as? String, isLogin(login)
+        else { return nil }
+        var repos: [GitRepo] = []
+        var repoTotal = 0
+        if let repositories = viewer["repositories"] as? [String: Any] {
+            repoTotal = GitJson.whole(repositories, "totalCount")
+            for node in nodes(repositories) where repos.count < GitLimits.maxRepos {
+                if let repo = repo(node) { repos.append(repo) }
+            }
         }
-        return section(data, "review", "R") + section(data, "mine", "M")
+        let followers = (viewer["followers"] as? [String: Any]).map { GitJson.whole($0, "totalCount") } ?? 0
+        var items: [GitItem] = []
+        addItems(&items, data, "mine", .mine)
+        addItems(&items, data, "review", .review)
+        addItems(&items, data, "assigned", .assigned)
+        let name = DashWire.clean(GitJson.text(viewer, "name") ?? "", GitLimits.maxName)
+        let profile = GitProfile(login: login, name: name, repos: repoTotal, followers: followers)
+        return GitSnapshot(profile: profile, repos: repos, items: items)
     }
 
     /// How many unread notifications a `GET /notifications` reply lists, at most 50; nil when it is not a list.
@@ -252,8 +319,7 @@ public enum GitHubParse {
     /// The login of a `GET /user` reply when it is a plausible GitHub login (1..39 letters, digits, hyphens); else nil.
     public static func login(_ body: Data) -> String? {
         guard let root = JsonRead.object(body, maxDepth: maxDepth), let login = root["login"] as? String,
-            (1...maxLogin).contains(login.utf16.count),
-            login.unicodeScalars.allSatisfy({ GitHubApp.isAsciiLetterOrDigit($0) || $0 == "-" })
+            isLogin(login)
         else { return nil }
         return login
     }
@@ -278,23 +344,62 @@ public enum GitHubParse {
             }
     }
 
-    private static func section(_ data: [String: Any], _ alias: String, _ section: String) -> [GitHubLine] {
-        guard let search = data[alias] as? [String: Any], let nodes = search["nodes"] as? [Any] else { return [] }
-        var lines: [GitHubLine] = []
-        for node in nodes where lines.count < GitHubBlob.maxPerSection {
-            if let line = line(node, section) { lines.append(line) }
-        }
-        return lines
+    /// 1..39 letters, digits and hyphens.
+    public static func isLogin(_ login: String) -> Bool {
+        (1...maxLogin).contains(login.utf16.count)
+            && login.unicodeScalars.allSatisfy { GitHubApp.isAsciiLetterOrDigit($0) || $0 == "-" }
     }
 
-    private static func line(_ node: Any, _ section: String) -> GitHubLine? {
-        guard let pr = node as? [String: Any], let number = JsonRead.int64(pr["number"]), number > 0,
-            let repository = pr["repository"] as? [String: Any], let repo = repository["nameWithOwner"] as? String,
-            isRepo(repo)
+    private static func addItems(
+        _ items: inout [GitItem], _ data: [String: Any], _ alias: String, _ section: GitSection
+    ) {
+        guard let search = data[alias] as? [String: Any] else { return }
+        var added = 0
+        for node in nodes(search) where added < GitLimits.maxItemsPerGroup {
+            if let item = item(node, section) {
+                items.append(item)
+                added += 1
+            }
+        }
+    }
+
+    private static func item(_ node: Any, _ section: GitSection) -> GitItem? {
+        guard let object = node as? [String: Any], let number = JsonRead.int64(object["number"]), number > 0,
+            let repository = object["repository"] as? [String: Any], let repo = repository["nameWithOwner"] as? String,
+            isRepo(repo), let type = object["__typename"] as? String, type == "PullRequest" || type == "Issue"
         else { return nil }
-        let title = DashWire.clean(pr["title"] as? String ?? "", maxTitle)
-        let draft = JsonRead.isTrue(pr["isDraft"])
-        return GitHubLine(section: section, repo: repo, number: number, title: title, draft: draft, ci: ci(rollup(pr)))
+        let pull = type == "PullRequest"
+        let state: String
+        switch object["state"] as? String {
+        case "CLOSED": state = GitState.closed
+        case "MERGED": state = GitState.merged
+        default: state = GitState.open
+        }
+        return GitItem(
+            section: section, repo: repo, number: number,
+            title: DashWire.clean(GitJson.text(object, "title") ?? "", maxTitle), state: state, isPull: pull,
+            draft: pull && JsonRead.isTrue(object["isDraft"]),
+            ci: pull ? ci(rollup(object)) : CiToken.none.rawValue,
+            updatedMin: GitJson.minutes(GitJson.text(object, "updatedAt")),
+            url: GitJson.url(GitJson.text(object, "url"), domain: domain))
+    }
+
+    private static func repo(_ node: Any) -> GitRepo? {
+        guard let object = node as? [String: Any], let name = object["nameWithOwner"] as? String, isRepo(name) else {
+            return nil
+        }
+        let language = (object["primaryLanguage"] as? [String: Any]).flatMap { GitJson.text($0, "name") }
+        return GitRepo(
+            fullName: name, isPrivate: JsonRead.isTrue(object["isPrivate"]),
+            language: DashWire.clean(language ?? "", GitLimits.maxLanguage),
+            stars: GitJson.whole(object, "stargazerCount"),
+            openIssues: (object["issues"] as? [String: Any]).map { GitJson.whole($0, "totalCount") } ?? 0,
+            openPulls: (object["pullRequests"] as? [String: Any]).map { GitJson.whole($0, "totalCount") } ?? 0,
+            url: GitJson.url(GitJson.text(object, "url"), domain: domain))
+    }
+
+    private static func nodes(_ parent: [String: Any]) -> [Any] {
+        parent["nodes"] as? [Any] ?? []
     }
 
     private static func rollup(_ pr: [String: Any]) -> String? {

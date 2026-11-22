@@ -321,6 +321,7 @@ public final class Session {
         dispatcher.dashWatch = nil
         dispatcher.speedTest = nil
         dispatcher.permAnswer = nil
+        dispatcher.gitOpen = nil
         // Stops counting this phone before its host goes, so an approval waiting on it goes back to the agent.
         dashboard?.dispose()
         dashboard = nil
@@ -653,6 +654,7 @@ public final class Session {
             dispatcher.speedTest = { [weak link] start in link?.onSpeedTest(start) }
             dispatcher.developer = setDeveloper
             dispatcher.permAnswer = { [weak link] wire in link?.answer(wire) ?? false }
+            dispatcher.gitOpen = { [weak link] wire in link?.openGit(wire) ?? false }
         }
         send(.text(kind: TextKind.features.rawValue, value: features.joined(separator: "/")))
         if let link = dashboard, !isEnded {

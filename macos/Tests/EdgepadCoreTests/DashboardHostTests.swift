@@ -187,6 +187,87 @@ final class DashboardHostTests: XCTestCase {
         host.dispose()
     }
 
+    private final class RecordingOpener: UrlOpening {
+        private let lock = NSLock()
+        private var urls: [URL] = []
+
+        var opened: [String] { lock.withLock { urls.map { $0.absoluteString } } }
+
+        func open(_ url: URL) -> Bool {
+            lock.withLock { urls.append(url) }
+            return true
+        }
+    }
+
+    func testOpenGitOpensOnlyWhatThisMacFetchedForTheCurrentRevisionAndIndex() async {
+        let secrets = MemorySecrets()
+        _ = secrets.set(GitHubApp.tokenName, "gho_SecretTokenValue1234567890abcdef")
+        let clock = TestClock()
+        let api = GitHubApi(store: secrets, http: gitHubReplies(), clock: { clock.now })
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.developer, true))
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.gitHub, true))
+        let opener = RecordingOpener()
+        let host = newHost(DashboardParts(gitHub: api, gitHubSignedIn: { true }, urlOpener: opener))
+        XCTAssertFalse(host.openGit("github/1/0"))
+
+        _ = await api.refresh()
+
+        // Index 0 and 1 are the repositories, 2 the first item of "mine".
+        XCTAssertTrue(host.openGit("github/1/2"))
+        XCTAssertTrue(wait { opener.opened.count == 1 })
+        XCTAssertEqual(opener.opened, ["https://github.com/me/my_repo-2/pull/3"])
+
+        for wire in ["github/2/0", "github/1/7", "github/1/6", "gitlab/1/0", "https://evil.example/"] {
+            XCTAssertFalse(host.openGit(wire), wire)
+        }
+        Thread.sleep(forTimeInterval: 0.1)
+        XCTAssertEqual(opener.opened.count, 1)
+        host.dispose()
+    }
+
+    func testOpenGitDoesNothingWhileGitHubIsOffOrThereIsNoOpener() async {
+        let secrets = MemorySecrets()
+        _ = secrets.set(GitHubApp.tokenName, "gho_SecretTokenValue1234567890abcdef")
+        let clock = TestClock()
+        let api = GitHubApi(store: secrets, http: gitHubReplies(), clock: { clock.now })
+        _ = await api.refresh()
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.developer, true))
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.gitHub, true))
+        let opener = RecordingOpener()
+        let host = newHost(DashboardParts(gitHub: api, gitHubSignedIn: { true }, urlOpener: opener))
+
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.gitHub, false))
+        XCTAssertFalse(host.openGit("github/1/0"))
+
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.gitHub, true))
+        let bare = newHost(DashboardParts(gitHub: api, gitHubSignedIn: { true }))
+        XCTAssertFalse(bare.openGit("github/1/0"))
+        Thread.sleep(forTimeInterval: 0.1)
+        XCTAssertTrue(opener.opened.isEmpty)
+        host.dispose()
+        bare.dispose()
+    }
+
+    func testTheDispatcherHandsAGitOpenTextToTheSessionAndDropsItWithoutOne() {
+        let dispatcher = Dispatcher(
+            input: FakeInput(), speakers: FakeLevel(level: Level(percent: 50, muted: false)),
+            microphone: FakeLevel(level: Level(percent: 50, muted: false)), brightness: FakeBrightness(level: 50),
+            display: FakeDisplay(rates: [60], current: 0))
+        let frame = Frame.text(kind: TextKind.gitOpen.rawValue, value: "github/1/0")
+        dispatcher.handle(frame)
+        XCTAssertEqual(dispatcher.dropped, 1)
+
+        var heard: [String] = []
+        dispatcher.gitOpen = { wire in
+            heard.append(wire)
+            return wire.hasSuffix("/0")
+        }
+        dispatcher.handle(frame)
+        dispatcher.handle(.text(kind: TextKind.gitOpen.rawValue, value: "github/1/1"))
+        XCTAssertEqual(heard, ["github/1/0", "github/1/1"])
+        XCTAssertEqual(dispatcher.dropped, 2)
+    }
+
     func testAgentsAreNamedAndTheirSessionsSentOnStartAndOnChange() {
         settings.setFlag(IntegrationSettings.claude, true)
         settings.setFlag(IntegrationSettings.developer, true)

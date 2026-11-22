@@ -40,6 +40,13 @@ public final class CappedHttp: HttpSender {
     }
 
     public func send(_ request: URLRequest, maxBytes: Int, what: String) async -> HttpReply? {
+        // Every request passes the read-only gate: nothing here can change anything on a host (see ReadOnlyGate).
+        do {
+            try ReadOnlyGate.verify(request)
+        } catch {
+            Log.write("\(what) failed: \(error)")
+            return nil
+        }
         do {
             let (bytes, response) = try await session.bytes(for: request, delegate: NoRedirects())
             guard let http = response as? HTTPURLResponse else { return nil }
