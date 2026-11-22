@@ -11,6 +11,7 @@ private final class InkWindow: NSWindow {
 /// Flipped so the strokes' y-down screen pixels draw as they are.
 private final class InkView: NSView {
     var strokes: [Stroke] = []
+    var nowMs: Int64 = 0
 
     override var isFlipped: Bool { true }
 
@@ -20,7 +21,7 @@ private final class InkView: NSView {
         let width = Int(bounds.width)
         let height = Int(bounds.height)
         for stroke in strokes {
-            StrokePainter.draw(stroke, in: g, width: width, height: height)
+            StrokePainter.draw(stroke, in: g, width: width, height: height, nowMs: nowMs)
         }
     }
 }
@@ -48,8 +49,9 @@ final class AnnotationOverlay {
         window.orderFrontRegardless()
     }
 
-    func present(_ strokes: [Stroke]) {
+    func present(_ strokes: [Stroke], nowMs: Int64) {
         view.strokes = strokes
+        view.nowMs = nowMs
         view.needsDisplay = true
     }
 

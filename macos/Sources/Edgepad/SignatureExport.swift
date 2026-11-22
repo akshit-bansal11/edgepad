@@ -56,11 +56,12 @@ enum SignatureExport {
 /// One stroke as it looks on a `width` by `height` screen, y down. The overlay draws with it too, so what the
 /// owner sees and what a signature saves cannot drift apart.
 enum StrokePainter {
-    static func draw(_ stroke: Stroke, in g: CGContext, width: Int, height: Int) {
+    /// `nowMs` is the board's clock now: only a laser reads it, for its trail's age and its fade.
+    static func draw(_ stroke: Stroke, in g: CGContext, width: Int, height: Int, nowMs: Int64 = 0) {
         let points = stroke.path(width: width, height: height).map { CGPoint(x: CGFloat($0.x), y: CGFloat($0.y)) }
         guard let first = points.first else { return }
         if stroke.isLaser {
-            drawLaser(stroke, points: points, in: g, height: height)
+            drawLaser(stroke, points: points, in: g, width: width, height: height, nowMs: nowMs)
             return
         }
 
@@ -111,26 +112,32 @@ enum StrokePainter {
         g.strokePath()
     }
 
-    /// A laser: a hot core inside a soft red glow, and for the trailing one a red tail fading and thinning away
-    /// behind it. Always red, whatever colour the pen has; the size is the pen width's.
-    private static func drawLaser(_ stroke: Stroke, points: [CGPoint], in g: CGContext, height: Int) {
-        guard let dot = points.last else { return }
+    /// A laser: a red core with a white-hot centre inside a soft red glow, and for the trailing one a tail filled
+    /// once as the trail's outline polygon, alpha fading by age. Always red, whatever colour the pen has; the size
+    /// is the pen width's. The whole picture fades with the watchdog.
+    private static func drawLaser(
+        _ stroke: Stroke, points: [CGPoint], in g: CGContext, width: Int, height: Int, nowMs: Int64
+    ) {
+        guard let dot = points.last, let space = CGColorSpace(name: CGColorSpace.sRGB) else { return }
+        let visibility = LaserGeometry.visibility(nowMs: nowMs, lastEventMs: stroke.lastEventMs)
+        guard visibility > 0 else { return }
 
         let radius = CGFloat(stroke.laserRadiusPx(height: height))
-        let space = CGColorSpace(name: CGColorSpace.sRGB)
         func red(_ alpha: CGFloat) -> [CGFloat] { [1, 0.1, 0.1, alpha] }
 
-        if stroke.tool == .laserTrail, points.count > 2, let space {
-            drawTail(points, radius: radius, space: space, in: g)
+        g.saveGState()
+        g.setAlpha(CGFloat(visibility))
+
+        if stroke.tool == .laserTrail {
+            drawTail(stroke, dot: dot, radius: radius, space: space, in: g, width: width, height: height, nowMs: nowMs)
         }
 
-        let glow = radius * 2.2
-        if let space,
-            let gradient = CGGradient(
-                colorSpace: space,
-                colorComponents: red(0.55) + red(0.25) + red(0),
-                locations: [0, 1 / 2.2, 1],
-                count: 3)
+        let glow = radius * CGFloat(Stroke.laserGlow)
+        if let gradient = CGGradient(
+            colorSpace: space,
+            colorComponents: red(0.55) + red(0.25) + red(0),
+            locations: [0, CGFloat(1 / Stroke.laserGlow), 1],
+            count: 3)
         {
             g.drawRadialGradient(
                 gradient, startCenter: dot, startRadius: 0, endCenter: dot, endRadius: glow, options: [])
@@ -138,46 +145,41 @@ enum StrokePainter {
         g.setFillColor(CGColor(srgbRed: 1, green: 0.1, blue: 0.1, alpha: 1))
         g.fillEllipse(in: CGRect(x: dot.x - radius, y: dot.y - radius, width: radius * 2, height: radius * 2))
         let hot = radius * 0.35
-        g.setFillColor(CGColor(srgbRed: 1, green: 0.816, blue: 0.816, alpha: 1))
+        g.setFillColor(CGColor(srgbRed: 1, green: 0.957, blue: 0.941, alpha: 1))
         g.fillEllipse(in: CGRect(x: dot.x - hot, y: dot.y - hot, width: hot * 2, height: hot * 2))
+        g.restoreGState()
     }
 
-    /// The trail as one smooth ribbon: as wide as the dot at the head, tapering to nothing at the tail, and fading
-    /// with a single gradient, so no joints or dots show.
-    private static func drawTail(_ points: [CGPoint], radius: CGFloat, space: CGColorSpace, in g: CGContext) {
-        let n = points.count
-        guard let first = points.first, let last = points.last,
-            hypot(last.x - first.x, last.y - first.y) >= 1
-        else { return }
+    /// The trail as one filled outline, as wide as the dot at the head and tapering to nothing at the tail, with a
+    /// single gradient for the alpha by age: no stroked segments, so no joints or dots show.
+    private static func drawTail(
+        _ stroke: Stroke, dot: CGPoint, radius: CGFloat, space: CGColorSpace, in g: CGContext,
+        width: Int, height: Int, nowMs: Int64
+    ) {
+        let (points, ages) = stroke.trail(width: width, height: height, nowMs: nowMs)
+        let outline = LaserGeometry.outline(points: points, ages: ages, radius: Float(radius))
+        guard outline.count >= 3, let first = points.first, let tailAge = ages.first else { return }
 
-        var edge = [CGPoint](repeating: .zero, count: n * 2)
-        var (nx, ny) = (CGFloat(0), CGFloat(1))
-        for i in 0..<n {
-            let a = points[max(i - 1, 0)]
-            let b = points[min(i + 1, n - 1)]
-            let length = hypot(b.x - a.x, b.y - a.y)
-            if length > 0.001 { (nx, ny) = (-(b.y - a.y) / length, (b.x - a.x) / length) }
-            let half = radius * CGFloat(i) / CGFloat(n - 1)
-            edge[i] = CGPoint(x: points[i].x + nx * half, y: points[i].y + ny * half)
-            edge[n * 2 - 1 - i] = CGPoint(x: points[i].x - nx * half, y: points[i].y - ny * half)
-        }
+        let tail = CGPoint(x: CGFloat(first.x), y: CGFloat(first.y))
+        guard hypot(dot.x - tail.x, dot.y - tail.y) >= 1 else { return }
 
-        func mid(_ a: CGPoint, _ b: CGPoint) -> CGPoint { CGPoint(x: (a.x + b.x) / 2, y: (a.y + b.y) / 2) }
-        // A closed loop of quadratic curves through the edge points' midpoints: smooth, no corners but the tail.
         let ribbon = CGMutablePath()
-        ribbon.move(to: mid(edge[n * 2 - 1], edge[0]))
-        for i in 0..<(n * 2) {
-            ribbon.addQuadCurve(to: mid(edge[i], edge[(i + 1) % (n * 2)]), control: edge[i])
+        ribbon.move(to: CGPoint(x: CGFloat(outline[0].x), y: CGFloat(outline[0].y)))
+        for v in outline.dropFirst() {
+            ribbon.addLine(to: CGPoint(x: CGFloat(v.x), y: CGFloat(v.y)))
         }
         ribbon.closeSubpath()
 
-        let components: [CGFloat] = [1, 0.1, 0.1, 0, 1, 0.1, 0.1, 0.86]
+        let tailAlpha = CGFloat(LaserGeometry.trailAlpha(ageMs: tailAge))
+        let headAlpha = CGFloat(LaserGeometry.trailAlpha(ageMs: 0))
+        let components: [CGFloat] = [1, 0.1, 0.1, tailAlpha, 1, 0.1, 0.1, headAlpha]
         guard let gradient = CGGradient(colorSpace: space, colorComponents: components, locations: [0, 1], count: 2)
         else { return }
         g.saveGState()
         g.addPath(ribbon)
         g.clip()
-        g.drawLinearGradient(gradient, start: first, end: last, options: [])
+        g.drawLinearGradient(
+            gradient, start: tail, end: dot, options: [.drawsBeforeStartLocation, .drawsAfterEndLocation])
         g.restoreGState()
     }
 }

@@ -16,6 +16,7 @@ final class Annotator: AnnotationSink {
     /// also run, so clearing them in `end` can never race a call to them.
     private var overlay: AnnotationOverlay?
     private var observer: NSObjectProtocol?
+    private var laserTick: Timer?
 
     var signStatusReply: ((String) -> Void)?
     var screenSizeChanged: (() -> Void)?
@@ -188,10 +189,12 @@ final class Annotator: AnnotationSink {
     /// Draws the newest board, or takes the overlay down when there is nothing to show. The flag is cleared first,
     /// so a point that lands while this draws wins a redraw of its own.
     private func drain() {
-        let strokes = locked { () -> [Stroke]? in
+        let (strokes, now, live) = locked { () -> ([Stroke]?, Int64, Bool) in
             redrawQueued = false
-            return snapshot()
+            let now = board.nowMs
+            return (snapshot(), now, !ended && board.mode == .annotate && board.laserVisible(at: now))
         }
+        setLaserTick(live)
         guard let strokes else {
             removeOverlay()
             return
@@ -199,7 +202,7 @@ final class Annotator: AnnotationSink {
         if overlay == nil, let screen = Annotator.primary {
             overlay = AnnotationOverlay(screen: screen)
         }
-        overlay?.present(strokes)
+        overlay?.present(strokes, nowMs: now)
     }
 
     /// What the overlay should show, or nil when it should not be up. Called with the lock held.
@@ -207,10 +210,27 @@ final class Annotator: AnnotationSink {
         guard !ended, board.mode == .annotate else { return nil }
         // The stroke under the finger is still growing, so it alone is copied.
         guard let active = board.active else { return board.strokes }
-        return board.strokes + [Stroke(tool: active.tool, style: active.style, points: active.points)]
+        let copy = Stroke(
+            tool: active.tool, style: active.style, points: active.points, pointMs: active.pointMs,
+            lastEventMs: active.lastEventMs)
+        return board.strokes + [copy]
+    }
+
+    /// Runs the screen-rate redraw timer exactly while a laser shows, then stops it. Main queue only.
+    private func setLaserTick(_ live: Bool) {
+        guard live else {
+            laserTick?.invalidate()
+            laserTick = nil
+            return
+        }
+        guard laserTick == nil else { return }
+        laserTick = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
+            self?.redraw()
+        }
     }
 
     private func removeOverlay() {
+        setLaserTick(false)
         overlay?.close()
         overlay = nil
     }
