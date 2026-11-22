@@ -150,7 +150,7 @@ final class NetTests: XCTestCase {
 
     func testADownloadAndAnUploadAreMeasuredFromBytesAndTime() async throws {
         let clock = FakeClock()
-        let transport = FakeTransport(clock: clock)
+        let transport = FakeSpeedServer(clock: clock)
         let test = SpeedTest(
             transport: transport, nowMs: { clock.now }, clock: { Date(timeIntervalSince1970: 1_769_994_000) })
         let reports = Reports()
@@ -175,7 +175,7 @@ final class NetTests: XCTestCase {
 
     func testNoTestEverAsksForMoreThanItsCaps() async throws {
         let clock = FakeClock()
-        let transport = FakeTransport(clock: clock)
+        let transport = FakeSpeedServer(clock: clock)
         let test = SpeedTest(transport: transport, nowMs: { clock.now })
 
         let task = try XCTUnwrap(test.start(report: { _ in }))
@@ -188,7 +188,7 @@ final class NetTests: XCTestCase {
 
     func testAFailedRequestEndsTheTestAsFailedWithWhatWasMeasured() async throws {
         let clock = FakeClock()
-        let transport = FakeTransport(clock: clock)
+        let transport = FakeSpeedServer(clock: clock)
         transport.fails = true
         let test = SpeedTest(transport: transport, nowMs: { clock.now })
 
@@ -203,7 +203,7 @@ final class NetTests: XCTestCase {
     }
 
     func testThePhaseLimitIsANormalEndNotAFailure() async throws {
-        let transport = FakeTransport(clock: FakeClock())
+        let transport = FakeSpeedServer(clock: FakeClock())
         transport.stalls = true
         let test = SpeedTest(transport: transport, phaseLimit: 0.05)
 
@@ -216,7 +216,7 @@ final class NetTests: XCTestCase {
     }
 
     func testASecondStartIsIgnoredAndACancelEndsTheTestQuickly() async throws {
-        let transport = FakeTransport(clock: FakeClock())
+        let transport = FakeSpeedServer(clock: FakeClock())
         transport.stalls = true
         let test = SpeedTest(transport: transport)
 
@@ -237,7 +237,7 @@ final class NetTests: XCTestCase {
 
     func testABrokenReportDoesNotNeedAnythingFromTheTest() async throws {
         let clock = FakeClock()
-        let test = SpeedTest(transport: FakeTransport(clock: clock), nowMs: { clock.now })
+        let test = SpeedTest(transport: FakeSpeedServer(clock: clock), nowMs: { clock.now })
         let task = try XCTUnwrap(test.start(report: { _ in }))
         await task.value
         XCTAssertNotNil(test.last)
@@ -256,7 +256,7 @@ final class NetTests: XCTestCase {
 
     func testASpeedTestRunsOnlyOnAskAndItsLastResultIsResentToAPhoneThatOpensThePage() throws {
         let clock = FakeClock()
-        let transport = FakeTransport(clock: clock)
+        let transport = FakeSpeedServer(clock: clock)
         let made = host(net: FakeNet(), speed: SpeedTest(transport: transport, nowMs: { clock.now }))
 
         made.host.onWatch(IntegrationHost.netBit)
@@ -275,7 +275,7 @@ final class NetTests: XCTestCase {
     }
 
     func testASpeedTestIsIgnoredWhenTheMacHasNoNetworkSource() {
-        let transport = FakeTransport(clock: FakeClock())
+        let transport = FakeSpeedServer(clock: FakeClock())
         let made = host(net: nil, speed: SpeedTest(transport: transport))
 
         made.host.onSpeedTest(true)
@@ -435,7 +435,7 @@ private final class Reports: @unchecked Sendable {
 }
 
 /// A server at 12 ms latency, 100 Mbit/s down and 40 Mbit/s up, in a clock the test moves itself.
-private final class FakeTransport: SpeedTransport, @unchecked Sendable {
+private final class FakeSpeedServer: SpeedTransport, @unchecked Sendable {
     private let clock: FakeClock
     private let lock = NSLock()
     private var down = 0
