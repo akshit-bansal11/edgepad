@@ -243,7 +243,8 @@ public final class IntegrationHost {
         parts.codex?.evaluate()
         parts.claude?.evaluate()
         if settings.active(IntegrationSettings.claude), let board = parts.sessions, let claude = parts.claude {
-            board.seed(claude.listSessions())
+            // Off the session thread: the board's own change notice sends the result when it differs.
+            DispatchQueue.global(qos: .utility).async { board.seed(claude.listSessions()) }
         }
         if agentsOn && parts.sessions != nil {
             sessionsChanged()
