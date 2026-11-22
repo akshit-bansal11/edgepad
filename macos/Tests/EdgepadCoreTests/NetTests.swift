@@ -58,7 +58,7 @@ final class NetTests: XCTestCase {
     func testASpeedResultSurvivesTheWire() {
         let result = SpeedResult(
             state: "done", downKbps: 93500, upKbps: 21400, latencyMs: 11, jitterMs: 2, atUnixMin: 29_499_900,
-            bytes: 163_400_000)
+            bytes: 31_000_000)
         let text = SpeedWire.encode(result)
         XCTAssertEqual(text, "done|93500|21400|11|2|29499900|31000000")
         XCTAssertEqual(SpeedWire.parse(text), result)
