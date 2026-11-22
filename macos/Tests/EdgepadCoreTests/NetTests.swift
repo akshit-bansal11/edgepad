@@ -151,7 +151,8 @@ final class NetTests: XCTestCase {
     func testADownloadAndAnUploadAreMeasuredFromBytesAndTime() async throws {
         let clock = FakeClock()
         let transport = FakeTransport(clock: clock)
-        let test = SpeedTest(transport: transport, nowMs: { clock.now }, clock: { Date(timeIntervalSince1970: 1_769_994_000) })
+        let test = SpeedTest(
+            transport: transport, nowMs: { clock.now }, clock: { Date(timeIntervalSince1970: 1_769_994_000) })
         let reports = Reports()
 
         let task = try XCTUnwrap(test.start(report: reports.add))

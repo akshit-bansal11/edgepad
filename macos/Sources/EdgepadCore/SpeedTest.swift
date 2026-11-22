@@ -1,7 +1,7 @@
 import Foundation
 
-/// TEXT SPEED_RESULT: `state` is a `SpeedState` token, the speeds are Kbit/s, the times ms, -1 when unknown. `atUnixMin`
-/// is when the test began, in minutes since the Unix epoch. `bytes` is what the test actually moved (download plus
+/// TEXT SPEED_RESULT: `state` is a `SpeedState` token, the speeds are Kbit/s, the times ms, -1 when unknown.
+/// `atUnixMin` is when the test began, in minutes since the Unix epoch. `bytes` is what the test actually moved (download plus
 /// upload, 0 while it starts), so the phone can show how much data it used. The most one test moves is
 /// `SpeedTest.maxTotalBytes`. The twin of the laptop core's SpeedResult.
 public struct SpeedResult: Equatable {

@@ -177,7 +177,7 @@ public final class StatsReporter {
         return timer != nil
     }
 
-    /// Applies the phone's DASH_WATCH. Anything outside 0..63 is the caller's to drop; only bits 0, 1 and 5 matter here.
+    /// Applies the phone's DASH_WATCH. Anything outside 0..63 is the caller's to drop; only bits 0, 1 and 5 matter.
     public func setWatch(_ watch: Int) {
         gate.lock()
         defer { gate.unlock() }
