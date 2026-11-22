@@ -17,6 +17,18 @@ class PresenterLaserTest {
     }
 
     @Test
+    fun aHeldLaserResendsOnlyAfterAFullBeatOfSilence() {
+        assertEquals(false, AnnotateCanvas.shouldResend(1_100L, 1_000L))
+        assertEquals(true, AnnotateCanvas.shouldResend(1_150L, 1_000L))
+        assertEquals(true, AnnotateCanvas.shouldResend(1_400L, 1_000L))
+    }
+
+    @Test
+    fun theBeatIsInsideTheLaptopsWatchdog() {
+        assertEquals(true, AnnotateCanvas.BEAT_MS * 2 < 400L)
+    }
+
+    @Test
     fun theDotGrowsWithTheSize() {
         assertEquals(laserDotRadius(800f, 10) * 2f, laserDotRadius(800f, 20), 0.001f)
     }

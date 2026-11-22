@@ -6,6 +6,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
+import android.os.SystemClock
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
@@ -70,6 +71,12 @@ class AnnotateCanvas(
             field = value
             invalidate()
         }
+
+    /** Resend the last point while a finger is held still: on for the Presenter's pad and Annotate's laser tool. */
+    var heartbeat = laser
+
+    private var sentAt = 0L
+    private var beatFrame: Frame? = null
 
     /** A centred dim hint on a laser pad, shown only while no finger is down. */
     var hint: CharSequence? = null
@@ -310,6 +317,8 @@ class AnnotateCanvas(
                 trailAdd(dotX, dotY)
                 lastSent = null
                 emit(box.toWire(event.x, event.y), Strokes.STATE_DOWN)
+                removeCallbacks(beat)
+                if (heartbeat) postDelayed(beat, BEAT_MS)
             }
 
             MotionEvent.ACTION_MOVE -> {
@@ -329,6 +338,7 @@ class AnnotateCanvas(
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (fingerDown) {
                     fingerDown = false
+                    removeCallbacks(beat)
                     // The up is always sent, even on a cancel: a stroke the laptop never sees end stays open.
                     emit(box.toWire(event.x, event.y), Strokes.STATE_UP, force = true)
                     if (event.actionMasked == MotionEvent.ACTION_UP) performClick()
@@ -352,11 +362,43 @@ class AnnotateCanvas(
         if (state == Strokes.STATE_MOVE && !force && point == lastSent) return
         lastSent = point
         if (!laser) strokes.pen(point, state)
-        send(Frame.Pen(point.x, point.y, state))
+        val frame = Frame.Pen(point.x, point.y, state)
+        send(frame)
+        sentAt = SystemClock.uptimeMillis()
+        // The beat repeats the last point as a move; built here so a beat itself allocates nothing.
+        if (state == Strokes.STATE_MOVE) {
+            beatFrame = frame
+        } else if (state == Strokes.STATE_DOWN) {
+            beatFrame = Frame.Pen(point.x, point.y, Strokes.STATE_MOVE)
+        }
         invalidate()
     }
 
+    /** While the laser is held still the laptop would drop it (400 ms watchdog), so the last point is resent. */
+    private val beat =
+        object : Runnable {
+            override fun run() {
+                if (!fingerDown || !heartbeat) return
+                if (shouldResend(SystemClock.uptimeMillis(), sentAt)) beatFrame?.let(send)
+                postDelayed(this, BEAT_MS)
+            }
+        }
+
+    override fun onDetachedFromWindow() {
+        removeCallbacks(beat)
+        super.onDetachedFromWindow()
+    }
+
     internal companion object {
+        /** How often a held laser repeats its point, well inside the laptop's 400 ms watchdog. */
+        const val BEAT_MS = 150L
+
+        /** Whether a beat should resend now: nothing was sent for a whole [BEAT_MS]. */
+        fun shouldResend(
+            now: Long,
+            lastSentAt: Long,
+        ): Boolean = now - lastSentAt >= BEAT_MS
+
         const val OPAQUE = 0xFF000000.toInt()
 
         // The laptop's laser red, with a soft glow of two fainter rings round it.

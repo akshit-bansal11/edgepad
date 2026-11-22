@@ -111,6 +111,7 @@ class AnnotateScreen(
                         val label = ui.string(R.string.annotate_tool_desc, ui.string(TOOL_LABELS.getValue(tool)))
                         val button =
                             glyph(TOOL_ICONS.getValue(tool), label) {
+                                canvas.heartbeat = false
                                 if (strokes.select(tool)) {
                                     send(tool.action.frame())
                                     paint()
@@ -124,6 +125,7 @@ class AnnotateScreen(
                     val laser = ui.string(R.string.annotate_tool_desc, ui.string(R.string.tool_laser))
                     addView(
                         glyph(R.drawable.ic_tool_ellipse, laser) {
+                            canvas.heartbeat = true
                             send(ActionId.TOOL_LASER.frame())
                             open(false)
                         },
