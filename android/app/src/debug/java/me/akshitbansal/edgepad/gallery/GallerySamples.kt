@@ -161,7 +161,6 @@ class GallerySamples(
         }
     }
 
-    /** A laptop with Claude and Codex, and with Gemini CLI and OpenCode too when [four]: limits, spend and sessions. */
     /** A laptop signed in to GitHub and GitLab, with GitHub's page: three repositories and a few items. */
     private val gitLaptop: LaptopState by lazy {
         val now = System.currentTimeMillis() / MS_PER_MIN
@@ -184,6 +183,7 @@ class GallerySamples(
         }
     }
 
+    /** A laptop with Claude and Codex, and with Gemini CLI and OpenCode too when [four]: limits, spend and sessions. */
     private fun aiLaptop(four: Boolean): LaptopState {
         val now = System.currentTimeMillis() / MS_PER_MIN
         val measured = now - 1

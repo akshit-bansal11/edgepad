@@ -18,7 +18,9 @@ class PermSinkTest {
         body: ByteArray,
     ) {
         sink.take(Frame.BlobBegin(kind.id, body.size.toLong(), label))
-        body.toList().chunked(255).forEachIndexed { seq, part -> sink.take(Frame.BlobChunk(seq, part.toByteArray())) }
+        body.toList()
+            .chunked(255)
+            .forEachIndexed { seq, part -> sink.take(Frame.BlobChunk(seq, part.toByteArray())) }
         sink.take(Frame.BlobEnd(sha256(body)))
     }
 
@@ -46,7 +48,7 @@ class PermSinkTest {
     @Test
     fun overTheCapAndOtherKindsAreDropped() {
         send(BlobKind.PERM_ASK, "a1b2c3d4e5f6/1", ByteArray(PermSink.MAX_BYTES + 1) { 'a'.code.toByte() })
-        send(BlobKind.GIT,"a1b2c3d4e5f6/1", body("x"))
+        send(BlobKind.GIT, "a1b2c3d4e5f6/1", body("x"))
         assertTrue(got.isEmpty())
     }
 

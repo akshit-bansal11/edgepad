@@ -19,7 +19,9 @@ class GitSinkTest {
         body: ByteArray,
     ) {
         sink.take(Frame.BlobBegin(kind.id, body.size.toLong(), "git"))
-        body.toList().chunked(255).forEachIndexed { seq, part -> sink.take(Frame.BlobChunk(seq, part.toByteArray())) }
+        body.toList()
+            .chunked(255)
+            .forEachIndexed { seq, part -> sink.take(Frame.BlobChunk(seq, part.toByteArray())) }
         sink.take(Frame.BlobEnd(sha256(body)))
     }
 
@@ -81,7 +83,13 @@ class GitSinkTest {
     @Test
     fun hostileTitlesStayLiteralAndInvisibleOnesAreShown() {
         send(BlobKind.GIT, lines("M\tme/app\t1\t<b>bold</b> \u202e x\t\tok\topen\t0"))
-        assertEquals("<b>bold</b> <U+202E> x", got.single().items.single().title)
+        assertEquals(
+            "<b>bold</b> <U+202E> x",
+            got.single()
+                .items
+                .single()
+                .title,
+        )
     }
 
     @Test
@@ -103,7 +111,13 @@ class GitSinkTest {
     @Test
     fun aTextIdIsKeptAsTheNumber() {
         send(BlobKind.GIT, lines("M\tme/app\tPR-7a\tt\t\tnone\topen\t0"))
-        assertEquals("PR-7a", got.single().items.single().ref)
+        assertEquals(
+            "PR-7a",
+            got.single()
+                .items
+                .single()
+                .ref,
+        )
     }
 
     @Test
