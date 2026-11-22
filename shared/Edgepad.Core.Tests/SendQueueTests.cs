@@ -235,6 +235,99 @@ public sealed class SendQueueTests
         Assert.True(queue.Completion.IsCompleted);
     }
 
+    [Fact]
+    public async Task PausingHoldsTheFileInFlightAndTheNextOneUntilResume()
+    {
+        var paused = 0;
+        var resumed = 0;
+        var held = new SendQueue(SendOne, feed, SizeOf, () => Interlocked.Increment(ref paused) > 0, () => Interlocked.Increment(ref resumed) > 0);
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource<XferCode?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        script["a.txt"] = _ =>
+        {
+            started.SetResult();
+            return release.Task;
+        };
+
+        Assert.False(held.Pause());
+        held.Enqueue(["a.txt", "b.txt"]);
+        await started.Task.WaitAsync(Patience, TestContext.Current.CancellationToken);
+        Assert.True(held.Pause());
+        Assert.False(held.Pause());
+        Assert.True(held.IsPaused);
+        Assert.Equal(1, Volatile.Read(ref paused));
+
+        // The file in flight ends; the next one does not start while the batch is held, and the card says so.
+        release.SetResult(XferCode.Saved);
+        await Until(() => feed.View.Paused);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+        Assert.Equal(["a.txt"], Sent());
+        Assert.True(held.IsRunning);
+
+        Assert.True(held.Resume());
+        Assert.False(held.Resume());
+        await held.Completion.WaitAsync(Patience, TestContext.Current.CancellationToken);
+
+        Assert.Equal(["a.txt", "b.txt"], Sent());
+        Assert.Equal(2, feed.View.Done);
+        Assert.False(feed.View.Paused);
+        Assert.Equal(1, Volatile.Read(ref resumed));
+        Assert.False(held.IsPaused);
+    }
+
+    [Fact]
+    public async Task CancellingAHeldBatchEndsItAndDropsTheRestAsNotSent()
+    {
+        var held = new SendQueue(SendOne, feed, SizeOf);
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource<XferCode?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        script["a.txt"] = _ =>
+        {
+            started.SetResult();
+            return release.Task;
+        };
+
+        held.Enqueue(["a.txt", "b.txt"]);
+        await started.Task.WaitAsync(Patience, TestContext.Current.CancellationToken);
+        Assert.True(held.Pause());
+        release.SetResult(XferCode.Saved);
+        await Until(() => feed.View.Paused);
+
+        held.Cancel();
+        await held.Completion.WaitAsync(Patience, TestContext.Current.CancellationToken);
+
+        Assert.Equal(["a.txt"], Sent());
+        Assert.Equal([new TransferFailed("b.txt", TransferFailure.NotSent)], feed.View.Failed);
+        Assert.False(held.IsPaused);
+        Assert.False(feed.View.Paused);
+    }
+
+    [Fact]
+    public async Task APauseThatIsNeverResumedDoesNotCarryOverToTheNextBatch()
+    {
+        var held = new SendQueue(SendOne, feed, SizeOf);
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource<XferCode?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        script["a.txt"] = _ =>
+        {
+            started.SetResult();
+            return release.Task;
+        };
+
+        held.Enqueue(["a.txt"]);
+        await started.Task.WaitAsync(Patience, TestContext.Current.CancellationToken);
+        Assert.True(held.Pause());
+        release.SetResult(XferCode.Saved);
+        await held.Completion.WaitAsync(Patience, TestContext.Current.CancellationToken);
+
+        Assert.False(held.IsPaused);
+        script.Clear();
+        held.Enqueue(["c.txt"]);
+        await held.Completion.WaitAsync(Patience, TestContext.Current.CancellationToken);
+
+        Assert.Equal(["a.txt", "c.txt"], Sent());
+    }
+
     private Task<XferCode?> SendOne(string path, ulong size, CancellationToken cancel)
     {
         Assert.Equal(100UL, size);
@@ -272,4 +365,14 @@ public sealed class SendQueueTests
     }
 
     private Task Finished() => queue.Completion.WaitAsync(Patience, TestContext.Current.CancellationToken);
+
+    private static async Task Until(Func<bool> condition)
+    {
+        var until = DateTime.UtcNow + Patience;
+        while (!condition())
+        {
+            Assert.True(DateTime.UtcNow < until, "the condition never held");
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+    }
 }

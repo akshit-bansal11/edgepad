@@ -28,6 +28,7 @@ internal sealed class TransferReceiver : IDisposable
     private readonly Action<string>? beforeSave;
     private readonly Action<string, ulong, ulong>? progress;
     private readonly Action<string, XferCode>? failed;
+    private readonly Action<bool>? pausedChanged;
     private Active? active;
 
     /// <summary>The name the failed hook gives a file whose own name could not be made safe; language-neutral.</summary>
@@ -42,8 +43,10 @@ internal sealed class TransferReceiver : IDisposable
         Func<DateTimeOffset>? now = null,
         Action<string>? beforeSave = null,
         Action<string, ulong, ulong>? progress = null,
-        Action<string, XferCode>? failed = null)
+        Action<string, XferCode>? failed = null,
+        Action<bool>? pausedChanged = null)
     {
+        this.pausedChanged = pausedChanged;
         this.destination = destination;
         this.partialFolder = partialFolder;
         this.reply = reply;
@@ -191,18 +194,86 @@ internal sealed class TransferReceiver : IDisposable
         }
     }
 
-    /// <summary>The sender's CANCELLED. Any other status is the sender's to receive, not this side's.</summary>
+    /// <summary>
+    /// The sender's CANCELLED, PAUSED or RESUME. Any other status is the sender's to receive, not this side's. PAUSED holds the
+    /// transfer here too (no idle drop). RESUME is answered with READY at the bytes held, unless this end holds it as well,
+    /// when <see cref="Resume"/> answers.
+    /// </summary>
     public bool Take(XferStatus status)
     {
         lock (gate)
         {
-            if (status.Status != (byte)XferCode.Cancelled || active is not { } a || a.Id != status.Id)
+            if (active is not { } a || a.Id != status.Id)
             {
                 return false;
             }
 
-            Finish(deletePart: true);
-            failed?.Invoke(a.Name, XferCode.Cancelled);
+            switch (status.Status)
+            {
+                case (byte)XferCode.Cancelled:
+                    Finish(deletePart: true);
+                    failed?.Invoke(a.Name, XferCode.Cancelled);
+                    return true;
+                case (byte)XferCode.Paused:
+                    SetHold(a, peer: true);
+                    return true;
+                case (byte)XferCode.Resume:
+                    SetHold(a, peer: false);
+                    a.LastChunk = clock();
+                    if (!a.Paused)
+                    {
+                        Reply(a.Id, XferCode.Ready, a.Held);
+                    }
+
+                    return true;
+                default:
+                    return false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Holds the file arriving: the sender is told with PAUSED and stops after its chunk in flight, which is still taken; the
+    /// idle drop stops until <see cref="Resume"/>. False when none arrives or it is held already.
+    /// </summary>
+    public bool Pause()
+    {
+        lock (gate)
+        {
+            DropIfIdle();
+            if (active is not { } a || a.Paused)
+            {
+                return false;
+            }
+
+            SetHold(a, own: true);
+            Reply(a.Id, XferCode.Paused, a.Held);
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Lets go of this end's hold: RESUME, then READY at the bytes held so the sender goes on from there. Where the sender
+    /// still holds it, only RESUME goes and the sender's own RESUME is answered with the READY. False when this end does not hold it.
+    /// </summary>
+    public bool Resume()
+    {
+        lock (gate)
+        {
+            DropIfIdle();
+            if (active is not { } a || !a.Paused)
+            {
+                return false;
+            }
+
+            SetHold(a, own: false);
+            a.LastChunk = clock();
+            Reply(a.Id, XferCode.Resume, a.Held);
+            if (!a.PeerPaused)
+            {
+                Reply(a.Id, XferCode.Ready, a.Held);
+            }
+
             return true;
         }
     }
@@ -287,11 +358,43 @@ internal sealed class TransferReceiver : IDisposable
     /// </summary>
     private void DropIfIdle()
     {
-        if (active is { } a && clock() - a.LastChunk > TransferLimits.IdleDrop)
+        if (active is not { } a)
+        {
+            return;
+        }
+
+        // Held by either end: no idle drop, only the cap, and that ends it as CANCELLED, the part kept.
+        if (a.HeldSince is { } since)
+        {
+            if (clock() - since > TransferLimits.PauseCap)
+            {
+                Finish(deletePart: false);
+                Reply(a.Id, XferCode.Cancelled, 0);
+                failed?.Invoke(a.Name, XferCode.Cancelled);
+            }
+
+            return;
+        }
+
+        if (clock() - a.LastChunk > TransferLimits.IdleDrop)
         {
             Finish(deletePart: false);
             Reply(a.Id, XferCode.Cancelled, 0);
             failed?.Invoke(a.Name, XferCode.TimedOut);
+        }
+    }
+
+    // Under the gate: sets this end's hold, the sender's, or both, and tells the owner when the file starts or stops being held.
+    private void SetHold(Active a, bool? own = null, bool? peer = null)
+    {
+        var was = a.Paused || a.PeerPaused;
+        a.Paused = own ?? a.Paused;
+        a.PeerPaused = peer ?? a.PeerPaused;
+        var held = a.Paused || a.PeerPaused;
+        a.HeldSince = held ? a.HeldSince ?? clock() : null;
+        if (held != was)
+        {
+            pausedChanged?.Invoke(held);
         }
     }
 
@@ -377,6 +480,11 @@ internal sealed class TransferReceiver : IDisposable
         active = null;
         a.File.Dispose();
         a.Hash.Dispose();
+        if (a.HeldSince is not null)
+        {
+            pausedChanged?.Invoke(false);
+        }
+
         if (!deletePart)
         {
             return;
@@ -438,5 +546,14 @@ internal sealed class TransferReceiver : IDisposable
         public ulong Reported { get; set; }
 
         public DateTimeOffset LastChunk { get; set; }
+
+        /// <summary>This end holds the file.</summary>
+        public bool Paused { get; set; }
+
+        /// <summary>The sender holds the file.</summary>
+        public bool PeerPaused { get; set; }
+
+        /// <summary>When the hold began, or null when no end holds the file.</summary>
+        public DateTimeOffset? HeldSince { get; set; }
     }
 }

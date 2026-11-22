@@ -13,7 +13,11 @@ namespace Edgepad.Transfer;
 /// </para>
 /// </summary>
 internal sealed class SendQueue(
-    Func<string, ulong, CancellationToken, Task<XferCode?>> sendOne, TransferFeed feed, Func<string, long?> sizeOf)
+    Func<string, ulong, CancellationToken, Task<XferCode?>> sendOne,
+    TransferFeed feed,
+    Func<string, long?> sizeOf,
+    Func<bool>? pauseCurrent = null,
+    Func<bool>? resumeCurrent = null)
 {
     private readonly Lock gate = new();
     private readonly Queue<string> pending = new();
@@ -21,6 +25,7 @@ internal sealed class SendQueue(
 
     private bool running;
     private bool cancelled;
+    private TaskCompletionSource? held;
     private Action? cancelCurrent;
     private Task completion = Task.CompletedTask;
 
@@ -83,10 +88,63 @@ internal sealed class SendQueue(
         }
     }
 
+    /// <summary>Whether the batch is held: the file being sent is (<c>pauseCurrent</c>) and the next one does not start.</summary>
+    public bool IsPaused
+    {
+        get
+        {
+            lock (gate)
+            {
+                return held is not null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Holds the batch: <c>pauseCurrent</c> holds the file being sent, and no next file starts until <see cref="Resume"/>.
+    /// False when no batch runs, it is being cancelled, or it is held already.
+    /// </summary>
+    public bool Pause()
+    {
+        lock (gate)
+        {
+            if (!running || cancelled || held is not null)
+            {
+                return false;
+            }
+
+            held = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        }
+
+        pauseCurrent?.Invoke();
+        return true;
+    }
+
+    /// <summary>Lets the batch go on. False when it is not held.</summary>
+    public bool Resume()
+    {
+        TaskCompletionSource? release;
+        lock (gate)
+        {
+            release = held;
+            held = null;
+        }
+
+        if (release is null)
+        {
+            return false;
+        }
+
+        release.TrySetResult();
+        resumeCurrent?.Invoke();
+        return true;
+    }
+
     /// <summary>Cancels the file being sent and drops the rest as not sent. Nothing when no batch runs.</summary>
     public void Cancel()
     {
         Action? stop;
+        TaskCompletionSource? release;
         lock (gate)
         {
             if (!running || cancelled)
@@ -96,8 +154,13 @@ internal sealed class SendQueue(
 
             cancelled = true;
             stop = cancelCurrent;
+            release = held;
+            held = null;
             feed.RequestCancel();
         }
+
+        // A held batch is let go so its loop sees the cancel; the file in flight sees its token.
+        release?.TrySetResult();
 
         // Outside the gate: cancelling can run the sender's continuation on this thread.
         try
@@ -120,6 +183,7 @@ internal sealed class SendQueue(
             {
                 string path;
                 using var cancel = new CancellationTokenSource();
+                Task? hold = null;
                 lock (gate)
                 {
                     if (cancelled)
@@ -138,9 +202,22 @@ internal sealed class SendQueue(
                         return;
                     }
 
-                    path = pending.Dequeue();
-                    current = path;
-                    cancelCurrent = cancel.Cancel;
+                    // Held: the next file waits here, outside the gate, and nothing of it starts.
+                    hold = held?.Task;
+                    path = hold is null ? pending.Dequeue() : "";
+                    if (hold is null)
+                    {
+                        current = path;
+                        cancelCurrent = cancel.Cancel;
+                    }
+                }
+
+                if (hold is not null)
+                {
+                    feed.SetPaused(true);
+                    await hold.ConfigureAwait(false);
+                    feed.SetPaused(false);
+                    continue;
                 }
 
                 var name = Path.GetFileName(path);
@@ -239,6 +316,7 @@ internal sealed class SendQueue(
     private void Finish()
     {
         running = false;
+        held = null;
         feed.EndBatch();
     }
 }

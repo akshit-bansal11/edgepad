@@ -130,6 +130,38 @@ public sealed class TransferFeedTests
     }
 
     [Fact]
+    public void PausedIsShownOnlyWhileABatchRunsAndEndsWithTheFile()
+    {
+        feed.SetPaused(true);
+        Assert.False(feed.View.Paused);
+
+        feed.BeginBatch(sending: false, total: 0);
+        feed.StartFile("a.txt", 1000);
+        var count = raised.Count;
+        feed.SetPaused(true);
+        Assert.True(feed.View.Paused);
+        Assert.Equal(count + 1, raised.Count);
+        feed.SetPaused(true);
+        Assert.Equal(count + 1, raised.Count);
+
+        feed.FileDone("a.txt", TransferFailure.Cancelled);
+        Assert.False(feed.View.Paused);
+
+        feed.SetPaused(true);
+        feed.Dismiss();
+        feed.BeginBatch(sending: true, total: 1);
+        Assert.False(feed.View.Paused);
+    }
+
+    [Theory]
+    [InlineData((int)XferCode.Paused)]
+    [InlineData((int)XferCode.Resume)]
+    public void AHoldIsNeverAFinalAnswerSoItReadsAsTheLinkGone(int code)
+    {
+        Assert.Equal(TransferFailure.LinkLost, TransferOutcome.Of((XferCode)code));
+    }
+
+    [Fact]
     public void CancelIsShownAndKeptToTheEnd()
     {
         feed.RequestCancel();

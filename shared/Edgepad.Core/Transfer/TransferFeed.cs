@@ -47,7 +47,8 @@ internal sealed record TransferView(
     int Done,
     IReadOnlyList<TransferFailed> Failed,
     int Skipped,
-    bool Cancelling)
+    bool Cancelling,
+    bool Paused = false)
 {
     public static readonly TransferView Idle = new(TransferPhase.Idle, false, 0, 0, "", 0, 0, 0, 0, [], 0, false);
 }
@@ -128,6 +129,7 @@ internal sealed class TransferFeed(Func<long>? clock = null)
     private int done;
     private int skipped;
     private bool cancelling;
+    private bool paused;
     private long? raisedAt;
 
     public event Action<TransferView>? Changed;
@@ -203,6 +205,8 @@ internal sealed class TransferFeed(Func<long>? clock = null)
     /// <summary>The file named ended: arrived when <paramref name="failure"/> is null.</summary>
     public void FileDone(string name, TransferFailure? failure) => Change(() =>
     {
+        // A file that ended is not held, whatever ended it.
+        paused = false;
         if (failure is { } why)
         {
             failed.Add(new TransferFailed(name, why));
@@ -213,6 +217,18 @@ internal sealed class TransferFeed(Func<long>? clock = null)
             sent = size;
         }
 
+        return true;
+    });
+
+    /// <summary>The file moving now, or the batch about to start its next, is held (true) or goes on (false). Ignored when no batch runs.</summary>
+    public void SetPaused(bool value) => Change(() =>
+    {
+        if (phase != TransferPhase.Running || paused == value)
+        {
+            return false;
+        }
+
+        paused = value;
         return true;
     });
 
@@ -279,11 +295,12 @@ internal sealed class TransferFeed(Func<long>? clock = null)
         done = 0;
         skipped = 0;
         cancelling = false;
+        paused = false;
         failed.Clear();
         meter.Reset();
     }
 
     private TransferView Snapshot() => phase == TransferPhase.Idle
         ? TransferView.Idle
-        : new(phase, sending, index, total, name, sent, size, meter.BytesPerSecond, done, failed.ToArray(), skipped, cancelling);
+        : new(phase, sending, index, total, name, sent, size, meter.BytesPerSecond, done, failed.ToArray(), skipped, cancelling, paused);
 }

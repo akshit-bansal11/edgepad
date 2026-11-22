@@ -209,6 +209,9 @@ XFER_END 255 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 = 
 # XFER_STATUS id status offset: 1 PROGRESS at 4096 = 0x1000, then 7 BUSY at 2^64-1.
 XFER_STATUS 1 1 4096 = 5a 01 01 00 10 00 00 00 00 00 00
 XFER_STATUS 255 7 18446744073709551615 = 5a ff 07 ff ff ff ff ff ff ff ff
+# PAUSED (8) and RESUME (9), either side, at 4096 bytes. The local-only TIMED_OUT and SESSION_ENDED (0xF0, 0xF1) are never framed.
+XFER_STATUS 1 8 4096 = 5a 01 08 00 10 00 00 00 00 00 00
+XFER_STATUS 1 9 4096 = 5a 01 09 00 10 00 00 00 00 00 00
 # Dashboard ids (protocol 6). CONTROL 12 DASH_WATCH, phone to laptop: 31 is every bit set, the most the laptop accepts.
 SET 12 31 = 21 0c 1f
 SET 12 0 = 21 0c 00

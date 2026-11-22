@@ -22,7 +22,8 @@ internal sealed class TransferSender(
     CancellationToken ended,
     TimeSpan? answerTimeout = null,
     Func<long>? clock = null,
-    Func<int, bool>? pause = null)
+    Func<int, bool>? pause = null,
+    Action<bool>? pausedChanged = null)
 {
     private const int SliceMs = 50;
 
@@ -41,6 +42,61 @@ internal sealed class TransferSender(
     private ulong? rewoundTo;
     private ulong? resendAt;
     private bool endSent;
+
+    // Pause: this end's own hold, whether the peer has been told of it, a RESUME still owed to the peer, the peer's hold,
+    // when either began (for the cap), and the last state reported to pausedChanged.
+    private bool paused;
+    private bool pausedSent;
+    private bool resumeOwed;
+    private bool peerPaused;
+    private long? heldSince;
+    private bool lastHeld;
+
+    /// <summary>
+    /// Holds the file after the chunk in flight: the peer is told with PAUSED and nothing more is sent, and the answer timeout
+    /// stops, until <see cref="Resume"/>. False when no file is being sent, it is already held, or END has gone (the answer is
+    /// then only waited for). Safe from any thread; the frame itself is written by the sending thread, never this one.
+    /// </summary>
+    public bool Pause()
+    {
+        lock (gate)
+        {
+            if (!sending || endSent || paused)
+            {
+                return false;
+            }
+
+            paused = true;
+            Touch();
+            Monitor.PulseAll(gate);
+        }
+
+        Notify();
+        return true;
+    }
+
+    /// <summary>
+    /// Lets go of this end's hold: the peer is told with RESUME, and the file goes on from the offset READY then names. While the
+    /// peer still holds it, it stays held. False when this end does not hold it.
+    /// </summary>
+    public bool Resume()
+    {
+        lock (gate)
+        {
+            if (!sending || !paused)
+            {
+                return false;
+            }
+
+            paused = false;
+            resumeOwed = pausedSent;
+            Touch();
+            Monitor.PulseAll(gate);
+        }
+
+        Notify();
+        return true;
+    }
 
     /// <summary>
     /// Sends <paramref name="path"/> as transfer <paramref name="id"/> (1..255). Returns <see cref="XferCode.Saved"/> when the peer
@@ -64,6 +120,7 @@ internal sealed class TransferSender(
                 rewoundTo = null;
                 resendAt = null;
                 endSent = false;
+                ResetPause();
             }
 
             try
@@ -75,7 +132,10 @@ internal sealed class TransferSender(
                 lock (gate)
                 {
                     sending = false;
+                    ResetPause();
                 }
+
+                Notify();
             }
         }
     }
@@ -83,6 +143,11 @@ internal sealed class TransferSender(
     /// <summary>The peer's answer to the file being sent. False when it is not about that file, or not a status this build knows.</summary>
     public bool Take(XferStatus status)
     {
+        if (status.Status is (byte)XferCode.Paused or (byte)XferCode.Resume)
+        {
+            return TakePause(status);
+        }
+
         lock (gate)
         {
             if (!sending || status.Id != activeId || status.Status > (byte)XferCode.Busy)
@@ -127,6 +192,56 @@ internal sealed class TransferSender(
         }
     }
 
+    // The peer's PAUSED or RESUME for the file being sent.
+    private bool TakePause(XferStatus status)
+    {
+        lock (gate)
+        {
+            if (!sending || status.Id != activeId)
+            {
+                return false;
+            }
+
+            peerPaused = status.Status == (byte)XferCode.Paused;
+            Touch();
+            Monitor.PulseAll(gate);
+        }
+
+        Notify();
+        return true;
+    }
+
+    // Under the gate: when a hold began, or null when none holds.
+    private void Touch() => heldSince = paused || peerPaused ? heldSince ?? now() : null;
+
+    // Under the gate.
+    private void ResetPause()
+    {
+        paused = false;
+        pausedSent = false;
+        resumeOwed = false;
+        peerPaused = false;
+        heldSince = null;
+    }
+
+    // Outside the gate: tells the owner when the transfer starts or stops being held by either end.
+    private void Notify()
+    {
+        bool held;
+        lock (gate)
+        {
+            held = paused || peerPaused;
+            if (held == lastHeld)
+            {
+                return;
+            }
+
+            lastHeld = held;
+        }
+
+        pausedChanged?.Invoke(held);
+    }
+
     private XferCode Run(FileStream file, string name, byte id, Action<ulong>? progress, CancellationToken cancel)
     {
         var size = (ulong)file.Length;
@@ -159,9 +274,11 @@ internal sealed class TransferSender(
         var at = offset;
         while (true)
         {
-            if (Await(() => true, id, at, cancel) is { } stopped)
+            // A hold is honoured here, between chunks and never inside one.
+            var stopped = Hold(id, at, cancel) ?? Await(() => true, id, at, cancel);
+            if (stopped is { } code)
             {
-                return stopped;
+                return code;
             }
 
             // The receiver said, twice or after END, that it holds less than was sent: a chunk was lost. Go back to what it holds.
@@ -211,6 +328,100 @@ internal sealed class TransferSender(
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Null when no end holds the file, or when it was held and has been let go and the peer's READY has named where to
+    /// go on (a READY below <paramref name="at"/> is a rewind, taken like a lost chunk); otherwise how it ended. While held
+    /// the answer timeout does not run. A hold older than <see cref="TransferLimits.PauseCap"/> ends the send as
+    /// <see cref="XferCode.Cancelled"/> without telling the peer, which has the same cap and so keeps its part; a user's
+    /// cancel tells it, as everywhere else.
+    /// </summary>
+    private XferCode? Hold(byte id, ulong at, CancellationToken cancel)
+    {
+        lock (gate)
+        {
+            if (!paused && !peerPaused && !resumeOwed)
+            {
+                return null;
+            }
+
+            readyAt = null;
+        }
+
+        var cancelled = false;
+        while (!cancelled)
+        {
+            XferStatus? tell = null;
+            lock (gate)
+            {
+                if (final is { } answer)
+                {
+                    return answer;
+                }
+
+                if (ended.IsCancellationRequested)
+                {
+                    return XferCode.SessionEnded;
+                }
+
+                if (cancel.IsCancellationRequested)
+                {
+                    cancelled = true;
+                }
+                else if (paused && !pausedSent)
+                {
+                    pausedSent = true;
+                    tell = new XferStatus(id, (byte)XferCode.Paused, at);
+                }
+                else if (!paused && resumeOwed)
+                {
+                    resumeOwed = false;
+                    pausedSent = false;
+                    readyAt = null;
+                    tell = new XferStatus(id, (byte)XferCode.Resume, at);
+                }
+                else if (!paused && !peerPaused)
+                {
+                    break;
+                }
+                else if (heldSince is { } since && now() - since >= (long)TransferLimits.PauseCap.TotalMilliseconds)
+                {
+                    return XferCode.Cancelled;
+                }
+                else
+                {
+                    Monitor.Wait(gate, SliceMs);
+                }
+            }
+
+            // Outside the lock: a write to a slow socket must not keep the read thread from delivering statuses.
+            if (tell is not null)
+            {
+                send(tell);
+            }
+        }
+
+        // Released, or cancelled: a cancel goes the way a cancel always does, and tells the peer.
+        if (cancelled)
+        {
+            return Await(() => true, id, at, cancel);
+        }
+
+        if (Await(() => readyAt is not null, id, at, cancel) is { } over)
+        {
+            return over;
+        }
+
+        lock (gate)
+        {
+            if (readyAt is { } held && held < at)
+            {
+                resendAt = held;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>Hashes the first <paramref name="upTo"/> bytes from the file's start without sending them. False when the file is shorter.</summary>
@@ -289,6 +500,12 @@ internal sealed class TransferSender(
                 if (ready())
                 {
                     return null;
+                }
+
+                // Held by either end: the wait starts over, until the hold has run out its cap.
+                if (heldSince is { } since && now() - since < (long)TransferLimits.PauseCap.TotalMilliseconds)
+                {
+                    deadline = now() + (long)timeout.TotalMilliseconds;
                 }
 
                 if (now() >= deadline)
