@@ -965,13 +965,21 @@ class MainActivity :
                 if (statsPage == HubPages.NETWORK) networkScreen?.refresh()
             }
 
-            TextKind.STATS_INFO, TextKind.DISKS, TextKind.BATTERIES -> systemScreen?.refresh()
+            TextKind.STATS_INFO, TextKind.DISKS, TextKind.BATTERIES -> {
+                systemScreen?.refresh()
+            }
 
-            TextKind.NET_INFO, TextKind.SPEED_RESULT -> networkScreen?.refresh()
+            TextKind.NET_INFO, TextKind.SPEED_RESULT -> {
+                networkScreen?.refresh()
+            }
 
-            TextKind.SESSIONS, TextKind.LIMITS, TextKind.SPEND -> aiScreen?.refresh()
+            TextKind.SESSIONS, TextKind.LIMITS, TextKind.SPEND -> {
+                aiScreen?.refresh()
+            }
 
-            else -> Unit
+            else -> {
+                Unit
+            }
         }
     }
 
@@ -1484,7 +1492,13 @@ class MainActivity :
                             { state },
                             laptopName = ::hubLaptopName,
                             onSwitch = deviceSwitch::open,
-                            rtt = { selected?.rtt?.median()?.takeIf { !it.isNaN() }?.toInt() ?: -1 },
+                            rtt = {
+                                selected
+                                    ?.rtt
+                                    ?.median()
+                                    ?.takeIf { !it.isNaN() }
+                                    ?.toInt() ?: -1
+                            },
                             onSpeed = { on -> manager.send(ControlId.SPEED_TEST.set(if (on) 1 else 0)) },
                             onPage = ::hubPage,
                         ) { navigateBack() }

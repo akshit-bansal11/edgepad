@@ -1,7 +1,5 @@
 package me.akshitbansal.edgepad
 
-import androidx.annotation.DrawableRes
-
 /**
  * The one logo lookup, keyed by the `LogoId` of the laptop's `DevProviders` list. A brand with an official mark saved
  * under `res/drawable` answers its drawable; every other id answers null and the caller draws its letter tile.
@@ -9,7 +7,6 @@ import androidx.annotation.DrawableRes
  */
 object Logos {
     /** The vector for [logoId], or null when the brand has none yet. */
-    @DrawableRes
     fun drawable(logoId: String): Int? =
         when (logoId) {
             "github" -> R.drawable.ic_github

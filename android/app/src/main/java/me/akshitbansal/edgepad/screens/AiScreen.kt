@@ -59,7 +59,9 @@ class AiScreen(
             return
         }
         val columns = AiLayout.columns(shown.size)
-        val screenDp = ui.context.resources.displayMetrics.run { widthPixels / density }
+        val screenDp =
+            ui.context.resources.displayMetrics
+                .run { widthPixels / density }
         val widthDp = AiLayout.columnWidthDp(screenDp, columns, ui.landscape)
         val strip =
             LinearLayout(ui.context).apply {
