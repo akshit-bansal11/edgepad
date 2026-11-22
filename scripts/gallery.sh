@@ -12,6 +12,8 @@ adb shell wm size 945x2100
 adb shell wm density 420
 # Rotate the display itself: an activity's orientation request alone left the first shot upright.
 adb shell settings put system accelerometer_rotation 0
+# Android's one-time "Viewing full screen" hint would sit over every shot; mark it as already seen.
+adb shell settings put secure immersive_mode_confirmations confirmed
 # Errors and crashes land beside the PNGs, so a blank or home-screen shot comes with its reason.
 adb logcat -c
 
