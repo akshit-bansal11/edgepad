@@ -12,6 +12,15 @@ public sealed class TransferCardModelTests
         new(TransferPhase.Running, sending, index, total, "a.txt", 10, 100, speed, 0, [], 0, false, paused);
 
     [Fact]
+    public void AClosedCardComesBackOnlyForAFailure()
+    {
+        var lost = new TransferFailed("a.txt", TransferFailure.LinkLost);
+        Assert.True(TransferCardText.ShowsAfterClose(new TransferView(TransferPhase.Finished, true, 1, 1, "a.txt", 0, 0, 0, 0, [lost], 0, false)));
+        Assert.False(TransferCardText.ShowsAfterClose(new TransferView(TransferPhase.Finished, true, 1, 1, "a.txt", 0, 0, 0, 1, [], 0, false)));
+        Assert.False(TransferCardText.ShowsAfterClose(Running(true, 1, 1)));
+    }
+
+    [Fact]
     public void TheTitleNamesTheDirectionAndThePhone()
     {
         Assert.Equal("Sending to Pixel", TransferCardText.Title(Running(true, 1, 1), "Pixel"));

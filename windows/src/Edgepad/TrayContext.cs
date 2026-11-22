@@ -811,6 +811,13 @@ internal sealed class TrayContext : ApplicationContext
             return;
         }
 
+        // A held receive is not idle: the receiver keeps its part for up to ten minutes, so the batch waits for the hold.
+        if (feed.View.Paused && !ReceiveHidden())
+        {
+            RestartReceiveEnd();
+            return;
+        }
+
         receiving = false;
 
         // A file still open went quiet past the receiver's idle drop with no word from it: it did not arrive.
@@ -1231,6 +1238,16 @@ internal sealed class TrayContext : ApplicationContext
         if (sending ? queue.IsRunning && (held || !queue.IsPaused) : !ReceiveHidden())
         {
             feed.SetPaused(held);
+            if (!sending && !held)
+            {
+                PostToUi(() =>
+                {
+                    if (receiving)
+                    {
+                        RestartReceiveEnd();
+                    }
+                });
+            }
         }
     }
 

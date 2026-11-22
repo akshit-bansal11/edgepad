@@ -65,7 +65,14 @@ internal static class LinuxTransfers
     }
 
     /// <summary>Either end held or released the file in flight.</summary>
-    internal static void OnPaused(bool held) => Feed.SetPaused(held);
+    internal static void OnPaused(bool held)
+    {
+        Feed.SetPaused(held);
+        if (!held)
+        {
+            Receiving.Rearm();
+        }
+    }
 
     /// <summary>
     /// A file has arrived whole and checked. The file name is the phone's, already made safe by the receiver. The card says so;
@@ -172,6 +179,18 @@ internal sealed class ReceiveBatch : IDisposable
         }
     }
 
+    /// <summary>A hold was released: the idle clock starts afresh from now.</summary>
+    internal void Rearm()
+    {
+        lock (gate)
+        {
+            if (open)
+            {
+                Arm();
+            }
+        }
+    }
+
     private void Arm() => end.Change(current is null ? Linger : TransferLimits.IdleDrop + Linger, Timeout.InfiniteTimeSpan);
 
     private void End()
@@ -180,6 +199,13 @@ internal sealed class ReceiveBatch : IDisposable
         {
             if (!open)
             {
+                return;
+            }
+
+            // A held receive is not idle: the receiver keeps its part for up to ten minutes, so the batch waits for the hold.
+            if (feed.View.Paused && !Sending())
+            {
+                Arm();
                 return;
             }
 

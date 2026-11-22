@@ -49,6 +49,9 @@ internal static class TransferCardText
             ? Say.Format(view.Sending ? LinuxStrings.Xfer_NotSent : LinuxStrings.Xfer_NotReceived, Reason(view.Failed[^1].Why, view.Sending))
             : Say.Format(view.Sending ? LinuxStrings.Send_Sent : LinuxStrings.Balloon_FileReceived, Say.MiddleTruncate(view.Name));
 
+    /// <summary>A card the owner closed comes back when its batch ends with a failure, so the reason is read.</summary>
+    public static bool ShowsAfterClose(TransferView view) => view.Phase == TransferPhase.Finished && view.Failed.Count > 0;
+
     public static string Reason(TransferFailure why, bool sending) => why switch
     {
         TransferFailure.Refused => sending ? LinuxStrings.Xfer_ReasonRejectedPhone : LinuxStrings.Xfer_ReasonRejectedHere,
@@ -167,9 +170,14 @@ internal sealed class TransferCard
             phone = name;
         }
 
+        if (dismissed && TransferCardText.ShowsAfterClose(next))
+        {
+            dismissed = false;
+        }
+
         if (dismissed)
         {
-            // Closed by the owner and now over: nothing is left to read, so the batch is let go.
+            // Closed by the owner and now over with nothing to report: the batch is let go.
             if (next.Phase == TransferPhase.Finished)
             {
                 feed.Dismiss();

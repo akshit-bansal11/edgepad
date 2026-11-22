@@ -92,6 +92,8 @@ final class TransferPanel: NSObject {
     func finished(_ line: String, failed: Bool) {
         result = line
         resultFailed = failed
+        // A closed card still tells the owner what went wrong.
+        if failed { dismissed = false }
         if !model.running {
             token += 1
             settle()
