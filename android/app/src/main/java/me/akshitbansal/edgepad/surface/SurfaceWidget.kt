@@ -14,9 +14,9 @@ enum class SurfaceWidget(
     val landscapeX: Float,
     val landscapeY: Float,
 ) {
-    CLOCK(R.string.widget_clock, 0.5f, 0.20f, 0.222f, 0.22f),
-    WEATHER(R.string.widget_weather, 0.5f, 0.31f, 0.222f, 0.79f),
-    SYSTEM(R.string.widget_system, 0.5f, 0.42f, 0.778f, 0.22f),
-    NETWORK(R.string.widget_network, 0.5f, 0.53f, 0.778f, 0.79f),
-    AI(R.string.widget_ai, 0.5f, 0.64f, 0.5f, 0.41f),
+    CLOCK(R.string.widget_clock, 0.5f, 0.20f, 0.222f, 0.20f),
+    WEATHER(R.string.widget_weather, 0.5f, 0.31f, 0.222f, 0.352f),
+    SYSTEM(R.string.widget_system, 0.5f, 0.42f, 0.778f, 0.20f),
+    NETWORK(R.string.widget_network, 0.5f, 0.53f, 0.778f, 0.352f),
+    AI(R.string.widget_ai, 0.5f, 0.64f, 0.5f, 0.505f),
 }

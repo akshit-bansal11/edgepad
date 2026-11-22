@@ -33,9 +33,9 @@ class WidgetDefaultsTest {
                 val widgets = SurfaceWidget.entries.map { it to widgetBox(it, w, h, density) }
                 for ((widget, box) in widgets) {
                     val where = "$widget on $wDp x $hDp dp at $density"
-                    for (ghost in ghosts) assertFalse("$where meets $ghost", box.overlaps(ghost))
+                    for (ghost in ghosts) assertFalse("$where $box meets ghost $ghost", box.overlaps(ghost))
                     for ((other, otherBox) in widgets) {
-                        if (other != widget) assertFalse("$where meets $other", box.overlaps(otherBox))
+                        if (other != widget) assertFalse("$where $box meets $other $otherBox", box.overlaps(otherBox))
                     }
                 }
             }
