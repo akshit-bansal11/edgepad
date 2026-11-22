@@ -18,7 +18,8 @@ class PermSinkTest {
         body: ByteArray,
     ) {
         sink.take(Frame.BlobBegin(kind.id, body.size.toLong(), label))
-        body.toList()
+        body
+            .toList()
             .chunked(255)
             .forEachIndexed { seq, part -> sink.take(Frame.BlobChunk(seq, part.toByteArray())) }
         sink.take(Frame.BlobEnd(sha256(body)))
