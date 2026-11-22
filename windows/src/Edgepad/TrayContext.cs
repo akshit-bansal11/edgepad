@@ -217,7 +217,7 @@ internal sealed class TrayContext : ApplicationContext
         // read the key without writing it back — least of all deleting it after a failed read.
         startWithWindows.Click += (_, _) => SaveStartWithWindows(startWithWindows.Checked);
         sendFileRow.Click += (_, _) => PickAndSendFile();
-        transfersRow.Click += (_, _) => toast.Reveal();
+        transfersRow.Click += (_, _) => RevealTransfers();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
         securityRow.Click += (_, _) => ShowSecurity();
         integrationsRow.Click += (_, _) => ShowIntegrations(developer: false);
@@ -397,13 +397,7 @@ internal sealed class TrayContext : ApplicationContext
             onTransferPaused: OnTransferPaused);
 
         // A paused batch held between files would wait out its cap when the phone is gone; ending it is what the session ending does.
-        host.ConnectedEnded += () => PostToUi(() =>
-        {
-            if (queue.IsPaused)
-            {
-                queue.Cancel();
-            }
-        });
+        host.ConnectedEnded += () => PostToUi(EndPausedBatch);
 
         // Handlers run under the queue's lock: they only post to the toast, and never call back into the queue.
         toast = new TransferToast
@@ -1203,6 +1197,17 @@ internal sealed class TrayContext : ApplicationContext
 
     // The card's buttons. A send is held and stopped through the queue, which owns the batch; a receive has no queue, so the
     // receiver is asked directly and the card is told it is stopping, since the sender's answer can take a moment.
+    // Methods, not lambdas over the fields: both are assigned after the lambdas that reach them are made.
+    private void RevealTransfers() => toast.Reveal();
+
+    private void EndPausedBatch()
+    {
+        if (queue.IsPaused)
+        {
+            queue.Cancel();
+        }
+    }
+
     private void PauseTransfer(bool sending) => _ = sending ? queue.Pause() : host.PauseTransfer(sending: false);
 
     private void ResumeTransfer(bool sending) => _ = sending ? queue.Resume() : host.ResumeTransfer(sending: false);
