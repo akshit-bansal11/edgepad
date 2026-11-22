@@ -219,10 +219,10 @@ class ControlSurface(
             emptyList()
         } else {
             listOf(
-                TopButton(icon(R.drawable.ic_settings, dim), side = -1.5f, open = onOpenSettings),
+                TopButton(icon(R.drawable.ic_controls, dim), side = -1.5f, open = onOpenControls),
                 TopButton(icon(R.drawable.ic_battery_keyboard, dim), side = -0.5f, open = ::typeText),
                 lockButton,
-                TopButton(icon(R.drawable.ic_controls, dim), side = 1.5f, open = onOpenControls),
+                TopButton(icon(R.drawable.ic_settings, dim), side = 1.5f, open = onOpenSettings),
             )
         }
     private val speakerIcon = icon(R.drawable.ic_battery_speaker, accent)
@@ -257,10 +257,10 @@ class ControlSurface(
                 action(R.id.action_previous_track, R.string.surface_previous) to {
                     send(ActionId.PREVIOUS_TRACK.frame())
                 },
-                action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
-                action(R.id.action_type_text, R.string.keyboard_type_text) to ::typeText,
                 action(R.id.action_controls, R.string.surface_controls) to onOpenControls,
+                action(R.id.action_type_text, R.string.keyboard_type_text) to ::typeText,
                 action(R.id.action_pad_lock, R.string.surface_lock) to { tapLock() },
+                action(R.id.action_open_settings, R.string.surface_open_settings) to onOpenSettings,
                 // AND-A-8: the two levels a dial sets are reachable without sliding one.
                 action(R.id.action_volume_up, R.string.surface_volume_up) to { nudge(ControlId.VOLUME, LEVEL_STEP) },
                 action(R.id.action_volume_down, R.string.surface_volume_down) to {
@@ -1649,7 +1649,7 @@ class ControlSurface(
     /**
      * One of the buttons floating at the top of the surface. [side] places it across the centre of the top
      * edge in steps of [topButtonOffsetDp]: -1 one step left of it, 0 on it, 1 one step right. The
-     * row of four is centred on the top edge: settings and Type text left of centre, the lock and Controls right.
+     * row of four is centred on the top edge: Controls and Type text left of centre, the lock and settings right.
      */
     private class TopButton(
         val icon: Drawable,

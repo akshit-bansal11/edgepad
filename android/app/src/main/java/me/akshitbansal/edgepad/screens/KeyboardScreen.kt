@@ -62,25 +62,21 @@ object KeyboardScreen {
         send: (Frame) -> Unit,
         onBack: () -> Unit,
     ): View {
-        val header =
-            ui.bar(
-                ui.string(R.string.keyboard_title),
-                onBack,
-                ui.icon(Glyph.Shape.GEAR, ui.string(R.string.keyboard_settings_title), onSettings),
-                backLabel = ui.string(R.string.back_to_surface),
-            )
         val keyboard = KeyboardView(ui.context, textScale, layoutFor(size), mode, os, onKey, onAction)
         return LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(ui.palette.background)
             ui.padToBars(this)
-            addView(header)
-            val wide = ViewGroup.LayoutParams.MATCH_PARENT
-            val typeRow = LinearLayout.LayoutParams(wide, ViewGroup.LayoutParams.WRAP_CONTENT)
-            typeRow.setMargins(ui.dp(Space.PAGE), ui.dp(Space.S), ui.dp(Space.PAGE), ui.dp(Space.S))
             val typeText = ui.string(R.string.keyboard_type_text)
-            val typeButton = ui.button(typeText, Ui.Style.OUTLINED) { askText(ui.context, this, send) }
-            addView(typeButton, typeRow)
+            addView(
+                ui.bar(
+                    ui.string(R.string.keyboard_title),
+                    onBack,
+                    ui.icon(Glyph.Shape.KEYBOARD, typeText) { askText(ui.context, this, send) },
+                    ui.icon(Glyph.Shape.GEAR, ui.string(R.string.keyboard_settings_title), onSettings),
+                    backLabel = ui.string(R.string.back_to_surface),
+                ),
+            )
             addView(keyboard, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         }
     }

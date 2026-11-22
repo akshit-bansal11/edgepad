@@ -4,12 +4,14 @@ import android.content.Context
 import android.view.View
 import android.widget.FrameLayout
 import me.akshitbansal.edgepad.Settings
+import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.FnMode
 import me.akshitbansal.edgepad.screens.KeyboardScreen
 import me.akshitbansal.edgepad.screens.KeyboardSize
 import me.akshitbansal.edgepad.screens.Ui
+import me.akshitbansal.edgepad.surface.ControlSurface
 
 /** The sample state behind each gallery screen name. A new screen adds one case to [build]. */
 class GallerySamples(
@@ -35,6 +37,7 @@ class GallerySamples(
                     send = {},
                     onBack = {},
                 )
+            "surface" -> ControlSurface(context, settings, LaptopState(), {}, {}, {})
             else -> null
         }
 

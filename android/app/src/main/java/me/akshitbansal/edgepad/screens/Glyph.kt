@@ -29,6 +29,7 @@ class Glyph(
         OPTIONS(R.drawable.ic_sliders_horizontal),
         CHECK(R.drawable.ic_check),
         LAPTOP(R.drawable.ic_laptop),
+        KEYBOARD(R.drawable.ic_battery_keyboard),
     }
 
     private val density = resources.displayMetrics.density
