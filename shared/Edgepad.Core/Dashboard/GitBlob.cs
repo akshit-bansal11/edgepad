@@ -43,7 +43,9 @@ internal static class GitBlob
                 var flags = (item.Draft ? "d" : string.Empty) + (item.IsPull ? string.Empty : "i");
                 var state = item.State is GitState.Closed or GitState.Merged ? item.State : GitState.Open;
                 var ci = item.Ci is CiToken.Ok or CiToken.Fail or CiToken.Pending ? item.Ci : CiToken.None;
-                rows.Add((Join(Letter(section), item.Repo, item.Label is { Length: > 0 } label ? DashWire.Clean(label, 20) : Num(item.Number),DashWire.Clean(item.Title, GitLimits.MaxTitle), flags, ci, state, Num(item.UpdatedMin)), item.Url));
+                var number = item.Label is { Length: > 0 } label ? DashWire.Clean(label, 20) : Num(item.Number);
+                var title = DashWire.Clean(item.Title, GitLimits.MaxTitle);
+                rows.Add((Join(Letter(section), item.Repo, number, title, flags, ci, state, Num(item.UpdatedMin)), item.Url));
             }
         }
 
