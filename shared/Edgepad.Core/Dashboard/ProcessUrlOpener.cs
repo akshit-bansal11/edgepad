@@ -43,7 +43,7 @@ internal sealed class ProcessUrlOpener : IUrlOpener
         }
         catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException or PlatformNotSupportedException)
         {
-            Console.Error.WriteLine($"Edgepad: could not open a link: {e.Message}");
+            // No browser or opener on this machine: the link is not opened, nothing else to do.
             return false;
         }
     }
