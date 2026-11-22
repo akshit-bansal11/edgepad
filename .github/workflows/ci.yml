@@ -259,7 +259,7 @@ jobs:
         if: always()
         with:
           name: edgepad-gallery
-          path: shots/*.png
+          path: shots/
           if-no-files-found: error
 
   macos:
