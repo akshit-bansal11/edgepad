@@ -76,7 +76,7 @@ final class NetTests: XCTestCase {
         XCTAssertEqual(SpeedTest.median([4, 1, 3, 2]), 2.5)
         XCTAssertEqual(SpeedTest.jitter([10, 12, 9]), 2.5)
         XCTAssertEqual(SpeedTest.jitter([10]), 0)
-        XCTAssertEqual(SpeedTest.maxTotalBytes, 180_000_000)
+        XCTAssertEqual(SpeedTest.maxTotalBytes, 35_000_000)
     }
 
     func testTheDispatcherPassesSpeedTestOnAndDropsTheRest() {

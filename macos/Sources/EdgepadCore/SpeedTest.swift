@@ -93,9 +93,9 @@ private final class Tally: @unchecked Sendable {
 /// whichever is first. Cancelling stops every request within a read. The twin of the laptop core's SpeedTest.
 public final class SpeedTest: @unchecked Sendable {
     /// The most one test downloads.
-    public static let maxDownloadBytes = 150 * 1000 * 1000
+    public static let maxDownloadBytes = 25 * 1000 * 1000
     /// The most one test uploads.
-    public static let maxUploadBytes = 30 * 1000 * 1000
+    public static let maxUploadBytes = 10 * 1000 * 1000
     /// The most one test moves in all, the number the phone shows as its data cost.
     public static let maxTotalBytes = maxDownloadBytes + maxUploadBytes
     /// Each direction's time limit, in seconds.
@@ -105,7 +105,7 @@ public final class SpeedTest: @unchecked Sendable {
     static let latencySamples = 10
     /// The most the ten latency probes may take in all, in seconds.
     static let latencyLimit: TimeInterval = 15
-    static let downloadChunk = 25_000_000
+    static let downloadChunk = 5_000_000
     static let uploadChunk = 2_000_000
 
     private let transport: SpeedTransport
