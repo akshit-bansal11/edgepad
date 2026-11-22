@@ -63,7 +63,8 @@ internal fun reasonText(reason: UnavailableReason?): Int =
 
 /**
  * What the phone can drive besides the surface itself, as a small modal centred on the screen: the keyboard, the
- * gamepad, the macros, Simple stats and, when the laptop says it can, a capture and an annotation. A tile closes the
+ * gamepad, the macros, System and, with Developer mode on, Developer, and, when the laptop says it can, a capture and
+ * an annotation. A tile closes the
  * popup and opens that control; a tap outside or Back closes it. It holds the tiles and one pencil at its top right
  * corner, nothing else (owner, 2026-11-20): the switches that were chips here live on the Dials, Surface and System
  * settings pages.
@@ -83,8 +84,10 @@ class ControlsPopup(
     private val settings: Settings,
     /** TEXT 24: why the laptop cannot offer a feature right now, by [Feature.token]. Empty from an older laptop. */
     private val reasons: () -> Map<String, UnavailableReason> = { emptyMap() },
-    /** The features the laptop named in TEXT 9: the Simple stats tile is dimmed without any of its pages. */
+    /** The features the laptop named in TEXT 9: the Developer tile is dimmed without any of its pages. */
     private val features: () -> Set<Feature> = { emptySet() },
+    /** Whether Developer mode is on: the Developer tile is drawn only then. */
+    private val developer: () -> Boolean = { false },
     /** AU6: whether a laptop is connected now; without one the "Send a file" tile says so instead of opening. */
     private val laptopConnected: () -> Boolean = { true },
     /** AU6: "Send a file" was tapped on a connected laptop; the callback's owner opens the system picker. */
@@ -104,8 +107,11 @@ class ControlsPopup(
         ANNOTATE(R.string.controls_annotate, StencilIcon.Kind.ANNOTATE),
         CLIPBOARD(R.string.controls_clipboard, StencilIcon.Kind.CLIPBOARD),
 
-        /** Simple stats: the System, AI and Git pages. Its key stays "system", so a stored place is kept. */
-        SYSTEM(R.string.controls_simple_stats, StencilIcon.Kind.SYSTEM),
+        /** System: the Laptop, Phone and Network pages. Its key stays "system", so a stored place is kept. */
+        SYSTEM(R.string.sys_title, StencilIcon.Kind.SYSTEM),
+
+        /** Developer: the AI and Git pages. Drawn only with Developer mode on. */
+        DEVELOPER(R.string.dev_title, StencilIcon.Kind.DEVELOPER),
     }
 
     private var dialog: AlertDialog? = null
@@ -318,10 +324,11 @@ class ControlsPopup(
         capture: Boolean,
         annotate: Boolean,
     ) {
-        // Every tile shows; one the laptop cannot offer is dimmed with a reason. Send a file sits before Simple stats.
+        // Every tile shows; one the laptop cannot offer is dimmed with a reason. Send a file sits before System.
         tiles =
             buildList {
                 for (target in Target.entries) {
+                    if (target == Target.DEVELOPER && !developer()) continue
                     if (target == Target.SYSTEM) add(sendTile())
                     add(tile(target, available(target, capture, annotate)))
                 }
@@ -437,8 +444,8 @@ class ControlsPopup(
 
             Target.ANNOTATE -> annotate
 
-            // Any page: the AI and Git pages are named only with Developer mode on.
-            Target.SYSTEM -> features().any { it in STATS_PAGES }
+            // Any of the developer integrations: the Phone page of System needs nothing from the laptop.
+            Target.DEVELOPER -> features().any { it in DEVELOPER_PAGES }
 
             else -> true
         }
@@ -473,7 +480,7 @@ class ControlsPopup(
         return when (target) {
             Target.CAPTURE -> reasonText(reason[Feature.CAPTURE.token])
             Target.ANNOTATE -> reasonText(reason[Feature.ANNOTATE.token])
-            Target.SYSTEM -> dashNote(reason[Feature.STATS.token])
+            Target.DEVELOPER -> dashNote(reason[Feature.CLAUDE.token])
             else -> reasonText(null)
         }
     }
@@ -482,5 +489,5 @@ class ControlsPopup(
         if (reason == null) R.string.controls_dash_off else reasonText(reason)
 }
 
-/** What the Simple stats tile needs one of: the System page's stats, or a developer integration's page. */
-private val STATS_PAGES = setOf(Feature.STATS, Feature.CLAUDE, Feature.CODEX, Feature.GITHUB)
+/** What the Developer tile needs one of: a developer integration that is on and usable. */
+private val DEVELOPER_PAGES = setOf(Feature.CLAUDE, Feature.CODEX, Feature.GITHUB)

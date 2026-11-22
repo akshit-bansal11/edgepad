@@ -126,6 +126,7 @@ import me.akshitbansal.edgepad.screens.Carry
 import me.akshitbansal.edgepad.screens.ClipboardSheet
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.CornersScreen
+import me.akshitbansal.edgepad.screens.DeveloperHub
 import me.akshitbansal.edgepad.screens.DialFeelScreen
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
 import me.akshitbansal.edgepad.screens.GamepadScreen
@@ -139,6 +140,7 @@ import me.akshitbansal.edgepad.screens.LiveBatteries
 import me.akshitbansal.edgepad.screens.MacroScreen
 import me.akshitbansal.edgepad.screens.MacroSettingsScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
+import me.akshitbansal.edgepad.screens.NetworkScreen
 import me.akshitbansal.edgepad.screens.PairCodeScreen
 import me.akshitbansal.edgepad.screens.PermissionSheet
 import me.akshitbansal.edgepad.screens.PickerScreen
@@ -151,8 +153,8 @@ import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.SharingScreen
 import me.akshitbansal.edgepad.screens.SheetRegistry
-import me.akshitbansal.edgepad.screens.StatsScreen
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
+import me.akshitbansal.edgepad.screens.SystemHub
 import me.akshitbansal.edgepad.screens.SystemScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.screens.WidgetsScreen
@@ -246,6 +248,7 @@ class MainActivity :
         ANNOTATE,
         PRESENTER,
         SYSTEM,
+        DEVELOPER,
         KEYBOARD,
         GAMEPAD,
         MACROS,
@@ -315,8 +318,10 @@ class MainActivity :
     /** The Presenter screen while it is the screen: the volume keys step its slides, and only while it is. */
     private var presenter: PresenterScreen? = null
 
-    /** The System, AI and GitHub screens while they are the screen, so a new sample or list can be handed to them. */
+    /** The System and Developer pages while they are the screen, so a new sample or list can be handed to them. */
+    private var systemHub: SystemHub? = null
     private var systemScreen: SystemScreen? = null
+    private var networkScreen: NetworkScreen? = null
     private var aiScreen: AiScreen? = null
     private var githubScreen: GitHubScreen? = null
 
@@ -326,7 +331,7 @@ class MainActivity :
     /** The surface's Hide dials switch, kept here because the surface is rebuilt and the switch is on Dials. */
     private var dialsHidden = false
 
-    /** The page of Simple stats that shows: 0 System, 1 AI, 2 Git. The laptop watches only that page's data. */
+    /** The page of the System or Developer hub that shows. The laptop watches only that page's data. */
     private var statsPage = 0
 
     /** What DASH_WATCH last told the selected laptop (0: nothing). The laptop forgets it at session end. */
@@ -617,6 +622,7 @@ class MainActivity :
         if (screen == Screen.PRESENTER) goTo(Screen.PRESENTER)
         // The same for the macro grid: onStop told the laptop to stop looking.
         if (screen == Screen.MACROS) watchMacros()
+        systemHub?.setActive(true)
         syncDashWatch()
         // Its "updated" times and expired windows moved while the app was away, with no frame to redraw them.
         aiScreen?.refresh()
@@ -658,6 +664,7 @@ class MainActivity :
         endAnnotate()
         unwatchMacros()
         cancelApps()
+        systemHub?.setActive(false)
         syncDashWatch()
         permSheet.dismiss()
         permNotifier.sync(permSheet.waiting, started)
@@ -881,10 +888,14 @@ class MainActivity :
             when (screen) {
                 Screen.SYSTEM -> {
                     when (statsPage) {
-                        1 -> DashMask.Screen.AI
-                        2 -> DashMask.Screen.GITHUB
+                        SystemHub.PHONE_PAGE -> null
+                        SystemHub.NETWORK_PAGE -> DashMask.Screen.NETWORK
                         else -> DashMask.Screen.SYSTEM
                     }
+                }
+
+                Screen.DEVELOPER -> {
+                    if (statsPage == DeveloperHub.GIT_PAGE) DashMask.Screen.GITHUB else DashMask.Screen.AI
                 }
 
                 else -> {
@@ -903,6 +914,15 @@ class MainActivity :
         if (mask == dashMask) return
         dashMask = mask
         manager.send(ControlId.DASH_WATCH.set(mask))
+    }
+
+    /** The name the hubs' chip shows: the laptop's own, else the one it was paired under. */
+    private fun hubLaptopName(): String = state.laptopName?.takeIf { it.isNotEmpty() } ?: selected?.name.orEmpty()
+
+    /** A hub page came to rest: the laptop is told to send that page's data and no other. */
+    private fun hubPage(page: Int) {
+        statsPage = page
+        syncDashWatch()
     }
 
     /**
@@ -935,12 +955,14 @@ class MainActivity :
         val kind = TextKind.of(frame.kind)
         if (kind == TextKind.FEATURES || kind == TextKind.UNAVAILABLE) {
             systemScreen?.refresh()
+            networkScreen?.refresh()
             aiScreen?.refresh()
             githubScreen?.refresh()
             return
         }
         when (kind) {
-            TextKind.STATS, TextKind.STATS_INFO, TextKind.DISKS -> systemScreen?.refresh()
+            TextKind.STATS, TextKind.STATS_INFO, TextKind.DISKS, TextKind.BATTERIES -> systemScreen?.refresh()
+            TextKind.NET_INFO, TextKind.SPEED_RESULT -> networkScreen?.refresh()
             TextKind.SESSIONS, TextKind.LIMITS, TextKind.SPEND -> aiScreen?.refresh()
             else -> Unit
         }
@@ -1123,7 +1145,11 @@ class MainActivity :
         reconnecting = null
         macros = null
         appList = null
+        // Nothing of the phone's own is read once the page is left.
+        systemHub?.setActive(false)
+        systemHub = null
         systemScreen = null
+        networkScreen = null
         aiScreen = null
         githubScreen = null
         endRedraw = null
@@ -1445,20 +1471,34 @@ class MainActivity :
                 }
 
                 Screen.SYSTEM -> {
-                    val stats =
-                        StatsScreen(
+                    val hub =
+                        SystemHub(
                             ui,
                             { state },
-                            developerOn(),
-                            onPage = { page ->
-                                statsPage = page
-                                syncDashWatch()
-                            },
+                            laptopName = ::hubLaptopName,
+                            onSwitch = deviceSwitch::open,
+                            rtt = { selected?.rtt?.median()?.takeIf { !it.isNaN() }?.toInt() ?: -1 },
+                            onSpeed = { on -> manager.send(ControlId.SPEED_TEST.set(if (on) 1 else 0)) },
+                            onPage = ::hubPage,
                         ) { navigateBack() }
-                    systemScreen = stats.system
-                    aiScreen = stats.ai
-                    githubScreen = stats.github
-                    stats.view
+                    systemHub = hub
+                    systemScreen = hub.laptop
+                    networkScreen = hub.network
+                    hub.view
+                }
+
+                Screen.DEVELOPER -> {
+                    val hub =
+                        DeveloperHub(
+                            ui,
+                            { state },
+                            laptopName = ::hubLaptopName,
+                            onSwitch = deviceSwitch::open,
+                            onPage = ::hubPage,
+                        ) { navigateBack() }
+                    aiScreen = hub.ai
+                    githubScreen = hub.github
+                    hub.view
                 }
 
                 Screen.RECONNECTING -> {
@@ -1712,7 +1752,7 @@ class MainActivity :
 
             // These are opened from the Controls popup over the surface, so back returns to it.
             Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE, Screen.PRESENTER,
-            Screen.SYSTEM,
+            Screen.SYSTEM, Screen.DEVELOPER,
             -> {
                 goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
                 // AND-A-32: back lands where the user came from, so the popup opens again over the surface.
@@ -2004,6 +2044,7 @@ class MainActivity :
                 settings,
                 reasons = { state.unavailable },
                 features = { state.features },
+                developer = ::developerOn,
                 laptopConnected = { connected },
                 onSendFile = ::pickFile,
             ) { target ->
@@ -2016,6 +2057,7 @@ class MainActivity :
                     ControlsPopup.Target.CLIPBOARD -> openClipboardHistory()
                     ControlsPopup.Target.PRESENTER -> goTo(Screen.PRESENTER)
                     ControlsPopup.Target.SYSTEM -> goTo(Screen.SYSTEM)
+                    ControlsPopup.Target.DEVELOPER -> goTo(Screen.DEVELOPER)
                 }
             }.also { it.show(owner, controlsCapture(), controlsAnnotate()) }
         sheets.add("controls") { controls?.dismiss() }
@@ -3293,10 +3335,12 @@ class MainActivity :
                 Screen.ANNOTATE,
                 Screen.PRESENTER,
                 Screen.SYSTEM,
+                Screen.DEVELOPER,
             )
 
         /** What a laptop names when it can answer DASH_WATCH: one of these, or the phone never sends it. */
-        val DASH_FEATURES = setOf(Feature.STATS, Feature.WEATHER, Feature.CLAUDE, Feature.CODEX, Feature.GITHUB)
+        val DASH_FEATURES =
+            setOf(Feature.STATS, Feature.NETINFO, Feature.WEATHER, Feature.CLAUDE, Feature.CODEX, Feature.GITHUB)
 
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2

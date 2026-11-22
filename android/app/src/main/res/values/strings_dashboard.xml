@@ -37,7 +37,6 @@
   <string name="wx_showers">Showers</string>
   <string name="wx_storm">Thunderstorm</string>
   <string name="wx_credit">Weather data by Open-Meteo.com</string>
-  <string name="ai_title">AI</string>
   <string name="ai_win_week">Week</string>
   <string name="ai_win_month">Month</string>
   <string name="ai_win_spend">Spend</string>
@@ -81,4 +80,62 @@
   <string name="perm_scroll">Scroll to the end to allow.</string>
   <string name="perm_channel">Approvals</string>
   <string name="perm_notif">An AI agent needs approval.</string>
+  <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
+  <string name="dev_title">Developer</string>
+  <string name="hub_switch_laptop">%1$s, switch laptop</string>
+  <string name="phone_battery">Battery</string>
+  <string name="phone_charging">Charging</string>
+  <string name="phone_temperature">Temperature</string>
+  <string name="phone_health">Health</string>
+  <string name="phone_health_good">Good</string>
+  <string name="phone_health_hot">Overheated</string>
+  <string name="phone_health_worn">Worn out</string>
+  <string name="phone_health_voltage">Over voltage</string>
+  <string name="phone_health_fault">Fault</string>
+  <string name="phone_health_cold">Too cold</string>
+  <string name="phone_storage">Storage</string>
+  <string name="phone_used_of">%1$s of %2$s</string>
+  <string name="phone_thermal">Thermal state</string>
+  <string name="phone_thermal_none">Normal</string>
+  <string name="phone_thermal_light">Warm</string>
+  <string name="phone_thermal_moderate">Hot</string>
+  <string name="phone_thermal_severe">Very hot</string>
+  <string name="phone_thermal_critical">Critical</string>
+  <!-- Not translated: units and joiners read the same in every locale. -->
+  <string name="phone_celsius" translatable="false">%1$s°C</string>
+  <string name="net_join" translatable="false">%1$s · %2$s</string>
+  <string name="net_ms" translatable="false">%1$d ms</string>
+  <string name="net_ghz" translatable="false">%1$s GHz</string>
+  <string name="net_mbps" translatable="false">%1$s Mbps</string>
+  <string name="net_gbps" translatable="false">%1$s Gbps</string>
+  <string name="net_wifi">Wi-Fi</string>
+  <string name="net_ethernet">Ethernet</string>
+  <string name="net_cellular">Mobile data</string>
+  <string name="net_other">Other</string>
+  <string name="net_none">Not connected</string>
+  <string name="net_signal_strong">Strong</string>
+  <string name="net_signal_good">Good</string>
+  <string name="net_signal_fair">Fair</string>
+  <string name="net_signal_weak">Weak</string>
+  <string name="net_connection">Connection</string>
+  <string name="net_link_speed">Link speed</string>
+  <string name="net_signal">Signal</string>
+  <string name="net_local_ip">Local IP</string>
+  <string name="net_router">Router ping</string>
+  <string name="net_loss">%1$d%% loss</string>
+  <string name="net_link_laptop">Link to laptop</string>
+  <string name="net_card_laptop">Laptop · %1$s</string>
+  <string name="net_card_phone">Phone · %1$s</string>
+  <string name="net_speed_title">Speed test · laptop</string>
+  <string name="net_speed_start">Test speed</string>
+  <string name="net_speed_stop">Stop</string>
+  <string name="net_speed_none">No test yet</string>
+  <string name="net_speed_running">Testing…</string>
+  <string name="net_speed_failed">The test did not finish</string>
+  <string name="net_speed_stopped">Stopped</string>
+  <string name="net_unit_down">Mbps down</string>
+  <string name="net_unit_up">Mbps up</string>
+  <string name="net_jitter">%1$d ms jitter</string>
+  <string name="net_speed_used">%1$s used</string>
+  <string name="net_speed_note">Moves up to %1$s per test, from speed.cloudflare.com. Only when you tap.</string>
 </resources>

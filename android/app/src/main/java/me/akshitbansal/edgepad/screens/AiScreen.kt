@@ -33,17 +33,14 @@ import java.util.Currency
 class AiScreen(
     private val ui: Ui,
     private val state: () -> LaptopState,
-    onBack: () -> Unit,
+    bar: View,
 ) {
     private val money =
         NumberFormat.getCurrencyInstance().apply { currency = Currency.getInstance(DOLLARS) }
     private val decimal = DecimalFormatSymbols.getInstance().decimalSeparator
     private val holder = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
 
-    val view: View =
-        ui.page(ui.bar(ui.string(R.string.ai_title), onBack, backLabel = ui.string(R.string.back_to_surface))) {
-            add(holder)
-        }
+    val view: View = ui.page(bar) { add(holder) }
 
     init {
         refresh()

@@ -18,10 +18,11 @@ import me.akshitbansal.edgepad.surface.StatCards
 import me.akshitbansal.edgepad.surface.StatMetric
 
 /**
- * The laptop's processor, graphics, memory and network as rounded cards with a graph of the last minute (the same
- * cards the widgets draw), then their details, ping and disks. Upright it is one column of two cards a row; sideways
- * the cards (four a row) and their details are on the left and the ping and disks on the right. A graphics card the
- * laptop does not report has no card.
+ * The Laptop page of System, under the [bar] the hub draws. The laptop's processor, graphics, memory and network as
+ * rounded cards with a graph of the last minute (the same cards the widgets draw), then their details, ping and
+ * disks, and the batteries of the laptop and what is paired to it. Upright it is one column of two cards a row;
+ * sideways the cards (four a row) and their details are on the left and the ping and disks on the right. A graphics
+ * card the laptop does not report has no card.
  *
  * Nothing here polls: the laptop sends a sample a second only while the phone says this screen is open, and the
  * activity calls [refresh] when one arrived. It sets the texts and the graphs in place, and rebuilds the cards only
@@ -32,7 +33,7 @@ import me.akshitbansal.edgepad.surface.StatMetric
 class SystemScreen(
     private val ui: Ui,
     private val state: () -> LaptopState,
-    onBack: () -> Unit,
+    bar: View,
 ) {
     private val none = ui.string(R.string.sys_none)
     private val fmt = StatsFormat(none)
@@ -43,10 +44,7 @@ class SystemScreen(
     /** How tall a graph is: 88 dp upright, 72 dp sideways. */
     private val graphDp = if (ui.landscape) GRAPH_LANDSCAPE_DP else GRAPH_PORTRAIT_DP
 
-    val view: View =
-        ui.page(ui.bar(ui.string(R.string.sys_title), onBack, backLabel = ui.string(R.string.back_to_surface))) {
-            add(holder)
-        }
+    val view: View = ui.page(bar) { add(holder) }
 
     init {
         refresh()
@@ -56,7 +54,7 @@ class SystemScreen(
     fun refresh() {
         val s = state()
         val reported = StatMetric.entries.map { it.reported(s.stats) }
-        val now = listOf(Feature.STATS in s.features, s.disks.map { it.label }, reported)
+        val now = listOf(Feature.STATS in s.features, s.disks.map { it.label }, reported, s.batteries)
         if (now != shape) {
             shape = now
             holder.removeAllViews()
@@ -69,6 +67,7 @@ class SystemScreen(
     private fun Column.render(s: LaptopState) {
         if (Feature.STATS !in s.features) {
             card { body(ui.string(R.string.sys_off)).setPadding(0, ui.dp(Space.M), 0, ui.dp(Space.M)) }
+            batteryCard(s)
             return
         }
         columns(
@@ -79,8 +78,31 @@ class SystemScreen(
             second = {
                 pingCard(0f)
                 disksCard(s.disks.size)
+                batteryCard(s)
             },
         )
+    }
+
+    /** The laptop's own battery and its peripherals' (mice, headsets): a name, the charge and a bar for each. */
+    private fun Column.batteryCard(s: LaptopState) {
+        if (s.batteries.isEmpty()) return
+        section(ui.string(R.string.battery_title))
+        card {
+            s.batteries.forEachIndexed { index, battery ->
+                if (index > 0) hairline()
+                val percent = ui.string(R.string.battery_percent, battery.level)
+                val charge =
+                    if (battery.charging) {
+                        ui.string(R.string.net_join, percent, ui.string(R.string.battery_charging))
+                    } else {
+                        percent
+                    }
+                val low = battery.level <= LOW && !battery.charging
+                add(ui.row(ui.text(battery.name, Type.BODY, ui.palette.ink), ui.secondary(charge, Type.VALUE)))
+                meter(battery.name, battery.level, if (low) ui.palette.danger else ui.palette.accent)
+                add(View(ui.context), height = ui.dp(Space.M))
+            }
+        }
     }
 
     /** The metrics as cards, 2 to a row upright and 4 sideways, and the network speeds under them. */
@@ -284,6 +306,7 @@ class SystemScreen(
     private companion object {
         const val FULL = 100
         const val DANGER_FROM = 90
+        const val LOW = 20
         const val MS = " ms"
         const val BAR_DP = 6f
         const val GRAPH_PORTRAIT_DP = 88f

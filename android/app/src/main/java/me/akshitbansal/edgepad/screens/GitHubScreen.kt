@@ -31,14 +31,11 @@ import me.akshitbansal.edgepad.protocol.UnavailableReason
 class GitHubScreen(
     private val ui: Ui,
     private val state: () -> LaptopState,
-    onBack: () -> Unit,
+    bar: View,
 ) {
     private val holder = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
 
-    val view: View =
-        ui.page(ui.bar(ui.string(R.string.gh_title), onBack, backLabel = ui.string(R.string.back_to_surface))) {
-            add(holder)
-        }
+    val view: View = ui.page(bar) { add(holder) }
 
     init {
         refresh()
