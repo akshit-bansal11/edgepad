@@ -774,7 +774,7 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
 4. Sur votre téléphone, ouvrez Controls > AI. Il apparaît dès que Codex envoie son premier événement.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Cliquez sur Se connecter avec GitHub. Une page github.com s’ouvre.
+    <value>1. Cliquez sur Se connecter. Une page github.com s’ouvre.
 2. Saisissez le code affiché ici et cliquez sur Authorize.
 3. Sur votre téléphone, ouvrez Controls > GitHub.</value>
   </data>
@@ -847,6 +847,9 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. Sur gitee.com, ouvrez Paramètres &gt; Jetons d’accès personnels et créez un jeton en lecture.
 2. Cliquez sur Ajouter et collez le jeton.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Activez le mode développeur pour les utiliser.</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex a de nouveau besoin de votre accord</value>

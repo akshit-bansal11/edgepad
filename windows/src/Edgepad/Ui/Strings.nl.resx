@@ -755,7 +755,7 @@
 4. Open op je telefoon Controls > AI. Het verschijnt zodra Codex zijn eerste gebeurtenis stuurt.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Klik op Inloggen met GitHub. Er opent een pagina op github.com.
+    <value>1. Klik op Inloggen. Er opent een pagina op github.com.
 2. Voer de code in die hier staat en klik op Authorize.
 3. Open op je telefoon Controls > GitHub.</value>
   </data>
@@ -828,6 +828,9 @@
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. Open op gitee.com Instellingen &gt; Persoonlijke toegangstokens en maak een token met leestoegang.
 2. Klik op Toevoegen en plak het token.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Zet de ontwikkelaarsmodus aan om deze te gebruiken.</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex heeft opnieuw je akkoord nodig</value>

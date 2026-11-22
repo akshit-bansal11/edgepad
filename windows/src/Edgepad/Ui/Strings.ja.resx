@@ -774,7 +774,7 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
 4. スマホで Controls > AI を開きます。Codex が最初のイベントを送ると表示されます。</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. 「GitHub でサインイン」をクリックします。github.com のページが開きます。
+    <value>1. 「サインイン」をクリックします。github.com のページが開きます。
 2. ここに表示されたコードを入力し、Authorize をクリックします。
 3. スマホで Controls > GitHub を開きます。</value>
   </data>
@@ -847,6 +847,9 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. gitee.com で「設定 &gt; 個人アクセストークン」を開き、読み取り権限付きのトークンを作成します。
 2. 「追加」をクリックして、トークンを貼り付けます。</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>これらを使うには、開発者モードをオンにしてください。</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex でもう一度許可が必要です</value>

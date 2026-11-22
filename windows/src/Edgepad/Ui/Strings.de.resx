@@ -774,7 +774,7 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
 4. Öffne auf deinem Handy Controls > AI. Es erscheint, sobald Codex sein erstes Ereignis sendet.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Klicke auf „Mit GitHub anmelden“. Eine Seite auf github.com öffnet sich.
+    <value>1. Klicke auf „Anmelden“. Eine Seite auf github.com öffnet sich.
 2. Gib den hier angezeigten Code ein und klicke auf Authorize.
 3. Öffne auf deinem Handy Controls > GitHub.</value>
   </data>
@@ -847,6 +847,9 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. Öffne auf gitee.com Einstellungen &gt; Persönliche Zugriffstoken und erstelle ein Token mit Lesezugriff.
 2. Klicke auf Hinzufügen und füge das Token ein.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Schalte den Entwicklermodus ein, um diese zu nutzen.</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex braucht noch einmal dein OK</value>

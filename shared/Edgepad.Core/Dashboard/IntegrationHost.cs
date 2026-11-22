@@ -98,6 +98,9 @@ internal sealed class IntegrationHost : IDisposable
     private IDisposable? githubTimer;
     private DateTimeOffset? githubLast;
     private string githubSent = NothingSent;
+
+    // What this phone was last sent for each token host (by id), so an unchanged page is not sent again.
+    private readonly Dictionary<string, string> gitSent = [];
     private bool githubRefused;
     private string? weatherSent;
     private int watch;
@@ -160,7 +163,12 @@ internal sealed class IntegrationHost : IDisposable
 
     private bool Heard(string agent) => parts.AgentHeard?.Invoke(agent) ?? true;
 
-    private bool AgentsOn => settings.Active(IntegrationSettings.Claude) || settings.Active(IntegrationSettings.Codex);
+    private bool AgentsOn => AgentTokens.Any(settings.Active);
+
+    private static readonly string[] AgentTokens = [AgentToken.Claude, AgentToken.Codex, AgentToken.Gemini, AgentToken.OpenCode];
+
+    /// <summary>Whether any token-pasting git host (Gitea, Bitbucket, Gitee) is on and was handed to this host.</summary>
+    private bool TokenHostsOn => parts.GitHosts is { Count: > 0 } hosts && hosts.Any(host => settings.Active(host.Id));
 
     /// <summary>Call once the session has sent FEATURES: sends the current sessions and lets the Codex watcher see the new phone.</summary>
     public void Start()
@@ -212,9 +220,28 @@ internal sealed class IntegrationHost : IDisposable
             features.Add(Feature.Codex);
         }
 
+        if (settings.Active(AgentToken.Gemini) && parts.Sessions is not null && Heard(AgentToken.Gemini))
+        {
+            features.Add(Feature.Gemini);
+        }
+
+        if (settings.Active(AgentToken.OpenCode) && parts.Sessions is not null && Heard(AgentToken.OpenCode))
+        {
+            features.Add(Feature.OpenCode);
+        }
+
         if (settings.Active(IntegrationSettings.GitHub) && parts.GitHub is not null && parts.GitHubSignedIn?.Invoke() == true)
         {
             features.Add(Feature.GitHub);
+        }
+
+        // A token host counts once its token is saved and its switch is on.
+        foreach (var host in parts.GitHosts ?? [])
+        {
+            if (settings.Active(host.Id) && host is TokenGitHost { IsSignedIn: true } && DevProviders.Find(host.Id) is { } provider)
+            {
+                features.Add(provider.FeatureToken);
+            }
         }
 
         return features;
@@ -274,14 +301,15 @@ internal sealed class IntegrationHost : IDisposable
                 weatherSent = null;
             }
 
-            if ((mask & GitHubBit) != 0 && githubTimer is null && GitHubOn)
+            if ((mask & GitHubBit) != 0 && githubTimer is null && (GitHubOn || TokenHostsOn))
             {
-                githubTimer = startTimer(() => run(RefreshGitHub), GitHubRefresh.Every);
+                githubTimer = startTimer(() => run(RefreshGit), GitHubRefresh.Every);
             }
             else if ((mask & GitHubBit) == 0)
             {
                 Stop(ref githubTimer);
                 githubSent = NothingSent;
+                gitSent.Clear();
             }
         }
 
@@ -296,6 +324,11 @@ internal sealed class IntegrationHost : IDisposable
         if (githubGained && GitHubOn && parts.GitHub!.Page is not null)
         {
             run(SendGitHub);
+        }
+
+        if (githubGained && TokenHostsOn)
+        {
+            run(SendGitHosts);
         }
 
         if (netGained && speed.Last is { } last)
@@ -350,7 +383,7 @@ internal sealed class IntegrationHost : IDisposable
             else if (githubTimer is null)
             {
                 // The new timer runs the first refresh now.
-                githubTimer = startTimer(() => run(RefreshGitHub), GitHubRefresh.Every);
+                githubTimer = startTimer(() => run(RefreshGit), GitHubRefresh.Every);
             }
             else if (githubLast is not { } last || clock() - last >= JustRefreshed)
             {
@@ -563,6 +596,54 @@ internal sealed class IntegrationHost : IDisposable
         }
 
         Push(new Text((byte)TextKind.Weather, text));
+    }
+
+    // One tick of the git timer: GitHub, then every token host that is on.
+    private void RefreshGit()
+    {
+        RefreshGitHub();
+        RefreshGitHosts();
+    }
+
+    private void RefreshGitHosts()
+    {
+        foreach (var host in (parts.GitHosts ?? []).Where(host => settings.Active(host.Id)))
+        {
+            try
+            {
+                _ = host.RefreshAsync(ended.Token).GetAwaiter().GetResult();
+            }
+            catch (Exception e) when (e is OperationCanceledException or ObjectDisposedException)
+            {
+                return;
+            }
+        }
+
+        if (Watching(GitHubBit))
+        {
+            SendGitHosts();
+        }
+    }
+
+    // Each token host that is on gets its page sent when it differs from what this phone holds; a host that went off or signed out sends nothing.
+    private void SendGitHosts()
+    {
+        foreach (var host in (parts.GitHosts ?? []).Where(host => settings.Active(host.Id)))
+        {
+            var text = host.Page?.Body ?? NothingSent;
+            lock (gate)
+            {
+                if (disposed || text == gitSent.GetValueOrDefault(host.Id, NothingSent))
+                {
+                    continue;
+                }
+
+                gitSent[host.Id] = text;
+            }
+
+            var body = Encoding.UTF8.GetBytes(text);
+            Guard(() => blobs.Send(BlobKind.Git, "git", body));
+        }
     }
 
     private void RefreshGitHub()

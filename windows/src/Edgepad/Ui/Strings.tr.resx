@@ -764,7 +764,7 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
 4. Telefonunuzda Controls > AI’ı açın. Codex ilk olayını gönderdiğinde görünür.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. GitHub ile oturum aç’a tıklayın. Bir github.com sayfası açılır.
+    <value>1. Oturum aç’a tıklayın. Bir github.com sayfası açılır.
 2. Burada gösterilen kodu girin ve Authorize’a tıklayın.
 3. Telefonunuzda Controls > GitHub’ı açın.</value>
   </data>
@@ -837,6 +837,9 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. gitee.com’da Ayarlar &gt; Kişisel erişim belirteçleri’ni açın ve okuma erişimli bir belirteç oluşturun.
 2. Ekle’ye tıklayın ve belirteci yapıştırın.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Bunları kullanmak için Geliştirici modunu açın.</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex yeniden onayınızı istiyor</value>

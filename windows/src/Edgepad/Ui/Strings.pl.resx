@@ -774,7 +774,7 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
 4. Na telefonie otwórz Controls > AI. Pojawi się, gdy Codex wyśle pierwsze zdarzenie.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Kliknij Zaloguj się przez GitHub. Otworzy się strona github.com.
+    <value>1. Kliknij Zaloguj się. Otworzy się strona github.com.
 2. Wpisz pokazany tutaj kod i kliknij Authorize.
 3. Na telefonie otwórz Controls > GitHub.</value>
   </data>
@@ -847,6 +847,9 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. Na gitee.com otwórz Ustawienia &gt; Osobiste tokeny dostępu i utwórz token z uprawnieniem do odczytu.
 2. Kliknij Dodaj i wklej token.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Włącz tryb programisty, aby z nich korzystać.</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex znowu potrzebuje Twojej zgody</value>

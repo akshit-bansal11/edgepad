@@ -774,7 +774,7 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
 4. 在手机上打开 Controls > AI。Codex 发送第一个事件后就会出现。</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. 点击“使用 GitHub 登录”。会打开一个 github.com 页面。
+    <value>1. 点击“登录”。会打开一个 github.com 页面。
 2. 输入这里显示的代码，然后点击 Authorize。
 3. 在手机上打开 Controls > GitHub。</value>
   </data>
@@ -847,6 +847,9 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. 在 gitee.com 打开“设置 &gt; 私人令牌”，创建具有读取权限的令牌。
 2. 点击“添加”，然后粘贴令牌。</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>请打开开发者模式以使用这些功能。</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex 需要你再次同意</value>

@@ -41,8 +41,8 @@ internal sealed class IntegrationSettings(string path)
     /// <summary>The app executable last stamped as <c>__APP__</c> for the agent.</summary>
     public static string PluginAppKey(string agent) => "pluginApp." + agent;
 
-    /// <summary>Whether the key is on and, for the developer keys (claude, codex, github), developer mode is on too.</summary>
-    public bool Active(string key) => Flag(key) && (key is not (Claude or Codex or GitHub) || Flag(Developer));
+    /// <summary>Whether the key is on and, for the developer keys (every AI tool and git host), developer mode is on too.</summary>
+    public bool Active(string key) => Flag(key) && (key is not ("claude" or "codex" or "gemini" or "opencode" or "github" or "gitlab" or "gitea" or "bitbucket" or "gitee") || Flag(Developer));
 
     /// <summary>True only when the stored value is exactly <c>1</c>.</summary>
     public bool Flag(string key)

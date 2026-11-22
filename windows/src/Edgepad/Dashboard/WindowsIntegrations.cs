@@ -25,6 +25,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
     private static readonly string[] FlagKeys =
     [
         IntegrationSettings.Stats, IntegrationSettings.Weather, IntegrationSettings.Claude, IntegrationSettings.Codex, IntegrationSettings.GitHub,
+        AgentToken.Gemini, AgentToken.OpenCode, "gitea", "bitbucket", "gitee",
     ];
 
     private readonly string folder;
@@ -90,7 +91,9 @@ internal sealed partial class WindowsIntegrations : IDisposable
 
     public GitHubSignIn SignIn { get; }
 
-    private bool AgentsOn => Settings.Active(IntegrationSettings.Claude) || Settings.Active(IntegrationSettings.Codex);
+    private bool AgentsOn => AgentTokens.Any(Settings.Active);
+
+    private static readonly string[] AgentTokens = [AgentToken.Claude, AgentToken.Codex, AgentToken.Gemini, AgentToken.OpenCode];
 
     private bool PhoneLinked() => Volatile.Read(ref phones) > 0;
 
@@ -141,7 +144,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
         }
 
         // GitHub too: a host built before the sign-in holds no client, so it could not refresh for the phone.
-        var rebuild = key is IntegrationSettings.Claude or IntegrationSettings.Codex or IntegrationSettings.Developer or IntegrationSettings.GitHub;
+        var rebuild = key is IntegrationSettings.Developer or IntegrationSettings.GitHub or "gitea" or "bitbucket" or "gitee" || AgentTokens.Contains(key);
         foreach (var link in live)
         {
             if (rebuild)
@@ -457,6 +460,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
             Weather = Settings.Flag(IntegrationSettings.Weather) ? weather : null,
             GitHub = Settings.Active(IntegrationSettings.GitHub) ? github : null,
             GitHubSignedIn = () => SignIn.IsSignedIn,
+            GitHosts = [.. gitHosts.Values],
             AgentHeard = agent => store?.LastHeard(agent) >= 0,
         };
     }

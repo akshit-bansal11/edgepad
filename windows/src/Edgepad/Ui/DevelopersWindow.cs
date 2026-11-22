@@ -34,6 +34,7 @@ internal sealed class DevelopersWindow : Form
 
     private readonly Label heading = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Integrations_ForDevelopers };
     private readonly Label subtitle = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Dev_Subtitle };
+    private readonly Label developerHint = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Dev_NeedDeveloper };
     private readonly CheckBox developerSwitch = new() { AutoSize = false, Text = Mnemonic.Escape(Strings.Menu_DeveloperMode), AccessibleName = Strings.Menu_DeveloperMode, UseVisualStyleBackColor = false };
     private readonly Label aiHeading = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Dev_SectionAi.ToUpper(CultureInfo.CurrentCulture) };
     private readonly Label gitHeading = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Dev_SectionGit.ToUpper(CultureInfo.CurrentCulture) };
@@ -82,6 +83,9 @@ internal sealed class DevelopersWindow : Form
     // Set while the window writes its own controls, so their Changed events do not echo into the settings.
     private bool filling;
     private bool fitScreen = true;
+
+    // Developer mode is on: while it is off every row is shown disabled, and the phone gets no developer data.
+    private bool developerOn;
 
     /// <param name="actions">What the window reads and does.</param>
     public DevelopersWindow(IntegrationActions actions)
@@ -175,6 +179,7 @@ internal sealed class DevelopersWindow : Form
         Controls.Add(heading);
         Controls.Add(developerSwitch);
         Controls.Add(subtitle);
+        Controls.Add(developerHint);
         Controls.Add(aiHeading);
         Controls.Add(gitHeading);
         foreach (var row in rows)
@@ -669,6 +674,7 @@ internal sealed class DevelopersWindow : Form
         width = S(DialogWidth - (Pad * 2));
         left = S(Pad);
         top = S(Pad) + AutoScrollPosition.Y;
+        developerOn = actions.Settings.Flag(IntegrationSettings.Developer);
         shown.Clear();
         order.Clear();
 
@@ -683,7 +689,11 @@ internal sealed class DevelopersWindow : Form
         Place(developerSwitch, left + width - switchWidth, top, switchWidth, S(32));
         order.Add(developerSwitch);
         top += S(36);
-        Put(subtitle, left, width, 13f, Weight.Regular, palette.Dim, palette.Card, S(14));
+        Put(subtitle, left, width, 13f, Weight.Regular, palette.Dim, palette.Card, S(developerOn ? 14 : 6));
+        if (!developerOn)
+        {
+            Put(developerHint, left, width, 13f, Weight.Bold, palette.Ink, palette.Card, S(14));
+        }
 
         foreach (var (title, kind) in new[] { (aiHeading, DevKind.Ai), (gitHeading, DevKind.Git) })
         {
@@ -748,6 +758,11 @@ internal sealed class DevelopersWindow : Form
             button = row.Undo;
         }
 
+        if (button is not null && !developerOn)
+        {
+            button.Enabled = false;
+        }
+
         var buttonWidth = button?.FitWidth(DeviceDpi) ?? 0;
         var textX = left + S(TextIndent);
         var textWidth = width - S(TextIndent) - (buttonWidth > 0 ? buttonWidth + S(12) : 0);
@@ -768,6 +783,7 @@ internal sealed class DevelopersWindow : Form
             row.HowTo.Text = Strings.Dev_HowTo + " " + Mark(expanded.Contains(provider.Id));
             row.HowTo.AccessibleName = Strings.Dev_HowTo;
             row.HowTo.AccessibleDescription = provider.Name;
+            row.HowTo.Enabled = developerOn;
             howToWidth = row.HowTo.FitWidth(DeviceDpi);
         }
 
@@ -829,6 +845,7 @@ internal sealed class DevelopersWindow : Form
 
         if (manual)
         {
+            row.Copy.Enabled = developerOn;
             Place(row.Copy, detailX, top, row.Copy.FitWidth(DeviceDpi), S(ButtonHeight));
             order.Add(row.Copy);
             top += S(ButtonHeight + 8);

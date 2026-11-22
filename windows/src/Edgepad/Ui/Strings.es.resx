@@ -774,7 +774,7 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
 4. En tu teléfono, abre Controls > AI. Aparece en cuanto Codex envía su primer evento.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Haz clic en Iniciar sesión con GitHub. Se abre una página de github.com.
+    <value>1. Haz clic en Iniciar sesión. Se abre una página de github.com.
 2. Introduce el código que se muestra aquí y haz clic en Authorize.
 3. En tu teléfono, abre Controls > GitHub.</value>
   </data>
@@ -847,6 +847,9 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. En gitee.com, abre Configuración &gt; Tokens de acceso personal y crea un token con permiso de lectura.
 2. Haz clic en Añadir y pega el token.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Activa el modo desarrollador para usarlas.</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex necesita tu aprobación otra vez</value>

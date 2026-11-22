@@ -774,7 +774,7 @@
 4. На телефоне откройте Controls > AI. Раздел появится, когда Codex отправит первое событие.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Нажмите «Войти через GitHub». Откроется страница github.com.
+    <value>1. Нажмите «Войти». Откроется страница github.com.
 2. Введите показанный здесь код и нажмите Authorize.
 3. На телефоне откройте Controls > GitHub.</value>
   </data>
@@ -847,6 +847,9 @@
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. На gitee.com откройте «Настройки &gt; Персональные токены доступа» и создайте токен с правом на чтение.
 2. Нажмите «Добавить» и вставьте токен.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Включите режим разработчика, чтобы ими пользоваться.</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex снова нужно ваше подтверждение</value>

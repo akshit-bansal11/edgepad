@@ -774,7 +774,7 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
 4. No celular, abra Controls > AI. Ele aparece assim que o Codex envia o primeiro evento.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Clique em Entrar com o GitHub. Uma página do github.com será aberta.
+    <value>1. Clique em Entrar. Uma página do github.com será aberta.
 2. Digite o código mostrado aqui e clique em Authorize.
 3. No celular, abra Controls > GitHub.</value>
   </data>
@@ -847,6 +847,9 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. No gitee.com, abra Configurações &gt; Tokens de acesso pessoal e crie um token com permissão de leitura.
 2. Clique em Adicionar e cole o token.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Ative o modo desenvolvedor para usá-los.</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>O Codex precisa do seu OK de novo</value>

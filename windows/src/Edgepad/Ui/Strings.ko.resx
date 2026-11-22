@@ -774,7 +774,7 @@ Wi-Fi 및 USB 페어링을 등록 해제하지 못했어요. 파일을 삭제하
 4. 휴대전화에서 Controls > AI를 여세요. Codex가 첫 이벤트를 보내면 나타나요.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. GitHub로 로그인을 클릭하세요. github.com 페이지가 열려요.
+    <value>1. 로그인을 클릭하세요. github.com 페이지가 열려요.
 2. 여기 표시된 코드를 입력하고 Authorize를 클릭하세요.
 3. 휴대전화에서 Controls > GitHub를 여세요.</value>
   </data>
@@ -847,6 +847,9 @@ Wi-Fi 및 USB 페어링을 등록 해제하지 못했어요. 파일을 삭제하
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. gitee.com에서 설정 &gt; 개인 액세스 토큰을 열고 읽기 권한이 있는 토큰을 만드세요.
 2. 추가를 클릭하고 토큰을 붙여넣으세요.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>이 기능을 사용하려면 개발자 모드를 켜세요.</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex에서 다시 허용이 필요해요</value>

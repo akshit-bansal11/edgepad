@@ -774,7 +774,7 @@
 4. अपने फ़ोन पर Controls > AI खोलें। यह तब दिखेगा जब Codex अपना पहला इवेंट भेजेगा।</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. GitHub से साइन इन करें पर क्लिक करें। github.com का एक पेज खुलेगा।
+    <value>1. साइन इन करें पर क्लिक करें। github.com का एक पेज खुलेगा।
 2. यहाँ दिखाया गया कोड डालें और Authorize पर क्लिक करें।
 3. अपने फ़ोन पर Controls > GitHub खोलें।</value>
   </data>
@@ -847,6 +847,9 @@
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. gitee.com पर Settings &gt; Personal access tokens खोलें और पढ़ने की पहुँच वाला टोकन बनाएँ।
 2. जोड़ें पर क्लिक करें और टोकन चिपकाएँ।</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>इनका उपयोग करने के लिए डेवलपर मोड चालू करें।</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex को फिर से आपकी मंज़ूरी चाहिए</value>

@@ -774,7 +774,7 @@
 4. على هاتفك، افتح Controls > AI. يظهر بعد أن يرسل Codex أول حدث له.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. انقر «تسجيل الدخول باستخدام GitHub». تُفتح صفحة على github.com.
+    <value>1. انقر «تسجيل الدخول». تُفتح صفحة على github.com.
 2. أدخل الرمز المعروض هنا وانقر Authorize.
 3. على هاتفك، افتح Controls > GitHub.</value>
   </data>
@@ -847,6 +847,9 @@
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. في gitee.com، افتح الإعدادات &gt; رموز الوصول الشخصية وأنشئ رمزًا بصلاحية القراءة.
 2. انقر «إضافة» والصق الرمز.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>شغّل وضع المطوّر لاستخدام هذه الأدوات.</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>يحتاج Codex إلى موافقتك مرة أخرى</value>

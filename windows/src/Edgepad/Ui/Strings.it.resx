@@ -774,7 +774,7 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
 4. Sul telefono, apri Controls > AI. Compare quando Codex invia il suo primo evento.</value>
   </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Fai clic su Accedi con GitHub. Si apre una pagina di github.com.
+    <value>1. Fai clic su Accedi. Si apre una pagina di github.com.
 2. Inserisci il codice mostrato qui e fai clic su Authorize.
 3. Sul telefono, apri Controls > GitHub.</value>
   </data>
@@ -847,6 +847,9 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
   <data name="Dev_GiteeSteps" xml:space="preserve">
     <value>1. Su gitee.com apri Impostazioni &gt; Token di accesso personali e crea un token con permesso di lettura.
 2. Fai clic su Aggiungi e incolla il token.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Attiva la modalità sviluppatore per usarli.</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex ha di nuovo bisogno del tuo OK</value>
