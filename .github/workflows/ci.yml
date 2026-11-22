@@ -142,6 +142,18 @@ jobs:
           global-json-file: global.json
       - name: Quality gate
         run: pwsh scripts/check.ps1 -Ci -Only windows
+      # PNGs of the Windows surfaces (windows/tests/Edgepad.Tests/DesignGallery.cs), for comparing with the design spec.
+      # Never gates: a runner that cannot draw a window fails this step and nothing else.
+      - name: Design gallery
+        continue-on-error: true
+        env:
+          EDGEPAD_GALLERY_OUT: ${{ runner.temp }}\gallery
+        run: dotnet test --project windows/tests/Edgepad.Tests -c Release --filter-class "*DesignGallery"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: edgepad-windows-shots
+          path: ${{ runner.temp }}\gallery\*.png
+          if-no-files-found: warn
       # As the release job does it, so a notices file that cannot be written fails here first.
       - name: Write the licence notices
         shell: bash
