@@ -32,6 +32,7 @@ object SettingsScreen {
         val documentation: () -> Unit,
         val update: () -> Unit,
         val licences: () -> Unit,
+        val uses: () -> Unit,
         val sideways: (Boolean) -> Unit,
         val clipboard: () -> Unit,
         val stayConnected: () -> Unit,
@@ -209,6 +210,8 @@ object SettingsScreen {
                                 settings.autoUpdateCheck = it
                             },
                         )
+                        hairline()
+                        add(ui.link(ui.string(R.string.uses_title), null, routes.uses))
                         hairline()
                         add(ui.link(ui.string(R.string.licences_title), null, routes.licences))
                     }

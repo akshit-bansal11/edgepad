@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="uses_title">Edgepad 的用途</string>
+  <string name="uses_intro">Edgepad 获取或需要的一切内容，无论大小，都列在这里，让你清楚自己授予了哪些访问权限。在某项功能需要之前，这里的任何内容都不会被使用。Wi-Fi 网络名称、你的位置、联系人、照片和麦克风，从不会被请求。</string>
+  <string name="uses_section_perms">此手机上的权限</string>
+  <string name="uses_section_flow">手机与电脑之间传输的内容</string>
+  <string name="uses_section_net">连接互联网的内容</string>
+  <string name="uses_section_laptop">在你的电脑上</string>
+  <string name="uses_flow_out">从此手机到电脑</string>
+  <string name="uses_flow_in">从电脑到此手机</string>
+  <string name="uses_flow_local">保留在此手机上</string>
+  <string name="uses_laptop_ai">任何电脑上的 AI 工具与 Git</string>
+
+  <string name="uses_perm_bluetooth_title">附近的设备（蓝牙）</string>
+  <string name="uses_perm_bluetooth_body">让 Edgepad 连接到你已在 Android 蓝牙设置中配对的电脑。它从不扫描或读取其他蓝牙设备。首次打开“设备”时，Android 会询问。</string>
+  <string name="uses_perm_localnet_title">本地网络</string>
+  <string name="uses_perm_localnet_body">让此手机在你自己的 Wi-Fi 上找到电脑并与之通信。首次搜索 Wi-Fi 前，Android 会询问。</string>
+  <string name="uses_perm_netstate_title">网络状态</string>
+  <string name="uses_perm_netstate_body">告诉 Edgepad 你当前使用的是 Wi-Fi、USB 网络共享还是移动数据，以便查找电脑并在“网络”页面显示你的连接。Android 不会询问。</string>
+  <string name="uses_perm_wifistate_title">Wi-Fi 状态</string>
+  <string name="uses_perm_wifistate_body">为“网络”页面读取此手机自身的 Wi-Fi 链路速度、频段和信号强度。从不读取网络名称，那需要位置权限。Android 不会询问。</string>
+  <string name="uses_perm_multicast_title">Wi-Fi 组播</string>
+  <string name="uses_perm_multicast_body">用于在 Wi-Fi 上查找电脑。Android 也将其视为让连接服务在后台运行的理由。Android 不会询问。</string>
+  <string name="uses_perm_internet_title">互联网</string>
+  <string name="uses_perm_internet_body">通过 Wi-Fi 或 USB 承载与电脑的连接。Edgepad 本身仅在向 github.com 查询最新版本以及下载你选择的更新时使用互联网。Android 不会询问。</string>
+  <string name="uses_perm_install_title">安装应用</string>
+  <string name="uses_perm_install_body">允许 Edgepad 安装你选择下载的 Edgepad 更新。首次时，Android 会询问你是否允许 Edgepad 安装应用。</string>
+  <string name="uses_perm_update_title">无需再次询问即可更新</string>
+  <string name="uses_perm_update_body">在 Android 12 及更高版本上，你允许后，Edgepad 更新可无需再次确认即安装。它只更新 Edgepad。Android 不会询问。</string>
+  <string name="uses_perm_service_title">在后台运行</string>
+  <string name="uses_perm_service_body">在 Edgepad 最小化时保持与电脑的连接，运行时显示通知。由“设置”中的“在后台保持连接”控制。Android 不会询问。</string>
+  <string name="uses_perm_servicetype_title">后台连接类型</string>
+  <string name="uses_perm_servicetype_body">将该后台服务标记为保持与设备（即你的电脑）连接的服务。Android 不会询问。</string>
+  <string name="uses_perm_notify_title">通知</string>
+  <string name="uses_perm_notify_body">显示连接提示、文件传输、AI 权限请求，以及你开启后的电脑通知。Android 13 及更高版本会在介绍之后询问一次。</string>
+  <string name="uses_perm_overlay_title">显示在其他应用上层</string>
+  <string name="uses_perm_overlay_body">仅用于你自行开启的浮动拨盘。Android 会引导你进入它自己的设置页面；其他情况下 Edgepad 从不询问。</string>
+
+  <string-array name="uses_out_keys">
+    <item>你的输入</item>
+    <item>剪贴板</item>
+    <item>文件与分享</item>
+    <item>打开的页面</item>
+    <item>你的回答</item>
+    <item>你的开关</item>
+  </string-array>
+  <string-array name="uses_out_values">
+    <item>触摸、按键、你输入的文字、游戏手柄和手写笔操作，以及音量和亮度等按钮。仅在连接了电脑时。</item>
+    <item>你复制的文字或图片，仅当你开启“共享剪贴板”且 Edgepad 在屏幕上时（Android 允许的范围内）发送。</item>
+    <item>你主动发送或分享到 Edgepad 的文件、文字或图片。点击“发送”后才会发送。</item>
+    <item>手机正在显示哪些仪表盘页面。电脑只在某页面打开时读取 CPU、天气、AI 或 Git 数据。</item>
+    <item>你输入的 PIN，以及对 AI 工具权限请求的“允许”或“拒绝”。</item>
+    <item>通知、开发者模式、截图保存位置、画笔大小和颜色，以及是否报告前台应用。</item>
+  </string-array>
+  <string-array name="uses_in_keys">
+    <item>电脑的运行状态</item>
+    <item>宏与应用</item>
+    <item>截取与文件</item>
+    <item>剪贴板与通知</item>
+    <item>仪表盘</item>
+    <item>网络页面</item>
+  </string-array>
+  <string-array name="uses_in_values">
+    <item>正在播放的内容及所在应用、音量、亮度、显示大小和刷新率、电脑名称和系统、电脑及其蓝牙设备的电量，以及音频输出的名称。</item>
+    <item>宏名称和图标，以及可添加为宏的应用列表。从不包括背后的路径或命令。</item>
+    <item>仅当你选择“发送到手机”时的截图或录屏，以及你从电脑发送的文件。</item>
+    <item>若开启剪贴板共享，则为复制的文字或图片；若两个通知开关都开启，则为电脑的通知（应用、标题、简短文字）。从不记录。</item>
+    <item>仪表盘页面打开时：电脑负载和磁盘使用、天气、AI 会话名称和状态、AI 用量和限额，以及 Git 拉取请求和议题的标题。</item>
+    <item>电脑的连接类型、频段、链路速度、信号、本地地址和网关，以及测速结果。从不包括 Wi-Fi 名称。</item>
+  </string-array>
+  <string name="uses_local_key">此手机自身的数据</string>
+  <string name="uses_local_value">“系统”页面上的电池、内存、存储和连接数据仅在该页面打开时在此手机上读取，且从不发送到任何地方。</string>
+
+  <string-array name="uses_net_keys">
+    <item>检查更新</item>
+    <item>测速</item>
+    <item>天气</item>
+    <item>Git 与登录</item>
+    <item>你打开的链接</item>
+    <item>其他一概没有</item>
+  </string-array>
+  <string-array name="uses_net_values">
+    <item>github.com，来自此手机及电脑应用：一次请求，用于查询最新版本，不发送你设备的任何信息。你选择下载的更新同样来自 github.com。</item>
+    <item>speed.cloudflare.com，仅在你点击“测速”时由电脑发起。它传输测试数据，不发送任何与你相关的信息。</item>
+    <item>api.open-meteo.com 和 geocoding-api.open-meteo.com，仅在天气小组件开启时由电脑发起。你选择的地点会被发送以查找坐标，然后再请求天气预报。</item>
+    <item>仅在你于电脑上登录后，且仅用于读取：github.com 和 api.github.com、gitlab.com 或你输入的 GitLab 服务器、codeberg.org 或你输入的 Gitea 或 Forgejo 服务器、api.bitbucket.org，以及 gitee.com。Edgepad 从不写入：内置的门控会拒绝所有非读取请求。</item>
+    <item>文档所在的 getedgepad.com，以及 github.com 上的 ViGEmBus 下载页面。只有在你点击链接时，浏览器才会打开它们。</item>
+    <item>对手机、Windows、Mac 和 Linux 应用中的网址搜索未发现其他主机。没有账户、没有分析、没有崩溃报告，也没有广告。</item>
+  </string-array>
+
+  <string-array name="uses_windows_keys">
+    <item>以管理员身份重新启动</item>
+    <item>防火墙规则</item>
+    <item>登录时启动</item>
+    <item>发送到</item>
+    <item>通知访问</item>
+    <item>虚拟控制器</item>
+  </string-array>
+  <string-array name="uses_windows_values">
+    <item>托盘菜单中的一个可选项，位于 Windows 自身的提示之后。它让 Edgepad 能够向以管理员身份运行的窗口输入内容，否则 Windows 会阻止这些输入。</item>
+    <item>为 Edgepad.exe 添加一条入站允许规则，以便手机可通过 Wi-Fi 或 USB 连接，该规则在 Windows 的提示之后添加。若你选择否，下次启动时不会再次询问。</item>
+    <item>当你在托盘菜单中开启后，一个按用户设置的条目会在你登录时启动 Edgepad。无需管理员权限。</item>
+    <item>你自己的“发送到”文件夹中的一个快捷方式，因此通过“发送到”，选择 Edgepad 即可将文件发送到手机。</item>
+    <item>仅当你转发通知时：Windows 会询问是否允许 Edgepad 读取这些通知。</item>
+    <item>手机的游戏手柄需要 ViGEmBus 驱动，由你自行安装。Edgepad 只会打开其下载页面。</item>
+  </string-array>
+  <string-array name="uses_mac_keys">
+    <item>辅助功能</item>
+    <item>蓝牙</item>
+    <item>本地网络</item>
+    <item>自动化</item>
+    <item>文件和文件夹</item>
+    <item>通知与登录项</item>
+    <item>不请求</item>
+  </string-array>
+  <string-array name="uses_mac_values">
+    <item>为手机进行输入、点击和按键所需。macOS 会询问；缺少时 Edgepad 会告知手机。</item>
+    <item>用于监听与此 Mac 配对的手机。</item>
+    <item>当你开启 Wi-Fi 连接时，让手机能通过 Wi-Fi 找到此 Mac。</item>
+    <item>用于询问“音乐”或 Spotify 正在播放什么并进行控制，以及在你为媒体设置结束时间后让此 Mac 睡眠或关机。</item>
+    <item>桌面、文稿和下载，用于查找你要求发送到手机的截图或录屏。</item>
+    <item>手机请求配对及有新版本时的提醒；“登录时启动”是普通的登录项。登录令牌保存在 Keychain 中。</item>
+    <item>输入监控和屏幕录制。截取使用 macOS 自带的快捷键。</item>
+  </string-array>
+  <string-array name="uses_linux_keys">
+    <item>输入设备</item>
+    <item>蓝牙</item>
+    <item>桌面服务</item>
+    <item>登录时启动</item>
+  </string-array>
+  <string-array name="uses_linux_values">
+    <item>/dev/uinput，为键盘前的用户打开，通过 udev 规则和安装程序一次性以管理员身份添加的模块设置。</item>
+    <item>BlueZ，位于系统总线上，用于监听你配对的手机。</item>
+    <item>会话总线上：通知、媒体播放器（MPRIS）、电源（UPower）、睡眠与锁定（login1）、“网络”页面所用的 NetworkManager、桌面的深色模式设置、显示刷新率、托盘，以及用于登录令牌的 Secret Service。</item>
+    <item>开启时，在你自己的配置文件夹中添加一个自动启动项。</item>
+  </string-array>
+  <string-array name="uses_ai_keys">
+    <item>AI 工具</item>
+    <item>登录令牌</item>
+  </string-array>
+  <string-array name="uses_ai_values">
+    <item>仅在开启开发者模式时。Edgepad 读取 Claude Code、Codex、Gemini CLI 和 OpenCode 的本地会话与用量文件；连接其中任一工具，会向该工具自己的设置中添加一个小型钩子或插件。</item>
+    <item>Git 令牌加密保存在电脑上自身的凭据存储中，从不发送到手机。</item>
+  </string-array>
+</resources>

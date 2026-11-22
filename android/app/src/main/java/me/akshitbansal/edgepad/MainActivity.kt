@@ -128,6 +128,7 @@ import me.akshitbansal.edgepad.screens.Carry
 import me.akshitbansal.edgepad.screens.ClipboardSheet
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.CornersScreen
+import me.akshitbansal.edgepad.screens.DataUsesScreen
 import me.akshitbansal.edgepad.screens.DeveloperHub
 import me.akshitbansal.edgepad.screens.DialFeelScreen
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
@@ -228,6 +229,7 @@ class MainActivity :
     private enum class Screen {
         ONBOARDING,
         GUIDE,
+        USES,
         PAIRING,
         SHARING,
         SETTINGS,
@@ -781,7 +783,7 @@ class MainActivity :
         val granted = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         // One system prompt at a time: while another is up this waits for the next time the service is needed.
         // Not over the guide; onFinish asks once it is over.
-        if (granted || (askedNotifications && !forced) || permissionPending || screen == Screen.ONBOARDING) return
+        if (granted || (askedNotifications && !forced) || permissionPending || inIntro()) return
         askedNotifications = true
         requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATIONS)
     }
@@ -1184,11 +1186,16 @@ class MainActivity :
                         syncService()
                         if (serviceUp) askNotifications()
                         checkForUpdateIfDue()
-                    }) { navigateBack() }
+                    }, onBack = { navigateBack() }, onUses = { goTo(Screen.USES) })
                 }
 
                 Screen.GUIDE -> {
                     GuideScreen.build(ui, settings, intro = false, onFinish = {}) { navigateBack() }
+                }
+
+                Screen.USES -> {
+                    val from = if (settings.onboarded) R.string.settings_title else R.string.app_name
+                    DataUsesScreen.build(ui, getString(from)) { navigateBack() }
                 }
 
                 Screen.PAIRING -> {
@@ -1233,6 +1240,7 @@ class MainActivity :
                         SettingsScreen.Routes(
                             devices = { goTo(Screen.PAIRING) },
                             guide = { goTo(Screen.GUIDE) },
+                            uses = { goTo(Screen.USES) },
                             documentation = { open(getString(R.string.documentation_url)) },
                             update = ::openUpdate,
                             licences = ::showLicences,
@@ -1735,6 +1743,11 @@ class MainActivity :
 
             Screen.GUIDE -> {
                 goTo(Screen.SETTINGS)
+            }
+
+            // Reached from the first run's guide, or from Settings once that is over.
+            Screen.USES -> {
+                goTo(if (settings.onboarded) Screen.SETTINGS else Screen.ONBOARDING)
             }
 
             Screen.SHAPE_DRAW -> {
@@ -2317,9 +2330,12 @@ class MainActivity :
         }
     }
 
+    /** The first run's guide, or the list of what Edgepad uses opened from it: no permission question yet. */
+    private fun inIntro(): Boolean = screen == Screen.ONBOARDING || (screen == Screen.USES && !settings.onboarded)
+
     private fun refreshPicker() {
         // The guide comes first; the permission prompts wait for the list they are asked for.
-        if (screen == Screen.ONBOARDING) return
+        if (inIntro()) return
         val adapter = getSystemService(BluetoothManager::class.java)?.adapter
         val permitted = checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
         // Asked for once by itself, where it used to be asked for on every refresh; after a refusal the
@@ -3333,6 +3349,7 @@ class MainActivity :
             setOf(
                 Screen.ONBOARDING,
                 Screen.GUIDE,
+                Screen.USES,
                 Screen.PAIRING,
                 Screen.SHARING,
                 Screen.RECONNECTING,

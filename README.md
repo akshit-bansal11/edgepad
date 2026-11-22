@@ -219,7 +219,7 @@ Edgepad speaks English plus Simplified Chinese, Spanish, Hindi, German, French, 
 
 ## Security
 
-Only a phone that is paired with the laptop can connect, and only a phone you answer **Trust** for is admitted. Every trusted phone has full keyboard-level control of the laptop, so trust only your own. An optional PIN, set on the laptop only, adds a lock-out against guessing. There is no server, no account and no telemetry. The boundaries and the known limits are in [SECURITY.md](SECURITY.md) (report a hole privately, as it describes); the levels and the PIN are explained in the [user guide](docs/USER-GUIDE.md#security-levels-and-the-pin).
+Only a phone that is paired with the laptop can connect, and only a phone you answer **Trust** for is admitted. Every trusted phone has full keyboard-level control of the laptop, so trust only your own. An optional PIN, set on the laptop only, adds a lock-out against guessing. There is no server, no account and no telemetry. Every permission, data flow and internet host is listed in [docs/DATA-AND-PERMISSIONS.md](docs/DATA-AND-PERMISSIONS.md). The boundaries and the known limits are in [SECURITY.md](SECURITY.md) (report a hole privately, as it describes); the levels and the PIN are explained in the [user guide](docs/USER-GUIDE.md#security-levels-and-the-pin).
 
 ## Develop
 

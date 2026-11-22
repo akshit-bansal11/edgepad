@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="uses_title">Edgepad क्या इस्तेमाल करता है</string>
+  <string name="uses_intro">Edgepad जो भी लेता है या जिसकी ज़रूरत है, चाहे बड़ा हो या छोटा, वह सब यहां है, ताकि आपको पता रहे कि आप कौन सी पहुंच दे रहे हैं। जब तक कोई फ़ीचर उसकी मांग न करे, यहां की कोई चीज़ इस्तेमाल नहीं होती। वाई-फ़ाई नेटवर्क के नाम, आपकी लोकेशन, आपके कॉन्टैक्ट, आपकी फ़ोटो और आपके माइक्रोफ़ोन की कभी मांग नहीं की जाती।</string>
+  <string name="uses_section_perms">इस फ़ोन पर अनुमतियां</string>
+  <string name="uses_section_flow">फ़ोन और लैपटॉप के बीच जो जाता है</string>
+  <string name="uses_section_net">इंटरनेट तक जो पहुंचता है</string>
+  <string name="uses_section_laptop">आपके लैपटॉप पर</string>
+  <string name="uses_flow_out">इस फ़ोन से लैपटॉप तक</string>
+  <string name="uses_flow_in">लैपटॉप से इस फ़ोन तक</string>
+  <string name="uses_flow_local">इस फ़ोन पर रहता है</string>
+  <string name="uses_laptop_ai">किसी भी लैपटॉप पर AI टूल और Git</string>
+
+  <string name="uses_perm_bluetooth_title">आस-पास के डिवाइस (ब्लूटूथ)</string>
+  <string name="uses_perm_bluetooth_body">Edgepad को उस लैपटॉप से कनेक्ट होने देता है जिसे आपने Android की ब्लूटूथ सेटिंग्स में पहले से पेयर किया है। यह दूसरे ब्लूटूथ डिवाइस न कभी खोजता है, न उन्हें पढ़ता है। पहली बार डिवाइस खोलने पर Android पूछता है।</string>
+  <string name="uses_perm_localnet_title">लोकल नेटवर्क</string>
+  <string name="uses_perm_localnet_body">यह फ़ोन आपके अपने वाई-फ़ाई पर लैपटॉप खोजकर उनसे बात कर सकता है। पहली वाई-फ़ाई खोज से पहले Android पूछता है।</string>
+  <string name="uses_perm_netstate_title">नेटवर्क की स्थिति</string>
+  <string name="uses_perm_netstate_body">Edgepad को बताता है कि आप वाई-फ़ाई, USB टेदरिंग या मोबाइल डेटा पर हैं, ताकि लैपटॉप खोजे जा सकें और नेटवर्क पेज पर आपका कनेक्शन दिखे। Android नहीं पूछता।</string>
+  <string name="uses_perm_wifistate_title">वाई-फ़ाई की स्थिति</string>
+  <string name="uses_perm_wifistate_body">नेटवर्क पेज के लिए इस फ़ोन की अपनी वाई-फ़ाई लिंक स्पीड, बैंड और सिग्नल स्ट्रेंथ पढ़ता है। नेटवर्क का नाम कभी नहीं, जिसके लिए लोकेशन चाहिए होती। Android नहीं पूछता।</string>
+  <string name="uses_perm_multicast_title">वाई-फ़ाई मल्टीकास्ट</string>
+  <string name="uses_perm_multicast_body">वाई-फ़ाई पर लैपटॉप खोजने के लिए ज़रूरी है। Android इसे कनेक्शन सेवा को बैकग्राउंड में चलाने की वजह के रूप में भी मानता है। Android नहीं पूछता।</string>
+  <string name="uses_perm_internet_title">इंटरनेट</string>
+  <string name="uses_perm_internet_body">वाई-फ़ाई या USB पर लैपटॉप तक का लिंक ले जाता है। Edgepad खुद इंटरनेट का इस्तेमाल सिर्फ़ github.com से नया वर्ज़न पूछने और आपकी चुनी हुई अपडेट डाउनलोड करने के लिए करता है। Android नहीं पूछता।</string>
+  <string name="uses_perm_install_title">ऐप्स इंस्टॉल करना</string>
+  <string name="uses_perm_install_body">Edgepad को आपकी चुनी हुई Edgepad अपडेट इंस्टॉल करने देता है। पहली बार Android पूछता है कि क्या Edgepad से इंस्टॉल की अनुमति देनी है।</string>
+  <string name="uses_perm_update_title">बिना दोबारा पूछे अपडेट</string>
+  <string name="uses_perm_update_body">Android 12 और उसके बाद, एक बार अनुमति देने पर Edgepad की अपडेट बिना दूसरा सवाल पूछे इंस्टॉल होने देता है। यह सिर्फ़ Edgepad को अपडेट करता है। Android नहीं पूछता।</string>
+  <string name="uses_perm_service_title">बैकग्राउंड में चलना</string>
+  <string name="uses_perm_service_body">Edgepad के मिनिमाइज़ होने पर भी लैपटॉप से लिंक चालू रखता है, चलते समय एक नोटिफ़िकेशन के साथ। यह सेटिंग्स में “बैकग्राउंड में कनेक्ट रखें” से नियंत्रित होता है। Android नहीं पूछता।</string>
+  <string name="uses_perm_servicetype_title">बैकग्राउंड लिंक का प्रकार</string>
+  <string name="uses_perm_servicetype_body">उस बैकग्राउंड सेवा को उस रूप में चिह्नित करता है जो किसी डिवाइस, यानी आपके लैपटॉप, से कनेक्शन बनाए रखती है। Android नहीं पूछता।</string>
+  <string name="uses_perm_notify_title">नोटिफ़िकेशन</string>
+  <string name="uses_perm_notify_body">कनेक्शन की सूचना, फ़ाइल ट्रांसफ़र, AI अनुमति अनुरोध और, अगर आप चालू करें, तो आपके लैपटॉप के नोटिफ़िकेशन दिखाता है। Android 13 और उसके बाद परिचय के बाद एक बार पूछता है।</string>
+  <string name="uses_perm_overlay_title">दूसरे ऐप्स के ऊपर दिखाना</string>
+  <string name="uses_perm_overlay_body">सिर्फ़ उन फ़्लोटिंग डायल के लिए जिन्हें आप खुद चालू करते हैं। Android आपको उसके अपने सेटिंग्स पेज पर भेजता है; Edgepad और कभी नहीं पूछता।</string>
+
+  <string-array name="uses_out_keys">
+    <item>आपका इनपुट</item>
+    <item>क्लिपबोर्ड</item>
+    <item>फ़ाइलें और शेयर</item>
+    <item>कौन से पेज खुले हैं</item>
+    <item>आपके जवाब</item>
+    <item>आपके स्विच</item>
+  </string-array>
+  <string-array name="uses_out_values">
+    <item>टच, की, आपका टाइप किया टेक्स्ट, गेमपैड और पेन के स्ट्रोक, और वॉल्यूम व ब्राइटनेस जैसे बटन। सिर्फ़ तब जब लैपटॉप कनेक्ट हो।</item>
+    <item>टेक्स्ट या इमेज जो आप कॉपी करें, सिर्फ़ तब अगर आप क्लिपबोर्ड शेयर करें चालू करें, और सिर्फ़ तब जब Edgepad स्क्रीन पर हो, जैसा Android अनुमति देता है।</item>
+    <item>फ़ाइल, टेक्स्ट या इमेज जो आप जान-बूझकर भेजें, या Edgepad पर शेयर करें। भेजें दबाने के बाद भेजा जाता है।</item>
+    <item>कौन से डैशबोर्ड पेज फ़ोन पर दिख रहे हैं, ताकि लैपटॉप CPU, मौसम, AI या Git डेटा तभी पढ़े जब कोई पेज स्क्रीन पर हो।</item>
+    <item>PIN जो आप टाइप करें, और AI टूल के अनुमति अनुरोध पर मंज़ूरी दें या मना करें।</item>
+    <item>नोटिफ़िकेशन, डेवलपर मोड, कैप्चर कहां सेव होते हैं, पेन का आकार और रंग, और यह बताना कि कोई ऐप सामने है या नहीं।</item>
+  </string-array>
+  <string-array name="uses_in_keys">
+    <item>लैपटॉप क्या कर रहा है</item>
+    <item>मैक्रो और ऐप्स</item>
+    <item>कैप्चर और फ़ाइलें</item>
+    <item>क्लिपबोर्ड और नोटिफ़िकेशन</item>
+    <item>डैशबोर्ड</item>
+    <item>नेटवर्क पेज</item>
+  </string-array>
+  <string-array name="uses_in_values">
+    <item>क्या चल रहा है और किस ऐप में, वॉल्यूम, ब्राइटनेस, डिस्प्ले का साइज़ और रिफ़्रेश रेट, लैपटॉप का नाम और सिस्टम, लैपटॉप की बैटरी और उसके ब्लूटूथ डिवाइस की बैटरी, और ऑडियो आउटपुट का नाम।</item>
+    <item>मैक्रो के नाम और आइकन, और उन ऐप्स की सूची जिन्हें आप मैक्रो बना सकते हैं। कभी उनके पाथ या कमांड नहीं।</item>
+    <item>स्क्रीनशॉट या रिकॉर्डिंग सिर्फ़ तब जब आपने फ़ोन पर सेव करें चुना हो, और जो फ़ाइलें आप लैपटॉप से भेजें।</item>
+    <item>कॉपी किया टेक्स्ट या इमेज अगर क्लिपबोर्ड शेयर चालू है, और लैपटॉप के नोटिफ़िकेशन (ऐप, शीर्षक, छोटा टेक्स्ट) अगर दोनों नोटिफ़िकेशन स्विच चालू हैं। कभी लॉग नहीं होता।</item>
+    <item>जब डैशबोर्ड पेज खुला हो: कंप्यूटर का लोड और डिस्क उपयोग, मौसम, AI सेशन के नाम और स्थिति, AI उपयोग और सीमाएं, और Git pull request व issue के शीर्षक।</item>
+    <item>लैपटॉप का कनेक्शन प्रकार, बैंड, लिंक स्पीड, सिग्नल, लोकल पता और गेटवे, और स्पीड जांच का नतीजा। कभी वाई-फ़ाई नाम नहीं।</item>
+  </string-array>
+  <string name="uses_local_key">इस फ़ोन के अपने आंकड़े</string>
+  <string name="uses_local_value">सिस्टम पेज पर बैटरी, मेमोरी, स्टोरेज और कनेक्शन के आंकड़े इसी फ़ोन पर पढ़े जाते हैं, सिर्फ़ तब जब वह पेज खुला हो, और कहीं नहीं भेजे जाते।</string>
+
+  <string-array name="uses_net_keys">
+    <item>अपडेट की जांच</item>
+    <item>स्पीड जांच</item>
+    <item>मौसम</item>
+    <item>Git और साइन-इन</item>
+    <item>आपके खोले गए लिंक</item>
+    <item>बाकी कुछ नहीं</item>
+  </string-array>
+  <string-array name="uses_net_values">
+    <item>github.com, इस फ़ोन से और लैपटॉप ऐप्स से: एक अनुरोध जो नया वर्ज़न पूछता है और आपके डिवाइस के बारे में कुछ नहीं भेजता। आपकी चुनी हुई अपडेट भी github.com से आती है।</item>
+    <item>speed.cloudflare.com, लैपटॉप से, सिर्फ़ तब जब आप स्पीड जांच दबाएं। यह टेस्ट डेटा भेजता है और आपके बारे में कुछ नहीं भेजता।</item>
+    <item>api.open-meteo.com और geocoding-api.open-meteo.com, लैपटॉप से, सिर्फ़ तब जब मौसम विजेट चालू हो। आपकी चुनी हुई जगह उसके निर्देशांक खोजने के लिए भेजी जाती है, फिर पूर्वानुमान मांगा जाता है।</item>
+    <item>लैपटॉप से, सिर्फ़ वहां साइन इन करने के बाद, और सिर्फ़ पढ़ने के लिए: github.com और api.github.com, gitlab.com या आपके डाले गए GitLab सर्वर, codeberg.org या आपके डाले गए Gitea या Forgejo सर्वर, api.bitbucket.org, और gitee.com। Edgepad कभी नहीं लिखता: अंदर बना गेट हर उस अनुरोध को रोकता है जो सिर्फ़ पढ़ने वाला न हो।</item>
+    <item>दस्तावेज़ के लिए getedgepad.com, और github.com पर ViGEmBus डाउनलोड पेज। आप लिंक दबाएं तभी आपका ब्राउज़र इन्हें खोलता है।</item>
+    <item>फ़ोन, Windows, Mac और Linux ऐप्स में वेब पते खोजने पर कोई और होस्ट नहीं मिला। कोई अकाउंट नहीं, कोई एनालिटिक्स नहीं, कोई क्रैश रिपोर्टिंग नहीं और कोई विज्ञापन नहीं।</item>
+  </string-array>
+
+  <string-array name="uses_windows_keys">
+    <item>एडमिनिस्ट्रेटर के रूप में दोबारा शुरू करें</item>
+    <item>फ़ायरवॉल नियम</item>
+    <item>साइन-इन पर शुरू करें</item>
+    <item>भेजें मेन्यू</item>
+    <item>नोटिफ़िकेशन एक्सेस</item>
+    <item>वर्चुअल कंट्रोलर</item>
+  </string-array>
+  <string-array name="uses_windows_values">
+    <item>ट्रे मेन्यू में एक वैकल्पिक पंक्ति, Windows के अपने प्रॉम्प्ट के पीछे। इससे Edgepad उन विंडो में टाइप कर सकता है जो एडमिनिस्ट्रेटर के रूप में चल रही हैं, जिन्हें Windows वरना रोकता है।</item>
+    <item>Edgepad.exe के लिए एक इनबाउंड अनुमति नियम, ताकि फ़ोन वाई-फ़ाई या USB पर कनेक्ट हो सकें; Windows के प्रॉम्प्ट के पीछे जोड़ा जाता है। अगर आप मना करें, तो अगली बार शुरू होने पर फिर नहीं पूछा जाता।</item>
+    <item>एक प्रति-उपयोगकर्ता प्रविष्टि जो आपके साइन इन करने पर Edgepad शुरू करती है, जब आप इसे ट्रे मेन्यू में चालू करें। एडमिनिस्ट्रेटर अधिकार नहीं।</item>
+    <item>आपके अपने भेजें फ़ोल्डर में एक शॉर्टकट, ताकि भेजें, फिर Edgepad से फ़ाइलें फ़ोन पर भेजी जा सकें।</item>
+    <item>सिर्फ़ तब अगर आप नोटिफ़िकेशन फ़ॉरवर्ड करते हैं: Windows आपसे पूछता है कि क्या Edgepad को उन्हें पढ़ने दें।</item>
+    <item>फ़ोन का गेमपैड ViGEmBus ड्राइवर मांगता है, जिसे आप खुद इंस्टॉल करते हैं। Edgepad सिर्फ़ उसका डाउनलोड पेज खोलता है।</item>
+  </string-array>
+  <string-array name="uses_mac_keys">
+    <item>एक्सेसिबिलिटी</item>
+    <item>ब्लूटूथ</item>
+    <item>लोकल नेटवर्क</item>
+    <item>ऑटोमेशन</item>
+    <item>फ़ाइलें और फ़ोल्डर</item>
+    <item>नोटिफ़िकेशन और लॉगिन आइटम</item>
+    <item>मांगा नहीं गया</item>
+  </string-array>
+  <string-array name="uses_mac_values">
+    <item>फ़ोन के लिए टाइप करने, क्लिक करने और की दबाने के लिए ज़रूरी। macOS पूछता है, और अनुमति न होने पर Edgepad फ़ोन को बताता है।</item>
+    <item>उस फ़ोन की बात सुनने के लिए जिसे आपने इस Mac से पेयर किया है।</item>
+    <item>फ़ोन को इस Mac को वाई-फ़ाई पर खोजने देने के लिए, जब आप वाई-फ़ाई कनेक्शन चालू करें।</item>
+    <item>Music या Spotify से पूछने के लिए कि क्या चल रहा है और उसे आगे-पीछे करने के लिए, और मीडिया के अंत में आप जो सेट करें उसके लिए इस Mac को स्लीप या शट डाउन करने के लिए।</item>
+    <item>डेस्कटॉप, Documents और Downloads, ताकि फ़ोन पर आपके मांगे स्क्रीनशॉट या रिकॉर्डिंग मिल सकें।</item>
+    <item>फ़ोन के पेयर मांगने और नए वर्ज़न के लिए अलर्ट; लॉगिन पर शुरू करना एक सामान्य लॉगिन आइटम है। साइन-इन टोकन आपकी Keychain में जाते हैं।</item>
+    <item>इनपुट मॉनिटरिंग और स्क्रीन रिकॉर्डिंग। कैप्चर macOS के अपने शॉर्टकट इस्तेमाल करते हैं।</item>
+  </string-array>
+  <string-array name="uses_linux_keys">
+    <item>टाइपिंग डिवाइस</item>
+    <item>ब्लूटूथ</item>
+    <item>डेस्कटॉप सेवाएं</item>
+    <item>लॉगिन पर शुरू करें</item>
+  </string-array>
+  <string-array name="uses_linux_values">
+    <item>/dev/uinput, सामने बैठे व्यक्ति के लिए खोला जाता है, एक udev नियम और एक मॉड्यूल सेटिंग के ज़रिए जिसे इंस्टॉलर एडमिनिस्ट्रेटर के रूप में एक बार जोड़ता है।</item>
+    <item>BlueZ, सिस्टम बस पर, उस फ़ोन की बात सुनने के लिए जिसे आपने पेयर किया है।</item>
+    <item>सेशन बस पर: नोटिफ़िकेशन, मीडिया प्लेयर (MPRIS), पावर (UPower), स्लीप और लॉक (login1), नेटवर्क पेज के लिए NetworkManager, डेस्कटॉप की डार्क-मोड सेटिंग, डिस्प्ले रिफ़्रेश रेट, ट्रे, और साइन-इन टोकन के लिए Secret Service।</item>
+    <item>आपके अपने कॉन्फ़िग फ़ोल्डर में एक ऑटोस्टार्ट एंट्री, जब आप इसे चालू करें।</item>
+  </string-array>
+  <string-array name="uses_ai_keys">
+    <item>AI टूल</item>
+    <item>साइन-इन टोकन</item>
+  </string-array>
+  <string-array name="uses_ai_values">
+    <item>सिर्फ़ डेवलपर मोड चालू होने पर। Edgepad Claude Code, Codex, Gemini CLI और OpenCode की लोकल सेशन और उपयोग फ़ाइलें पढ़ता है, और किसी एक को जोड़ने पर उस टूल की अपनी सेटिंग्स में एक छोटा हुक या प्लग-इन जुड़ता है।</item>
+    <item>Git टोकन लैपटॉप पर उसके अपने क्रेडेंशियल स्टोर में एन्क्रिप्टेड रहते हैं, और कभी फ़ोन पर नहीं भेजे जाते।</item>
+  </string-array>
+</resources>

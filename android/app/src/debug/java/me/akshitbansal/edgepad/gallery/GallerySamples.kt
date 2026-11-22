@@ -29,6 +29,7 @@ import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.TextKind
 import me.akshitbansal.edgepad.screens.AiScreen
 import me.akshitbansal.edgepad.screens.ControlsPopup
+import me.akshitbansal.edgepad.screens.DataUsesScreen
 import me.akshitbansal.edgepad.screens.FnMode
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
 import me.akshitbansal.edgepad.screens.GitScreen
@@ -89,6 +90,10 @@ class GallerySamples(
 
             "git" -> {
                 GitScreen(ui, { gitLaptop }, ui.hubBar(ui.string(R.string.dev_title), SAMPLE_LAPTOP, {}, {})) {}.view
+            }
+
+            "data-uses" -> {
+                DataUsesScreen.build(ui, ui.string(R.string.settings_title)) {}
             }
 
             "keyboard" -> {

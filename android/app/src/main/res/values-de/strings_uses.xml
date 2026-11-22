@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="uses_title">Was Edgepad verwendet</string>
+  <string name="uses_intro">Alles, was Edgepad nimmt oder braucht, groß oder klein, damit du weißt, welchen Zugriff du gibst. Nichts davon wird genutzt, bis eine Funktion es braucht. WLAN-Namen, dein Standort, deine Kontakte, deine Fotos und dein Mikrofon werden nie abgefragt.</string>
+  <string name="uses_section_perms">Berechtigungen auf diesem Handy</string>
+  <string name="uses_section_flow">Was zwischen Handy und Laptop übertragen wird</string>
+  <string name="uses_section_net">Was ins Internet gelangt</string>
+  <string name="uses_section_laptop">Auf deinem Laptop</string>
+  <string name="uses_flow_out">Von diesem Handy zum Laptop</string>
+  <string name="uses_flow_in">Vom Laptop zu diesem Handy</string>
+  <string name="uses_flow_local">Bleibt auf diesem Handy</string>
+  <string name="uses_laptop_ai">KI-Werkzeuge und Git, auf jedem Laptop</string>
+
+  <string name="uses_perm_bluetooth_title">Geräte in der Nähe (Bluetooth)</string>
+  <string name="uses_perm_bluetooth_body">Ermöglicht Edgepad, sich mit einem Laptop zu verbinden, den du bereits in den Bluetooth-Einstellungen von Android gekoppelt hast. Es sucht nie nach anderen Bluetooth-Geräten und liest sie auch nicht aus. Android fragt beim ersten Öffnen von „Geräte“.</string>
+  <string name="uses_perm_localnet_title">Lokales Netzwerk</string>
+  <string name="uses_perm_localnet_body">Ermöglicht diesem Handy, Laptops in deinem eigenen WLAN zu finden und mit ihnen zu sprechen. Android fragt vor der ersten WLAN-Suche.</string>
+  <string name="uses_perm_netstate_title">Netzwerkstatus</string>
+  <string name="uses_perm_netstate_body">Sagt Edgepad, ob du im WLAN, per USB-Tethering oder über Mobilfunkdaten verbunden bist, um Laptops zu finden und deine Verbindung auf der Seite „Netzwerk“ zu zeigen. Android fragt nicht.</string>
+  <string name="uses_perm_wifistate_title">WLAN-Status</string>
+  <string name="uses_perm_wifistate_body">Liest die Verbindungsgeschwindigkeit, das Band und die Signalstärke des WLAN dieses Handys für die Seite „Netzwerk“. Nie den Namen des Netzwerks, dafür bräuchte es den Standort. Android fragt nicht.</string>
+  <string name="uses_perm_multicast_title">WLAN-Multicast</string>
+  <string name="uses_perm_multicast_body">Nötig, um Laptops im WLAN zu finden. Android akzeptiert es außerdem als Grund, den Verbindungsdienst im Hintergrund laufen zu lassen. Android fragt nicht.</string>
+  <string name="uses_perm_internet_title">Internet</string>
+  <string name="uses_perm_internet_body">Trägt die Verbindung zu deinem Laptop über WLAN oder USB. Edgepad nutzt das Internet nur, um github.com nach der neuesten Version zu fragen und ein Update herunterzuladen, das du ausgewählt hast. Android fragt nicht.</string>
+  <string name="uses_perm_install_title">Apps installieren</string>
+  <string name="uses_perm_install_body">Erlaubt Edgepad, ein Edgepad-Update zu installieren, das du zum Herunterladen ausgewählt hast. Android fragt dich beim ersten Mal, ob Installationen aus Edgepad erlaubt werden sollen.</string>
+  <string name="uses_perm_update_title">Ohne erneute Nachfrage aktualisieren</string>
+  <string name="uses_perm_update_body">Ab Android 12 erlaubt es, dass ein Edgepad-Update ohne zweite Rückfrage installiert wird, sobald du es erlaubt hast. Es aktualisiert nur Edgepad. Android fragt nicht.</string>
+  <string name="uses_perm_service_title">Im Hintergrund ausführen</string>
+  <string name="uses_perm_service_body">Hält die Verbindung zu einem Laptop am Leben, während Edgepad minimiert ist, mit einer Benachrichtigung, solange es läuft. Gesteuert über „Im Hintergrund verbunden bleiben“ in den Einstellungen. Android fragt nicht.</string>
+  <string name="uses_perm_servicetype_title">Art der Hintergrundverbindung</string>
+  <string name="uses_perm_servicetype_body">Kennzeichnet diesen Hintergrunddienst als einen, der eine Verbindung zu einem Gerät hält, deinem Laptop. Android fragt nicht.</string>
+  <string name="uses_perm_notify_title">Benachrichtigungen</string>
+  <string name="uses_perm_notify_body">Zeigt den Verbindungshinweis, Dateiübertragungen, Berechtigungsanfragen von KI-Werkzeugen und, wenn du es einschaltest, Benachrichtigungen deines Laptops. Android 13 und neuer fragt einmal nach der Einführung.</string>
+  <string name="uses_perm_overlay_title">Anzeige über anderen Apps</string>
+  <string name="uses_perm_overlay_body">Nur für die schwebenden Regler, die du selbst einschaltest. Android schickt dich zu seiner eigenen Einstellungsseite; Edgepad fragt sonst nie danach.</string>
+
+  <string-array name="uses_out_keys">
+    <item>Deine Eingaben</item>
+    <item>Zwischenablage</item>
+    <item>Dateien und Freigaben</item>
+    <item>Geöffnete Seiten</item>
+    <item>Deine Antworten</item>
+    <item>Deine Schalter</item>
+  </string-array>
+  <string-array name="uses_out_values">
+    <item>Berührungen, Tasten, getippter Text, Gamepad- und Stiftstriche sowie Tasten wie Lautstärke und Helligkeit. Nur solange ein Laptop verbunden ist.</item>
+    <item>Text oder ein Bild, das du kopierst, nur wenn du „Zwischenablage teilen“ einschaltest, und nur wenn Edgepad auf dem Bildschirm ist, wie Android es erlaubt.</item>
+    <item>Eine Datei, Text oder ein Bild, das du absichtlich sendest oder an Edgepad teilst. Gesendet, nachdem du auf „Senden“ getippt hast.</item>
+    <item>Welche Dashboard-Seiten das Handy zeigt, damit der Laptop CPU-, Wetter-, KI- oder Git-Daten nur liest, während eine davon sichtbar ist.</item>
+    <item>Die PIN, die du eingibst, und „Genehmigen“ oder „Ablehnen“ für eine Berechtigungsanfrage eines KI-Werkzeugs.</item>
+    <item>Benachrichtigungen, Entwicklermodus, wohin Aufnahmen gespeichert werden, Stiftgröße und -farbe und ob die App im Vordergrund gemeldet werden soll.</item>
+  </string-array>
+  <string-array name="uses_in_keys">
+    <item>Was der Laptop macht</item>
+    <item>Makros und Apps</item>
+    <item>Aufnahmen und Dateien</item>
+    <item>Zwischenablage und Benachrichtigungen</item>
+    <item>Dashboards</item>
+    <item>Netzwerkseite</item>
+  </string-array>
+  <string-array name="uses_in_values">
+    <item>Was gerade läuft und in welcher App, Lautstärke, Helligkeit, Anzeigegröße und Bildwiederholraten, Name und System des Laptops, Akku des Laptops und seiner Bluetooth-Geräte sowie der Name des Audioausgangs.</item>
+    <item>Makronamen und -symbole sowie eine Liste der Apps, die du als Makro hinzufügen kannst. Nie die Pfade oder Befehle dahinter.</item>
+    <item>Ein Screenshot oder eine Aufnahme nur, wenn du „Aufs Handy“ gewählt hast, und Dateien, die du vom Laptop sendest.</item>
+    <item>Kopierter Text oder ein Bild, wenn die Zwischenablage-Freigabe an ist, und die Benachrichtigungen des Laptops (App, Titel, kurzer Text), wenn beide Benachrichtigungs-Schalter an sind. Nie protokolliert.</item>
+    <item>Während eine Dashboard-Seite geöffnet ist: Rechenlast und Festplattenbelegung, Wetter, Namen und Status von KI-Sitzungen, KI-Nutzung und Limits sowie die Titel von Git-Pull-Requests und -Issues.</item>
+    <item>Verbindungsart, Band, Verbindungsgeschwindigkeit, Signal, lokale Adresse und Gateway des Laptops sowie das Ergebnis eines Geschwindigkeitstests. Nie ein WLAN-Name.</item>
+  </string-array>
+  <string name="uses_local_key">Die eigenen Werte dieses Handys</string>
+  <string name="uses_local_value">Akku-, Speicher-, Datenspeicher- und Verbindungswerte auf der Seite „System“ werden auf diesem Handy gelesen, nur solange diese Seite offen ist, und nie irgendwohin gesendet.</string>
+
+  <string-array name="uses_net_keys">
+    <item>Update-Prüfung</item>
+    <item>Geschwindigkeitstest</item>
+    <item>Wetter</item>
+    <item>Git und Anmeldung</item>
+    <item>Links, die du öffnest</item>
+    <item>Sonst nichts</item>
+  </string-array>
+  <string-array name="uses_net_values">
+    <item>github.com, von diesem Handy und von den Laptop-Apps: eine Anfrage nach der neuesten Version, die nichts über dein Gerät sendet. Ein Update, das du herunterladen willst, kommt ebenfalls von github.com.</item>
+    <item>speed.cloudflare.com, vom Laptop, nur wenn du auf „Tempo testen“ tippst. Es überträgt Testdaten und sendet nichts über dich.</item>
+    <item>api.open-meteo.com und geocoding-api.open-meteo.com, vom Laptop, nur wenn das Wetter-Widget an ist. Der gewählte Ort wird gesendet, um seine Koordinaten zu finden, danach wird die Vorhersage abgefragt.</item>
+    <item>Vom Laptop, nur nachdem du dich dort angemeldet hast, und nur zum Lesen: github.com und api.github.com, gitlab.com oder der GitLab-Server, den du eingibst, codeberg.org oder der Gitea- oder Forgejo-Server, den du eingibst, api.bitbucket.org und gitee.com. Edgepad schreibt nie: Ein eingebauter Filter lehnt jede Anfrage ab, die kein Lesezugriff ist.</item>
+    <item>getedgepad.com für die Dokumentation und die ViGEmBus-Downloadseite auf github.com. Dein Browser öffnet sie nur, wenn du auf einen Link tippst.</item>
+    <item>Eine Suche nach Webadressen in den Apps des Handys, von Windows, Mac und Linux fand keine anderen Hosts. Es gibt kein Konto, keine Analyse, keine Absturzberichte und keine Werbung.</item>
+  </string-array>
+
+  <string-array name="uses_windows_keys">
+    <item>Als Administrator neu starten</item>
+    <item>Firewall-Regel</item>
+    <item>Start bei der Anmeldung</item>
+    <item>Senden an</item>
+    <item>Zugriff auf Benachrichtigungen</item>
+    <item>Virtueller Controller</item>
+  </string-array>
+  <string-array name="uses_windows_values">
+    <item>Eine optionale Zeile im Infobereich-Menü, hinter Windows’ eigener Abfrage. Sie erlaubt Edgepad, in Fenster zu tippen, die als Administrator laufen, was Windows sonst blockiert.</item>
+    <item>Eine eingehende Erlaubnisregel für Edgepad.exe, damit sich Handys per WLAN oder USB verbinden können, hinzugefügt hinter Windows’ Abfrage. Sagst du Nein, wird beim nächsten Start nicht erneut gefragt.</item>
+    <item>Ein Eintrag pro Benutzer, der Edgepad beim Anmelden startet, wenn du es im Infobereich-Menü einschaltest. Keine Administratorrechte.</item>
+    <item>Eine Verknüpfung in deinem eigenen Ordner „Senden an“, damit „Senden an“ und dann Edgepad Dateien an das Handy schicken kann.</item>
+    <item>Nur wenn du Benachrichtigungen weiterleitest: Windows fragt, ob Edgepad sie lesen darf.</item>
+    <item>Das Gamepad des Handys braucht den ViGEmBus-Treiber, den du selbst installierst. Edgepad öffnet nur seine Downloadseite.</item>
+  </string-array>
+  <string-array name="uses_mac_keys">
+    <item>Bedienungshilfen</item>
+    <item>Bluetooth</item>
+    <item>Lokales Netzwerk</item>
+    <item>Automation</item>
+    <item>Dateien und Ordner</item>
+    <item>Benachrichtigungen und Anmeldeobjekt</item>
+    <item>Nicht angefordert</item>
+  </string-array>
+  <string-array name="uses_mac_values">
+    <item>Nötig, um für das Handy zu tippen, zu klicken und Tasten zu drücken. macOS fragt, und Edgepad meldet dem Handy, wenn es fehlt.</item>
+    <item>Um auf das Handy zu hören, das du mit diesem Mac gekoppelt hast.</item>
+    <item>Damit das Handy diesen Mac im WLAN findet, wenn du WLAN-Verbindungen einschaltest.</item>
+    <item>Um Music oder Spotify zu fragen, was läuft, und es zu steuern, sowie um diesen Mac am Ende der Medienwiedergabe in den Ruhezustand zu versetzen oder herunterzufahren, wenn du das so einstellst.</item>
+    <item>Schreibtisch, Dokumente und Downloads, um einen Screenshot oder eine Aufnahme zu finden, die du auf dem Handy empfangen wolltest.</item>
+    <item>Hinweise für ein Handy, das die Kopplung anfragt, und für eine neue Version; „Beim Anmelden starten“ ist ein normales Anmeldeobjekt. Anmelde-Token liegen in deinem Keychain.</item>
+    <item>Eingabenüberwachung und Bildschirmaufnahme. Aufnahmen nutzen die Tastenkürzel von macOS.</item>
+  </string-array>
+  <string-array name="uses_linux_keys">
+    <item>Eingabegerät</item>
+    <item>Bluetooth</item>
+    <item>Desktop-Dienste</item>
+    <item>Start bei der Anmeldung</item>
+  </string-array>
+  <string-array name="uses_linux_values">
+    <item>/dev/uinput, geöffnet für die Person an der Tastatur über eine udev-Regel und eine Moduleinstellung, die der Installer einmal als Administrator hinzufügt.</item>
+    <item>BlueZ, auf dem Systembus, um auf das gekoppelte Handy zu hören.</item>
+    <item>Auf dem Sitzungsbus: Benachrichtigungen, Medienplayer (MPRIS), Energie (UPower), Ruhezustand und Sperre (login1), NetworkManager für die Netzwerkseite, die Dunkelmodus-Einstellung des Desktops, Bildwiederholraten, den Infobereich und den Secret Service für Anmelde-Token.</item>
+    <item>Ein Autostart-Eintrag in deinem eigenen Konfigurationsordner, wenn du ihn einschaltest.</item>
+  </string-array>
+  <string-array name="uses_ai_keys">
+    <item>KI-Werkzeuge</item>
+    <item>Anmelde-Token</item>
+  </string-array>
+  <string-array name="uses_ai_values">
+    <item>Nur mit eingeschaltetem Entwicklermodus. Edgepad liest die lokalen Sitzungs- und Nutzungsdateien von Claude Code, Codex, Gemini CLI und OpenCode, und das Verbinden eines davon fügt einen kleinen Hook oder ein Plug-in zu den eigenen Einstellungen dieses Werkzeugs hinzu.</item>
+    <item>Git-Token werden verschlüsselt auf dem Laptop im eigenen Anmeldespeicher gehalten und nie an das Handy gesendet.</item>
+  </string-array>
+</resources>

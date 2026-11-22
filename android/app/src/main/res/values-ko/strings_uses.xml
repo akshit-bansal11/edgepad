@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="uses_title">Edgepad가 사용하는 것</string>
+  <string name="uses_intro">Edgepad가 가져가거나 필요로 하는 모든 것을, 크든 작든, 여기에 적어 두었어요. 어떤 접근 권한을 주고 있는지 알 수 있도록요. 기능이 필요로 하기 전에는 여기 있는 어떤 것도 사용되지 않아요. Wi-Fi 네트워크 이름, 위치, 연락처, 사진, 마이크는 요청하지 않아요.</string>
+  <string name="uses_section_perms">이 휴대전화의 권한</string>
+  <string name="uses_section_flow">휴대전화와 노트북 사이로 오가는 것</string>
+  <string name="uses_section_net">인터넷에 닿는 것</string>
+  <string name="uses_section_laptop">노트북에서</string>
+  <string name="uses_flow_out">이 휴대전화에서 노트북으로</string>
+  <string name="uses_flow_in">노트북에서 이 휴대전화로</string>
+  <string name="uses_flow_local">이 휴대전화에만 남아요</string>
+  <string name="uses_laptop_ai">AI 도구와 Git, 어떤 노트북에서든</string>
+
+  <string name="uses_perm_bluetooth_title">근처 기기 (블루투스)</string>
+  <string name="uses_perm_bluetooth_body">Android 블루투스 설정에서 이미 페어링한 노트북에 Edgepad가 연결하도록 허용해요. 다른 블루투스 기기를 검색하거나 읽지 않아요. 기기를 처음 열 때 Android가 물어요.</string>
+  <string name="uses_perm_localnet_title">로컬 네트워크</string>
+  <string name="uses_perm_localnet_body">이 휴대전화가 내 Wi-Fi에서 노트북을 찾고 통신할 수 있게 해요. 처음 Wi-Fi를 검색하기 전에 Android가 물어요.</string>
+  <string name="uses_perm_netstate_title">네트워크 상태</string>
+  <string name="uses_perm_netstate_body">Wi-Fi, USB 테더링 또는 모바일 데이터 중 어디에 연결되어 있는지 Edgepad에 알려 줘요. 노트북을 찾고 네트워크 페이지에 연결 상태를 보여 주기 위해서예요. Android는 묻지 않아요.</string>
+  <string name="uses_perm_wifistate_title">Wi-Fi 상태</string>
+  <string name="uses_perm_wifistate_body">네트워크 페이지를 위해 이 휴대전화 자체의 Wi-Fi 링크 속도, 대역, 신호 세기를 읽어요. 네트워크 이름은 절대 읽지 않아요. 위치 권한이 필요하기 때문이에요. Android는 묻지 않아요.</string>
+  <string name="uses_perm_multicast_title">Wi-Fi 멀티캐스트</string>
+  <string name="uses_perm_multicast_body">Wi-Fi에서 노트북을 찾는 데 필요해요. Android는 연결 서비스를 백그라운드에서 실행하는 이유로도 이를 받아들여요. Android는 묻지 않아요.</string>
+  <string name="uses_perm_internet_title">인터넷</string>
+  <string name="uses_perm_internet_body">Wi-Fi 또는 USB로 노트북과의 연결을 전달해요. Edgepad 자체는 최신 버전을 확인하고 내가 선택한 업데이트를 내려받기 위해서만 github.com에 접속해요. Android는 묻지 않아요.</string>
+  <string name="uses_perm_install_title">앱 설치</string>
+  <string name="uses_perm_install_body">내가 내려받기로 선택한 Edgepad 업데이트를 설치하도록 해요. 처음에 Android가 Edgepad에서 설치하는 것을 허용할지 물어요.</string>
+  <string name="uses_perm_update_title">다시 묻지 않고 업데이트</string>
+  <string name="uses_perm_update_body">Android 12 이상에서는 한 번 허용하면 Edgepad 업데이트를 두 번째 질문 없이 설치해요. Edgepad만 업데이트해요. Android는 묻지 않아요.</string>
+  <string name="uses_perm_service_title">백그라운드에서 실행</string>
+  <string name="uses_perm_service_body">Edgepad가 최소화되어 있는 동안에도 노트북과의 연결을 유지해요. 실행되는 동안 알림이 표시돼요. 설정의 ‘백그라운드에서 연결 유지’로 제어해요. Android는 묻지 않아요.</string>
+  <string name="uses_perm_servicetype_title">백그라운드 연결 유형</string>
+  <string name="uses_perm_servicetype_body">이 백그라운드 서비스가 기기, 즉 노트북과의 연결을 유지하는 서비스임을 표시해요. Android는 묻지 않아요.</string>
+  <string name="uses_perm_notify_title">알림</string>
+  <string name="uses_perm_notify_body">연결 알림, 파일 전송, AI 권한 요청과, 켜 두었다면 노트북의 알림을 보여 줘요. Android 13 이상에서는 소개 후 한 번 물어요.</string>
+  <string name="uses_perm_overlay_title">다른 앱 위에 표시</string>
+  <string name="uses_perm_overlay_body">내가 직접 켠 플로팅 다이얼에만 사용해요. Android가 자체 설정 페이지로 보내요. Edgepad는 그 밖에는 묻지 않아요.</string>
+
+  <string-array name="uses_out_keys">
+    <item>내 입력</item>
+    <item>클립보드</item>
+    <item>파일과 공유</item>
+    <item>열린 페이지</item>
+    <item>내 응답</item>
+    <item>내 스위치</item>
+  </string-array>
+  <string-array name="uses_out_values">
+    <item>터치, 키, 입력한 텍스트, 게임패드와 펜 스트로크, 그리고 볼륨이나 밝기 같은 버튼. 노트북이 연결된 동안에만.</item>
+    <item>복사한 텍스트나 이미지. 클립보드 공유를 켜 둔 경우에만, 그리고 Android가 허용하는 대로 Edgepad가 화면에 있을 때만.</item>
+    <item>내가 의도적으로 보내는 파일, 텍스트 또는 이미지, 또는 Edgepad로 공유한 것. 보내기를 누른 뒤에 전송돼요.</item>
+    <item>휴대전화가 보여 주고 있는 대시보드 페이지. 노트북이 페이지가 화면에 있을 때만 CPU, 날씨, AI 또는 Git 데이터를 읽도록요.</item>
+    <item>내가 입력한 PIN, 그리고 AI 도구의 권한 요청에 대한 승인 또는 거부.</item>
+    <item>알림, 개발자 모드, 캡처가 저장되는 위치, 펜 크기와 색상, 그리고 앞에 있는 앱을 보고할지 여부.</item>
+  </string-array>
+  <string-array name="uses_in_keys">
+    <item>노트북이 하고 있는 일</item>
+    <item>매크로와 앱</item>
+    <item>캡처와 파일</item>
+    <item>클립보드와 알림</item>
+    <item>대시보드</item>
+    <item>네트워크 페이지</item>
+  </string-array>
+  <string-array name="uses_in_values">
+    <item>지금 재생 중인 곡과 그 앱, 볼륨, 밝기, 디스플레이 크기와 주사율, 노트북의 이름과 시스템, 노트북과 그 블루투스 기기의 배터리, 그리고 오디오 출력 이름.</item>
+    <item>매크로 이름과 아이콘, 그리고 매크로로 추가할 수 있는 앱 목록. 그 뒤의 경로나 명령은 절대 아니에요.</item>
+    <item>휴대전화에 저장을 선택한 경우에만 스크린샷이나 녹화, 그리고 노트북에서 보낸 파일.</item>
+    <item>클립보드 공유가 켜져 있으면 복사한 텍스트나 이미지, 두 알림 스위치가 모두 켜져 있으면 노트북의 알림(앱, 제목, 짧은 텍스트). 절대 기록하지 않아요.</item>
+    <item>대시보드 페이지가 열려 있는 동안: 컴퓨터 부하와 디스크 사용량, 날씨, AI 세션 이름과 상태, AI 사용량과 한도, 그리고 Git 풀 리퀘스트와 이슈의 제목.</item>
+    <item>노트북의 연결 유형, 대역, 링크 속도, 신호, 로컬 주소와 게이트웨이, 그리고 속도 테스트 결과. Wi-Fi 이름은 절대 아니에요.</item>
+  </string-array>
+  <string name="uses_local_key">이 휴대전화의 수치</string>
+  <string name="uses_local_value">시스템 페이지의 배터리, 메모리, 저장 공간과 연결 수치는 이 휴대전화에서만 읽히고, 그 페이지가 열려 있을 때만 읽으며, 어디로도 보내지 않아요.</string>
+
+  <string-array name="uses_net_keys">
+    <item>업데이트 확인</item>
+    <item>속도 테스트</item>
+    <item>날씨</item>
+    <item>Git과 로그인</item>
+    <item>내가 연 링크</item>
+    <item>그 밖에는 없음</item>
+  </string-array>
+  <string-array name="uses_net_values">
+    <item>github.com. 이 휴대전화와 노트북 앱에서: 최신 버전을 요청하는 요청 한 번이며, 내 기기에 대한 정보는 보내지 않아요. 내려받기로 선택한 업데이트도 github.com에서 와요.</item>
+    <item>speed.cloudflare.com. 노트북에서, ‘속도 테스트’를 눌렀을 때만. 테스트 데이터를 주고받으며 나에 대한 정보는 보내지 않아요.</item>
+    <item>api.open-meteo.com과 geocoding-api.open-meteo.com. 노트북에서, 날씨 위젯을 켰을 때만. 선택한 위치는 좌표를 찾기 위해 보내고, 그다음 예보를 요청해요.</item>
+    <item>노트북에서 로그인한 후에만, 그리고 읽기만: github.com과 api.github.com, gitlab.com 또는 내가 입력한 GitLab 서버, codeberg.org 또는 내가 입력한 Gitea나 Forgejo 서버, api.bitbucket.org, gitee.com. Edgepad는 절대 쓰지 않아요. 내장된 게이트가 읽기가 아닌 모든 요청을 막아요.</item>
+    <item>문서용 getedgepad.com, 그리고 github.com의 ViGEmBus 다운로드 페이지. 링크를 눌렀을 때만 브라우저가 열어 줘요.</item>
+    <item>휴대전화, Windows, Mac, Linux 앱에서 웹 주소를 검색한 결과 다른 호스트는 없었어요. 계정, 분석, 충돌 보고, 광고가 없어요.</item>
+  </string-array>
+
+  <string-array name="uses_windows_keys">
+    <item>관리자 권한으로 다시 시작</item>
+    <item>방화벽 규칙</item>
+    <item>로그인 시 시작</item>
+    <item>보내기 메뉴</item>
+    <item>알림 액세스</item>
+    <item>가상 컨트롤러</item>
+  </string-array>
+  <string-array name="uses_windows_values">
+    <item>트레이 메뉴의 선택 항목이며, Windows 자체 확인창 뒤에 나와요. Windows가 보통 막는, 관리자 권한으로 실행 중인 창에 입력할 수 있게 해요.</item>
+    <item>휴대전화가 Wi-Fi 또는 USB로 연결할 수 있도록 Edgepad.exe에 대한 인바운드 허용 규칙 하나. Windows 확인창 뒤에 추가돼요. 거부하면 다음 시작 때 다시 묻지 않아요.</item>
+    <item>트레이 메뉴에서 켰을 때, 로그인할 때 Edgepad를 시작하는 사용자별 항목. 관리자 권한은 필요 없어요.</item>
+    <item>내 보내기 폴더의 바로 가기. 보내기, 그다음 Edgepad를 선택하면 파일을 휴대전화로 보낼 수 있어요.</item>
+    <item>알림을 전달하는 경우에만: Windows가 Edgepad에 알림 읽기를 허용할지 물어요.</item>
+    <item>휴대전화의 게임패드에는 ViGEmBus 드라이버가 필요해요. 직접 설치해야 해요. Edgepad는 다운로드 페이지만 열어요.</item>
+  </string-array>
+  <string-array name="uses_mac_keys">
+    <item>손쉬운 사용</item>
+    <item>블루투스</item>
+    <item>로컬 네트워크</item>
+    <item>자동화</item>
+    <item>파일 및 폴더</item>
+    <item>알림 및 로그인 항목</item>
+    <item>요청하지 않음</item>
+  </string-array>
+  <string-array name="uses_mac_values">
+    <item>휴대전화를 위해 입력하고, 클릭하고, 키를 누르는 데 필요해요. macOS가 묻고, 없으면 Edgepad가 휴대전화에 알려요.</item>
+    <item>이 Mac에 페어링한 휴대전화의 연결을 기다리기 위해서예요.</item>
+    <item>Wi-Fi 연결을 켰을 때, 휴대전화가 Wi-Fi에서 이 Mac을 찾을 수 있도록 해요.</item>
+    <item>Music이나 Spotify에 지금 재생 중인 것을 묻고 조작하기 위해서이며, 미디어 끝에 이 Mac을 절전 또는 종료하도록 설정했을 때도 사용해요.</item>
+    <item>데스크탑, 문서, 다운로드. 휴대전화에서 받도록 요청한 스크린샷이나 녹화를 찾기 위해서예요.</item>
+    <item>휴대전화의 페어링 요청과 새 버전에 대한 알림. 로그인 시 시작은 일반 로그인 항목이에요. 로그인 토큰은 Keychain에 저장돼요.</item>
+    <item>입력 모니터링과 화면 기록. 캡처는 macOS의 기본 단축키를 사용해요.</item>
+  </string-array>
+  <string-array name="uses_linux_keys">
+    <item>입력 장치</item>
+    <item>블루투스</item>
+    <item>데스크톱 서비스</item>
+    <item>로그인 시 시작</item>
+  </string-array>
+  <string-array name="uses_linux_values">
+    <item>/dev/uinput. 설치 프로그램이 관리자 권한으로 한 번 추가하는 udev 규칙과 모듈 설정을 통해, 키보드 앞의 사용자를 위해 열려요.</item>
+    <item>BlueZ. 시스템 버스에서, 내가 페어링한 휴대전화의 연결을 기다려요.</item>
+    <item>세션 버스에서: 알림, 미디어 플레이어(MPRIS), 전원(UPower), 절전과 잠금(login1), 네트워크 페이지용 NetworkManager, 데스크톱의 다크 모드 설정, 디스플레이 주사율, 트레이, 그리고 로그인 토큰용 Secret Service.</item>
+    <item>내가 켰을 때, 내 설정 폴더에 있는 자동 시작 항목.</item>
+  </string-array>
+  <string-array name="uses_ai_keys">
+    <item>AI 도구</item>
+    <item>로그인 토큰</item>
+  </string-array>
+  <string-array name="uses_ai_values">
+    <item>개발자 모드를 켰을 때만. Edgepad는 Claude Code, Codex, Gemini CLI, OpenCode의 로컬 세션과 사용 파일을 읽어요. 하나를 연결하면 그 도구의 설정에 작은 훅이나 플러그인이 추가돼요.</item>
+    <item>Git 토큰은 노트북의 자체 자격 증명 저장소에 암호화되어 보관되며, 휴대전화로 절대 보내지 않아요.</item>
+  </string-array>
+</resources>

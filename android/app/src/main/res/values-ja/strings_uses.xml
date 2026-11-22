@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="uses_title">Edgepadが使うもの</string>
+  <string name="uses_intro">Edgepadが受け取る、または必要とするものを、大小を問わずすべて載せています。どの権限を与えているのかがわかるように。機能が必要とするまで、ここにあるものは使われません。Wi-Fiのネットワーク名、位置情報、連絡先、写真、マイクは、要求することはありません。</string>
+  <string name="uses_section_perms">このスマホの権限</string>
+  <string name="uses_section_flow">スマホとノートPCの間でやり取りするもの</string>
+  <string name="uses_section_net">インターネットに届くもの</string>
+  <string name="uses_section_laptop">ノートPC上</string>
+  <string name="uses_flow_out">このスマホからノートPCへ</string>
+  <string name="uses_flow_in">ノートPCからこのスマホへ</string>
+  <string name="uses_flow_local">このスマホにとどまるもの</string>
+  <string name="uses_laptop_ai">AIツールとGit（どのノートPCでも）</string>
+
+  <string name="uses_perm_bluetooth_title">付近のデバイス（Bluetooth）</string>
+  <string name="uses_perm_bluetooth_body">AndroidのBluetooth設定で一度ペアリングしたノートPCに、Edgepadが接続できるようにします。他のBluetoothデバイスを検索したり読み取ったりすることはありません。デバイスを初めて開くとき、Androidが確認します。</string>
+  <string name="uses_perm_localnet_title">ローカルネットワーク</string>
+  <string name="uses_perm_localnet_body">このスマホが、ご自身のWi-Fi上にあるノートPCを見つけて通信できるようにします。初めてWi-Fiを検索する前に、Androidが確認します。</string>
+  <string name="uses_perm_netstate_title">ネットワークの状態</string>
+  <string name="uses_perm_netstate_body">Wi-Fi、USBテザリング、モバイルデータのどれを使っているかをEdgepadに伝えます。ノートPCを見つけ、ネットワークページに接続を表示するためです。Androidは確認しません。</string>
+  <string name="uses_perm_wifistate_title">Wi-Fiの状態</string>
+  <string name="uses_perm_wifistate_body">ネットワークページのために、このスマホ自身のWi-Fiのリンク速度、帯域、信号の強さを読み取ります。ネットワーク名は読み取りません。位置情報が必要になるためです。Androidは確認しません。</string>
+  <string name="uses_perm_multicast_title">Wi-Fiマルチキャスト</string>
+  <string name="uses_perm_multicast_body">Wi-Fi上でノートPCを見つけるために必要です。Androidは、接続サービスをバックグラウンドで動かす理由としてもこれを受け付けます。Androidは確認しません。</string>
+  <string name="uses_perm_internet_title">インターネット</string>
+  <string name="uses_perm_internet_body">Wi-FiまたはUSBで、ノートPCへのリンクを運びます。Edgepad自体がインターネットを使うのは、github.comに最新バージョンを問い合わせることと、選んだアップデートをダウンロードすることだけです。Androidは確認しません。</string>
+  <string name="uses_perm_install_title">アプリのインストール</string>
+  <string name="uses_perm_install_body">選んだEdgepadのアップデートをインストールできるようにします。初回、Androidがこのアプリからのインストールを許可するか確認します。</string>
+  <string name="uses_perm_update_title">再確認せずに更新</string>
+  <string name="uses_perm_update_body">Android 12以降で、一度許可すると、Edgepadのアップデートを2回目の確認なしにインストールできるようにします。更新するのはEdgepadだけです。Androidは確認しません。</string>
+  <string name="uses_perm_service_title">バックグラウンドで実行</string>
+  <string name="uses_perm_service_body">Edgepadを最小化していても、ノートPCへのリンクを維持します。実行中は通知を表示します。設定の「バックグラウンドでも接続を維持」で制御します。Androidは確認しません。</string>
+  <string name="uses_perm_servicetype_title">バックグラウンド接続の種類</string>
+  <string name="uses_perm_servicetype_body">このバックグラウンドサービスが、デバイス（ご自身のノートPC）への接続を維持するものであることを示します。Androidは確認しません。</string>
+  <string name="uses_perm_notify_title">通知</string>
+  <string name="uses_perm_notify_body">接続の通知、ファイル転送、AIの許可リクエスト、そしてオンにした場合はノートPCの通知を表示します。Android 13以降では、紹介の後に一度確認されます。</string>
+  <string name="uses_perm_overlay_title">他のアプリの上に表示</string>
+  <string name="uses_perm_overlay_body">ご自身でオンにするフローティングダイヤルにだけ使われます。Androidが専用の設定ページを開きます。それ以外でEdgepadが確認することはありません。</string>
+
+  <string-array name="uses_out_keys">
+    <item>あなたの入力</item>
+    <item>クリップボード</item>
+    <item>ファイルと共有</item>
+    <item>開いているページ</item>
+    <item>あなたの回答</item>
+    <item>あなたのスイッチ</item>
+  </string-array>
+  <string-array name="uses_out_values">
+    <item>タッチ、キー、入力した文字、ゲームパッドとペンのストローク、音量や明るさなどのボタン。ノートPCが接続されている間だけ。</item>
+    <item>コピーしたテキストや画像。クリップボードを共有をオンにしている場合のみ、かつAndroidが許す範囲で、Edgepadが画面に表示されているときだけ。</item>
+    <item>あなたが意図して送るファイル、テキスト、画像、またはEdgepadに共有したもの。送信をタップした後に送られます。</item>
+    <item>スマホが表示しているダッシュボードのページ。ページが画面にあるときだけ、ノートPCがCPU、天気、AI、Gitのデータを読み取ります。</item>
+    <item>入力したPIN、およびAIツールの許可リクエストに対する「承認」または「拒否」。</item>
+    <item>通知、開発者モード、キャプチャの保存先、ペンのサイズと色、そして前面のアプリを報告するかどうか。</item>
+  </string-array>
+  <string-array name="uses_in_keys">
+    <item>ノートPCの状態</item>
+    <item>マクロとアプリ</item>
+    <item>キャプチャとファイル</item>
+    <item>クリップボードと通知</item>
+    <item>ダッシュボード</item>
+    <item>ネットワークページ</item>
+  </string-array>
+  <string-array name="uses_in_values">
+    <item>再生中の曲とそのアプリ、音量、明るさ、ディスプレイのサイズとリフレッシュレート、ノートPCの名前とシステム、ノートPCとそのBluetoothデバイスのバッテリー、オーディオ出力の名前。</item>
+    <item>マクロの名前とアイコン、そしてマクロに追加できるアプリの一覧。そのパスやコマンドは含みません。</item>
+    <item>「スマホに保存」を選んだ場合のみのスクリーンショットや録画、およびノートPCから送ったファイル。</item>
+    <item>クリップボード共有がオンならコピーしたテキストや画像。両方の通知スイッチがオンなら、ノートPCの通知（アプリ、タイトル、短いテキスト）。ログには残しません。</item>
+    <item>ダッシュボードのページが開いている間: コンピューターの負荷とディスク使用量、天気、AIセッションの名前と状態、AIの使用量と上限、そしてGitのプルリクエストとイシューのタイトル。</item>
+    <item>ノートPCの接続の種類、帯域、リンク速度、信号、ローカルアドレスとゲートウェイ、そして速度テストの結果。Wi-Fi名は含みません。</item>
+  </string-array>
+  <string name="uses_local_key">このスマホ自身の数値</string>
+  <string name="uses_local_value">システムページのバッテリー、メモリ、ストレージ、接続の数値は、このスマホで読み取られます。そのページを開いている間だけで、どこにも送られません。</string>
+
+  <string-array name="uses_net_keys">
+    <item>アップデートの確認</item>
+    <item>速度テスト</item>
+    <item>天気</item>
+    <item>Gitとサインイン</item>
+    <item>開いたリンク</item>
+    <item>それ以外は何もなし</item>
+  </string-array>
+  <string-array name="uses_net_values">
+    <item>github.com。このスマホと、ノートPCのアプリから: 最新バージョンを問い合わせる1回のリクエストで、お使いの端末に関する情報は送りません。ダウンロードを選んだアップデートも、github.comから届きます。</item>
+    <item>speed.cloudflare.com。ノートPCから、「速度をテスト」をタップしたときだけ。テストデータを送受信し、あなたに関する情報は送りません。</item>
+    <item>api.open-meteo.comとgeocoding-api.open-meteo.com。ノートPCから、天気ウィジェットがオンのときだけ。選んだ場所は座標を調べるために送られ、その後に予報が要求されます。</item>
+    <item>ノートPCでサインインした後にだけ、読み取り専用で: github.comとapi.github.com、gitlab.comまたはご自身で入力したGitLabサーバー、codeberg.orgまたはご自身で入力したGiteaまたはForgejoサーバー、api.bitbucket.org、gitee.com。Edgepadが書き込むことは決してありません。組み込みのゲートが、読み取り以外のリクエストをすべて拒否します。</item>
+    <item>ドキュメント用のgetedgepad.com、そしてgithub.com上のViGEmBusダウンロードページ。ブラウザが開くのは、リンクをタップしたときだけです。</item>
+    <item>スマホ、Windows、Mac、Linuxの各アプリでWebアドレスを検索したところ、他のホストは見つかりませんでした。アカウント、アクセス解析、クラッシュレポート、広告はありません。</item>
+  </string-array>
+
+  <string-array name="uses_windows_keys">
+    <item>管理者として再起動</item>
+    <item>ファイアウォールのルール</item>
+    <item>サインイン時に開始</item>
+    <item>送る</item>
+    <item>通知へのアクセス</item>
+    <item>仮想コントローラー</item>
+  </string-array>
+  <string-array name="uses_windows_values">
+    <item>トレイメニューのオプション項目で、Windows自身の確認の後に表示されます。Windowsが通常ブロックする、管理者として実行中のウィンドウに入力できるようにします。</item>
+    <item>スマホがWi-FiまたはUSBで接続できるように、Edgepad.exe用の受信許可ルールを1つ。Windowsの確認の後に追加されます。いいえと答えた場合、次回の起動時に再度尋ねられることはありません。</item>
+    <item>トレイメニューでオンにした場合に、サインイン時にEdgepadを起動する、ユーザーごとのエントリ。管理者権限は不要です。</item>
+    <item>ご自身の「送る」フォルダーにあるショートカット。「送る」→「Edgepad」の順で、ファイルをスマホに送れます。</item>
+    <item>通知を転送する場合のみ: Windowsが、Edgepadによる通知の読み取りを許可するかどうか尋ねます。</item>
+    <item>スマホのゲームパッドには、ViGEmBusドライバーが必要です。これはご自身でインストールしてください。Edgepadはそのダウンロードページを開くだけです。</item>
+  </string-array>
+  <string-array name="uses_mac_keys">
+    <item>アクセシビリティ</item>
+    <item>Bluetooth</item>
+    <item>ローカルネットワーク</item>
+    <item>オートメーション</item>
+    <item>ファイルとフォルダ</item>
+    <item>通知とログイン項目</item>
+    <item>要求なし</item>
+  </string-array>
+  <string-array name="uses_mac_values">
+    <item>スマホのために入力、クリック、キー操作をするのに必要です。macOSが確認し、不足している場合はEdgepadがスマホにそれを伝えます。</item>
+    <item>このMacとペアリングしたスマホの接続を待ち受けるためです。</item>
+    <item>Wi-Fi接続をオンにしたときに、スマホがWi-Fi上でこのMacを見つけられるようにするためです。</item>
+    <item>Music、またはSpotifyに再生中の内容を尋ねて操作するため。また、メディアの最後にこのMacをスリープまたはシャットダウンするよう設定した場合にも使います。</item>
+    <item>デスクトップ、書類、ダウンロードのフォルダ。スマホで受信するよう依頼したスクリーンショットや録画を見つけるためです。</item>
+    <item>スマホからのペアリング要求と新しいバージョンの通知。ログイン時に開始は通常のログイン項目です。サインイン用のトークンはKeychainに保存されます。</item>
+    <item>入力監視と画面収録。キャプチャはmacOSの標準のショートカットを使います。</item>
+  </string-array>
+  <string-array name="uses_linux_keys">
+    <item>入力デバイス</item>
+    <item>Bluetooth</item>
+    <item>デスクトップサービス</item>
+    <item>ログイン時に開始</item>
+  </string-array>
+  <string-array name="uses_linux_values">
+    <item>/dev/uinput。キーボードを使っている人のために開かれます。udevルールと、インストーラーが管理者として一度追加するモジュール設定を通じて開かれます。</item>
+    <item>BlueZ。システムバス上で、ペアリングしたスマホの接続を待ち受けます。</item>
+    <item>セッションバス上で: 通知、メディアプレーヤー（MPRIS）、電源（UPower）、スリープとロック（login1）、ネットワークページ用のNetworkManager、デスクトップのダークモード設定、ディスプレイのリフレッシュレート、トレイ、そしてサインイン用トークンのためのSecret Service。</item>
+    <item>オンにしたときに、ご自身の設定フォルダーに作られる自動起動の項目。</item>
+  </string-array>
+  <string-array name="uses_ai_keys">
+    <item>AIツール</item>
+    <item>サインイン用トークン</item>
+  </string-array>
+  <string-array name="uses_ai_values">
+    <item>開発者モードがオンのときだけ。Edgepadは Claude Code、Codex、Gemini CLI、OpenCode のローカルのセッションと使用状況のファイルを読みます。どれかを接続すると、そのツールの設定に小さなフックまたはプラグインが追加されます。</item>
+    <item>GitトークンはノートPC上で、その資格情報ストアに暗号化して保存され、スマホに送られることは決してありません。</item>
+  </string-array>
+</resources>

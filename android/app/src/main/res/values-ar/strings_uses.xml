@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="uses_title">ما الذي يستخدمه Edgepad</string>
+  <string name="uses_intro">كل ما يأخذه Edgepad أو يحتاجه، كبيرًا كان أم صغيرًا، حتى تعرف أي صلاحية تمنحه. لا يُستخدم أي شيء هنا إلا عندما تحتاج إليه ميزة ما. لا يُطلب أبدًا اسم شبكة Wi-Fi أو موقعك أو جهات اتصالك أو صورك أو ميكروفونك.</string>
+  <string name="uses_section_perms">الأذونات على هذا الهاتف</string>
+  <string name="uses_section_flow">ما ينتقل بين الهاتف واللابتوب</string>
+  <string name="uses_section_net">ما يصل إلى الإنترنت</string>
+  <string name="uses_section_laptop">على اللابتوب</string>
+  <string name="uses_flow_out">من هذا الهاتف إلى اللابتوب</string>
+  <string name="uses_flow_in">من اللابتوب إلى هذا الهاتف</string>
+  <string name="uses_flow_local">يبقى على هذا الهاتف</string>
+  <string name="uses_laptop_ai">أدوات الذكاء الاصطناعي وGit، على أي لابتوب</string>
+
+  <string name="uses_perm_bluetooth_title">الأجهزة المجاورة (بلوتوث)</string>
+  <string name="uses_perm_bluetooth_body">يتيح لـ Edgepad الاتصال بلابتوب سبق أن قرنته في إعدادات بلوتوث في Android. لا يبحث أبدًا عن أجهزة بلوتوث أخرى ولا يقرأ بياناتها. يسألك Android في المرة الأولى التي تفتح فيها «الأجهزة».</string>
+  <string name="uses_perm_localnet_title">الشبكة المحلية</string>
+  <string name="uses_perm_localnet_body">يتيح لهذا الهاتف العثور على أجهزة اللابتوب على شبكة Wi-Fi الخاصة بك والتواصل معها. يسأل Android قبل أول بحث عبر Wi-Fi.</string>
+  <string name="uses_perm_netstate_title">حالة الشبكة</string>
+  <string name="uses_perm_netstate_body">يخبر Edgepad ما إذا كنت على Wi-Fi أو توصيل USB أو بيانات الهاتف المحمول، ليعثر على أجهزة اللابتوب ويعرض اتصالك في صفحة «الشبكة». لا يسأل Android.</string>
+  <string name="uses_perm_wifistate_title">حالة Wi-Fi</string>
+  <string name="uses_perm_wifistate_body">يقرأ سرعة رابط Wi-Fi لهذا الهاتف ونطاقه وقوة إشارته لصفحة «الشبكة». لا يقرأ اسم الشبكة أبدًا، لأن ذلك يحتاج إلى الموقع. لا يسأل Android.</string>
+  <string name="uses_perm_multicast_title">بث Wi-Fi المتعدد</string>
+  <string name="uses_perm_multicast_body">مطلوب للعثور على أجهزة اللابتوب عبر Wi-Fi. ويقبله Android أيضًا سببًا للسماح لخدمة الاتصال بالعمل في الخلفية. لا يسأل Android.</string>
+  <string name="uses_perm_internet_title">الإنترنت</string>
+  <string name="uses_perm_internet_body">ينقل الاتصال بلابتوبك عبر Wi-Fi أو USB. يستخدم Edgepad الإنترنت فقط لطلب أحدث إصدار من github.com ولتنزيل تحديث تختاره. لا يسأل Android.</string>
+  <string name="uses_perm_install_title">تثبيت التطبيقات</string>
+  <string name="uses_perm_install_body">يتيح لـ Edgepad تثبيت تحديث لـ Edgepad اخترت تنزيله. يسألك Android أن تسمح بالتثبيت من Edgepad في المرة الأولى.</string>
+  <string name="uses_perm_update_title">التحديث دون السؤال مجددًا</string>
+  <string name="uses_perm_update_body">في Android 12 والإصدارات الأحدث، يتيح تثبيت تحديث Edgepad دون سؤال ثانٍ بعد أن تسمح به. يحدّث Edgepad وحده. لا يسأل Android.</string>
+  <string name="uses_perm_service_title">العمل في الخلفية</string>
+  <string name="uses_perm_service_body">يُبقي الاتصال بلابتوب نشطًا أثناء تصغير Edgepad، مع إشعار أثناء عمله. يُتحكم به من «البقاء متصلًا في الخلفية» في الإعدادات. لا يسأل Android.</string>
+  <string name="uses_perm_servicetype_title">نوع الاتصال في الخلفية</string>
+  <string name="uses_perm_servicetype_body">يحدد أن خدمة الخلفية هذه تحافظ على اتصال بجهاز، وهو لابتوبك. لا يسأل Android.</string>
+  <string name="uses_perm_notify_title">الإشعارات</string>
+  <string name="uses_perm_notify_body">يعرض إشعار الاتصال ونقل الملفات وطلبات أذونات أدوات الذكاء الاصطناعي، وإشعارات لابتوبك إن فعّلتها. يسأل Android 13 والإصدارات الأحدث مرة واحدة، بعد التعريف.</string>
+  <string name="uses_perm_overlay_title">العرض فوق التطبيقات الأخرى</string>
+  <string name="uses_perm_overlay_body">فقط للمقابض العائمة التي تشغّلها بنفسك. يرسلك Android إلى صفحته الخاصة بالإعدادات، ولا يطلب Edgepad ذلك بغير ذلك أبدًا.</string>
+
+  <string-array name="uses_out_keys">
+    <item>إدخالك</item>
+    <item>الحافظة</item>
+    <item>الملفات والمشاركات</item>
+    <item>الصفحات المفتوحة</item>
+    <item>إجاباتك</item>
+    <item>مفاتيح التبديل</item>
+  </string-array>
+  <string-array name="uses_out_values">
+    <item>اللمسات والمفاتيح والنص الذي تكتبه، وحركات الذراع والقلم، والأزرار مثل الصوت والسطوع. فقط أثناء اتصال لابتوب.</item>
+    <item>نص أو صورة تنسخها، فقط إذا فعّلت «مشاركة الحافظة»، وفقط عندما يكون Edgepad على الشاشة، كما يسمح Android.</item>
+    <item>ملف أو نص أو صورة ترسلها عن قصد، أو تشاركها مع Edgepad. يُرسل بعد أن تنقر «إرسال».</item>
+    <item>الصفحات التي يعرضها الهاتف من لوحة المعلومات، ليقرأ اللابتوب بيانات المعالج والطقس والذكاء الاصطناعي وGit فقط أثناء عرض إحداها.</item>
+    <item>رقم PIN الذي تكتبه، و«موافقة» أو «رفض» لطلب إذن من أداة ذكاء اصطناعي.</item>
+    <item>الإشعارات، ووضع المطوّر، ومكان حفظ الالتقاطات، وحجم القلم ولونه، وهل يُبلَّغ عن التطبيق الظاهر في المقدمة.</item>
+  </string-array>
+  <string-array name="uses_in_keys">
+    <item>ما يفعله اللابتوب</item>
+    <item>الماكرو والتطبيقات</item>
+    <item>الالتقاطات والملفات</item>
+    <item>الحافظة والإشعارات</item>
+    <item>لوحات المعلومات</item>
+    <item>صفحة الشبكة</item>
+  </string-array>
+  <string-array name="uses_in_values">
+    <item>ما يُشغَّل ومن أي تطبيق، والصوت والسطوع وحجم العرض ومعدلات التحديث، واسم اللابتوب ونظامه، وبطارية اللابتوب وبطاريات أجهزة بلوتوث المتصلة به، واسم مخرج الصوت.</item>
+    <item>أسماء الماكرو وأيقوناته، وقائمة بالتطبيقات التي يمكنك إضافتها ماكرو. لا تُرسل أبدًا المسارات أو الأوامر التي تقف خلفها.</item>
+    <item>لقطة شاشة أو تسجيل فقط إذا اخترت «إلى الهاتف»، والملفات التي ترسلها من اللابتوب.</item>
+    <item>النص أو الصورة المنسوخة إذا كانت مشاركة الحافظة مفعّلة، وإشعارات اللابتوب (التطبيق والعنوان ونص قصير) إذا كان مفتاحا الإشعارات مفعّلين. لا تُسجَّل أبدًا.</item>
+    <item>أثناء فتح صفحة من لوحة المعلومات: حمل المعالج واستخدام القرص، والطقس، وأسماء جلسات الذكاء الاصطناعي وحالاتها، واستخدام الذكاء الاصطناعي وحدوده، وعناوين طلبات السحب والمشكلات في Git.</item>
+    <item>نوع اتصال اللابتوب والنطاق وسرعة الرابط والإشارة والعنوان المحلي والبوابة، ونتيجة اختبار السرعة. لا يُرسل أبدًا اسم شبكة Wi-Fi.</item>
+  </string-array>
+  <string name="uses_local_key">أرقام هذا الهاتف</string>
+  <string name="uses_local_value">قراءات البطارية والذاكرة والتخزين والاتصال في صفحة «النظام» تُقرأ على هذا الهاتف، فقط أثناء فتح تلك الصفحة، ولا تُرسل إلى أي مكان أبدًا.</string>
+
+  <string-array name="uses_net_keys">
+    <item>التحقق من التحديثات</item>
+    <item>اختبار السرعة</item>
+    <item>الطقس</item>
+    <item>تسجيل الدخول وGit</item>
+    <item>الروابط التي تفتحها</item>
+    <item>لا شيء غير ذلك</item>
+  </string-array>
+  <string-array name="uses_net_values">
+    <item>من هذا الهاتف ومن تطبيقات اللابتوب، github.com: طلب واحد يسأل عن أحدث إصدار ولا يرسل شيئًا عن جهازك. ويأتي التحديث الذي تختار تنزيله من github.com أيضًا.</item>
+    <item>من اللابتوب، فقط عندما تنقر «اختبر السرعة»، speed.cloudflare.com. ينقل بيانات اختبار ولا يرسل شيئًا عنك.</item>
+    <item>من اللابتوب، فقط إذا كانت أداة الطقس مفعّلة، api.open-meteo.com وgeocoding-api.open-meteo.com. يُرسل المكان الذي اخترته لإيجاد إحداثياته، ثم يُطلب التوقع.</item>
+    <item>من اللابتوب، فقط بعد أن تسجّل الدخول هناك، وفقط للقراءة: github.com وapi.github.com وgitlab.com أو خادم GitLab الذي تدخله وcodeberg.org أو خادم Gitea أو Forgejo الذي تدخله وapi.bitbucket.org وgitee.com. لا يكتب Edgepad أبدًا: بوابة مدمجة ترفض كل طلب ليس قراءة.</item>
+    <item>من اللابتوب، فقط عند النقر على رابط في متصفحك: getedgepad.com للتوثيق، وصفحة تنزيل ViGEmBus على github.com.</item>
+    <item>البحث في تطبيقات الهاتف وWindows وMac وLinux عن عناوين الويب لم يعثر على مضيفات أخرى. لا يوجد حساب، ولا تحليلات، ولا تقارير أعطال، ولا إعلانات.</item>
+  </string-array>
+
+  <string-array name="uses_windows_keys">
+    <item>إعادة التشغيل كمسؤول</item>
+    <item>قاعدة جدار الحماية</item>
+    <item>البدء عند تسجيل الدخول</item>
+    <item>إرسال إلى</item>
+    <item>الوصول إلى الإشعارات</item>
+    <item>وحدة التحكم الافتراضية</item>
+  </string-array>
+  <string-array name="uses_windows_values">
+    <item>صف اختياري في قائمة منطقة الإعلام، خلف مطالبة Windows نفسها. يتيح لـ Edgepad الكتابة في النوافذ التي تعمل كمسؤول، وهي نوافذ يحجبها Windows في الأحوال العادية.</item>
+    <item>قاعدة سماح واحدة للدخول إلى Edgepad.exe حتى تتمكن الهواتف من الاتصال عبر Wi-Fi أو USB، وتُضاف خلف مطالبة Windows. إذا قلت لا، لا يُسأل عنها مرة أخرى عند التشغيل التالي.</item>
+    <item>مدخل لكل مستخدم يشغّل Edgepad عند تسجيل الدخول، عندما تفعّله من قائمة منطقة الإعلام. لا يحتاج صلاحيات مسؤول.</item>
+    <item>اختصار في مجلد «إرسال إلى» الخاص بك، ليتمكن «إرسال إلى» ثم Edgepad من إرسال الملفات إلى الهاتف.</item>
+    <item>فقط إذا أعدت توجيه الإشعارات: يطلب Windows منك السماح لـ Edgepad بقراءتها.</item>
+    <item>تحتاج وحدة تحكم الألعاب في الهاتف إلى تعريف ViGEmBus، الذي تثبته بنفسك. يفتح Edgepad صفحة تنزيله فقط.</item>
+  </string-array>
+  <string-array name="uses_mac_keys">
+    <item>إمكانية الوصول</item>
+    <item>بلوتوث</item>
+    <item>الشبكة المحلية</item>
+    <item>الأتمتة</item>
+    <item>الملفات والمجلدات</item>
+    <item>الإشعارات وعنصر تسجيل الدخول</item>
+    <item>غير مطلوب</item>
+  </string-array>
+  <string-array name="uses_mac_values">
+    <item>مطلوب للكتابة والنقر والضغط على المفاتيح من أجل الهاتف. يطلبه macOS، ويخبر Edgepad الهاتف عند غيابه.</item>
+    <item>للاستماع إلى الهاتف الذي قرنته بهذا Mac.</item>
+    <item>ليتمكن الهاتف من العثور على هذا Mac عبر Wi-Fi، عندما تفعّل اتصالات Wi-Fi.</item>
+    <item>لسؤال Music أو Spotify عما يُشغَّل وللتحكم فيه، ولإيقاف هذا Mac مؤقتًا أو إغلاقه عندما تضبط ذلك في نهاية الوسائط.</item>
+    <item>سطح المكتب والمستندات والتنزيلات، للعثور على لقطة أو تسجيل طلبت استلامه على الهاتف.</item>
+    <item>تنبيهات لهاتف يطلب الإقران ولإصدار جديد؛ وبدء التشغيل عند تسجيل الدخول عنصر تسجيل دخول عادي. تُحفظ رموز تسجيل الدخول في Keychain.</item>
+    <item>مراقبة الإدخال وتسجيل الشاشة. تستخدم الالتقاطات اختصارات macOS نفسها.</item>
+  </string-array>
+  <string-array name="uses_linux_keys">
+    <item>جهاز الكتابة</item>
+    <item>بلوتوث</item>
+    <item>خدمات سطح المكتب</item>
+    <item>بدء التشغيل عند تسجيل الدخول</item>
+  </string-array>
+  <string-array name="uses_linux_values">
+    <item>/dev/uinput، يُفتح لمن يجلس أمام لوحة المفاتيح عبر قاعدة udev وإعداد وحدة يضيفهما المثبّت مرة واحدة، بصلاحيات المسؤول.</item>
+    <item>BlueZ، على ناقل النظام، للاستماع إلى الهاتف الذي قرنته.</item>
+    <item>على ناقل الجلسة: الإشعارات، ومشغلات الوسائط (MPRIS)، والطاقة (UPower)، والسكون والقفل (login1)، وNetworkManager لصفحة «الشبكة»، وإعداد الوضع الداكن في سطح المكتب، ومعدلات تحديث الشاشة، ومنطقة الإعلام، وSecret Service لرموز تسجيل الدخول.</item>
+    <item>مدخل بدء تلقائي في مجلد الإعدادات الخاص بك، عندما تفعّله.</item>
+  </string-array>
+  <string-array name="uses_ai_keys">
+    <item>أدوات الذكاء الاصطناعي</item>
+    <item>رموز تسجيل الدخول</item>
+  </string-array>
+  <string-array name="uses_ai_values">
+    <item>فقط مع تفعيل وضع المطوّر. يقرأ Edgepad ملفات الجلسة والاستخدام المحلية لـ Claude Code وCodex وGemini CLI وOpenCode، وربط إحداها يضيف خطافًا أو إضافة صغيرة إلى إعدادات تلك الأداة.</item>
+    <item>تُحفظ رموز Git مشفّرة على اللابتوب، في مخزن بيانات الاعتماد الخاص به، ولا تُرسل أبدًا إلى الهاتف.</item>
+  </string-array>
+</resources>

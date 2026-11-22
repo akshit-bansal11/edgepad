@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="uses_title">What Edgepad uses</string>
+  <string name="uses_intro">Everything Edgepad takes or needs, however big or small, so you know what access you are giving. Nothing here is used until a feature needs it. Wi-Fi network names, your location, your contacts, your photos and your microphone are never asked for.</string>
+  <string name="uses_section_perms">Permissions on this phone</string>
+  <string name="uses_section_flow">What goes between phone and laptop</string>
+  <string name="uses_section_net">What reaches the internet</string>
+  <string name="uses_section_laptop">On your laptop</string>
+  <string name="uses_flow_out">From this phone to the laptop</string>
+  <string name="uses_flow_in">From the laptop to this phone</string>
+  <string name="uses_flow_local">Stays on this phone</string>
+  <string name="uses_laptop_ai">AI tools and Git, on any laptop</string>
+  <string name="uses_windows" translatable="false">Windows</string>
+  <string name="uses_mac" translatable="false">Mac</string>
+  <string name="uses_linux" translatable="false">Linux</string>
+
+  <string name="uses_perm_bluetooth_title">Nearby devices (Bluetooth)</string>
+  <string name="uses_perm_bluetooth_body">Lets Edgepad connect to a laptop you already paired in Android’s Bluetooth settings. It never scans for, or reads, other Bluetooth devices. Android asks the first time you open Devices.</string>
+  <string name="uses_perm_localnet_title">Local network</string>
+  <string name="uses_perm_localnet_body">Lets this phone find laptops on your own Wi-Fi and talk to them. Android asks before the first Wi-Fi search.</string>
+  <string name="uses_perm_netstate_title">Network state</string>
+  <string name="uses_perm_netstate_body">Tells Edgepad whether you are on Wi-Fi, USB tethering or mobile data, to find laptops and to show your connection on the Network page. Android does not ask.</string>
+  <string name="uses_perm_wifistate_title">Wi-Fi state</string>
+  <string name="uses_perm_wifistate_body">Reads this phone’s own Wi-Fi link speed, band and signal strength for the Network page. Never the name of the network, which would need Location. Android does not ask.</string>
+  <string name="uses_perm_multicast_title">Wi-Fi multicast</string>
+  <string name="uses_perm_multicast_body">Needed to find laptops on the Wi-Fi. Android also accepts it as a reason to let the connection service run in the background. Android does not ask.</string>
+  <string name="uses_perm_internet_title">Internet</string>
+  <string name="uses_perm_internet_body">Carries the link to your laptop over Wi-Fi or USB. Edgepad itself uses the internet only to ask github.com for the newest version and to download an update you chose. Android does not ask.</string>
+  <string name="uses_perm_install_title">Install apps</string>
+  <string name="uses_perm_install_body">Lets Edgepad install an Edgepad update you chose to download. Android asks you to allow installs from Edgepad the first time.</string>
+  <string name="uses_perm_update_title">Update without asking again</string>
+  <string name="uses_perm_update_body">On Android 12 and later, lets an Edgepad update install without a second question once you have allowed it. It updates Edgepad only. Android does not ask.</string>
+  <string name="uses_perm_service_title">Run in the background</string>
+  <string name="uses_perm_service_body">Keeps the link to a laptop alive while Edgepad is minimized, with a notification while it runs. Controlled by Stay connected in Settings. Android does not ask.</string>
+  <string name="uses_perm_servicetype_title">Background link type</string>
+  <string name="uses_perm_servicetype_body">Marks that background service as one that keeps a connection to a device, your laptop. Android does not ask.</string>
+  <string name="uses_perm_notify_title">Notifications</string>
+  <string name="uses_perm_notify_body">Shows the connection notice, file transfers, AI permission requests and, if you turn it on, your laptop’s notifications. Android 13 and later asks once, after the introduction.</string>
+  <string name="uses_perm_overlay_title">Display over other apps</string>
+  <string name="uses_perm_overlay_body">Only for the floating dials that you switch on yourself. Android sends you to its own settings page; Edgepad never asks otherwise.</string>
+
+  <string-array name="uses_out_keys">
+    <item>Your input</item>
+    <item>Clipboard</item>
+    <item>Files and shares</item>
+    <item>Which pages are open</item>
+    <item>Your answers</item>
+    <item>Your switches</item>
+  </string-array>
+  <string-array name="uses_out_values">
+    <item>Touches, keys, text you type, gamepad and pen strokes, and buttons such as volume and brightness. Only while a laptop is connected.</item>
+    <item>Text or an image you copy, only if you turn on Share clipboard, and only when Edgepad is on screen, as Android allows.</item>
+    <item>A file, text or image you send on purpose, or share to Edgepad. Sent after you tap Send.</item>
+    <item>Which dashboard pages the phone is showing, so the laptop reads CPU, weather, AI or Git data only while one is on screen.</item>
+    <item>The PIN you type, and Approve or Deny for an AI tool’s permission request.</item>
+    <item>Notifications, Developer mode, where captures are saved, pen size and colour, and whether to report the app in front.</item>
+  </string-array>
+  <string-array name="uses_in_keys">
+    <item>What the laptop is doing</item>
+    <item>Macros and apps</item>
+    <item>Captures and files</item>
+    <item>Clipboard and notifications</item>
+    <item>Dashboards</item>
+    <item>Network page</item>
+  </string-array>
+  <string-array name="uses_in_values">
+    <item>What is playing and in which app, volume, brightness, display size and refresh rates, the laptop’s name and system, the battery of the laptop and of its Bluetooth devices, and the name of the audio output.</item>
+    <item>Macro names and icons, and a list of apps you can add as a macro. Never the paths or commands behind them.</item>
+    <item>A screenshot or recording only if you chose Save to Phone, and files you send from the laptop.</item>
+    <item>Copied text or an image if clipboard sharing is on, and the laptop’s notifications (app, title, short text) if both notification switches are on. Never logged.</item>
+    <item>While a dashboard page is open: computer load and disk use, weather, AI session names and states, AI usage and limits, and the titles of Git pull requests and issues.</item>
+    <item>The laptop’s connection type, band, link speed, signal, local address and gateway, and the result of a speed test. Never a Wi-Fi name.</item>
+  </string-array>
+  <string name="uses_local_key">This phone’s own figures</string>
+  <string name="uses_local_value">The battery, memory, storage and connection figures on the System page are read on this phone, only while that page is open, and are never sent anywhere.</string>
+
+  <string-array name="uses_net_keys">
+    <item>Update check</item>
+    <item>Speed test</item>
+    <item>Weather</item>
+    <item>Git and sign-in</item>
+    <item>Links you open</item>
+    <item>Nothing else</item>
+  </string-array>
+  <string-array name="uses_net_values">
+    <item>github.com, from this phone and from the laptop apps: one request that asks for the newest version and sends nothing about your device. An update you choose to download comes from github.com too.</item>
+    <item>speed.cloudflare.com, from the laptop, only when you tap Test speed. It moves test data and sends nothing about you.</item>
+    <item>api.open-meteo.com and geocoding-api.open-meteo.com, from the laptop, only if the weather widget is on. The place you chose is sent to find its coordinates, then the forecast is asked for.</item>
+    <item>From the laptop, only after you sign in there, and only to read: github.com and api.github.com, gitlab.com or the GitLab server you enter, codeberg.org or the Gitea or Forgejo server you enter, api.bitbucket.org, and gitee.com. Edgepad never writes: a built-in gate refuses every request that is not a read.</item>
+    <item>getedgepad.com for the documentation, and the ViGEmBus download page on github.com. Your browser opens them only when you tap a link.</item>
+    <item>A search of the phone, Windows, Mac and Linux apps for web addresses found no other host. There is no account, no analytics, no crash reporting and no advertising.</item>
+  </string-array>
+
+  <string-array name="uses_windows_keys">
+    <item>Restart as administrator</item>
+    <item>Firewall rule</item>
+    <item>Start at sign-in</item>
+    <item>Send to</item>
+    <item>Notification access</item>
+    <item>Virtual controller</item>
+  </string-array>
+  <string-array name="uses_windows_values">
+    <item>An optional row in the tray menu, behind Windows’ own prompt. It lets Edgepad type into windows that run as administrator, which Windows otherwise blocks.</item>
+    <item>One inbound allow rule for Edgepad.exe so phones can connect over Wi-Fi or USB, added behind Windows’ prompt. If you say no, it is not asked again at the next start.</item>
+    <item>A per-user entry that starts Edgepad when you sign in, when you turn it on in the tray menu. No administrator rights.</item>
+    <item>A shortcut in your own Send to folder, so Send to, then Edgepad, can send files to the phone.</item>
+    <item>Only if you forward notifications: Windows asks you to allow Edgepad to read them.</item>
+    <item>The phone’s gamepad needs the ViGEmBus driver, which you install yourself. Edgepad only opens its download page.</item>
+  </string-array>
+  <string-array name="uses_mac_keys">
+    <item>Accessibility</item>
+    <item>Bluetooth</item>
+    <item>Local Network</item>
+    <item>Automation</item>
+    <item>Files and folders</item>
+    <item>Notifications and login item</item>
+    <item>Not requested</item>
+  </string-array>
+  <string-array name="uses_mac_values">
+    <item>Needed to type, click and press keys for the phone. macOS asks, and Edgepad tells the phone when it is missing.</item>
+    <item>To listen for the phone you paired with this Mac.</item>
+    <item>To let the phone find this Mac over Wi-Fi, when you turn on Wi-Fi connections.</item>
+    <item>To ask Music or Spotify what is playing and to move it, and to sleep or shut down this Mac when you set that at the end of the media.</item>
+    <item>Desktop, Documents and Downloads, to find a screenshot or recording you asked to receive on the phone.</item>
+    <item>Alerts for a phone asking to pair and for a new version; Start at login is a normal login item. Sign-in tokens go in your Keychain.</item>
+    <item>Input Monitoring and Screen Recording. Captures use macOS’s own shortcuts.</item>
+  </string-array>
+  <string-array name="uses_linux_keys">
+    <item>Typing device</item>
+    <item>Bluetooth</item>
+    <item>Desktop services</item>
+    <item>Start at login</item>
+  </string-array>
+  <string-array name="uses_linux_values">
+    <item>/dev/uinput, opened for the person at the keyboard through a udev rule and a module setting that the installer adds once, as administrator.</item>
+    <item>BlueZ, on the system bus, to listen for the phone you paired.</item>
+    <item>On the session bus: notifications, media players (MPRIS), power (UPower), sleep and lock (login1), NetworkManager for the Network page, the desktop’s dark-mode setting, display refresh rates, the tray, and the Secret Service for sign-in tokens.</item>
+    <item>An autostart entry in your own config folder, when you turn it on.</item>
+  </string-array>
+  <string-array name="uses_ai_keys">
+    <item>AI tools</item>
+    <item>Sign-in tokens</item>
+  </string-array>
+  <string-array name="uses_ai_values">
+    <item>Only with Developer mode on. Edgepad reads the local session and usage files of Claude Code, Codex, Gemini CLI and OpenCode, and connecting one adds a small hook or plug-in to that tool’s own settings.</item>
+    <item>Git tokens are kept encrypted on the laptop, in its own credential store, and are never sent to the phone.</item>
+  </string-array>
+</resources>
