@@ -35,7 +35,7 @@ internal sealed class DevelopersWindow : Form
     private readonly Label heading = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Integrations_ForDevelopers };
     private readonly Label subtitle = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Dev_Subtitle };
     private readonly Label developerHint = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Dev_NeedDeveloper };
-    private readonly CheckBox developerSwitch = new() { AutoSize = false, Text = Mnemonic.Escape(Strings.Menu_DeveloperMode), AccessibleName = Strings.Menu_DeveloperMode, UseVisualStyleBackColor = false };
+    private readonly SwitchBox developerSwitch;
     private readonly Label aiHeading = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Dev_SectionAi.ToUpper(CultureInfo.CurrentCulture) };
     private readonly Label gitHeading = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Dev_SectionGit.ToUpper(CultureInfo.CurrentCulture) };
     private readonly FlatButton close;
@@ -94,6 +94,7 @@ internal sealed class DevelopersWindow : Form
     {
         this.actions = actions;
         this.palette = colours ?? Palette.Current;
+        developerSwitch = new SwitchBox(this.palette) { Text = Strings.Menu_DeveloperMode, AccessibleName = Strings.Menu_DeveloperMode };
 
         Text = Strings.Integrations_ForDevelopers;
         RightToLeft = Theme.Direction;
@@ -334,6 +335,9 @@ internal sealed class DevelopersWindow : Form
 
         base.Dispose(disposing);
     }
+
+    // The middle dot between a status and its link, built from its code point (U+00B7) so no look-alike character sits in the source.
+    private static readonly string Separator = char.ConvertFromUtf32(0xB7);
 
     private static string Mark(bool open) => open ? ExpandedMark : Theme.IsRtl ? CollapsedMarkRtl : CollapsedMark;
 
@@ -710,7 +714,7 @@ internal sealed class DevelopersWindow : Form
         developerSwitch.Font = Theme.Font(Theme.Scale(14f, DeviceDpi), Weight.Regular);
         developerSwitch.ForeColor = palette.Ink;
         developerSwitch.BackColor = palette.Card;
-        var switchWidth = TextRenderer.MeasureText(developerSwitch.Text, developerSwitch.Font, Size.Empty, TextFormatFlags.NoPadding).Width + S(44);
+        var switchWidth = TextRenderer.MeasureText(developerSwitch.Text, developerSwitch.Font, Size.Empty, TextFormatFlags.NoPadding).Width + S(52);
         Place(heading, left, top, width - switchWidth - S(8), S(32));
         Place(developerSwitch, left + width - switchWidth, top, switchWidth, S(32));
         order.Add(developerSwitch);
@@ -802,21 +806,23 @@ internal sealed class DevelopersWindow : Form
         row.Line.Font = Theme.Font(Theme.Scale(12f, DeviceDpi), Weight.Regular);
         row.Line.ForeColor = view.Calm ? palette.Dim : palette.Ink;
         row.Line.BackColor = palette.Card;
-        row.Line.Text = view.Status;
+        // "Not connected · How to connect ›": the link sits inline after the status and its separator.
+        var lineText = view.CanHowTo ? view.Status + " " + Separator : view.Status;
+        row.Line.Text = lineText;
         var howToWidth = 0;
         if (view.CanHowTo)
         {
             row.HowTo.Text = Strings.Dev_HowTo + " " + Mark(expanded.Contains(provider.Id));
-            row.HowTo.AccessibleName = Strings.Dev_HowTo;
-            row.HowTo.AccessibleDescription = provider.Name;
+            row.HowTo.AccessibleName = Strings.Dev_HowTo + " " + provider.Name;
             row.HowTo.Enabled = developerOn;
-            howToWidth = row.HowTo.FitWidth(DeviceDpi);
+            row.HowTo.Font = row.Line.Font;
+            howToWidth = row.HowTo.FitWidth();
         }
 
         var room = Math.Max(textWidth - (statusX - textX) - howToWidth, S(80));
-        var natural = TextRenderer.MeasureText(view.Status, row.Line.Font, Size.Empty, TextFormatFlags.NoPadding).Width + S(12);
+        var natural = TextRenderer.MeasureText(lineText, row.Line.Font, Size.Empty, TextFormatFlags.NoPadding).Width + S(8);
         var statusWidth = Math.Min(natural, room);
-        var statusHeight = Math.Max(S(18), Measure(view.Status, row.Line.Font, statusWidth));
+        var statusHeight = Math.Max(S(18), Measure(lineText, row.Line.Font, statusWidth));
         if (view.Dot)
         {
             row.Dot.BackColor = palette.Card;
@@ -826,7 +832,7 @@ internal sealed class DevelopersWindow : Form
         Place(row.Line, statusX, rowTop + S(26), statusWidth, statusHeight);
         if (view.CanHowTo)
         {
-            Place(row.HowTo, statusX + statusWidth + S(2), rowTop + S(23), howToWidth, S(24));
+            Place(row.HowTo, statusX + statusWidth, rowTop + S(26), howToWidth, S(18));
             order.Add(row.HowTo);
         }
 
@@ -980,7 +986,7 @@ internal sealed class DevelopersWindow : Form
             Name = new Label { AutoSize = false, UseMnemonic = false, Text = provider.Name, TextAlign = ContentAlignment.MiddleLeft };
             Dot = new Dot(palette.Card);
             Line = new Label { AutoSize = false, UseMnemonic = false };
-            HowTo = new FlatButton(Strings.Dev_HowTo, ButtonKind.Ghost, palette);
+            HowTo = new LinkButton(palette);
             Go = new FlatButton(Strings.Integrations_Connect, ButtonKind.Primary, palette);
             Undo = new FlatButton(Strings.Integrations_Disconnect, ButtonKind.Outline, palette);
             Copy = new FlatButton(Strings.Integrations_Copy, ButtonKind.Outline, palette) { AccessibleDescription = provider.Name };
@@ -999,7 +1005,7 @@ internal sealed class DevelopersWindow : Form
 
         public Label Line { get; }
 
-        public FlatButton HowTo { get; }
+        public LinkButton HowTo { get; }
 
         public FlatButton Go { get; }
 
@@ -1018,6 +1024,124 @@ internal sealed class DevelopersWindow : Form
         public bool Busy { get; set; }
 
         public Control[] Controls => [Logo, Name, Dot, Line, HowTo, Go, Undo, Copy, Steps, Extra, Separator];
+    }
+
+    /// <summary>
+    /// A text link in the accent colour: hand cursor, underlined on hover or focus, focusable, and a Button underneath so Enter and
+    /// Space press it and a screen reader meets a button.
+    /// </summary>
+    private sealed class LinkButton : Button
+    {
+        private readonly Palette palette;
+
+        public LinkButton(Palette palette)
+        {
+            this.palette = palette;
+            Cursor = Cursors.Hand;
+            BackColor = palette.Card;
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
+        }
+
+        public int FitWidth() => TextRenderer.MeasureText(Text, Font, Size.Empty, TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width + Theme.Scale(4, DeviceDpi);
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            e.Graphics.Clear(palette.Card);
+            var ink = Enabled ? palette.Accent : Theme.Mix(palette.Accent, palette.Card, 0.55f);
+            var underline = Enabled && (Focused || ClientRectangle.Contains(PointToClient(Cursor.Position)));
+            using var font = new Font(Font, underline ? FontStyle.Underline : FontStyle.Regular);
+            TextRenderer.DrawText(e.Graphics, Text, font, ClientRectangle, ink, TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.NoPadding | Theme.Start);
+        }
+
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            base.OnMouseEnter(e);
+            Invalidate();
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+            Invalidate();
+        }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            Invalidate();
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+            Invalidate();
+        }
+    }
+
+    /// <summary>
+    /// The design's 32 by 18 switch with its words before it, still a CheckBox so Space toggles it and a screen reader says
+    /// checked or not. Drawn as the tray menu draws its switches: the accent when on, the off grey when off, a white knob.
+    /// </summary>
+    private sealed class SwitchBox : CheckBox
+    {
+        private readonly Palette palette;
+
+        public SwitchBox(Palette palette)
+        {
+            this.palette = palette;
+            AutoSize = false;
+            UseMnemonic = false;
+            Cursor = Cursors.Hand;
+            BackColor = palette.Card;
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics;
+            g.Clear(palette.Card);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            var dpi = DeviceDpi;
+            var trackWidth = Theme.Scale(32f, dpi);
+            var trackHeight = Theme.Scale(18f, dpi);
+            var track = Theme.Flip(new RectangleF(Width - trackWidth, (Height - trackHeight) / 2f, trackWidth, trackHeight), ClientRectangle);
+            using (var fill = new SolidBrush(Checked ? palette.Accent : palette.Off))
+            using (var shape = Theme.Rounded(track, trackHeight / 2))
+            {
+                g.FillPath(fill, shape);
+            }
+
+            var knob = Theme.Scale(16f, dpi);
+            var inset = Theme.Scale(1f, dpi);
+            var x = Checked != Theme.IsRtl ? track.Right - inset - knob : track.Left + inset;
+            using (var thumb = new SolidBrush(palette.HighContrast ? palette.Card : Color.White))
+            {
+                g.FillEllipse(thumb, x, track.Top + inset, knob, knob);
+            }
+
+            if (Focused && ShowFocusCues)
+            {
+                using var ring = new Pen(palette.Accent, Theme.Scale(2f, dpi));
+                using var outline = Theme.Rounded(RectangleF.Inflate(track, inset * 2, inset * 2), (trackHeight / 2) + (inset * 2));
+                g.DrawPath(ring, outline);
+            }
+
+            var words = new Rectangle(0, 0, Width - (int)Math.Ceiling(trackWidth) - Theme.Scale(12, dpi), Height);
+            TextRenderer.DrawText(
+                g, Text, Font, Theme.Flip(words, ClientRectangle), ForeColor, TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding | Theme.Start);
+        }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            Invalidate();
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+            Invalidate();
+        }
     }
 
     /// <summary>The green dot before a connected status line.</summary>
