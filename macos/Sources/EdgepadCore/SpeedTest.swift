@@ -103,6 +103,8 @@ public final class SpeedTest: @unchecked Sendable {
 
     static let streams = 4
     static let latencySamples = 10
+    /// The most the ten latency probes may take in all, in seconds.
+    static let latencyLimit: TimeInterval = 15
     static let downloadChunk = 25_000_000
     static let uploadChunk = 2_000_000
 
@@ -222,12 +224,7 @@ public final class SpeedTest: @unchecked Sendable {
         let upBytes = Tally()
         let transport = self.transport
         do {
-            var samples: [Double] = []
-            for _ in 0..<Self.latencySamples {
-                let t = nowMs()
-                try await transport.download(bytes: 0, read: { _ in })
-                samples.append(nowMs() - t)
-            }
+            let samples = try await probeLatency()
             latency = Int(Self.median(samples).rounded())
             jitter = Int(Self.jitter(samples).rounded())
 
@@ -256,6 +253,32 @@ public final class SpeedTest: @unchecked Sendable {
         return SpeedResult(
             state: state.rawValue, downKbps: down, upKbps: up, latencyMs: latency, jitterMs: jitter, atUnixMin: at,
             bytes: Int64(downBytes.value + upBytes.value))
+    }
+
+    /// The latency samples, in ms, all of them inside `latencyLimit` or the test fails: a hung probe never stalls it.
+    private func probeLatency() async throws -> [Double] {
+        let limitNs = UInt64(Self.latencyLimit * 1_000_000_000)
+        let transport = self.transport
+        let probe: [Double]? = try await withThrowingTaskGroup(of: [Double]?.self) { group in
+            group.addTask {
+                try await Task.sleep(nanoseconds: limitNs)
+                return nil
+            }
+            group.addTask { [self] in
+                var samples: [Double] = []
+                for _ in 0..<Self.latencySamples {
+                    let t = nowMs()
+                    try await transport.download(bytes: 0, read: { _ in })
+                    samples.append(nowMs() - t)
+                }
+                return samples
+            }
+            let first = try await group.next() ?? nil
+            group.cancelAll()
+            return first
+        }
+        guard let probe else { throw SpeedFailure.timedOut }
+        return probe
     }
 
     /// Runs `streams` workers that each take the next chunk of the `cap` until it is all asked for or the phase limit
@@ -311,6 +334,7 @@ public final class CloudflareSpeedTransport: SpeedTransport {
         guard let url = URL(string: "https://\(Self.host)/__down?bytes=\(bytes)") else {
             throw SpeedFailure.badAddress
         }
+        try Task.checkCancellation()
         let delegate = DownloadDelegate(read: read)
         let session = URLSession(configuration: .ephemeral, delegate: delegate, delegateQueue: nil)
         defer { session.finishTasksAndInvalidate() }
@@ -340,6 +364,7 @@ public final class CloudflareSpeedTransport: SpeedTransport {
 enum SpeedFailure: Error {
     case badAddress
     case badStatus
+    case timedOut
 }
 
 private final class NoRedirects: NSObject, URLSessionTaskDelegate {
@@ -358,6 +383,9 @@ private final class DownloadDelegate: NSObject, URLSessionDataDelegate, @uncheck
     private let gate = NSLock()
     private var continuation: CheckedContinuation<Void, Error>?
     private var failure: Error?
+    // A cancel can end the task before `begin`: the end is kept and `begin` resumes at once, so nothing hangs.
+    private var ended = false
+    private var endCause: Error?
 
     init(read: @escaping @Sendable (Int) -> Void) {
         self.read = read
@@ -365,8 +393,18 @@ private final class DownloadDelegate: NSObject, URLSessionDataDelegate, @uncheck
 
     func begin(_ continuation: CheckedContinuation<Void, Error>) {
         gate.lock()
-        self.continuation = continuation
+        let early = ended
+        let cause = endCause
+        if !early {
+            self.continuation = continuation
+        }
         gate.unlock()
+        guard early else { return }
+        if let cause {
+            continuation.resume(throwing: cause)
+        } else {
+            continuation.resume()
+        }
     }
 
     func urlSession(
@@ -399,6 +437,8 @@ private final class DownloadDelegate: NSObject, URLSessionDataDelegate, @uncheck
         let end = continuation
         continuation = nil
         let cause = failure ?? error
+        ended = true
+        endCause = cause
         gate.unlock()
         if let cause {
             end?.resume(throwing: cause)

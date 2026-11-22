@@ -235,6 +235,26 @@ final class NetTests: XCTestCase {
         XCTAssertFalse(test.isRunning)
     }
 
+    func testACancelledTestNeverBlocksTheNextOne() async throws {
+        let clock = FakeClock()
+        let server = FakeSpeedServer(clock: clock)
+        server.stalls = true
+        let test = SpeedTest(transport: server, nowMs: { clock.now })
+
+        let first = try XCTUnwrap(test.start(report: { _ in }))
+        for _ in 0..<500 where server.stalled == 0 {
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+        test.cancel()
+        await first.value
+        XCTAssertFalse(test.isRunning)
+
+        server.stalls = false
+        let second = try XCTUnwrap(test.start(report: { _ in }))
+        await second.value
+        XCTAssertEqual(test.last?.state, "capped")
+    }
+
     func testABrokenReportDoesNotNeedAnythingFromTheTest() async throws {
         let clock = FakeClock()
         let test = SpeedTest(transport: FakeSpeedServer(clock: clock), nowMs: { clock.now })
