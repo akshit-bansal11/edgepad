@@ -88,11 +88,11 @@ internal sealed class DevelopersWindow : Form
     private bool developerOn;
 
     /// <param name="actions">What the window reads and does.</param>
-    /// <param name="palette">The colours; the system's light or dark set when null (the design gallery passes one).</param>
-    public DevelopersWindow(IntegrationActions actions, Palette? palette = null)
+    /// <param name="colours">The colours; the system's light or dark set when null (the design gallery passes one).</param>
+    public DevelopersWindow(IntegrationActions actions, Palette? colours = null)
     {
         this.actions = actions;
-        this.palette = palette ?? Palette.Current;
+        this.palette = colours ?? Palette.Current;
 
         Text = Strings.Integrations_ForDevelopers;
         RightToLeft = Theme.Direction;

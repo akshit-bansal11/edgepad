@@ -9,7 +9,6 @@ import android.text.TextPaint
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.View
-import androidx.annotation.DrawableRes
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -98,7 +97,7 @@ class SessionPill(
         state: SessionStateToken,
         stateLabel: String,
         brand: Int,
-        @DrawableRes logoRes: Int?,
+        logoRes: Int?,
     ) {
         initial = agent.token.take(1).uppercase()
         badge.color = brand
