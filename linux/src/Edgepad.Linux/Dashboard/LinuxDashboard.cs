@@ -283,7 +283,11 @@ internal sealed class LinuxDashboard : IDisposable
             Login = ct => new GitHubApi(secrets.Value).LoginAsync(ct),
         });
         developers = made;
-        _ = made.Closed.ContinueWith(_ => OnUi(() => developers = ReferenceEquals(developers, made) ? null : developers), TaskScheduler.Default);
+        _ = made.Closed.ContinueWith(_ => OnUi(() =>
+        {
+            developers = ReferenceEquals(developers, made) ? null : developers;
+            made.Dispose();
+        }), TaskScheduler.Default);
         made.Show();
     }
 

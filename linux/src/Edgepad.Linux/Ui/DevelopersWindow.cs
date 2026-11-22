@@ -51,8 +51,10 @@ internal sealed class DevelopersHooks
 /// GitHub's sign-in code opens in its own panel under its row, and the token hosts open a small inline form. Not modal.
 /// With Developer mode off every row is disabled and says why.
 /// </summary>
-internal sealed class DevelopersWindow
+internal sealed class DevelopersWindow : IDisposable
 {
+    // Cancelled when the window closes, so a token check in flight stops.
+    private readonly CancellationTokenSource closing = new();
     private const double Width = 520;
     private static readonly FontFamily Mono = new("monospace");
 
@@ -181,6 +183,7 @@ internal sealed class DevelopersWindow
         window.Closed += (_, _) =>
         {
             tokenBox.Text = string.Empty;
+            closing.Cancel();
             signInRun++;
             if (signingIn)
             {
@@ -194,6 +197,9 @@ internal sealed class DevelopersWindow
 
     /// <summary>Completes when the window has closed, however it closed.</summary>
     public Task Closed => closed.Task;
+
+    /// <summary>Frees the close token; call after the window has closed.</summary>
+    public void Dispose() => closing.Dispose();
 
     /// <summary>Opens the window and reads the tools' states off the UI thread. Call on the UI thread.</summary>
     public void Show()
@@ -721,7 +727,7 @@ internal sealed class DevelopersWindow
         GitSaveResult result;
         try
         {
-            result = await hooks.GitSave(id, tokenBox.Text ?? string.Empty, urlBox.Text ?? string.Empty, userBox.Text ?? string.Empty, CancellationToken.None);
+            result = await hooks.GitSave(id, tokenBox.Text ?? string.Empty, urlBox.Text ?? string.Empty, userBox.Text ?? string.Empty, closing.Token);
         }
         catch (OperationCanceledException)
         {
