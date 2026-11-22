@@ -174,7 +174,7 @@ class NetworkScreen(
     private fun weighted() = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
 
     private companion object {
-        const val SPEED_CAP_BYTES = 180_000_000L
+        const val SPEED_CAP_BYTES = 35_000_000L
         const val MS_PER_MIN = 60_000L
         const val KBPS_PER_MBPS = 1000.0
     }

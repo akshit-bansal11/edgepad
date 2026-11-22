@@ -58,10 +58,10 @@ internal static class SpeedWire
 internal sealed class SpeedTest : IDisposable
 {
     /// <summary>The most one test downloads.</summary>
-    public const long MaxDownloadBytes = 150L * 1000 * 1000;
+    public const long MaxDownloadBytes = 25L * 1000 * 1000;
 
     /// <summary>The most one test uploads.</summary>
-    public const long MaxUploadBytes = 30L * 1000 * 1000;
+    public const long MaxUploadBytes = 10L * 1000 * 1000;
 
     /// <summary>The most one test moves in all, the number the phone shows as its data cost.</summary>
     public const long MaxTotalBytes = MaxDownloadBytes + MaxUploadBytes;
@@ -76,7 +76,7 @@ internal sealed class SpeedTest : IDisposable
 
     private const int Streams = 4;
     private const int LatencySamples = 10;
-    private const int DownloadChunk = 25_000_000;
+    private const int DownloadChunk = 5_000_000;
     private const int UploadChunk = 2_000_000;
     private const int BufferBytes = 65536;
 

@@ -58,7 +58,7 @@ class DashWireTest {
         assertNull(DashWire.speedResult("paused|1|1|1|1|1|1"))
         assertNull(DashWire.speedResult("done|1|1|1|1|1"))
         assertNull(DashWire.speedResult("done|a|1|1|1|1|1"))
-        assertEquals(180_000_000L, DashWire.speedResult("capped|1|1|1|1|1|999999999999")?.bytes)
+        assertEquals(35_000_000L, DashWire.speedResult("capped|1|1|1|1|1|999999999999")?.bytes)
     }
 
     /** Null when the codec is an encoder only the laptop has. */

@@ -221,7 +221,7 @@ object DashWire {
     private const val MAX_KBPS = 100_000_000L
     private const val MAX_MS = 3_600_000
     private const val MAX_UNIX_MIN = 100_000_000L
-    private const val MAX_TEST_BYTES = 180_000_000L
+    private const val MAX_TEST_BYTES = 35_000_000L
     private const val GITHUB_FIELDS = 6
     private const val PERM_PARTS = 3
     private const val PERCENT_MAX = 100
