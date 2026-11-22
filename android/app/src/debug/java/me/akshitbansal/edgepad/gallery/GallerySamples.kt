@@ -27,8 +27,11 @@ class GallerySamples(
     /** The screen called [name], or null when there is none. */
     fun build(name: String): View? =
         when (name) {
-            "controls" -> blank()
-            "keyboard" ->
+            "controls" -> {
+                blank()
+            }
+
+            "keyboard" -> {
                 KeyboardScreen.build(
                     ui,
                     settings.keyTextScale,
@@ -41,10 +44,23 @@ class GallerySamples(
                     send = {},
                     onBack = {},
                 )
-            "gamepad-layout" -> GamepadLayoutScreen.build(ui, GamepadStore(context)) {}
-            "media-layout" -> MediaLayoutScreen.build(ui, settings) {}
-            "surface" -> ControlSurface(context, settings, LaptopState(), {}, {}, {})
-            else -> null
+            }
+
+            "gamepad-layout" -> {
+                GamepadLayoutScreen.build(ui, GamepadStore(context)) {}
+            }
+
+            "media-layout" -> {
+                MediaLayoutScreen.build(ui, settings) {}
+            }
+
+            "surface" -> {
+                ControlSurface(context, settings, LaptopState(), {}, {}, {})
+            }
+
+            else -> {
+                null
+            }
         }
 
     /** An empty page in the app's background: what the Controls popup opens over, and the answer to an unknown name. */
