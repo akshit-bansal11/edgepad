@@ -27,7 +27,7 @@ internal sealed class DevelopersWindow : Form
     private static readonly string CollapsedMarkRtl = char.ConvertFromUtf32(0x2039);
 
     private readonly IntegrationActions actions;
-    private readonly Palette palette = Palette.Current;
+    private readonly Palette palette;
     private readonly CancellationTokenSource closing = new();
     private readonly List<DevRow> rows = [];
     private readonly HashSet<string> expanded = [];
@@ -88,9 +88,11 @@ internal sealed class DevelopersWindow : Form
     private bool developerOn;
 
     /// <param name="actions">What the window reads and does.</param>
-    public DevelopersWindow(IntegrationActions actions)
+    /// <param name="palette">The colours; the system's light or dark set when null (the design gallery passes one).</param>
+    public DevelopersWindow(IntegrationActions actions, Palette? palette = null)
     {
         this.actions = actions;
+        this.palette = palette ?? Palette.Current;
 
         Text = Strings.Integrations_ForDevelopers;
         RightToLeft = Theme.Direction;
@@ -229,6 +231,30 @@ internal sealed class DevelopersWindow : Form
         signingIn = true;
         userCode = code;
         Relayout();
+    }
+
+    /// <summary>
+    /// For the design gallery: the window as a bitmap, without showing it. A form that was never shown creates no child handles
+    /// of its own, so DrawToBitmap on it paints an empty client area; each placed child is drawn at its place instead, back to front.
+    /// </summary>
+    internal Bitmap Render()
+    {
+        _ = Handle;
+        var bitmap = new Bitmap(ClientSize.Width, ClientSize.Height);
+        using var g = Graphics.FromImage(bitmap);
+        g.Clear(BackColor);
+        for (var i = Controls.Count - 1; i >= 0; i--)
+        {
+            var control = Controls[i];
+            if (shown.Contains(control))
+            {
+                using var part = new Bitmap(control.Width, control.Height);
+                control.DrawToBitmap(part, new Rectangle(Point.Empty, control.Size));
+                g.DrawImageUnscaled(part, control.Location);
+            }
+        }
+
+        return bitmap;
     }
 
     /// <summary>For the design gallery: sizes the window to all its content, whatever the screen.</summary>

@@ -32,8 +32,9 @@ public sealed class DesignGallery
             ("toast", () => Shoot(folder)),
             ("laser", () => SaveLaser(folder, "laser-medium", 15)),
             ("tray", () => SaveTray(folder)),
-            ("dev-window", () => SaveDevWindow(folder, "dev-window", codeOpen: false)),
-            ("dev-window-code", () => SaveDevWindow(folder, "dev-window-code", codeOpen: true)),
+            ("dev-window", () => SaveDevWindow(folder, "dev-window", codeOpen: false, Palette.Light)),
+            ("dev-window-dark", () => SaveDevWindow(folder, "dev-window-dark", codeOpen: false, Palette.Dark)),
+            ("dev-window-code", () => SaveDevWindow(folder, "dev-window-code", codeOpen: true, Palette.Light)),
         };
         foreach (var (name, draw) in cases)
         {
@@ -95,7 +96,7 @@ public sealed class DesignGallery
     // The For developers window with stub actions: Claude Code, OpenCode and GitHub connected, the rest not. With
     // codeOpen, GitHub is signed out and its sign-in panel is open, so both states of the row show. It is sized to all
     // its content, whatever the runner's screen, then drawn into a bitmap without being shown.
-    private static void SaveDevWindow(string folder, string name, bool codeOpen)
+    private static void SaveDevWindow(string folder, string name, bool codeOpen, Palette palette)
     {
         using var dir = new TempFolder();
         var settings = new IntegrationSettings(Path.Combine(dir.Path, IntegrationSettings.FileName));
@@ -127,16 +128,14 @@ public sealed class DesignGallery
             _ => false,
             (_, _, _, _, _) => Task.FromResult(new GitSaveResult(GitSaveStatus.Saved, "akshit")),
             _ => { });
-        using var window = new DevelopersWindow(actions);
+        using var window = new DevelopersWindow(actions, palette);
         window.ShowInFull();
         if (codeOpen)
         {
             window.PreviewCode("WDJB-MJHT");
         }
 
-        _ = window.Handle;
-        using var bitmap = new Bitmap(window.Width, window.Height);
-        window.DrawToBitmap(bitmap, new Rectangle(Point.Empty, window.Size));
+        using var bitmap = window.Render();
         bitmap.Save(System.IO.Path.Combine(folder, name + ".png"), ImageFormat.Png);
     }
 
