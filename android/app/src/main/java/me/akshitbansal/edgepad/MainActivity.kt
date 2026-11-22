@@ -147,6 +147,7 @@ import me.akshitbansal.edgepad.screens.PresenterScreen
 import me.akshitbansal.edgepad.screens.ProfilesScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
+import me.akshitbansal.edgepad.screens.SheetRegistry
 import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.SharingScreen
@@ -358,6 +359,9 @@ class MainActivity :
     private val liveBatteries by lazy { LiveBatteries(manager, phoneBattery, getString(R.string.battery_this_phone)) }
     private var batterySheet: BatterySheet? = null
     private var clipboardSheet: ClipboardSheet? = null
+
+    /** Everything open that is bound to the selected laptop; a switch of laptop closes all of it. */
+    private val sheets = SheetRegistry()
     private var phoneWatch: AutoCloseable? = null
     private var screen = Screen.PAIRING
     private var settingsReturn = Screen.PAIRING
@@ -469,6 +473,7 @@ class MainActivity :
         Type.load(this)
         ui = Ui(this)
         permSheet = PermissionSheet(ui) { _, text -> manager.send(TextKind.PERM_ANSWER.frame(text)) }
+        sheets.add("permission") { permSheet.dismiss() }
         permNotifier = PermNotifier(applicationContext)
         picker =
             PickerScreen(
@@ -2001,6 +2006,7 @@ class MainActivity :
                     ControlsPopup.Target.SYSTEM -> goTo(Screen.SYSTEM)
                 }
             }.also { it.show(owner, controlsCapture(), controlsAnnotate()) }
+        sheets.add("controls") { controls?.dismiss() }
     }
 
     /** The laptop's recent copies over the surface; a tap on one sends it to the laptop again. */
@@ -2008,6 +2014,7 @@ class MainActivity :
         val owner = surface ?: return
         clipboardSheet?.dismiss()
         clipboardSheet = ClipboardSheet(ui, clipboard.history, onSend = ::sendAgain).also { it.show(owner) }
+        sheets.add("clipboard") { clipboardSheet?.dismiss() }
     }
 
     /** Writes [text] to the selected laptop's clipboard. The transfer blocks, so it runs off the main thread. */
@@ -2029,6 +2036,7 @@ class MainActivity :
         val owner = surface ?: return
         batterySheet?.dismiss()
         batterySheet = BatterySheet(ui, liveBatteries).also { it.show(owner) }
+        sheets.add("battery") { batterySheet?.dismiss() }
     }
 
     /** A battery, the laptop in use or the set of connected laptops changed: the strip and an open sheet remake. */
@@ -3061,7 +3069,9 @@ class MainActivity :
     override fun onDeselecting(laptop: Laptop) {
         CaptureInbox.owner = null
         releaseHeldInput()
-        controls?.dismiss()
+        // Controls, battery, clipboard and approvals described the laptop being left; syncPerm brings the new one's.
+        sheets.dismissAll()
+        sheets.add("permission") { permSheet.dismiss() }
         if (screen == Screen.GAMEPAD) manager.send(ActionId.PAD_DETACH.frame())
         endAnnotate()
         unwatchMacros()
