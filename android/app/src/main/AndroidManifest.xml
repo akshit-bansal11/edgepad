@@ -6,6 +6,8 @@
   <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
   <!-- Finding laptops on the Wi-Fi and over USB tethering. -->
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <!-- The phone's own link speed, band and signal on the Network page. Never the network name: that needs Location. -->
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
   <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
   <!-- Android 17 blocks an app targeting API 37 from the local network until this runtime permission (Nearby devices group) is granted. -->
   <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />

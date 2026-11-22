@@ -156,6 +156,14 @@ class LaptopState {
     var weather: WeatherInfo? = null
         private set
 
+    /** TEXT 36: null until the laptop sends one. */
+    var netInfo: NetInfo? = null
+        private set
+
+    /** TEXT 37: the last speed test, null until the laptop sends one. */
+    var speed: SpeedResult? = null
+        private set
+
     /** BLOB 7, set by the blob reader through [setGithub]. */
     var github: List<GithubRow> = emptyList()
         private set
@@ -196,6 +204,8 @@ class LaptopState {
         limits = emptyList()
         spend = emptyList()
         weather = null
+        netInfo = null
+        speed = null
         github = emptyList()
         permAsks = emptyList()
     }
@@ -349,6 +359,8 @@ class LaptopState {
                     TextKind.LIMITS -> limits = DashWire.limits(frame.text)
                     TextKind.SPEND -> spend = DashWire.spend(frame.text)
                     TextKind.WEATHER -> weather = DashWire.weather(frame.text)
+                    TextKind.NET_INFO -> netInfo = DashWire.netInfo(frame.text)
+                    TextKind.SPEED_RESULT -> speed = DashWire.speedResult(frame.text) ?: return false
                     TextKind.PERM_GONE -> permGone(frame.text)
                     null -> return dropText()
                     else -> return false

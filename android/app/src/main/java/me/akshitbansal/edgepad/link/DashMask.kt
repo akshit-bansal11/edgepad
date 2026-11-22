@@ -20,8 +20,11 @@ object DashMask {
     /** Bit 4: the GitHub screen. */
     const val GITHUB_SCREEN = 16
 
+    /** Bit 5: the Network page. */
+    const val NETWORK_SCREEN = 32
+
     /** The dashboard screens that watch by themselves. */
-    enum class Screen { SYSTEM, AI, GITHUB }
+    enum class Screen { SYSTEM, NETWORK, AI, GITHUB }
 
     /**
      * What is drawn. Nothing is watched ([active] false: the app is paused or the link is down) gives 0. The widgets
@@ -44,6 +47,7 @@ object DashMask {
         }
         when (screen) {
             Screen.SYSTEM -> mask = mask or SYSTEM_SCREEN
+            Screen.NETWORK -> mask = mask or NETWORK_SCREEN
             Screen.AI -> mask = mask or AI
             Screen.GITHUB -> mask = mask or GITHUB_SCREEN
             null -> Unit

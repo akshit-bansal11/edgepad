@@ -28,6 +28,39 @@ class DashWireTest {
         assertTrue("vectors ran: $ran", ran > 60)
     }
 
+    @Test
+    fun netInfoParsesTheFramesTxtVectors() {
+        val wifi = DashWire.netInfo("wifi|5|866|72|192.168.1.23|192.168.1.1")
+        assertEquals(NetInfo(NetKind.WIFI, NetBand.GHZ_5, 866, 72, "192.168.1.23", "192.168.1.1"), wifi)
+        assertEquals(NetInfo(NetKind.NONE, NetBand.UNKNOWN, -1, -1, "", ""), DashWire.netInfo("none|?|-1|-1||"))
+    }
+
+    @Test
+    fun netInfoToleratesUnknownTokensAndRefusesShapeErrors() {
+        assertEquals(NetKind.OTHER, DashWire.netInfo("satellite|9|1|1||")?.kind)
+        assertEquals(NetBand.UNKNOWN, DashWire.netInfo("wifi|9|1|1||")?.band)
+        assertEquals(100, DashWire.netInfo("wifi|5|1|150||")?.signalPct)
+        assertEquals("", DashWire.netInfo("wifi|5|1|1|not an ip|1.2.3.4")?.localIp)
+        assertNull(DashWire.netInfo("wifi|5|1|1|"))
+        assertNull(DashWire.netInfo("wifi|5|x|1||"))
+    }
+
+    @Test
+    fun speedResultParsesTheFramesTxtVectors() {
+        val done = DashWire.speedResult("done|93500|21400|11|2|29499900|163400000")
+        assertEquals(SpeedResult(SpeedState.DONE, 93500, 21400, 11, 2, 29499900, 163400000), done)
+        val running = DashWire.speedResult("running|-1|-1|-1|-1|29499900|0")
+        assertEquals(SpeedResult(SpeedState.RUNNING, -1, -1, -1, -1, 29499900, 0), running)
+    }
+
+    @Test
+    fun speedResultRefusesUnknownStateAndShapeErrorsAndCapsBytes() {
+        assertNull(DashWire.speedResult("paused|1|1|1|1|1|1"))
+        assertNull(DashWire.speedResult("done|1|1|1|1|1"))
+        assertNull(DashWire.speedResult("done|a|1|1|1|1|1"))
+        assertEquals(180_000_000L, DashWire.speedResult("capped|1|1|1|1|1|999999999999")?.bytes)
+    }
+
     /** Null when the codec is an encoder only the laptop has. */
     private fun run(
         codec: String,

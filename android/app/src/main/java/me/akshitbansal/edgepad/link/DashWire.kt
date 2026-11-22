@@ -101,6 +101,74 @@ data class WeatherInfo(
     val city: String,
 )
 
+/** The kind token of TEXT NET_INFO. A token this build does not know reads as [OTHER]. */
+enum class NetKind(
+    val token: String,
+) {
+    WIFI("wifi"),
+    ETHERNET("ethernet"),
+    CELLULAR("cellular"),
+    OTHER("other"),
+    NONE("none"),
+    ;
+
+    companion object {
+        fun of(token: String): NetKind = entries.firstOrNull { it.token == token } ?: OTHER
+    }
+}
+
+/** The band token of TEXT NET_INFO. */
+enum class NetBand(
+    val token: String,
+) {
+    GHZ_2_4("2.4"),
+    GHZ_5("5"),
+    GHZ_6("6"),
+    UNKNOWN("?"),
+    ;
+
+    companion object {
+        fun of(token: String): NetBand = entries.firstOrNull { it.token == token } ?: UNKNOWN
+    }
+}
+
+/** TEXT NET_INFO. -1 is unknown; an address is empty when there is none. There is no network name. */
+data class NetInfo(
+    val kind: NetKind,
+    val band: NetBand,
+    val linkMbps: Int,
+    val signalPct: Int,
+    val localIp: String,
+    val gateway: String,
+)
+
+/** The state token of TEXT SPEED_RESULT. */
+enum class SpeedState(
+    val token: String,
+) {
+    RUNNING("running"),
+    DONE("done"),
+    FAILED("failed"),
+    CANCELLED("cancelled"),
+    CAPPED("capped"),
+    ;
+
+    companion object {
+        fun of(token: String): SpeedState? = entries.firstOrNull { it.token == token }
+    }
+}
+
+/** TEXT SPEED_RESULT. Speeds in Kbit/s and times in ms, -1 unknown; [bytes] is what the test moved. */
+data class SpeedResult(
+    val state: SpeedState,
+    val downKbps: Long,
+    val upKbps: Long,
+    val latencyMs: Int,
+    val jitterMs: Int,
+    val atUnixMin: Long,
+    val bytes: Long,
+)
+
 /** BLOB PERM_ASK, decoded. [complete] false means the text was over the cap and was not sent: answer on the laptop. */
 data class PermAsk(
     val id: String,
@@ -147,6 +215,13 @@ object DashWire {
     private const val SPEND_FIELDS = 9
     private val UNPRICED_FLAGS = setOf("0", "1")
     private const val WEATHER_FIELDS = 3
+    private const val NET_FIELDS = 6
+    private const val SPEED_FIELDS = 7
+    private const val MAX_LINK_MBPS = 100_000
+    private const val MAX_KBPS = 100_000_000L
+    private const val MAX_MS = 3_600_000
+    private const val MAX_UNIX_MIN = 100_000_000L
+    private const val MAX_TEST_BYTES = 180_000_000L
     private const val GITHUB_FIELDS = 6
     private const val PERM_PARTS = 3
     private const val PERCENT_MAX = 100
@@ -163,6 +238,7 @@ object DashWire {
     /** Indexes of the percent fields of STATS: cpu, ram, gpu, vram and packet loss. */
     private val percentFields = setOf(0, 1, 2, 3, 7)
 
+    private val ipv4Pattern = Regex("""(\d{1,3}\.){3}\d{1,3}""")
     private val toolPattern = Regex("[A-Za-z0-9_.-]{1,$MAX_TOOL}")
     private val idPattern = Regex("[0-9a-f]{$ID_LENGTH}")
 
@@ -280,6 +356,46 @@ object DashWire {
             p[2].replace('/', ' ').trim(),
         )
     }
+
+    /** Null unless six `|` fields with numbers where numbers go. An unknown kind or band degrades, it does not drop. */
+    fun netInfo(text: String): NetInfo? {
+        val p = text.split('|')
+        if (p.size != NET_FIELDS) return null
+        val link = p[2].toIntOrNull() ?: return null
+        val signal = p[3].toIntOrNull() ?: return null
+        return NetInfo(
+            NetKind.of(p[0]),
+            NetBand.of(p[1]),
+            if (link < 0) -1 else minOf(link, MAX_LINK_MBPS),
+            if (signal < 0) -1 else minOf(signal, PERCENT_MAX),
+            ip(p[4]),
+            ip(p[5]),
+        )
+    }
+
+    /** Null for an unknown state or anything that is not seven `|` fields with numbers where numbers go. */
+    fun speedResult(text: String): SpeedResult? {
+        val p = text.split('|')
+        if (p.size != SPEED_FIELDS) return null
+        val state = SpeedState.of(p[0]) ?: return null
+        val down = p[1].toLongOrNull() ?: return null
+        val up = p[2].toLongOrNull() ?: return null
+        val latency = p[3].toIntOrNull() ?: return null
+        val jitter = p[4].toIntOrNull() ?: return null
+        val at = p[5].toLongOrNull() ?: return null
+        val bytes = p[6].toLongOrNull() ?: return null
+        return SpeedResult(
+            state,
+            if (down < 0) -1 else minOf(down, MAX_KBPS),
+            if (up < 0) -1 else minOf(up, MAX_KBPS),
+            if (latency < 0) -1 else minOf(latency, MAX_MS),
+            if (jitter < 0) -1 else minOf(jitter, MAX_MS),
+            if (at in 0..MAX_UNIX_MIN) at else -1,
+            bytes.coerceIn(0, MAX_TEST_BYTES),
+        )
+    }
+
+    private fun ip(text: String): String = if (ipv4Pattern.matches(text)) text else ""
 
     /** The PERM_ASK label `id/f`: the id and whether the text is complete. Null for anything else. */
     fun permLabel(label: String): Pair<String, Boolean>? {

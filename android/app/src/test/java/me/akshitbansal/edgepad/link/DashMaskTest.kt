@@ -37,6 +37,8 @@ class DashMaskTest {
         assertEquals(2, mask(screen = DashMask.Screen.SYSTEM))
         assertEquals(8, mask(screen = DashMask.Screen.AI))
         assertEquals(16, mask(screen = DashMask.Screen.GITHUB))
+        assertEquals(32, mask(screen = DashMask.Screen.NETWORK))
+        assertEquals(33, mask(onSurface = true, stats = true, screen = DashMask.Screen.NETWORK))
     }
 
     @Test
