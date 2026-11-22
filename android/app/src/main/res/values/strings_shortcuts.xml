@@ -22,7 +22,13 @@
   <string name="presenter_next">Next slide</string>
   <string name="presenter_previous">Previous slide</string>
   <string name="presenter_settings">Presenter settings</string>
-  <string name="presenter_laser_size">Laser size</string>
+  <string name="presenter_laser_title">Laser</string>
+  <string name="presenter_size_label">Size</string>
+  <string name="presenter_size_small">Small</string>
+  <string name="presenter_size_medium">Medium</string>
+  <string name="presenter_size_large">Large</string>
+  <string name="presenter_laser_preview">Preview at laptop scale</string>
+  <string name="presenter_preview_sample">Quarterly results</string>
   <string name="presenter_laser_trail">Show trail</string>
   <string name="presenter_point_here">Point here</string>
   <string name="tool_laser">Laser</string>

@@ -1,17 +1,13 @@
 package me.akshitbansal.edgepad.screens
 
-import android.app.AlertDialog
-import android.content.Context
 import android.content.res.Configuration
-import android.graphics.Canvas
-import android.graphics.Paint
 import android.util.TypedValue
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import me.akshitbansal.edgepad.LaserSizes
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
@@ -26,11 +22,8 @@ private const val SIDE_WEIGHT = 15f
 private const val PAD_WEIGHT = 70f
 private const val BOTTOM_ROW_DP = 96f
 private const val CHEVRON_SP = 40f
-private const val DOT_SHARE_PER_SIZE = 0.0006f
 private const val FINGER_SCALE = 2.5f
 private const val TIP_KEY = "presenter"
-private const val DOT_BOX_DP = 40f
-private const val SHEET_WIDTH_DP = 360f
 private const val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
 
 /** The key a slide step presses: Page Down for a positive [delta], Page Up for a negative one. */
@@ -46,7 +39,7 @@ internal fun laserTool(trail: Boolean): ActionId = if (trail) ActionId.TOOL_LASE
 internal fun laserDotRadius(
     boxHeight: Float,
     size: Int,
-): Float = boxHeight * (size * DOT_SHARE_PER_SIZE) * FINGER_SCALE
+): Float = LaserSizes.radius(boxHeight, size) * FINGER_SCALE
 
 /**
  * Slides from the phone. The stage is always the laser pad, with Previous and Next beside it in landscape (narrow
@@ -158,84 +151,12 @@ class PresenterScreen(
         send(laserTool(settings.laserTrail).frame())
     }
 
-    /** A compact card at the bottom of the screen: a live dot in the laser's colour, the size slider and the trail. */
+    /** The laser sheet: a laptop-scale preview, the three sizes and the trail. */
     private fun openSettings() {
-        val min = Settings.MIN_LASER_SIZE
-        val dot = LaserDot(ui.context, ui.dp(DOT_BOX_DP)).apply { size = settings.laserSize }
-        val size =
-            ui.slider(
-                ui.string(R.string.presenter_laser_size),
-                Settings.MAX_LASER_SIZE - min,
-                settings.laserSize - min,
-                { step -> ui.string(R.string.annotate_width_value, step + min) },
-            ) { step ->
-                settings.laserSize = step + min
-                canvas.laserSize = settings.laserSize
-                dot.size = settings.laserSize
-                sendLaser()
-            }
-        val trail =
-            ui.toggle(ui.string(R.string.presenter_laser_trail), settings.laserTrail) { on: Boolean ->
-                settings.laserTrail = on
-                canvas.laserTrail = on
-                sendLaser()
-            }
-        val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
-        val top =
-            LinearLayout(ui.context).apply {
-                gravity = Gravity.CENTER_VERTICAL
-                addView(dot, LinearLayout.LayoutParams(ui.dp(DOT_BOX_DP), ui.dp(DOT_BOX_DP)))
-                addView(size, LinearLayout.LayoutParams(0, wrap, 1f).apply { marginStart = ui.dp(Space.M) })
-            }
-        val body =
-            LinearLayout(ui.context).apply {
-                orientation = LinearLayout.VERTICAL
-                val pad = ui.dp(Space.L)
-                setPadding(pad, ui.dp(Space.S), pad, ui.dp(Space.S))
-                addView(top, LinearLayout.LayoutParams(MATCH, wrap))
-                addView(trail, LinearLayout.LayoutParams(MATCH, wrap))
-            }
-        val dialog = AlertDialog.Builder(ui.context).setView(body).openOver(view)
-        dialog.window?.apply {
-            setBackgroundDrawable(ui.rounded(ui.palette.card, Space.CARD_RADIUS))
-            setGravity(Gravity.BOTTOM)
-            val width = minOf(view.width - 2 * ui.dp(Space.PAGE), ui.dp(SHEET_WIDTH_DP))
-            setLayout(width, wrap)
-            attributes = attributes.apply { y = ui.dp(Space.L) }
-        }
-    }
-}
-
-/** The live preview in the size sheet: a dot in the laser's red, grown and shrunk with [size]. Redraws on a change. */
-private class LaserDot(
-    context: Context,
-    private val box: Int,
-) : View(context) {
-    /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
-    constructor(context: Context) : this(context, 0)
-
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = AnnotateCanvas.LASER_CORE }
-
-    var size = Settings.MIN_LASER_SIZE
-        set(value) {
-            field = value
-            invalidate()
-        }
-
-    init {
-        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        val span = (Settings.MAX_LASER_SIZE - Settings.MIN_LASER_SIZE).toFloat()
-        val share = (size - Settings.MIN_LASER_SIZE) / span
-        val radius = box * (MIN_RADIUS + (MAX_RADIUS - MIN_RADIUS) * share)
-        canvas.drawCircle(width / 2f, height / 2f, radius, paint)
-    }
-
-    private companion object {
-        const val MIN_RADIUS = 0.08f
-        const val MAX_RADIUS = 0.42f
+        LaserSheet(ui, settings, screenSize) {
+            canvas.laserSize = settings.laserSize
+            canvas.laserTrail = settings.laserTrail
+            sendLaser()
+        }.show(view)
     }
 }

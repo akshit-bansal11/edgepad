@@ -22,7 +22,13 @@
   <string name="presenter_next">Diapositiva siguiente</string>
   <string name="presenter_previous">Diapositiva anterior</string>
   <string name="presenter_settings">Ajustes del presentador</string>
-  <string name="presenter_laser_size">Tamaño del láser</string>
+  <string name="presenter_laser_title">Láser</string>
+  <string name="presenter_size_label">Tamaño</string>
+  <string name="presenter_size_small">Pequeño</string>
+  <string name="presenter_size_medium">Mediano</string>
+  <string name="presenter_size_large">Grande</string>
+  <string name="presenter_laser_preview">Vista previa a escala del portátil</string>
+  <string name="presenter_preview_sample">Resultados trimestrales</string>
   <string name="presenter_laser_trail">Mostrar estela</string>
   <string name="presenter_point_here">Apunta aquí</string>
   <string name="tool_laser">Láser</string>

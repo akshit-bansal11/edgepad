@@ -22,7 +22,13 @@
   <string name="presenter_next">다음 슬라이드</string>
   <string name="presenter_previous">이전 슬라이드</string>
   <string name="presenter_settings">프레젠터 설정</string>
-  <string name="presenter_laser_size">레이저 크기</string>
+  <string name="presenter_laser_title">레이저</string>
+  <string name="presenter_size_label">크기</string>
+  <string name="presenter_size_small">작게</string>
+  <string name="presenter_size_medium">보통</string>
+  <string name="presenter_size_large">크게</string>
+  <string name="presenter_laser_preview">노트북 기준 크기로 미리보기</string>
+  <string name="presenter_preview_sample">분기 실적</string>
   <string name="presenter_laser_trail">궤적 표시</string>
   <string name="presenter_point_here">여기를 가리키세요</string>
   <string name="tool_laser">레이저</string>

@@ -22,7 +22,13 @@
   <string name="presenter_next">Nächste Folie</string>
   <string name="presenter_previous">Vorherige Folie</string>
   <string name="presenter_settings">Präsentationseinstellungen</string>
-  <string name="presenter_laser_size">Lasergröße</string>
+  <string name="presenter_laser_title">Laser</string>
+  <string name="presenter_size_label">Größe</string>
+  <string name="presenter_size_small">Klein</string>
+  <string name="presenter_size_medium">Mittel</string>
+  <string name="presenter_size_large">Groß</string>
+  <string name="presenter_laser_preview">Vorschau im Maßstab des Laptops</string>
+  <string name="presenter_preview_sample">Quartalsergebnisse</string>
   <string name="presenter_laser_trail">Spur anzeigen</string>
   <string name="presenter_point_here">Hier zeigen</string>
   <string name="tool_laser">Laser</string>

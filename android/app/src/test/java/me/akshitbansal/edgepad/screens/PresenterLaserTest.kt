@@ -12,12 +12,12 @@ class PresenterLaserTest {
     }
 
     @Test
-    fun theDefaultSizeIsTheOriginalDot() {
-        assertEquals(0.03f * 1000f, laserDotRadius(1000f, 20), 0.001f)
+    fun thePadDotIsTheLaptopsShareTimesTheFingerScale() {
+        assertEquals(1000f * 0.0075f * 2.5f, laserDotRadius(1000f, 15), 0.001f)
     }
 
     @Test
     fun theDotGrowsWithTheSize() {
-        assertEquals(laserDotRadius(800f, 20) * 5f, laserDotRadius(800f, 100), 0.001f)
+        assertEquals(laserDotRadius(800f, 10) * 2f, laserDotRadius(800f, 20), 0.001f)
     }
 }

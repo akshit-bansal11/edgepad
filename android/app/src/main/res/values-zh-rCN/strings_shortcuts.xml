@@ -22,7 +22,13 @@
   <string name="presenter_next">下一张幻灯片</string>
   <string name="presenter_previous">上一张幻灯片</string>
   <string name="presenter_settings">演示设置</string>
-  <string name="presenter_laser_size">激光大小</string>
+  <string name="presenter_laser_title">激光</string>
+  <string name="presenter_size_label">大小</string>
+  <string name="presenter_size_small">小</string>
+  <string name="presenter_size_medium">中</string>
+  <string name="presenter_size_large">大</string>
+  <string name="presenter_laser_preview">按笔记本电脑比例预览</string>
+  <string name="presenter_preview_sample">季度业绩</string>
   <string name="presenter_laser_trail">显示拖尾</string>
   <string name="presenter_point_here">在此指向</string>
   <string name="tool_laser">激光</string>

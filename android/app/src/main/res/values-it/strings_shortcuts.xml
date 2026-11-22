@@ -22,7 +22,13 @@
   <string name="presenter_next">Diapositiva successiva</string>
   <string name="presenter_previous">Diapositiva precedente</string>
   <string name="presenter_settings">Impostazioni presentatore</string>
-  <string name="presenter_laser_size">Dimensione laser</string>
+  <string name="presenter_laser_title">Laser</string>
+  <string name="presenter_size_label">Dimensione</string>
+  <string name="presenter_size_small">Piccolo</string>
+  <string name="presenter_size_medium">Medio</string>
+  <string name="presenter_size_large">Grande</string>
+  <string name="presenter_laser_preview">Anteprima in scala del portatile</string>
+  <string name="presenter_preview_sample">Risultati trimestrali</string>
   <string name="presenter_laser_trail">Mostra scia</string>
   <string name="presenter_point_here">Punta qui</string>
   <string name="tool_laser">Laser</string>

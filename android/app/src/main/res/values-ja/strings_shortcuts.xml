@@ -22,7 +22,13 @@
   <string name="presenter_next">次のスライド</string>
   <string name="presenter_previous">前のスライド</string>
   <string name="presenter_settings">プレゼンター設定</string>
-  <string name="presenter_laser_size">レーザーのサイズ</string>
+  <string name="presenter_laser_title">レーザー</string>
+  <string name="presenter_size_label">サイズ</string>
+  <string name="presenter_size_small">小</string>
+  <string name="presenter_size_medium">中</string>
+  <string name="presenter_size_large">大</string>
+  <string name="presenter_laser_preview">ノートPCの縮尺でプレビュー</string>
+  <string name="presenter_preview_sample">四半期の業績</string>
   <string name="presenter_laser_trail">軌跡を表示</string>
   <string name="presenter_point_here">ここでポイント</string>
   <string name="tool_laser">レーザー</string>

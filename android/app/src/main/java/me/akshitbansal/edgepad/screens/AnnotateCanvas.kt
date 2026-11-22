@@ -9,6 +9,7 @@ import android.graphics.RectF
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
+import me.akshitbansal.edgepad.LaserSizes
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.surface.Letterbox
@@ -64,7 +65,7 @@ class AnnotateCanvas(
     private var dotY = 0f
 
     /** The laser's size on the wire's PEN_WIDTH scale; [laserDotRadius] turns it into pixels. */
-    var laserSize = 20
+    var laserSize = LaserSizes.DEFAULT
         set(value) {
             field = value
             invalidate()

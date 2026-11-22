@@ -22,7 +22,13 @@
   <string name="presenter_next">अगली स्लाइड</string>
   <string name="presenter_previous">पिछली स्लाइड</string>
   <string name="presenter_settings">प्रेज़ेंटर सेटिंग्स</string>
-  <string name="presenter_laser_size">लेज़र का आकार</string>
+  <string name="presenter_laser_title">लेज़र</string>
+  <string name="presenter_size_label">आकार</string>
+  <string name="presenter_size_small">छोटा</string>
+  <string name="presenter_size_medium">मध्यम</string>
+  <string name="presenter_size_large">बड़ा</string>
+  <string name="presenter_laser_preview">लैपटॉप के पैमाने पर पूर्वावलोकन</string>
+  <string name="presenter_preview_sample">तिमाही परिणाम</string>
   <string name="presenter_laser_trail">ट्रेल दिखाएँ</string>
   <string name="presenter_point_here">यहाँ इंगित करें</string>
   <string name="tool_laser">लेज़र</string>

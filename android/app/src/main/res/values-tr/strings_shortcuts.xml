@@ -22,7 +22,13 @@
   <string name="presenter_next">Sonraki slayt</string>
   <string name="presenter_previous">Önceki slayt</string>
   <string name="presenter_settings">Sunucu ayarları</string>
-  <string name="presenter_laser_size">Lazer boyutu</string>
+  <string name="presenter_laser_title">Lazer</string>
+  <string name="presenter_size_label">Boyut</string>
+  <string name="presenter_size_small">Küçük</string>
+  <string name="presenter_size_medium">Orta</string>
+  <string name="presenter_size_large">Büyük</string>
+  <string name="presenter_laser_preview">Dizüstü ölçeğinde önizleme</string>
+  <string name="presenter_preview_sample">Üç aylık sonuçlar</string>
   <string name="presenter_laser_trail">İzi göster</string>
   <string name="presenter_point_here">Buraya işaret edin</string>
   <string name="tool_laser">Lazer</string>

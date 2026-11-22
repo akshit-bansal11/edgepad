@@ -22,7 +22,13 @@
   <string name="presenter_next">Następny slajd</string>
   <string name="presenter_previous">Poprzedni slajd</string>
   <string name="presenter_settings">Ustawienia prezentera</string>
-  <string name="presenter_laser_size">Rozmiar lasera</string>
+  <string name="presenter_laser_title">Laser</string>
+  <string name="presenter_size_label">Rozmiar</string>
+  <string name="presenter_size_small">Mały</string>
+  <string name="presenter_size_medium">Średni</string>
+  <string name="presenter_size_large">Duży</string>
+  <string name="presenter_laser_preview">Podgląd w skali laptopa</string>
+  <string name="presenter_preview_sample">Wyniki kwartalne</string>
   <string name="presenter_laser_trail">Pokaż smugę</string>
   <string name="presenter_point_here">Wskaż tutaj</string>
   <string name="tool_laser">Laser</string>
