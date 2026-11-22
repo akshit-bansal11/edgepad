@@ -2,7 +2,6 @@ package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.AgentToken
 import me.akshitbansal.edgepad.protocol.CaptureStateToken
-import me.akshitbansal.edgepad.protocol.CiToken
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.EndActionToken
@@ -526,15 +525,15 @@ class LaptopStateTest {
         state.take(Frame.Text(TextKind.SPEND.id, "claude/29499900/120000/310/800000/2100/3000000/9000/0"))
         state.take(Frame.Text(TextKind.WEATHER.id, "185/3/Oslo"))
         state.addPermAsk(PermAsk("a1b2c3d4e5f6", true, AgentToken.CODEX, "Bash", "ls"))
-        state.setGithub(listOf(GithubRow(GithubSection.NOTIFICATIONS, "", 2, "", false, CiToken.NONE)))
+        state.setGit(GitData("github", "me", "", 0, 0, 1, emptyList(), emptyList()))
         assertEquals(2, state.disks.size)
         assertEquals(1, state.spend.size)
         assertEquals("Oslo", state.weather?.city)
         assertEquals(1, state.permAsks.size)
-        assertEquals(1, state.github.size)
+        assertEquals(1, state.git.size)
         state.forgetFeatures()
         assertNull(state.statsInfo)
-        assertTrue(state.disks.isEmpty() && state.spend.isEmpty() && state.github.isEmpty())
+        assertTrue(state.disks.isEmpty() && state.spend.isEmpty() && state.git.isEmpty())
         assertNull(state.weather)
         assertTrue(state.permAsks.isEmpty())
     }

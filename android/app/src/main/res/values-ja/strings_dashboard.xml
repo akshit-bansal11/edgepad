@@ -59,16 +59,39 @@
   <string name="dur_hr">%1$d 時間</string>
   <string name="dur_day">%1$d 日</string>
   <!-- Not translated: product names. -->
-  <string name="gh_title">GitHub</string>
-  <string name="gh_review">レビュー依頼</string>
-  <string name="gh_mine">あなたのプルリクエスト</string>
-  <string name="gh_notifs">通知: %1$d 件</string>
-  <string name="gh_none">ここには何もありません</string>
-  <string name="gh_ci_ok">チェック成功</string>
-  <string name="gh_ci_fail">チェック失敗</string>
-  <string name="gh_ci_pending">チェック実行中</string>
-  <string name="gh_draft">下書き</string>
-  <string name="gh_signin">ノートパソコンの Edgepad メニューで GitHub にサインインしてください。</string>
+  <!-- Developer, Git page. Product names (GitHub, GitLab, Gitea, Bitbucket, Gitee) are not translated. -->
+  <string name="git_repos_label">リポジトリ</string>
+  <plurals name="git_repos_n">
+    <item quantity="other">%1$d件のリポジトリ</item>
+  </plurals>
+  <plurals name="git_followers_n">
+    <item quantity="other">フォロワー%1$d人</item>
+  </plurals>
+  <plurals name="git_issues_n">
+    <item quantity="other">イシュー%1$d件</item>
+  </plurals>
+  <plurals name="git_prs_n">
+    <item quantity="other">PR %1$d件</item>
+  </plurals>
+  <string name="git_lists_title">プルリクエストとイシュー</string>
+  <string name="git_mine">自分</string>
+  <string name="git_review">レビュー</string>
+  <string name="git_assigned">担当</string>
+  <string name="git_empty_mine">あなたのプルリクエストやイシューで未完了のものはありません。</string>
+  <string name="git_empty_review">レビュー待ちはありません。</string>
+  <string name="git_empty_assigned">割り当てられたものはありません。</string>
+  <string name="git_empty_repos">表示できるリポジトリはありません。</string>
+  <string name="git_loading">ノートパソコンから読み込み中です。</string>
+  <string name="git_signin">ノートパソコンの Edgepad メニューで Git ホストにサインインしてください。</string>
+  <string name="git_opening">ノートパソコンで開いています</string>
+  <string name="git_item_meta">#%1$s · %2$s更新</string>
+  <string name="git_ci_ok">チェック成功</string>
+  <string name="git_ci_fail">チェック失敗</string>
+  <string name="git_ci_pending">チェック実行中</string>
+  <string name="git_draft">下書き</string>
+  <string name="git_state_open">オープン</string>
+  <string name="git_state_closed">クローズ</string>
+  <string name="git_state_merged">マージ済み</string>
   <string name="perm_title">%1$s が確認を求めています</string>
   <string name="perm_allow">許可</string>
   <string name="perm_deny">拒否</string>

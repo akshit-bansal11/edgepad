@@ -59,16 +59,51 @@
   <string name="dur_hr">%1$d ч</string>
   <string name="dur_day">%1$d дн</string>
   <!-- Not translated: product names. -->
-  <string name="gh_title">GitHub</string>
-  <string name="gh_review">Запрошена проверка</string>
-  <string name="gh_mine">Ваши pull request’ы</string>
-  <string name="gh_notifs">Уведомления: %1$d</string>
-  <string name="gh_none">Здесь ничего нет</string>
-  <string name="gh_ci_ok">Проверки пройдены</string>
-  <string name="gh_ci_fail">Проверки не пройдены</string>
-  <string name="gh_ci_pending">Проверки выполняются</string>
-  <string name="gh_draft">Черновик</string>
-  <string name="gh_signin">Войдите в GitHub в меню Edgepad на ноутбуке.</string>
+  <!-- Developer, Git page. Product names (GitHub, GitLab, Gitea, Bitbucket, Gitee) are not translated. -->
+  <string name="git_repos_label">Репозитории</string>
+  <plurals name="git_repos_n">
+    <item quantity="one">%1$d репозиторий</item>
+    <item quantity="few">%1$d репозитория</item>
+    <item quantity="many">%1$d репозиториев</item>
+    <item quantity="other">%1$d репозитория</item>
+  </plurals>
+  <plurals name="git_followers_n">
+    <item quantity="one">%1$d подписчик</item>
+    <item quantity="few">%1$d подписчика</item>
+    <item quantity="many">%1$d подписчиков</item>
+    <item quantity="other">%1$d подписчика</item>
+  </plurals>
+  <plurals name="git_issues_n">
+    <item quantity="one">%1$d задача</item>
+    <item quantity="few">%1$d задачи</item>
+    <item quantity="many">%1$d задач</item>
+    <item quantity="other">%1$d задачи</item>
+  </plurals>
+  <plurals name="git_prs_n">
+    <item quantity="one">%1$d PR</item>
+    <item quantity="few">%1$d PR</item>
+    <item quantity="many">%1$d PR</item>
+    <item quantity="other">%1$d PR</item>
+  </plurals>
+  <string name="git_lists_title">Pull request’ы и задачи</string>
+  <string name="git_mine">Мои</string>
+  <string name="git_review">Проверка</string>
+  <string name="git_assigned">Назначенные</string>
+  <string name="git_empty_mine">Ни одного вашего pull request или задачи не открыто.</string>
+  <string name="git_empty_review">Ничто не ждёт вашей проверки.</string>
+  <string name="git_empty_assigned">Вам ничего не назначено.</string>
+  <string name="git_empty_repos">Нет репозиториев для показа.</string>
+  <string name="git_loading">Загрузка с ноутбука.</string>
+  <string name="git_signin">Войдите в git-хостинг в меню Edgepad на ноутбуке.</string>
+  <string name="git_opening">Открывается на ноутбуке</string>
+  <string name="git_item_meta">#%1$s · обновлено %2$s</string>
+  <string name="git_ci_ok">Проверки пройдены</string>
+  <string name="git_ci_fail">Проверки не пройдены</string>
+  <string name="git_ci_pending">Проверки выполняются</string>
+  <string name="git_draft">Черновик</string>
+  <string name="git_state_open">Открыт</string>
+  <string name="git_state_closed">Закрыт</string>
+  <string name="git_state_merged">Влит</string>
   <string name="perm_title">%1$s запрашивает</string>
   <string name="perm_allow">Разрешить</string>
   <string name="perm_deny">Отклонить</string>

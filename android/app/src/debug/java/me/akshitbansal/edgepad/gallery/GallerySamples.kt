@@ -13,6 +13,7 @@ import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.BatteryHealth
 import me.akshitbansal.edgepad.link.ByteRatio
+import me.akshitbansal.edgepad.link.GitWire
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.NetBand
 import me.akshitbansal.edgepad.link.NetKind
@@ -30,6 +31,7 @@ import me.akshitbansal.edgepad.screens.AiScreen
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.FnMode
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
+import me.akshitbansal.edgepad.screens.GitScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
 import me.akshitbansal.edgepad.screens.KeyboardSize
 import me.akshitbansal.edgepad.screens.LaserSheet
@@ -83,6 +85,10 @@ class GallerySamples(
             "ai-two", "ai-four" -> {
                 val laptop = aiLaptop(four = name == "ai-four")
                 AiScreen(ui, { laptop }, ui.hubBar(ui.string(R.string.dev_title), SAMPLE_LAPTOP, {}, {})).view
+            }
+
+            "git" -> {
+                GitScreen(ui, { gitLaptop }, ui.hubBar(ui.string(R.string.dev_title), SAMPLE_LAPTOP, {}, {})) {}.view
             }
 
             "keyboard" -> {
@@ -151,6 +157,28 @@ class GallerySamples(
     }
 
     /** A laptop with Claude and Codex, and with Gemini CLI and OpenCode too when [four]: limits, spend and sessions. */
+    /** A laptop signed in to GitHub and GitLab, with GitHub's page: three repositories and a few items. */
+    private val gitLaptop: LaptopState by lazy {
+        val now = System.currentTimeMillis() / MS_PER_MIN
+        val rows =
+            listOf(
+                "H\tgithub\takshit-bansal11\tAkshit Bansal\t24\t12\t1",
+                "P\takshit-bansal11/edgepad\t\tKotlin\t31\t3\t1",
+                "P\takshit-bansal11/plimsoll\tp\tTypeScript\t4\t0\t0",
+                "P\takshit-bansal11/spotatui\t\tRust\t12\t2\t12",
+                "M\takshit-bansal11/edgepad\t128\tFix the Git page badge\td\tfail\topen\t${now - 12}",
+                "M\takshit-bansal11/edgepad\t131\tDashboard sessions pill\t\tok\topen\t${now - 190}",
+                "M\takshit-bansal11/plimsoll\t7\tRelease notes for 2.1\t\tnone\topen\t${now - 2_900}",
+                "R\takshit-bansal11/spotatui\t88\tQueue view keeps its place\t\tpending\topen\t${now - 45}",
+                "A\takshit-bansal11/edgepad\t120\tTray menu crashes on Wayland\ti\tnone\topen\t${now - 700}",
+            )
+        LaptopState().apply {
+            take(TextKind.DEVICE.frame("0123456789abcdef0123456789abcdef/windows/$SAMPLE_LAPTOP"))
+            take(TextKind.FEATURES.frame("github/gitlab"))
+            setGit(GitWire.parse(rows.joinToString("\n").toByteArray()))
+        }
+    }
+
     private fun aiLaptop(four: Boolean): LaptopState {
         val now = System.currentTimeMillis() / MS_PER_MIN
         val measured = now - 1

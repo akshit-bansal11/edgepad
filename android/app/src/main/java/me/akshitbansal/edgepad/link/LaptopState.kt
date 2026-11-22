@@ -164,8 +164,8 @@ class LaptopState {
     var speed: SpeedResult? = null
         private set
 
-    /** BLOB 7, set by the blob reader through [setGithub]. */
-    var github: List<GithubRow> = emptyList()
+    /** BLOB 7: the last page of each git host, by provider id; set by the blob reader through [setGit]. */
+    var git: Map<String, GitData> = emptyMap()
         private set
 
     /** BLOB 6: approvals waiting for an answer, oldest first, at most [MAX_ASKS]. */
@@ -192,8 +192,9 @@ class LaptopState {
         }
     }
 
-    fun setGithub(rows: List<GithubRow>) {
-        github = rows
+    /** Keeps [page] as its host's page, replacing the one before. */
+    fun setGit(page: GitData) {
+        git = git + (page.host to page)
     }
 
     private fun forgetDashboard() {
@@ -206,7 +207,7 @@ class LaptopState {
         weather = null
         netInfo = null
         speed = null
-        github = emptyList()
+        git = emptyMap()
         permAsks = emptyList()
     }
 

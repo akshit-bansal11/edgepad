@@ -19,6 +19,7 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.link.GitHost
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.UnavailableReason
 
@@ -496,4 +497,4 @@ internal fun tileDrawn(
 ): Boolean = target != ControlsPopup.Target.DEVELOPER || developerMode
 
 /** What the Developer tile needs one of: a developer integration that is on and usable. */
-private val DEVELOPER_PAGES = setOf(Feature.CLAUDE, Feature.CODEX, Feature.GITHUB)
+private val DEVELOPER_PAGES = setOf(Feature.CLAUDE, Feature.CODEX) + GitHost.entries.map { it.feature }

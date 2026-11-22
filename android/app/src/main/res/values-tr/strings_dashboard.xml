@@ -59,16 +59,43 @@
   <string name="dur_hr">%1$d sa</string>
   <string name="dur_day">%1$d g</string>
   <!-- Not translated: product names. -->
-  <string name="gh_title">GitHub</string>
-  <string name="gh_review">İnceleme istendi</string>
-  <string name="gh_mine">Pull request’leriniz</string>
-  <string name="gh_notifs">Bildirimler: %1$d</string>
-  <string name="gh_none">Burada hiçbir şey yok</string>
-  <string name="gh_ci_ok">Kontroller geçti</string>
-  <string name="gh_ci_fail">Kontroller başarısız</string>
-  <string name="gh_ci_pending">Kontroller çalışıyor</string>
-  <string name="gh_draft">Taslak</string>
-  <string name="gh_signin">Dizüstü bilgisayarınızdaki Edgepad menüsünden GitHub ile oturum açın.</string>
+  <!-- Developer, Git page. Product names (GitHub, GitLab, Gitea, Bitbucket, Gitee) are not translated. -->
+  <string name="git_repos_label">Depolar</string>
+  <plurals name="git_repos_n">
+    <item quantity="one">%1$d depo</item>
+    <item quantity="other">%1$d depo</item>
+  </plurals>
+  <plurals name="git_followers_n">
+    <item quantity="one">%1$d takipçi</item>
+    <item quantity="other">%1$d takipçi</item>
+  </plurals>
+  <plurals name="git_issues_n">
+    <item quantity="one">%1$d issue</item>
+    <item quantity="other">%1$d issue</item>
+  </plurals>
+  <plurals name="git_prs_n">
+    <item quantity="one">%1$d PR</item>
+    <item quantity="other">%1$d PR</item>
+  </plurals>
+  <string name="git_lists_title">Pull request’ler ve issue’lar</string>
+  <string name="git_mine">Benim</string>
+  <string name="git_review">İnceleme</string>
+  <string name="git_assigned">Atanan</string>
+  <string name="git_empty_mine">Açık pull request’iniz ya da issue’nuz yok.</string>
+  <string name="git_empty_review">İncelemenizi bekleyen bir şey yok.</string>
+  <string name="git_empty_assigned">Size atanmış bir şey yok.</string>
+  <string name="git_empty_repos">Gösterilecek depo yok.</string>
+  <string name="git_loading">Dizüstü bilgisayarınızdan yükleniyor.</string>
+  <string name="git_signin">Dizüstü bilgisayarınızdaki Edgepad menüsünden bir git hizmetinde oturum açın.</string>
+  <string name="git_opening">Dizüstü bilgisayarınızda açılıyor</string>
+  <string name="git_item_meta">#%1$s · güncellendi: %2$s</string>
+  <string name="git_ci_ok">Kontroller geçti</string>
+  <string name="git_ci_fail">Kontroller başarısız</string>
+  <string name="git_ci_pending">Kontroller çalışıyor</string>
+  <string name="git_draft">Taslak</string>
+  <string name="git_state_open">Açık</string>
+  <string name="git_state_closed">Kapalı</string>
+  <string name="git_state_merged">Birleştirildi</string>
   <string name="perm_title">%1$s soruyor</string>
   <string name="perm_allow">İzin ver</string>
   <string name="perm_deny">Reddet</string>

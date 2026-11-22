@@ -59,16 +59,51 @@
   <string name="dur_hr">%1$d godz.</string>
   <string name="dur_day">%1$d dni</string>
   <!-- Not translated: product names. -->
-  <string name="gh_title">GitHub</string>
-  <string name="gh_review">Prośba o recenzję</string>
-  <string name="gh_mine">Twoje pull requesty</string>
-  <string name="gh_notifs">Powiadomienia: %1$d</string>
-  <string name="gh_none">Nic tu nie ma</string>
-  <string name="gh_ci_ok">Sprawdzenia zaliczone</string>
-  <string name="gh_ci_fail">Sprawdzenia nieudane</string>
-  <string name="gh_ci_pending">Sprawdzenia w toku</string>
-  <string name="gh_draft">Szkic</string>
-  <string name="gh_signin">Zaloguj się do GitHuba w menu Edgepad na laptopie.</string>
+  <!-- Developer, Git page. Product names (GitHub, GitLab, Gitea, Bitbucket, Gitee) are not translated. -->
+  <string name="git_repos_label">Repozytoria</string>
+  <plurals name="git_repos_n">
+    <item quantity="one">%1$d repozytorium</item>
+    <item quantity="few">%1$d repozytoria</item>
+    <item quantity="many">%1$d repozytoriów</item>
+    <item quantity="other">%1$d repozytorium</item>
+  </plurals>
+  <plurals name="git_followers_n">
+    <item quantity="one">%1$d obserwujący</item>
+    <item quantity="few">%1$d obserwujących</item>
+    <item quantity="many">%1$d obserwujących</item>
+    <item quantity="other">%1$d obserwujących</item>
+  </plurals>
+  <plurals name="git_issues_n">
+    <item quantity="one">%1$d zgłoszenie</item>
+    <item quantity="few">%1$d zgłoszenia</item>
+    <item quantity="many">%1$d zgłoszeń</item>
+    <item quantity="other">%1$d zgłoszenia</item>
+  </plurals>
+  <plurals name="git_prs_n">
+    <item quantity="one">%1$d PR</item>
+    <item quantity="few">%1$d PR-y</item>
+    <item quantity="many">%1$d PR-ów</item>
+    <item quantity="other">%1$d PR-u</item>
+  </plurals>
+  <string name="git_lists_title">Pull requesty i zgłoszenia</string>
+  <string name="git_mine">Moje</string>
+  <string name="git_review">Recenzja</string>
+  <string name="git_assigned">Przypisane</string>
+  <string name="git_empty_mine">Żaden z Twoich pull requestów ani zgłoszeń nie jest otwarty.</string>
+  <string name="git_empty_review">Nic nie czeka na Twoją recenzję.</string>
+  <string name="git_empty_assigned">Nic nie zostało Ci przypisane.</string>
+  <string name="git_empty_repos">Brak repozytoriów do pokazania.</string>
+  <string name="git_loading">Wczytywanie z laptopa.</string>
+  <string name="git_signin">Zaloguj się do hosta git w menu Edgepad na laptopie.</string>
+  <string name="git_opening">Otwieranie na laptopie</string>
+  <string name="git_item_meta">#%1$s · zaktualizowano %2$s</string>
+  <string name="git_ci_ok">Sprawdzenia zaliczone</string>
+  <string name="git_ci_fail">Sprawdzenia nieudane</string>
+  <string name="git_ci_pending">Sprawdzenia w toku</string>
+  <string name="git_draft">Szkic</string>
+  <string name="git_state_open">Otwarte</string>
+  <string name="git_state_closed">Zamknięte</string>
+  <string name="git_state_merged">Scalone</string>
   <string name="perm_title">%1$s pyta</string>
   <string name="perm_allow">Zezwól</string>
   <string name="perm_deny">Odmów</string>

@@ -59,16 +59,47 @@
   <string name="dur_hr">%1$d h</string>
   <string name="dur_day">%1$d j</string>
   <!-- Not translated: product names. -->
-  <string name="gh_title">GitHub</string>
-  <string name="gh_review">Revue demandée</string>
-  <string name="gh_mine">Vos pull requests</string>
-  <string name="gh_notifs">Notifications : %1$d</string>
-  <string name="gh_none">Rien ici</string>
-  <string name="gh_ci_ok">Vérifications réussies</string>
-  <string name="gh_ci_fail">Vérifications échouées</string>
-  <string name="gh_ci_pending">Vérifications en cours</string>
-  <string name="gh_draft">Brouillon</string>
-  <string name="gh_signin">Connectez-vous à GitHub dans le menu Edgepad de votre ordinateur portable.</string>
+  <!-- Developer, Git page. Product names (GitHub, GitLab, Gitea, Bitbucket, Gitee) are not translated. -->
+  <string name="git_repos_label">Dépôts</string>
+  <plurals name="git_repos_n">
+    <item quantity="one">%1$d dépôt</item>
+    <item quantity="many">%1$d de dépôts</item>
+    <item quantity="other">%1$d dépôts</item>
+  </plurals>
+  <plurals name="git_followers_n">
+    <item quantity="one">%1$d abonné</item>
+    <item quantity="many">%1$d d’abonnés</item>
+    <item quantity="other">%1$d abonnés</item>
+  </plurals>
+  <plurals name="git_issues_n">
+    <item quantity="one">%1$d ticket</item>
+    <item quantity="many">%1$d de tickets</item>
+    <item quantity="other">%1$d tickets</item>
+  </plurals>
+  <plurals name="git_prs_n">
+    <item quantity="one">%1$d PR</item>
+    <item quantity="many">%1$d de PR</item>
+    <item quantity="other">%1$d PR</item>
+  </plurals>
+  <string name="git_lists_title">Pull requests et tickets</string>
+  <string name="git_mine">Les miens</string>
+  <string name="git_review">Revue</string>
+  <string name="git_assigned">Assignés</string>
+  <string name="git_empty_mine">Aucune de vos pull requests ni de vos tickets n’est ouverte.</string>
+  <string name="git_empty_review">Rien n’attend votre revue.</string>
+  <string name="git_empty_assigned">Rien ne vous est assigné.</string>
+  <string name="git_empty_repos">Aucun dépôt à afficher.</string>
+  <string name="git_loading">Chargement depuis votre ordinateur portable.</string>
+  <string name="git_signin">Connectez-vous à un hôte git dans le menu Edgepad de votre ordinateur portable.</string>
+  <string name="git_opening">Ouverture sur votre ordinateur portable</string>
+  <string name="git_item_meta">#%1$s · mis à jour %2$s</string>
+  <string name="git_ci_ok">Vérifications réussies</string>
+  <string name="git_ci_fail">Vérifications échouées</string>
+  <string name="git_ci_pending">Vérifications en cours</string>
+  <string name="git_draft">Brouillon</string>
+  <string name="git_state_open">Ouvert</string>
+  <string name="git_state_closed">Fermé</string>
+  <string name="git_state_merged">Fusionné</string>
   <string name="perm_title">%1$s demande</string>
   <string name="perm_allow">Autoriser</string>
   <string name="perm_deny">Refuser</string>

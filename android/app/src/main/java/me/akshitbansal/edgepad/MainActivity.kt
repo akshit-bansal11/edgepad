@@ -50,6 +50,7 @@ import me.akshitbansal.edgepad.link.ClipboardShare
 import me.akshitbansal.edgepad.link.DashMask
 import me.akshitbansal.edgepad.link.Discovery
 import me.akshitbansal.edgepad.link.Found
+import me.akshitbansal.edgepad.link.GitHost
 import me.akshitbansal.edgepad.link.HostPort
 import me.akshitbansal.edgepad.link.HubPages
 import me.akshitbansal.edgepad.link.KeptEvents
@@ -133,7 +134,7 @@ import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
 import me.akshitbansal.edgepad.screens.GamepadScreen
 import me.akshitbansal.edgepad.screens.GamepadSettingsScreen
 import me.akshitbansal.edgepad.screens.GestureScreen
-import me.akshitbansal.edgepad.screens.GitHubScreen
+import me.akshitbansal.edgepad.screens.GitScreen
 import me.akshitbansal.edgepad.screens.GuideScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
 import me.akshitbansal.edgepad.screens.KeyboardSettingsScreen
@@ -324,7 +325,7 @@ class MainActivity :
     private var systemScreen: SystemScreen? = null
     private var networkScreen: NetworkScreen? = null
     private var aiScreen: AiScreen? = null
-    private var githubScreen: GitHubScreen? = null
+    private var gitScreen: GitScreen? = null
 
     /** Redraws the Settings page's "when this ends" row; set while that page shows. */
     private var endRedraw: (() -> Unit)? = null
@@ -558,7 +559,7 @@ class MainActivity :
         }
         // A laptop's media icon arrived: the surface redraws its Now playing. Cleared in onDestroy with the events.
         apps.onMediaIcon = { laptop -> if (laptop === selected) surface?.stateChanged() }
-        apps.onGithub = { laptop -> if (laptop === selected) githubScreen?.refresh() }
+        apps.onGit = { laptop -> if (laptop === selected) gitScreen?.refresh() }
         apps.onPermAsk = { laptop -> if (laptop === selected) syncPerm() }
         // As above, over the retained pieces alone: what another app shares goes to the selected, connected laptop.
         val shares = clipboard.links
@@ -813,7 +814,7 @@ class MainActivity :
         handler.removeCallbacksAndMessages(null)
         apps.events = null
         apps.onMediaIcon = null
-        apps.onGithub = null
+        apps.onGit = null
         apps.onPermAsk = null
         permSheet.dismiss()
         floating?.hide()
@@ -954,7 +955,7 @@ class MainActivity :
             systemScreen?.refresh()
             networkScreen?.refresh()
             aiScreen?.refresh()
-            githubScreen?.refresh()
+            gitScreen?.refresh()
             return
         }
         when (kind) {
@@ -1157,7 +1158,7 @@ class MainActivity :
         systemScreen = null
         networkScreen = null
         aiScreen = null
-        githubScreen = null
+        gitScreen = null
         endRedraw = null
         controls = null
         handler.removeCallbacks(ticker)
@@ -1501,9 +1502,10 @@ class MainActivity :
                             laptopName = ::hubLaptopName,
                             onSwitch = deviceSwitch::open,
                             onPage = ::hubPage,
+                            onGitOpen = { text -> manager.send(TextKind.GIT_OPEN.frame(text)) },
                         ) { navigateBack() }
                     aiScreen = hub.ai
-                    githubScreen = hub.github
+                    gitScreen = hub.git
                     hub.view
                 }
 
@@ -3346,7 +3348,8 @@ class MainActivity :
 
         /** What a laptop names when it can answer DASH_WATCH: one of these, or the phone never sends it. */
         val DASH_FEATURES =
-            setOf(Feature.STATS, Feature.NETINFO, Feature.WEATHER, Feature.CLAUDE, Feature.CODEX, Feature.GITHUB)
+            setOf(Feature.STATS, Feature.NETINFO, Feature.WEATHER, Feature.CLAUDE, Feature.CODEX) +
+                GitHost.entries.map { it.feature }
 
         const val REQUEST_BLUETOOTH = 1
         const val REQUEST_IMAGE = 2

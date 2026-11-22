@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Edgepad's own icon: 24 x 24 grid, 20 x 20 live area, 1.5 stroke, round caps and joins. An issue: a ring round a dot -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="24dp"
+  android:height="24dp"
+  android:viewportWidth="24"
+  android:viewportHeight="24"
+  android:tint="#000000">
+  <path
+    android:fillColor="#00000000"
+    android:strokeColor="#000000"
+    android:strokeWidth="1.5"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round"
+    android:pathData="M12,3.25a8.75,8.75 0 1,0 0,17.5a8.75,8.75 0 1,0 0,-17.5M12,11.75V12.25" />
+</vector>

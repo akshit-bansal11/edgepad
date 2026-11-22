@@ -3,7 +3,7 @@ package me.akshitbansal.edgepad.link
 import android.os.Handler
 import android.os.Looper
 import me.akshitbansal.edgepad.link.blob.AppBlobSink
-import me.akshitbansal.edgepad.link.blob.GitHubSink
+import me.akshitbansal.edgepad.link.blob.GitSink
 import me.akshitbansal.edgepad.link.blob.MediaIconSink
 import me.akshitbansal.edgepad.link.blob.PermSink
 import me.akshitbansal.edgepad.link.notify.NotificationSink
@@ -58,8 +58,8 @@ class AppLinks(
     /** Told, on the main thread, that a laptop's [LaptopState.mediaIcons] got a new icon. */
     var onMediaIcon: ((Laptop) -> Unit)? = null
 
-    /** Told, on the main thread, that a laptop's [LaptopState.github] got a new list. */
-    var onGithub: ((Laptop) -> Unit)? = null
+    /** Told, on the main thread, that a laptop's [LaptopState.git] got a new page. */
+    var onGit: ((Laptop) -> Unit)? = null
 
     /** Told, on the main thread, that a laptop's [LaptopState.permAsks] got a new approval. */
     var onPermAsk: ((Laptop) -> Unit)? = null
@@ -100,14 +100,14 @@ class AppLinks(
                 }
             sink::take
         }
-        val github = laptops.filter { it.connected && Feature.GITHUB in it.state.features }
-        sync(BlobRoutes.Lane.GITHUB, githubLinks, github) { laptop, link ->
+        val git = laptops.filter { it.connected && GitHost.entries.any { host -> host.feature in it.state.features } }
+        sync(BlobRoutes.Lane.GITHUB, githubLinks, git) { laptop, link ->
             val sink =
-                GitHubSink { rows ->
+                GitSink { page ->
                     post {
                         if (githubLinks.any { it === link }) {
-                            laptop.state.setGithub(rows)
-                            onGithub?.invoke(laptop)
+                            laptop.state.setGit(page)
+                            onGit?.invoke(laptop)
                         }
                     }
                 }

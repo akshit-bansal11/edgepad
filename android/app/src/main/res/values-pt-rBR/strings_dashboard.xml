@@ -59,16 +59,47 @@
   <string name="dur_hr">%1$d h</string>
   <string name="dur_day">%1$d d</string>
   <!-- Not translated: product names. -->
-  <string name="gh_title">GitHub</string>
-  <string name="gh_review">Revisão solicitada</string>
-  <string name="gh_mine">Seus pull requests</string>
-  <string name="gh_notifs">Notificações: %1$d</string>
-  <string name="gh_none">Nada aqui</string>
-  <string name="gh_ci_ok">Verificações aprovadas</string>
-  <string name="gh_ci_fail">Verificações falharam</string>
-  <string name="gh_ci_pending">Verificações em andamento</string>
-  <string name="gh_draft">Rascunho</string>
-  <string name="gh_signin">Entre com o GitHub no menu do Edgepad no seu notebook.</string>
+  <!-- Developer, Git page. Product names (GitHub, GitLab, Gitea, Bitbucket, Gitee) are not translated. -->
+  <string name="git_repos_label">Repositórios</string>
+  <plurals name="git_repos_n">
+    <item quantity="one">%1$d repositório</item>
+    <item quantity="many">%1$d de repositórios</item>
+    <item quantity="other">%1$d repositórios</item>
+  </plurals>
+  <plurals name="git_followers_n">
+    <item quantity="one">%1$d seguidor</item>
+    <item quantity="many">%1$d de seguidores</item>
+    <item quantity="other">%1$d seguidores</item>
+  </plurals>
+  <plurals name="git_issues_n">
+    <item quantity="one">%1$d issue</item>
+    <item quantity="many">%1$d de issues</item>
+    <item quantity="other">%1$d issues</item>
+  </plurals>
+  <plurals name="git_prs_n">
+    <item quantity="one">%1$d PR</item>
+    <item quantity="many">%1$d de PRs</item>
+    <item quantity="other">%1$d PRs</item>
+  </plurals>
+  <string name="git_lists_title">Pull requests e issues</string>
+  <string name="git_mine">Meus</string>
+  <string name="git_review">Revisão</string>
+  <string name="git_assigned">Atribuídos</string>
+  <string name="git_empty_mine">Nenhum dos seus pull requests ou issues está aberto.</string>
+  <string name="git_empty_review">Nada aguarda sua revisão.</string>
+  <string name="git_empty_assigned">Nada foi atribuído a você.</string>
+  <string name="git_empty_repos">Nenhum repositório para mostrar.</string>
+  <string name="git_loading">Carregando do seu notebook.</string>
+  <string name="git_signin">Entre em um host git no menu do Edgepad no seu notebook.</string>
+  <string name="git_opening">Abrindo no seu notebook</string>
+  <string name="git_item_meta">#%1$s · atualizado %2$s</string>
+  <string name="git_ci_ok">Verificações aprovadas</string>
+  <string name="git_ci_fail">Verificações falharam</string>
+  <string name="git_ci_pending">Verificações em andamento</string>
+  <string name="git_draft">Rascunho</string>
+  <string name="git_state_open">Aberto</string>
+  <string name="git_state_closed">Fechado</string>
+  <string name="git_state_merged">Mesclado</string>
   <string name="perm_title">%1$s pede</string>
   <string name="perm_allow">Permitir</string>
   <string name="perm_deny">Negar</string>

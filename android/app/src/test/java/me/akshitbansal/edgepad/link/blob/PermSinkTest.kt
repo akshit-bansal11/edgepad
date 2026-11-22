@@ -46,7 +46,7 @@ class PermSinkTest {
     @Test
     fun overTheCapAndOtherKindsAreDropped() {
         send(BlobKind.PERM_ASK, "a1b2c3d4e5f6/1", ByteArray(PermSink.MAX_BYTES + 1) { 'a'.code.toByte() })
-        send(BlobKind.GITHUB, "a1b2c3d4e5f6/1", body("x"))
+        send(BlobKind.GIT,"a1b2c3d4e5f6/1", body("x"))
         assertTrue(got.isEmpty())
     }
 

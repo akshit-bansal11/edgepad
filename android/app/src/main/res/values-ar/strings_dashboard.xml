@@ -59,16 +59,59 @@
   <string name="dur_hr">%1$d س</string>
   <string name="dur_day">%1$d ي</string>
   <!-- Not translated: product names. -->
-  <string name="gh_title">GitHub</string>
-  <string name="gh_review">طُلبت مراجعة</string>
-  <string name="gh_mine">طلبات السحب الخاصة بك</string>
-  <string name="gh_notifs">الإشعارات: %1$d</string>
-  <string name="gh_none">لا شيء هنا</string>
-  <string name="gh_ci_ok">نجحت الفحوصات</string>
-  <string name="gh_ci_fail">فشلت الفحوصات</string>
-  <string name="gh_ci_pending">الفحوصات قيد التشغيل</string>
-  <string name="gh_draft">مسودة</string>
-  <string name="gh_signin">سجّل الدخول إلى GitHub من قائمة Edgepad على الحاسوب المحمول.</string>
+  <!-- Developer, Git page. Product names (GitHub, GitLab, Gitea, Bitbucket, Gitee) are not translated. -->
+  <string name="git_repos_label">المستودعات</string>
+  <plurals name="git_repos_n">
+    <item quantity="zero">لا مستودعات</item>
+    <item quantity="one">مستودع واحد</item>
+    <item quantity="two">مستودعان</item>
+    <item quantity="few">%1$d مستودعات</item>
+    <item quantity="many">%1$d مستودعًا</item>
+    <item quantity="other">%1$d مستودع</item>
+  </plurals>
+  <plurals name="git_followers_n">
+    <item quantity="zero">لا متابعين</item>
+    <item quantity="one">متابع واحد</item>
+    <item quantity="two">متابعان</item>
+    <item quantity="few">%1$d متابعين</item>
+    <item quantity="many">%1$d متابعًا</item>
+    <item quantity="other">%1$d متابع</item>
+  </plurals>
+  <plurals name="git_issues_n">
+    <item quantity="zero">لا مشكلات</item>
+    <item quantity="one">مشكلة واحدة</item>
+    <item quantity="two">مشكلتان</item>
+    <item quantity="few">%1$d مشكلات</item>
+    <item quantity="many">%1$d مشكلة</item>
+    <item quantity="other">%1$d مشكلة</item>
+  </plurals>
+  <plurals name="git_prs_n">
+    <item quantity="zero">لا طلبات سحب</item>
+    <item quantity="one">طلب سحب واحد</item>
+    <item quantity="two">طلبا سحب</item>
+    <item quantity="few">%1$d طلبات سحب</item>
+    <item quantity="many">%1$d طلب سحب</item>
+    <item quantity="other">%1$d طلب سحب</item>
+  </plurals>
+  <string name="git_lists_title">طلبات السحب والمشكلات</string>
+  <string name="git_mine">الخاصة بي</string>
+  <string name="git_review">المراجعة</string>
+  <string name="git_assigned">المُسندة</string>
+  <string name="git_empty_mine">لا يوجد أي من طلبات السحب أو المشكلات الخاصة بك مفتوحًا.</string>
+  <string name="git_empty_review">لا شيء ينتظر مراجعتك.</string>
+  <string name="git_empty_assigned">لا شيء مُسند إليك.</string>
+  <string name="git_empty_repos">لا توجد مستودعات لعرضها.</string>
+  <string name="git_loading">جارٍ التحميل من الحاسوب المحمول.</string>
+  <string name="git_signin">سجّل الدخول إلى مضيف git من قائمة Edgepad على الحاسوب المحمول.</string>
+  <string name="git_opening">جارٍ الفتح على الحاسوب المحمول</string>
+  <string name="git_item_meta">#%1$s · حُدّث %2$s</string>
+  <string name="git_ci_ok">نجحت الفحوصات</string>
+  <string name="git_ci_fail">فشلت الفحوصات</string>
+  <string name="git_ci_pending">الفحوصات قيد التشغيل</string>
+  <string name="git_draft">مسودة</string>
+  <string name="git_state_open">مفتوح</string>
+  <string name="git_state_closed">مغلق</string>
+  <string name="git_state_merged">مدمج</string>
   <string name="perm_title">%1$s يطلب</string>
   <string name="perm_allow">سماح</string>
   <string name="perm_deny">رفض</string>

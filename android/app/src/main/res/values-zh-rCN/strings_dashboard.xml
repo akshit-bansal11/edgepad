@@ -59,16 +59,39 @@
   <string name="dur_hr">%1$d 小时</string>
   <string name="dur_day">%1$d 天</string>
   <!-- Not translated: product names. -->
-  <string name="gh_title">GitHub</string>
-  <string name="gh_review">请求审查</string>
-  <string name="gh_mine">你的拉取请求</string>
-  <string name="gh_notifs">通知：%1$d</string>
-  <string name="gh_none">这里没有内容</string>
-  <string name="gh_ci_ok">检查已通过</string>
-  <string name="gh_ci_fail">检查失败</string>
-  <string name="gh_ci_pending">检查进行中</string>
-  <string name="gh_draft">草稿</string>
-  <string name="gh_signin">在笔记本电脑的 Edgepad 菜单中登录 GitHub。</string>
+  <!-- Developer, Git page. Product names (GitHub, GitLab, Gitea, Bitbucket, Gitee) are not translated. -->
+  <string name="git_repos_label">仓库</string>
+  <plurals name="git_repos_n">
+    <item quantity="other">%1$d 个仓库</item>
+  </plurals>
+  <plurals name="git_followers_n">
+    <item quantity="other">%1$d 位关注者</item>
+  </plurals>
+  <plurals name="git_issues_n">
+    <item quantity="other">%1$d 个议题</item>
+  </plurals>
+  <plurals name="git_prs_n">
+    <item quantity="other">%1$d 个 PR</item>
+  </plurals>
+  <string name="git_lists_title">拉取请求和议题</string>
+  <string name="git_mine">我的</string>
+  <string name="git_review">待审查</string>
+  <string name="git_assigned">已指派</string>
+  <string name="git_empty_mine">你没有未关闭的拉取请求或议题。</string>
+  <string name="git_empty_review">没有等待你审查的内容。</string>
+  <string name="git_empty_assigned">没有指派给你的内容。</string>
+  <string name="git_empty_repos">没有可显示的仓库。</string>
+  <string name="git_loading">正在从笔记本电脑加载。</string>
+  <string name="git_signin">在笔记本电脑的 Edgepad 菜单中登录 Git 主机。</string>
+  <string name="git_opening">正在笔记本电脑上打开</string>
+  <string name="git_item_meta">#%1$s · 更新于 %2$s</string>
+  <string name="git_ci_ok">检查已通过</string>
+  <string name="git_ci_fail">检查失败</string>
+  <string name="git_ci_pending">检查进行中</string>
+  <string name="git_draft">草稿</string>
+  <string name="git_state_open">打开</string>
+  <string name="git_state_closed">已关闭</string>
+  <string name="git_state_merged">已合并</string>
   <string name="perm_title">%1$s 请求确认</string>
   <string name="perm_allow">允许</string>
   <string name="perm_deny">拒绝</string>

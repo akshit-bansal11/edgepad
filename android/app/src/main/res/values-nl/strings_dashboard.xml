@@ -59,16 +59,43 @@
   <string name="dur_hr">%1$d u</string>
   <string name="dur_day">%1$d d</string>
   <!-- Not translated: product names. -->
-  <string name="gh_title">GitHub</string>
-  <string name="gh_review">Review gevraagd</string>
-  <string name="gh_mine">Jouw pull requests</string>
-  <string name="gh_notifs">Meldingen: %1$d</string>
-  <string name="gh_none">Hier is niets</string>
-  <string name="gh_ci_ok">Controles geslaagd</string>
-  <string name="gh_ci_fail">Controles mislukt</string>
-  <string name="gh_ci_pending">Controles bezig</string>
-  <string name="gh_draft">Concept</string>
-  <string name="gh_signin">Meld je aan bij GitHub via het Edgepad-menu op je laptop.</string>
+  <!-- Developer, Git page. Product names (GitHub, GitLab, Gitea, Bitbucket, Gitee) are not translated. -->
+  <string name="git_repos_label">Repositories</string>
+  <plurals name="git_repos_n">
+    <item quantity="one">%1$d repo</item>
+    <item quantity="other">%1$d repo’s</item>
+  </plurals>
+  <plurals name="git_followers_n">
+    <item quantity="one">%1$d volger</item>
+    <item quantity="other">%1$d volgers</item>
+  </plurals>
+  <plurals name="git_issues_n">
+    <item quantity="one">%1$d issue</item>
+    <item quantity="other">%1$d issues</item>
+  </plurals>
+  <plurals name="git_prs_n">
+    <item quantity="one">%1$d PR</item>
+    <item quantity="other">%1$d PR’s</item>
+  </plurals>
+  <string name="git_lists_title">Pull requests en issues</string>
+  <string name="git_mine">Van mij</string>
+  <string name="git_review">Review</string>
+  <string name="git_assigned">Toegewezen</string>
+  <string name="git_empty_mine">Geen van je pull requests of issues is open.</string>
+  <string name="git_empty_review">Niets wacht op jouw review.</string>
+  <string name="git_empty_assigned">Er is niets aan jou toegewezen.</string>
+  <string name="git_empty_repos">Geen repositories om te tonen.</string>
+  <string name="git_loading">Laden vanaf je laptop.</string>
+  <string name="git_signin">Meld je aan bij een git-host via het Edgepad-menu op je laptop.</string>
+  <string name="git_opening">Openen op je laptop</string>
+  <string name="git_item_meta">#%1$s · bijgewerkt %2$s</string>
+  <string name="git_ci_ok">Controles geslaagd</string>
+  <string name="git_ci_fail">Controles mislukt</string>
+  <string name="git_ci_pending">Controles bezig</string>
+  <string name="git_draft">Concept</string>
+  <string name="git_state_open">Open</string>
+  <string name="git_state_closed">Gesloten</string>
+  <string name="git_state_merged">Samengevoegd</string>
   <string name="perm_title">%1$s vraagt</string>
   <string name="perm_allow">Toestaan</string>
   <string name="perm_deny">Weigeren</string>

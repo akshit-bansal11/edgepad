@@ -59,16 +59,39 @@
   <string name="dur_hr">%1$d시간</string>
   <string name="dur_day">%1$d일</string>
   <!-- Not translated: product names. -->
-  <string name="gh_title">GitHub</string>
-  <string name="gh_review">검토 요청됨</string>
-  <string name="gh_mine">내 풀 리퀘스트</string>
-  <string name="gh_notifs">알림: %1$d개</string>
-  <string name="gh_none">여기에는 아무것도 없습니다</string>
-  <string name="gh_ci_ok">검사 통과</string>
-  <string name="gh_ci_fail">검사 실패</string>
-  <string name="gh_ci_pending">검사 진행 중</string>
-  <string name="gh_draft">초안</string>
-  <string name="gh_signin">노트북의 Edgepad 메뉴에서 GitHub에 로그인해 주세요.</string>
+  <!-- Developer, Git page. Product names (GitHub, GitLab, Gitea, Bitbucket, Gitee) are not translated. -->
+  <string name="git_repos_label">저장소</string>
+  <plurals name="git_repos_n">
+    <item quantity="other">저장소 %1$d개</item>
+  </plurals>
+  <plurals name="git_followers_n">
+    <item quantity="other">팔로워 %1$d명</item>
+  </plurals>
+  <plurals name="git_issues_n">
+    <item quantity="other">이슈 %1$d개</item>
+  </plurals>
+  <plurals name="git_prs_n">
+    <item quantity="other">PR %1$d개</item>
+  </plurals>
+  <string name="git_lists_title">풀 리퀘스트와 이슈</string>
+  <string name="git_mine">내 것</string>
+  <string name="git_review">검토</string>
+  <string name="git_assigned">할당됨</string>
+  <string name="git_empty_mine">열려 있는 내 풀 리퀘스트나 이슈가 없습니다.</string>
+  <string name="git_empty_review">검토를 기다리는 항목이 없습니다.</string>
+  <string name="git_empty_assigned">할당된 항목이 없습니다.</string>
+  <string name="git_empty_repos">표시할 저장소가 없습니다.</string>
+  <string name="git_loading">노트북에서 불러오는 중입니다.</string>
+  <string name="git_signin">노트북의 Edgepad 메뉴에서 Git 호스트에 로그인해 주세요.</string>
+  <string name="git_opening">노트북에서 여는 중입니다</string>
+  <string name="git_item_meta">#%1$s · %2$s 업데이트</string>
+  <string name="git_ci_ok">검사 통과</string>
+  <string name="git_ci_fail">검사 실패</string>
+  <string name="git_ci_pending">검사 진행 중</string>
+  <string name="git_draft">초안</string>
+  <string name="git_state_open">열림</string>
+  <string name="git_state_closed">닫힘</string>
+  <string name="git_state_merged">병합됨</string>
   <string name="perm_title">%1$s 요청</string>
   <string name="perm_allow">허용</string>
   <string name="perm_deny">거부</string>

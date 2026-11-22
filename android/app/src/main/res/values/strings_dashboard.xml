@@ -64,16 +64,44 @@
   <string name="agent_codex" translatable="false">Codex</string>
   <string name="agent_gemini" translatable="false">Gemini CLI</string>
   <string name="agent_opencode" translatable="false">OpenCode</string>
-  <string name="gh_title">GitHub</string>
-  <string name="gh_review">Review requested</string>
-  <string name="gh_mine">Your pull requests</string>
-  <string name="gh_notifs">Notifications: %1$d</string>
-  <string name="gh_none">Nothing here</string>
-  <string name="gh_ci_ok">Checks passed</string>
-  <string name="gh_ci_fail">Checks failed</string>
-  <string name="gh_ci_pending">Checks running</string>
-  <string name="gh_draft">Draft</string>
-  <string name="gh_signin">Sign in with GitHub in the Edgepad menu on your laptop.</string>
+  <!-- Developer, Git page. Product names (GitHub, GitLab, Gitea, Bitbucket, Gitee) are not translated. -->
+  <string name="git_repos_label">Repositories</string>
+  <plurals name="git_repos_n">
+    <item quantity="one">%1$d repo</item>
+    <item quantity="other">%1$d repos</item>
+  </plurals>
+  <plurals name="git_followers_n">
+    <item quantity="one">%1$d follower</item>
+    <item quantity="other">%1$d followers</item>
+  </plurals>
+  <plurals name="git_issues_n">
+    <item quantity="one">%1$d issue</item>
+    <item quantity="other">%1$d issues</item>
+  </plurals>
+  <plurals name="git_prs_n">
+    <item quantity="one">%1$d PR</item>
+    <item quantity="other">%1$d PRs</item>
+  </plurals>
+  <string name="git_lists_title">Pull requests and issues</string>
+  <string name="git_mine">Mine</string>
+  <string name="git_review">Review</string>
+  <string name="git_assigned">Assigned</string>
+  <string name="git_empty_mine">None of your pull requests or issues are open.</string>
+  <string name="git_empty_review">Nothing is waiting for your review.</string>
+  <string name="git_empty_assigned">Nothing is assigned to you.</string>
+  <string name="git_empty_repos">No repositories to show.</string>
+  <string name="git_loading">Loading from your laptop.</string>
+  <string name="git_signin">Sign in to a git host in the Edgepad menu on your laptop.</string>
+  <string name="git_opening">Opening on your laptop</string>
+  <string name="git_item_meta">#%1$s · updated %2$s</string>
+  <string name="git_ci_ok">Checks passed</string>
+  <string name="git_ci_fail">Checks failed</string>
+  <string name="git_ci_pending">Checks running</string>
+  <string name="git_draft">Draft</string>
+  <string name="git_state_open">Open</string>
+  <string name="git_state_closed">Closed</string>
+  <string name="git_state_merged">Merged</string>
+  <string name="git_item_meta_undated" translatable="false">#%1$s</string>
   <string name="perm_title">%1$s asks</string>
   <string name="perm_allow">Allow</string>
   <string name="perm_deny">Deny</string>
