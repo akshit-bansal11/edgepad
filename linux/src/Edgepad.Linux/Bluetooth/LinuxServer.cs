@@ -1,6 +1,5 @@
 using Edgepad.Net;
 using Edgepad.Platform;
-using Edgepad.Transfer;
 using Edgepad.Trust;
 using Microsoft.Win32.SafeHandles;
 using Tmds.DBus.Protocol;
@@ -270,8 +269,20 @@ internal sealed class LinuxServer : IDisposable
     /// <summary>Ends one <see cref="HoldOff"/>.</summary>
     public void Resume() => host.Resume();
 
-    /// <summary>Sends a file to the connected phone: null with none connected, else how the transfer ended.</summary>
-    public Task<XferCode?> SendFile(string path, CancellationToken cancel = default) => host.SendFile(path, cancel);
+    /// <summary>Queues files for the connected phone; false with none connected. The batch shows on the transfer card.</summary>
+    public bool Enqueue(IReadOnlyList<string> paths) => host.Enqueue(paths);
+
+    /// <summary>Holds the file moving in this direction.</summary>
+    public bool PauseTransfer(bool sending) => host.PauseTransfer(sending);
+
+    /// <summary>Releases this end's hold on the file moving in this direction.</summary>
+    public bool ResumeTransfer(bool sending) => host.ResumeTransfer(sending);
+
+    /// <summary>Stops what moves in this direction.</summary>
+    public void StopTransfer(bool sending) => host.StopTransfer(sending);
+
+    /// <summary>The connected phone's name, or empty.</summary>
+    public string PhoneName => host.PhoneName;
 
     /// <summary>Hangs up on every phone and refuses new connections for <paramref name="quiet"/>.</summary>
     public void HangUp(TimeSpan quiet) => host.HangUp(quiet);

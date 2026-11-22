@@ -55,6 +55,7 @@ internal sealed class LinuxSession : IDisposable
     // only reads XFER frames into them and carries what they send while it is attached.
     private volatile TransferReceiver? receiver;
     private volatile TransferSender? fileSender;
+    private volatile SendQueue? queue;
     private int transferId;
 
     // The transfer socket this session holds, or is about to: set when it asks, cleared when it ends. Under bulkGate.
@@ -203,12 +204,27 @@ internal sealed class LinuxSession : IDisposable
 
             // Files, both ways, one at a time each. A part is kept when the session ends, for the next BEGIN of the same file.
             var incoming = new TransferReceiver(
-                LinuxTransfers.Destination(), LinuxTransfers.PartialFolder(), status => Guarded(() => SendTransfer(status)), LinuxTransfers.Arrived);
+                LinuxTransfers.Destination(),
+                LinuxTransfers.PartialFolder(),
+                status => Guarded(() => SendTransfer(status)),
+                LinuxTransfers.Arrived,
+                progress: LinuxTransfers.OnProgress,
+                failed: LinuxTransfers.OnFailed,
+                pausedChanged: LinuxTransfers.OnPaused);
             dispatcher.Transfers = incoming;
             receiver = incoming;
-            var outgoing = new TransferSender(SendTransfer, link.Kind, () => dispatcher.LastInputMs, ended.Token);
+            var outgoing = new TransferSender(SendTransfer, link.Kind, () => dispatcher.LastInputMs, ended.Token, pausedChanged: LinuxTransfers.OnPaused);
             dispatcher.Sending = outgoing;
             fileSender = outgoing;
+
+            // The files the owner sends go through one queue per session, so the session ending ends a held batch too.
+            queue = new SendQueue(
+                (path, _, cancel) => Task.Run(() => (XferCode?)SendFile(path, cancel, LinuxTransfers.Feed.Bytes), CancellationToken.None),
+                LinuxTransfers.Feed,
+                path => File.Exists(path) ? new FileInfo(path).Length : null,
+                outgoing.Pause,
+                outgoing.Resume,
+                ended.Token);
 
             dispatcher.PadStatusReply = status => frames.Send(new Text((byte)TextKind.PadStatus, status));
             frames.Send(new Text((byte)TextKind.PadStatus, probePad()));
@@ -436,7 +452,7 @@ internal sealed class LinuxSession : IDisposable
     };
 
     /// <summary>Sends <paramref name="path"/> to the phone and blocks until it ends; never call it on the read thread.</summary>
-    internal XferCode SendFile(string path, CancellationToken cancel)
+    private XferCode SendFile(string path, CancellationToken cancel, Action<ulong> progress)
     {
         if (fileSender is not { } current)
         {
@@ -444,7 +460,38 @@ internal sealed class LinuxSession : IDisposable
         }
 
         var id = (byte)((uint)Interlocked.Increment(ref transferId) % 255 + 1);
-        return current.Send(path, id, cancel: cancel);
+        return current.Send(path, id, progress, cancel);
+    }
+
+    /// <summary>Adds files to the batch going to the phone. False before the handshake has built the queue.</summary>
+    internal bool Enqueue(IReadOnlyList<string> paths)
+    {
+        if (queue is not { } current)
+        {
+            return false;
+        }
+
+        current.Enqueue(paths);
+        return true;
+    }
+
+    /// <summary>Holds the file moving in the given direction. False when none moves or it is held already.</summary>
+    internal bool PauseTransfer(bool sending) => sending ? queue?.Pause() == true : receiver?.Pause() == true;
+
+    /// <summary>Lets go of a hold of this end.</summary>
+    internal bool ResumeTransfer(bool sending) => sending ? queue?.Resume() == true : receiver?.Resume() == true;
+
+    /// <summary>Stops what moves in the given direction: the rest of the batch going out, or the file coming in.</summary>
+    internal void StopTransfer(bool sending)
+    {
+        if (sending)
+        {
+            queue?.Cancel();
+        }
+        else
+        {
+            _ = receiver?.Cancel();
+        }
     }
 
     // Everything this laptop says about a file goes down the transfer socket while one is attached, else the control one.

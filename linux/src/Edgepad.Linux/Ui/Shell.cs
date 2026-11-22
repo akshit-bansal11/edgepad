@@ -50,6 +50,7 @@ internal sealed class Shell : IDisposable
     private LinuxServer? server;
     private NetworkServer? network;
     private Tray? tray;
+    private TransferCard? card;
     private FallbackWindow? fallback;
     private Timer? updateTimer;
     private volatile IClassicDesktopStyleApplicationLifetime? lifetime;
@@ -325,6 +326,7 @@ internal sealed class Shell : IDisposable
             () => _ = Guard(InstallUpdateAsync),
             LaterUpdate,
             SkipUpdate,
+            () => card?.ShowAgain(),
             RequestQuit);
         if (LinuxDashboard.Shared is { } shared)
         {
@@ -333,6 +335,13 @@ internal sealed class Shell : IDisposable
 
         var menu = new Tray(hooks);
         tray = menu;
+        card = new TransferCard(
+            LinuxTransfers.Feed,
+            () => server?.PhoneName ?? "",
+            sending => server?.PauseTransfer(sending) == true,
+            sending => server?.ResumeTransfer(sending) == true,
+            sending => server?.StopTransfer(sending));
+        LinuxTransfers.Feed.Changed += view => Dispatcher.UIThread.Post(() => tray?.SetTransfers(view.Phase == TransferPhase.Running));
         menu.SetStatus(status);
         menu.Attach(app);
         if (lifetime is not null)
@@ -825,42 +834,37 @@ internal sealed class Shell : IDisposable
             Log.Write($"{paths.Count - MaxSendFiles} picked files were left out: at most {MaxSendFiles} go in one send.");
         }
 
-        foreach (var path in paths.Take(MaxSendFiles))
-        {
-            if (!await SendOneAsync(path))
-            {
-                break;
-            }
-        }
+        Send(paths.Take(MaxSendFiles).ToList());
     }
 
     /// <summary>
-    /// Sends <paramref name="path"/> to the connected phone and tells the owner how it went. From the tray and from the send
-    /// socket; any thread. Never throws.
+    /// Sends <paramref name="path"/> to the connected phone; the transfer card shows how it goes. From the send socket; any
+    /// thread. Never throws.
     /// </summary>
-    public async Task SendFileAsync(string path) => await SendOneAsync(path);
-
-    /// <summary>One file; false when the rest of a batch should not follow (no phone, cancelled, timed out, busy, session ended).</summary>
-    private async Task<bool> SendOneAsync(string path)
+    public Task SendFileAsync(string path)
     {
-        var name = Say.MiddleTruncate(Path.GetFileName(path));
+        Send([path]);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Queues files for the phone. With none connected a notification says so, since no card would.</summary>
+    private void Send(IReadOnlyList<string> paths)
+    {
+        if (paths.Count == 0)
+        {
+            return;
+        }
+
         try
         {
-            var code = await Server.SendFile(path);
-            Notifier.Send(LinuxStrings.App_Name, code switch
+            if (!Server.Enqueue(paths))
             {
-                null => LinuxStrings.Send_NoPhone,
-                XferCode.Saved => Say.Format(LinuxStrings.Send_Sent, name),
-                XferCode.Cancelled => Say.Format(LinuxStrings.Send_Cancelled, name),
-                _ => Say.Format(LinuxStrings.Send_NotSent, name, code),
-            });
-            return code is not (null or XferCode.Cancelled or XferCode.TimedOut or XferCode.Busy or XferCode.SessionEnded);
+                Notifier.Send(LinuxStrings.App_Name, LinuxStrings.Send_NoPhone);
+            }
         }
         catch (Exception e)
         {
-            Log.Write($"A file could not be sent: {e.Message}");
-            Notifier.Send(LinuxStrings.App_Name, Say.Format(LinuxStrings.Send_Failed, name));
-            return true;
+            Log.Write($"Files could not be queued: {e.Message}");
         }
     }
 

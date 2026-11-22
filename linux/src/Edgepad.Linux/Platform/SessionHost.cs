@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using Edgepad.Bluetooth;
 using Edgepad.Dispatch;
 using Edgepad.Net;
-using Edgepad.Transfer;
 using Edgepad.Trust;
 
 namespace Edgepad.Platform;
@@ -207,22 +206,28 @@ internal sealed class SessionHost(
         return live.ReserveBulk(bulk) ? live : null;
     }
 
-    /// <summary>
-    /// Sends a file to the connected phone, on a pool thread. Null when no phone is connected; otherwise how it ended
-    /// (<see cref="XferCode.Saved"/> is a file the phone has whole and checked). A file that cannot be read faults the task.
-    /// </summary>
-    public Task<XferCode?> SendFile(string path, CancellationToken cancel = default)
+    private LinuxSession? Live()
     {
-        LinuxSession? session;
         lock (gate)
         {
-            session = connected;
+            return connected;
         }
-
-        return session is null
-            ? Task.FromResult<XferCode?>(null)
-            : Task.Run(() => (XferCode?)session.SendFile(path, cancel), CancellationToken.None);
     }
+
+    /// <summary>Queues files for the connected phone; false when none is connected. The batch shows on <see cref="LinuxTransfers.Feed"/>.</summary>
+    public bool Enqueue(IReadOnlyList<string> paths) => Live()?.Enqueue(paths) == true;
+
+    /// <summary>Holds the file moving in this direction; false when none moves or it is held.</summary>
+    public bool PauseTransfer(bool sending) => Live()?.PauseTransfer(sending) == true;
+
+    /// <summary>Releases this end's hold on the file moving in this direction.</summary>
+    public bool ResumeTransfer(bool sending) => Live()?.ResumeTransfer(sending) == true;
+
+    /// <summary>Stops what moves in this direction.</summary>
+    public void StopTransfer(bool sending) => Live()?.StopTransfer(sending);
+
+    /// <summary>The connected phone's name as the owner knows it, or empty.</summary>
+    public string PhoneName => admission.CurrentAddress is { } address ? Connected(address).Detail : "";
 
     /// <summary>Ends every session of the phone at <paramref name="address"/>, the connected one and its candidates.</summary>
     public void Disconnect(string address) => End(admission.Sessions(address));

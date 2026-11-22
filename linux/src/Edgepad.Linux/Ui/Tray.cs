@@ -33,6 +33,7 @@ internal sealed record TrayHooks(
     Action InstallUpdate,
     Action LaterUpdate,
     Action SkipUpdate,
+    Action ShowTransfers,
     Action Quit);
 
 /// <summary>
@@ -65,6 +66,7 @@ internal sealed class Tray : IDisposable
     private readonly NativeMenuItem updatesRow = Toggle(LinuxStrings.Menu_CheckUpdates);
     private readonly NativeMenuItem sendRow = new(LinuxStrings.Menu_SendFile);
     private readonly NativeMenuItem macrosRow = new(LinuxStrings.Menu_Macros);
+    private readonly NativeMenuItem transfersRow = new(LinuxStrings.Menu_Transfers) { IsVisible = false };
     private readonly NativeMenuItem integrationsRow = new(LinuxStrings.Menu_StatsWeather) { IsVisible = LinuxDashboard.Shared is not null };
     private readonly NativeMenuItem developerRow = Toggle(LinuxStrings.Menu_DeveloperMode);
     private readonly NativeMenuItem developerIntegrationsRow = new(LinuxStrings.Menu_ForDevelopers) { IsVisible = false };
@@ -90,6 +92,7 @@ internal sealed class Tray : IDisposable
         updatesRow.Click += (_, _) => Safe(hooks.ToggleUpdates, "Check for updates daily");
         sendRow.Click += (_, _) => Safe(hooks.SendFile, "Send a file");
         macrosRow.Click += (_, _) => Safe(hooks.Macros, "Macros");
+        transfersRow.Click += (_, _) => Safe(hooks.ShowTransfers, "Transfers");
         integrationsRow.Click += (_, _) => Safe(() => LinuxDashboard.Shared?.ShowWindow(developer: false), "Integrations");
         developerRow.IsVisible = LinuxDashboard.Shared is not null;
         developerRow.Click += (_, _) => Safe(hooks.ToggleDeveloper, "Developer mode");
@@ -115,6 +118,7 @@ internal sealed class Tray : IDisposable
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(sendRow);
         menu.Add(macrosRow);
+        menu.Add(transfersRow);
         menu.Add(Group(LinuxStrings.Menu_Group_Clipboard, clipboardRow));
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(Group(LinuxStrings.Menu_Group_Connections, networkRow, securityRow));
@@ -172,6 +176,9 @@ internal sealed class Tray : IDisposable
         problemRow.Header = text ?? "";
         problemRow.IsVisible = text is not null;
     }
+
+    /// <summary>Shows the "Transfers" row, which brings the card back, only while a file moves.</summary>
+    public void SetTransfers(bool running) => transfersRow.IsVisible = running;
 
     public void Dispose()
     {
