@@ -105,7 +105,7 @@ class XferCard(
     }
 
     companion object {
-        const val MAX_WIDTH_DP = 320f
+        const val MAX_WIDTH_DP = 352f
         const val ELEVATION_DP = 8f
         const val DONE_MS = 4_000L
         const val FAILED_MS = 8_000L

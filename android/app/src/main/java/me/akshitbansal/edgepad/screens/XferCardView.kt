@@ -37,6 +37,9 @@ internal data class CardButtons(
     val retry: Boolean,
 )
 
+/** Whether the figures start with "file 2 of 5": a batch of several files, one of them begun. */
+internal fun showsCount(s: XferSnapshot) = s.total > 1 && s.index > 0
+
 internal fun buttonsOf(s: XferSnapshot): CardButtons {
     val running = s.phase != XferPhase.FINISHED
     return CardButtons(running, running && s.paused, running, !running && s.sending && s.failed.isNotEmpty())
@@ -157,14 +160,16 @@ class XferCardView(
     ): String {
         val sent = Formatter.formatFileSize(ui.context, s.sent)
         val size = Formatter.formatFileSize(ui.context, s.size)
-        return if (hold) {
-            ui.string(R.string.xfer_detail_paused, sent, size)
-        } else {
-            ui.string(R.string.xfer_detail, sent, size, Formatter.formatFileSize(ui.context, s.bytesPerSecond))
-        }
+        val figures =
+            if (hold) {
+                ui.string(R.string.xfer_detail_paused, sent, size)
+            } else {
+                ui.string(R.string.xfer_detail, sent, size, Formatter.formatFileSize(ui.context, s.bytesPerSecond))
+            }
+        return if (showsCount(s)) ui.string(R.string.xfer_detail_count, s.index, s.total, figures) else figures
     }
 
-    /** A button 40 dp wide in a 48 dp tall touch target, its [icon] [sizeDp] square in [color]. */
+    /** A button 48 dp wide in a 48 dp tall touch target, its [icon] [sizeDp] square in [color]. */
     private fun iconButton(
         drawable: Int,
         color: Int,
@@ -233,7 +238,7 @@ class XferCardView(
     private companion object {
         const val ICON_DP = 24f
         const val STOP_DP = 18f
-        const val BUTTON_W_DP = 40f
+        const val BUTTON_W_DP = 48f
         const val PAD_START_DP = 14f
         const val GAP_DP = 10f
         const val BAR_DP = 4f

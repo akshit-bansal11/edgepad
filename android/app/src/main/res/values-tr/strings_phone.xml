@@ -6,4 +6,5 @@
   <string name="xfer_close">Kapat</string>
   <string name="xfer_detail">%2$s içinden %1$s · %3$s/sn</string>
   <string name="xfer_detail_paused">Duraklatıldı · %2$s içinden %1$s</string>
+  <string name="xfer_detail_count">%2$d içinden %1$d · %3$s</string>
 </resources>

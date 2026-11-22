@@ -37,6 +37,14 @@ class XferCardTest {
     }
 
     @Test
+    fun countShowsOnlyForABatchOfSeveral() {
+        val running = base.copy(phase = XferPhase.RUNNING, sending = true, index = 2, total = 5)
+        assertEquals(true, showsCount(running))
+        assertEquals(false, showsCount(running.copy(total = 1)))
+        assertEquals(false, showsCount(running.copy(index = 0)))
+    }
+
+    @Test
     fun oneFailureBesideOneArrivedIsPartialNotFailedOne() {
         val finished = base.copy(phase = XferPhase.FINISHED, sending = true, done = 1, failed = failed(1))
         assertEquals(CardTitle.DONE_SOME, titleKind(finished))

@@ -172,12 +172,13 @@ class XferNotification(
                 val size = Formatter.formatFileSize(context, lastTotal)
                 builder.setContentText(context.getString(R.string.xfer_detail_paused, sent, size))
             }
-            val icon = Icon.createWithResource(context, R.drawable.ic_laptop)
             pause?.let {
+                val icon = Icon.createWithResource(context, if (paused) R.drawable.ic_play else R.drawable.ic_pause)
                 val label = context.getString(if (paused) R.string.xfer_resume else R.string.xfer_pause)
                 builder.addAction(Notification.Action.Builder(icon, label, it).build())
             }
             cancel?.let {
+                val icon = Icon.createWithResource(context, R.drawable.ic_stop)
                 val label = context.getString(R.string.xfer_stop)
                 builder.addAction(Notification.Action.Builder(icon, label, it).build())
             }

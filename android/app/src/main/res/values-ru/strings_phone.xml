@@ -6,4 +6,5 @@
   <string name="xfer_close">Закрыть</string>
   <string name="xfer_detail">%1$s из %2$s · %3$s/с</string>
   <string name="xfer_detail_paused">Приостановлено · %1$s из %2$s</string>
+  <string name="xfer_detail_count">%1$d из %2$d · %3$s</string>
 </resources>
