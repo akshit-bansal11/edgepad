@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Edgepad.Dashboard;
 using Edgepad.Protocol;
 using Xunit;
 
@@ -73,9 +74,36 @@ public sealed partial class IdsFixtureTests
             ["GITHUB"] = Feature.GitHub,
             ["DEVELOPER"] = Feature.Developer,
             ["NETINFO"] = Feature.NetInfo,
+            ["GEMINI"] = Feature.Gemini,
+            ["OPENCODE"] = Feature.OpenCode,
+            ["GITLAB"] = Feature.GitLab,
+            ["GITEA"] = Feature.Gitea,
+            ["BITBUCKET"] = Feature.Bitbucket,
+            ["GITEE"] = Feature.Gitee,
         };
 
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void DevProvidersMatchTheSharedTable()
+    {
+        // Same ids, kinds, feature tokens, limits and flows, in the same order, as the PROVIDER rows.
+        var expected = Rows("PROVIDER")
+            .Select(p => (p[1], p[2], p[3], p[4] == "1", p[5]))
+            .ToList();
+        var actual = DevProviders.All
+            .Select(p => (p.Id, p.Kind.ToString().ToLowerInvariant(), p.FeatureToken, p.HasLimits, p.Flow.ToString().ToLowerInvariant()))
+            .ToList();
+        Assert.Equal(expected, actual);
+
+        // An AI id is an agent token and the other way round; every feature token is a FEATURE token.
+        var agents = Tokens("AGENT").Values.ToList();
+        Assert.Equal(agents, DevProviders.Of(DevKind.Ai).Select(p => p.Id).ToList());
+        var features = Tokens("FEATURE").Values.ToHashSet();
+        Assert.All(DevProviders.All, p => Assert.Contains(p.FeatureToken, features));
+        Assert.All(agents, a => Assert.True(DashWire.IsAgent(a)));
+        Assert.False(DashWire.IsAgent("github"));
     }
 
     [Fact]
@@ -86,6 +114,8 @@ public sealed partial class IdsFixtureTests
             {
                 ["CLAUDE"] = AgentToken.Claude,
                 ["CODEX"] = AgentToken.Codex,
+                ["GEMINI"] = AgentToken.Gemini,
+                ["OPENCODE"] = AgentToken.OpenCode,
             },
             Tokens("AGENT"));
         Assert.Equal(

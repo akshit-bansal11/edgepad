@@ -167,7 +167,7 @@ final class SessionBoardTests: XCTestCase {
     func testABadIdOrAgentIsIgnored() {
         let board = newBoard()
         board.apply(HookEvent(agent: "claude", sessionId: "", event: .start, cwd: "/p"))
-        board.apply(HookEvent(agent: "gemini", sessionId: "id", event: .start, cwd: "/p"))
+        board.apply(HookEvent(agent: "grok", sessionId: "id", event: .start, cwd: "/p"))
         board.apply(hook(String(repeating: "x", count: SessionBoard.maxIdLength + 1), .start))
         XCTAssertTrue(board.snapshot().isEmpty)
     }
@@ -216,7 +216,7 @@ final class LimitsBoardTests: XCTestCase {
             ("claude", "five_hour", "300"), ("claude", "seven_day", "10080"), ("claude", "spend_limit", "~spend_limit"),
             ("claude", "weird_kind", "~weird_kind"), ("claude", "300", "~300"), ("claude", "", nil),
             ("claude", "   ", nil), ("codex", "10080", "10080"), ("codex", "43200", "43200"), ("codex", "0", nil),
-            ("codex", "600000", nil), ("codex", "5h", nil), ("gemini", "300", nil),
+            ("codex", "600000", nil), ("codex", "5h", nil), ("grok", "300", nil),
         ]
         for (agent, window, expected) in cases {
             XCTAssertEqual(LimitsBoard.windowFor(agent, window), expected, "\(agent) \(window)")
@@ -318,7 +318,7 @@ final class LimitsBoardTests: XCTestCase {
 
     func testAnUnknownAgentIsIgnored() {
         let board = LimitsBoard(store: newStore())
-        board.update("gemini", [RawLimit("300", 1, nil)], contextPct: nil, now: start)
+        board.update("grok", [RawLimit("300", 1, nil)], contextPct: nil, now: start)
         XCTAssertTrue(board.snapshot().isEmpty)
     }
 
@@ -479,7 +479,7 @@ final class SpendBoardTests: XCTestCase {
 
     func testAnUnknownAgentIsIgnored() {
         let board = newBoard()
-        board.update("gemini", totals(1, 1, 1, 1, 1, 1), now: start)
+        board.update("grok", totals(1, 1, 1, 1, 1, 1), now: start)
         XCTAssertTrue(board.snapshot().isEmpty)
     }
 }

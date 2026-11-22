@@ -179,7 +179,7 @@ public sealed class HookClientTests : IDisposable
     }
 
     [Theory]
-    [InlineData("--hook", "gemini", "perm")]
+    [InlineData("--hook", "grok", "perm")]
     [InlineData("--hook", "claude", "shell")]
     [InlineData("--hook", "claude")]
     [InlineData("--hooks", "claude", "perm")]

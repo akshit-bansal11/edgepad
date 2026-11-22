@@ -42,6 +42,7 @@ final class IdsFixtureTests: XCTestCase {
             "CAPTURE_STATE_TOKEN",
             "HANDSHAKE",
             "AGENT",
+            "PROVIDER",
             "SESSION_STATE",
             "CI",
             "LIMIT_WINDOW",
@@ -77,6 +78,27 @@ final class IdsFixtureTests: XCTestCase {
             uniqueKeysWithValues: Feature.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
 
         XCTAssertEqual(table, enumTable)
+    }
+
+    func testDevProvidersMatchTheSharedTable() throws {
+        // Same ids, kinds, feature tokens, limits and flows, in the same order, as the PROVIDER rows.
+        let expected = try rows("PROVIDER").map { [$0[1], $0[2], $0[3], $0[4], $0[5]] }
+        let actual = DevProviders.all.map {
+            [$0.id, $0.kind.rawValue, $0.featureToken, $0.hasLimits ? "1" : "0", $0.flow.rawValue]
+        }
+        XCTAssertEqual(expected, actual)
+
+        // An AI id is an agent token and the other way round; every feature token is a FEATURE token.
+        let agents = try rows("AGENT").map { $0[1] }
+        XCTAssertEqual(agents, DevProviders.of(.ai).map(\.id))
+        let features = Set(try rows("FEATURE").map { $0[1] })
+        for provider in DevProviders.all {
+            XCTAssertTrue(features.contains(provider.featureToken), provider.id)
+        }
+        for agent in agents {
+            XCTAssertTrue(DashWire.isAgent(agent), agent)
+        }
+        XCTAssertFalse(DashWire.isAgent("github"))
     }
 
     func testDashboardTokenClassesMatchTheSharedTable() throws {

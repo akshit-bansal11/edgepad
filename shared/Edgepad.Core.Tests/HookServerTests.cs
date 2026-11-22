@@ -203,7 +203,7 @@ public sealed class HookServerTests : IDisposable
     public async Task UnknownKindsAgentsAndWrongTypesAreClosedWithoutAReply()
     {
         Assert.Null(await Exchange(Request(AgentToken.Claude, "shell", "{}") + "\n"));
-        Assert.Null(await Exchange(Request("gemini", "session", """{"hook_event_name":"Stop"}""") + "\n"));
+        Assert.Null(await Exchange(Request("grok", "session", """{"hook_event_name":"Stop"}""") + "\n"));
         Assert.Null(await Exchange(Request(AgentToken.Claude, "session", """{"hook_event_name":7}""") + "\n"));
         Assert.Null(await Exchange(Request(AgentToken.Claude, "perm", """{"tool_name":"rm -rf"}""") + "\n"));
         Assert.Null(await Exchange(Request(AgentToken.Claude, "session", "{\"hook_event_name\":\"Stop\",\"x\":" + new string('[', 20) + new string(']', 20) + "}") + "\n"));

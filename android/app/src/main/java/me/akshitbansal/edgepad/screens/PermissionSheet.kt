@@ -229,7 +229,8 @@ class PermissionSheet(
 private fun agentRes(agent: AgentToken): Int =
     when (agent) {
         AgentToken.CLAUDE -> R.string.agent_claude
-        AgentToken.CODEX -> R.string.agent_codex
+        // Approvals come only from Claude and Codex; the other tools never send one.
+        else -> R.string.agent_codex
     }
 
 /** Laptop text as plain text only: no selection, no links, no movement method, laid out left to right. */

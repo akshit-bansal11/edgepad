@@ -405,7 +405,7 @@ internal static class DashWire
 
     private static string Big(long v, long whenNegative) => (v < 0 ? whenNegative : v).ToString(CultureInfo.InvariantCulture);
 
-    internal static bool IsAgent(string agent) => agent is AgentToken.Claude or AgentToken.Codex;
+    internal static bool IsAgent(string agent) => agent is AgentToken.Claude or AgentToken.Codex or AgentToken.Gemini or AgentToken.OpenCode;
 
     // Invisible and direction-changing code points (Unicode categories Cf, Zl, Zp: bidi controls and isolates, zero-width
     // characters, U+061C, U+2028/2029, U+2060-2064, U+180E, tag characters U+E0000-E007F) could make a command on the

@@ -397,6 +397,24 @@ internal static class Feature
 
     /// <summary>This laptop can send <see cref="TextKind.NetInfo"/> and run a <see cref="ControlId.SpeedTest"/>; named only while its stats switch is on and it can read the network.</summary>
     public const string NetInfo = "netinfo";
+
+    /// <summary>This laptop's Gemini CLI integration is on and usable, as <see cref="Claude"/> is for Claude Code.</summary>
+    public const string Gemini = "gemini";
+
+    /// <summary>This laptop's OpenCode integration is on and usable, as <see cref="Claude"/> is for Claude Code.</summary>
+    public const string OpenCode = "opencode";
+
+    /// <summary>This laptop is signed in to GitLab, as <see cref="GitHub"/> is for GitHub.</summary>
+    public const string GitLab = "gitlab";
+
+    /// <summary>This laptop has a Gitea, Forgejo or Codeberg token, as <see cref="GitHub"/> is for GitHub.</summary>
+    public const string Gitea = "gitea";
+
+    /// <summary>This laptop has a Bitbucket token, as <see cref="GitHub"/> is for GitHub.</summary>
+    public const string Bitbucket = "bitbucket";
+
+    /// <summary>This laptop has a Gitee token, as <see cref="GitHub"/> is for GitHub.</summary>
+    public const string Gitee = "gitee";
 }
 
 /// <summary>The first field of a <see cref="TextKind.NetInfo"/>. Tokens, never prose. Mirrors docs/PROTOCOL.md.</summary>
@@ -424,6 +442,8 @@ internal static class AgentToken
 {
     public const string Claude = "claude";
     public const string Codex = "codex";
+    public const string Gemini = "gemini";
+    public const string OpenCode = "opencode";
 }
 
 /// <summary>The state in a <see cref="TextKind.Sessions"/> entry. Mirrors protocol/actions.txt.</summary>

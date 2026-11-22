@@ -191,7 +191,7 @@ public sealed class SessionBoardTests
 
     [Theory]
     [InlineData("", "claude")]
-    [InlineData("id", "gemini")]
+    [InlineData("id", "grok")]
     public void ABadIdOrAgentIsIgnored(string id, string agent)
     {
         var board = NewBoard();
@@ -279,7 +279,7 @@ public sealed class LimitsBoardTests : IDisposable
     [InlineData("codex", "0", null)]
     [InlineData("codex", "600000", null)]
     [InlineData("codex", "5h", null)]
-    [InlineData("gemini", "300", null)]
+    [InlineData("grok", "300", null)]
     public void WindowsMapToTheWireForm(string agent, string window, string? expected) =>
         Assert.Equal(expected, LimitsBoard.WindowFor(agent, window));
 
@@ -402,7 +402,7 @@ public sealed class LimitsBoardTests : IDisposable
     {
         var board = NewBoard(out _);
 
-        board.Update("gemini", [new("300", 1, null)], null, start);
+        board.Update("grok", [new("300", 1, null)], null, start);
 
         Assert.Empty(board.Snapshot());
     }
@@ -569,7 +569,7 @@ public sealed class SpendBoardTests : IDisposable
     {
         var board = NewBoard();
 
-        board.Update("gemini", new SpendTotals(1, 1, 1, 1, 1, 1), start);
+        board.Update("grok", new SpendTotals(1, 1, 1, 1, 1, 1), start);
 
         Assert.Empty(board.Snapshot());
     }

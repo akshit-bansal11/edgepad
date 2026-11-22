@@ -453,6 +453,24 @@ enum class Feature(
 
     /** The laptop sends [TextKind.NET_INFO] and answers [ControlId.SPEED_TEST]. */
     NETINFO("netinfo"),
+
+    /** The laptop's Gemini CLI integration is on and usable. */
+    GEMINI("gemini"),
+
+    /** The laptop's OpenCode integration is on and usable. */
+    OPENCODE("opencode"),
+
+    /** The laptop is signed in to GitLab. */
+    GITLAB("gitlab"),
+
+    /** The laptop has a Gitea, Forgejo or Codeberg token. */
+    GITEA("gitea"),
+
+    /** The laptop has a Bitbucket token. */
+    BITBUCKET("bitbucket"),
+
+    /** The laptop has a Gitee token. */
+    GITEE("gitee"),
     ;
 
     companion object {
@@ -467,6 +485,8 @@ enum class AgentToken(
 ) {
     CLAUDE("claude"),
     CODEX("codex"),
+    GEMINI("gemini"),
+    OPENCODE("opencode"),
     ;
 
     companion object {

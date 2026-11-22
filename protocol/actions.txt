@@ -315,7 +315,15 @@ FEATURE codex CODEX
 FEATURE github GITHUB
 # The laptop can send TEXT 36 and run CONTROL 14. Named only while its stats switch is on and it can read the network.
 FEATURE netinfo NETINFO
-# Developer mode is on. claude, codex and github are named only while it is.
+# More dashboard features, named like claude and github: the AI tools gemini and opencode, the git hosts gitlab, gitea
+# (Gitea, Forgejo and Codeberg), bitbucket and gitee.
+FEATURE gemini GEMINI
+FEATURE opencode OPENCODE
+FEATURE gitlab GITLAB
+FEATURE gitea GITEA
+FEATURE bitbucket BITBUCKET
+FEATURE gitee GITEE
+# Developer mode is on. Every AI tool and git host above is named only while it is.
 FEATURE developer DEVELOPER
 
 # The whole vocabulary of TEXT kind 13's second field, as "<token on the wire> <the name both apps call it>". The phone
@@ -379,6 +387,19 @@ UNAVAILABLE_REASON no-permission NO_PERMISSION
 # a session's state, CI a pull request's check result. An unknown token is dropped by the reader.
 AGENT claude CLAUDE
 AGENT codex CODEX
+AGENT gemini GEMINI
+AGENT opencode OPENCODE
+# The developer providers in display order, "PROVIDER <id> <ai|git> <feature token> <1 if it has limits> <device|token|hook>".
+# An ai id is an AGENT token, and every feature token is a FEATURE token. Each laptop's DevProviders.All is held to these rows.
+PROVIDER claude ai claude 1 hook
+PROVIDER codex ai codex 1 hook
+PROVIDER gemini ai gemini 0 hook
+PROVIDER opencode ai opencode 0 hook
+PROVIDER github git github 0 device
+PROVIDER gitlab git gitlab 0 device
+PROVIDER gitea git gitea 0 token
+PROVIDER bitbucket git bitbucket 0 token
+PROVIDER gitee git gitee 0 token
 SESSION_STATE busy BUSY
 SESSION_STATE wait WAIT
 SESSION_STATE idle IDLE

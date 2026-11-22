@@ -215,6 +215,12 @@ public enum Feature: String, CaseIterable {
     case github = "github"
     case developer = "developer"
     case netinfo = "netinfo"
+    case gemini = "gemini"
+    case opencode = "opencode"
+    case gitlab = "gitlab"
+    case gitea = "gitea"
+    case bitbucket = "bitbucket"
+    case gitee = "gitee"
 }
 
 /// The whole vocabulary of `TextKind.padStatus`: a token the phone matches on, never prose, so the wording
@@ -405,6 +411,8 @@ public enum CaptureStateToken: String, CaseIterable {
 public enum AgentToken: String, CaseIterable {
     case claude = "claude"
     case codex = "codex"
+    case gemini = "gemini"
+    case opencode = "opencode"
 }
 
 /// The state in a `TextKind.sessions` entry. The raw value is literally the bytes that cross the wire.

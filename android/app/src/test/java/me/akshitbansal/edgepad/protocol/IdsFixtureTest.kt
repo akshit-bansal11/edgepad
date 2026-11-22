@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.protocol
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import java.io.File
 
@@ -42,6 +43,15 @@ class IdsFixtureTest {
             rows("FEATURE").associate { it[2] to it[1] },
             Feature.entries.associate { it.name to it.token },
         )
+    }
+
+    @Test
+    fun providerRowsAgreeWithTheAgentAndFeatureTokens() {
+        val providers = rows("PROVIDER")
+        val aiIds = providers.filter { it[2] == "ai" }.map { it[1] }
+        assertEquals(AgentToken.entries.map { it.token }, aiIds)
+        providers.forEach { assertNotNull(it[1], Feature.of(it[3])) }
+        assertEquals(providers.size, providers.map { it[1] }.toSet().size)
     }
 
     @Test
