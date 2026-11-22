@@ -4,10 +4,12 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.drawable.Drawable
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.View
+import androidx.annotation.DrawableRes
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -28,6 +30,16 @@ object SessionRow {
         gaps: Float,
         stateWidth: Float,
     ): Float = rowWidth - circleRight - gaps - stateWidth
+
+    /** The state word shows only when all of it fits within its share and the title keeps at least [minTitle]. */
+    fun showsState(
+        rowWidth: Float,
+        circleRight: Float,
+        gaps: Float,
+        fullStateWidth: Float,
+        minTitle: Float,
+    ): Boolean =
+        fullStateWidth <= stateRoom(rowWidth) && titleRoom(rowWidth, circleRight, gaps, fullStateWidth) >= minTitle
 }
 
 /**
@@ -74,15 +86,24 @@ class SessionPill(
     private var shownTitle = ""
     private var shownState = ""
     private var stateWidth = 0f
+    private var logo: Drawable? = null
 
-    /** Shows a session of [agent] called [title] in [state], whose words are [stateLabel] from the screen's strings. */
+    /**
+     * Shows a session of [agent] called [title] in [state], whose words are [stateLabel] from the screen's strings.
+     * The avatar is the tool's [logoRes] when it has one, else its [brand] colour with the agent's initial.
+     */
     fun set(
         agent: AgentToken,
         title: String,
         state: SessionStateToken,
         stateLabel: String,
+        brand: Int,
+        @DrawableRes logoRes: Int?,
     ) {
         initial = agent.token.take(1).uppercase()
+        badge.color = brand
+        logo = logoRes?.let { context.getDrawable(it) }
+        placeLogo()
         this.title = title
         this.stateLabel = stateLabel
         dot.color =
@@ -115,17 +136,29 @@ class SessionPill(
         // The circle sits XS inside the row, so its radius is half the row less XS: 14 dp in a 36 dp row.
         val inset = Space.XS * density
         circle.set(inset, inset, h - inset, h - inset)
+        placeLogo()
         shorten()
+    }
+
+    private fun placeLogo() {
+        logo?.setBounds(circle.left.toInt(), circle.top.toInt(), circle.right.toInt(), circle.bottom.toInt())
     }
 
     /** Fits the title to the room between the circle and the state, with an ellipsis; done here so drawing does not. */
     private fun shorten() {
         if (width <= 0) return
         val stateRoom = SessionRow.stateRoom(width.toFloat())
-        val state = TextUtils.ellipsize(stateLabel, statePaint, stateRoom, TextUtils.TruncateAt.END)
-        shownState = state.toString()
-        stateWidth = statePaint.measureText(shownState)
         val gaps = (Space.M * 3 + DOT_DP + Space.S) * density
+        val full = statePaint.measureText(stateLabel)
+        val minTitle = MIN_TITLE_DP * density
+        if (SessionRow.showsState(width.toFloat(), circle.right, gaps, full, minTitle)) {
+            shownState = TextUtils.ellipsize(stateLabel, statePaint, stateRoom, TextUtils.TruncateAt.END).toString()
+            stateWidth = statePaint.measureText(shownState)
+        } else {
+            // Too narrow: the dot alone says the state, and the words stay in the content description.
+            shownState = ""
+            stateWidth = 0f
+        }
         val room = SessionRow.titleRoom(width.toFloat(), circle.right, gaps, stateWidth)
         if (room <= 0f) return
         shownTitle = TextUtils.ellipsize(title, titlePaint, room, TextUtils.TruncateAt.END).toString()
@@ -135,9 +168,14 @@ class SessionPill(
         super.onDraw(canvas)
         val corner = Space.TILE_RADIUS * density
         canvas.drawRoundRect(row, corner, corner, body)
-        canvas.drawCircle(circle.centerX(), circle.centerY(), circle.width() / 2f, badge)
-        val initialY = circle.centerY() - (initialMetrics.ascent + initialMetrics.descent) / 2f
-        canvas.drawText(initial, circle.centerX(), initialY, initialPaint)
+        val mark = logo
+        if (mark != null) {
+            mark.draw(canvas)
+        } else {
+            canvas.drawCircle(circle.centerX(), circle.centerY(), circle.width() / 2f, badge)
+            val initialY = circle.centerY() - (initialMetrics.ascent + initialMetrics.descent) / 2f
+            canvas.drawText(initial, circle.centerX(), initialY, initialPaint)
+        }
         val centreY = height / 2f
         val titleY = centreY - (titleMetrics.ascent + titleMetrics.descent) / 2f
         canvas.drawText(shownTitle, circle.right + Space.M * density, titleY, titlePaint)
@@ -145,7 +183,8 @@ class SessionPill(
         val stateY = centreY - (stateMetrics.ascent + stateMetrics.descent) / 2f
         canvas.drawText(shownState, stateX, stateY, statePaint)
         val radius = DOT_DP * density / 2f
-        canvas.drawCircle(stateX - Space.S * density - radius, centreY, radius, dot)
+        val gap = if (shownState.isEmpty()) 0f else Space.S * density
+        canvas.drawCircle(stateX - gap - radius, centreY, radius, dot)
     }
 
     private fun sp(value: Float): Float = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, metrics)
@@ -154,5 +193,6 @@ class SessionPill(
         const val DEFAULT_DP = 200f
         const val HEIGHT_DP = 36f
         const val DOT_DP = 8f
+        const val MIN_TITLE_DP = 90f
     }
 }

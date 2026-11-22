@@ -134,7 +134,8 @@ class AiScreen(
         rows.forEach { entry ->
             val pill =
                 SessionPill(ui.context).apply {
-                    set(entry.agent, entry.title, entry.state, ui.string(stateName(entry.state)))
+                    val name = ui.string(stateName(entry.state))
+                    set(entry.agent, entry.title, entry.state, name, tool.brand, Logos.drawable(tool.logoId))
                 }
             column.addView(pill, spaced(Space.S))
         }
