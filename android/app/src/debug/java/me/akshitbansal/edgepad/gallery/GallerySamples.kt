@@ -31,6 +31,7 @@ import me.akshitbansal.edgepad.surface.BatteryGroups
 import me.akshitbansal.edgepad.surface.BatteryRow
 import me.akshitbansal.edgepad.surface.BatterySource
 import me.akshitbansal.edgepad.surface.ControlSurface
+import me.akshitbansal.edgepad.surface.SurfaceWidget
 
 /** The sample state behind each gallery screen name. A new screen adds one case to [build]. */
 class GallerySamples(
@@ -71,6 +72,14 @@ class GallerySamples(
 
             "media-layout" -> {
                 MediaLayoutScreen.build(ui, settings) {}
+            }
+
+            "widget-layout" -> {
+                // The editor offers only the widgets that are switched on.
+                for (widget in listOf(SurfaceWidget.CLOCK, SurfaceWidget.WEATHER, SurfaceWidget.SYSTEM)) {
+                    settings.setWidgetOn(widget, true)
+                }
+                MediaLayoutScreen.build(ui, settings, MediaLayoutScreen.Scope.WIDGETS) {}
             }
 
             // The laser sheet opens over an empty page (see showLaserSheet).

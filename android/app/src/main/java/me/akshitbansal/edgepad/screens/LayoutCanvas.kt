@@ -59,8 +59,12 @@ internal abstract class LayoutCanvas(
         extent: Int,
     ): Float = snapFraction(px, extent, density)
 
+    /** What a subclass draws under the grid and the centre lines, which then stay on top of it. Nothing by default. */
+    protected open fun drawBelow(canvas: Canvas) {}
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        drawBelow(canvas)
         val cell = GRID_DP * density
         val r = DOT_DP * density / 2
         var y = cell

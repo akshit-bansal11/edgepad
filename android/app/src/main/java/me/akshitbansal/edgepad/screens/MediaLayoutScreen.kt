@@ -3,21 +3,35 @@ package me.akshitbansal.edgepad.screens
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.drawable.Drawable
 import android.view.HapticFeedbackConstants
+import android.view.RoundedCorner
 import android.view.MotionEvent
 import android.view.View
 import android.view.accessibility.AccessibilityNodeProvider
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
-import me.akshitbansal.edgepad.Type
-import me.akshitbansal.edgepad.drawFitted
+import me.akshitbansal.edgepad.link.blob.MediaIconStore
+import me.akshitbansal.edgepad.protocol.BatteryKind
+import me.akshitbansal.edgepad.surface.BatteryChips
+import me.akshitbansal.edgepad.surface.BatteryRow
+import me.akshitbansal.edgepad.surface.BatteryStrip
+import me.akshitbansal.edgepad.surface.Clock
 import me.akshitbansal.edgepad.surface.ControlSurface
 import me.akshitbansal.edgepad.surface.CornerSlots
+import me.akshitbansal.edgepad.surface.Dial
+import me.akshitbansal.edgepad.surface.DialKind
+import me.akshitbansal.edgepad.surface.DialSpan
 import me.akshitbansal.edgepad.surface.MediaPiece
 import me.akshitbansal.edgepad.surface.Perimeter
+import me.akshitbansal.edgepad.surface.PieceGeometry
+import me.akshitbansal.edgepad.surface.RulerGeometry
+import me.akshitbansal.edgepad.surface.RulerPainter
+import me.akshitbansal.edgepad.surface.SurfacePainter
 import me.akshitbansal.edgepad.surface.SurfaceWidget
 import me.akshitbansal.edgepad.surface.WidgetPainter
 import kotlin.math.abs
@@ -108,18 +122,105 @@ object MediaLayoutScreen {
                     .map { LayoutItem.Widget(it, context.getString(it.nameRes), settings.widgetScale(it)) }
             }
         private val positions = items.associateWith { stored(it) }.toMutableMap()
+
+        // Editing the widgets, the media pieces stay where they are; read once so drawing reads no setting.
+        private val mediaAt = MediaPiece.entries.associateWith { settings.piece(it) }
         private var dragging: LayoutItem? = null
         private var downX = 0f
         private var downY = 0f
         private val holdTick = Runnable { performHapticFeedback(HapticFeedbackConstants.LONG_PRESS) }
         private val corner = CORNER_DP * density
-        private val drop = Space.HAIR * density
         private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-        private val shadow =
+
+        // What can be moved wears a dashed accent outline; made once, so drawing allocates nothing.
+        private val outline =
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style = Paint.Style.FILL
-                color = palette.line
+                style = Paint.Style.STROKE
+                strokeWidth = OUTLINE_DP * density
+                color = palette.accent
+                pathEffect = DashPathEffect(floatArrayOf(DASH_DP * density, DASH_GAP_DP * density), 0f)
             }
+
+        // The real surface behind the pieces, with made-up content: the same painters the surface draws with.
+        private val ruler = RulerPainter(resources.displayMetrics, settings.dialLength, settings.dialHeight)
+        private var surfacePainter = newPainter()
+        private val icons = MediaIconStore(MediaIconStore.Companion::decodeBitmap)
+        private var perimeter = Perimeter(1f, 1f, 1f)
+        private val dials: List<Dial> =
+            run {
+                fun build(
+                    kind: DialKind,
+                    at: Int,
+                    slot: Int,
+                ) = kind
+                    .dial(
+                        at,
+                        context.getString(kind.shortRes),
+                        Dial.BASE_UNITS_PER_DP * settings.sensitivityOf(kind),
+                        settings.snap,
+                        {},
+                        {},
+                        slot,
+                    ).also { if (it.control != null) it.fromLaptop(SAMPLE_LEVEL, false) }
+                if (settings.splitCorners) {
+                    (0 until Perimeter.SLOTS).mapNotNull { slot ->
+                        settings.slot(slot)?.let { build(it, CornerSlots.corner(slot), slot) }
+                    }
+                } else {
+                    (0 until Perimeter.CORNERS).mapNotNull { at ->
+                        settings.corner(at)?.let { build(it, at, Dial.WHOLE) }
+                    }
+                }
+            }
+        private val scrubOnADial = dials.any { it.kind == DialKind.MEDIA }
+        private val dialTexts =
+            dials.map {
+                when {
+                    it.kind == DialKind.MEDIA -> Clock.format(SAMPLE_POSITION)
+                    it.control != null -> it.value.toString()
+                    else -> ""
+                }
+            }
+        private val centres = FloatArray(dials.size)
+        private val after = FloatArray(dials.size)
+        private val before = FloatArray(dials.size)
+        private val keepOut = FloatArray(2)
+        private val pt = FloatArray(4)
+        private val strip =
+            BatteryStrip(context, palette.ink, palette.accent, palette.dim, palette.danger).also {
+                it.refresh(
+                    BatteryChips(
+                        BatteryRow("", BatteryKind.LAPTOP, false, SAMPLE_LAPTOP_PERCENT, true, ""),
+                        BatteryRow("", null, true, SAMPLE_PHONE_PERCENT, false, ""),
+                        0,
+                        false,
+                    ),
+                )
+            }
+        private val topIcons: List<Drawable> =
+            listOf(R.drawable.ic_controls, R.drawable.ic_battery_keyboard, R.drawable.ic_lock, R.drawable.ic_settings)
+                .map { checkNotNull(context.getDrawable(it)).mutate().apply { setTint(palette.dim) } }
+        private val topHits = List(topIcons.size) { RectF() }
+        private val rects = FloatArray(PieceGeometry.TRANSPORT_RECTS)
+        private val playHit = RectF()
+        private val prevHit = RectF()
+        private val nextHit = RectF()
+        private val sampleTitle = context.getString(R.string.piece_now_playing)
+        private val sampleSub =
+            context.getString(R.string.surface_time, Clock.format(SAMPLE_POSITION), Clock.format(SAMPLE_DURATION))
+
+        private fun newPainter() =
+            SurfacePainter(
+                context,
+                palette.ink,
+                palette.accent,
+                palette.dim,
+                palette.faint,
+                palette.onAccent,
+                palette.dark,
+                settings.mediaScale,
+                ruler,
+            ).also { it.titlePaint.color = palette.ink }
 
         // The widgets are drawn by the painter the surface uses, with made-up values, so what is dragged is what the
         // surface shows, at the size the chosen scale gives it.
@@ -141,7 +242,6 @@ object MediaLayoutScreen {
         // Rebuilt when the size is known, so drawing and dragging allocate nothing.
         private val ghosts = ArrayList<RectF>()
         private val probe = RectF()
-        private val ghostFill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.faint }
         private val corners = BooleanArray(Perimeter.CORNERS) { hasDial(it) }
 
         private fun hasDial(corner: Int): Boolean =
@@ -158,6 +258,7 @@ object MediaLayoutScreen {
             oldh: Int,
         ) {
             super.onSizeChanged(w, h, oldw, oldh)
+            layoutSurface(w, h)
             ghosts.clear()
             val touch = Space.TOUCH * density
             val sideways = w > h
@@ -193,6 +294,49 @@ object MediaLayoutScreen {
                     pieceBounds(piece, settings.piece(piece), ghost)
                     ghosts.add(ghost)
                 }
+            }
+        }
+
+        /** What the surface places when it is sized: the dial spans, the top row and the battery strip. */
+        private fun layoutSurface(
+            w: Int,
+            h: Int,
+        ) {
+            var round = 0
+            val insets = rootWindowInsets
+            if (insets != null) {
+                for (p in CORNER_POSITIONS) round = maxOf(round, insets.getRoundedCorner(p)?.radius ?: 0)
+            }
+            perimeter = Perimeter(w.toFloat(), h.toFloat(), RulerGeometry.bend(round.toFloat(), density))
+            val along = ruler.halfLengthDp * density
+            dials.forEachIndexed { i, dial ->
+                centres[i] =
+                    if (dial.slot == Dial.WHOLE) {
+                        perimeter.lengthAt(dial.corner.toFloat())
+                    } else {
+                        perimeter.lengthAtSlot(dial.slot, along / 2f)
+                    }
+            }
+            val offsetDp =
+                if (w > h) {
+                    ControlSurface.TOP_BUTTON_OFFSET_LANDSCAPE_DP
+                } else {
+                    ControlSurface.TOP_BUTTON_OFFSET_PORTRAIT_DP
+                }
+            val reachDp = TOP_REACH * offsetDp
+            val roomDp = BatteryStrip.roomDp(reachDp)
+            strip.layout(w, 0f, roomDp * density)
+            val zone = (maxOf(reachDp + Space.TOUCH / 2, roomDp / 2) + Space.M) * density
+            val topCentre = perimeter.lengthAt(TOP_CENTRE)
+            keepOut[0] = topCentre - zone
+            keepOut[1] = topCentre + zone
+            ruler.clearOf(w / 2f - zone, w / 2f + zone)
+            DialSpan.compute(centres, along, perimeter.length, keepOut, DIAL_GAP_DP * density, after, before)
+            val touch = Space.TOUCH * density / 2
+            val top = ControlSurface.TOP_DP * density
+            topHits.forEachIndexed { i, hit ->
+                val cx = w / 2f + (i - 1.5f) * offsetDp * density
+                hit.set(cx - touch, top - touch, cx + touch, top + touch)
             }
         }
 
@@ -268,6 +412,7 @@ object MediaLayoutScreen {
 
         fun rescale() {
             scale = settings.mediaScale
+            surfacePainter = newPainter()
             invalidate()
         }
 
@@ -343,47 +488,102 @@ object MediaLayoutScreen {
             out.set(cx - w * px / 2, cy - h * px / 2, cx + w * px / 2, cy + h * px / 2)
         }
 
-        override fun onDraw(canvas: Canvas) {
-            super.onDraw(canvas)
-            for (ghost in ghosts) canvas.drawRoundRect(ghost, corner, corner, ghostFill)
+        // Under the grid: the surface at 40 % where it cannot be moved, then the movable pieces at full strength.
+        override fun drawBelow(canvas: Canvas) {
+            canvas.saveLayerAlpha(0f, 0f, width.toFloat(), height.toFloat(), DIM_ALPHA)
+            for (i in dials.indices) {
+                surfacePainter.drawDial(
+                    canvas,
+                    perimeter,
+                    dials[i],
+                    centres[i],
+                    after[i],
+                    before[i],
+                    dialTexts[i],
+                    pt,
+                    null,
+                    null,
+                )
+            }
+            surfacePainter.drawBatteryStrip(canvas, strip, false)
+            for (i in topHits.indices) surfacePainter.drawTopButton(canvas, topHits[i], topIcons[i], false, false)
+            // Editing the widgets, the media pieces are part of the surface that stays put.
+            if (scope == Scope.WIDGETS) {
+                for (piece in MediaPiece.entries) {
+                    val at = mediaAt.getValue(piece)
+                    pieceBounds(piece, at, box)
+                    drawPiece(canvas, piece, at, box)
+                }
+            }
+            canvas.restore()
             for (item in items) {
                 bounds(item, box)
-                // A piece at rest is a card, with a soft line under it on the light ground; the one being
-                // dragged turns accent and lifts off the grid on a shadow.
-                val lifted = item == dragging
-                if (item is LayoutItem.Widget && painter != null) {
-                    drawWidget(canvas, painter, item, lifted)
-                    continue
-                }
-                if (lifted) {
+                // The one being dragged lifts off the grid on a shadow and a soft accent plate.
+                if (item == dragging) {
                     canvas.drawRoundRect(box, corner, corner, lift)
-                } else if (!palette.dark) {
-                    box.offset(0f, drop)
-                    canvas.drawRoundRect(box, corner, corner, shadow)
-                    box.offset(0f, -drop)
+                    fill.color = palette.accentSoft
+                    canvas.drawRoundRect(box, corner, corner, fill)
                 }
-                fill.color = if (lifted) palette.accent else palette.card
-                canvas.drawRoundRect(box, corner, corner, fill)
-                text.color = if (lifted) palette.onAccent else palette.dim
-                val room = box.width() - 2 * Space.S * density
-                val y = box.centerY() + text.textSize * Type.CAP_CENTRE
-                text.drawFitted(canvas, item.label, box.centerX(), y, room)
+                when (item) {
+                    is LayoutItem.Piece -> {
+                        drawPiece(canvas, item.piece, positions.getValue(item), box)
+                    }
+
+                    is LayoutItem.Widget -> {
+                        painter?.drawAt(
+                            canvas,
+                            item.widget,
+                            box.centerX(),
+                            box.centerY(),
+                            width.toFloat(),
+                            height.toFloat(),
+                            item.scale,
+                        )
+                    }
+                }
+                canvas.drawRoundRect(box, corner, corner, outline)
             }
         }
 
-        /** A widget as the surface draws it, on a plate its size; lifted, the plate turns soft accent. */
-        private fun drawWidget(
+        /** A media piece as the surface draws it, in [box], with a made-up track. */
+        private fun drawPiece(
             canvas: Canvas,
-            painter: WidgetPainter,
-            item: LayoutItem.Widget,
-            lifted: Boolean,
+            piece: MediaPiece,
+            at: Pair<Float, Float>,
+            into: RectF,
         ) {
-            if (lifted) canvas.drawRoundRect(box, corner, corner, lift)
-            fill.color = if (lifted) palette.accentSoft else palette.line
-            canvas.drawRoundRect(box, corner, corner, fill)
-            val cx = box.centerX()
-            val cy = box.centerY()
-            painter.drawAt(canvas, item.widget, cx, cy, width.toFloat(), height.toFloat(), item.scale)
+            when (piece) {
+                MediaPiece.NOW_PLAYING -> {
+                    surfacePainter.drawNowPlaying(
+                        canvas,
+                        into,
+                        SAMPLE_APP,
+                        sampleTitle,
+                        sampleSub,
+                        scrubOnADial,
+                        false,
+                        SAMPLE_PLAYED,
+                        icons,
+                    )
+                }
+
+                MediaPiece.TRANSPORT -> {
+                    PieceGeometry.transport(
+                        width.toFloat(),
+                        height.toFloat(),
+                        at.first,
+                        at.second,
+                        density,
+                        scale,
+                        Space.TOUCH,
+                        rects,
+                    )
+                    playHit.set(rects[0], rects[1], rects[2], rects[3])
+                    prevHit.set(rects[4], rects[5], rects[6], rects[7])
+                    nextHit.set(rects[8], rects[9], rects[10], rects[11])
+                    surfacePainter.drawTransport(canvas, prevHit, playHit, nextHit, false, null)
+                }
+            }
         }
 
         /** Whether a touch at [x], [y] is on [item], whose target is at least 48 dp each way. */
@@ -462,7 +662,30 @@ object MediaLayoutScreen {
         }
 
         private companion object {
-            const val CORNER_DP = 12f
+            const val CORNER_DP = 14f
+            const val OUTLINE_DP = 2f
+            const val DASH_DP = 6f
+            const val DASH_GAP_DP = 4f
+            const val DIM_ALPHA = 102
+            const val DIAL_GAP_DP = 16f
+            const val TOP_CENTRE = 0.5f
+            const val TOP_REACH = 1.5f
+            const val SAMPLE_LEVEL = 50
+            const val SAMPLE_POSITION = 84
+            const val SAMPLE_DURATION = 210
+            const val SAMPLE_PLAYED = 0.4f
+            const val SAMPLE_LAPTOP_PERCENT = 97
+            const val SAMPLE_PHONE_PERCENT = 52
+
+            /** Any name the logo store has no icon for: the surface then draws its generic note. */
+            const val SAMPLE_APP = "player"
+            val CORNER_POSITIONS =
+                intArrayOf(
+                    RoundedCorner.POSITION_TOP_LEFT,
+                    RoundedCorner.POSITION_TOP_RIGHT,
+                    RoundedCorner.POSITION_BOTTOM_RIGHT,
+                    RoundedCorner.POSITION_BOTTOM_LEFT,
+                )
             const val RULER_DEPTH_DP = 44f
             const val LONG_PRESS_MS = 500L
             const val LONG_PRESS_SLOP_DP = 12f

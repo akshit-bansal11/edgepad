@@ -40,7 +40,7 @@ class GalleryActivity : Activity() {
         setContentView(view)
         if (screen == "controls") view.post { samples.showControls(view) }
         if (screen == "presenter-sheet") view.post { samples.showLaserSheet(view) }
-        if (screen == "media-layout"|| screen == "gamepad-layout") view.post { samples.openOptions(view) }
+        if (screen == "media-layout" || screen == "widget-layout" || screen == "gamepad-layout") view.post { samples.openOptions(view) }
     }
 
     private fun intentFlag(name: String): Boolean = intent?.getBooleanExtra(name, true) ?: true
