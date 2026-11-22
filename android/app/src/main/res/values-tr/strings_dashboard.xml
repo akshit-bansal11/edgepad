@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). Counts go through %1$d, except the Git page (plurals). -->
   <string name="controls_dash_off">Dizüstü bilgisayarınızdaki Edgepad menüsünden açın.</string>
   <string name="widgets_title">Widget’lar</string>
   <string name="widgets_hint">Dokunmatik yüzeyin arkasında çizilir. Dokunuşlar geçer.</string>

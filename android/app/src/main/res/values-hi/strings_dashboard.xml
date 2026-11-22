@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). Counts go through %1$d, except the Git page (plurals). -->
   <string name="controls_dash_off">इसे अपने लैपटॉप पर Edgepad मेनू में चालू करें।</string>
   <string name="widgets_title">विजेट</string>
   <string name="widgets_hint">ट्रैकपैड के पीछे दिखाए जाते हैं। स्पर्श आगे निकल जाते हैं।</string>

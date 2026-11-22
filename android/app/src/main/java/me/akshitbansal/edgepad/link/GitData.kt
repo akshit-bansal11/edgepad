@@ -68,6 +68,7 @@ data class GitRepo(
     val stars: Int,
     val issues: Int,
     val pulls: Int,
+    val hidden: Boolean,
 )
 
 /**
@@ -159,7 +160,8 @@ object GitWire {
                 p[0] == "P" -> {
                     if (p.size == REPO_FIELDS && p[1].isNotEmpty() && repos.size < MAX_REPOS) {
                         val language = DashWire.cleanText(p[3])
-                        repos += GitRepo(index, p[1], language, count(p[4]), count(p[5]), count(p[6]))
+                        val hidden = p[2] == "p"
+                        repos += GitRepo(index, p[1], language, count(p[4]), count(p[5]), count(p[6]), hidden)
                     }
                     index++
                 }

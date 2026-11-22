@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). Counts go through %1$d, except the Git page (plurals). -->
   <string name="controls_dash_off">在笔记本电脑的 Edgepad 菜单中开启。</string>
   <string name="widgets_title">小组件</string>
   <string name="widgets_hint">显示在触控板后面。触摸会穿透。</string>

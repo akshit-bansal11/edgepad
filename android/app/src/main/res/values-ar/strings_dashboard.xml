@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). Counts go through %1$d, except the Git page (plurals). -->
   <string name="controls_dash_off">فعّلها من قائمة Edgepad على الحاسوب المحمول.</string>
   <string name="widgets_title">الأدوات</string>
   <string name="widgets_hint">تُرسم خلف لوحة التتبع. اللمسات تمرّ عبرها.</string>

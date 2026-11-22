@@ -218,7 +218,7 @@ class GitScreen(
         val lines =
             LinearLayout(ui.context).apply {
                 orientation = LinearLayout.VERTICAL
-                addView(oneLine(ui.text(repo.name, NAME_SP, ui.palette.ink, face = Type.bold)))
+                addView(nameLine(repo))
                 addView(oneLine(ui.secondary(meta.joinToString(SEPARATOR), Type.MICRO)))
             }
         val arrow = ui.text("↗", Type.BODY, ui.palette.accent).apply { importantForAccessibility = IGNORE }
@@ -231,6 +231,23 @@ class GitScreen(
             ui.tappable(this) { open(GitWire.openText(data, repo.index)) }
         }
     }
+
+    /** The repository's name, and a small dim lock after it when the repository is private. */
+    private fun nameLine(repo: GitRepo): LinearLayout =
+        LinearLayout(ui.context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(oneLine(ui.text(repo.name, NAME_SP, ui.palette.ink, face = Type.bold)))
+            if (repo.hidden) {
+                val lock =
+                    ImageView(ui.context).apply {
+                        setImageResource(R.drawable.ic_lock)
+                        setColorFilter(ui.palette.dim)
+                        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                    }
+                val side = ui.dp(MARK_DP)
+                addView(lock, LinearLayout.LayoutParams(side, side).apply { marginStart = ui.dp(Space.XS) })
+            }
+        }
 
     /** `Pull requests and issues` with the switch, then the items of the chosen list grouped by repository. */
     private fun Column.lists(data: GitData) {
@@ -364,8 +381,8 @@ class GitScreen(
     private companion object {
         const val PROFILE_DP = 270f
         const val AVATAR_DP = 40f
-        const val REPO_DP = 40f
-        const val ITEM_DP = 42f
+        const val REPO_DP = Space.TOUCH
+        const val ITEM_DP = Space.TOUCH
         const val ICON_DP = 18f
         const val MARK_DP = 16f
         const val CHIP_DP = 32f

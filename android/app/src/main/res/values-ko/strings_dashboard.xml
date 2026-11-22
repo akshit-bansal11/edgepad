@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). No plurals: counts go through %1$d. -->
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). Counts go through %1$d, except the Git page (plurals). -->
   <string name="controls_dash_off">노트북의 Edgepad 메뉴에서 켜 주세요.</string>
   <string name="widgets_title">위젯</string>
   <string name="widgets_hint">트랙패드 뒤에 그려집니다. 터치는 그대로 통과합니다.</string>
