@@ -83,6 +83,22 @@ public sealed class HookConfigInstallerTests : IDisposable
     }
 
     [Fact]
+    public void ReconnectAndDisconnectKeepTheFirstBackupAndTheKeyOrder()
+    {
+        var installer = New();
+        Write(installer.GeminiFile, UserSettings);
+        installer.Connect(AgentToken.Gemini);
+        New(version: "5.1.0", app: App + "x").Connect(AgentToken.Gemini);
+        installer.Disconnect(AgentToken.Gemini);
+
+        Assert.Equal(UserSettings, File.ReadAllText(installer.GeminiFile + HookConfigInstaller.BackupSuffix));
+        var text = File.ReadAllText(installer.GeminiFile);
+        Assert.True(text.IndexOf("\"theme\"", StringComparison.Ordinal) < text.IndexOf("\"hooks\"", StringComparison.Ordinal));
+        Assert.True(text.IndexOf("\"hooks\"", StringComparison.Ordinal) < text.IndexOf("\"mcpServers\"", StringComparison.Ordinal));
+        Assert.Contains("2.50", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GeminiConnectTwiceIsTheSameFile()
     {
         var installer = New();

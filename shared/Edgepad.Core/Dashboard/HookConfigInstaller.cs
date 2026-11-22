@@ -251,7 +251,11 @@ internal sealed class HookConfigInstaller(IPluginSource bundle, IntegrationSetti
 
         if (existed)
         {
-            File.Copy(file, file + BackupSuffix, overwrite: true);
+            // The first backup is the user's pristine file: never replaced by a later one.
+            if (!File.Exists(file + BackupSuffix))
+            {
+                File.Copy(file, file + BackupSuffix);
+            }
         }
 
         var temp = file + ".edgepad-tmp";
