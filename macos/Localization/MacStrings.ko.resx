@@ -696,4 +696,55 @@
   <data name="Note_CodexTrustBody" xml:space="preserve">
     <value>Edgepad가 업데이트되었어요. Codex에서 /hooks를 입력하고 Edgepad를 신뢰하세요. 그러지 않으면 승인 요청이 휴대전화 대신 터미널에 남아요.</value>
   </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>전송</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>{0}(으)로 보내는 중</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>{0}에서 받는 중</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {2}개 중 {1} · {3}/초</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {2}개 중 {1}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/초</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · 일시 정지됨</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>일시 정지</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>재개</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>받지 못함: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>손상된 채 도착했습니다</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>저장할 수 없었습니다</value>
+  </data>
+  <data name="Xfer_ReasonRejected" xml:space="preserve">
+    <value>이 Mac이 받을 수 없었습니다</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>취소되었습니다</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>휴대전화가 응답하지 않았습니다</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>휴대전화 연결이 끊어졌습니다</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>중지</value>
+  </data>
 </root>

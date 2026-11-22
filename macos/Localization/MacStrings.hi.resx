@@ -696,4 +696,55 @@
   <data name="Note_CodexTrustBody" xml:space="preserve">
     <value>Edgepad अपडेट हो गया है। Codex में /hooks टाइप करें और Edgepad पर भरोसा करें, नहीं तो मंज़ूरियाँ फ़ोन के बजाय टर्मिनल में ही रहेंगी।</value>
   </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>ट्रांसफ़र</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>{0} को भेजा जा रहा है</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>{0} से प्राप्त हो रहा है</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {2} में से {1} · {3}/से</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {2} में से {1}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/से</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · रुका हुआ</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>रोकें</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>फिर शुरू करें</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>प्राप्त नहीं हुआ: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>वह क्षतिग्रस्त होकर पहुँचा</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>उसे सहेजा नहीं जा सका</value>
+  </data>
+  <data name="Xfer_ReasonRejected" xml:space="preserve">
+    <value>यह Mac उसे स्वीकार नहीं कर सका</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>उसे रद्द कर दिया गया</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>फ़ोन ने जवाब देना बंद कर दिया</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>फ़ोन का कनेक्शन टूट गया</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>बंद करें</value>
+  </data>
 </root>

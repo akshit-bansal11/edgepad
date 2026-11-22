@@ -696,4 +696,55 @@
   <data name="Note_CodexTrustBody" xml:space="preserve">
     <value>Edgepad is bijgewerkt. Typ in Codex /hooks en vertrouw Edgepad, anders blijven goedkeuringen in de terminal in plaats van op je telefoon.</value>
   </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>Overdrachten</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Verzenden naar {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Ontvangen van {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} van {2} · {3}/s</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} van {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/s</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · Gepauzeerd</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Pauzeren</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Hervatten</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Niet ontvangen: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>het kwam beschadigd aan</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>het kon niet worden opgeslagen</value>
+  </data>
+  <data name="Xfer_ReasonRejected" xml:space="preserve">
+    <value>deze Mac kon het niet ontvangen</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>het is geannuleerd</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>de telefoon reageerde niet meer</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>de telefoon is losgekoppeld</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Stoppen</value>
+  </data>
 </root>

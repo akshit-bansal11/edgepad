@@ -696,4 +696,55 @@
   <data name="Note_CodexTrustBody" xml:space="preserve">
     <value>تم تحديث Edgepad. في Codex، اكتب /hooks وامنح Edgepad الثقة، وإلا ستبقى الموافقات في الطرفية بدل الهاتف.</value>
   </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>عمليات النقل</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>جارٍ الإرسال إلى {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>جارٍ الاستلام من {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} من {2} · {3}/ث</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} من {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/ث</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · متوقف مؤقتاً</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>إيقاف مؤقت</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>متابعة</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>لم يُستلم: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>وصل تالفاً</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>تعذّر حفظه</value>
+  </data>
+  <data name="Xfer_ReasonRejected" xml:space="preserve">
+    <value>لم يتمكن هذا الـMac من استقباله</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>أُلغي</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>توقف الهاتف عن الرد</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>انقطع اتصال الهاتف</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>إنهاء</value>
+  </data>
 </root>

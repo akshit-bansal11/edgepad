@@ -696,4 +696,55 @@
   <data name="Note_CodexTrustBody" xml:space="preserve">
     <value>Edgepad został zaktualizowany. W Codex wpisz /hooks i zaufaj Edgepad, inaczej zatwierdzenia zostaną w terminalu zamiast trafiać na telefon.</value>
   </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>Transfery</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Wysyłanie do {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Odbieranie od {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} z {2} · {3}/s</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} z {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/s</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · Wstrzymano</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Wstrzymaj</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Wznów</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Nie odebrano: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>dotarł uszkodzony</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>nie udało się go zapisać</value>
+  </data>
+  <data name="Xfer_ReasonRejected" xml:space="preserve">
+    <value>ten Mac nie mógł go przyjąć</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>został anulowany</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>telefon przestał odpowiadać</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>telefon się rozłączył</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Zatrzymaj</value>
+  </data>
 </root>
