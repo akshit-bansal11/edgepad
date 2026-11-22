@@ -12,7 +12,8 @@ namespace Edgepad.Dashboard;
 /// scopes (<c>read:user</c>, <c>read:repository</c>, <c>read:issue</c>), sent as <c>Authorization: token ...</c>. Mine, Assigned and
 /// Review come from <c>/repos/issues/search</c> (<c>created</c>, <c>assigned</c> and, for pull requests, <c>review_requested</c>); a
 /// server too old to know <c>review_requested</c> answers 400 and Review stays empty. There is no CI state on this API, so every
-/// item's CI is none.
+/// item's CI is none. Verified against https://codeberg.org/swagger.v1.json (Forgejo, Gitea API 1.22): the <c>token</c> header
+/// scheme, <c>/user</c>, <c>/repos/search</c> and <c>/repos/issues/search</c> parameters and the fields read.
 /// </summary>
 internal sealed class GiteaHost(ISecretStore store, IntegrationSettings settings, HttpMessageHandler? handler = null, Func<DateTimeOffset>? clock = null)
     : TokenGitHost("gitea", store, settings, handler, clock)

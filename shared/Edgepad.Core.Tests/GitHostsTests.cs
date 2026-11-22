@@ -31,6 +31,8 @@ public sealed class GitHostsTests : IDisposable
 
     private const string BitbucketUser = """{"nickname":"ana","display_name":"Ana B","account_id":"557058:abc","uuid":"{1}"}""";
 
+    private const string BitbucketWorkspaces = """{"pagelen":25,"page":1,"size":1,"values":[{"administrator":true,"workspace":{"slug":"ws","uuid":"{2}"}}]}""";
+
     private const string BitbucketRepos = """
         {"size":2,"values":[
           {"full_name":"ws/old","is_private":false,"language":"python","updated_on":"2026-01-01T00:00:00Z","links":{"html":{"href":"https://bitbucket.org/ws/old"}}},
@@ -48,7 +50,7 @@ public sealed class GitHostsTests : IDisposable
     private const string GiteeUser = """{"login":"ana","name":"Ana B","followers":4,"public_repos":9}""";
 
     private const string GiteeRepos = """
-        [{"full_name":"ana/zh","private":false,"language":"Java","stargazers_count":8,"open_issues_count":3,"html_url":"https://gitee.com/ana/zh","updated_at":"2026-11-01T00:00:00Z"}]
+        [{"full_name":"ana/zh","public":true,"language":"Java","stargazers_count":8,"open_issues_count":3,"html_url":"https://gitee.com/ana/zh","updated_at":"2026-11-01T00:00:00Z"}]
         """;
 
     private readonly DirectoryInfo dir = Directory.CreateTempSubdirectory("edgepad-githosts");
@@ -183,7 +185,7 @@ public sealed class GitHostsTests : IDisposable
             Assert.Equal("api.bitbucket.org", s.Uri.Host);
             Assert.Equal(basic, s.Header("Authorization"));
         });
-        Assert.Contains(http.Seen, s => s.Uri.AbsolutePath == "/2.0/pullrequests/557058%3Aabc" || s.Uri.AbsolutePath == "/2.0/pullrequests/557058:abc");
+        Assert.Contains(http.Seen, s => s.Uri.AbsolutePath == "/2.0/workspaces/ws/pullrequests/557058%3Aabc" || s.Uri.AbsolutePath == "/2.0/workspaces/ws/pullrequests/557058:abc");
     }
 
     [Fact]
@@ -441,8 +443,9 @@ public sealed class GitHostsTests : IDisposable
     private static HttpResponseMessage ServeBitbucket(SeenRequest s) => s.Uri.AbsolutePath switch
     {
         "/2.0/user" => FakeHttp.Json(BitbucketUser),
-        "/2.0/repositories" => FakeHttp.Json(BitbucketRepos),
-        _ when s.Uri.AbsolutePath.StartsWith("/2.0/pullrequests/", StringComparison.Ordinal) => FakeHttp.Json(BitbucketPulls),
+        "/2.0/user/workspaces" => FakeHttp.Json(BitbucketWorkspaces),
+        "/2.0/repositories/ws" => FakeHttp.Json(BitbucketRepos),
+        _ when s.Uri.AbsolutePath.StartsWith("/2.0/workspaces/ws/pullrequests/", StringComparison.Ordinal) => FakeHttp.Json(BitbucketPulls),
         _ => throw new InvalidOperationException($"Asked {s.Uri}"),
     };
 

@@ -5,11 +5,13 @@ namespace Edgepad.Dashboard;
 
 /// <summary>
 /// Gitee, <c>https://gitee.com/api/v5</c>. The person pastes a personal access token, sent as <c>Authorization: Bearer ...</c> (never
-/// in the address). Only two read endpoints are used: <c>GET /user</c> and <c>GET /user/repos</c>. Pull requests and issues stay
-/// empty: no user-wide pull request list is documented, and a Gitee issue's number is a text id (for example <c>I1ABCD</c>) that the
-/// phone's numeric line cannot carry, so showing them would mean inventing a number. Stars and open-issue counts come from the
-/// repository list; its open pull request count is not in it and stays 0. The token's required scopes, and whether Gitee's
-/// personal-token scope names match its OAuth ones (<c>user_info</c>, <c>projects</c>), are unverified.
+/// in the address). The reference (https://gitee.com/api/v5/swagger) documents the token only as the <c>access_token</c> query
+/// parameter; that the <c>Authorization: Bearer</c> header is accepted is NOT in it and is unverified. Only two read endpoints are
+/// used: <c>GET /user</c> and <c>GET /user/repos</c>. Pull requests and issues stay empty: the reference has no user-wide pull
+/// request list, and <c>GET /user/issues</c> returns <c>number</c> as a string (for example <c>I1ABCD</c>) that the phone's numeric
+/// line cannot carry, so showing them would mean inventing a number. Stars and open-issue counts come from the repository list;
+/// its open pull request count is not in it and stays 0. The reference documents <c>public</c> (not <c>private</c>) on a
+/// repository. The token's required scopes are unverified.
 /// </summary>
 internal sealed class GiteeHost(ISecretStore store, IntegrationSettings settings, HttpMessageHandler? handler = null, Func<DateTimeOffset>? clock = null)
     : TokenGitHost("gitee", store, settings, handler, clock)
@@ -75,7 +77,7 @@ internal sealed class GiteeHost(ISecretStore store, IntegrationSettings settings
         GitJson.Text(node, "full_name") is { } name
             ? new GitRepo(
                 name,
-                GitJson.Flag(node, "private"),
+                !GitJson.Flag(node, "public"),
                 GitJson.Text(node, "language") ?? string.Empty,
                 GitJson.Whole(node, "stargazers_count"),
                 GitJson.Whole(node, "open_issues_count"),

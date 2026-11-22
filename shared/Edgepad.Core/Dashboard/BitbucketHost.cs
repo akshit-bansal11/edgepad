@@ -7,11 +7,15 @@ namespace Edgepad.Dashboard;
 
 /// <summary>
 /// Bitbucket Cloud, <c>https://api.bitbucket.org/2.0</c>. Since 9 June 2026 only API tokens work (app passwords ended): the person
-/// pastes an API token and the e-mail of the Atlassian account, sent as Basic authentication. The token needs
-/// <c>read:user:bitbucket</c>, <c>read:repository:bitbucket</c> and <c>read:pullrequest:bitbucket</c>. What Bitbucket has, this
-/// shows: the account, its repositories newest first, and the open pull requests the account wrote (Mine). Bitbucket has no stars
-/// or follower count, no per-repository open counts in that list, no assignee on a pull request and no endpoint for "waiting for my
-/// review" that was verified, so those stay 0 or empty, never invented.
+/// pastes an API token and the e-mail of the Atlassian account, sent as Basic authentication
+/// (https://support.atlassian.com/bitbucket-cloud/docs/using-api-tokens/). The token's scope names are not listed in the REST
+/// reference and are unverified. Endpoints, all from https://developer.atlassian.com/cloud/bitbucket/rest/: <c>GET /user</c>,
+/// <c>GET /user/workspaces</c> (workspace slugs), <c>GET /repositories/{workspace}?role=member</c> and
+/// <c>GET /workspaces/{workspace}/pullrequests/{selected_user}?state=OPEN</c>. The older <c>/repositories</c> and
+/// <c>/pullrequests/{user}</c> lists are not in the current reference. Up to three workspaces are read. This shows the account,
+/// its repositories newest first, and the open pull requests the account wrote (Mine). Bitbucket documents no stars or follower
+/// count, no per-repository open counts in that list, no pull request assignee and no "waiting for my review" list, so those
+/// stay 0 or empty, never invented.
 /// </summary>
 internal sealed class BitbucketHost(ISecretStore store, IntegrationSettings settings, HttpMessageHandler? handler = null, Func<DateTimeOffset>? clock = null)
     : TokenGitHost("bitbucket", store, settings, handler, clock)
@@ -19,6 +23,8 @@ internal sealed class BitbucketHost(ISecretStore store, IntegrationSettings sett
     public static readonly Uri ApiRoot = new("https://api.bitbucket.org/2.0/");
 
     public const string WebDomain = "bitbucket.org";
+
+    private const int MaxWorkspaces = 3;
 
     public override string Domain => WebDomain;
 
@@ -52,45 +58,70 @@ internal sealed class BitbucketHost(ISecretStore store, IntegrationSettings sett
             return new GitRead(null, GitReply.Unusable);
         }
 
-        var repoReply = await get(new Uri(api, $"repositories?role=member&sort=-updated_on&pagelen={GitLimits.MaxRepos}"), ct).ConfigureAwait(false);
-        if (repoReply.Result != GitHubResult.Ok)
+        var spaceReply = await get(new Uri(api, $"user/workspaces?pagelen={MaxWorkspaces}"), ct).ConfigureAwait(false);
+        if (spaceReply.Result != GitHubResult.Ok)
         {
-            return new GitRead(null, repoReply);
+            return new GitRead(null, spaceReply);
         }
 
-        using var repoDoc = GitJson.Parse(repoReply.Body);
-        if (repoDoc is null)
-        {
-            return new GitRead(null, GitReply.Unusable);
-        }
-
-        var repos = GitJson.Items(repoDoc.RootElement, "values")
-            .Select(node => (Node: node, Updated: GitJson.Minutes(GitJson.Text(node, "updated_on"))))
-            .OrderByDescending(r => r.Updated)
-            .Select(r => Repo(r.Node))
-            .OfType<GitRepo>()
-            .Take(GitLimits.MaxRepos)
-            .ToList();
-        var size = GitJson.Whole(repoDoc.RootElement, "size");
-
-        var pullReply = await get(new Uri(api, $"pullrequests/{Uri.EscapeDataString(account)}?state=OPEN&pagelen={GitLimits.MaxItemsPerGroup}"), ct).ConfigureAwait(false);
-        if (pullReply.Result != GitHubResult.Ok)
-        {
-            return new GitRead(null, pullReply);
-        }
-
-        using var pullDoc = GitJson.Parse(pullReply.Body);
-        if (pullDoc is null)
+        using var spaceDoc = GitJson.Parse(spaceReply.Body);
+        if (spaceDoc is null)
         {
             return new GitRead(null, GitReply.Unusable);
         }
 
-        var items = GitJson.Items(pullDoc.RootElement, "values")
-            .Select(Pull)
-            .OfType<GitItem>()
-            .OrderByDescending(i => i.UpdatedMin)
-            .Take(GitLimits.MaxItemsPerGroup)
+        var slugs = GitJson.Items(spaceDoc.RootElement, "values")
+            .Select(node => GitJson.Text(GitJson.Child(node, "workspace"), "slug"))
+            .OfType<string>()
+            .Where(slug => slug.Length > 0)
+            .Take(MaxWorkspaces)
             .ToList();
+
+        var found = new List<(GitRepo Repo, long Updated)>();
+        var items = new List<GitItem>();
+        var size = 0;
+        foreach (var slug in slugs)
+        {
+            var name = Uri.EscapeDataString(slug);
+            var repoReply = await get(new Uri(api, $"repositories/{name}?role=member&sort=-updated_on&pagelen={GitLimits.MaxRepos}"), ct).ConfigureAwait(false);
+            if (repoReply.Result != GitHubResult.Ok)
+            {
+                return new GitRead(null, repoReply);
+            }
+
+            using var repoDoc = GitJson.Parse(repoReply.Body);
+            if (repoDoc is null)
+            {
+                return new GitRead(null, GitReply.Unusable);
+            }
+
+            foreach (var node in GitJson.Items(repoDoc.RootElement, "values"))
+            {
+                if (Repo(node) is { } repo)
+                {
+                    found.Add((repo, GitJson.Minutes(GitJson.Text(node, "updated_on"))));
+                }
+            }
+
+            size += GitJson.Whole(repoDoc.RootElement, "size");
+
+            var pullReply = await get(new Uri(api, $"workspaces/{name}/pullrequests/{Uri.EscapeDataString(account)}?state=OPEN&pagelen={GitLimits.MaxItemsPerGroup}"), ct).ConfigureAwait(false);
+            if (pullReply.Result != GitHubResult.Ok)
+            {
+                return new GitRead(null, pullReply);
+            }
+
+            using var pullDoc = GitJson.Parse(pullReply.Body);
+            if (pullDoc is null)
+            {
+                return new GitRead(null, GitReply.Unusable);
+            }
+
+            items.AddRange(GitJson.Items(pullDoc.RootElement, "values").Select(Pull).OfType<GitItem>());
+        }
+
+        var repos = found.OrderByDescending(r => r.Updated).Select(r => r.Repo).Take(GitLimits.MaxRepos).ToList();
+        items = [.. items.OrderByDescending(i => i.UpdatedMin).Take(GitLimits.MaxItemsPerGroup)];
 
         var profile = new GitProfile(login, GitJson.Text(user.RootElement, "display_name") ?? string.Empty, size > 0 ? size : repos.Count, 0);
         return new GitRead(new GitSnapshot(profile, repos, items), null);
