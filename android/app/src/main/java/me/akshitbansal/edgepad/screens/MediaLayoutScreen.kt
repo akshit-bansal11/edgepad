@@ -8,8 +8,8 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.view.HapticFeedbackConstants
-import android.view.RoundedCorner
 import android.view.MotionEvent
+import android.view.RoundedCorner
 import android.view.View
 import android.view.accessibility.AccessibilityNodeProvider
 import me.akshitbansal.edgepad.R
@@ -143,7 +143,10 @@ object MediaLayoutScreen {
 
         // The real surface behind the pieces, with made-up content: the same painters the surface draws with.
         private val ruler = RulerPainter(resources.displayMetrics, settings.dialLength, settings.dialHeight)
-        private var surfacePainter = newPainter()
+        private var surfacePainter = newPainter(false)
+
+        // The part that cannot be moved is the same painter with every colour at 38 %: no layer, no bitmap.
+        private var dimPainter = newPainter(true)
         private val icons = MediaIconStore(MediaIconStore.Companion::decodeBitmap)
         private var perimeter = Perimeter(1f, 1f, 1f)
         private val dials: List<Dial> =
@@ -187,7 +190,13 @@ object MediaLayoutScreen {
         private val keepOut = FloatArray(2)
         private val pt = FloatArray(4)
         private val strip =
-            BatteryStrip(context, palette.ink, palette.accent, palette.dim, palette.danger).also {
+            BatteryStrip(
+                context,
+                faded(palette.ink),
+                faded(palette.accent),
+                faded(palette.dim),
+                faded(palette.danger),
+            ).also {
                 it.refresh(
                     BatteryChips(
                         BatteryRow("", BatteryKind.LAPTOP, false, SAMPLE_LAPTOP_PERCENT, true, ""),
@@ -199,7 +208,7 @@ object MediaLayoutScreen {
             }
         private val topIcons: List<Drawable> =
             listOf(R.drawable.ic_controls, R.drawable.ic_battery_keyboard, R.drawable.ic_lock, R.drawable.ic_settings)
-                .map { checkNotNull(context.getDrawable(it)).mutate().apply { setTint(palette.dim) } }
+                .map { checkNotNull(context.getDrawable(it)).mutate().apply { setTint(faded(palette.dim)) } }
         private val topHits = List(topIcons.size) { RectF() }
         private val rects = FloatArray(PieceGeometry.TRANSPORT_RECTS)
         private val playHit = RectF()
@@ -209,18 +218,27 @@ object MediaLayoutScreen {
         private val sampleSub =
             context.getString(R.string.surface_time, Clock.format(SAMPLE_POSITION), Clock.format(SAMPLE_DURATION))
 
-        private fun newPainter() =
-            SurfacePainter(
+        /** [color] with its alpha scaled to [DIM]. */
+        private fun faded(color: Int): Int =
+            (color and RGB_MASK) or ((color ushr ALPHA_SHIFT) * DIM).roundToInt().shl(ALPHA_SHIFT)
+
+        private fun newPainter(dimmed: Boolean): SurfacePainter {
+            fun c(color: Int) = if (dimmed) faded(color) else color
+            return SurfacePainter(
                 context,
-                palette.ink,
-                palette.accent,
-                palette.dim,
-                palette.faint,
-                palette.onAccent,
+                c(palette.ink),
+                c(palette.accent),
+                c(palette.dim),
+                c(palette.faint),
+                c(palette.onAccent),
                 palette.dark,
                 settings.mediaScale,
                 ruler,
-            ).also { it.titlePaint.color = palette.ink }
+            ).also {
+                it.titlePaint.color = c(palette.ink)
+                it.subPaint.color = c(palette.dim)
+            }
+        }
 
         // The widgets are drawn by the painter the surface uses, with made-up values, so what is dragged is what the
         // surface shows, at the size the chosen scale gives it.
@@ -412,7 +430,8 @@ object MediaLayoutScreen {
 
         fun rescale() {
             scale = settings.mediaScale
-            surfacePainter = newPainter()
+            surfacePainter = newPainter(false)
+            dimPainter = newPainter(true)
             invalidate()
         }
 
@@ -488,11 +507,10 @@ object MediaLayoutScreen {
             out.set(cx - w * px / 2, cy - h * px / 2, cx + w * px / 2, cy + h * px / 2)
         }
 
-        // Under the grid: the surface at 40 % where it cannot be moved, then the movable pieces at full strength.
+        // Under the grid: the surface at 38 % where it cannot be moved, then the movable pieces at full strength.
         override fun drawBelow(canvas: Canvas) {
-            canvas.saveLayerAlpha(0f, 0f, width.toFloat(), height.toFloat(), DIM_ALPHA)
             for (i in dials.indices) {
-                surfacePainter.drawDial(
+                dimPainter.drawDial(
                     canvas,
                     perimeter,
                     dials[i],
@@ -505,17 +523,16 @@ object MediaLayoutScreen {
                     null,
                 )
             }
-            surfacePainter.drawBatteryStrip(canvas, strip, false)
-            for (i in topHits.indices) surfacePainter.drawTopButton(canvas, topHits[i], topIcons[i], false, false)
+            dimPainter.drawBatteryStrip(canvas, strip, false)
+            for (i in topHits.indices) dimPainter.drawTopButton(canvas, topHits[i], topIcons[i], false, false)
             // Editing the widgets, the media pieces are part of the surface that stays put.
             if (scope == Scope.WIDGETS) {
                 for (piece in MediaPiece.entries) {
                     val at = mediaAt.getValue(piece)
                     pieceBounds(piece, at, box)
-                    drawPiece(canvas, piece, at, box)
+                    drawPiece(dimPainter, canvas, piece, at, box)
                 }
             }
-            canvas.restore()
             for (item in items) {
                 bounds(item, box)
                 // The one being dragged lifts off the grid on a shadow and a soft accent plate.
@@ -526,7 +543,7 @@ object MediaLayoutScreen {
                 }
                 when (item) {
                     is LayoutItem.Piece -> {
-                        drawPiece(canvas, item.piece, positions.getValue(item), box)
+                        drawPiece(surfacePainter, canvas, item.piece, positions.getValue(item), box)
                     }
 
                     is LayoutItem.Widget -> {
@@ -547,6 +564,7 @@ object MediaLayoutScreen {
 
         /** A media piece as the surface draws it, in [box], with a made-up track. */
         private fun drawPiece(
+            painter: SurfacePainter,
             canvas: Canvas,
             piece: MediaPiece,
             at: Pair<Float, Float>,
@@ -554,7 +572,7 @@ object MediaLayoutScreen {
         ) {
             when (piece) {
                 MediaPiece.NOW_PLAYING -> {
-                    surfacePainter.drawNowPlaying(
+                    painter.drawNowPlaying(
                         canvas,
                         into,
                         SAMPLE_APP,
@@ -581,7 +599,7 @@ object MediaLayoutScreen {
                     playHit.set(rects[0], rects[1], rects[2], rects[3])
                     prevHit.set(rects[4], rects[5], rects[6], rects[7])
                     nextHit.set(rects[8], rects[9], rects[10], rects[11])
-                    surfacePainter.drawTransport(canvas, prevHit, playHit, nextHit, false, null)
+                    painter.drawTransport(canvas, prevHit, playHit, nextHit, false, null)
                 }
             }
         }
@@ -666,7 +684,9 @@ object MediaLayoutScreen {
             const val OUTLINE_DP = 2f
             const val DASH_DP = 6f
             const val DASH_GAP_DP = 4f
-            const val DIM_ALPHA = 102
+            const val DIM = 0.38f
+            const val RGB_MASK = 0x00FFFFFF
+            const val ALPHA_SHIFT = 24
             const val DIAL_GAP_DP = 16f
             const val TOP_CENTRE = 0.5f
             const val TOP_REACH = 1.5f
