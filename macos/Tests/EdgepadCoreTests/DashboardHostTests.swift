@@ -244,6 +244,45 @@ final class DashboardHostTests: XCTestCase {
         host.dispose()
     }
 
+    func testAHostMadeAgainOnTheSamePartsKeepsTheOpenLimit() async {
+        let secrets = MemorySecrets()
+        _ = secrets.set(GitHubApp.tokenName, "gho_SecretTokenValue1234567890abcdef")
+        let clock = TestClock()
+        let api = GitHubApi(store: secrets, http: gitHubReplies(), clock: { clock.now })
+        _ = await api.refresh()
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.developer, true))
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.gitHub, true))
+        let opener = RecordingOpener()
+        let parts = DashboardParts(gitHub: api, gitHubSignedIn: { true }, urlOpener: opener)
+
+        let first = newHost(parts)
+        for _ in 0..<3 {
+            XCTAssertTrue(first.openGit("github/1/2"))
+        }
+        first.dispose()
+        let second = newHost(parts)
+
+        XCTAssertFalse(second.openGit("github/1/2"))
+        XCTAssertTrue(wait { opener.opened.count == 3 })
+        second.dispose()
+    }
+
+    func testTheThrottleCountsOpensPerWindowAndRemembersRefreshTimes() {
+        let throttle = DashboardThrottle()
+        let start = Date(timeIntervalSince1970: 1_795_089_600)
+        for _ in 0..<3 {
+            XCTAssertTrue(throttle.allowOpen(start))
+        }
+        XCTAssertFalse(throttle.allowOpen(start.addingTimeInterval(9)))
+        XCTAssertTrue(throttle.allowOpen(start.addingTimeInterval(10)))
+
+        XCTAssertNil(throttle.lastRefresh("github"))
+        throttle.refreshed("github", at: start)
+        XCTAssertEqual(throttle.lastRefresh("github"), start)
+        throttle.forgetRefresh("github")
+        XCTAssertNil(throttle.lastRefresh("github"))
+    }
+
     func testOpenGitDoesNothingWhileGitHubIsOffOrThereIsNoOpener() async {
         let secrets = MemorySecrets()
         _ = secrets.set(GitHubApp.tokenName, "gho_SecretTokenValue1234567890abcdef")

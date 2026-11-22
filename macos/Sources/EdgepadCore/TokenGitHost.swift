@@ -76,12 +76,13 @@ enum GitTokens {
     }
 
     /// The API root (`https://host[:port][/path]/api/v1/`) of a Gitea-compatible server given its web address. Only an
-    /// absolute https address with no user info, query or fragment passes; anything else is nil.
+    /// absolute https address with no user info, query or fragment passes; anything else is nil. A `%` in the host is
+    /// refused: `URLComponents.host` would decode "evil.example%23.codeberg.org" into a host with a `#` in it.
     static func giteaApi(_ url: String?) -> URL? {
         let text = (url ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         guard (1...maxUrl).contains(text.utf16.count), let parts = URLComponents(string: text),
             parts.scheme?.lowercased() == "https", parts.user == nil, parts.password == nil, parts.query == nil,
-            parts.fragment == nil, let host = parts.host, !host.isEmpty
+            parts.fragment == nil, let host = parts.percentEncodedHost, !host.isEmpty, !host.contains("%")
         else { return nil }
         var path = parts.percentEncodedPath
         while path.hasSuffix("/") {
@@ -207,6 +208,8 @@ extension TokenGitSpec {
 /// is one bounded list: a host that fails part-way keeps the last good page. The twin of the laptop core's TokenGitHost.
 public class TokenGitHost: GitHost {
     static let maxBytes = 1024 * 1024
+    /// The longest account name any of these hosts allows (GitHub's is 39).
+    private static let maxLogin = 39
 
     /// A rate limit is waited out for at least this long, and never longer than `maxBackoff`, whatever the reply
     /// claims.
@@ -221,8 +224,11 @@ public class TokenGitHost: GitHost {
     private let http: HttpSender
     private let now: () -> Date
     private let gate = NSLock()
+    // Held while the token is replaced or deleted, so a 401 for an old token cannot delete one saved after it was sent.
+    private let tokenGate = NSLock()
     private let book: GitBook
     private var backoffUntil = Date.distantPast
+    private var lastRefresh: Date?
     private var running = false
 
     init(
@@ -271,6 +277,18 @@ public class TokenGitHost: GitHost {
             !spec.requiresUser || GitTokens.isUser(user)
         else { return GitHubRefreshResult(result: .notSignedIn, changed: false) }
 
+        // At most one refresh a minute whoever asks (a timer restarted by a phone toggling its watch bit included); a
+        // token just saved clears this, so the first refresh after sign-in is at once.
+        let tooSoon = gate.withLock { () -> Bool in
+            let at = now()
+            if let last = lastRefresh, at.timeIntervalSince(last) < GitHubRefresh.every { return true }
+            lastRefresh = at
+            return false
+        }
+        if tooSoon {
+            return GitHubRefreshResult(result: .rateLimited, changed: false)
+        }
+
         let before = book.page?.rev
         let read = await spec.read(getter(api, token, user), api: api)
         if let snapshot = read.snapshot {
@@ -279,8 +297,10 @@ public class TokenGitHost: GitHost {
         }
         let failure = read.failure ?? GitReply.unusable
         if failure.status == 401 {
-            store.delete(GitTokens.tokenName(spec.id))
-            book.clear()
+            // Only the token that got the 401 goes: one saved while the request was out is a different one.
+            if deleteIfStill(token) {
+                book.clear()
+            }
         } else if failure.result == .rateLimited {
             let until = now().addingTimeInterval(failure.retryAfter)
             gate.withLock { backoffUntil = until }
@@ -311,23 +331,48 @@ public class TokenGitHost: GitHost {
             }
             return GitSaveResult(status: status, login: "")
         }
-        guard let login = spec.login(reply.body) else { return GitSaveResult(status: .failed, login: "") }
+        guard let parsed = spec.login(reply.body) else { return GitSaveResult(status: .failed, login: "") }
+        // The login is shown and kept in settings: a host's reply cannot make it long or carry control characters.
+        let login = DashWire.clean(parsed, Self.maxLogin)
         var keep = url.trimmingCharacters(in: .whitespacesAndNewlines)
         while keep.hasSuffix("/") {
             keep.removeLast()
         }
-        guard settings.set(GitTokens.urlKey(spec.id), spec.apiIsFixed ? "" : keep),
-            settings.set(GitTokens.userKey(spec.id), spec.requiresUser ? name : ""),
-            store.set(GitTokens.tokenName(spec.id), secret)
-        else { return GitSaveResult(status: .failed, login: "") }
+        let stored = tokenGate.withLock { () -> Bool in
+            // The old token goes first and the new one is stored last: whichever step fails, no token is ever left
+            // beside an address it was not checked against.
+            store.delete(GitTokens.tokenName(spec.id))
+            guard settings.set(GitTokens.urlKey(spec.id), spec.apiIsFixed ? "" : keep),
+                settings.set(GitTokens.userKey(spec.id), spec.requiresUser ? name : ""),
+                store.set(GitTokens.tokenName(spec.id), secret)
+            else {
+                store.delete(GitTokens.tokenName(spec.id))
+                return false
+            }
+            return true
+        }
+        guard stored else {
+            book.clear()
+            return GitSaveResult(status: .failed, login: "")
+        }
+        gate.withLock { lastRefresh = nil }
         book.clear()
         return GitSaveResult(status: .saved, login: login)
     }
 
     /// Forgets the token and the page; the address and name stay for the next sign-in.
     public func signOut() {
-        store.delete(GitTokens.tokenName(spec.id))
+        tokenGate.withLock { store.delete(GitTokens.tokenName(spec.id)) }
         book.clear()
+    }
+
+    /// Deletes the saved token only while it is still `sent`; true when it was deleted.
+    private func deleteIfStill(_ sent: String) -> Bool {
+        tokenGate.withLock {
+            guard store.get(GitTokens.tokenName(spec.id)) == sent else { return false }
+            store.delete(GitTokens.tokenName(spec.id))
+            return true
+        }
     }
 
     private func getter(_ api: URL, _ token: String, _ user: String) -> GitGet {

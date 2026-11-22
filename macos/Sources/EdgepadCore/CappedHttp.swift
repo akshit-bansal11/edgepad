@@ -35,8 +35,18 @@ public protocol HttpSender: AnyObject {
 public final class CappedHttp: HttpSender {
     private let session: URLSession
 
-    public init(session: URLSession = URLSession(configuration: .ephemeral)) {
-        self.session = session
+    /// The whole exchange, a slow trickle included, is cut off after this long; the request's own timeout only bounds
+    /// the wait between bytes.
+    static let totalTimeout: TimeInterval = 15
+
+    public init(session: URLSession? = nil) {
+        if let session {
+            self.session = session
+        } else {
+            let configuration = URLSessionConfiguration.ephemeral
+            configuration.timeoutIntervalForResource = Self.totalTimeout
+            self.session = URLSession(configuration: configuration)
+        }
     }
 
     public func send(_ request: URLRequest, maxBytes: Int, what: String) async -> HttpReply? {

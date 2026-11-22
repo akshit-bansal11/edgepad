@@ -39,7 +39,10 @@ final class MacDashboard {
     private let urlOpener = MacUrlOpener()
     private var stats: MacStats?
     private lazy var net = MacNetInfo()
-    private var parts = DashboardParts()
+    // One for the process: a phone's links are made again on every switch, and must not reset the open limit or the
+    // refresh times.
+    private let throttle = DashboardThrottle()
+    private lazy var parts = DashboardParts(throttle: throttle)
     private var window: IntegrationsWindow?
     private var developersWindow: DevelopersWindow?
 
@@ -127,6 +130,8 @@ final class MacDashboard {
     /// developer data reaches the phone) and closes the hook channel but keeps every connection. The For developers
     /// window stays open: its switch is how it is turned back on. Main queue only.
     func setDeveloper(_ on: Bool) {
+        // Nothing changed, nothing to rebuild: a phone repeating the switch must not restart every link.
+        guard settings.flag(IntegrationSettings.developer) != on else { return }
         settings.setFlag(IntegrationSettings.developer, on)
         apply()
         developersWindow?.refresh()
@@ -211,7 +216,7 @@ final class MacDashboard {
             sessions: agents?.sessions, limits: agents?.limits, spend: agents?.spend, broker: agents?.broker,
             codex: codex, claude: claude, weather: weather, gitHub: gitHub,
             gitHubSignedIn: gitHub == nil ? nil : { signIn.isSignedIn }, gitHosts: tokenHostsOn ? tokenHosts.all : nil,
-            urlOpener: urlOpener, agentHeard: { usage.lastHeard($0) >= 0 })
+            urlOpener: urlOpener, agentHeard: { usage.lastHeard($0) >= 0 }, throttle: throttle)
 
         // The phone moves to the new pieces before the old ones close under it.
         changed?()

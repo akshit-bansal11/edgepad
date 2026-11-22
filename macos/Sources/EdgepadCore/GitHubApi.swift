@@ -167,7 +167,7 @@ public final class GitHubApi: GitHost {
     public func login() async -> String? {
         guard let request = authorized("GET", Self.userUrl) else { return nil }
         let reply = await http.send(request, maxBytes: Self.maxBytes, what: "Asking GitHub who is signed in")
-        guard judge(reply) == .ok, let reply else { return nil }
+        guard judge(reply, request) == .ok, let reply else { return nil }
         return GitHubParse.login(reply.body)
     }
 
@@ -176,7 +176,7 @@ public final class GitHubApi: GitHost {
         request.httpBody = Self.queryBody()
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let reply = await http.send(request, maxBytes: Self.maxBytes, what: "Asking GitHub for pull requests")
-        let result = judge(reply)
+        let result = judge(reply, request)
         guard result == .ok, let reply else { return result }
         guard let parsed = GitHubParse.snapshot(reply.body) else { return .failed }
         gate.withLock { snapshot = parsed }
@@ -200,7 +200,7 @@ public final class GitHubApi: GitHost {
         }
         let reply = await http.send(request, maxBytes: Self.maxBytes, what: "Asking GitHub for notifications")
         if reply?.status == 304 { return .ok }
-        let result = judge(reply)
+        let result = judge(reply, request)
         guard result == .ok, let reply else { return result }
         guard let count = GitHubParse.unread(reply.body) else { return .failed }
         let tag = reply.header("ETag")
@@ -228,17 +228,21 @@ public final class GitHubApi: GitHost {
     }
 
     /// Success is ok; 401 deletes the token; 403 or 429 with rate-limit headers starts a back-off; anything else fails.
-    private func judge(_ reply: HttpReply?) -> GitHubResult {
+    private func judge(_ reply: HttpReply?, _ request: URLRequest) -> GitHubResult {
         guard let reply else { return .failed }
         if reply.isSuccess { return .ok }
         if reply.status == 401 {
-            store.delete(GitHubApp.tokenName)
-            gate.withLock {
-                snapshot = nil
-                unread = nil
-                etag = nil
+            // Only the token this request carried goes: one saved by a sign-in while it was out is a different one.
+            let sent = request.value(forHTTPHeaderField: "Authorization")
+            if store.get(GitHubApp.tokenName).map({ "Bearer " + $0 }) == sent {
+                store.delete(GitHubApp.tokenName)
+                gate.withLock {
+                    snapshot = nil
+                    unread = nil
+                    etag = nil
+                }
+                book.clear()
             }
-            book.clear()
             return .noPermission
         }
         if reply.status == 403 || reply.status == 429, let end = rateLimitEnd(reply) {

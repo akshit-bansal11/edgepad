@@ -53,6 +53,9 @@ public final class DashboardParts {
     /// Whether the agent's hook was heard since it was connected (`UsageStore.lastHeard` at least 0). Nil counts every
     /// agent as heard.
     public let agentHeard: ((String) -> Bool)?
+    /// The link-open limit and the per-host refresh times; the app passes the one it holds so a host made again does
+    /// not reset them.
+    public let throttle: DashboardThrottle
 
     private let gate = NSLock()
     private var hosts: [WeakHost] = []
@@ -69,8 +72,10 @@ public final class DashboardParts {
         gitHubSignedIn: (() -> Bool)? = nil,
         gitHosts: [GitHost]? = nil,
         urlOpener: UrlOpening? = nil,
-        agentHeard: ((String) -> Bool)? = nil
+        agentHeard: ((String) -> Bool)? = nil,
+        throttle: DashboardThrottle = DashboardThrottle()
     ) {
+        self.throttle = throttle
         self.sessions = sessions
         self.limits = limits
         self.spend = spend
@@ -147,17 +152,14 @@ public final class IntegrationHost {
     private var reporter: StatsReporter?
     private var weatherTimer: Stoppable?
     private var gitHubTimer: Stoppable?
-    private var gitHubLast: Date?
     private var weatherSent: String?
     private var weatherRetrying = false
     // What a phone that has been sent no git page holds is the empty body.
     private var gitHubSent = ""
     // What this phone was last sent for each token host (by id), so an unchanged page is not sent again.
     private var gitSent: [String: String] = [:]
-    // When this phone's recent link opens happened, oldest first.
-    private var opens: [Date] = []
-    private static let maxOpens = 3
-    private static let openWindow: TimeInterval = 1
+    // The key of GitHub's last refresh in the process-wide throttle.
+    private static let gitHubKey = "github"
     private let weatherRetryAfter: TimeInterval
     private var watch = 0
     private var disposed = false
@@ -399,8 +401,10 @@ public final class IntegrationHost {
         if gitHubTimer == nil {
             // The new timer runs the first refresh now.
             gitHubTimer = startTimer({ [weak self] in self?.refreshGit() }, GitHubRefresh.every)
-        } else if gitHubLast.map({ clock().timeIntervalSince($0) >= Self.justRefreshed }) ?? true {
-            gitHubLast = nil
+        } else if parts.throttle.lastRefresh(Self.gitHubKey)
+            .map({ clock().timeIntervalSince($0) >= Self.justRefreshed }) ?? true
+        {
+            parts.throttle.forgetRefresh(Self.gitHubKey)
             refresh = true
         }
         gate.unlock()
@@ -594,12 +598,15 @@ public final class IntegrationHost {
         guard let gitHub = parts.gitHub else { return }
         gate.lock()
         let now = clock()
-        guard GitHubRefresh.shouldRun(last: gitHubLast, now: now, watchBit4: !disposed && watch & Self.gitHubBit != 0)
+        guard
+            GitHubRefresh.shouldRun(
+                last: parts.throttle.lastRefresh(Self.gitHubKey), now: now,
+                watchBit4: !disposed && watch & Self.gitHubBit != 0)
         else {
             gate.unlock()
             return
         }
-        gitHubLast = now
+        parts.throttle.refreshed(Self.gitHubKey, at: now)
         gate.unlock()
         Task { [weak self] in
             let result = await gitHub.refresh()
@@ -646,16 +653,10 @@ public final class IntegrationHost {
         return true
     }
 
-    // At most `maxOpens` opens per `openWindow` seconds for this phone, so a hostile or buggy phone cannot flood the
-    // browser with tabs.
+    // At most `DashboardThrottle.maxOpens` opens per window for the whole process, however often a phone makes its link
+    // again.
     private func openAllowed() -> Bool {
-        let now = clock()
-        gate.lock()
-        defer { gate.unlock() }
-        opens.removeAll { now.timeIntervalSince($0) >= Self.openWindow }
-        guard opens.count < Self.maxOpens else { return false }
-        opens.append(now)
-        return true
+        parts.throttle.allowOpen(clock())
     }
 
     // A token host counts only while its own switch (the settings key named by its id) is on.

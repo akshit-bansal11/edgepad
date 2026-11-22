@@ -369,6 +369,7 @@ final class GitHostsTests: XCTestCase {
         XCTAssertNotNil(host.page)
 
         refuse = true
+        clock.advance(61)
         let result = await host.refresh()
 
         XCTAssertEqual(result, GitHubRefreshResult(result: .noPermission, changed: true))
@@ -426,10 +427,103 @@ final class GitHostsTests: XCTestCase {
         let good = host.page
 
         fail = true
+        clock.advance(61)
         let result = await host.refresh()
 
         XCTAssertEqual(result, GitHubRefreshResult(result: .failed, changed: false))
         XCTAssertEqual(host.page, good)
+    }
+
+    func testARefreshWithinAMinuteOfTheLastAsksNobodyAndOneAfterItDoes() async {
+        let http = FakeHttp(serveGitea)
+        let host = gitea(http)
+        let first = await host.refresh()
+        XCTAssertEqual(first.result, .ok)
+        let asked = http.seen.count
+
+        // What a phone toggling the watch bit does: a restarted timer fires at once, again and again.
+        for _ in 0..<5 {
+            clock.advance(10)
+            let again = await host.refresh()
+            XCTAssertEqual(again.result, .rateLimited)
+        }
+        XCTAssertEqual(http.seen.count, asked)
+
+        clock.advance(11)
+        let later = await host.refresh()
+        XCTAssertEqual(later.result, .ok)
+        XCTAssertGreaterThan(http.seen.count, asked)
+    }
+
+    func testTheRefreshRightAfterASuccessfulSaveIsNotHeldBack() async {
+        let http = FakeHttp(serveGitea)
+        let host = gitea(http)
+        let first = await host.refresh()
+        XCTAssertEqual(first.result, .ok)
+
+        let saved = await host.save(token: token, url: "https://codeberg.org", user: "")
+        XCTAssertEqual(saved.status, .saved)
+        let asked = http.seen.count
+
+        let after = await host.refresh()
+        XCTAssertEqual(after.result, .ok)
+        XCTAssertGreaterThan(http.seen.count, asked)
+    }
+
+    func testAFailedTokenSaveLeavesNoTokenBesideTheNewAddress() async {
+        settings.set(GitTokens.urlKey("gitea"), "https://old.example.org")
+        let http = FakeHttp(serveGitea)
+        let host = gitea(http)
+        secrets.refuse = true
+
+        let other = "pat_AnotherTokenForTheNewHost12345"
+        let saved = await host.save(token: other, url: "https://new.example.org", user: "")
+
+        XCTAssertEqual(saved.status, .failed)
+        XCTAssertNil(secrets.get(GitTokens.tokenName("gitea")))
+        XCTAssertFalse(host.isSignedIn)
+        let before = http.seen.count
+        let next = await host.refresh()
+        XCTAssertEqual(next.result, .notSignedIn)
+        XCTAssertEqual(http.seen.count, before)
+    }
+
+    func testA401ForAnOldTokenKeepsANewerOneSavedWhileTheRequestWasOut() async {
+        let newer = "pat_NewerTokenValue1234567890abc"
+        let http = FakeHttp { [secrets] _ in
+            _ = secrets.set(GitTokens.tokenName("gitee"), newer)
+            return HttpReply(status: 401)
+        }
+
+        let result = await gitee(http).refresh()
+
+        XCTAssertEqual(result.result, .noPermission)
+        XCTAssertEqual(secrets.get(GitTokens.tokenName("gitee")), newer)
+    }
+
+    func testAnAddressWhoseHostHasAPercentIsRefusedBeforeAnyRequest() async {
+        for url in [
+            "https://evil.example%23.codeberg.org", "https://evil.example%2f.codeberg.org/forge",
+            "https://codeberg.org%40evil.example",
+        ] {
+            XCTAssertNil(GitTokens.giteaApi(url), url)
+            let http = FakeHttp(serveGitea)
+
+            let saved = await gitea(http, MemorySecrets()).save(token: token, url: url, user: "")
+
+            XCTAssertEqual(saved.status, .badUrl, url)
+            XCTAssertTrue(http.seen.isEmpty, url)
+        }
+    }
+
+    func testALongLoginIsCutBeforeItIsShownOrKept() async {
+        let long = String(repeating: "a", count: 100)
+        let http = FakeHttp { _ in FakeHttp.json200("{\"id\":7,\"login\":\"" + long + "\"}") }
+
+        let saved = await gitea(http, MemorySecrets()).save(token: token, url: "https://codeberg.org", user: "")
+
+        XCTAssertEqual(saved.status, .saved)
+        XCTAssertEqual(saved.login.count, 39)
     }
 
     func testNoTokenAsksNobody() async {

@@ -548,6 +548,20 @@ final class GitHubApiTests: XCTestCase {
         XCTAssertNil(secrets.get(GitHubApp.tokenName))
     }
 
+    func testARefusalOfTheOldTokenKeepsANewerOneSavedWhileTheRequestWasOut() async {
+        let newer = "gho_NewerTokenValue1234567890abcdefghij"
+        let secrets = secrets
+        let http = FakeHttp { _ in
+            _ = secrets.set(GitHubApp.tokenName, newer)
+            return HttpReply(status: 401)
+        }
+
+        let login = await newApi(http).login()
+
+        XCTAssertNil(login)
+        XCTAssertEqual(secrets.get(GitHubApp.tokenName), newer)
+    }
+
     func testRefreshRunsOnlyWhileWatchedAndAMinuteApart() {
         let base = Date(timeIntervalSince1970: 1_000_000)
         let cases: [(Int?, Int, Bool, Bool)] = [
