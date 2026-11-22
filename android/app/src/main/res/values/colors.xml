@@ -19,4 +19,9 @@
   <color name="off">#E3E5EA</color>
   <color name="track">#878A92</color>
   <color name="danger">#D70015</color>
+  <!-- Usage-ring levels, contrast on card #FBFBFD: green 4.9:1, yellow 4.71:1, orange 4.86:1, red 5.21:1. -->
+  <color name="level_green">#1F7F37</color> <!-- 4.9:1 -->
+  <color name="level_yellow">#9A6700</color> <!-- 4.71:1 -->
+  <color name="level_orange">#B35400</color> <!-- 4.86:1 -->
+  <color name="level_red">#D70015</color> <!-- 5.21:1 -->
 </resources>

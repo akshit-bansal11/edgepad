@@ -28,6 +28,10 @@ class Palette(
     val off: Int,
     val track: Int,
     val danger: Int,
+    val levelGreen: Int,
+    val levelYellow: Int,
+    val levelOrange: Int,
+    val levelRed: Int,
     val dark: Boolean,
 ) {
     companion object {
@@ -46,6 +50,10 @@ class Palette(
                 context.getColor(R.color.off),
                 context.getColor(R.color.track),
                 context.getColor(R.color.danger),
+                context.getColor(R.color.level_green),
+                context.getColor(R.color.level_yellow),
+                context.getColor(R.color.level_orange),
+                context.getColor(R.color.level_red),
                 dark =
                     (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                         Configuration.UI_MODE_NIGHT_YES,

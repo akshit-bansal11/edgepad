@@ -11,9 +11,20 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
+/** The level colour a usage share takes: 0 green below 50, 1 yellow from 50, 2 orange from 75, 3 red from 90. */
+object RingLevel {
+    fun colourIndex(pct: Int): Int =
+        when {
+            pct >= 90 -> 3
+            pct >= 75 -> 2
+            pct >= 50 -> 1
+            else -> 0
+        }
+}
+
 /**
- * A 270-degree gauge for one usage window: a track, the used share on it (the danger colour from 90 percent), the
- * value inside and a caption under it. An unknown value draws the track and a dash. Draws on the card the page
+ * A 270-degree gauge for one usage window: a track, the used share on it, the value inside and a caption under it.
+ * Arc and value take the [RingLevel] colour. An unknown value draws the track and a dash. Draws on the card the page
  * already gives it.
  */
 class RingGauge(
@@ -59,6 +70,7 @@ class RingGauge(
             color = palette.dim
             textAlign = Paint.Align.CENTER
         }
+    private val levels = intArrayOf(palette.levelGreen, palette.levelYellow, palette.levelOrange, palette.levelRed)
     private val captionMetrics = captionPaint.fontMetrics
     private val subMetrics = subPaint.fontMetrics
 
@@ -81,7 +93,9 @@ class RingGauge(
         this.caption = caption
         this.sub = sub
         valueText = if (this.pct < 0) none else "${this.pct}%"
-        used.color = if (this.pct >= DANGER_FROM) palette.danger else palette.accent
+        val level = if (this.pct < 0) palette.ink else levels[RingLevel.colourIndex(this.pct)]
+        used.color = level
+        valuePaint.color = level
         contentDescription = listOf(caption, valueText, sub).filter { it.isNotEmpty() }.joinToString(", ")
         fitValue()
         invalidate()
@@ -140,7 +154,6 @@ class RingGauge(
 
     private companion object {
         const val FULL = 100
-        const val DANGER_FROM = 90
         const val START = 135f
         const val SWEEP = 270f
         const val DEFAULT_DP = 88f

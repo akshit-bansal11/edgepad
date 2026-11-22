@@ -17,4 +17,9 @@
   <color name="off">#3A3C43</color>
   <color name="track">#6B6D75</color>
   <color name="danger">#FF6961</color>
+  <!-- Usage-ring levels on card #1B1C20: green 8.42:1, yellow 12.06:1, orange 8.28:1, red 6.04:1. -->
+  <color name="level_green">#30D158</color>
+  <color name="level_yellow">#FFD60A</color>
+  <color name="level_orange">#FF9F0A</color>
+  <color name="level_red">#FF6961</color>
 </resources>
