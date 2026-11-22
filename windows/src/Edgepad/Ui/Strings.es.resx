@@ -599,24 +599,6 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V lo usa otra aplicación, así que el atajo está desactivado.</value>
   </data>
-  <data name="Xfer_Sending" xml:space="preserve">
-    <value>Enviando al teléfono</value>
-  </data>
-  <data name="Xfer_Receiving" xml:space="preserve">
-    <value>Recibiendo del teléfono</value>
-  </data>
-  <data name="Xfer_Count" xml:space="preserve">
-    <value>{0} de {1}</value>
-  </data>
-  <data name="Xfer_Detail" xml:space="preserve">
-    <value>{0} de {1} · {2}/s</value>
-  </data>
-  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
-    <value>{0} de {1}</value>
-  </data>
-  <data name="Xfer_Percent" xml:space="preserve">
-    <value>{0} %</value>
-  </data>
   <data name="Xfer_SentOne" xml:space="preserve">
     <value>{0} enviado</value>
   </data>
@@ -813,5 +795,41 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   </data>
   <data name="Balloon_CodexTrust" xml:space="preserve">
     <value>Edgepad se actualizó. En Codex, escribe /hooks y confía en Edgepad, o las aprobaciones seguirán en la terminal en lugar del teléfono.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>T&amp;ransferencias</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Enviando a {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Recibiendo de {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} de {2} · {3}/s</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} de {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/s</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · En pausa</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Pausar</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Reanudar</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Detener</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>No recibido: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>No enviado: {0}</value>
   </data>
 </root>

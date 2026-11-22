@@ -599,24 +599,6 @@
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V занято другим приложением, поэтому сочетание отключено.</value>
   </data>
-  <data name="Xfer_Sending" xml:space="preserve">
-    <value>Отправка на телефон</value>
-  </data>
-  <data name="Xfer_Receiving" xml:space="preserve">
-    <value>Получение с телефона</value>
-  </data>
-  <data name="Xfer_Count" xml:space="preserve">
-    <value>{0} из {1}</value>
-  </data>
-  <data name="Xfer_Detail" xml:space="preserve">
-    <value>{0} из {1} · {2}/с</value>
-  </data>
-  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
-    <value>{0} из {1}</value>
-  </data>
-  <data name="Xfer_Percent" xml:space="preserve">
-    <value>{0}%</value>
-  </data>
   <data name="Xfer_SentOne" xml:space="preserve">
     <value>Отправлено: {0}</value>
   </data>
@@ -813,5 +795,41 @@
   </data>
   <data name="Balloon_CodexTrust" xml:space="preserve">
     <value>Edgepad обновлён. В Codex введите /hooks и отметьте Edgepad как доверенный, иначе подтверждения останутся в терминале, а не на телефоне.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>Пере&amp;дачи</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Отправка на {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Получение от {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} из {2} · {3}/с</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} из {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/с</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · Приостановлено</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Пауза</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Продолжить</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Остановить</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Не получено: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>Не отправлено: {0}</value>
   </data>
 </root>

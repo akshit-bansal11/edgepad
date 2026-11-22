@@ -54,7 +54,8 @@ internal sealed class Session(
     Action<string> onFileArrived,
     Action<string, ulong, ulong>? onFileProgress = null,
     Action<string, XferCode>? onFileFailed = null,
-    WindowsIntegrations? integrations = null) : IDisposable
+    WindowsIntegrations? integrations = null,
+    Action<bool, bool>? onTransferPaused = null) : IDisposable
 {
     private const byte MutedFlag = 1;
     private const byte PlayingFlag = 1;
@@ -301,6 +302,15 @@ internal sealed class Session(
         return current.Send(path, id, progress, cancel);
     }
 
+    /// <summary>Holds the file moving in the given direction. False when none moves or it is held already.</summary>
+    internal bool PauseTransfer(bool sending) => sending ? sender?.Pause() == true : receiver?.Pause() == true;
+
+    /// <summary>Lets go of this end's hold on the file moving in the given direction.</summary>
+    internal bool ResumeTransfer(bool sending) => sending ? sender?.Resume() == true : receiver?.Resume() == true;
+
+    /// <summary>Stops the file arriving and tells the phone. False when none arrives.</summary>
+    internal bool StopReceive() => receiver?.Cancel() == true;
+
     /// <summary>Sends <paramref name="text"/> to the phone's clipboard now and blocks until it ends; never call it on the read thread. False when it did not go.</summary>
     internal bool SendClipboardText(string text) =>
         clipboardSync?.SendNow(BlobKind.ClipText, System.Text.Encoding.UTF8.GetBytes(text)) == true;
@@ -374,11 +384,12 @@ internal sealed class Session(
 
         // Files, both ways, one at a time each. A part is kept when the session ends, for the next BEGIN of the same file.
         var incoming = new TransferReceiver(
-            WindowsTransfers.Destination(), WindowsTransfers.PartialFolder(), status => Guarded(() => SendTransfer(status)), onFileArrived, beforeSave: WindowsTransfers.MarkFromWeb, progress: onFileProgress, failed: onFileFailed);
+            WindowsTransfers.Destination(), WindowsTransfers.PartialFolder(), status => Guarded(() => SendTransfer(status)), onFileArrived, beforeSave: WindowsTransfers.MarkFromWeb, progress: onFileProgress, failed: onFileFailed, pausedChanged: held => onTransferPaused?.Invoke(false, held));
         Keep(incoming);
         dispatcher.Transfers = incoming;
         receiver = incoming;
-        var outgoing = new TransferSender(SendTransfer, link.Kind, () => dispatcher.LastInputMs, ended.Token);
+        var outgoing = new TransferSender(
+            SendTransfer, link.Kind, () => dispatcher.LastInputMs, ended.Token, pausedChanged: held => onTransferPaused?.Invoke(true, held));
         dispatcher.Sending = outgoing;
         sender = outgoing;
 

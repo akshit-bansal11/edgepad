@@ -49,10 +49,21 @@ public sealed class DesignGallery
 
     private static void Shoot(string folder)
     {
-        using var toast = new TransferToast { OnCancel = () => { }, OnRetry = () => { } };
+        using var toast = new TransferToast
+        {
+            OnPause = _ => { },
+            OnResume = _ => { },
+            OnStop = _ => { },
+            OnRetry = () => { },
+            PhoneName = () => "Pixel 8",
+        };
         var running = new TransferView(TransferPhase.Running, true, 2, 5, "holiday-photos-final.zip", 37, 100, 4194304, 1, [], 0, false);
         var finished = new TransferView(TransferPhase.Finished, true, 5, 5, "a.pdf", 0, 0, 0, 5, [], 0, false);
+        var failed = new TransferView(
+            TransferPhase.Finished, true, 1, 1, "holiday-photos-final.zip", 0, 0, 0, 0, [new TransferFailed("holiday-photos-final.zip", TransferFailure.LinkLost)], 0, false);
         Save(folder, "toast-run", toast, running);
+        Save(folder, "toast-paused", toast, running with { Paused = true });
+        Save(folder, "toast-failed", toast, failed);
         Save(folder, "toast-finished", toast, finished);
         SaveLaser(folder, "laser-medium", 15);
         SaveTray(folder);
@@ -86,6 +97,7 @@ public sealed class DesignGallery
         settingsMenu.Items.Add(new MenuRow(Strings.Menu_OpenLog, Icons.FileText));
         settingsMenu.Items.Add(new MenuRow(Strings.Menu_Documentation, Icons.BookOpen) { Hint = "getedgepad.com" });
 
+        main.Items.Add(new MenuRow(Strings.Menu_Transfers, Icons.FileText));
         main.Items.Add(new MenuSeparator());
         main.Items.Add(new MenuRow(Strings.Menu_SendFile, Icons.Download));
         main.Items.Add(new MenuRow(Strings.Menu_Macros, Icons.Macro) { Hint = Strings.Menu_MacrosCount.Fill(3, 20) });

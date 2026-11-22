@@ -89,6 +89,12 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MenuRow sendFileRow = new(Strings.Menu_SendFile, Icons.Download);
     private readonly SendPipe? sendPipe;
 
+    // Brings the transfer card back after Close; in the menu only while a batch runs.
+    private readonly MenuRow transfersRow = new(Strings.Menu_Transfers, Icons.FileText) { Available = false };
+
+    // The phone's name as the card last read it, for the title once the session is gone.
+    private string lastPhone = string.Empty;
+
     // Sending and receiving files both report to one feed; the toast shows it. Built in the constructor, on the UI thread.
     private readonly TransferFeed feed = new();
     private readonly SendQueue queue;
@@ -211,6 +217,7 @@ internal sealed class TrayContext : ApplicationContext
         // read the key without writing it back — least of all deleting it after a failed read.
         startWithWindows.Click += (_, _) => SaveStartWithWindows(startWithWindows.Checked);
         sendFileRow.Click += (_, _) => PickAndSendFile();
+        transfersRow.Click += (_, _) => toast.Reveal();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
         securityRow.Click += (_, _) => ShowSecurity();
         integrationsRow.Click += (_, _) => ShowIntegrations(developer: false);
@@ -270,6 +277,7 @@ internal sealed class TrayContext : ApplicationContext
 
         // The header is the menu's own. Under it, in the order the plan fixes: the update, then whatever is wrong or
         // needs doing (rows that stay hidden while all is well), then the switches, the windows, the help, and Quit.
+        menu.Items.Add(transfersRow);
         menu.Items.Add(update);
         menu.Items.Add(installRow);
         menu.Items.Add(laterRow);
@@ -293,6 +301,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Opening += (_, _) =>
         {
             startWithWindows.Checked = RunAtLogin.IsEnabled;
+            transfersRow.Available = feed.View.Phase == TransferPhase.Running;
             developerRow.Checked = integrations.Settings.Flag(IntegrationSettings.Developer);
             developerIntegrationsRow.Available = developerRow.Checked;
             securityRow.Hint = SecurityWindow.LevelName(pin.Level);
@@ -384,21 +393,36 @@ internal sealed class TrayContext : ApplicationContext
             onFileArrived: path => PostReceiveEnd(() => OnReceived(path)),
             onFileProgress: PostReceiveProgress,
             onFileFailed: (name, code) => PostReceiveEnd(() => OnReceiveFailed(name, code)),
-            integrations: integrations);
+            integrations: integrations,
+            onTransferPaused: OnTransferPaused);
+
+        // A paused batch held between files would wait out its cap when the phone is gone; ending it is what the session ending does.
+        host.ConnectedEnded += () => PostToUi(() =>
+        {
+            if (queue.IsPaused)
+            {
+                queue.Cancel();
+            }
+        });
 
         // Handlers run under the queue's lock: they only post to the toast, and never call back into the queue.
         toast = new TransferToast
         {
-            OnCancel = CancelSends,
+            OnPause = PauseTransfer,
+            OnResume = ResumeTransfer,
+            OnStop = StopTransfer,
             OnRetry = Retry,
             OnClose = () => feed.Dismiss(),
+            PhoneName = PhoneLabel,
         };
         feed.Changed += toast.Show;
         receiveEnd.Tick += (_, _) => EndReceiveBatch();
         queue = new SendQueue(
             (path, _, ct) => host.SendFile(path, sent => feed.Bytes(sent), ct),
             feed,
-            path => File.Exists(path) ? new FileInfo(path).Length : null);
+            path => File.Exists(path) ? new FileInfo(path).Length : null,
+            () => host.PauseTransfer(sending: true),
+            () => host.ResumeTransfer(sending: true));
         SendPipe.EnsureShortcut();
         sendPipe = new SendPipe((paths, skipped) => ui.Post(_ => SendFiles(paths, skipped), null));
         server = new RfcommServer(SetStatus, host);
@@ -1177,7 +1201,43 @@ internal sealed class TrayContext : ApplicationContext
         }
     }
 
-    private void CancelSends() => queue.Cancel();
+    // The card's buttons. A send is held and stopped through the queue, which owns the batch; a receive has no queue, so the
+    // receiver is asked directly and the card is told it is stopping, since the sender's answer can take a moment.
+    private void PauseTransfer(bool sending) => _ = sending ? queue.Pause() : host.PauseTransfer(sending: false);
+
+    private void ResumeTransfer(bool sending) => _ = sending ? queue.Resume() : host.ResumeTransfer(sending: false);
+
+    private void StopTransfer(bool sending)
+    {
+        if (sending)
+        {
+            queue.Cancel();
+            return;
+        }
+
+        feed.RequestCancel();
+        _ = host.StopReceive();
+    }
+
+    // Session or pool thread. The sender reports the batch going out and the receiver the one coming in; the one that is
+    // hidden behind the other, or a release that comes while the queue still holds the batch between files, is not shown.
+    private void OnTransferPaused(bool sending, bool held)
+    {
+        if (sending ? queue.IsRunning && (held || !queue.IsPaused) : !ReceiveHidden())
+        {
+            feed.SetPaused(held);
+        }
+    }
+
+    private string PhoneLabel()
+    {
+        if (host.CurrentAddress is { } address)
+        {
+            lastPhone = host.Shown(address);
+        }
+
+        return lastPhone;
+    }
 
     // The high bit (a negative short) means the key is down now.
     private static bool ModifierDown() =>
@@ -1831,6 +1891,7 @@ internal sealed class TrayContext : ApplicationContext
             menu.Dispose();
             startWithWindows.Dispose();
             sendFileRow.Dispose();
+            transfersRow.Dispose();
             sendPipe?.Dispose();
             macrosRow.Dispose();
             securityRow.Dispose();

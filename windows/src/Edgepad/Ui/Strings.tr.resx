@@ -589,24 +589,6 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V başka bir uygulama tarafından kullanılıyor, bu yüzden kısayol kapalı.</value>
   </data>
-  <data name="Xfer_Sending" xml:space="preserve">
-    <value>Telefona gönderiliyor</value>
-  </data>
-  <data name="Xfer_Receiving" xml:space="preserve">
-    <value>Telefondan alınıyor</value>
-  </data>
-  <data name="Xfer_Count" xml:space="preserve">
-    <value>{0} / {1}</value>
-  </data>
-  <data name="Xfer_Detail" xml:space="preserve">
-    <value>{0} / {1} · {2}/sn</value>
-  </data>
-  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
-    <value>{0} / {1}</value>
-  </data>
-  <data name="Xfer_Percent" xml:space="preserve">
-    <value>%{0}</value>
-  </data>
   <data name="Xfer_SentOne" xml:space="preserve">
     <value>{0} gönderildi</value>
   </data>
@@ -803,5 +785,41 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   </data>
   <data name="Balloon_CodexTrust" xml:space="preserve">
     <value>Edgepad güncellendi. Codex’te /hooks yazın ve Edgepad’e güvenin; aksi halde onaylar telefon yerine terminalde kalır.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>&amp;Aktarımlar</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>{0} telefona gönderiliyor</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>{0} telefondan alınıyor</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {2} içinden {1} · {3}/sn</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {2} içinden {1}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/sn</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · Duraklatıldı</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Duraklat</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Devam et</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Durdur</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Alınamadı: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>Gönderilemedi: {0}</value>
   </data>
 </root>

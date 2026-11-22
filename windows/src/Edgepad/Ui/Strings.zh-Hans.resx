@@ -599,24 +599,6 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V 已被其他应用占用，因此快捷键已关闭。</value>
   </data>
-  <data name="Xfer_Sending" xml:space="preserve">
-    <value>正在发送到手机</value>
-  </data>
-  <data name="Xfer_Receiving" xml:space="preserve">
-    <value>正在从手机接收</value>
-  </data>
-  <data name="Xfer_Count" xml:space="preserve">
-    <value>{0}/{1}</value>
-  </data>
-  <data name="Xfer_Detail" xml:space="preserve">
-    <value>{0}/{1} · {2}/秒</value>
-  </data>
-  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
-    <value>{0}/{1}</value>
-  </data>
-  <data name="Xfer_Percent" xml:space="preserve">
-    <value>{0}%</value>
-  </data>
   <data name="Xfer_SentOne" xml:space="preserve">
     <value>已发送 {0}</value>
   </data>
@@ -813,5 +795,41 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   </data>
   <data name="Balloon_CodexTrust" xml:space="preserve">
     <value>Edgepad 已更新。请在 Codex 中输入 /hooks 并信任 Edgepad，否则审批会留在终端里，而不会到达手机。</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>传输(&amp;R)</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>正在发送到 {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>正在从 {0} 接收</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} / {2} · {3}/秒</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} / {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/秒</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · 已暂停</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>暂停</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>继续</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>未收到：{0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>未发送：{0}</value>
   </data>
 </root>

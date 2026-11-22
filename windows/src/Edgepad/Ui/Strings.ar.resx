@@ -599,24 +599,6 @@
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>‏Win+Alt+V مستخدم في تطبيق آخر، لذا الاختصار متوقف.</value>
   </data>
-  <data name="Xfer_Sending" xml:space="preserve">
-    <value>جارٍ الإرسال إلى الهاتف</value>
-  </data>
-  <data name="Xfer_Receiving" xml:space="preserve">
-    <value>جارٍ الاستلام من الهاتف</value>
-  </data>
-  <data name="Xfer_Count" xml:space="preserve">
-    <value>{0} من {1}</value>
-  </data>
-  <data name="Xfer_Detail" xml:space="preserve">
-    <value>{0} من {1} · {2}/ث</value>
-  </data>
-  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
-    <value>{0} من {1}</value>
-  </data>
-  <data name="Xfer_Percent" xml:space="preserve">
-    <value>{0}%</value>
-  </data>
   <data name="Xfer_SentOne" xml:space="preserve">
     <value>أُرسل {0}</value>
   </data>
@@ -813,5 +795,41 @@
   </data>
   <data name="Balloon_CodexTrust" xml:space="preserve">
     <value>تم تحديث Edgepad. في Codex، اكتب /hooks وامنح Edgepad الثقة، وإلا ستبقى الموافقات في الطرفية بدل الهاتف.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>عمليات النقل (&amp;R)</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>جارٍ الإرسال إلى {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>جارٍ الاستلام من {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} من {2} · {3}/ث</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} من {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/ث</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · متوقف مؤقتاً</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>إيقاف مؤقت</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>متابعة</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>إنهاء</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>لم يُستلم: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>لم يُرسل: {0}</value>
   </data>
 </root>

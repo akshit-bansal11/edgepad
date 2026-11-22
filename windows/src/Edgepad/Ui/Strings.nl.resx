@@ -580,24 +580,6 @@
   <data name="Clip_HotkeyTaken" xml:space="preserve">
     <value>Win+Alt+V wordt door een andere app gebruikt, dus de sneltoets staat uit.</value>
   </data>
-  <data name="Xfer_Sending" xml:space="preserve">
-    <value>Naar telefoon versturen</value>
-  </data>
-  <data name="Xfer_Receiving" xml:space="preserve">
-    <value>Van telefoon ontvangen</value>
-  </data>
-  <data name="Xfer_Count" xml:space="preserve">
-    <value>{0} van {1}</value>
-  </data>
-  <data name="Xfer_Detail" xml:space="preserve">
-    <value>{0} van {1} · {2}/s</value>
-  </data>
-  <data name="Xfer_DetailNoSpeed" xml:space="preserve">
-    <value>{0} van {1}</value>
-  </data>
-  <data name="Xfer_Percent" xml:space="preserve">
-    <value>{0}%</value>
-  </data>
   <data name="Xfer_SentOne" xml:space="preserve">
     <value>{0} verstuurd</value>
   </data>
@@ -794,5 +776,41 @@
   </data>
   <data name="Balloon_CodexTrust" xml:space="preserve">
     <value>Edgepad is bijgewerkt. Typ in Codex /hooks en vertrouw Edgepad, anders blijven goedkeuringen in de terminal in plaats van op je telefoon.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>Over&amp;drachten</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Verzenden naar {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Ontvangen van {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} van {2} · {3}/s</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} van {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/s</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · Gepauzeerd</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Pauzeren</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Hervatten</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Stoppen</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Niet ontvangen: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>Niet verstuurd: {0}</value>
   </data>
 </root>

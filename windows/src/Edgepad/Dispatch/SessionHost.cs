@@ -44,7 +44,8 @@ internal sealed class SessionHost(
     Action<string>? onFileArrived = null,
     Action<string, ulong, ulong>? onFileProgress = null,
     Action<string, XferCode>? onFileFailed = null,
-    WindowsIntegrations? integrations = null) : IDisposable
+    WindowsIntegrations? integrations = null,
+    Action<bool, bool>? onTransferPaused = null) : IDisposable
 {
     // Joined at exit so the session's own cleanup, which releases held keys and buttons, gets to run.
     private static readonly TimeSpan ExitGrace = TimeSpan.FromSeconds(2);
@@ -176,7 +177,7 @@ internal sealed class SessionHost(
             var platform = new WindowsPlatform(injector, pad, speakers, microphone, brightness, media, display, overlay, annotator);
             var dispatcher = new Dispatcher(platform, macros);
             session = new Session(
-                link, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, foreground, identity, clipboard, shareClipboard, onMacroAdded, StatusFor(link), OnAdmitted, OnSessionEnded, LiveFor, path => onFileArrived?.Invoke(path), onFileProgress, onFileFailed, integrations);
+                link, trust, pin, askTrust, injector, pad, dispatcher, annotator, speakers, microphone, brightness, media, display, macros, foreground, identity, clipboard, shareClipboard, onMacroAdded, StatusFor(link), OnAdmitted, OnSessionEnded, LiveFor, path => onFileArrived?.Invoke(path), onFileProgress, onFileFailed, integrations, onTransferPaused);
 
             // A dedicated thread, not the thread pool: the read loop blocks for the life of the connection,
             // and input is injected from this thread directly, so nothing queues behind other work.
@@ -285,6 +286,26 @@ internal sealed class SessionHost(
             : Task.Run(() => (XferCode?)session.SendFile(path, cancel, progress), CancellationToken.None);
     }
 
+    /// <summary>Raised, on the thread the session ended on, when the connected phone's session ends.</summary>
+    public event Action? ConnectedEnded;
+
+    private Session? Live()
+    {
+        lock (gate)
+        {
+            return connected;
+        }
+    }
+
+    /// <summary>Holds the file moving in this direction; false when none moves, it is held, or no phone is connected.</summary>
+    public bool PauseTransfer(bool sending) => Live()?.PauseTransfer(sending) == true;
+
+    /// <summary>Lets go of this end's hold on the file moving in this direction.</summary>
+    public bool ResumeTransfer(bool sending) => Live()?.ResumeTransfer(sending) == true;
+
+    /// <summary>Stops the file arriving and deletes its part; false when none arrives.</summary>
+    public bool StopReceive() => Live()?.StopReceive() == true;
+
     /// <summary>Sends <paramref name="text"/> to the connected phone's clipboard, on a pool thread. Null when no phone is connected; otherwise whether it went.</summary>
     public Task<bool?> SendClipboardText(string text)
     {
@@ -346,15 +367,21 @@ internal sealed class SessionHost(
     {
         sessionThreads.TryRemove(session, out _);
         _ = awaiting.TryRemove(session, out _);
+        var wasConnected = false;
         lock (gate)
         {
             if (ReferenceEquals(connected, session))
             {
                 connected = null;
+                wasConnected = true;
             }
         }
 
         onEnded(() => admission.Ended(session));
+        if (wasConnected)
+        {
+            ConnectedEnded?.Invoke();
+        }
     }
 
     /// <summary>
