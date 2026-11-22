@@ -211,7 +211,15 @@ class ShareActivity : Activity() {
         val progress = Transfers.progress
         Type.load(this)
         val ui = Ui(this)
-        val card = XferCardView(ui, onCancel = Transfers::cancel, onRetry = ::retry, onDone = progress::dismiss)
+        val card =
+            XferCardView(
+                ui,
+                onCancel = Transfers::cancel,
+                onPause = { Transfers.pause() },
+                onResume = { Transfers.resume() },
+                onRetry = ::retry,
+                onClose = progress::dismiss,
+            )
         val autoDone = Runnable { progress.dismiss() }
         var dialog: AlertDialog? = null
         val heard: (XferSnapshot) -> Unit = { s ->
