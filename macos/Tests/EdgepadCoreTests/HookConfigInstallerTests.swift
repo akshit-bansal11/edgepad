@@ -129,6 +129,72 @@ final class HookConfigInstallerTests: XCTestCase {
         XCTAssertFalse(settings.flag(AgentToken.gemini.rawValue))
     }
 
+    // Keys out of order, a duplicate key, a number spelled 2.50, odd spacing and a tab: none of it is Edgepad's.
+    private static let untidy =
+        "{\n\t\"zeta\": 1,\n  \"alpha\" :  2.50,\n  \"zeta\": 3,\n"
+        + "  \"hooks\": {\n    \"AfterTool\": [ {\"hooks\":[{\"name\":\"other\",\"command\":\"x\"}]} ],\n"
+        + "    \"BeforeAgent\": [\n      {\"hooks\":[{\"name\":\"mine\",\"command\":\"y\"}]}\n    ]\n  },\n"
+        + "  \"url\": \"http://a/b\"\n}\n"
+
+    func testGeminiConnectThenDisconnectIsByteForByteForTheUsersFile() throws {
+        let installer = try make()
+        try write(installer.geminiFile, Self.untidy)
+
+        XCTAssertEqual(installer.connect(AgentToken.gemini.rawValue).state, .connected)
+
+        let connected = try text(installer.geminiFile)
+        XCTAssertTrue(connected.contains("\"alpha\" :  2.50"))
+        XCTAssertTrue(connected.contains("\"zeta\": 1,\n  \"alpha\""))
+        XCTAssertTrue(connected.contains("\"zeta\": 3,"))
+        XCTAssertTrue(connected.contains("http://a/b"))
+        XCTAssertEqual(ours(try read(installer.geminiFile)).count, 5)
+
+        XCTAssertEqual(installer.disconnect(AgentToken.gemini.rawValue).state, .notConnected)
+
+        XCTAssertEqual(try text(installer.geminiFile), Self.untidy)
+    }
+
+    func testGeminiConnectOnAFileWithNoHooksAddsOneMemberAndDisconnectRestoresTheBytes() throws {
+        let installer = try make()
+        let original = "{\n  \"b\": [1, 2.50],\n  \"a\": null\n}\n"
+        try write(installer.geminiFile, original)
+
+        _ = installer.connect(AgentToken.gemini.rawValue)
+        XCTAssertTrue(try text(installer.geminiFile).hasPrefix("{\n  \"b\": [1, 2.50],\n  \"a\": null,\n  \"hooks\""))
+
+        _ = installer.disconnect(AgentToken.gemini.rawValue)
+        XCTAssertEqual(try text(installer.geminiFile), original)
+    }
+
+    func testAnUnchangedConnectDoesNotTouchTheFileAndTheFirstBackupIsKept() throws {
+        let installer = try make()
+        try write(installer.geminiFile, Self.untidy)
+        _ = installer.connect(AgentToken.gemini.rawValue)
+        let backup = installer.geminiFile + HookConfigInstaller.backupSuffix
+        XCTAssertEqual(try text(backup), Self.untidy)
+
+        // The same app again changes nothing; another app path rewrites our entries but never the first backup.
+        _ = installer.connect(AgentToken.gemini.rawValue)
+        let once = try text(installer.geminiFile)
+        let moved = try make(app: "/opt/other/edgepad")
+        XCTAssertEqual(moved.connect(AgentToken.gemini.rawValue).state, .connected)
+
+        XCTAssertNotEqual(try text(installer.geminiFile), once)
+        XCTAssertTrue(try text(installer.geminiFile).contains("/opt/other/edgepad"))
+        XCTAssertFalse(try text(installer.geminiFile).contains(app))
+        XCTAssertEqual(ours(try read(installer.geminiFile)).count, 5)
+        XCTAssertEqual(try text(backup), Self.untidy)
+    }
+
+    func testGeminiRefusesTwoHooksKeys() throws {
+        let installer = try make()
+        let content = "{ \"hooks\": {}, \"hooks\": {} }"
+        try write(installer.geminiFile, content)
+
+        XCTAssertEqual(installer.connect(AgentToken.gemini.rawValue).state, .failed)
+        XCTAssertEqual(try text(installer.geminiFile), content)
+    }
+
     func testGeminiDisconnectWithNoFileIsFine() throws {
         let installer = try make()
 

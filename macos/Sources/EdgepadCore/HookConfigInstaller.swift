@@ -5,10 +5,11 @@ import Foundation
 /// into `~/.gemini/settings.json`; every other key, hook and group is kept. OpenCode: the file `edgepad.ts` in
 /// `~/.config/opencode/plugins/`, which a file without our first-line marker is never overwritten or deleted. A config
 /// that is not strict JSON (comments, a trailing comma, a root that is not an object, a `hooks` of the wrong shape) is
-/// refused and reported, never rewritten. The old file is copied to `settings.json.edgepad-backup` before every write,
-/// and the new one replaces it whole, keeping the mode of the file it replaces. The twin of the core's
-/// HookConfigInstaller. Unlike the core's, a rewritten Gemini file has its keys sorted and numbers in Foundation's
-/// spelling (2.50 becomes 2.5), and a duplicate key is not refused: JSONSerialization keeps the last one.
+/// refused and reported, never rewritten. An existing Gemini file is edited as text: only our groups are inserted or
+/// cut out (with the comma beside them), so key order, number spelling, duplicate keys and whitespace of everything
+/// else survive byte for byte. The first copy of the old file is kept as `settings.json.edgepad-backup` and never
+/// overwritten; the new file replaces the old whole, keeping its mode. Two `hooks` keys, or two keys of one of our
+/// event names, are refused as ambiguous. The twin of the core's HookConfigInstaller.
 public final class HookConfigInstaller {
     public static let geminiTemplate = "hooks/hooks.gemini.json"
     public static let openCodeFolder = "opencode/"
@@ -110,76 +111,91 @@ public final class HookConfigInstaller {
 
     // MARK: Gemini CLI
 
+    // One member of an object or element of an array, as byte offsets into the file: start..<end is the whole item
+    // (`"key": value` for a member), valueStart..<end the value.
+    private struct Item {
+        let start: Int
+        let end: Int
+        let key: String?
+        let valueStart: Int
+    }
+
     private func connectGemini() throws {
         let template = try JSONSerialization.jsonObject(with: try templateBytes(Self.geminiTemplate))
         guard let ours = (template as? [String: Any])?["hooks"] as? [String: Any] else {
             throw Refused(reason: "The Gemini template has no hooks")
         }
-        let (loaded, existed) = try loadGemini()
-        var root = loaded
-        let before = try Self.render(root)
-        Self.removeOurs(&root)
-        if root["hooks"] == nil {
-            root["hooks"] = [String: Any]()
+        guard FileManager.default.fileExists(atPath: geminiFile) else {
+            let fresh = try Self.render(["hooks": ours])
+            if let why = writePrivately(fresh + "\n", to: geminiFile) { throw Refused(reason: why) }
+            return
         }
-        guard var hooks = root["hooks"] as? [String: Any] else { throw Refused(reason: "hooks is not an object") }
-        for (name, groups) in ours {
-            if hooks[name] == nil {
-                hooks[name] = [Any]()
-            }
-            guard var list = hooks[name] as? [Any], let add = groups as? [Any] else {
-                throw Refused(reason: "A hooks entry is not an array")
-            }
-            list.append(contentsOf: add)
-            hooks[name] = list
-        }
-        root["hooks"] = hooks
-        try save(geminiFile, root, existed: existed, before: before)
+        let (parsed, original) = try loadGemini()
+        try Self.checkShape(parsed, ours)
+        if Self.isCurrent(parsed, ours) { return }
+        // Only our entries are cut out and put in, as text: every other byte of the file stays where it is.
+        var bytes = [UInt8](original)
+        try Self.removeOurs(&bytes)
+        try Self.insertOurs(&bytes, ours)
+        try save(geminiFile, bytes, original: original)
     }
 
     private func disconnectGemini() throws {
         guard FileManager.default.fileExists(atPath: geminiFile) else { return }
-        var (root, _) = try loadGemini()
-        let before = try Self.render(root)
-        Self.removeOurs(&root)
-        try save(geminiFile, root, existed: true, before: before)
+        let (_, original) = try loadGemini()
+        var bytes = [UInt8](original)
+        try Self.removeOurs(&bytes)
+        try save(geminiFile, bytes, original: original)
     }
 
-    private func loadGemini() throws -> (root: [String: Any], existed: Bool) {
-        guard FileManager.default.fileExists(atPath: geminiFile) else { return ([:], false) }
+    private func loadGemini() throws -> (root: [String: Any], bytes: Data) {
         let data = try Data(contentsOf: URL(fileURLWithPath: geminiFile))
         guard data.count <= Self.maxBytes else { throw Refused(reason: "The Gemini settings file is too large") }
         guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw Refused(reason: "The Gemini settings are not an object")
         }
-        return (root, true)
+        return (root, data)
     }
 
-    // Takes out every hook entry named edgepad that runs our command, then the groups and event lists that this
-    // emptied; nothing else.
-    private static func removeOurs(_ root: inout [String: Any]) {
-        guard var hooks = root["hooks"] as? [String: Any] else { return }
-        for (name, node) in hooks {
-            guard var groups = node as? [Any] else { continue }
-            var touched = false
-            for index in stride(from: groups.count - 1, through: 0, by: -1) {
-                guard var group = groups[index] as? [String: Any], var list = group["hooks"] as? [Any] else { continue }
-                let count = list.count
-                list.removeAll { isOurs($0) }
-                guard list.count < count else { continue }
-                touched = true
-                if list.isEmpty {
-                    groups.remove(at: index)
-                } else {
-                    group["hooks"] = list
-                    groups[index] = group
-                }
-            }
-            if touched {
-                hooks[name] = groups.isEmpty ? nil : groups
+    // A `hooks` that is not an object, or an event of ours that is not an array, cannot take our entries.
+    private static func checkShape(_ root: [String: Any], _ ours: [String: Any]) throws {
+        guard let node = root["hooks"] else { return }
+        guard let hooks = node as? [String: Any] else { throw Refused(reason: "hooks is not an object") }
+        for name in ours.keys where hooks[name] != nil && !(hooks[name] is [Any]) {
+            throw Refused(reason: "A hooks entry is not an array")
+        }
+    }
+
+    // True when the file already holds exactly our current entries and no other of ours: nothing to write.
+    private static func isCurrent(_ root: [String: Any], _ ours: [String: Any]) -> Bool {
+        let hooks = root["hooks"] as? [String: Any] ?? [:]
+        var present = 0
+        for (_, groups) in hooks {
+            for group in groups as? [Any] ?? [] where isOurGroup(group) {
+                present += 1
             }
         }
-        root["hooks"] = hooks.isEmpty ? nil : hooks
+        var wanted = 0
+        for (name, groups) in ours {
+            let have = hooks[name] as? [Any] ?? []
+            for group in groups as? [Any] ?? [] {
+                wanted += 1
+                guard let want = group as? [String: Any] else { return false }
+                var same = false
+                for candidate in have {
+                    guard let c = candidate as? [String: Any] else { continue }
+                    if NSDictionary(dictionary: c).isEqual(to: want) { same = true }
+                }
+                if !same { return false }
+            }
+        }
+        return present == wanted
+    }
+
+    // A group of hook entries all of which are ours (Edgepad writes whole groups of its own, never into a user's).
+    private static func isOurGroup(_ group: Any) -> Bool {
+        guard let list = (group as? [String: Any])?["hooks"] as? [Any], !list.isEmpty else { return false }
+        return list.allSatisfy { isOurs($0) }
     }
 
     private static func isOurs(_ hook: Any) -> Bool {
@@ -189,25 +205,205 @@ public final class HookConfigInstaller {
         return command.contains(geminiCommand)
     }
 
+    // Takes out every group that is ours, then the event list and the `hooks` object that this alone emptied; the
+    // text around each cut, the user's formatting included, is left as it was.
+    private static func removeOurs(_ bytes: inout [UInt8]) throws {
+        while try removeOneOurs(&bytes) {}
+    }
+
+    private static func removeOneOurs(_ bytes: inout [UInt8]) throws -> Bool {
+        let root = try rootOpen(bytes)
+        let top = items(bytes, open: root)
+        let found = top.indices.filter { top[$0].key == "hooks" }
+        guard found.count <= 1 else { throw Refused(reason: "The Gemini settings have two hooks keys") }
+        guard let h = found.first, bytes[top[h].valueStart] == 0x7B else { return false }
+        let hooks = items(bytes, open: top[h].valueStart)
+        for (e, event) in hooks.enumerated() where bytes[event.valueStart] == 0x5B {
+            let groups = items(bytes, open: event.valueStart)
+            for (g, group) in groups.enumerated() where bytes[group.start] == 0x7B && isOurGroup(parse(bytes, group)) {
+                if groups.count > 1 {
+                    delete(&bytes, open: event.valueStart, index: g)
+                } else if hooks.count > 1 {
+                    delete(&bytes, open: top[h].valueStart, index: e)
+                } else {
+                    delete(&bytes, open: root, index: h)
+                }
+                return true
+            }
+        }
+        return false
+    }
+
+    // Puts our groups at the end of their event's list, adding the event, or `hooks` itself, when it is missing.
+    private static func insertOurs(_ bytes: inout [UInt8], _ ours: [String: Any]) throws {
+        let root = try rootOpen(bytes)
+        let found = items(bytes, open: root).filter { $0.key == "hooks" }
+        guard found.count <= 1 else { throw Refused(reason: "The Gemini settings have two hooks keys") }
+        guard let hooks = found.first else {
+            append(&bytes, open: root, Array("\"hooks\":".utf8) + (try compact(ours)))
+            return
+        }
+        guard bytes[hooks.valueStart] == 0x7B else { throw Refused(reason: "hooks is not an object") }
+        for name in ours.keys.sorted() {
+            let groups = ours[name] as? [Any] ?? []
+            let events = items(bytes, open: hooks.valueStart).filter { $0.key == name }
+            guard events.count <= 1 else { throw Refused(reason: "The Gemini settings have two \(name) keys") }
+            if let event = events.first {
+                guard bytes[event.valueStart] == 0x5B else { throw Refused(reason: "A hooks entry is not an array") }
+                for group in groups {
+                    append(&bytes, open: event.valueStart, try compact(group))
+                }
+            } else {
+                append(&bytes, open: hooks.valueStart, Array("\"\(name)\":".utf8) + (try compact(groups)))
+            }
+        }
+    }
+
+    private static func rootOpen(_ bytes: [UInt8]) throws -> Int {
+        let root = skipSpace(bytes, 0)
+        guard root < bytes.count, bytes[root] == 0x7B else {
+            throw Refused(reason: "The Gemini settings are not an object")
+        }
+        return root
+    }
+
+    private static func compact(_ value: Any) throws -> [UInt8] {
+        [UInt8](try JSONSerialization.data(withJSONObject: value, options: [.sortedKeys, .withoutEscapingSlashes]))
+    }
+
+    private static func parse(_ bytes: [UInt8], _ item: Item) -> Any {
+        (try? JSONSerialization.jsonObject(with: Data(bytes[item.start..<item.end]))) ?? NSNull()
+    }
+
     private static func render(_ root: [String: Any]) throws -> String {
         let data = try JSONSerialization.data(
             withJSONObject: root, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
         return String(decoding: data, as: UTF8.self)
     }
 
-    // Writes only a changed file, after copying the old one aside.
-    private func save(_ file: String, _ root: [String: Any], existed: Bool, before: String) throws {
-        let after = try Self.render(root)
-        guard after != before else { return }
+    // MARK: Text scanning (the file is already known to be strict JSON, so this only has to find the edges)
+
+    private static let delimiters = Set<UInt8>(Array(",]} \t\r\n".utf8))
+
+    private static func skipSpace(_ bytes: [UInt8], _ from: Int) -> Int {
+        var i = from
+        while i < bytes.count, bytes[i] == 0x20 || bytes[i] == 0x09 || bytes[i] == 0x0A || bytes[i] == 0x0D {
+            i += 1
+        }
+        return i
+    }
+
+    // `open` is the opening quote; the result is the index after the closing one.
+    private static func stringEnd(_ bytes: [UInt8], _ open: Int) -> Int {
+        var i = open + 1
+        while i < bytes.count {
+            if bytes[i] == 0x5C {
+                i += 2
+            } else if bytes[i] == 0x22 {
+                return i + 1
+            } else {
+                i += 1
+            }
+        }
+        return bytes.count
+    }
+
+    private static func valueEnd(_ bytes: [UInt8], _ start: Int) -> Int {
+        guard start < bytes.count else { return start }
+        switch bytes[start] {
+        case 0x22:
+            return stringEnd(bytes, start)
+        case 0x7B, 0x5B:
+            var depth = 0
+            var i = start
+            while i < bytes.count {
+                switch bytes[i] {
+                case 0x22:
+                    i = stringEnd(bytes, i)
+                    continue
+                case 0x7B, 0x5B:
+                    depth += 1
+                case 0x7D, 0x5D:
+                    depth -= 1
+                    if depth == 0 { return i + 1 }
+                default:
+                    break
+                }
+                i += 1
+            }
+            return bytes.count
+        default:
+            var i = start
+            while i < bytes.count, !delimiters.contains(bytes[i]) { i += 1 }
+            return i
+        }
+    }
+
+    // The members of the object, or the elements of the array, opening at `open`.
+    private static func items(_ bytes: [UInt8], open: Int) -> [Item] {
+        let isObject = bytes[open] == 0x7B
+        var found: [Item] = []
+        var i = skipSpace(bytes, open + 1)
+        while i < bytes.count, bytes[i] != 0x7D, bytes[i] != 0x5D {
+            let start = i
+            var key: String?
+            var valueStart = i
+            if isObject {
+                let keyEnd = stringEnd(bytes, i)
+                let literal = [UInt8(ascii: "[")] + bytes[start..<keyEnd] + [UInt8(ascii: "]")]
+                key = (try? JSONSerialization.jsonObject(with: Data(literal)) as? [String])?.first
+                valueStart = skipSpace(bytes, skipSpace(bytes, keyEnd) + 1)
+            }
+            let end = valueEnd(bytes, valueStart)
+            found.append(Item(start: start, end: end, key: key, valueStart: valueStart))
+            i = skipSpace(bytes, end)
+            if i < bytes.count, bytes[i] == 0x2C { i = skipSpace(bytes, i + 1) }
+        }
+        return found
+    }
+
+    // Cuts one item with the comma that joins it to its neighbour. The exact inverse of `append` for its last item.
+    private static func delete(_ bytes: inout [UInt8], open: Int, index: Int) {
+        let list = items(bytes, open: open)
+        let item = list[index]
+        if list.count == 1 {
+            bytes.removeSubrange(item.start..<item.end)
+        } else if index < list.count - 1 {
+            bytes.removeSubrange(item.start..<list[index + 1].start)
+        } else {
+            bytes.removeSubrange(list[index - 1].end..<item.end)
+        }
+    }
+
+    // Adds `text` after the last item as `,` + the last item's own line indent + `text`; into an empty container,
+    // straight after its opening bracket.
+    private static func append(_ bytes: inout [UInt8], open: Int, _ text: [UInt8]) {
+        guard let last = items(bytes, open: open).last else {
+            bytes.insert(contentsOf: text, at: open + 1)
+            return
+        }
+        var lead: [UInt8] = []
+        var j = last.start
+        while j > 0, bytes[j - 1] == 0x20 || bytes[j - 1] == 0x09 { j -= 1 }
+        if j == 0 || bytes[j - 1] == 0x0A {
+            lead = [0x0A] + bytes[j..<last.start]
+        }
+        bytes.insert(contentsOf: [UInt8(ascii: ",")] + lead + text, at: last.end)
+    }
+
+    // Writes only a changed file, after copying the old one aside; an existing backup is the first and is kept.
+    private func save(_ file: String, _ bytes: [UInt8], original: Data) throws {
+        guard Data(bytes) != original else { return }
+        guard (try? JSONSerialization.jsonObject(with: Data(bytes)) as? [String: Any]) != nil else {
+            throw Refused(reason: "The edited Gemini settings would not be valid JSON")
+        }
         let manager = FileManager.default
-        var mode: NSNumber?
-        if existed {
-            mode = (try manager.attributesOfItem(atPath: file))[.posixPermissions] as? NSNumber
-            let backup = file + Self.backupSuffix
-            try? manager.removeItem(atPath: backup)
+        let mode = (try manager.attributesOfItem(atPath: file))[.posixPermissions] as? NSNumber
+        let backup = file + Self.backupSuffix
+        if !manager.fileExists(atPath: backup) {
             try manager.copyItem(atPath: file, toPath: backup)
         }
-        if let why = writePrivately(after + "\n", to: file) { throw Refused(reason: why) }
+        if let why = writePrivately(String(decoding: bytes, as: UTF8.self), to: file) { throw Refused(reason: why) }
         if let mode {
             try manager.setAttributes([.posixPermissions: mode], ofItemAtPath: file)
         }
