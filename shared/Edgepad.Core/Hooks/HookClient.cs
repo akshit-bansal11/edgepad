@@ -45,8 +45,15 @@ internal static class HookClient
     private const string PipeRoot = @"\\.\pipe\";
 
     // The lifecycle events the laptop's SessionBoard maps, and the Notification types that mean "the agent waits for you".
-    private static readonly string[] Events = ["SessionStart", "UserPromptSubmit", "Notification", "Stop", "SessionEnd"];
-    private static readonly string[] Notifications = ["permission_prompt", "idle_prompt", "agent_needs_input"];
+    // Gemini CLI adds BeforeAgent and AfterAgent and its own Notification type; OpenCode's plugin sends the five dotted names.
+    private static readonly string[] Events =
+    [
+        "SessionStart", "UserPromptSubmit", "Notification", "Stop", "SessionEnd",
+        "BeforeAgent", "AfterAgent",
+        "session.created", "session.busy", "session.idle", "permission.asked", "session.deleted",
+    ];
+
+    private static readonly string[] Notifications = ["permission_prompt", "idle_prompt", "agent_needs_input", "ToolPermission"];
 
     // Bash `command`; Edit/Write/MultiEdit/Read/NotebookEdit `file_path`; WebFetch `url`. The laptop picks per tool.
     private static readonly string[] InputFields = ["command", "file_path", "url"];
@@ -75,7 +82,13 @@ internal static class HookClient
         try
         {
             opts ??= new HookClientOptions();
-            if (args.Length < 3 || args[0] != Flag || args[1] is not ("claude" or "codex") || args[2] is not (HookProtocol.Perm or HookProtocol.Session or HookProtocol.Usage or HookProtocol.Spend))
+            if (args.Length < 3 || args[0] != Flag || args[1] is not ("claude" or "codex" or "gemini" or "opencode") || args[2] is not (HookProtocol.Perm or HookProtocol.Session or HookProtocol.Usage or HookProtocol.Spend))
+            {
+                return 0;
+            }
+
+            // Gemini CLI and OpenCode report their sessions only: approvals and limits stay with Claude Code and Codex.
+            if (args[1] is "gemini" or "opencode" && args[2] != HookProtocol.Session)
             {
                 return 0;
             }

@@ -23,6 +23,38 @@ internal sealed record HookEvent(string Agent, string SessionId, SessionEvent Ev
     public static HookEvent? FromCodex(string? hookEventName, string sessionId, string cwd) =>
         hookEventName == "SessionStart" ? new HookEvent(AgentToken.Codex, sessionId, SessionEvent.Start, cwd) : null;
 
+    /// <summary>
+    /// Gemini CLI hooks: SessionStart idle, BeforeAgent working, a ToolPermission Notification waiting, AfterAgent idle, SessionEnd gone.
+    /// Source: https://raw.githubusercontent.com/google-gemini/gemini-cli/main/docs/hooks/reference.md
+    /// </summary>
+    public static HookEvent? FromGemini(string? hookEventName, string? notificationType, string sessionId, string cwd) =>
+        (hookEventName switch
+        {
+            "SessionStart" => SessionEvent.Start,
+            "BeforeAgent" => SessionEvent.Prompt,
+            "Notification" when notificationType == "ToolPermission" => SessionEvent.NeedsYou,
+            "AfterAgent" => SessionEvent.Stop,
+            "SessionEnd" => SessionEvent.End,
+            _ => (SessionEvent?)null,
+        }) is { } e ? new HookEvent(AgentToken.Gemini, sessionId, e, cwd) : null;
+
+    /// <summary>
+    /// OpenCode plugin events, as the shipped plugin names them: session.created idle, session.busy working (its session.status with
+    /// status busy), permission.asked waiting, session.idle idle, session.deleted gone. Follows the https://opencode.ai/docs/en/plugins/
+    /// event list (the <c>({ client, directory })</c> plugin function); the newer https://opencode.ai/docs/build/plugins/ page describes a
+    /// different <c>Plugin.define</c> API that the shipped file does not use.
+    /// </summary>
+    public static HookEvent? FromOpenCode(string? hookEventName, string sessionId, string cwd) =>
+        (hookEventName switch
+        {
+            "session.created" => SessionEvent.Start,
+            "session.busy" => SessionEvent.Prompt,
+            "permission.asked" => SessionEvent.NeedsYou,
+            "session.idle" => SessionEvent.Stop,
+            "session.deleted" => SessionEvent.End,
+            _ => (SessionEvent?)null,
+        }) is { } e ? new HookEvent(AgentToken.OpenCode, sessionId, e, cwd) : null;
+
     private static SessionEvent? Map(string? name, string? notificationType) => name switch
     {
         "SessionStart" => SessionEvent.Start,

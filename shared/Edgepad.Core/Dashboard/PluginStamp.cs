@@ -171,6 +171,12 @@ internal static class PluginStamp
             return Marketplace;
         }
 
+        // The Gemini CLI and OpenCode templates are written by HookConfigInstaller, not copied into a Claude or Codex plugin.
+        if (entry == HookConfigInstaller.GeminiTemplate || entry == HookConfigInstaller.OpenCodeTemplate)
+        {
+            return null;
+        }
+
         if (entry is ClaudeHooks or CodexHooks)
         {
             return entry == (agent == AgentToken.Claude ? ClaudeHooks : CodexHooks) ? Hooks : null;

@@ -13,6 +13,8 @@ const TEMPLATES = [
     'hooks/hooks.claude.json',
     'hooks/hooks.codex.json',
     'hooks/relay.ts',
+    'hooks/hooks.gemini.json',
+    'opencode/edgepad.ts',
     'marketplace.template.json',
 ]
 const VALUES = {
@@ -85,4 +87,37 @@ test('only the permission hooks are waited on', () => {
             }
         }
     }
+})
+
+// Gemini CLI: five hook entries, all named edgepad, all the same session command; no approvals (Gemini is board-only).
+test('gemini hooks run the app for sessions only and carry our name', () => {
+    const gemini = JSON.parse(stamp(read('hooks/hooks.gemini.json')))
+    assert.deepEqual(Object.keys(gemini.hooks).sort(), ['AfterAgent', 'BeforeAgent', 'Notification', 'SessionEnd', 'SessionStart'])
+    for (const groups of Object.values(gemini.hooks)) {
+        for (const h of groups.flatMap(g => g.hooks)) {
+            assert.equal(h.name, 'edgepad')
+            assert.equal(h.type, 'command')
+            assert.equal(h.command, `"${VALUES.__APP__}" --hook gemini session`)
+            assert.ok(h.timeout > 0)
+        }
+    }
+})
+
+// OpenCode: a plugin file the app writes whole; its first line is the marker the installer checks before it ever deletes the file.
+test('opencode plugin forwards session events to the app and is marked as ours', () => {
+    const text = read('opencode/edgepad.ts')
+    assert.match(text.split('\n')[0], /Edgepad OpenCode plugin/)
+    assert.match(stamp(text), /const APP = "C:\\Users\\a b\\AppData\\Local\\Programs\\Edgepad\\Edgepad\.exe"/)
+    assert.match(text, /'--hook', 'opencode', 'session'/)
+    for (const name of ['session.created', 'session.idle', 'session.deleted', 'permission.asked', 'session.busy']) {
+        assert.ok(text.includes(name), name)
+    }
+})
+
+// The claude and codex copies must not carry the gemini or opencode files: stamping is done by the C# side's Target rule,
+// so here only the file names are pinned for it.
+test('the gemini and opencode templates sit where the installer looks for them', () => {
+    const files = readdirSync(ROOT, { recursive: true }).map(f => f.replaceAll(String.fromCharCode(92), '/'))
+    assert.ok(files.includes('hooks/hooks.gemini.json'))
+    assert.ok(files.includes('opencode/edgepad.ts'))
 })

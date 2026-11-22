@@ -179,9 +179,13 @@ internal sealed class HookServer : IDisposable
                 await ServePerm(client, perm).ConfigureAwait(false);
                 return;
             case SessionRequest session:
-                var hook = session.Agent == AgentToken.Claude
-                    ? HookEvent.FromClaude(session.Event, session.NotificationType, session.Session, session.Cwd)
-                    : HookEvent.FromCodex(session.Event, session.Session, session.Cwd);
+                var hook = session.Agent switch
+                {
+                    AgentToken.Claude => HookEvent.FromClaude(session.Event, session.NotificationType, session.Session, session.Cwd),
+                    AgentToken.Gemini => HookEvent.FromGemini(session.Event, session.NotificationType, session.Session, session.Cwd),
+                    AgentToken.OpenCode => HookEvent.FromOpenCode(session.Event, session.Session, session.Cwd),
+                    _ => HookEvent.FromCodex(session.Event, session.Session, session.Cwd),
+                };
                 if (hook is not null)
                 {
                     sessions.Apply(hook);
