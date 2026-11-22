@@ -518,22 +518,25 @@ public sealed class StrokeBoardTests
     [Fact]
     public void ATrailingLaserKeepsItsLatestPointsTheWidthSetBeforeItAndIsNeverStored()
     {
-        var board = Started();
+        long now = 0;
+        var board = new StrokeBoard(() => now);
+        board.Begin(BoardMode.Annotate);
         Assert.True(board.SetWidth(50));
         Assert.True(board.SetTool(StrokeTool.LaserTrail));
 
         Assert.True(board.Pen(0, 0, Down));
         for (ushort i = 1; i <= 30; i++)
         {
+            now += 10;
             Assert.True(board.Pen(i, i, Move));
         }
 
         var trail = board.Active!;
         Assert.True(trail.IsLaser);
-        Assert.Equal(Stroke.TrailPoints, trail.Points.Count);
+        Assert.Equal(26, trail.Points.Count);
         Assert.Equal(new NormPoint(30, 30), trail.Points[^1]);
-        Assert.Equal(30f, trail.LaserRadiusPx(1000), 3);
-        Assert.Equal(12f, new Stroke(StrokeTool.Laser, PenStyle.Default).LaserRadiusPx(1000), 3);
+        Assert.Equal(25f, trail.LaserRadiusPx(1000), 3);
+        Assert.Equal(10f, new Stroke(StrokeTool.Laser, PenStyle.Default).LaserRadiusPx(1000), 3);
 
         Assert.True(board.Pen(31, 31, Up));
         Assert.Null(board.Active);

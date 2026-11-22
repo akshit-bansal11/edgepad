@@ -45,7 +45,8 @@ ACTION 36 PAD_DETACH
 # The laser tool: the next PEN stroke is a dot that follows the finger and leaves nothing behind. The phone offers it only
 # for a laptop that sent FEATURES "annotate"; a laptop too old to know the id drops and counts it.
 ACTION 37 TOOL_LASER
-# The trailing laser: TOOL_LASER plus a short red trail behind the dot. Both lasers take their size from CONTROL PEN_WIDTH.
+# The trailing laser: TOOL_LASER plus a red trail of the last 250 ms behind the dot. Both lasers take their size from CONTROL PEN_WIDTH
+# (10, 15, 20 are Small, Medium, Large; the dot's radius is 0.05% of the screen's height per step) and fade out 400 ms after the last pen event.
 ACTION 38 TOOL_LASER_TRAIL
 # Annotating the screen and signing, which the laptop draws and the phone only steers. BEGIN shows the laptop's
 # overlay and END removes it (and discards the strokes); UNDO and CLEAR edit the strokes; the six TOOL ids pick
