@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.surface
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
@@ -123,7 +124,7 @@ class SurfacePainter(
         scrubOnADial: Boolean,
         scrubbing: Boolean,
         fraction: Float,
-        icons: MediaIconStore,
+        icons: MediaIconStore<Bitmap>,
     ) {
         val size = media(ControlSurface.LOGO_DP)
         val cx = box.left + size / 2
