@@ -315,6 +315,20 @@ public sealed class GitHubApiTests
     }
 
     [Fact]
+    public async Task ARefusalOfTheOldTokenKeepsANewerOneSavedWhileTheRequestWasOut()
+    {
+        const string newer = "gho_NewerTokenValue1234567890abcdefghij";
+        var http = new FakeHttp(_ =>
+        {
+            secrets.Set(GitHubApp.TokenName, newer);
+            return FakeHttp.Status(HttpStatusCode.Unauthorized);
+        });
+
+        Assert.Null(await New(http).LoginAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(newer, secrets.Get(GitHubApp.TokenName));
+    }
+
+    [Fact]
     public async Task TheTokenNeverReachesTheLog()
     {
         var http = new FakeHttp(_ => throw new HttpRequestException("No route to host"));

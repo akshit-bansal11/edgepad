@@ -289,6 +289,7 @@ public sealed class GitHostsTests : IDisposable
         Assert.Equal(GitHubResult.Ok, (await host.RefreshAsync(Ct)).Result);
         Assert.NotNull(host.Page);
 
+        clock.Advance(TimeSpan.FromSeconds(61));
         var result = await host.RefreshAsync(Ct);
 
         Assert.Equal(new GitHubRefreshResult(GitHubResult.NoPermission, true), result);
@@ -335,10 +336,109 @@ public sealed class GitHostsTests : IDisposable
         var good = host.Page;
 
         fail = true;
+        clock.Advance(TimeSpan.FromSeconds(61));
         var result = await host.RefreshAsync(Ct);
 
         Assert.Equal(new GitHubRefreshResult(GitHubResult.Failed, false), result);
         Assert.Same(good, host.Page);
+    }
+
+    [Fact]
+    public async Task ARefreshWithinAMinuteOfTheLastAsksNobodyAndOneAfterItDoes()
+    {
+        var http = new FakeHttp(ServeGitea);
+        var host = new GiteaHost(secrets, settings, http, () => clock.Now);
+        Assert.Equal(GitHubResult.Ok, (await host.RefreshAsync(Ct)).Result);
+        var asked = http.Seen.Count;
+
+        // What a phone toggling the watch bit does: a restarted timer fires at once, again and again.
+        for (var i = 0; i < 5; i++)
+        {
+            clock.Advance(TimeSpan.FromSeconds(10));
+            Assert.Equal(GitHubResult.RateLimited, (await host.RefreshAsync(Ct)).Result);
+        }
+
+        Assert.Equal(asked, http.Seen.Count);
+
+        clock.Advance(TimeSpan.FromSeconds(11));
+        Assert.Equal(GitHubResult.Ok, (await host.RefreshAsync(Ct)).Result);
+        Assert.True(http.Seen.Count > asked);
+    }
+
+    [Fact]
+    public async Task TheRefreshRightAfterASuccessfulSaveIsNotHeldBack()
+    {
+        var http = new FakeHttp(ServeGitea);
+        var host = new GiteaHost(secrets, settings, http, () => clock.Now);
+        Assert.Equal(GitHubResult.Ok, (await host.RefreshAsync(Ct)).Result);
+
+        Assert.Equal(GitSaveStatus.Saved, (await host.SaveAsync(Token, "https://codeberg.org", string.Empty, Ct)).Status);
+        var asked = http.Seen.Count;
+
+        Assert.Equal(GitHubResult.Ok, (await host.RefreshAsync(Ct)).Result);
+        Assert.True(http.Seen.Count > asked);
+    }
+
+    [Fact]
+    public async Task AFailedTokenSaveLeavesNoTokenBesideTheNewAddress()
+    {
+        settings.Set(GitTokens.UrlKey("gitea"), "https://old.example.org");
+        var http = new FakeHttp(ServeGitea);
+        var host = new GiteaHost(secrets, settings, http, () => clock.Now);
+        secrets.FailSets = true;
+
+        var saved = await host.SaveAsync("pat_AnotherTokenForTheNewHost12345", "https://new.example.org", string.Empty, Ct);
+
+        Assert.Equal(GitSaveStatus.Failed, saved.Status);
+        Assert.Null(secrets.Get(GitTokens.TokenName("gitea")));
+        Assert.False(host.IsSignedIn);
+
+        // The next refresh finds no token to send to anyone.
+        var before = http.Seen.Count;
+        Assert.Equal(GitHubResult.NotSignedIn, (await host.RefreshAsync(Ct)).Result);
+        Assert.Equal(before, http.Seen.Count);
+    }
+
+    [Fact]
+    public async Task A401ForAnOldTokenKeepsANewerOneSavedWhileTheRequestWasOut()
+    {
+        const string newer = "pat_NewerTokenValue1234567890abc";
+        var http = new FakeHttp(_ =>
+        {
+            secrets.Set(GitTokens.TokenName("gitee"), newer);
+            return FakeHttp.Status(HttpStatusCode.Unauthorized);
+        });
+        var host = new GiteeHost(secrets, settings, http, () => clock.Now);
+
+        Assert.Equal(GitHubResult.NoPermission, (await host.RefreshAsync(Ct)).Result);
+
+        Assert.Equal(newer, secrets.Get(GitTokens.TokenName("gitee")));
+    }
+
+    [Theory]
+    [InlineData("https://evil.example%23.codeberg.org")]
+    [InlineData("https://evil.example%2f.codeberg.org/forge")]
+    [InlineData("https://codeberg.org%40evil.example")]
+    public async Task AnAddressWhoseHostHasAPercentIsRefusedBeforeAnyRequest(string url)
+    {
+        Assert.Null(GitTokens.GiteaApi(url));
+        var http = new FakeHttp(ServeGitea);
+        var host = new GiteaHost(new Secrets(), settings, http, () => clock.Now);
+
+        Assert.Equal(GitSaveStatus.BadUrl, (await host.SaveAsync(Token, url, string.Empty, Ct)).Status);
+        Assert.Empty(http.Seen);
+    }
+
+    [Fact]
+    public async Task ALongLoginIsCutBeforeItIsShownOrKept()
+    {
+        var http = new FakeHttp(_ => FakeHttp.Json("{\"id\":7,\"login\":\"" + new string('a', 100) + "\"}"));
+        var host = new GiteaHost(new Secrets(), settings, http, () => clock.Now);
+
+        var saved = await host.SaveAsync(Token, "https://codeberg.org", string.Empty, Ct);
+
+        Assert.Equal(GitSaveStatus.Saved, saved.Status);
+        Assert.Equal(39, saved.Login.Length);
     }
 
     [Fact]
@@ -493,10 +593,17 @@ public sealed class GitHostsTests : IDisposable
     {
         private readonly Dictionary<string, string> values = [];
 
+        public bool FailSets { get; set; }
+
         public string? Get(string name) => values.GetValueOrDefault(name);
 
         public bool Set(string name, string value)
         {
+            if (FailSets)
+            {
+                return false;
+            }
+
             values[name] = value;
             return true;
         }

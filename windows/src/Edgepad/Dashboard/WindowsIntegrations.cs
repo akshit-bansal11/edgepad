@@ -60,6 +60,9 @@ internal sealed partial class WindowsIntegrations : IDisposable
     private HookEndpoint? endpoint;
     private HookServer? server;
 
+    // One for the process: a phone's links are rebuilt on every switch, and must not reset the open limit or the refresh times.
+    private readonly DashboardThrottle throttle = new();
+
     private int phones;
     private bool disposed;
 
@@ -112,6 +115,12 @@ internal sealed partial class WindowsIntegrations : IDisposable
     /// <summary>Turns developer mode on or off (the tray or the phone): keeps it, applies it and tells every linked phone.</summary>
     public void SetDeveloper(bool on)
     {
+        // Nothing changed, nothing to rebuild: a phone repeating the switch must not restart every link.
+        if (Settings.Flag(IntegrationSettings.Developer) == on)
+        {
+            return;
+        }
+
         _ = Settings.SetFlag(IntegrationSettings.Developer, on);
         Changed(IntegrationSettings.Developer);
         DeveloperChanged?.Invoke();
@@ -453,6 +462,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
         var store = usage;
         return new DashboardParts
         {
+            Throttle = throttle,
             Sessions = agents ? sessions : null,
             Limits = agents ? limits : null,
             Spend = agents ? spend : null,

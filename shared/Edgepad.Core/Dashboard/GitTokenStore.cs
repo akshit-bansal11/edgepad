@@ -82,8 +82,11 @@ internal static class GitTokens
     public static Uri? GiteaApi(string? url)
     {
         var text = url?.Trim();
+
+        // A '%' in the host is an encoded delimiter ("evil.example%23.codeberg.org") that another parser may read as a different host.
         if (text is not { Length: > 0 and <= MaxUrl } || !Uri.TryCreate(text, UriKind.Absolute, out var uri)
-            || uri.Scheme != Uri.UriSchemeHttps || uri.UserInfo.Length > 0 || uri.Query.Length > 0 || uri.Fragment.Length > 0 || uri.Host.Length == 0)
+            || uri.Scheme != Uri.UriSchemeHttps || uri.UserInfo.Length > 0 || uri.Query.Length > 0 || uri.Fragment.Length > 0 || uri.Host.Length == 0
+            || uri.Authority.Contains('%', StringComparison.Ordinal))
         {
             return null;
         }
@@ -162,6 +165,9 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
 {
     public const int MaxBytes = 1024 * 1024;
 
+    /// <summary>The longest account name any of these hosts allows (GitHub's is 39).</summary>
+    private const int MaxLogin = 39;
+
     /// <summary>A rate limit is waited out for at least this long, and never longer than <see cref="MaxBackoff"/>, whatever the reply claims.</summary>
     public static readonly TimeSpan MinBackoff = TimeSpan.FromSeconds(60);
 
@@ -171,8 +177,12 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
 
     private readonly Func<DateTimeOffset> now = clock ?? (() => DateTimeOffset.UtcNow);
     private readonly Lock gate = new();
+
+    // Held while the token is replaced or deleted, so a 401 for an old token cannot delete a token saved after it was sent.
+    private readonly Lock tokenGate = new();
     private readonly GitBook book = new(id);
     private DateTimeOffset backoffUntil;
+    private DateTimeOffset? lastRefresh;
     private int running;
 
     public string Id => id;
@@ -233,6 +243,18 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
                 return new GitHubRefreshResult(GitHubResult.NotSignedIn, false);
             }
 
+            // At most one refresh a minute whoever asks (a timer restarted by a phone toggling its watch bit included); a token
+            // just saved clears this, so the first refresh after sign-in is at once.
+            lock (gate)
+            {
+                if (lastRefresh is { } last && now() - last < GitHubRefresh.Every)
+                {
+                    return new GitHubRefreshResult(GitHubResult.RateLimited, false);
+                }
+
+                lastRefresh = now();
+            }
+
             var before = book.Page?.Rev;
             var read = await ReadAsync(Getter(token, user), api, ct).ConfigureAwait(false);
             if (read.Snapshot is { } snapshot)
@@ -244,8 +266,11 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
             var failure = read.Failure ?? GitReply.Unusable;
             if (failure.Status == HttpStatusCode.Unauthorized)
             {
-                store.Delete(GitTokens.TokenName(id));
-                book.Clear();
+                // Only the token that got the 401 goes: one saved while the request was out is a different one.
+                if (DeleteIfStill(token))
+                {
+                    book.Clear();
+                }
             }
             else if (failure.Result == GitHubResult.RateLimited)
             {
@@ -300,17 +325,32 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
             }, string.Empty);
         }
 
-        if (ParseLogin(reply.Body) is not { } login)
+        if (ParseLogin(reply.Body) is not { } parsed)
         {
             return new GitSaveResult(GitSaveStatus.Failed, string.Empty);
         }
 
+        // The login is shown and kept in settings: a host's reply cannot make it long or carry control characters.
+        var login = DashWire.Clean(parsed, MaxLogin);
         var keep = url.Trim().TrimEnd('/');
-        if (!settings.Set(GitTokens.UrlKey(id), ApiIsFixed ? string.Empty : keep)
-            || !settings.Set(GitTokens.UserKey(id), RequiresUser ? name : string.Empty)
-            || !store.Set(GitTokens.TokenName(id), secret))
+        lock (tokenGate)
         {
-            return new GitSaveResult(GitSaveStatus.Failed, string.Empty);
+            // The old token goes first and the new one is stored last: whichever step fails, no token is ever left beside an
+            // address it was not checked against.
+            store.Delete(GitTokens.TokenName(id));
+            if (!settings.Set(GitTokens.UrlKey(id), ApiIsFixed ? string.Empty : keep)
+                || !settings.Set(GitTokens.UserKey(id), RequiresUser ? name : string.Empty)
+                || !store.Set(GitTokens.TokenName(id), secret))
+            {
+                store.Delete(GitTokens.TokenName(id));
+                book.Clear();
+                return new GitSaveResult(GitSaveStatus.Failed, string.Empty);
+            }
+        }
+
+        lock (gate)
+        {
+            lastRefresh = null;
         }
 
         book.Clear();
@@ -320,8 +360,27 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
     /// <summary>Forgets the token and the page; the address and name stay for the next sign-in.</summary>
     public void SignOut()
     {
-        store.Delete(GitTokens.TokenName(id));
+        lock (tokenGate)
+        {
+            store.Delete(GitTokens.TokenName(id));
+        }
+
         book.Clear();
+    }
+
+    /// <summary>Deletes the saved token only while it is still <paramref name="sent"/>; true when it was deleted.</summary>
+    private bool DeleteIfStill(string sent)
+    {
+        lock (tokenGate)
+        {
+            if (store.Get(GitTokens.TokenName(id)) != sent)
+            {
+                return false;
+            }
+
+            store.Delete(GitTokens.TokenName(id));
+            return true;
+        }
     }
 
     /// <summary>Whether the API root never depends on the configured address.</summary>

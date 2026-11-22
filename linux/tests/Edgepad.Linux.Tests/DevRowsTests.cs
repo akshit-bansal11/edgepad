@@ -129,6 +129,23 @@ public sealed class DevRowsTests : IDisposable
     }
 
     [Fact]
+    public void RepeatingTheDeveloperSwitchChangesNothingAndRebuildsNoPieces()
+    {
+        using var dashboard = new LinuxDashboard(dir.FullName, "5.0.0");
+        dashboard.Start();
+        var raised = 0;
+        dashboard.DeveloperChanged += () => raised++;
+
+        dashboard.SetDeveloper(true);
+        var parts = dashboard.Parts;
+        dashboard.SetDeveloper(true);
+        dashboard.SetDeveloper(true);
+
+        Assert.Same(parts, dashboard.Parts);
+        Assert.Equal(1, raised);
+    }
+
+    [Fact]
     public void GeminiAndOpenCodeAskForARestartLikeClaudeAndCodexDoesNot()
     {
         var connected = PluginResult.Of(PluginState.Connected);

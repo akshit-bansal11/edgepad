@@ -407,9 +407,34 @@ public sealed class IntegrationHostTests : IDisposable
         Assert.False(host.OpenGit("github/1/2"));
         Assert.Equal(3, opened.Count);
 
-        clock.Advance(TimeSpan.FromSeconds(1));
+        clock.Advance(TimeSpan.FromSeconds(10));
         Assert.True(host.OpenGit("github/1/2"));
         Assert.Equal(4, opened.Count);
+    }
+
+    [Fact]
+    public async Task ARebuiltHostKeepsTheOpenLimitAndTheGitHubRefreshTime()
+    {
+        AllOn();
+        githubReply = GitHubOk;
+        var parts = NewParts();
+        using (var first = New(shared: parts))
+        {
+            first.OnWatch(IntegrationHost.GitHubBit);
+            await Task.Run(Assert.Single(timers, t => t.Every == GitHubRefresh.Every).Fire, Ct);
+            Assert.True(first.OpenGit("github/1/2"));
+            Assert.True(first.OpenGit("github/1/2"));
+            Assert.True(first.OpenGit("github/1/2"));
+        }
+
+        var asked = github.Seen.Count;
+        using var second = New(shared: parts);
+        Assert.False(second.OpenGit("github/1/2"));
+        second.OnWatch(IntegrationHost.GitHubBit);
+        await Task.Run(timers.Last(t => t.Every == GitHubRefresh.Every).Fire, Ct);
+
+        Assert.Equal(3, opened.Count);
+        Assert.Equal(asked, github.Seen.Count);
     }
 
     [Fact]

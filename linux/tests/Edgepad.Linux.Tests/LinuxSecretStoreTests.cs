@@ -154,9 +154,46 @@ public sealed class LinuxSecretStoreTests : IDisposable
         Assert.True(File.Exists(Path.Combine(folder, "github.token")));
     }
 
+    [Fact]
+    public void AnItemTheKeyringWillNotDeleteIsNeverReadBackAndIsRemovedOnALaterGet()
+    {
+        var service = new FakeService();
+        var store = new LinuxSecretStore(service, folder);
+        Assert.True(store.Set("github.token", "secret"));
+
+        service.RefuseDelete = true;
+        store.Delete("github.token");
+
+        Assert.Single(service.Items);
+        Assert.Null(store.Get("github.token"));
+        Assert.Null(store.Get("github.token"));
+        Assert.Single(service.Items);
+
+        service.RefuseDelete = false;
+        Assert.Null(store.Get("github.token"));
+        Assert.Empty(service.Items);
+        Assert.Null(store.Get("github.token"));
+    }
+
+    [Fact]
+    public void ATokenSavedAfterAPendingDeleteIsReadBack()
+    {
+        var service = new FakeService();
+        var store = new LinuxSecretStore(service, folder);
+        Assert.True(store.Set("github.token", "old"));
+        service.RefuseDelete = true;
+        store.Delete("github.token");
+
+        Assert.True(store.Set("github.token", "fresh"));
+
+        Assert.Equal("fresh", store.Get("github.token"));
+    }
+
     private sealed class FakeService : ISecretService
     {
         private int next;
+
+        public bool RefuseDelete { get; set; }
 
         public bool Present { get; set; } = true;
 
@@ -193,6 +230,6 @@ public sealed class LinuxSecretStoreTests : IDisposable
             return true;
         }
 
-        public bool Delete(string item) => Present && Items.Remove(item);
+        public bool Delete(string item) => Present && !RefuseDelete && Items.Remove(item);
     }
 }

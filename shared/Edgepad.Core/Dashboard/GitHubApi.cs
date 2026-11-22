@@ -185,7 +185,7 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
         }
 
         var reply = await CappedHttp.SendAsync(request, MaxBytes, Timeout, handler, "Asking GitHub who is signed in", ct).ConfigureAwait(false);
-        return Judge(reply) == GitHubResult.Ok && reply is not null ? GitHubParse.Login(reply.Body) : null;
+        return Judge(reply, request) == GitHubResult.Ok && reply is not null ? GitHubParse.Login(reply.Body) : null;
     }
 
     private DateTimeOffset Backoff
@@ -209,7 +209,7 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
 
         request.Content = new ByteArrayContent(QueryBody()) { Headers = { ContentType = new MediaTypeHeaderValue("application/json") } };
         var reply = await CappedHttp.SendAsync(request, MaxBytes, Timeout, handler, "Asking GitHub for pull requests", ct).ConfigureAwait(false);
-        var result = Judge(reply);
+        var result = Judge(reply, request);
         if (result != GitHubResult.Ok || reply is null)
         {
             return result;
@@ -270,7 +270,7 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
             return GitHubResult.Ok;
         }
 
-        var result = Judge(reply);
+        var result = Judge(reply, request);
         if (result != GitHubResult.Ok || reply is null)
         {
             return result;
@@ -308,7 +308,7 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
     }
 
     /// <summary>Success is Ok; 401 deletes the token; 403 or 429 with rate-limit headers starts a back-off; anything else is Failed.</summary>
-    private GitHubResult Judge(CappedReply? reply)
+    private GitHubResult Judge(CappedReply? reply, HttpRequestMessage request)
     {
         if (reply is null)
         {
@@ -320,17 +320,21 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
             return GitHubResult.Ok;
         }
 
+        // Only the token this request carried goes: one saved by a sign-in while it was out is a different one.
         if (reply.Status == HttpStatusCode.Unauthorized)
         {
-            store.Delete(GitHubApp.TokenName);
-            lock (gate)
+            if (store.Get(GitHubApp.TokenName) == request.Headers.Authorization?.Parameter)
             {
-                snapshot = null;
-                unread = null;
-                etag = null;
-            }
+                store.Delete(GitHubApp.TokenName);
+                lock (gate)
+                {
+                    snapshot = null;
+                    unread = null;
+                    etag = null;
+                }
 
-            book.Clear();
+                book.Clear();
+            }
 
             return GitHubResult.NoPermission;
         }

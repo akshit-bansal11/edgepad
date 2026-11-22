@@ -43,6 +43,9 @@ internal sealed class DashboardParts
 
     /// <summary>Whether the agent's hook was heard since it was connected (<see cref="UsageStore.LastHeard"/> at least 0). Null counts every agent as heard.</summary>
     public Func<string, bool>? AgentHeard { get; init; }
+
+    /// <summary>The link-open limit and the per-host refresh times; a platform passes the one it holds so a rebuilt host does not reset them.</summary>
+    public DashboardThrottle Throttle { get; init; } = new();
 }
 
 /// <summary>
@@ -74,8 +77,8 @@ internal sealed class IntegrationHost : IDisposable
     // What a phone that has been sent no git page holds.
     private const string NothingSent = "";
 
-    private const int MaxOpens = 3;
-    private static readonly TimeSpan OpenWindow = TimeSpan.FromSeconds(1);
+    // The key of GitHub's last refresh in the process-wide throttle.
+    private const string GitHubKey = "github";
 
     private readonly Action<Frame> send;
     private readonly BlobSender blobs;
@@ -95,14 +98,10 @@ internal sealed class IntegrationHost : IDisposable
     private readonly HashSet<string> gone = [];
     private readonly Queue<string> goneOrder = new();
 
-    // When this phone's recent link opens happened, oldest first.
-    private readonly Queue<DateTimeOffset> opens = new();
-
     private StatsReporter? reporter;
     private IDisposable? weatherTimer;
     private IDisposable? weatherRetry;
     private IDisposable? githubTimer;
-    private DateTimeOffset? githubLast;
     private string githubSent = NothingSent;
 
     // What this phone was last sent for each token host (by id), so an unchanged page is not sent again.
@@ -391,9 +390,9 @@ internal sealed class IntegrationHost : IDisposable
                 // The new timer runs the first refresh now.
                 githubTimer = startTimer(() => run(RefreshGit), GitHubRefresh.Every);
             }
-            else if (githubLast is not { } last || clock() - last >= JustRefreshed)
+            else if (parts.Throttle.LastRefresh(GitHubKey) is not { } last || clock() - last >= JustRefreshed)
             {
-                githubLast = null;
+                parts.Throttle.ForgetRefresh(GitHubKey);
                 refresh = true;
             }
         }
@@ -661,12 +660,12 @@ internal sealed class IntegrationHost : IDisposable
 
         lock (gate)
         {
-            if (!GitHubRefresh.ShouldRun(githubLast, clock(), !disposed && (watch & GitHubBit) != 0))
+            if (!GitHubRefresh.ShouldRun(parts.Throttle.LastRefresh(GitHubKey), clock(), !disposed && (watch & GitHubBit) != 0))
             {
                 return;
             }
 
-            githubLast = clock();
+            parts.Throttle.Refreshed(GitHubKey, clock());
         }
 
         GitHubRefreshResult result;
@@ -737,26 +736,8 @@ internal sealed class IntegrationHost : IDisposable
         return true;
     }
 
-    // At most MaxOpens opens per OpenWindow for this phone, so a hostile or buggy phone cannot flood the browser with tabs.
-    private bool OpenAllowed()
-    {
-        var now = clock();
-        lock (gate)
-        {
-            while (opens.Count > 0 && now - opens.Peek() >= OpenWindow)
-            {
-                opens.Dequeue();
-            }
-
-            if (opens.Count >= MaxOpens)
-            {
-                return false;
-            }
-
-            opens.Enqueue(now);
-            return true;
-        }
-    }
+    // At most DashboardThrottle.MaxOpens opens per window for the whole process, however often a phone rebuilds its link.
+    private bool OpenAllowed() => parts.Throttle.AllowOpen(clock());
 
     // C22 adds GitLab here. A token host counts only while its own switch (the settings key named by its id) is on.
     private IGitHost? Git(string id) => parts.GitHub is { } github && GitHubOn && github.Id == id

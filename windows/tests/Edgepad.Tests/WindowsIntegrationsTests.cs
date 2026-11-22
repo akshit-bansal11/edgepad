@@ -59,6 +59,25 @@ public sealed class WindowsIntegrationsTests : IDisposable
     }
 
     [Fact]
+    public void RepeatingTheDeveloperSwitchChangesNothingAndRebuildsNoLink()
+    {
+        using var integrations = new WindowsIntegrations(dir.FullName, "5.0.0");
+        integrations.Start();
+        var raised = 0;
+        integrations.DeveloperChanged += () => raised++;
+        using var link = integrations.Attach(_ => { }, Blobs());
+        Assert.NotNull(link);
+
+        integrations.SetDeveloper(true);
+        var host = link.Host;
+        integrations.SetDeveloper(true);
+        integrations.SetDeveloper(true);
+
+        Assert.Same(host, link.Host);
+        Assert.Equal(1, raised);
+    }
+
+    [Fact]
     public void StatsOnNamesStatsAndNetInfoAndNothingElse()
     {
         using var integrations = new WindowsIntegrations(dir.FullName, "5.0.0");

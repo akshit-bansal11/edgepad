@@ -45,6 +45,10 @@ internal sealed class LinuxSecretStore(ISecretService service, string folder) : 
         | UnixFileMode.OtherRead | UnixFileMode.OtherWrite | UnixFileMode.OtherExecute;
 
     private readonly Lock gate = new();
+
+    // Under gate. Names whose keyring item could not be deleted yet. Kept in memory: a restart forgets it, and the token a
+    // locked keyring still holds is then read again (and refused again if it was revoked).
+    private readonly HashSet<string> pending = [];
     private string? session;
     private volatile bool encrypted = true;
 
@@ -65,6 +69,17 @@ internal sealed class LinuxSecretStore(ISecretService service, string folder) : 
 
         lock (gate)
         {
+            // Deleted but still in a locked keyring: try again, and read nothing until it is gone.
+            if (pending.Contains(name))
+            {
+                if (RemoveFromKeyring(name))
+                {
+                    pending.Remove(name);
+                }
+
+                return null;
+            }
+
             // A plain file copy is the newer one whenever it exists: it is written only after the keyring refused a save, and
             // every save the keyring takes deletes it. So it wins over a keyring item, and moves into the keyring (then goes)
             // as soon as the keyring takes it.
@@ -115,6 +130,7 @@ internal sealed class LinuxSecretStore(ISecretService service, string folder) : 
                 {
                     encrypted = true;
                     DeleteFile(name);
+                    pending.Remove(name);
                     return true;
                 }
 
@@ -122,7 +138,13 @@ internal sealed class LinuxSecretStore(ISecretService service, string folder) : 
             }
 
             encrypted = false;
-            return WriteFile(name, value);
+            var wrote = WriteFile(name, value);
+            if (wrote)
+            {
+                pending.Remove(name);
+            }
+
+            return wrote;
         }
     }
 
@@ -135,19 +157,45 @@ internal sealed class LinuxSecretStore(ISecretService service, string folder) : 
 
         lock (gate)
         {
-            if (Session() is not null && service.Search(Attributes(name)) is { } found)
-            {
-                foreach (var item in found.Unlocked.Concat(found.Locked))
-                {
-                    service.Delete(item);
-                }
-            }
-
             DeleteFile(name);
+
+            // A locked item makes the service ask for a prompt and delete nothing. The name is then pending: Get never returns
+            // it and tries again, so a token that was signed out or refused is not read back (and sent) from the keyring.
+            if (RemoveFromKeyring(name))
+            {
+                pending.Remove(name);
+            }
+            else if (pending.Add(name))
+            {
+                Log.Write($"The secret {name} could not be removed from the keyring (locked or busy); it is hidden and removal is retried.");
+            }
         }
     }
 
     public void Dispose() => (service as IDisposable)?.Dispose();
+
+    // Under gate. True when no keyring item is left under the name (also when there is no keyring); false when one is, or when
+    // that could not be found out.
+    private bool RemoveFromKeyring(string name)
+    {
+        if (Session() is null)
+        {
+            return true;
+        }
+
+        if (service.Search(Attributes(name)) is not { } found)
+        {
+            return false;
+        }
+
+        var removed = true;
+        foreach (var item in found.Unlocked.Concat(found.Locked))
+        {
+            removed &= service.Delete(item);
+        }
+
+        return removed;
+    }
 
     /// <summary>Letters, digits, dot, dash, underscore, not starting with a dot: a name can never leave the secrets folder.</summary>
     internal static bool ValidName(string name) =>

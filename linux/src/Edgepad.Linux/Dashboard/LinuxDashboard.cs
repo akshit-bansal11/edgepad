@@ -48,7 +48,9 @@ internal sealed class LinuxDashboard : IDisposable
     private LinuxNetInfo? netInfo;
     private static readonly ProcessUrlOpener BrowserOpener = new(ProcessUrlOpener.Linux);
 
-    private DashboardParts parts = new();
+    // One for the process: a phone's links are rebuilt on every switch, and must not reset the open limit or the refresh times.
+    private readonly DashboardThrottle throttle = new();
+    private DashboardParts parts;
     private bool disposed;
 
     private int phones;
@@ -62,6 +64,7 @@ internal sealed class LinuxDashboard : IDisposable
     public LinuxDashboard(string folder, string version)
     {
         this.folder = folder;
+        parts = new DashboardParts { Throttle = throttle };
         Settings = new IntegrationSettings(Path.Combine(folder, IntegrationSettings.FileName));
         var bundle = new ResourcePluginSource(typeof(LinuxDashboard).Assembly);
         installer = new PluginInstaller(bundle, Settings, PluginInstaller.DefaultRoot(), version);
@@ -187,6 +190,7 @@ internal sealed class LinuxDashboard : IDisposable
 
                 parts = new DashboardParts
                 {
+                    Throttle = throttle,
                     GitHosts = gitHosts,
                     Sessions = agents?.Sessions,
                     Limits = agents?.Limits,
@@ -214,6 +218,12 @@ internal sealed class LinuxDashboard : IDisposable
     /// <summary>Turns developer mode on or off (the tray or the phone): keeps it, makes or drops the developer pieces and tells every phone.</summary>
     public void SetDeveloper(bool on)
     {
+        // Nothing changed, nothing to rebuild: a phone repeating the switch must not restart every link.
+        if (Settings.Flag(IntegrationSettings.Developer) == on)
+        {
+            return;
+        }
+
         _ = Settings.SetFlag(IntegrationSettings.Developer, on);
         Apply();
         DeveloperChanged?.Invoke();
