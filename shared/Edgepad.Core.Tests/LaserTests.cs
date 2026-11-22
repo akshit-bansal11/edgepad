@@ -164,7 +164,7 @@ public sealed class LaserTests
         Assert.Equal(2 * perSide, outline.Length);
 
         var left = outline[..perSide];
-        var right = outline[perSide..].Reverse().ToArray();
+        var right = Enumerable.Reverse(outline[perSide..]).ToArray();
 
         // Tail: both edges meet at the oldest point. Head: they are a full diameter apart.
         Assert.Equal(0f, Vector2.Distance(left[0], right[0]), 3);

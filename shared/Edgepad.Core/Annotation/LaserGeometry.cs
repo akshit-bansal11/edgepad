@@ -58,7 +58,7 @@ internal static class LaserGeometry
             for (var s = 0; s < Subdivisions; s++)
             {
                 var t = s / (float)Subdivisions;
-                centre.Add(Vector2.CatmullRom(p0, points[i], points[i + 1], p3, t));
+                centre.Add(CatmullRom(p0, points[i], points[i + 1], p3, t));
                 age.Add(ages[i] + ((ages[i + 1] - ages[i]) * t));
             }
         }
@@ -83,6 +83,17 @@ internal static class LaserGeometry
             right[i] = centre[i] - (normal * half);
         }
 
-        return [.. left, .. right.Reverse()];
+        return [.. left, .. Enumerable.Reverse(right)];
+    }
+
+    /// <summary>Uniform Catmull-Rom between <paramref name="p1"/> and <paramref name="p2"/>, <paramref name="t"/> 0..1.</summary>
+    private static Vector2 CatmullRom(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float t)
+    {
+        var t2 = t * t;
+        var t3 = t2 * t;
+        return 0.5f * ((2f * p1)
+            + ((p2 - p0) * t)
+            + (((2f * p0) - (5f * p1) + (4f * p2) - p3) * t2)
+            + (((3f * p1) - p0 - (3f * p2) + p3) * t3));
     }
 }
