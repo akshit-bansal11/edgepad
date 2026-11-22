@@ -59,7 +59,7 @@ public sealed class WindowsIntegrationsTests : IDisposable
     }
 
     [Fact]
-    public void StatsOnNamesTheFeatureAndNothingElse()
+    public void StatsOnNamesStatsAndNetInfoAndNothingElse()
     {
         using var integrations = new WindowsIntegrations(dir.FullName, "5.0.0");
         Assert.True(integrations.Settings.SetFlag(IntegrationSettings.Stats, true));
@@ -67,7 +67,7 @@ public sealed class WindowsIntegrationsTests : IDisposable
 
         var link = integrations.Attach(_ => { }, Blobs());
         Assert.NotNull(link);
-        Assert.Equal(Feature.Stats, Assert.Single(link.Host.Features()));
+        Assert.Equal([Feature.Stats, Feature.NetInfo], link.Host.Features());
         Assert.Empty(link.Host.Unavailable());
         Assert.Null(link.Broker);
         link.Dispose();

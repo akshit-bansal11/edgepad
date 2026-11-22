@@ -78,7 +78,12 @@ public sealed class DashboardWiringTests : IDisposable
         dashboard.Settings.SetFlag(IntegrationSettings.Stats, true);
         dashboard.Apply();
         var sent = Assert.IsType<Text>(link.Annotate(new Text((byte)TextKind.Features, "capture")));
-        Assert.Equal($"capture/{Feature.Stats}", sent.Value);
+        Assert.Equal($"capture/{Feature.Stats}/{Feature.NetInfo}", sent.Value);
+
+        dashboard.Settings.SetFlag(IntegrationSettings.Stats, false);
+        dashboard.Apply();
+        var off = Assert.IsType<Text>(link.Annotate(new Text((byte)TextKind.Features, "capture")));
+        Assert.Equal("capture", off.Value);
     }
 
     [Fact]
