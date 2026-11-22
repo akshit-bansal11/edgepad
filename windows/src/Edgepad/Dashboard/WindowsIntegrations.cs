@@ -30,6 +30,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
     private readonly string folder;
     private readonly PluginInstaller installer;
     private readonly Lock gate = new();
+    private readonly WindowsNetInfo netInfo = new();
 
     // What Connect, Disconnect or a re-stamp last said per agent, for the parts of a row the saved switches cannot tell. Under gate.
     private readonly Dictionary<string, AgentStatus> last = [];
@@ -168,7 +169,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
                 Interlocked.Increment(ref phones);
             }
 
-            var link = new DashboardLink(this, send, blobs, stats, new IntegrationHost(send, blobs, Settings, parts, stats), parts.Broker);
+            var link = new DashboardLink(this, send, blobs, stats, new IntegrationHost(send, blobs, Settings, parts, stats, net: netInfo), parts.Broker);
             links.Add(link);
             return link;
         }
@@ -431,7 +432,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
             }
 
             var parts = Parts();
-            (old, mask) = link.Swap(new IntegrationHost(link.Send, link.Blobs, Settings, parts, link.Stats), parts.Broker, out var hadBroker);
+            (old, mask) = link.Swap(new IntegrationHost(link.Send, link.Blobs, Settings, parts, link.Stats, net: netInfo), parts.Broker, out var hadBroker);
             next = link.Host;
             if (parts.Broker is not null && !hadBroker)
             {
@@ -574,6 +575,9 @@ internal sealed partial class WindowsIntegrations : IDisposable
             Volatile.Write(ref watch, mask);
             Host.OnWatch(mask);
         }
+
+        /// <summary>The phone's SPEED_TEST, to whichever host this link has now.</summary>
+        public void OnSpeedTest(bool start) => Host.OnSpeedTest(start);
 
         /// <summary>The phone's PERM_ANSWER, to whichever broker this link has now. False when none.</summary>
         public bool Answer(string wire) => Broker?.Answer(wire) ?? false;

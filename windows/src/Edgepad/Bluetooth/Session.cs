@@ -419,6 +419,7 @@ internal sealed class Session(
             Keep(dash);
             // Through the link, not its current host or broker: an agent switched on or off while linked moves it to new ones.
             dispatcher.DashWatch = dash.OnWatch;
+            dispatcher.SpeedTest = dash.OnSpeedTest;
             dispatcher.PermAnswer = dash.Answer;
             dispatcher.Developer = on => integrations?.SetDeveloper(on);
 
