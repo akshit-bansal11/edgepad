@@ -21,7 +21,6 @@ class LaserSizesTest {
 
     @Test
     fun thePreviewDotIsZoomedBySixOnA84DpBox() {
-        assertEquals(84f * 0.0075f * LaserSizes.PREVIEW_ZOOM, LaserSizes.radius(84f, 15) * LaserSizes.PREVIEW_ZOOM, 0.0001f)
         assertEquals(3.78f, LaserSizes.radius(84f, 15) * LaserSizes.PREVIEW_ZOOM, 0.001f)
     }
 
