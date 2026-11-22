@@ -729,7 +729,7 @@ public sealed class TransferPauseTests : IDisposable
         Interlocked.Add(ref clockTicks, by.Ticks);
     }
 
-    private async Task Until(Func<bool> condition)
+    private static async Task Until(Func<bool> condition)
     {
         var until = DateTime.UtcNow + Patience;
         while (!condition())
