@@ -171,12 +171,15 @@ enum class ControlId(
 
     /**
      * A bitmask of what this phone draws right now: bit 0 (1) system-number widgets, bit 1 (2) the System screen, bit 2 (4) the weather
-     * widget, bit 3 (8) an AI widget or screen, bit 4 (16) the GitHub screen. 0 to 31; the laptop drops more and forgets it at session end.
+     * widget, bit 3 (8) an AI widget or screen, bit 4 (16) the GitHub screen, bit 5 (32) the Network page. 0 to 63; the laptop drops more and forgets it at session end.
      */
     DASH_WATCH(12),
 
     /** Whether developer mode is on, 1 or 0, phone to laptop. The laptop keeps it; the phone shows it from FEATURES. */
     DEVELOPER(13),
+
+    /** Phone to laptop: 1 starts one speed test, 0 cancels it. The laptop answers with [TextKind.SPEED_RESULT]. */
+    SPEED_TEST(14),
     ;
 
     fun set(value: Int): Frame = Frame.SetValue(id, value)
@@ -328,6 +331,12 @@ enum class TextKind(
 
     /** Laptop to phone: "tempTenthsC/wmoCode/city". Empty means none. */
     WEATHER(35),
+
+    /** Laptop to phone: "kind|band|linkMbps|signalPct|localIp|gateway"; kind wifi, ethernet, cellular, other or none, band 2.4, 5, 6 or ?, -1 unknown. No network name. */
+    NET_INFO(36),
+
+    /** Laptop to phone: "state|downKbps|upKbps|latencyMs|jitterMs|atUnixMin|bytes"; state running, done, failed, cancelled or capped, -1 unknown. */
+    SPEED_RESULT(37),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -441,6 +450,9 @@ enum class Feature(
 
     /** Developer mode is on on the laptop: it names claude, codex and github only while this is here. */
     DEVELOPER("developer"),
+
+    /** The laptop sends [TextKind.NET_INFO] and answers [ControlId.SPEED_TEST]. */
+    NETINFO("netinfo"),
     ;
 
     companion object {

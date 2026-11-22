@@ -53,6 +53,7 @@ internal sealed class IntegrationHost : IDisposable
 {
     public const int WidgetsBit = StatsReporter.WidgetsBit;
     public const int ScreenBit = StatsReporter.ScreenBit;
+    public const int NetBit = StatsReporter.NetBit;
     public const int WeatherBit = 4;
     public const int AiBit = CodexWatcher.AiBit;
     public const int GitHubBit = 16;
@@ -72,6 +73,8 @@ internal sealed class IntegrationHost : IDisposable
     private readonly IntegrationSettings settings;
     private readonly DashboardParts parts;
     private readonly IStatsSource? stats;
+    private readonly INetInfoSource? net;
+    private readonly SpeedTest speed;
     private readonly Func<DateTimeOffset> clock;
     private readonly Func<Action, TimeSpan, IDisposable> startTimer;
     private readonly Func<Action, TimeSpan, IDisposable> startOnce;
@@ -100,6 +103,8 @@ internal sealed class IntegrationHost : IDisposable
     /// <param name="startTimer">Runs the action now and then every interval on another thread until disposed. Tests pass their own.</param>
     /// <param name="run">Runs blocking work (a blob, a network call) off the caller's thread. Tests run it inline.</param>
     /// <param name="startOnce">Runs the action once after the delay on another thread, unless disposed first. Tests pass their own.</param>
+    /// <param name="net">The laptop's connection facts, when this platform has them; with it the phone gets NET_INFO and may run a speed test.</param>
+    /// <param name="speedTest">The speed test runner; tests pass one with a fake transport.</param>
     public IntegrationHost(
         Action<Frame> send,
         BlobSender blobs,
@@ -109,13 +114,17 @@ internal sealed class IntegrationHost : IDisposable
         Func<DateTimeOffset>? clock = null,
         Func<Action, TimeSpan, IDisposable>? startTimer = null,
         Action<Action>? run = null,
-        Func<Action, TimeSpan, IDisposable>? startOnce = null)
+        Func<Action, TimeSpan, IDisposable>? startOnce = null,
+        INetInfoSource? net = null,
+        SpeedTest? speedTest = null)
     {
         this.send = send;
         this.blobs = blobs;
         this.settings = settings;
         this.parts = parts;
         this.stats = stats;
+        this.net = net;
+        speed = speedTest ?? new SpeedTest();
         this.clock = clock ?? (() => DateTimeOffset.UtcNow);
         this.startTimer = startTimer ?? ((action, every) => new Timer(_ => action(), null, TimeSpan.Zero, every));
         this.startOnce = startOnce ?? ((action, due) => new Timer(_ => action(), null, due, Timeout.InfiniteTimeSpan));
@@ -170,6 +179,10 @@ internal sealed class IntegrationHost : IDisposable
         if (settings.Flag(IntegrationSettings.Stats) && stats is not null)
         {
             features.Add(Feature.Stats);
+            if (net is not null)
+            {
+                features.Add(Feature.NetInfo);
+            }
         }
 
         if (settings.Flag(IntegrationSettings.Weather) && parts.Weather is not null && WeatherClient.CityFrom(settings.Text(IntegrationSettings.City)) is not null)
@@ -213,11 +226,12 @@ internal sealed class IntegrationHost : IDisposable
         return reasons;
     }
 
-    /// <summary>The phone's DASH_WATCH, 0..31 (the Dispatcher drops anything larger).</summary>
+    /// <summary>The phone's DASH_WATCH, 0..63 (the Dispatcher drops anything larger).</summary>
     public void OnWatch(int mask)
     {
         bool aiGained;
         bool githubGained;
+        bool netGained;
         lock (gate)
         {
             if (disposed)
@@ -229,10 +243,11 @@ internal sealed class IntegrationHost : IDisposable
             watch = mask;
             aiGained = (before & AiBit) == 0 && (mask & AiBit) != 0;
             githubGained = (before & GitHubBit) == 0 && (mask & GitHubBit) != 0;
+            netGained = (before & NetBit) == 0 && (mask & NetBit) != 0;
 
-            if ((mask & (WidgetsBit | ScreenBit)) != 0 && reporter is null && stats is not null && settings.Flag(IntegrationSettings.Stats))
+            if ((mask & (WidgetsBit | ScreenBit | NetBit)) != 0 && reporter is null && stats is not null && settings.Flag(IntegrationSettings.Stats))
             {
-                reporter = new StatsReporter(stats, Push, action => startTimer(action, TimeSpan.FromSeconds(1)));
+                reporter = new StatsReporter(stats, Push, action => startTimer(action, TimeSpan.FromSeconds(1)), net: net);
             }
 
             reporter?.SetWatch(mask);
@@ -270,6 +285,32 @@ internal sealed class IntegrationHost : IDisposable
         if (githubGained && GitHubOn && parts.GitHub!.Lines.Count > 0)
         {
             run(SendGitHub);
+        }
+
+        if (netGained && speed.Last is { } last)
+        {
+            Push(new Text((byte)TextKind.SpeedResult, SpeedWire.Encode(last)));
+        }
+    }
+
+    /// <summary>
+    /// The phone's SPEED_TEST: true starts one speed test (ignored while one runs, and when this laptop does not name
+    /// <see cref="Feature.NetInfo"/>), false cancels the running one. The result is pushed as TEXT SPEED_RESULT. Never blocks the caller.
+    /// </summary>
+    public void OnSpeedTest(bool start)
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        if (!start)
+        {
+            speed.Cancel();
+        }
+        else if (net is not null && stats is not null && settings.Flag(IntegrationSettings.Stats))
+        {
+            speed.Start(result => Push(new Text((byte)TextKind.SpeedResult, SpeedWire.Encode(result))));
         }
     }
 
@@ -330,6 +371,7 @@ internal sealed class IntegrationHost : IDisposable
             disposed = true;
             reporter?.Dispose();
             reporter = null;
+            speed.Dispose();
             Stop(ref weatherTimer);
             Stop(ref weatherRetry);
             Stop(ref githubTimer);

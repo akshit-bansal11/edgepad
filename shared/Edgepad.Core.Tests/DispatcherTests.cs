@@ -661,7 +661,7 @@ public sealed class DispatcherTests : IDisposable
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
-    [InlineData(31)]
+    [InlineData(63)]
     public void TheDashWatchMaskReachesTheHost(int value)
     {
         List<int> seen = [];
@@ -675,15 +675,30 @@ public sealed class DispatcherTests : IDisposable
     }
 
     [Fact]
-    public void ADashWatchAbove31OrWithNoHostIsDropped()
+    public void ADashWatchAbove63OrWithNoHostIsDropped()
     {
         List<int> seen = [];
         dispatcher.Handle(new SetValue((byte)ControlId.DashWatch, 1));
         dispatcher.DashWatch = seen.Add;
-        dispatcher.Handle(new SetValue((byte)ControlId.DashWatch, 32));
+        dispatcher.Handle(new SetValue((byte)ControlId.DashWatch, 64));
 
         Assert.Equal(2, dispatcher.Dropped);
         Assert.Empty(seen);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void TheSpeedTestControlReachesTheHostAndAnythingElseIsDropped()
+    {
+        List<bool> seen = [];
+        dispatcher.Handle(new SetValue((byte)ControlId.SpeedTest, 1));
+        dispatcher.SpeedTest = seen.Add;
+        dispatcher.Handle(new SetValue((byte)ControlId.SpeedTest, 1));
+        dispatcher.Handle(new SetValue((byte)ControlId.SpeedTest, 0));
+        dispatcher.Handle(new SetValue((byte)ControlId.SpeedTest, 2));
+
+        Assert.Equal(2, dispatcher.Dropped);
+        Assert.Equal([true, false], seen);
         Assert.Empty(platform.Calls);
     }
 

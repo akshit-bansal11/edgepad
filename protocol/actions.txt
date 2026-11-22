@@ -128,12 +128,15 @@ CONTROL 10 NOTIFY
 CONTROL 11 FOREGROUND_WATCH
 # A bitmask of what the phone draws right now, phone to laptop: bit0 (1) widgets needing system numbers (CPU, RAM, GPU,
 # network), bit1 (2) the System screen, bit2 (4) the weather widget, bit3 (8) an AI widget or the AI screen, bit4 (16) the GitHub
-# screen. Values 0..31; larger is dropped and counted. Forgotten when the session ends. It is the ONLY thing that makes the
+# screen, bit5 (32) the Network page. Values 0..63; larger is dropped and counted. Forgotten when the session ends. It is the ONLY thing that makes the
 # laptop sample, read usage files or poll.
 CONTROL 12 DASH_WATCH
 # Developer mode: 1 on, 0 off, phone to laptop. Any other value is dropped and counted. The laptop keeps it across sessions,
 # and the phone shows the laptop's state from FEATURES "developer".
 CONTROL 13 DEVELOPER
+# Phone to laptop: 1 starts one speed test against Cloudflare (ignored while one runs), 0 cancels the running one. Anything else is
+# dropped and counted. The phone offers it only for a laptop that sent FEATURES "netinfo". The answer is TEXT 37.
+CONTROL 14 SPEED_TEST
 
 TEXT 0 NOW_PLAYING
 TEXT 1 APP
@@ -247,6 +250,16 @@ TEXT 33 LIMITS
 TEXT 34 SPEND
 # Laptop to phone: "tempTenthsC/wmoCode/city", city Clean(24). Empty means none.
 TEXT 35 WEATHER
+# Laptop to phone: "kind|band|linkMbps|signalPct|localIp|gateway". kind one of wifi, ethernet, cellular, other, none; band one of 2.4, 5, 6, ?;
+# linkMbps and signalPct (0..100) -1 when unknown (Windows never knows the signal); localIp and gateway IPv4 text, empty when none,
+# Clean(15). There is NO field for a network name or a hardware address, and none may be added. Sent while DASH_WATCH has bit5,
+# once a second at most and only when the text changed.
+TEXT 36 NET_INFO
+# Laptop to phone: "state|downKbps|upKbps|latencyMs|jitterMs|atUnixMin|bytes". state one of running, done, failed, cancelled, capped;
+# the speeds are Kbit/s, the times ms, -1 unknown; atUnixMin is when the test began (UTC minutes since the Unix epoch); bytes is the
+# most one test moves (180000000), the phone shows it as the data cost. Sent when a test starts, when it ends, and again to a phone
+# that starts watching bit5 while a result is held.
+TEXT 37 SPEED_RESULT
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -300,6 +313,8 @@ FEATURE weather WEATHER
 FEATURE claude CLAUDE
 FEATURE codex CODEX
 FEATURE github GITHUB
+# The laptop can send TEXT 36 and run CONTROL 14. Named only while its stats switch is on and it can read the network.
+FEATURE netinfo NETINFO
 # Developer mode is on. claude, codex and github are named only while it is.
 FEATURE developer DEVELOPER
 

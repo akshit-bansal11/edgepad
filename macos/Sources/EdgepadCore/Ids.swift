@@ -102,12 +102,15 @@ public enum ControlId: UInt8, CaseIterable {
     /// dropped and counted. Forgotten when the session ends.
     case foregroundWatch = 11
     /// Phone to computer: a bitmask of what the phone draws right now: bit 0 (1) system-number widgets, bit 1 (2) the System
-    /// screen, bit 2 (4) the weather widget, bit 3 (8) an AI widget or screen, bit 4 (16) the GitHub screen. 0 to 31; more is
+    /// screen, bit 2 (4) the weather widget, bit 3 (8) an AI widget or screen, bit 4 (16) the GitHub screen, bit 5 (32) the
+    /// Network page. 0 to 63; more is
     /// dropped and counted. Forgotten when the session ends.
     case dashWatch = 12
     /// Whether developer mode is on, 1 or 0, phone to computer. Anything above 1 is dropped and counted. Unlike `notify`,
     /// the computer keeps it across sessions.
     case developer = 13
+    /// Phone to computer: 1 starts one speed test, 0 cancels the running one. Anything above 1 is dropped and counted.
+    case speedTest = 14
 }
 
 /// What a TEXT frame carries. Only `type` goes phone to computer; the rest go the other way.
@@ -188,6 +191,10 @@ public enum TextKind: UInt8, CaseIterable {
     case spend = 34
     /// Computer to phone: "tempTenthsC/wmoCode/city". Empty means none.
     case weather = 35
+    /// Computer to phone: "kind|band|linkMbps|signalPct|localIp|gateway", -1 unknown, no network name.
+    case netInfo = 36
+    /// Computer to phone: "state|downKbps|upKbps|latencyMs|jitterMs|atUnixMin|bytes", -1 unknown.
+    case speedResult = 37
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
@@ -207,6 +214,7 @@ public enum Feature: String, CaseIterable {
     case codex = "codex"
     case github = "github"
     case developer = "developer"
+    case netinfo = "netinfo"
 }
 
 /// The whole vocabulary of `TextKind.padStatus`: a token the phone matches on, never prose, so the wording

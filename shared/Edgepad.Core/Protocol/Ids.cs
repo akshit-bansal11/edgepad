@@ -276,6 +276,19 @@ internal enum TextKind : byte
 
     /// <summary>Laptop to phone: "tempTenthsC/wmoCode/city", city cleaned to 24 code points. Empty means none.</summary>
     Weather = 35,
+
+    /// <summary>
+    /// Laptop to phone: "kind|band|linkMbps|signalPct|localIp|gateway". Kind is <see cref="NetKind"/>, band <c>2.4</c>, <c>5</c>, <c>6</c> or
+    /// <c>?</c>, the numbers -1 when unknown, the addresses text (empty when none). No network name. Sent while bit 5 of
+    /// <see cref="ControlId.DashWatch"/> is set, on change.
+    /// </summary>
+    NetInfo = 36,
+
+    /// <summary>
+    /// Laptop to phone: "state|downKbps|upKbps|latencyMs|jitterMs|atUnixMin|bytes", state a <see cref="SpeedState"/>, -1 unknown. Sent while a
+    /// <see cref="ControlId.SpeedTest"/> runs and when it ends, and again when the phone watches bit 5 and a result is held.
+    /// </summary>
+    SpeedResult = 37,
 }
 
 /// <summary>
@@ -381,6 +394,29 @@ internal static class Feature
 
     /// <summary>Developer mode is on; <see cref="Claude"/>, <see cref="Codex"/> and <see cref="GitHub"/> are named only while it is.</summary>
     public const string Developer = "developer";
+
+    /// <summary>This laptop can send <see cref="TextKind.NetInfo"/> and run a <see cref="ControlId.SpeedTest"/>; named only while its stats switch is on and it can read the network.</summary>
+    public const string NetInfo = "netinfo";
+}
+
+/// <summary>The first field of a <see cref="TextKind.NetInfo"/>. Tokens, never prose. Mirrors docs/PROTOCOL.md.</summary>
+internal static class NetKind
+{
+    public const string Wifi = "wifi";
+    public const string Ethernet = "ethernet";
+    public const string Cellular = "cellular";
+    public const string Other = "other";
+    public const string None = "none";
+}
+
+/// <summary>The first field of a <see cref="TextKind.SpeedResult"/>. Tokens, never prose. Mirrors docs/PROTOCOL.md.</summary>
+internal static class SpeedState
+{
+    public const string Running = "running";
+    public const string Done = "done";
+    public const string Failed = "failed";
+    public const string Cancelled = "cancelled";
+    public const string Capped = "capped";
 }
 
 /// <summary>The agent of a <see cref="TextKind.Sessions"/>, <see cref="TextKind.Limits"/>, <see cref="TextKind.Spend"/> or <see cref="BlobKind.PermAsk"/> entry. Tokens, never prose. Mirrors protocol/actions.txt.</summary>
@@ -475,13 +511,16 @@ internal enum ControlId : byte
 
     /// <summary>
     /// Phone to laptop: a bitmask of what the phone draws right now: bit 0 (1) widgets needing system numbers, bit 1 (2) the System
-    /// screen, bit 2 (4) the weather widget, bit 3 (8) an AI widget or the AI screen, bit 4 (16) the GitHub screen. 0..31; larger is
+    /// screen, bit 2 (4) the weather widget, bit 3 (8) an AI widget or the AI screen, bit 4 (16) the GitHub screen, bit 5 (32) the Network page. 0..63; larger is
     /// dropped and counted. Forgotten when the session ends. The only thing that makes the laptop sample, read usage files or poll.
     /// </summary>
     DashWatch = 12,
 
     /// <summary>Developer mode, 1 or 0, phone to laptop. The laptop keeps it across sessions; the phone shows it from FEATURES <see cref="Feature.Developer"/>. Anything else is dropped and counted.</summary>
     Developer = 13,
+
+    /// <summary>Phone to laptop: 1 starts one speed test, 0 cancels the running one. Anything else is dropped and counted. See <see cref="TextKind.SpeedResult"/>.</summary>
+    SpeedTest = 14,
 }
 
 /// <summary>

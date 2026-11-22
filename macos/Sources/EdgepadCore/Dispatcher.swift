@@ -417,6 +417,9 @@ public final class Dispatcher {
             guard let developer, value <= 1 else { return false }
             developer(value == 1)
             return true
+        case .speedTest:
+            // Not handled on this port yet (step C10 wires it); dropped and counted, as a laptop with no source does.
+            return false
         }
     }
 }

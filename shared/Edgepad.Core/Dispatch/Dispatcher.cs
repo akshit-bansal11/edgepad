@@ -22,7 +22,7 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
 {
     private const byte MaxButton = 2;
     private const byte MaxPercent = 100;
-    private const byte MaxDashWatch = 31;
+    private const byte MaxDashWatch = 63;
 
     /// <summary>Frames that asked for something unknown, out of range, or unavailable (no microphone).</summary>
     public int Dropped { get; private set; }
@@ -57,13 +57,16 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     public Action<bool>? ForegroundWatch { get; set; }
 
     /// <summary>
-    /// Told the phone's DASH_WATCH mask (0..31): which dashboard numbers it draws right now. Set by the session's integration host,
-    /// like <see cref="ForegroundWatch"/>; without one, or above 31, SET DASH_WATCH is dropped and counted.
+    /// Told the phone's DASH_WATCH mask (0..63): which dashboard numbers it draws right now. Set by the session's integration host,
+    /// like <see cref="ForegroundWatch"/>; without one, or above 63, SET DASH_WATCH is dropped and counted.
     /// </summary>
     public Action<int>? DashWatch { get; set; }
 
     /// <summary>Told the phone's DEVELOPER (true on); set by the session; without one, or for a value above 1, the frame is dropped and counted.</summary>
     public Action<bool>? Developer { get; set; }
+
+    /// <summary>Told when the phone starts (true) or cancels (false) a speed test; set by the session; without one, or for a value above 1, the frame is dropped and counted.</summary>
+    public Action<bool>? SpeedTest { get; set; }
 
     /// <summary>
     /// Takes a TEXT PERM_ANSWER (<c>id/a</c> or <c>id/d</c>) and says whether it answered an approval that waits. Set by the session
@@ -315,6 +318,7 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
         ControlId.ForegroundWatch => ForegroundWatch is { } watch && percent <= 1 && Do(() => watch(percent == 1)),
         ControlId.DashWatch => DashWatch is { } dash && percent <= MaxDashWatch && Do(() => dash(percent)),
         ControlId.Developer => Developer is { } developer && percent <= 1 && Do(() => developer(percent == 1)),
+        ControlId.SpeedTest => SpeedTest is { } speed && percent <= 1 && Do(() => speed(percent == 1)),
         var id => Enum.IsDefined(id) && platform.Set(id, percent),
     };
 

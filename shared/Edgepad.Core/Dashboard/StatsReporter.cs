@@ -4,8 +4,9 @@ using Edgepad.Protocol;
 namespace Edgepad.Dashboard;
 
 /// <summary>
-/// Sends the phone the laptop's numbers, and only while the phone draws them. <see cref="SetWatch"/> takes DASH_WATCH: bit 0
-/// (widgets) or bit 1 (System screen) starts a one-second timer, a mask with neither stops it (and lets the source release what it
+/// Sends the phone the laptop's numbers, and only while the phone draws them. <see cref="SetWatch"/> takes DASH_WATCH: bit 5 (the Network page) also
+/// sends NET_INFO, read each tick and sent only when it changed, when the platform has an <see cref="INetInfoSource"/>. Bit 0
+/// (widgets) or bit 1 (System screen) starts a one-second timer, a mask with none of bits 0, 1 and 5 stops it (and lets the source release what it
 /// holds, <see cref="IStatsSource.Idle"/>), and with the timer stopped nothing is read, pinged or sent. Ping runs every third tick
 /// (never two at once, a stuck one is cancelled after 2 s), disks every tenth and only for bit 1, on a worker (never two at once,
 /// a reading that took over 2 s is dropped), names every thirtieth. Readings are taken outside the lock, and a tick that finds the
@@ -16,6 +17,7 @@ internal sealed class StatsReporter : IDisposable
 {
     public const int WidgetsBit = 1;
     public const int ScreenBit = 2;
+    public const int NetBit = 32;
 
     private const int PingEvery = 3;
     private const int DisksEvery = 10;
@@ -24,6 +26,7 @@ internal sealed class StatsReporter : IDisposable
     private static readonly TimeSpan DisksLimit = TimeSpan.FromSeconds(2);
 
     private readonly IStatsSource source;
+    private readonly INetInfoSource? net;
     private readonly Action<Text> send;
     private readonly Func<Action, IDisposable> startTimer;
     private readonly Action<Action> worker;
@@ -48,12 +51,14 @@ internal sealed class StatsReporter : IDisposable
     private string? lastStats;
     private string? lastInfo;
     private string? lastDisks;
+    private string? lastNet;
 
     /// <param name="startTimer">Runs the action every second until disposed, on another thread, never inline. Tests pass their own.</param>
     /// <param name="worker">Runs the disk reading off the tick. Tests run it inline.</param>
-    public StatsReporter(IStatsSource source, Action<Text> send, Func<Action, IDisposable>? startTimer = null, Action<Action>? worker = null)
+    public StatsReporter(IStatsSource source, Action<Text> send, Func<Action, IDisposable>? startTimer = null, Action<Action>? worker = null, INetInfoSource? net = null)
     {
         this.source = source;
+        this.net = net;
         this.send = send;
         this.startTimer = startTimer ?? (action => new Timer(_ => action(), null, TimeSpan.Zero, TimeSpan.FromSeconds(1)));
         this.worker = worker ?? (work => Task.Run(work));
@@ -71,7 +76,7 @@ internal sealed class StatsReporter : IDisposable
         }
     }
 
-    /// <summary>Applies the phone's DASH_WATCH. Anything outside 0..31 is the caller's to drop; only bits 0 and 1 matter here.</summary>
+    /// <summary>Applies the phone's DASH_WATCH. Anything outside 0..63 is the caller's to drop; only bits 0, 1 and 5 matter here.</summary>
     public void SetWatch(int watch)
     {
         lock (gate)
@@ -81,7 +86,7 @@ internal sealed class StatsReporter : IDisposable
                 return;
             }
 
-            var wanted = watch & (WidgetsBit | ScreenBit);
+            var wanted = watch & (WidgetsBit | ScreenBit | NetBit);
             var before = mask;
             mask = wanted;
             if (wanted == 0)
@@ -93,13 +98,21 @@ internal sealed class StatsReporter : IDisposable
                 generation++;
                 idlePending = false;
                 (pingIn, disksIn, infoIn) = (0, 0, 0);
-                (lastStats, lastInfo, lastDisks) = (null, null, null);
+                (lastStats, lastInfo, lastDisks, lastNet) = (null, null, null, null);
                 timer = startTimer(Tick);
             }
-            else if ((before & ScreenBit) == 0 && (wanted & ScreenBit) != 0)
+            else
             {
-                disksIn = 0;
-                lastDisks = null;
+                if ((before & ScreenBit) == 0 && (wanted & ScreenBit) != 0)
+                {
+                    disksIn = 0;
+                    lastDisks = null;
+                }
+
+                if ((before & NetBit) == 0 && (wanted & NetBit) != 0)
+                {
+                    lastNet = null; // a phone that just opened the page has none yet
+                }
             }
         }
 
@@ -132,6 +145,7 @@ internal sealed class StatsReporter : IDisposable
             int lossPct;
             bool info;
             bool disks;
+            bool netNow;
             lock (gate)
             {
                 if (disposed || mask == 0)
@@ -141,6 +155,7 @@ internal sealed class StatsReporter : IDisposable
 
                 StartPingIfDue();
                 mine = generation;
+                netNow = net is not null && (mask & NetBit) != 0;
                 ping = lastPing;
                 lossPct = loss.Percent;
                 info = --infoIn <= 0;
@@ -160,6 +175,7 @@ internal sealed class StatsReporter : IDisposable
 
             var stats = ReadStats(ping, lossPct);
             var infoText = info ? Read(() => DashWire.EncodeStatsInfo(source.ReadInfo())) : null;
+            var netText = netNow ? Read(() => NetInfoWire.Encode(net!.Read())) ?? NetInfoWire.Encode(NetInfo.Unknown) : null;
             lock (gate)
             {
                 if (!disposed && mine == generation)
@@ -168,6 +184,11 @@ internal sealed class StatsReporter : IDisposable
                     if (infoText is not null)
                     {
                         SendIfChanged(TextKind.StatsInfo, infoText, ref lastInfo);
+                    }
+
+                    if (netText is not null)
+                    {
+                        SendIfChanged(TextKind.NetInfo, netText, ref lastNet);
                     }
                 }
             }
