@@ -77,8 +77,8 @@ final class ClaudeSessionSeedTests: XCTestCase {
 
     func testAnUnfinishedTurnIsWorkingOnlyWhileTheFileIsFresh() throws {
         try transcript("a", prompt + "\n", age: 5)
-        try transcript("b", prompt + "\n" + toolUse + "\n", age: 5 * 60)
-        try transcript("c", prompt + "\n" + toolUse + "\n", age: 2 * 3600)
+        try transcript("b", prompt + "\n" + toolUse + "\n", age: 100)
+        try transcript("c", prompt + "\n" + toolUse + "\n", age: 3 * 60)
 
         let byId = states(watcher().listSessions())
 
