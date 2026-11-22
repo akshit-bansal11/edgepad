@@ -129,7 +129,14 @@ object Transfers {
                 Intent(app, XferCancelReceiver::class.java),
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
-        return XferNotification(app, cancel)
+        val pause =
+            PendingIntent.getBroadcast(
+                app,
+                1,
+                Intent(app, XferCancelReceiver::class.java).setAction(XferCancelReceiver.PAUSE),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
+        return XferNotification(app, cancel, pause)
     }
 
     // A send batch took the card: a receive running alongside stops feeding it.
@@ -634,12 +641,26 @@ internal fun routeXfer(
     receiver().take(frame)
 }
 
-/** The Cancel action of the transfer notification. Not exported: only this app's own PendingIntent reaches it. */
+/**
+ * The Stop and Pause or Resume actions of the transfer notification. Not exported: only this app's own PendingIntents
+ * reach it.
+ */
 class XferCancelReceiver : BroadcastReceiver() {
     override fun onReceive(
         context: Context,
         intent: Intent,
     ) {
-        Transfers.cancel()
+        if (intent.action != PAUSE) {
+            Transfers.cancel()
+        } else if (Transfers.isPaused) {
+            Transfers.resume()
+        } else {
+            Transfers.pause()
+        }
+    }
+
+    companion object {
+        /** The action of the Pause or Resume button; an intent with none is Stop. */
+        const val PAUSE = "me.akshitbansal.edgepad.XFER_PAUSE"
     }
 }

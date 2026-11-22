@@ -586,7 +586,6 @@
   <string name="xfer_receiving">Receiving %1$s · %2$d%%</string>
   <string name="xfer_done">Saved %1$s</string>
   <string name="xfer_failed">%1$s could not be sent</string>
-  <string name="xfer_cancel">Cancel</string>
   <plurals name="xfer_too_many">
     <item quantity="one">Only the first %1$d files were queued</item>
     <item quantity="other">Only the first %1$d files were queued</item>

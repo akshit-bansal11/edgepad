@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="xfer_line_sending_files">Dateien werden gesendet · %1$d von %2$d · %3$d%%</string>
-  <string name="xfer_line_receiving_files">Dateien werden empfangen · %1$d von %2$d · %3$d%%</string>
+  <string name="xfer_pause">Pausieren</string>
+  <string name="xfer_resume">Fortsetzen</string>
+  <string name="xfer_stop">Stopp</string>
+  <string name="xfer_close">Schließen</string>
+  <string name="xfer_detail">%1$s von %2$s · %3$s/s</string>
+  <string name="xfer_detail_paused">Pausiert · %1$s von %2$s</string>
 </resources>

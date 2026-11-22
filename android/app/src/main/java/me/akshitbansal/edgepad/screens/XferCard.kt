@@ -14,19 +14,24 @@ import me.akshitbansal.edgepad.link.xfer.XferSnapshot
 /**
  * Holds [XferCardView] in a floating window at the bottom of [owner], above the navigation bar: it never takes focus
  * or the touches outside it, so the app stays usable while a long file moves. A batch that all arrived closes itself
- * after 4 s, one with failures after 8 s; Try again is on the card while it is open. It sits at the end edge.
+ * after 4 s, one with failures after 8 s; Try again is on the card while it is open. It sits at the end edge. Close on
+ * a batch still moving hides the card alone: the transfer goes on, and the card comes back with the next batch or when
+ * the app is opened again (the notification does that).
  */
 class XferCard(
     private val ui: Ui,
     private val owner: View,
     onCancel: () -> Unit,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
     onRetry: () -> Unit,
     private val onDone: () -> Unit,
 ) {
-    private val view = XferCardView(ui, onCancel, onRetry, onDone)
+    private val view = XferCardView(ui, onCancel, onPause, onResume, onRetry, ::close)
     private val autoDone = Runnable { onDone() }
     private var window: PopupWindow? = null
     private var lastPhase = XferPhase.IDLE
+    private var hidden = false
 
     /** Shows [s], opening the window when it is not open; an idle snapshot closes it. */
     fun show(s: XferSnapshot) {
@@ -34,6 +39,8 @@ class XferCard(
             hide()
             return
         }
+        // A new batch brings back a card closed on the one before.
+        if (s.phase == XferPhase.RUNNING && lastPhase != XferPhase.RUNNING) hidden = false
         view.bind(s)
         if (s.phase != lastPhase) {
             lastPhase = s.phase
@@ -43,12 +50,24 @@ class XferCard(
                 owner.postDelayed(autoDone, if (ok) DONE_MS else FAILED_MS)
             }
         }
+        if (hidden) return
         if (window?.isShowing != true) open()
     }
 
     fun hide() {
         owner.removeCallbacks(autoDone)
         lastPhase = XferPhase.IDLE
+        hidden = false
+        window?.dismiss()
+        window = null
+    }
+
+    private fun close() {
+        if (lastPhase != XferPhase.RUNNING) {
+            onDone()
+            return
+        }
+        hidden = true
         window?.dismiss()
         window = null
     }

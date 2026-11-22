@@ -590,7 +590,6 @@
   <string name="xfer_receiving">Odbieranie: %1$s · %2$d%%</string>
   <string name="xfer_done">Zapisano: %1$s</string>
   <string name="xfer_failed">Nie udało się wysłać: %1$s</string>
-  <string name="xfer_cancel">Anuluj</string>
   <plurals name="xfer_too_many">
     <item quantity="one">Dodano do kolejki tylko pierwsze %1$d plików</item>
     <item quantity="few">Dodano do kolejki tylko pierwsze %1$d plików</item>

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="xfer_line_sending_files">Dosyalar gönderiliyor · %1$d / %2$d · %3$d%%</string>
-  <string name="xfer_line_receiving_files">Dosyalar alınıyor · %1$d / %2$d · %3$d%%</string>
+  <string name="xfer_pause">Duraklat</string>
+  <string name="xfer_resume">Devam et</string>
+  <string name="xfer_stop">Durdur</string>
+  <string name="xfer_close">Kapat</string>
+  <string name="xfer_detail">%2$s içinden %1$s · %3$s/sn</string>
+  <string name="xfer_detail_paused">Duraklatıldı · %2$s içinden %1$s</string>
 </resources>

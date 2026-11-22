@@ -1794,6 +1794,8 @@ class MainActivity :
                     ui,
                     stage,
                     onCancel = Transfers::cancel,
+                    onPause = { Transfers.pause() },
+                    onResume = { Transfers.resume() },
                     onRetry = {
                         if (!Transfers.retryLast()) {
                             Toast.makeText(this, R.string.xfer_no_laptop, Toast.LENGTH_SHORT).show()

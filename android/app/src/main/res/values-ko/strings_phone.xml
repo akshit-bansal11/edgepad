@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="xfer_line_sending_files">파일 보내는 중 · %1$d/%2$d · %3$d%%</string>
-  <string name="xfer_line_receiving_files">파일 받는 중 · %1$d/%2$d · %3$d%%</string>
+  <string name="xfer_pause">일시 정지</string>
+  <string name="xfer_resume">재개</string>
+  <string name="xfer_stop">중지</string>
+  <string name="xfer_close">닫기</string>
+  <string name="xfer_detail">%1$s / %2$s · %3$s/초</string>
+  <string name="xfer_detail_paused">일시 정지됨 · %1$s / %2$s</string>
 </resources>

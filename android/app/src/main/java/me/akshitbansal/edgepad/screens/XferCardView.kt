@@ -3,6 +3,7 @@ package me.akshitbansal.edgepad.screens
 import android.content.Context
 import android.graphics.drawable.ClipDrawable
 import android.text.TextUtils
+import android.text.format.Formatter
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -29,18 +30,20 @@ internal fun titleKind(s: XferSnapshot): CardTitle =
     }
 
 /**
- * The small card of the batch of files moving: a file icon, one line of words, a thin bar while it moves, and a close
- * button that cancels while it moves and dismisses after. Its views are made once; [bind] only sets text, visibility
- * and the bar's level.
+ * The small card of the batch of files moving: a file icon, the file's name, a line of figures, a thin bar while it
+ * moves, and three buttons: Pause or Resume, Stop, and Close, which only hides the card. After the end only Close (and
+ * Try again after a failed send) is left. Its views are made once; [bind] only sets text, visibility and the bar.
  */
 class XferCardView(
     private val ui: Ui,
     onCancel: () -> Unit,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
     onRetry: () -> Unit,
-    onDone: () -> Unit,
+    onClose: () -> Unit,
 ) : LinearLayout(ui.context) {
     /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
-    constructor(context: Context) : this(Ui(context), {}, {}, {})
+    constructor(context: Context) : this(Ui(context), {}, {}, {}, {}, {})
 
     private val p = ui.palette
     private val icon =
@@ -49,74 +52,120 @@ class XferCardView(
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
     private val line =
-        ui.text("", Type.BODY, p.ink).apply {
+        ui.text("", Type.VALUE, p.ink, face = Type.bold).apply {
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
         }
-    private val fill = ClipDrawable(ui.rounded(p.accent, BAR_DP), Gravity.START, ClipDrawable.HORIZONTAL)
+    private val detail =
+        ui.text("", Type.MICRO, p.dim).apply {
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
+        }
+    private val fillShape = ui.rounded(p.accent, BAR_DP / 2)
+    private val fill = ClipDrawable(fillShape, Gravity.START, ClipDrawable.HORIZONTAL)
     private val bar =
         FrameLayout(ui.context).apply {
-            background = ui.rounded(p.line, BAR_DP)
+            background = ui.rounded(p.faint, BAR_DP / 2)
             addView(View(ui.context).apply { background = fill }, matchBoth())
         }
     private val retry = ui.button(ui.string(R.string.xfer_retry), Ui.Style.QUIET, onRetry)
-    private var running = false
-    private val close =
-        ImageView(ui.context).apply {
-            setImageResource(R.drawable.ic_close)
-            setColorFilter(p.dim)
-            val pad = ui.dp(CLOSE_PAD_DP)
-            setPadding(pad, pad, pad, pad)
-            setOnClickListener { if (running) onCancel() else onDone() }
-        }
+    private var held = false
+    private val pause = iconButton(R.drawable.ic_pause, p.ink, ICON_DP) { if (held) onResume() else onPause() }
+    private val stop =
+        iconButton(R.drawable.ic_stop, p.danger, STOP_DP, ui.string(R.string.xfer_stop)) { onCancel() }
+    private val close = iconButton(R.drawable.ic_close, p.ink, ICON_DP, ui.string(R.string.xfer_close)) { onClose() }
 
     private var lastKind: CardTitle? = null
+    private var lastHeld: Boolean? = null
 
     init {
-        orientation = VERTICAL
-        background = ui.rounded(p.card, Space.CARD_RADIUS)
+        orientation = HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        background = ui.rounded(p.popover, Space.CARD_RADIUS)
         elevation = ui.dp(ELEVATION_DP).toFloat()
-        setPadding(ui.dp(Space.M), ui.dp(Space.XS), ui.dp(Space.XS), ui.dp(Space.S))
+        setPadding(ui.dp(PAD_START_DP), ui.dp(Space.M), ui.dp(Space.XS), ui.dp(Space.M))
         accessibilityPaneTitle = ui.string(R.string.xfer_card_a11y)
-        val top =
+        addView(icon, LayoutParams(ui.dp(ICON_DP), ui.dp(ICON_DP)))
+        val words =
             LinearLayout(ui.context).apply {
-                gravity = Gravity.CENTER_VERTICAL
-                addView(icon, LayoutParams(ui.dp(ICON_DP), ui.dp(ICON_DP)))
-                addView(
-                    line,
-                    LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                        marginStart = ui.dp(Space.M)
-                        marginEnd = ui.dp(Space.S)
-                    },
-                )
+                orientation = VERTICAL
+                addView(line)
+                addView(detail)
+                val barParams = LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(BAR_DP))
+                barParams.topMargin = ui.dp(Space.XS)
+                addView(bar, barParams)
                 addView(retry)
-                addView(close, LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
             }
-        addView(top)
-        val barParams = LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(BAR_DP))
-        barParams.marginEnd = ui.dp(Space.M)
-        addView(bar, barParams)
+        addView(
+            words,
+            LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = ui.dp(GAP_DP) },
+        )
+        for (button in listOf(pause, stop, close)) {
+            addView(button, LayoutParams(ui.dp(BUTTON_W_DP), ui.dp(Space.TOUCH)))
+        }
     }
 
     /** Shows [s]. */
     fun bind(s: XferSnapshot) {
         val kind = titleKind(s)
-        running = kind == CardTitle.RUNNING_SEND || kind == CardTitle.RUNNING_RECEIVE
-        if (kind != lastKind) {
+        val running = kind == CardTitle.RUNNING_SEND || kind == CardTitle.RUNNING_RECEIVE
+        val hold = running && s.paused
+        if (kind != lastKind || hold != lastHeld) {
             lastKind = kind
+            lastHeld = hold
+            held = hold
             val bad = kind == CardTitle.FAILED_ONE || kind == CardTitle.FAILED_MANY || kind == CardTitle.DONE_SOME
-            icon.setColorFilter(if (bad) p.danger else p.accent)
-            close.contentDescription = ui.string(if (running) R.string.xfer_cancel else R.string.editor_done)
+            icon.setColorFilter(if (bad) p.danger else if (hold) p.dim else p.accent)
+            fillShape.setColor(if (hold) p.track else p.accent)
+            pause.setImageResource(if (hold) R.drawable.ic_play else R.drawable.ic_pause)
+            pause.contentDescription = ui.string(if (hold) R.string.xfer_resume else R.string.xfer_pause)
         }
         // The words follow every percent, but only the end is read aloud.
         line.accessibilityLiveRegion =
             if (running) View.ACCESSIBILITY_LIVE_REGION_NONE else View.ACCESSIBILITY_LIVE_REGION_POLITE
         val text = if (running && s.cancelling) ui.string(R.string.xfer_card_cancelling) else lineOf(kind, s)
         if (line.text.toString() != text) line.text = text
+        val figures = if (running) detailOf(s, hold) else ""
+        if (detail.text.toString() != figures) detail.text = figures
+        show(detail, running)
         show(bar, running)
+        show(pause, running)
+        show(stop, running)
         show(retry, !running && s.sending && s.failed.isNotEmpty())
-        close.isEnabled = !(running && s.cancelling)
+        pause.isEnabled = !s.cancelling
+        stop.isEnabled = !s.cancelling
         if (running) fill.level = s.percent * LEVEL_PER_PERCENT
+    }
+
+    private fun detailOf(
+        s: XferSnapshot,
+        hold: Boolean,
+    ): String {
+        val sent = Formatter.formatFileSize(ui.context, s.sent)
+        val size = Formatter.formatFileSize(ui.context, s.size)
+        return if (hold) {
+            ui.string(R.string.xfer_detail_paused, sent, size)
+        } else {
+            ui.string(R.string.xfer_detail, sent, size, Formatter.formatFileSize(ui.context, s.bytesPerSecond))
+        }
+    }
+
+    /** A button 40 dp wide in a 48 dp tall touch target, its [icon] [sizeDp] square in [color]. */
+    private fun iconButton(
+        drawable: Int,
+        color: Int,
+        sizeDp: Float,
+        description: String? = null,
+        onTap: () -> Unit,
+    ) = ImageView(ui.context).apply {
+        setImageResource(drawable)
+        setColorFilter(color)
+        scaleType = ImageView.ScaleType.CENTER_INSIDE
+        val side = ui.dp((BUTTON_W_DP - sizeDp) / 2)
+        val top = ui.dp((Space.TOUCH - sizeDp) / 2)
+        setPadding(side, top, side, top)
+        contentDescription = description
+        ui.tappable(this, Space.S, onTap)
     }
 
     private fun lineOf(
@@ -127,13 +176,9 @@ class XferCardView(
         val name = middleTruncated(s.name)
         return when (kind) {
             CardTitle.RUNNING_SEND, CardTitle.RUNNING_RECEIVE -> {
+                // The name alone: the figures are the line under it. Before a file is named, the old words.
                 val send = kind == CardTitle.RUNNING_SEND
-                if (s.total > 1) {
-                    val words = if (send) R.string.xfer_line_sending_files else R.string.xfer_line_receiving_files
-                    ui.string(words, s.index, s.total, s.percent)
-                } else {
-                    ui.string(if (send) R.string.xfer_sending else R.string.xfer_receiving, name, s.percent)
-                }
+                name.ifEmpty { ui.string(if (send) R.string.xfer_sending else R.string.xfer_receiving, name, s.percent) }
             }
 
             CardTitle.DONE_ALL -> {
@@ -173,7 +218,10 @@ class XferCardView(
 
     private companion object {
         const val ICON_DP = 24f
-        const val CLOSE_PAD_DP = 14f
+        const val STOP_DP = 18f
+        const val BUTTON_W_DP = 40f
+        const val PAD_START_DP = 14f
+        const val GAP_DP = 10f
         const val BAR_DP = 4f
         const val ELEVATION_DP = 8f
 

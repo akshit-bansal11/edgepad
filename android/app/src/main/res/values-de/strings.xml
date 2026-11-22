@@ -571,7 +571,6 @@
   <string name="xfer_receiving">%1$s wird empfangen · %2$d%%</string>
   <string name="xfer_done">%1$s gespeichert</string>
   <string name="xfer_failed">%1$s konnte nicht gesendet werden</string>
-  <string name="xfer_cancel">Abbrechen</string>
   <plurals name="xfer_too_many">
     <item quantity="one">Nur die ersten %1$d Dateien wurden eingereiht</item>
     <item quantity="other">Nur die ersten %1$d Dateien wurden eingereiht</item>

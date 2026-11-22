@@ -551,7 +551,6 @@
   <string name="xfer_receiving">%1$s 받는 중 · %2$d%%</string>
   <string name="xfer_done">%1$s 저장됨</string>
   <string name="xfer_failed">%1$s을(를) 보내지 못했습니다</string>
-  <string name="xfer_cancel">취소</string>
   <plurals name="xfer_too_many">
     <item quantity="other">처음 %1$d개 파일만 대기열에 추가했습니다</item>
   </plurals>

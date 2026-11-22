@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="xfer_line_sending_files">फ़ाइलें भेजी जा रही हैं · %1$d में से %2$d · %3$d%%</string>
-  <string name="xfer_line_receiving_files">फ़ाइलें प्राप्त हो रही हैं · %1$d में से %2$d · %3$d%%</string>
+  <string name="xfer_pause">रोकें</string>
+  <string name="xfer_resume">फिर शुरू करें</string>
+  <string name="xfer_stop">बंद करें</string>
+  <string name="xfer_close">छिपाएँ</string>
+  <string name="xfer_detail">%2$s में से %1$s · %3$s/से</string>
+  <string name="xfer_detail_paused">रुका हुआ · %2$s में से %1$s</string>
 </resources>

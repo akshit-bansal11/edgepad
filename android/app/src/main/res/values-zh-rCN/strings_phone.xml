@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="xfer_line_sending_files">正在发送文件 · %1$d/%2$d · %3$d%%</string>
-  <string name="xfer_line_receiving_files">正在接收文件 · %1$d/%2$d · %3$d%%</string>
+  <string name="xfer_pause">暂停</string>
+  <string name="xfer_resume">继续</string>
+  <string name="xfer_stop">停止</string>
+  <string name="xfer_close">关闭</string>
+  <string name="xfer_detail">%1$s / %2$s · %3$s/秒</string>
+  <string name="xfer_detail_paused">已暂停 · %1$s / %2$s</string>
 </resources>

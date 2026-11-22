@@ -55,13 +55,16 @@ private const val EXTENSION_LEAD = 2
 
 /**
  * The one notification of the transfer running: a progress bar, updated only when a chunk arrives or goes and at most
- * once per percent, with a Cancel action. Never without permission. No timer; the final state replaces the bar.
+ * once per percent, with Pause (or Resume) and Stop actions; a tap on it opens the app, which shows the transfer card
+ * again. Never without permission. No timer; the final state replaces the bar.
  *
- * @param cancel What the Cancel action fires; the wiring supplies it. Without one the action is left off.
+ * @param cancel What the Stop action fires; the wiring supplies it. Without one the action is left off.
+ * @param pause What the Pause or Resume action fires. Without one the action is left off.
  */
 class XferNotification(
     context: Context,
     private val cancel: PendingIntent? = null,
+    private val pause: PendingIntent? = null,
 ) {
     private val context: Context = context.applicationContext
     private var gate = PercentGate()
@@ -139,11 +142,19 @@ class XferNotification(
                 .setOnlyAlertOnce(true)
                 .setOngoing(ongoing)
                 .setAutoCancel(!ongoing)
+        context.packageManager.getLaunchIntentForPackage(context.packageName)?.let {
+            val open = PendingIntent.getActivity(context, 0, it, PendingIntent.FLAG_IMMUTABLE)
+            builder.setContentIntent(open)
+        }
         if (ongoing) {
             builder.setProgress(100, percent, false)
+            val icon = Icon.createWithResource(context, R.drawable.ic_laptop)
+            pause?.let {
+                val label = context.getString(if (Transfers.isPaused) R.string.xfer_resume else R.string.xfer_pause)
+                builder.addAction(Notification.Action.Builder(icon, label, it).build())
+            }
             cancel?.let {
-                val icon = Icon.createWithResource(context, R.drawable.ic_laptop)
-                val label = context.getString(R.string.xfer_cancel)
+                val label = context.getString(R.string.xfer_stop)
                 builder.addAction(Notification.Action.Builder(icon, label, it).build())
             }
         }

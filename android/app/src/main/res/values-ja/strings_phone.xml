@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="xfer_line_sending_files">ファイルを送信中 · %1$d/%2$d · %3$d%%</string>
-  <string name="xfer_line_receiving_files">ファイルを受信中 · %1$d/%2$d · %3$d%%</string>
+  <string name="xfer_pause">一時停止</string>
+  <string name="xfer_resume">再開</string>
+  <string name="xfer_stop">停止</string>
+  <string name="xfer_close">閉じる</string>
+  <string name="xfer_detail">%1$s / %2$s · %3$s/秒</string>
+  <string name="xfer_detail_paused">一時停止中 · %1$s / %2$s</string>
 </resources>

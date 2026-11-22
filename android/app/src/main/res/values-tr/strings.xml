@@ -567,7 +567,6 @@
   <string name="xfer_receiving">%1$s alınıyor · %2$d%%</string>
   <string name="xfer_done">%1$s kaydedildi</string>
   <string name="xfer_failed">%1$s gönderilemedi</string>
-  <string name="xfer_cancel">İptal</string>
   <plurals name="xfer_too_many">
     <item quantity="one">Yalnızca ilk %1$d dosya sıraya alındı</item>
     <item quantity="other">Yalnızca ilk %1$d dosya sıraya alındı</item>

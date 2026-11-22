@@ -606,7 +606,6 @@
   <string name="xfer_receiving">جارٍ استلام %1$s · %2$d%%</string>
   <string name="xfer_done">تم حفظ %1$s</string>
   <string name="xfer_failed">تعذر إرسال %1$s</string>
-  <string name="xfer_cancel">إلغاء</string>
   <plurals name="xfer_too_many">
     <item quantity="zero">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
     <item quantity="one">تمت إضافة أول %1$d ملف فقط إلى قائمة الإرسال</item>
