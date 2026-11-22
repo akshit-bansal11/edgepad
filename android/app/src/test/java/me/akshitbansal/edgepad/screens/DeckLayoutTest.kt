@@ -197,7 +197,7 @@ class DeckLayoutTest {
         sideways: Boolean,
         screenWidth: Int,
         screenHeight: Int,
-    ) = DeckLayout.fixedPlan(count, sideways, screenWidth, screenHeight, 16, 104, 88, 8, 16, 30, 16)
+    ) = DeckLayout.fixedPlan(count, sideways, screenWidth, screenHeight, 16, 104, 88, 8, 16, 48, 16)
 
     @Test
     fun tenTilesSidewaysStandInTwoRowsOfFive() {
@@ -206,7 +206,7 @@ class DeckLayoutTest {
         assertEquals(2, plan.rows)
         assertEquals(104, plan.tile)
         assertEquals(584, plan.width)
-        assertEquals(30 + 2 * 88 + 8 + 16, plan.height)
+        assertEquals(48 + 2 * 88 + 8 + 16, plan.height)
         assertFalse(plan.scrolls)
         assertTrue(plan.width <= 800 - 32)
         assertTrue(plan.height <= 360 - 32)
@@ -232,9 +232,23 @@ class DeckLayoutTest {
     }
 
     @Test
+    fun thePencilTargetNeverOverlapsATile() {
+        val plan = popup(10, true, 800, 360)
+        // The 48 dp target sits in the top right corner; the grid starts under the 48 dp top padding.
+        val pencilBottom = 48
+        val pencilLeft = plan.width - 48
+        for (i in 0 until 10) {
+            val top = 48 + (i / plan.columns) * (88 + 8)
+            val left = 16 + (i % plan.columns) * (plan.tile + 8)
+            val overlaps = left + plan.tile > pencilLeft && top < pencilBottom
+            assertFalse("tile $i", overlaps)
+        }
+    }
+
+    @Test
     fun noTilesLeaveOnlyThePadding() {
         val plan = popup(0, true, 800, 360)
         assertEquals(0, plan.rows)
-        assertEquals(46, plan.height)
+        assertEquals(64, plan.height)
     }
 }

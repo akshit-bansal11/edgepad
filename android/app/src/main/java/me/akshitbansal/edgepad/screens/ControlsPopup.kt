@@ -36,7 +36,7 @@ private const val TILE_LABEL_SP = 13f
 private const val TILE_ICON_GAP_DP = 8f
 
 /** The popup's top padding: room for the pencil in the corner, which is all it has in place of a heading. */
-private const val TOP_PAD_DP = 30f
+private const val TOP_PAD_DP = 48f
 
 /** The pencil: a 48 dp touch target with a 16 dp glyph 8 dp in from the top and right edges. */
 private const val PENCIL_DP = 16f
@@ -295,13 +295,22 @@ class ControlsPopup(
         // A tap during the shrink would open a second control.
         val untouchable = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
         window.setFlags(untouchable, untouchable)
-        window.decorView
+        val decor = window.decorView
+        // The owner leaving the window closes the dialog under the animation: stop it rather than finish it.
+        decor.addOnAttachStateChangeListener(
+            object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) = Unit
+
+                override fun onViewDetachedFromWindow(v: View) = v.animate().cancel()
+            },
+        )
+        decor
             .animate()
             .alpha(0f)
             .scaleX(CLOSE_SCALE)
             .scaleY(CLOSE_SCALE)
             .setDuration(Motion.REVEAL)
-            .withEndAction { closing.dismiss() }
+            .withEndAction { if (closing.isShowing && decor.isAttachedToWindow) closing.dismiss() }
             .start()
     }
 
