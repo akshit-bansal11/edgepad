@@ -688,12 +688,6 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Integrations_WeatherNote" xml:space="preserve">
     <value>open-meteo.com adresine yalnızca şehir adı gönderilir.</value>
   </data>
-  <data name="Integrations_Claude" xml:space="preserve">
-    <value>Claude Code</value>
-  </data>
-  <data name="Integrations_Codex" xml:space="preserve">
-    <value>Codex</value>
-  </data>
   <data name="Integrations_Connect" xml:space="preserve">
     <value>Bağlan</value>
   </data>
@@ -727,14 +721,8 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Integrations_Restart" xml:space="preserve">
     <value>Açık oturumları yeniden başlatın ya da Claude Code’da /reload-plugins komutunu çalıştırın.</value>
   </data>
-  <data name="Integrations_GitHub" xml:space="preserve">
-    <value>GitHub</value>
-  </data>
   <data name="Integrations_ForDevelopers" xml:space="preserve">
     <value>Geliştiriciler için</value>
-  </data>
-  <data name="Integrations_SignIn" xml:space="preserve">
-    <value>GitHub ile oturum aç</value>
   </data>
   <data name="Integrations_SignOut" xml:space="preserve">
     <value>Oturumu kapat</value>
@@ -779,6 +767,76 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
     <value>1. GitHub ile oturum aç’a tıklayın. Bir github.com sayfası açılır.
 2. Burada gösterilen kodu girin ve Authorize’a tıklayın.
 3. Telefonunuzda Controls > GitHub’ı açın.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Yapay zekâ araçlarınızı ve Git sunucularınızı bağlayın, telefonunuzda görün.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>Yapay zekâ araçları</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Git sunucuları</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>Nasıl bağlanır</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Oturum aç</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Ekle…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Yakında</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Sunucu adresi</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Kullanıcı adı veya e-posta</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Erişim belirteci</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Sunucu adresini, adı ve belirteci kontrol edip yeniden deneyin.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>Sunucu bu belirteci kabul etmedi.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>Bu belirtecin okuma izni yok. Okuma erişimli bir belirteç oluşturun.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>Bu adreste sunucu bulunamadı.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>Belirteç kaydedilemedi. Yeniden deneyin.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Henüz yapmadıysanız bu bilgisayara Gemini CLI’yi kurun.
+2. Bağlan’a tıklayın. Edgepad kancalarını Gemini CLI ayarlarına ekler.
+3. Açık Gemini CLI oturumlarını yeniden başlatın.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Henüz yapmadıysanız bu bilgisayara OpenCode’u kurun.
+2. Bağlan’a tıklayın. Edgepad eklentisini OpenCode’un eklenti klasörüne ekler.
+3. Açık OpenCode oturumlarını yeniden başlatın.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. Sunucunuzda Ayarlar &gt; Uygulamalar’ı açın ve okuma erişimli bir erişim belirteci oluşturun.
+2. Ekle’ye tıklayın, sunucu adresini kontrol edin (varsayılan Codeberg) ve belirteci yapıştırın.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. Atlassian hesabınızda Bitbucket için okuma erişimli bir API belirteci oluşturun.
+2. Ekle’ye tıklayın, Bitbucket e-postanızı girin ve belirteci yapıştırın.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. gitee.com’da Ayarlar &gt; Kişisel erişim belirteçleri’ni açın ve okuma erişimli bir belirteç oluşturun.
+2. Ekle’ye tıklayın ve belirteci yapıştırın.</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex yeniden onayınızı istiyor</value>

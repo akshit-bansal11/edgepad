@@ -9,6 +9,7 @@
 # linux/src/Edgepad.Linux/Assets/edgepad-64.png         Linux tray (Skia does not decode an .ico)
 # linux/src/Edgepad.Linux/Assets/edgepad-64-dark.png    Linux tray on a dark desktop, from edgepad-dark.svg
 # windows/src/Edgepad/Assets/tray-light.ico, tray-dark.ico   Windows tray, by the taskbar theme (16 to 48 px)
+# windows/src/Edgepad/Assets/logos/*.png                GitLab and OpenCode marks for the For developers window (64 px)
 # site/app/apple-icon.png                               180 px touch icon (site/app/icon.svg is hand-kept text)
 # assets/social-preview.png, site/public/social-preview.png   1280x640 card, from assets/social-preview.svg
 # assets/brand/edgepad-{light,dark}-{256,512,1024}.png   the mark for press and documents
@@ -46,6 +47,13 @@ cp "$tmp/d64.png" "$root/linux/src/Edgepad.Linux/Assets/edgepad-64-dark.png"
 # The social preview (the repo's card and the site's Open Graph image). Its text is Lato, so the job installs fonts-lato.
 rsvg-convert -w 1280 -h 640 -o "$root/assets/social-preview.png" "$root/assets/social-preview.svg"
 cp "$root/assets/social-preview.png" "$root/site/public/social-preview.png"
+
+# The official GitLab and OpenCode marks as 64 px PNGs, for the Windows For developers window (WinForms cannot draw an SVG).
+# Embedded by Edgepad.csproj as Edgepad.Assets.logo-<name>.png; a row with no PNG draws a letter tile.
+mkdir -p "$root/windows/src/Edgepad/Assets/logos"
+for logo in gitlab opencode-dark opencode-light; do
+    rsvg-convert -w 64 -h 64 -a -o "$root/windows/src/Edgepad/Assets/logos/$logo.png" "$root/assets/brand/logos/$logo.svg"
+done
 
 # The mark as PNGs for press and documents, both variants.
 mkdir -p "$root/assets/brand"

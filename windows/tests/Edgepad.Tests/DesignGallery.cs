@@ -1,6 +1,7 @@
 using System.Drawing.Imaging;
 using System.Reflection;
 using Edgepad.Annotation;
+using Edgepad.Dashboard;
 using Edgepad.Net;
 using Edgepad.Transfer;
 using Edgepad.Ui;
@@ -67,6 +68,81 @@ public sealed class DesignGallery
         Save(folder, "toast-finished", toast, finished);
         SaveLaser(folder, "laser-medium", 15);
         SaveTray(folder);
+        SaveDevWindow(folder, "dev-window", codeOpen: false);
+        SaveDevWindow(folder, "dev-window-code", codeOpen: true);
+    }
+
+    // The For developers window with stub actions: Claude Code, OpenCode and GitHub connected, the rest not. With
+    // codeOpen, GitHub is signed out and its sign-in panel is open, so both states of the row show. It is sized to all
+    // its content, whatever the runner's screen, then drawn into a bitmap without being shown.
+    private static void SaveDevWindow(string folder, string name, bool codeOpen)
+    {
+        using var dir = new TempFolder();
+        var settings = new IntegrationSettings(Path.Combine(dir.Path, IntegrationSettings.FileName));
+        var secrets = new MemorySecrets();
+        _ = settings.SetFlag(IntegrationSettings.Developer, true);
+        _ = settings.SetFlag(IntegrationSettings.Claude, true);
+        _ = settings.SetFlag("opencode", true);
+        if (!codeOpen)
+        {
+            _ = settings.SetFlag(IntegrationSettings.GitHub, true);
+            _ = settings.Set(IntegrationSettings.GitHubLogin, "akshit-bansal11");
+            _ = secrets.Set(GitHubApp.TokenName, "gho_abcdefghijklmnop123456");
+        }
+
+        var heard = new DateTimeOffset(DateTime.Today.AddHours(9).AddMinutes(56)).ToUnixTimeSeconds() / 60;
+        var actions = new IntegrationActions(
+            settings,
+            new GitHubSignIn(secrets),
+            id => new AgentStatus(settings.Flag(id) ? AgentState.Connected : AgentState.NotConnected),
+            _ => Task.FromResult(new AgentStatus(AgentState.Connected)),
+            _ => Task.FromResult(new AgentStatus(AgentState.NotConnected)),
+            () => { },
+            _ => heard,
+            _ => Task.FromResult<string?>("akshit-bansal11"),
+            _ => { },
+            (_, _) => { },
+            _ => { },
+            _ => { },
+            _ => false,
+            (_, _, _, _, _) => Task.FromResult(new GitSaveResult(GitSaveStatus.Saved, "akshit")),
+            _ => { });
+        using var window = new DevelopersWindow(actions);
+        window.ShowInFull();
+        if (codeOpen)
+        {
+            window.PreviewCode("WDJB-MJHT");
+        }
+
+        _ = window.Handle;
+        Application.DoEvents();
+        using var bitmap = new Bitmap(window.Width, window.Height);
+        window.DrawToBitmap(bitmap, new Rectangle(Point.Empty, window.Size));
+        bitmap.Save(System.IO.Path.Combine(folder, name + ".png"), ImageFormat.Png);
+    }
+
+    private sealed class MemorySecrets : ISecretStore
+    {
+        private readonly Dictionary<string, string> values = [];
+
+        public string? Get(string name) => values.GetValueOrDefault(name);
+
+        public bool Set(string name, string value)
+        {
+            values[name] = value;
+            return true;
+        }
+
+        public void Delete(string name) => values.Remove(name);
+    }
+
+    private sealed class TempFolder : IDisposable
+    {
+        private readonly DirectoryInfo directory = Directory.CreateTempSubdirectory("edgepad-gallery-");
+
+        public string Path => directory.FullName;
+
+        public void Dispose() => directory.Delete(recursive: true);
     }
 
     // The tray menu is built here with stub callbacks and the same strings, icons and grouping as TrayContext; the

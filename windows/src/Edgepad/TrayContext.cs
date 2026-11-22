@@ -59,7 +59,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MenuRow securityRow = new(Strings.Menu_Security, Icons.Smartphone);
     private readonly MenuRow integrationsRow = new(Strings.Menu_StatsWeather, Icons.Sliders);
     private readonly MenuRow developerRow = new(Strings.Menu_DeveloperMode, Icons.Sliders) { CheckOnClick = true, Switch = true };
-    private readonly MenuRow developerIntegrationsRow = new(Strings.Menu_ForDevelopers, Icons.Sliders) { Available = false };
+    private readonly MenuRow developerIntegrationsRow = new(Strings.Menu_ForDevelopers, Icons.Sliders);
     private readonly MenuRow networkRow = new(Strings.Menu_Network, Icons.Wifi) { CheckOnClick = true, Switch = true };
     private readonly MenuRow networkProblem = new(Strings.Network_Title, Icons.Wifi) { Danger = true, Available = false };
     private readonly MenuRow firewallRow = new(Strings.Menu_Firewall, Icons.Shield) { Available = false };
@@ -151,6 +151,7 @@ internal sealed class TrayContext : ApplicationContext
     // The dashboard integrations, all off until the owner turns one on; the window is not modal, one at a time. UI thread only.
     private readonly WindowsIntegrations integrations;
     private IntegrationsWindow? integrationsWindow;
+    private DevelopersWindow? developersWindow;
     private readonly RfcommServer server;
     private readonly PairedLinks pairedLinks = PairedLinks.ForCurrentUser();
     private readonly NetworkSettings networkSettings;
@@ -220,9 +221,9 @@ internal sealed class TrayContext : ApplicationContext
         transfersRow.Click += (_, _) => RevealTransfers();
         macrosRow.Click += (_, _) => MacroEditor.Show(macros);
         securityRow.Click += (_, _) => ShowSecurity();
-        integrationsRow.Click += (_, _) => ShowIntegrations(developer: false);
+        integrationsRow.Click += (_, _) => ShowIntegrations();
         developerRow.Click += (_, _) => integrations.SetDeveloper(developerRow.Checked);
-        developerIntegrationsRow.Click += (_, _) => ShowIntegrations(developer: true);
+        developerIntegrationsRow.Click += (_, _) => ShowDevelopers();
         networkRow.Click += (_, _) => ToggleNetwork(networkRow.Checked);
         firewallRow.Click += (_, _) => AllowFirewall(ReportFirewall);
         restartAdminRow.Click += (_, _) => RestartAsAdministrator();
@@ -303,7 +304,6 @@ internal sealed class TrayContext : ApplicationContext
             startWithWindows.Checked = RunAtLogin.IsEnabled;
             transfersRow.Available = feed.View.Phase == TransferPhase.Running;
             developerRow.Checked = integrations.Settings.Flag(IntegrationSettings.Developer);
-            developerIntegrationsRow.Available = developerRow.Checked;
             securityRow.Hint = SecurityWindow.LevelName(pin.Level);
             networkRow.Checked = networkSettings.Load().Enabled;
             networkRow.Enabled = !allowingNetwork;
@@ -1563,58 +1563,67 @@ internal sealed class TrayContext : ApplicationContext
     }
 
     /// <summary>
-    /// The Integrations window (or, with <paramref name="developer"/>, the developer one), not modal: a second click brings the open
-    /// one to the front, and one open in the other mode is closed first.
+    /// The Integrations window (stats, weather and city), not modal: a second click brings the open one to the front.
     /// </summary>
-    private void ShowIntegrations(bool developer)
+    private void ShowIntegrations()
     {
         if (integrationsWindow is { IsDisposed: false } open)
         {
-            if (open.IsDeveloper == developer)
-            {
-                open.Activate();
-                return;
-            }
-
-            open.Close();
+            open.Activate();
+            return;
         }
 
-        var window = new IntegrationsWindow(
-            new IntegrationActions(
-                integrations.Settings,
-                integrations.SignIn,
-                integrations.Status,
-                integrations.ConnectAsync,
-                integrations.DisconnectAsync,
-                EnsureIntegrationsCurrent,
-                integrations.LastHeard,
-                integrations.LoginAsync,
-                text => _ = clipboard.SetTextQuietly(text),
-                Open,
-                integrations.Changed),
-            developer);
+        var window = new IntegrationsWindow(IntegrationActionsForWindow());
         window.FormClosed += (_, _) => integrationsWindow = null;
         integrationsWindow = window;
         window.Show();
     }
 
-    // Developer mode moved (the tray or the phone). UI thread. Off closes an open developer window.
-    private void OnDeveloperChanged()
+    /// <summary>The For developers window, not modal: a second click brings the open one to the front.</summary>
+    private void ShowDevelopers()
     {
-        if (integrationsWindow is { IsDisposed: false, IsDeveloper: true } open && !integrations.Settings.Flag(IntegrationSettings.Developer))
+        if (developersWindow is { IsDisposed: false } open)
         {
-            open.Close();
+            open.Activate();
             return;
         }
 
-        ReloadIntegrations();
+        var window = new DevelopersWindow(IntegrationActionsForWindow());
+        window.FormClosed += (_, _) => developersWindow = null;
+        developersWindow = window;
+        window.Show();
     }
+
+    private IntegrationActions IntegrationActionsForWindow() => new(
+        integrations.Settings,
+        integrations.SignIn,
+        integrations.Status,
+        integrations.ConnectAsync,
+        integrations.DisconnectAsync,
+        EnsureIntegrationsCurrent,
+        integrations.LastHeard,
+        integrations.LoginAsync,
+        text => _ = clipboard.SetTextQuietly(text),
+        Open,
+        integrations.Changed,
+        integrations.SetDeveloper,
+        integrations.GitSignedIn,
+        integrations.SaveGitTokenAsync,
+        integrations.SignOutGit);
+
+    // Developer mode moved (the window, the tray or the phone). UI thread. The developer window stays open: its switch is how it is turned back on.
+    private void OnDeveloperChanged() => ReloadIntegrations();
 
     private void ReloadIntegrations()
     {
         if (integrationsWindow is { IsDisposed: false } open)
         {
             open.Reload();
+        }
+
+        if (developersWindow is { IsDisposed: false } developers)
+        {
+            developers.Reload();
         }
     }
 
@@ -1901,6 +1910,7 @@ internal sealed class TrayContext : ApplicationContext
             macrosRow.Dispose();
             securityRow.Dispose();
             integrationsWindow?.Dispose();
+            developersWindow?.Dispose();
             integrationsRow.Dispose();
             developerRow.Dispose();
             developerIntegrationsRow.Dispose();

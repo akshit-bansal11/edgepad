@@ -698,12 +698,6 @@
   <data name="Integrations_WeatherNote" xml:space="preserve">
     <value>open-meteo.com को सिर्फ़ शहर का नाम भेजा जाता है।</value>
   </data>
-  <data name="Integrations_Claude" xml:space="preserve">
-    <value>Claude Code</value>
-  </data>
-  <data name="Integrations_Codex" xml:space="preserve">
-    <value>Codex</value>
-  </data>
   <data name="Integrations_Connect" xml:space="preserve">
     <value>कनेक्ट करें</value>
   </data>
@@ -737,14 +731,8 @@
   <data name="Integrations_Restart" xml:space="preserve">
     <value>खुले सेशन फिर से शुरू करें, या Claude Code में /reload-plugins चलाएँ।</value>
   </data>
-  <data name="Integrations_GitHub" xml:space="preserve">
-    <value>GitHub</value>
-  </data>
   <data name="Integrations_ForDevelopers" xml:space="preserve">
     <value>डेवलपर के लिए</value>
-  </data>
-  <data name="Integrations_SignIn" xml:space="preserve">
-    <value>GitHub से साइन इन करें</value>
   </data>
   <data name="Integrations_SignOut" xml:space="preserve">
     <value>साइन आउट करें</value>
@@ -789,6 +777,76 @@
     <value>1. GitHub से साइन इन करें पर क्लिक करें। github.com का एक पेज खुलेगा।
 2. यहाँ दिखाया गया कोड डालें और Authorize पर क्लिक करें।
 3. अपने फ़ोन पर Controls > GitHub खोलें।</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>अपने फ़ोन पर देखने के लिए अपने AI टूल और Git होस्ट कनेक्ट करें।</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>AI टूल</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Git होस्ट</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>कनेक्ट कैसे करें</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>साइन इन करें</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>जोड़ें…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>जल्द आ रहा है</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>सर्वर का पता</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>यूज़रनेम या ईमेल</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>एक्सेस टोकन</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>सर्वर का पता, नाम और टोकन जाँचें, फिर दोबारा कोशिश करें।</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>सर्वर ने यह टोकन स्वीकार नहीं किया।</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>इस टोकन को पढ़ने की अनुमति नहीं है। पढ़ने की पहुँच वाला टोकन बनाएँ।</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>इस पते पर कोई सर्वर नहीं मिला।</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>सर्वर तक नहीं पहुँच सके। अपना कनेक्शन जाँचें।</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>टोकन सेव नहीं हो सका। दोबारा कोशिश करें।</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. अगर पहले से नहीं है, तो इस कंप्यूटर पर Gemini CLI इंस्टॉल करें।
+2. कनेक्ट करें पर क्लिक करें। Edgepad अपने हुक Gemini CLI की सेटिंग में जोड़ देता है।
+3. खुले Gemini CLI सेशन फिर से शुरू करें।</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. अगर पहले से नहीं है, तो इस कंप्यूटर पर OpenCode इंस्टॉल करें।
+2. कनेक्ट करें पर क्लिक करें। Edgepad अपना प्लग-इन OpenCode के प्लग-इन फ़ोल्डर में जोड़ देता है।
+3. खुले OpenCode सेशन फिर से शुरू करें।</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. अपने सर्वर पर Settings &gt; Applications खोलें और पढ़ने की पहुँच वाला एक्सेस टोकन बनाएँ।
+2. जोड़ें पर क्लिक करें, सर्वर का पता जाँचें (डिफ़ॉल्ट Codeberg है) और टोकन चिपकाएँ।</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. अपने Atlassian खाते में Bitbucket की पढ़ने की पहुँच वाला API टोकन बनाएँ।
+2. जोड़ें पर क्लिक करें, अपना Bitbucket ईमेल डालें और टोकन चिपकाएँ।</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. gitee.com पर Settings &gt; Personal access tokens खोलें और पढ़ने की पहुँच वाला टोकन बनाएँ।
+2. जोड़ें पर क्लिक करें और टोकन चिपकाएँ।</value>
   </data>
   <data name="Balloon_CodexTrustTitle" xml:space="preserve">
     <value>Codex को फिर से आपकी मंज़ूरी चाहिए</value>

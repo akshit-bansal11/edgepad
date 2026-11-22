@@ -368,6 +368,7 @@ jobs:
             linux/src/Edgepad.Linux/Assets/edgepad-64-dark.png
             windows/src/Edgepad/Assets/tray-light.ico
             windows/src/Edgepad/Assets/tray-dark.ico
+            windows/src/Edgepad/Assets/logos/
             site/app/apple-icon.png
             assets/social-preview.png
             site/public/social-preview.png

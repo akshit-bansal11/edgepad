@@ -29,6 +29,12 @@ internal sealed partial class WindowsIntegrations : IDisposable
 
     private readonly string folder;
     private readonly PluginInstaller installer;
+
+    // Gemini CLI and OpenCode have no plugin CLI: Edgepad writes its own entry into their config instead.
+    private readonly HookConfigInstaller hookConfig;
+
+    // The token-pasting git hosts the For developers window adds a token to, by provider id. GitHub and GitLab sign in by device flow.
+    private readonly Dictionary<string, TokenGitHost> gitHosts;
     private readonly Lock gate = new();
     private readonly WindowsNetInfo netInfo = new();
 
@@ -64,7 +70,15 @@ internal sealed partial class WindowsIntegrations : IDisposable
         Settings = new IntegrationSettings(Path.Combine(folder, IntegrationSettings.FileName));
         Secrets = new WindowsSecretStore();
         SignIn = new GitHubSignIn(Secrets);
-        installer = new PluginInstaller(new ResourcePluginSource(typeof(WindowsIntegrations).Assembly), Settings, PluginInstaller.DefaultRoot(), version, shortPath: ShortPath);
+        var bundle = new ResourcePluginSource(typeof(WindowsIntegrations).Assembly);
+        installer = new PluginInstaller(bundle, Settings, PluginInstaller.DefaultRoot(), version, shortPath: ShortPath);
+        hookConfig = new HookConfigInstaller(bundle, Settings, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), version, Environment.ProcessPath ?? string.Empty);
+        gitHosts = new Dictionary<string, TokenGitHost>
+        {
+            ["gitea"] = new GiteaHost(Secrets, Settings),
+            ["bitbucket"] = new BitbucketHost(Secrets, Settings),
+            ["gitee"] = new GiteeHost(Secrets, Settings),
+        };
     }
 
     /// <summary>An agent started working with Edgepad (its first hook since Connect, or Codex trusted). Raised on a hook thread.</summary>
@@ -178,7 +192,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
     /// <summary>The row's state: the saved switch, refined by what the last Connect, Disconnect or re-stamp reported.</summary>
     public AgentStatus Status(string agent)
     {
-        var now = Map(PluginResult.Of(installer.Status(agent)));
+        var now = Map(PluginResult.Of(IsHookConfig(agent) ? hookConfig.Status(agent) : installer.Status(agent)));
         lock (gate)
         {
             if (!last.TryGetValue(agent, out var said))
@@ -197,10 +211,12 @@ internal sealed partial class WindowsIntegrations : IDisposable
 
     public async Task<AgentStatus> ConnectAsync(string agent)
     {
-        var status = Map(await installer.ConnectAsync(agent, CancellationToken.None).ConfigureAwait(false));
+        var status = IsHookConfig(agent)
+            ? Map(await Task.Run(() => hookConfig.Connect(agent)).ConfigureAwait(false))
+            : Map(await installer.ConnectAsync(agent, CancellationToken.None).ConfigureAwait(false));
 
-        // Claude Code reads plugins when a session starts: the row says to restart open ones.
-        if (agent == AgentToken.Claude && status.State == AgentState.Connected)
+        // Claude Code, Gemini CLI and OpenCode read their plugins or hooks when a session starts: the row says to restart open ones.
+        if (agent is AgentToken.Claude or AgentToken.Gemini or AgentToken.OpenCode && status.State == AgentState.Connected)
         {
             status = status with { Restart = true };
         }
@@ -211,7 +227,9 @@ internal sealed partial class WindowsIntegrations : IDisposable
 
     public async Task<AgentStatus> DisconnectAsync(string agent)
     {
-        var status = Map(await installer.DisconnectAsync(agent, CancellationToken.None).ConfigureAwait(false));
+        var status = IsHookConfig(agent)
+            ? Map(await Task.Run(() => hookConfig.Disconnect(agent)).ConfigureAwait(false))
+            : Map(await installer.DisconnectAsync(agent, CancellationToken.None).ConfigureAwait(false));
 
         // A reconnect waits for a real hook again before the phone names the agent.
         UsageStore? store;
@@ -239,6 +257,11 @@ internal sealed partial class WindowsIntegrations : IDisposable
                 Remember(agent, Map(PluginResult.Of(state)));
                 retrust |= agent == AgentToken.Codex && state == PluginState.AwaitingTrust;
             }
+
+            foreach (var (agent, state) in await Task.Run(hookConfig.EnsureCurrent).ConfigureAwait(false))
+            {
+                Remember(agent, Map(PluginResult.Of(state)));
+            }
         }
         catch (Exception e)
         {
@@ -256,6 +279,44 @@ internal sealed partial class WindowsIntegrations : IDisposable
         {
             return usage?.LastHeard(agent) ?? -1;
         }
+    }
+
+    private static bool IsHookConfig(string agent) => agent is AgentToken.Gemini or AgentToken.OpenCode;
+
+    /// <summary>Whether a pasted token is saved for the git host with this provider id (gitea, bitbucket or gitee).</summary>
+    public bool GitSignedIn(string id) => gitHosts.TryGetValue(id, out var host) && host.IsSignedIn;
+
+    /// <summary>
+    /// Checks and saves a pasted read-only token for a git host (see <see cref="TokenGitHost.SaveAsync"/>); on success turns the host's
+    /// switch on and keeps the login for the window. The caller then calls <see cref="Changed"/> on the UI thread.
+    /// </summary>
+    public async Task<GitSaveResult> SaveGitTokenAsync(string id, string token, string url, string user, CancellationToken cancellationToken)
+    {
+        if (!gitHosts.TryGetValue(id, out var host))
+        {
+            return new GitSaveResult(GitSaveStatus.Failed, string.Empty);
+        }
+
+        var result = await host.SaveAsync(token, url, user, cancellationToken).ConfigureAwait(false);
+        if (result.Status == GitSaveStatus.Saved)
+        {
+            _ = Settings.SetFlag(id, true);
+            _ = Settings.Set(id + "Login", result.Login);
+        }
+
+        return result;
+    }
+
+    /// <summary>Forgets a git host's token and turns its switch off.</summary>
+    public void SignOutGit(string id)
+    {
+        if (gitHosts.TryGetValue(id, out var host))
+        {
+            host.SignOut();
+        }
+
+        _ = Settings.SetFlag(id, false);
+        _ = Settings.Set(id + "Login", string.Empty);
     }
 
     /// <summary>The signed-in GitHub login, for the window only.</summary>
