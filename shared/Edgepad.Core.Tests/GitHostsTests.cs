@@ -284,7 +284,7 @@ public sealed class GitHostsTests : IDisposable
     public async Task A401DeletesTheTokenAndClearsThePage()
     {
         var calls = 0;
-        var http = new FakeHttp(s => ++calls <= 2 ? ServeGitee(s) : FakeHttp.Status(HttpStatusCode.Unauthorized));
+        var http = new FakeHttp(s => ++calls <= 4 ? ServeGitee(s) : FakeHttp.Status(HttpStatusCode.Unauthorized));
         var host = new GiteeHost(secrets, settings, http, () => clock.Now);
         Assert.Equal(GitHubResult.Ok, (await host.RefreshAsync(Ct)).Result);
         Assert.NotNull(host.Page);

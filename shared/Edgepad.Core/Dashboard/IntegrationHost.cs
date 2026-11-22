@@ -658,14 +658,25 @@ internal sealed class IntegrationHost : IDisposable
             return;
         }
 
+        bool due;
         lock (gate)
         {
-            if (!GitHubRefresh.ShouldRun(parts.Throttle.LastRefresh(GitHubKey), clock(), !disposed && (watch & GitHubBit) != 0))
+            due = GitHubRefresh.ShouldRun(parts.Throttle.LastRefresh(GitHubKey), clock(), !disposed && (watch & GitHubBit) != 0);
+            if (due)
             {
-                return;
+                parts.Throttle.Refreshed(GitHubKey, clock());
+            }
+        }
+
+        if (!due)
+        {
+            // Only the fetch is throttled: a phone that watches now still gets the page another refresh already fetched.
+            if (Watching(GitHubBit))
+            {
+                SendGitHub();
             }
 
-            parts.Throttle.Refreshed(GitHubKey, clock());
+            return;
         }
 
         GitHubRefreshResult result;
