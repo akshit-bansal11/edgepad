@@ -136,11 +136,16 @@ internal sealed class LinuxNetInfo(string proc = "/proc", string sys = "/sys") :
         return (strength is { } s ? Signal(s) : -1, Band(mhz), bitrateKbps > 0 ? (int)Math.Min(int.MaxValue, bitrateKbps / 1000) : -1);
     }
 
-    private VariantValue? Get(string path, string iface, string property) =>
-        bus.Call(
-            c => Message(c, path, "org.freedesktop.DBus.Properties", "Get", "ss", iface, property),
-            (Message m, object? _) => m.GetBodyReader().ReadVariantValue(),
-            out var value)
-            ? value
-            : null;
+    private VariantValue? Get(string path, string iface, string property)
+    {
+        if (!bus.Call(
+                c => Message(c, path, "org.freedesktop.DBus.Properties", "Get", "ss", iface, property),
+                (Message m, object? _) => m.GetBodyReader().ReadVariantValue(),
+                out var value))
+        {
+            return null;
+        }
+
+        return value;
+    }
 }
