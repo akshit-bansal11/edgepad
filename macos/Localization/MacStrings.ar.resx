@@ -559,8 +559,23 @@
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>وضع المطوّر</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>تكاملات المطوّر…</value>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>الحافظة</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>الاتصالات</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>التكاملات</value>
+  </data>
+  <data name="Menu_Group_Settings" xml:space="preserve">
+    <value>الإعدادات</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>الإحصاءات والطقس…</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>للمطوّرين…</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>عمليات الدمج</value>

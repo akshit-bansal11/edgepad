@@ -410,14 +410,26 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Common_Reset" xml:space="preserve">
     <value>Zresetuj</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>Integracje…</value>
-  </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>Tryb programisty</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>Integracje dla programistów…</value>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>Schowek</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>Połączenia</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>Integracje</value>
+  </data>
+  <data name="Menu_Group_Settings" xml:space="preserve">
+    <value>Ustawienia</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>Statystyki i pogoda…</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>Dla programistów…</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>Integracje</value>

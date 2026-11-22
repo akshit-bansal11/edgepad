@@ -559,8 +559,23 @@
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>Modo desenvolvedor</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>Integrações para desenvolvedores…</value>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>Área de transferência</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>Conexões</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>Integrações</value>
+  </data>
+  <data name="Menu_Group_Settings" xml:space="preserve">
+    <value>Configurações</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>Estatísticas e clima…</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>Para desenvolvedores…</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>Integrações</value>

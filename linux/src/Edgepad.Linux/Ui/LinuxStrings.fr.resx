@@ -410,14 +410,26 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Common_Reset" xml:space="preserve">
     <value>Réinitialiser</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>Intégrations…</value>
-  </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>Mode développeur</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>Intégrations développeur…</value>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>Presse-papiers</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>Connexions</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>Intégrations</value>
+  </data>
+  <data name="Menu_Group_Settings" xml:space="preserve">
+    <value>Paramètres</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>Statistiques et météo…</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>Pour les développeurs…</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>Intégrations</value>

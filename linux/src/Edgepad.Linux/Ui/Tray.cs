@@ -36,8 +36,8 @@ internal sealed record TrayHooks(
     Action Quit);
 
 /// <summary>
-/// The tray icon and its menu, in the order every laptop uses: status, Update available, a problem row, then Wi-Fi and
-/// USB connections, Share clipboard, Start at login, Check for updates daily, Send a file…, Macros…, Integrations…, Security…, Documentation, Open log and Quit Edgepad.
+/// The tray icon and its menu, in the order every laptop uses: status, Update available, a problem row, then Send a file…, Macros…,
+/// and the Clipboard, Connections, Integrations and Settings submenus, then Quit Edgepad.
 /// Every handler runs on the UI thread and none may throw: an exception there ends the whole app, and with it the
 /// Bluetooth service.
 /// </summary>
@@ -65,9 +65,9 @@ internal sealed class Tray : IDisposable
     private readonly NativeMenuItem updatesRow = Toggle(LinuxStrings.Menu_CheckUpdates);
     private readonly NativeMenuItem sendRow = new(LinuxStrings.Menu_SendFile);
     private readonly NativeMenuItem macrosRow = new(LinuxStrings.Menu_Macros);
-    private readonly NativeMenuItem integrationsRow = new(LinuxStrings.Menu_Integrations) { IsVisible = LinuxDashboard.Shared is not null };
+    private readonly NativeMenuItem integrationsRow = new(LinuxStrings.Menu_StatsWeather) { IsVisible = LinuxDashboard.Shared is not null };
     private readonly NativeMenuItem developerRow = Toggle(LinuxStrings.Menu_DeveloperMode);
-    private readonly NativeMenuItem developerIntegrationsRow = new(LinuxStrings.Menu_DeveloperIntegrations) { IsVisible = false };
+    private readonly NativeMenuItem developerIntegrationsRow = new(LinuxStrings.Menu_ForDevelopers) { IsVisible = false };
     private readonly NativeMenuItem securityRow = new(LinuxStrings.Menu_Security);
     private readonly TrayIcon icon;
     private readonly Bus portal = Bus.OnSession();
@@ -102,6 +102,9 @@ internal sealed class Tray : IDisposable
         var exit = new NativeMenuItem(LinuxStrings.Menu_Quit);
         exit.Click += (_, _) => Safe(hooks.Quit, "Quit");
 
+        var integrationsGroup = Group(LinuxStrings.Menu_Group_Integrations, integrationsRow, developerRow, developerIntegrationsRow);
+        integrationsGroup.IsVisible = LinuxDashboard.Shared is not null;
+
         var menu = new NativeMenu();
         menu.Add(statusRow);
         menu.Add(updateRow);
@@ -110,21 +113,13 @@ internal sealed class Tray : IDisposable
         menu.Add(skipRow);
         menu.Add(problemRow);
         menu.Add(new NativeMenuItemSeparator());
-        menu.Add(networkRow);
-        menu.Add(clipboardRow);
-        menu.Add(notifyRow);
-        menu.Add(autostartRow);
-        menu.Add(updatesRow);
-        menu.Add(new NativeMenuItemSeparator());
         menu.Add(sendRow);
         menu.Add(macrosRow);
-        menu.Add(integrationsRow);
-        menu.Add(developerRow);
-        menu.Add(developerIntegrationsRow);
-        menu.Add(securityRow);
+        menu.Add(Group(LinuxStrings.Menu_Group_Clipboard, clipboardRow));
         menu.Add(new NativeMenuItemSeparator());
-        menu.Add(docs);
-        menu.Add(log);
+        menu.Add(Group(LinuxStrings.Menu_Group_Connections, networkRow, securityRow));
+        menu.Add(integrationsGroup);
+        menu.Add(Group(LinuxStrings.Menu_Group_Settings, notifyRow, autostartRow, updatesRow, docs, log));
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(exit);
 
@@ -202,6 +197,18 @@ internal sealed class Tray : IDisposable
     }
 
     private static NativeMenuItem Toggle(string header) => new(header) { ToggleType = MenuItemToggleType.CheckBox };
+
+    // A row that opens a submenu of the given rows.
+    private static NativeMenuItem Group(string header, params NativeMenuItem[] rows)
+    {
+        var sub = new NativeMenu();
+        foreach (var row in rows)
+        {
+            sub.Add(row);
+        }
+
+        return new NativeMenuItem(header) { Menu = sub };
+    }
 
     private void CheckScheme()
     {

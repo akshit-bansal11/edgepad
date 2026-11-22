@@ -410,14 +410,26 @@
   <data name="Common_Reset" xml:space="preserve">
     <value>Сбросить</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>Интеграции…</value>
-  </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>Режим разработчика</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>Интеграции для разработчиков…</value>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>Буфер обмена</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>Подключения</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>Интеграции</value>
+  </data>
+  <data name="Menu_Group_Settings" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>Статистика и погода…</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>Для разработчиков…</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>Интеграции</value>

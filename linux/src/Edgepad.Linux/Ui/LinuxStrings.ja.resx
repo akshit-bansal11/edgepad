@@ -410,14 +410,26 @@
   <data name="Common_Reset" xml:space="preserve">
     <value>リセット</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>連携…</value>
-  </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>開発者モード</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>開発者向け連携…</value>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>クリップボード</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>接続</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>連携</value>
+  </data>
+  <data name="Menu_Group_Settings" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>統計と天気…</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>開発者向け…</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>連携</value>

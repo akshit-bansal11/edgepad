@@ -410,14 +410,26 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Common_Reset" xml:space="preserve">
     <value>Zurücksetzen</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>Integrationen…</value>
-  </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>Entwicklermodus</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>Entwickler-Integrationen…</value>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>Zwischenablage</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>Verbindungen</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>Integrationen</value>
+  </data>
+  <data name="Menu_Group_Settings" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>Statistik und Wetter…</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>Für Entwickler…</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>Integrationen</value>
