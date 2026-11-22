@@ -126,7 +126,7 @@ internal sealed class DevelopersWindow
         urlBox = Field(GitTokens.MaxUrl, LinuxStrings.Dev_FieldUrl);
         userBox = Field(GitTokens.MaxUser, LinuxStrings.Dev_FieldUser);
         tokenBox = Field(GitTokens.MaxToken, LinuxStrings.Dev_FieldToken);
-        tokenBox.PasswordChar = '•';
+        tokenBox.PasswordChar = (char)0x2022;
         errorText = look.Text(string.Empty, 13);
         errorText.Foreground = look.Danger;
         saveButton = look.Button(LinuxStrings.Common_Save, primary: true);
@@ -419,7 +419,7 @@ internal sealed class DevelopersWindow
         if (view.CanHowTo && DevRows.StepsFor(id).Length > 0)
         {
             var open = expanded.Contains(id);
-            var howTo = look.Button(LinuxStrings.Dev_HowTo + (open ? " ⌄" : " ›"));
+            var howTo = look.Button(LinuxStrings.Dev_HowTo + (open ? " " + (char)0x2304 : " " + (char)0x203A));
             howTo.IsEnabled = developerOn;
             howTo.HorizontalAlignment = HorizontalAlignment.Left;
             AutomationProperties.SetName(howTo, LinuxStrings.Dev_HowTo);
