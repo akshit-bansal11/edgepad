@@ -1,6 +1,5 @@
 package me.akshitbansal.edgepad.screens
 
-import android.graphics.Color
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -166,10 +165,15 @@ class AiScreen(
                 TextView(ui.context).apply {
                     text = name.take(1)
                     gravity = Gravity.CENTER
-                    setTextColor(Color.WHITE)
+                    setTextColor(TileContrast.letter(tool.brand))
                     typeface = Type.bold
                     textSize = Type.SMALL
-                    background = ui.rounded(tool.brand, Space.XS * 2)
+                    background =
+                        ui.rounded(tool.brand, Space.XS * 2).apply {
+                            if (TileContrast.needsOutline(tool.brand, ui.palette.card)) {
+                                setStroke(ui.dp(Space.HAIR), ui.palette.line)
+                            }
+                        }
                 }
             }
         val lines =

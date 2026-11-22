@@ -65,3 +65,17 @@ class AiLayoutTest {
         assertEquals(24f, AiLayout.logoDp(4), 0f)
     }
 }
+
+class TileContrastTest {
+    @Test
+    fun lettersAreWhiteOnDarkTilesAndDarkOnLightOnes() {
+        assertEquals(0xFFFFFFFF.toInt(), TileContrast.letter(0xFF2B2B2B.toInt()))
+        assertEquals(0xFF111111.toInt(), TileContrast.letter(0xFFF2F2F2.toInt()))
+    }
+
+    @Test
+    fun aTileNearTheGroundNeedsAnOutline() {
+        assertTrue(TileContrast.needsOutline(0xFF2B2B2B.toInt(), 0xFF1C1C1E.toInt()))
+        assertFalse(TileContrast.needsOutline(0xFFD97757.toInt(), 0xFF1C1C1E.toInt()))
+    }
+}

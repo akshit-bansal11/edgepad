@@ -86,6 +86,13 @@ class SessionPill(
     private var shownState = ""
     private var stateWidth = 0f
     private var logo: Drawable? = null
+    private var outline = false
+    private val ring =
+        Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = density
+            color = palette.line
+        }
 
     /**
      * Shows a session of [agent] called [title] in [state], whose words are [stateLabel] from the screen's strings.
@@ -101,6 +108,8 @@ class SessionPill(
     ) {
         initial = agent.token.take(1).uppercase()
         badge.color = brand
+        initialPaint.color = TileContrast.letter(brand)
+        outline = TileContrast.needsOutline(brand, palette.faint)
         logo = logoRes?.let { context.getDrawable(it) }
         placeLogo()
         this.title = title
@@ -172,6 +181,7 @@ class SessionPill(
             mark.draw(canvas)
         } else {
             canvas.drawCircle(circle.centerX(), circle.centerY(), circle.width() / 2f, badge)
+            if (outline) canvas.drawCircle(circle.centerX(), circle.centerY(), circle.width() / 2f, ring)
             val initialY = circle.centerY() - (initialMetrics.ascent + initialMetrics.descent) / 2f
             canvas.drawText(initial, circle.centerX(), initialY, initialPaint)
         }

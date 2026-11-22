@@ -60,3 +60,36 @@ object AiLayout {
 
     private const val MAX_COLUMNS = 4
 }
+
+/** Colour contrast for the brand tiles, pure so a table can test it. Colours are ARGB ints. */
+object TileContrast {
+    private const val NEAR_BLACK = 0xFF111111.toInt()
+    private const val WHITE = 0xFFFFFFFF.toInt()
+    private const val LOW = 1.6
+
+    /** The letter colour that reads on [tile]: white on a dark tile, near-black on a light one. */
+    fun letter(tile: Int): Int = if (ratio(tile, WHITE) >= ratio(tile, NEAR_BLACK)) WHITE else NEAR_BLACK
+
+    /** Whether [tile] is close enough to [ground] that it needs an outline to show. */
+    fun needsOutline(
+        tile: Int,
+        ground: Int,
+    ): Boolean = ratio(tile, ground) < LOW
+
+    private fun ratio(
+        a: Int,
+        b: Int,
+    ): Double {
+        val la = luminance(a)
+        val lb = luminance(b)
+        return (maxOf(la, lb) + 0.05) / (minOf(la, lb) + 0.05)
+    }
+
+    private fun luminance(argb: Int): Double {
+        fun channel(shift: Int): Double {
+            val c = ((argb shr shift) and 0xFF) / 255.0
+            return if (c <= 0.03928) c / 12.92 else Math.pow((c + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * channel(16) + 0.7152 * channel(8) + 0.0722 * channel(0)
+    }
+}
