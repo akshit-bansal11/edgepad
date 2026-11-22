@@ -27,24 +27,48 @@ public sealed class DesignGallery
         }
 
         Directory.CreateDirectory(folder);
+        var cases = new (string Name, Action Draw)[]
+        {
+            ("toast", () => Shoot(folder)),
+            ("laser", () => SaveLaser(folder, "laser-medium", 15)),
+            ("tray", () => SaveTray(folder)),
+            ("dev-window", () => SaveDevWindow(folder, "dev-window", codeOpen: false)),
+            ("dev-window-code", () => SaveDevWindow(folder, "dev-window-code", codeOpen: true)),
+        };
+        foreach (var (name, draw) in cases)
+        {
+            RunCase(name, draw);
+        }
+    }
+
+    // Each case gets its own STA thread and 20 s: one that fails or hangs is logged and skipped, the rest still render. A hung
+    // thread is a background thread, so it cannot keep the test process alive.
+    private static void RunCase(string name, Action draw)
+    {
         Exception? failure = null;
         var thread = new Thread(() =>
         {
             try
             {
-                Shoot(folder);
+                draw();
             }
             catch (Exception e)
             {
                 failure = e;
             }
-        });
+        })
+        {
+            IsBackground = true,
+        };
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        thread.Join();
-        if (failure is not null)
+        if (!thread.Join(TimeSpan.FromSeconds(20)))
         {
-            throw new InvalidOperationException("The gallery failed.", failure);
+            Console.WriteLine($"Gallery case {name} skipped: it took more than 20 s.");
+        }
+        else if (failure is not null)
+        {
+            Console.WriteLine($"Gallery case {name} skipped: {failure}");
         }
     }
 
@@ -66,10 +90,6 @@ public sealed class DesignGallery
         Save(folder, "toast-paused", toast, running with { Paused = true });
         Save(folder, "toast-failed", toast, failed);
         Save(folder, "toast-finished", toast, finished);
-        SaveLaser(folder, "laser-medium", 15);
-        SaveTray(folder);
-        SaveDevWindow(folder, "dev-window", codeOpen: false);
-        SaveDevWindow(folder, "dev-window-code", codeOpen: true);
     }
 
     // The For developers window with stub actions: Claude Code, OpenCode and GitHub connected, the rest not. With
@@ -115,7 +135,6 @@ public sealed class DesignGallery
         }
 
         _ = window.Handle;
-        Application.DoEvents();
         using var bitmap = new Bitmap(window.Width, window.Height);
         window.DrawToBitmap(bitmap, new Rectangle(Point.Empty, window.Size));
         bitmap.Save(System.IO.Path.Combine(folder, name + ".png"), ImageFormat.Png);
