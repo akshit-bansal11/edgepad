@@ -848,7 +848,7 @@ internal sealed class Shell : IDisposable
     }
 
     /// <summary>Queues files for the phone. With none connected a notification says so, since no card would.</summary>
-    private void Send(IReadOnlyList<string> paths)
+    private void Send(List<string> paths)
     {
         if (paths.Count == 0)
         {
