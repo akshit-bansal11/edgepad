@@ -71,6 +71,9 @@ internal sealed class SpeedTest : IDisposable
 
     public static readonly TimeSpan PhaseLimit = TimeSpan.FromSeconds(10);
 
+    /// <summary>The whole latency phase (ten probes) gets this long; a stalled network ends the test as failed rather than hanging it. Download and upload are bounded by <see cref="PhaseLimit"/>.</summary>
+    public TimeSpan LatencyLimit { get; init; } = TimeSpan.FromSeconds(15);
+
     private const int Streams = 4;
     private const int LatencySamples = 10;
     private const int DownloadChunk = 25_000_000;
@@ -218,10 +221,12 @@ internal sealed class SpeedTest : IDisposable
             client.Timeout = Timeout.InfiniteTimeSpan;
 
             var samples = new List<double>();
+            using var probing = CancellationTokenSource.CreateLinkedTokenSource(cancel);
+            probing.CancelAfter(LatencyLimit);
             for (var i = 0; i < LatencySamples; i++)
             {
                 var t = nowMs();
-                await DrainAsync(client, new HttpRequestMessage(HttpMethod.Get, Down(0)), null, cancel).ConfigureAwait(false);
+                await DrainAsync(client, new HttpRequestMessage(HttpMethod.Get, Down(0)), null, probing.Token).ConfigureAwait(false);
                 samples.Add(nowMs() - t);
             }
 

@@ -187,6 +187,20 @@ public sealed class NetTests : IDisposable
     }
 
     [Fact]
+    public async Task ATransportThatNeverAnswersEndsAsFailedAtTheLatencyLimit()
+    {
+        var server = new SpeedServer { Block = true };
+        using var test = new SpeedTest(server, server.Read) { LatencyLimit = TimeSpan.FromMilliseconds(200) };
+        List<SpeedResult> reports = [];
+
+        await Run(test, reports);
+
+        Assert.Equal([SpeedState.Running, SpeedState.Failed], reports.Select(r => r.State));
+        Assert.Equal(-1, reports[^1].LatencyMs);
+        Assert.False(test.IsRunning);
+    }
+
+    [Fact]
     public async Task AReportThatThrowsDoesNotStopTheTest()
     {
         var server = new SpeedServer();
