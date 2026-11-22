@@ -47,8 +47,8 @@ class DashWireTest {
 
     @Test
     fun speedResultParsesTheFramesTxtVectors() {
-        val done = DashWire.speedResult("done|93500|21400|11|2|29499900|163400000")
-        assertEquals(SpeedResult(SpeedState.DONE, 93500, 21400, 11, 2, 29499900, 163400000), done)
+        val done = DashWire.speedResult("done|93500|21400|11|2|29499900|31000000")
+        assertEquals(SpeedResult(SpeedState.DONE, 93500, 21400, 11, 2, 29499900, 31000000), done)
         val running = DashWire.speedResult("running|-1|-1|-1|-1|29499900|0")
         assertEquals(SpeedResult(SpeedState.RUNNING, -1, -1, -1, -1, 29499900, 0), running)
     }

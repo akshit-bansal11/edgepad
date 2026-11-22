@@ -48,10 +48,10 @@ public sealed class NetTests : IDisposable
     [Fact]
     public void ASpeedResultSurvivesTheWire()
     {
-        var result = new SpeedResult(SpeedState.Done, 93500, 21400, 11, 2, 29499900, 163400000);
+        var result = new SpeedResult(SpeedState.Done, 93500, 21400, 11, 2, 29499900, 31000000);
         var text = SpeedWire.Encode(result);
 
-        Assert.Equal("done|93500|21400|11|2|29499900|163400000", text);
+        Assert.Equal("done|93500|21400|11|2|29499900|31000000", text);
         Assert.Equal(result, SpeedWire.Parse(text));
         Assert.Null(SpeedWire.Parse("done|1|2|3|4|5"));
         Assert.Null(SpeedWire.Parse("fast|1|2|3|4|5|6"));
