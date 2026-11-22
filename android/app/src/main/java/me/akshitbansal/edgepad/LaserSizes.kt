@@ -13,6 +13,9 @@ object LaserSizes {
     /** The dot radius as a share of the screen height, per wire unit. */
     const val SHARE = 0.0005f
 
+    /** The settings preview shows 1/PREVIEW_ZOOM of the laptop's screen height, so the dot is this much larger. */
+    const val PREVIEW_ZOOM = 6f
+
     val ALL = intArrayOf(SMALL, MEDIUM, LARGE)
 
     /** A saved size from before the three-way choice (5..100) mapped to the nearest of the three. */

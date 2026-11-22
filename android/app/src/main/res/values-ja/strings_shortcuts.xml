@@ -27,7 +27,7 @@
   <string name="presenter_size_small">小</string>
   <string name="presenter_size_medium">中</string>
   <string name="presenter_size_large">大</string>
-  <string name="presenter_laser_preview">ノートPCの縮尺でプレビュー</string>
+  <string name="presenter_laser_zoomed">プレビュー(拡大)</string>
   <string name="presenter_preview_sample">四半期の業績</string>
   <string name="presenter_laser_trail">軌跡を表示</string>
   <string name="presenter_point_here">ここでポイント</string>

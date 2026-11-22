@@ -27,7 +27,7 @@
   <string name="presenter_size_small">Малый</string>
   <string name="presenter_size_medium">Средний</string>
   <string name="presenter_size_large">Большой</string>
-  <string name="presenter_laser_preview">Предпросмотр в масштабе ноутбука</string>
+  <string name="presenter_laser_zoomed">Предпросмотр, увеличено</string>
   <string name="presenter_preview_sample">Квартальные результаты</string>
   <string name="presenter_laser_trail">Показывать след</string>
   <string name="presenter_point_here">Указывайте здесь</string>

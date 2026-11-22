@@ -27,7 +27,7 @@
   <string name="presenter_size_small">小</string>
   <string name="presenter_size_medium">中</string>
   <string name="presenter_size_large">大</string>
-  <string name="presenter_laser_preview">按笔记本电脑比例预览</string>
+  <string name="presenter_laser_zoomed">预览(已放大)</string>
   <string name="presenter_preview_sample">季度业绩</string>
   <string name="presenter_laser_trail">显示拖尾</string>
   <string name="presenter_point_here">在此指向</string>

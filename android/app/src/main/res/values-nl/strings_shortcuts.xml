@@ -27,7 +27,7 @@
   <string name="presenter_size_small">Klein</string>
   <string name="presenter_size_medium">Gemiddeld</string>
   <string name="presenter_size_large">Groot</string>
-  <string name="presenter_laser_preview">Voorbeeld op laptopschaal</string>
+  <string name="presenter_laser_zoomed">Voorbeeld, ingezoomd</string>
   <string name="presenter_preview_sample">Kwartaalresultaten</string>
   <string name="presenter_laser_trail">Spoor tonen</string>
   <string name="presenter_point_here">Wijs hier</string>

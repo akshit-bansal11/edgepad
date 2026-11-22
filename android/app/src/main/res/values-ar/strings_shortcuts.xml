@@ -27,7 +27,7 @@
   <string name="presenter_size_small">صغير</string>
   <string name="presenter_size_medium">متوسط</string>
   <string name="presenter_size_large">كبير</string>
-  <string name="presenter_laser_preview">معاينة بمقياس الحاسوب المحمول</string>
+  <string name="presenter_laser_zoomed">معاينة مكبّرة</string>
   <string name="presenter_preview_sample">النتائج الفصلية</string>
   <string name="presenter_laser_trail">إظهار الأثر</string>
   <string name="presenter_point_here">وجّه هنا</string>

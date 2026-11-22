@@ -27,7 +27,7 @@
   <string name="presenter_size_small">Klein</string>
   <string name="presenter_size_medium">Mittel</string>
   <string name="presenter_size_large">Groß</string>
-  <string name="presenter_laser_preview">Vorschau im Maßstab des Laptops</string>
+  <string name="presenter_laser_zoomed">Vorschau, vergrößert</string>
   <string name="presenter_preview_sample">Quartalsergebnisse</string>
   <string name="presenter_laser_trail">Spur anzeigen</string>
   <string name="presenter_point_here">Hier zeigen</string>

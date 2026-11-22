@@ -27,7 +27,7 @@
   <string name="presenter_size_small">छोटा</string>
   <string name="presenter_size_medium">मध्यम</string>
   <string name="presenter_size_large">बड़ा</string>
-  <string name="presenter_laser_preview">लैपटॉप के पैमाने पर पूर्वावलोकन</string>
+  <string name="presenter_laser_zoomed">पूर्वावलोकन, ज़ूम किया हुआ</string>
   <string name="presenter_preview_sample">तिमाही परिणाम</string>
   <string name="presenter_laser_trail">ट्रेल दिखाएँ</string>
   <string name="presenter_point_here">यहाँ इंगित करें</string>

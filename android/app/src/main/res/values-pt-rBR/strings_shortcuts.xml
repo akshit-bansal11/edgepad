@@ -27,7 +27,7 @@
   <string name="presenter_size_small">Pequeno</string>
   <string name="presenter_size_medium">Médio</string>
   <string name="presenter_size_large">Grande</string>
-  <string name="presenter_laser_preview">Prévia na escala do notebook</string>
+  <string name="presenter_laser_zoomed">Prévia ampliada</string>
   <string name="presenter_preview_sample">Resultados trimestrais</string>
   <string name="presenter_laser_trail">Mostrar rastro</string>
   <string name="presenter_point_here">Aponte aqui</string>

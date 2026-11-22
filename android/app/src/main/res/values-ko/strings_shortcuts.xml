@@ -27,7 +27,7 @@
   <string name="presenter_size_small">작게</string>
   <string name="presenter_size_medium">보통</string>
   <string name="presenter_size_large">크게</string>
-  <string name="presenter_laser_preview">노트북 기준 크기로 미리보기</string>
+  <string name="presenter_laser_zoomed">미리보기(확대)</string>
   <string name="presenter_preview_sample">분기 실적</string>
   <string name="presenter_laser_trail">궤적 표시</string>
   <string name="presenter_point_here">여기를 가리키세요</string>
