@@ -228,18 +228,18 @@ internal sealed class SpeedTest : IDisposable
             latency = (int)Math.Round(Median(samples));
             jitter = (int)Math.Round(Jitter(samples));
 
-            var downMs = await RunStreamsAsync(MaxDownloadBytes, DownloadChunk, cancel, async (ask, token) =>
+            var downMs = await RunStreamsAsync(MaxDownloadBytes, DownloadChunk, async (ask, token) =>
             {
                 await DrainAsync(client, new HttpRequestMessage(HttpMethod.Get, Down(ask)), n => Interlocked.Add(ref downBytes, n), token).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            }, cancel).ConfigureAwait(false);
             down = Kbps(downBytes, downMs);
 
-            var upMs = await RunStreamsAsync(MaxUploadBytes, UploadChunk, cancel, async (ask, token) =>
+            var upMs = await RunStreamsAsync(MaxUploadBytes, UploadChunk, async (ask, token) =>
             {
                 var request = new HttpRequestMessage(HttpMethod.Post, UpUri) { Content = new ZeroContent(ask) };
                 await DrainAsync(client, request, null, token).ConfigureAwait(false);
                 Interlocked.Add(ref upBytes, ask);
-            }).ConfigureAwait(false);
+            }, cancel).ConfigureAwait(false);
             up = Kbps(Volatile.Read(ref upBytes), upMs);
 
             if (Volatile.Read(ref downBytes) >= MaxDownloadBytes || Volatile.Read(ref upBytes) >= MaxUploadBytes)
@@ -264,7 +264,7 @@ internal sealed class SpeedTest : IDisposable
     /// Runs <see cref="Streams"/> workers that each take the next chunk of the <paramref name="cap"/> until it is all asked for or
     /// <see cref="PhaseLimit"/> passes (which is a normal end, not a failure). Returns the elapsed ms. A worker's failure stops the rest and is rethrown.
     /// </summary>
-    private async Task<double> RunStreamsAsync(long cap, int chunk, CancellationToken cancel, Func<int, CancellationToken, Task> one)
+    private async Task<double> RunStreamsAsync(long cap, int chunk, Func<int, CancellationToken, Task> one, CancellationToken cancel)
     {
         var asked = 0L;
         var start = nowMs();
