@@ -337,7 +337,7 @@ internal sealed class Shell : IDisposable
         tray = menu;
         card = new TransferCard(
             LinuxTransfers.Feed,
-            () => server?.PhoneName ?? "",
+            () => server?.ConnectedPhone ?? "",
             sending => server?.PauseTransfer(sending) == true,
             sending => server?.ResumeTransfer(sending) == true,
             sending => server?.StopTransfer(sending));

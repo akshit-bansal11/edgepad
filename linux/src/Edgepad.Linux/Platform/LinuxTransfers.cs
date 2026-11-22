@@ -88,7 +88,7 @@ internal static class LinuxTransfers
 /// more comes: a short while after the last file, or past the receiver's idle drop when one went quiet. A send batch that is
 /// showing is never touched.
 /// </summary>
-internal sealed class ReceiveBatch
+internal sealed class ReceiveBatch : IDisposable
 {
     internal static readonly TimeSpan Linger = TimeSpan.FromMilliseconds(300);
 
@@ -103,6 +103,8 @@ internal sealed class ReceiveBatch
         this.feed = feed;
         end = new Timer(_ => End(), null, Timeout.Infinite, Timeout.Infinite);
     }
+
+    public void Dispose() => end.Dispose();
 
     public void Progress(string name, ulong held, ulong size)
     {

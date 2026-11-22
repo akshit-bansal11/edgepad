@@ -282,7 +282,7 @@ internal sealed class LinuxServer : IDisposable
     public void StopTransfer(bool sending) => host.StopTransfer(sending);
 
     /// <summary>The connected phone's name, or empty.</summary>
-    public string PhoneName => host.PhoneName;
+    public string ConnectedPhone => host.ConnectedPhone;
 
     /// <summary>Hangs up on every phone and refuses new connections for <paramref name="quiet"/>.</summary>
     public void HangUp(TimeSpan quiet) => host.HangUp(quiet);

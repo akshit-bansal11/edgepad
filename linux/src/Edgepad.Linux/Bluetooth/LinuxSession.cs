@@ -219,7 +219,7 @@ internal sealed class LinuxSession : IDisposable
 
             // The files the owner sends go through one queue per session, so the session ending ends a held batch too.
             queue = new SendQueue(
-                (path, _, cancel) => Task.Run(() => (XferCode?)SendFile(path, cancel, LinuxTransfers.Feed.Bytes), CancellationToken.None),
+                (path, _, cancel) => Task.Run(() => (XferCode?)SendFile(path, LinuxTransfers.Feed.Bytes, cancel), CancellationToken.None),
                 LinuxTransfers.Feed,
                 path => File.Exists(path) ? new FileInfo(path).Length : null,
                 outgoing.Pause,
@@ -453,7 +453,7 @@ internal sealed class LinuxSession : IDisposable
     };
 
     /// <summary>Sends <paramref name="path"/> to the phone and blocks until it ends; never call it on the read thread.</summary>
-    private XferCode SendFile(string path, CancellationToken cancel, Action<ulong> progress)
+    private XferCode SendFile(string path, Action<ulong> progress, CancellationToken cancel)
     {
         if (fileSender is not { } current)
         {

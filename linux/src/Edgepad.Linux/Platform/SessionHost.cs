@@ -227,7 +227,7 @@ internal sealed class SessionHost(
     public void StopTransfer(bool sending) => Live()?.StopTransfer(sending);
 
     /// <summary>The connected phone's name as the owner knows it, or empty.</summary>
-    public string PhoneName => admission.CurrentAddress is { } address ? Connected(address).Detail : "";
+    public string ConnectedPhone => admission.CurrentAddress is { } address ? Connected(address).Detail : "";
 
     /// <summary>Ends every session of the phone at <paramref name="address"/>, the connected one and its candidates.</summary>
     public void Disconnect(string address) => End(admission.Sessions(address));

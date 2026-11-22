@@ -56,7 +56,7 @@ public sealed class TransferCardModelTests
     public void AReceiveBecomesOneBatchOfTheFilesThatArrived()
     {
         var feed = new TransferFeed();
-        var batch = new ReceiveBatch(feed);
+        using var batch = new ReceiveBatch(feed);
         batch.Progress("a.txt", 10, 100);
         batch.Arrived("a.txt");
         batch.Progress("b.txt", 5, 50);
@@ -74,7 +74,8 @@ public sealed class TransferCardModelTests
     {
         var feed = new TransferFeed();
         feed.BeginBatch(sending: true, 2);
-        new ReceiveBatch(feed).Progress("a.txt", 10, 100);
+        using var batch = new ReceiveBatch(feed);
+        batch.Progress("a.txt", 10, 100);
 
         Assert.True(feed.View.Sending);
         Assert.Equal(0, feed.View.Index);
@@ -84,7 +85,8 @@ public sealed class TransferCardModelTests
     public void AFailedReceiveIsListedWithItsReason()
     {
         var feed = new TransferFeed();
-        new ReceiveBatch(feed).Failed("a.txt", XferCode.BadHash);
+        using var batch = new ReceiveBatch(feed);
+        batch.Failed("a.txt", XferCode.BadHash);
 
         Assert.Equal(TransferFailure.Damaged, Assert.Single(feed.View.Failed).Why);
     }
