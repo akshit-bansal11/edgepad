@@ -125,16 +125,21 @@ internal sealed partial class WindowsIntegrations : IDisposable
             live = [.. links];
         }
 
-        var agent = key is IntegrationSettings.Claude or IntegrationSettings.Codex or IntegrationSettings.Developer;
+        // GitHub too: a host built before the sign-in holds no client, so it could not refresh for the phone.
+        var rebuild = key is IntegrationSettings.Claude or IntegrationSettings.Codex or IntegrationSettings.Developer or IntegrationSettings.GitHub;
         foreach (var link in live)
         {
-            if (agent)
+            if (rebuild)
             {
                 Rebuild(link);
             }
 
             // A switch or a GitHub sign-in reaches a linked phone now, not at its next connection.
             link.FeaturesChanged?.Invoke();
+            if (key == IntegrationSettings.GitHub)
+            {
+                link.Host.SignedInChanged();
+            }
         }
 
         watcher?.Evaluate();

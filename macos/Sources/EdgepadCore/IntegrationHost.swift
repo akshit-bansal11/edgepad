@@ -144,6 +144,8 @@ public final class IntegrationHost {
     private var disposed = false
     // The last `maxEnded` ask ids that ended, newest last, so a PERM_ASK blob still queued for one is never sent.
     private static let maxEnded = 64
+    // A refresh this recent already answers a sign-in, so `signedInChanged` does not ask GitHub twice.
+    private static let justRefreshed: TimeInterval = 5
     private var ended: Set<String> = []
     private var endedOrder: [String] = []
 
@@ -295,6 +297,35 @@ public final class IntegrationHost {
         }
         if gitHubGained && gitHubOn && !(parts.gitHub?.lines.isEmpty ?? true) {
             sendGitHub(force: true)
+        }
+    }
+
+    /// The app's GitHub sign-in finished or its token went (call it after FEATURES has been sent again). While the phone
+    /// watches bit 4 and GitHub is on: signed in refreshes at once, bypassing the 60 s interval one time (the timer is
+    /// started when the host has none), then sends the blob; signed out says UNAVAILABLE no-permission. Does nothing when
+    /// the phone is not watching, and never starts a timer then.
+    public func signedInChanged() {
+        gate.lock()
+        guard !disposed, watch & Self.gitHubBit != 0, gitHubOn else {
+            gate.unlock()
+            return
+        }
+        if parts.gitHubSignedIn?() != true {
+            gate.unlock()
+            push(.text(kind: TextKind.unavailable.rawValue, value: unavailable().joined(separator: "/")))
+            return
+        }
+        var refresh = false
+        if gitHubTimer == nil {
+            // The new timer runs the first refresh now.
+            gitHubTimer = startTimer({ [weak self] in self?.refreshGitHub() }, GitHubRefresh.every)
+        } else if gitHubLast.map({ clock().timeIntervalSince($0) >= Self.justRefreshed }) ?? true {
+            gitHubLast = nil
+            refresh = true
+        }
+        gate.unlock()
+        if refresh {
+            refreshGitHub()
         }
     }
 
@@ -548,6 +579,8 @@ public final class DashboardLink {
         old.dispose()
         host.start()
         host.onWatch(watch)
+        // A GitHub sign-in or sign-out reaches a phone on its GitHub page now; any other switch finds a refresh just made.
+        host.signedInChanged()
     }
 
     /// The session ended. The phone stops being counted first, so the host's dispose sees it gone. Runs once, here or

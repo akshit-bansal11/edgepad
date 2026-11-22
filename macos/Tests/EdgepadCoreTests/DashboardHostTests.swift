@@ -122,6 +122,71 @@ final class DashboardHostTests: XCTestCase {
         host.dispose()
     }
 
+    private func gitHubParts(_ http: FakeHttp, signedIn: @escaping () -> Bool) -> DashboardParts {
+        let secrets = MemorySecrets()
+        _ = secrets.set(GitHubApp.tokenName, "gho_SecretTokenValue1234567890abcdef")
+        let clock = TestClock()
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.developer, true))
+        XCTAssertTrue(settings.setFlag(IntegrationSettings.gitHub, true))
+        return DashboardParts(
+            gitHub: GitHubApi(store: secrets, http: http, clock: { clock.now }), gitHubSignedIn: signedIn)
+    }
+
+    private func gitHubReplies() -> FakeHttp {
+        FakeHttp { request in
+            FakeHttp.json200(request.url?.path == "/graphql" ? GitHubParseTests.normal : #"[{"id":"1"}]"#)
+        }
+    }
+
+    func testASignInOnTheGitHubPageRefreshesOnceAndNotAgainWithinAFewSeconds() {
+        let http = gitHubReplies()
+        let host = newHost(gitHubParts(http, signedIn: { true }))
+        host.onWatch(IntegrationHost.gitHubBit)
+        XCTAssertEqual(timers, 1)
+
+        host.signedInChanged()
+        XCTAssertTrue(wait { http.seen.count >= 2 })
+        Thread.sleep(forTimeInterval: 0.1)
+        host.signedInChanged()
+        Thread.sleep(forTimeInterval: 0.1)
+
+        XCTAssertEqual(http.seen.count, 2)
+        XCTAssertEqual(timers, 1)
+        host.dispose()
+    }
+
+    func testASignInWhileTheGitHubPageIsNotWatchedAsksNothingAndStartsNoTimer() {
+        let http = gitHubReplies()
+        let host = newHost(gitHubParts(http, signedIn: { true }))
+        host.onWatch(IntegrationHost.widgetsBit)
+
+        host.signedInChanged()
+        Thread.sleep(forTimeInterval: 0.1)
+
+        XCTAssertEqual(http.seen.count, 0)
+        XCTAssertEqual(timers, 0)
+        XCTAssertTrue(sent.isEmpty)
+        host.dispose()
+    }
+
+    func testASignOutWhileWatchingSaysNoPermissionAndAsksNothing() throws {
+        let http = gitHubReplies()
+        let host = newHost(gitHubParts(http, signedIn: { false }))
+        host.onWatch(IntegrationHost.gitHubBit)
+
+        host.signedInChanged()
+        Thread.sleep(forTimeInterval: 0.1)
+
+        XCTAssertEqual(http.seen.count, 0)
+        XCTAssertEqual(sent.count, 1)
+        guard case .text(let kind, let value) = try XCTUnwrap(sent.first) else {
+            return XCTFail("not a text frame")
+        }
+        XCTAssertEqual(kind, TextKind.unavailable.rawValue)
+        XCTAssertEqual(value, Feature.github.rawValue + ":" + UnavailableReason.noPermission.rawValue)
+        host.dispose()
+    }
+
     func testAgentsAreNamedAndTheirSessionsSentOnStartAndOnChange() {
         settings.setFlag(IntegrationSettings.claude, true)
         settings.setFlag(IntegrationSettings.developer, true)

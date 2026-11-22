@@ -61,6 +61,9 @@ internal sealed class IntegrationHost : IDisposable
     // The last MaxGone ask ids that ended, so a PERM_ASK blob still queued for one is never sent.
     private const int MaxGone = 64;
 
+    // A refresh this recent already answers a sign-in, so SignedInChanged does not ask GitHub twice.
+    private static readonly TimeSpan JustRefreshed = TimeSpan.FromSeconds(5);
+
     // What a phone that has been sent no GitHub lines holds.
     private static readonly string NothingSent = GitHubBlob.Encode([]);
 
@@ -267,6 +270,51 @@ internal sealed class IntegrationHost : IDisposable
         if (githubGained && GitHubOn && parts.GitHub!.Lines.Count > 0)
         {
             run(SendGitHub);
+        }
+    }
+
+    /// <summary>
+    /// The app's GitHub sign-in finished or its token went (call it after FEATURES has been sent again). While the phone watches
+    /// bit 4 and GitHub is on: signed in refreshes at once, bypassing the 60 s interval one time (the timer is started when
+    /// the host has none), then sends the blob; signed out says UNAVAILABLE no-permission. Does nothing when the phone is not
+    /// watching, and never starts a timer then.
+    /// </summary>
+    public void SignedInChanged()
+    {
+        var refresh = false;
+        var refused = false;
+        lock (gate)
+        {
+            if (disposed || (watch & GitHubBit) == 0 || !GitHubOn)
+            {
+                return;
+            }
+
+            if (parts.GitHubSignedIn?.Invoke() != true)
+            {
+                refused = !githubRefused;
+                githubRefused = true;
+            }
+            else if (githubTimer is null)
+            {
+                // The new timer runs the first refresh now.
+                githubTimer = startTimer(() => run(RefreshGitHub), GitHubRefresh.Every);
+            }
+            else if (githubLast is not { } last || clock() - last >= JustRefreshed)
+            {
+                githubLast = null;
+                refresh = true;
+            }
+        }
+
+        if (refused)
+        {
+            Push(new Text((byte)TextKind.Unavailable, string.Join('/', Unavailable())));
+        }
+
+        if (refresh)
+        {
+            run(RefreshGitHub);
         }
     }
 

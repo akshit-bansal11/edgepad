@@ -384,6 +384,73 @@ public sealed class IntegrationHostTests : IDisposable
         Assert.Single(second.OfType<BlobBegin>(), b => b.Kind == (byte)BlobKind.Github);
     }
 
+    [Fact]
+    public void ASignInOnTheGitHubPageRefreshesOnceAndNotAgainWithinAFewSeconds()
+    {
+        AllOn();
+        githubReply = GitHubOk;
+        using var host = New();
+        host.OnWatch(IntegrationHost.GitHubBit);
+        Assert.Empty(github.Seen);
+
+        host.SignedInChanged();
+        var asked = github.Seen.Count;
+        Assert.True(asked > 0);
+        Assert.Single(Blobs(BlobKind.Github));
+
+        host.SignedInChanged();
+        Assert.Equal(asked, github.Seen.Count);
+        Assert.Single(Blobs(BlobKind.Github));
+    }
+
+    [Fact]
+    public void ASignInWhileTheGitHubPageIsNotWatchedAsksNothingAndStartsNoTimer()
+    {
+        AllOn();
+        githubReply = GitHubOk;
+        using var host = New();
+        host.OnWatch(IntegrationHost.WidgetsBit);
+        var started = timers.Count;
+
+        host.SignedInChanged();
+
+        Assert.Empty(github.Seen);
+        Assert.Equal(started, timers.Count);
+        Assert.Empty(Blobs(BlobKind.Github));
+        Assert.Empty(Texts(TextKind.Unavailable));
+    }
+
+    [Fact]
+    public void ASignOutWhileWatchingSaysNoPermissionOnceAndAsksNothing()
+    {
+        AllOn();
+        githubReply = GitHubOk;
+        using var host = New();
+        host.OnWatch(IntegrationHost.GitHubBit);
+        secrets.Delete(GitHubApp.TokenName);
+
+        host.SignedInChanged();
+        host.SignedInChanged();
+
+        Assert.Equal($"{Feature.GitHub}:{UnavailableReason.NoPermission}", Assert.Single(Texts(TextKind.Unavailable)).Value);
+        Assert.Empty(github.Seen);
+    }
+
+    [Fact]
+    public void ASignInThatTurnsGitHubOnWhileWatchingStartsTheRefreshTimer()
+    {
+        AllOn();
+        settings.SetFlag(IntegrationSettings.GitHub, false);
+        using var host = New();
+        host.OnWatch(IntegrationHost.GitHubBit);
+        Assert.DoesNotContain(timers, t => t.Every == GitHubRefresh.Every);
+
+        settings.SetFlag(IntegrationSettings.GitHub, true);
+        host.SignedInChanged();
+
+        Assert.Single(timers, t => t.Every == GitHubRefresh.Every && !t.Disposed);
+    }
+
     private sealed class FakeTimer(Action action, TimeSpan every) : IDisposable
     {
         public TimeSpan Every { get; } = every;

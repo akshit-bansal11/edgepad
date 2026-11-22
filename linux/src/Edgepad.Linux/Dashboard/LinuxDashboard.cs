@@ -617,5 +617,8 @@ internal sealed class DashboardLink : IDisposable
         old.Dispose();
         next.Start();
         next.OnWatch(mask);
+
+        // A GitHub sign-in or sign-out reaches a phone on its GitHub page now; any other switch finds a refresh just made.
+        next.SignedInChanged();
     }
 }
