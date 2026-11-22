@@ -680,14 +680,23 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Xfer_WhySkipped" xml:space="preserve">
     <value>Nicht gesendet.</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>&amp;Integrationen…</value>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>&amp;Statistik und Wetter…</value>
   </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>Entwicklermodus</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>Entwickler-Integrationen…</value>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>&amp;Für Entwickler…</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>&amp;Zwischenablage</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>&amp;Verbindungen</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>&amp;Integrationen</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>Integrationen</value>

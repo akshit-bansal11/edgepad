@@ -1,6 +1,7 @@
 using System.Drawing.Imaging;
 using System.Reflection;
 using Edgepad.Annotation;
+using Edgepad.Net;
 using Edgepad.Transfer;
 using Edgepad.Ui;
 using Xunit;
@@ -54,6 +55,73 @@ public sealed class DesignGallery
         Save(folder, "toast-run", toast, running);
         Save(folder, "toast-finished", toast, finished);
         SaveLaser(folder, "laser-medium", 15);
+        SaveTray(folder);
+    }
+
+    // The tray menu is built here with stub callbacks and the same strings, icons and grouping as TrayContext; the
+    // context itself owns the Bluetooth server and the whole app, so it is not constructed. A submenu is a second
+    // TrayMenu, so it is drawn beside its parent at the row's height, as Windows places it.
+    private static void SaveTray(string folder)
+    {
+        using var main = new TrayMenu();
+        using var clipboardMenu = new TrayMenu(withHeader: false);
+        using var connectionsMenu = new TrayMenu(withHeader: false);
+        using var integrationsMenu = new TrayMenu(withHeader: false);
+        using var settingsMenu = new TrayMenu(withHeader: false);
+        main.Header.SetStatus(LaptopStatus.Paired("Pixel 8"));
+
+        var clipboardGroup = new MenuRow(Strings.Menu_Group_Clipboard, Icons.Clipboard) { DropDown = clipboardMenu };
+        clipboardMenu.Items.Add(new MenuRow(Strings.Menu_ShareClipboard, Icons.Clipboard) { Switch = true, Checked = true });
+        clipboardMenu.Items.Add(new MenuRow(Strings.Menu_ClipboardHistory, Icons.Clipboard) { Hint = "Ctrl+Alt+V" });
+        var connectionsGroup = new MenuRow(Strings.Menu_Group_Connections, Icons.Wifi) { DropDown = connectionsMenu };
+        connectionsMenu.Items.Add(new MenuRow(Strings.Menu_Network, Icons.Wifi) { Switch = true, Checked = true });
+        connectionsMenu.Items.Add(new MenuRow(Strings.Menu_Security, Icons.Smartphone) { Hint = "PIN" });
+        var integrationsGroup = new MenuRow(Strings.Menu_Group_Integrations, Icons.Sliders) { DropDown = integrationsMenu };
+        integrationsMenu.Items.Add(new MenuRow(Strings.Menu_StatsWeather, Icons.Sliders));
+        integrationsMenu.Items.Add(new MenuRow(Strings.Menu_DeveloperMode, Icons.Sliders) { Switch = true, Checked = true });
+        integrationsMenu.Items.Add(new MenuRow(Strings.Menu_ForDevelopers, Icons.Sliders));
+        var settingsRow = new MenuRow(Strings.Menu_Settings, Icons.Sliders) { DropDown = settingsMenu };
+        settingsMenu.Items.Add(new MenuRow(Strings.Menu_StartWithWindows, Icons.Power) { Switch = true });
+        settingsMenu.Items.Add(new MenuRow(Strings.Menu_CheckUpdates, Icons.Download) { Switch = true, Checked = true });
+        settingsMenu.Items.Add(new MenuRow(Strings.Menu_OpenLog, Icons.FileText));
+        settingsMenu.Items.Add(new MenuRow(Strings.Menu_Documentation, Icons.BookOpen) { Hint = "getedgepad.com" });
+
+        main.Items.Add(new MenuSeparator());
+        main.Items.Add(new MenuRow(Strings.Menu_SendFile, Icons.Download));
+        main.Items.Add(new MenuRow(Strings.Menu_Macros, Icons.Macro) { Hint = Strings.Menu_MacrosCount.Fill(3, 20) });
+        main.Items.Add(clipboardGroup);
+        main.Items.Add(new MenuSeparator());
+        main.Items.Add(connectionsGroup);
+        main.Items.Add(integrationsGroup);
+        main.Items.Add(settingsRow);
+        main.Items.Add(new MenuSeparator());
+        main.Items.Add(new MenuRow(Strings.Menu_Quit, Icons.Close));
+
+        using var mainShot = Shot(main);
+        mainShot.Save(Path.Combine(folder, "tray-main.png"), ImageFormat.Png);
+
+        using var subShot = Shot(integrationsMenu);
+        const int gap = 4;
+        using var both = new Bitmap(mainShot.Width + gap + subShot.Width, mainShot.Height);
+        using (var g = Graphics.FromImage(both))
+        {
+            g.Clear(Color.FromArgb(0x1B, 0x1C, 0x20));
+            g.DrawImageUnscaled(mainShot, 0, 0);
+            g.DrawImageUnscaled(subShot, mainShot.Width + gap, integrationsGroup.Bounds.Top);
+        }
+
+        both.Save(Path.Combine(folder, "tray-integrations.png"), ImageFormat.Png);
+    }
+
+    // A drop-down that was never shown has no window yet; making the handle lets it paint into a bitmap.
+    private static Bitmap Shot(TrayMenu menu)
+    {
+        _ = menu.Handle;
+        menu.Restyle();
+        menu.Size = menu.GetPreferredSize(Size.Empty);
+        var bitmap = new Bitmap(menu.Width, menu.Height);
+        menu.DrawToBitmap(bitmap, new Rectangle(Point.Empty, menu.Size));
+        return bitmap;
     }
 
     // The overlay's canvas is a private nested class over a DIB, so it is built and drawn directly, then composited

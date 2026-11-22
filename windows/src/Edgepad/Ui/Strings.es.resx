@@ -680,14 +680,23 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Xfer_WhySkipped" xml:space="preserve">
     <value>No enviado.</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>&amp;Integraciones…</value>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>&amp;Estadísticas y clima…</value>
   </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>Modo desarrollador</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>Integraciones para desarrolladores…</value>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>Para &amp;desarrolladores…</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>&amp;Portapapeles</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>Cone&amp;xiones</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>&amp;Integraciones</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>Integraciones</value>

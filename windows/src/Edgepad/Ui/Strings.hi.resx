@@ -680,14 +680,23 @@
   <data name="Xfer_WhySkipped" xml:space="preserve">
     <value>नहीं भेजा गया।</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>इंटीग्रेशन… (&amp;I)</value>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>आँकड़े और मौसम… (&amp;S)</value>
   </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>डेवलपर मोड</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>डेवलपर इंटीग्रेशन…</value>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>डेवलपर्स के लिए… (&amp;F)</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>क्लिपबोर्ड (&amp;C)</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>कनेक्शन (&amp;T)</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>इंटीग्रेशन (&amp;I)</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>इंटीग्रेशन</value>

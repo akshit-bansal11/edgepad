@@ -680,14 +680,23 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
   <data name="Xfer_WhySkipped" xml:space="preserve">
     <value>送信されませんでした。</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>連携(&amp;I)…</value>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>統計と天気(&amp;S)…</value>
   </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>開発者モード</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>開発者向け連携…</value>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>開発者向け(&amp;F)…</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>クリップボード(&amp;C)</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>接続(&amp;T)</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>連携(&amp;I)</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>連携</value>

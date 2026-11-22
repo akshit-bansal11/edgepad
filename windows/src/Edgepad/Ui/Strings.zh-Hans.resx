@@ -680,14 +680,23 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   <data name="Xfer_WhySkipped" xml:space="preserve">
     <value>未发送。</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>集成(&amp;I)…</value>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>统计与天气(&amp;S)…</value>
   </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>开发者模式</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>开发者集成…</value>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>开发者(&amp;F)…</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>剪贴板(&amp;C)</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>连接(&amp;T)</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>集成(&amp;I)</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>集成</value>

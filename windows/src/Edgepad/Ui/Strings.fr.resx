@@ -680,14 +680,23 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Xfer_WhySkipped" xml:space="preserve">
     <value>Non envoyé.</value>
   </data>
-  <data name="Menu_Integrations" xml:space="preserve">
-    <value>&amp;Intégrations…</value>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>&amp;Statistiques et météo…</value>
   </data>
   <data name="Menu_DeveloperMode" xml:space="preserve">
     <value>Mode développeur</value>
   </data>
-  <data name="Menu_DeveloperIntegrations" xml:space="preserve">
-    <value>Intégrations développeur…</value>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>Pour les &amp;développeurs…</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>&amp;Presse-papiers</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>&amp;Connexions</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>&amp;Intégrations</value>
   </data>
   <data name="Integrations_Title" xml:space="preserve">
     <value>Intégrations</value>

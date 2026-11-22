@@ -57,9 +57,9 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MenuRow startWithWindows = new(Strings.Menu_StartWithWindows, Icons.Power) { CheckOnClick = true, Switch = true };
     private readonly MenuRow macrosRow = new(Strings.Menu_Macros, Icons.Macro);
     private readonly MenuRow securityRow = new(Strings.Menu_Security, Icons.Smartphone);
-    private readonly MenuRow integrationsRow = new(Strings.Menu_Integrations, Icons.Sliders);
+    private readonly MenuRow integrationsRow = new(Strings.Menu_StatsWeather, Icons.Sliders);
     private readonly MenuRow developerRow = new(Strings.Menu_DeveloperMode, Icons.Sliders) { CheckOnClick = true, Switch = true };
-    private readonly MenuRow developerIntegrationsRow = new(Strings.Menu_DeveloperIntegrations, Icons.Sliders) { Available = false };
+    private readonly MenuRow developerIntegrationsRow = new(Strings.Menu_ForDevelopers, Icons.Sliders) { Available = false };
     private readonly MenuRow networkRow = new(Strings.Menu_Network, Icons.Wifi) { CheckOnClick = true, Switch = true };
     private readonly MenuRow networkProblem = new(Strings.Network_Title, Icons.Wifi) { Danger = true, Available = false };
     private readonly MenuRow firewallRow = new(Strings.Menu_Firewall, Icons.Shield) { Available = false };
@@ -107,6 +107,15 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MenuRow checkUpdates = new(Strings.Menu_CheckUpdates, Icons.Download) { CheckOnClick = true, Switch = true };
     private readonly MenuRow openLog = new(Strings.Menu_OpenLog, Icons.FileText);
     private readonly TrayMenu settingsMenu = new(withHeader: false);
+
+    // The groups one level down (owner-approved structure, 2026-11-22); each reuses the Settings submenu mechanism.
+    private readonly TrayMenu clipboardMenu = new(withHeader: false);
+    private readonly TrayMenu connectionsMenu = new(withHeader: false);
+    private readonly TrayMenu integrationsMenu = new(withHeader: false);
+    private readonly MenuRow clipboardGroup = new(Strings.Menu_Group_Clipboard, Icons.Clipboard);
+    private readonly MenuRow connectionsGroup = new(Strings.Menu_Group_Connections, Icons.Wifi);
+    private readonly MenuRow integrationsGroup = new(Strings.Menu_Group_Integrations, Icons.Sliders);
+    private readonly MenuRow documentationRow = new(Strings.Menu_Documentation, Icons.BookOpen) { Hint = new Uri(DocumentationUrl).Host };
     private readonly MenuRow settingsRow = new(Strings.Menu_Settings, Icons.Sliders);
     private readonly MenuRow update = new(Strings.Menu_Update, Icons.Download) { Available = false };
     private readonly MenuRow installRow = new(Strings.Menu_UpdateInstall, Icons.Download) { Available = false };
@@ -213,6 +222,7 @@ internal sealed class TrayContext : ApplicationContext
         clipboardRow.Click += (_, _) => SaveClipboard(clipboardRow.Checked);
         clipHistoryRow.Click += (_, _) => ShowClipboardPanel(paste: false);
         checkUpdates.Click += (_, _) => SaveCheckUpdates(checkUpdates.Checked);
+        documentationRow.Click += (_, _) => Open(DocumentationUrl, "the documentation");
         update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
         installRow.Click += (_, _) => _ = InstallUpdateAsync();
         laterRow.Click += (_, _) =>
@@ -238,8 +248,25 @@ internal sealed class TrayContext : ApplicationContext
         settingsMenu.Items.Add(startWithWindows);
         settingsMenu.Items.Add(checkUpdates);
         settingsMenu.Items.Add(openLog);
+        settingsMenu.Items.Add(documentationRow);
         settingsRow.DropDown = settingsMenu;
         settingsMenu.Opening += (_, _) => settingsMenu.Restyle();
+
+        clipboardMenu.Items.Add(clipboardRow);
+        clipboardMenu.Items.Add(clipHistoryRow);
+        clipboardGroup.DropDown = clipboardMenu;
+        clipboardMenu.Opening += (_, _) => clipboardMenu.Restyle();
+
+        connectionsMenu.Items.Add(networkRow);
+        connectionsMenu.Items.Add(securityRow);
+        connectionsGroup.DropDown = connectionsMenu;
+        connectionsMenu.Opening += (_, _) => connectionsMenu.Restyle();
+
+        integrationsMenu.Items.Add(integrationsRow);
+        integrationsMenu.Items.Add(developerRow);
+        integrationsMenu.Items.Add(developerIntegrationsRow);
+        integrationsGroup.DropDown = integrationsMenu;
+        integrationsMenu.Opening += (_, _) => integrationsMenu.Restyle();
 
         // The header is the menu's own. Under it, in the order the plan fixes: the update, then whatever is wrong or
         // needs doing (rows that stay hidden while all is well), then the switches, the windows, the help, and Quit.
@@ -252,18 +279,12 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add(firewallRow);
         menu.Items.Add(restartAdminRow);
         menu.Items.Add(new MenuSeparator());
-        menu.Items.Add(networkRow);
-        menu.Items.Add(clipboardRow);
-        menu.Items.Add(clipHistoryRow);
-        menu.Items.Add(new MenuSeparator());
         menu.Items.Add(sendFileRow);
         menu.Items.Add(macrosRow);
-        menu.Items.Add(securityRow);
-        menu.Items.Add(integrationsRow);
-        menu.Items.Add(developerRow);
-        menu.Items.Add(developerIntegrationsRow);
+        menu.Items.Add(clipboardGroup);
         menu.Items.Add(new MenuSeparator());
-        menu.Items.Add(Row(Strings.Menu_Documentation, Icons.BookOpen, () => Open(DocumentationUrl, "the documentation"), new Uri(DocumentationUrl).Host));
+        menu.Items.Add(connectionsGroup);
+        menu.Items.Add(integrationsGroup);
         menu.Items.Add(settingsRow);
         menu.Items.Add(new MenuSeparator());
         menu.Items.Add(Row(Strings.Menu_Quit, Icons.Close, ExitThread));
