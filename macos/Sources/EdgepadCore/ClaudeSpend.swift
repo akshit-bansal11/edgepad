@@ -409,11 +409,14 @@ public final class ClaudeSpend {
     /// The most bytes read from the end of one transcript to find its last record.
     public static let tailBytes = 64 * 1024
 
+    /// A seeded session counts as working only if its file was written this recently.
+    public static let seedBusy: TimeInterval = 120
+
     /// The sessions behind the newest transcripts (`projects/<folder>/<id>.jsonl`, never a subagent's) written within
     /// `SessionBoard.expiry`, at most `SessionBoard.capacity`, for `SessionBoard.seed`. One directory listing and at
     /// most `tailBytes` read per file, run at start and per connect, never on a timer. A session is working when its
     /// last record is unfinished (a prompt, a tool call or a tool result) and the file was written within
-    /// `CodexWatcher.fresh`, else idle; waiting is only ever known from a hook.
+    /// `seedBusy`, else idle; waiting is only ever known from a hook.
     public func listSessions() -> [SeedSession] {
         let now = clock()
         let oldest = now.addingTimeInterval(-SessionBoard.expiry)
@@ -427,7 +430,7 @@ public final class ClaudeSpend {
             guard (1...SessionBoard.maxIdLength).contains(id.utf16.count),
                 let last = Self.lastRecord(file.path)
             else { continue }
-            let busy = last.unfinished && now.timeIntervalSince(file.mtime) <= CodexWatcher.fresh
+            let busy = last.unfinished && now.timeIntervalSince(file.mtime) <= seedBusy
             let state = busy ? SessionStateToken.busy : SessionStateToken.idle
             found.append(
                 SeedSession(

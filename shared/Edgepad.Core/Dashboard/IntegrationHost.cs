@@ -183,7 +183,7 @@ internal sealed class IntegrationHost : IDisposable
         parts.Claude?.Evaluate();
         if (settings.Active(IntegrationSettings.Claude) && parts.Sessions is { } board && parts.Claude is { } claude)
         {
-            board.Seed(claude.ListSessions());
+            run(() => board.Seed(claude.ListSessions()));
         }
 
         if (AgentsOn && parts.Sessions is not null)

@@ -308,12 +308,15 @@ internal sealed class ClaudeSpendWatcher : IDisposable
     /// <summary>The most bytes read from the end of one transcript to find its last record.</summary>
     public const int TailBytes = 64 * 1024;
 
+    /// <summary>A seeded session counts as working only if its file was written this recently, so an interrupted one does not show busy long.</summary>
+    public static readonly TimeSpan SeedBusy = TimeSpan.FromMinutes(2);
+
     /// <summary>
     /// The sessions behind the newest transcripts (<c>projects/&lt;folder&gt;/&lt;id&gt;.jsonl</c>) written within the
     /// <see cref="SessionBoard.Expiry"/>, at most <see cref="SessionBoard.Capacity"/>, for <see cref="SessionBoard.Seed"/>. One
     /// directory listing and at most <see cref="TailBytes"/> read per file, run at start and per connect, never on a timer. A
     /// session is working when its last record is unfinished (a prompt, a tool call or a tool result) and the file was written
-    /// within <see cref="CodexWatcher.Fresh"/>, else idle; waiting is only ever known from a hook.
+    /// within <see cref="SeedBusy"/>, else idle; waiting is only ever known from a hook.
     /// </summary>
     public List<SeedSession> ListSessions()
     {
@@ -335,7 +338,7 @@ internal sealed class ClaudeSpendWatcher : IDisposable
             {
                 using var stream = open(file.FullName);
                 var (unfinished, cwd) = LastRecord(stream);
-                var busy = unfinished && now.UtcDateTime - file.LastWriteTimeUtc <= CodexWatcher.Fresh;
+                var busy = unfinished && now.UtcDateTime - file.LastWriteTimeUtc <= SeedBusy;
                 found.Add(new SeedSession(AgentToken.Claude, id, busy ? SessionStateToken.Busy : SessionStateToken.Idle, cwd, new DateTimeOffset(file.LastWriteTimeUtc, TimeSpan.Zero)));
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)

@@ -67,8 +67,8 @@ public sealed class ClaudeSessionSeedTests : IDisposable
     public void AnUnfinishedTurnIsWorkingOnlyWhileTheFileIsFresh()
     {
         Transcript("a", Prompt + "\n", TimeSpan.FromSeconds(5));
-        Transcript("b", Prompt + "\n" + ToolUse + "\n", TimeSpan.FromMinutes(5));
-        Transcript("c", Prompt + "\n" + ToolUse + "\n", TimeSpan.FromHours(2));
+        Transcript("b", Prompt + "\n" + ToolUse + "\n", TimeSpan.FromSeconds(100));
+        Transcript("c", Prompt + "\n" + ToolUse + "\n", TimeSpan.FromMinutes(3));
 
         var states = Watcher().ListSessions().ToDictionary(s => s.SessionId, s => s.State);
 
