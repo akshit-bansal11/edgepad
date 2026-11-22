@@ -16,6 +16,7 @@ import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.xfer.XferPhase
 import me.akshitbansal.edgepad.link.xfer.XferSnapshot
 import me.akshitbansal.edgepad.link.xfer.middleTruncated
+import java.util.Locale
 
 /** What the card's title says, from the snapshot alone. */
 enum class CardTitle { RUNNING_SEND, RUNNING_RECEIVE, DONE_ALL, DONE_SOME, FAILED_ONE, FAILED_MANY }
@@ -39,6 +40,46 @@ internal data class CardButtons(
     val stop: Boolean,
     val retry: Boolean,
 )
+
+private val UNITS = arrayOf("B", "KB", "MB", "GB", "TB")
+
+private fun unitOf(bytes: Long): Int {
+    var unit = 0
+    var left = bytes
+    while (left >= 1000 && unit < UNITS.size - 1) {
+        left /= 1000
+        unit++
+    }
+    return unit
+}
+
+private fun scaled(
+    bytes: Long,
+    unit: Int,
+    locale: Locale,
+): String {
+    var value = bytes.toDouble()
+    repeat(unit) { value /= 1000 }
+    // One decimal below 100, none above or when whole: "12.4", "48", "980".
+    val text = if (value >= 100 || value == Math.rint(value)) "%.0f" else "%.1f"
+    return String.format(locale, text, value)
+}
+
+/**
+ * [sent] and [size] bytes as the two words of "12.4 of 48 MB": the unit once, on the end, when both share it; each with
+ * its own ("980 KB" of "1.2 GB") when not. Units are 1000 steps, like the system's.
+ */
+internal fun sizesOf(
+    sent: Long,
+    size: Long,
+    locale: Locale = Locale.getDefault(),
+): Pair<String, String> {
+    val unit = unitOf(size)
+    val sentUnit = unitOf(sent)
+    val end = scaled(size, unit, locale) + " " + UNITS[unit]
+    if (sentUnit == unit) return scaled(sent, unit, locale) to end
+    return (scaled(sent, sentUnit, locale) + " " + UNITS[sentUnit]) to end
+}
 
 /** Whether the figures start with "file 2 of 5": a batch of several files, one of them begun. */
 internal fun showsCount(s: XferSnapshot) = s.total > 1 && s.index > 0
@@ -76,10 +117,8 @@ class XferCardView(
             ellipsize = TextUtils.TruncateAt.END
         }
     private val detail =
-        ui.text("", Type.MICRO, p.dim).apply {
-            maxLines = 1
-            ellipsize = TextUtils.TruncateAt.END
-        }
+        // Wraps to a second line at a large font scale rather than cutting the figures.
+        ui.text("", Type.MICRO, p.dim)
     private val fillShape = ui.rounded(p.accent, BAR_DP / 2)
     private val fill = ClipDrawable(fillShape, Gravity.START, ClipDrawable.HORIZONTAL)
     private val bar =
@@ -169,13 +208,12 @@ class XferCardView(
         s: XferSnapshot,
         hold: Boolean,
     ): String {
-        val sent = Formatter.formatFileSize(ui.context, s.sent)
-        val size = Formatter.formatFileSize(ui.context, s.size)
+        val (sent, size) = sizesOf(s.sent, s.size)
         val figures =
             if (hold) {
                 ui.string(R.string.xfer_detail_paused, sent, size)
             } else {
-                ui.string(R.string.xfer_detail, sent, size, Formatter.formatFileSize(ui.context, s.bytesPerSecond))
+                ui.string(R.string.xfer_detail, sent, size, Formatter.formatShortFileSize(ui.context, s.bytesPerSecond))
             }
         return if (showsCount(s)) ui.string(R.string.xfer_detail_count, s.index, s.total, figures) else figures
     }

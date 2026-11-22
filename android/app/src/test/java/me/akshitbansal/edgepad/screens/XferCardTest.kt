@@ -6,6 +6,7 @@ import me.akshitbansal.edgepad.link.xfer.XferPhase
 import me.akshitbansal.edgepad.link.xfer.XferSnapshot
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.util.Locale
 
 class XferCardTest {
     private val base = XferSnapshot.IDLE
@@ -42,6 +43,20 @@ class XferCardTest {
         assertEquals(true, showsCount(running))
         assertEquals(false, showsCount(running.copy(total = 1)))
         assertEquals(false, showsCount(running.copy(index = 0)))
+    }
+
+    @Test
+    fun sizesShowTheUnitOnceWhenShared() {
+        assertEquals("12.4" to "48 MB", sizesOf(12_400_000, 48_000_000, Locale.US))
+        assertEquals("980 KB" to "1.2 GB", sizesOf(980_000, 1_200_000_000, Locale.US))
+        assertEquals("0" to "512 B", sizesOf(0, 512, Locale.US))
+    }
+
+    @Test
+    fun batchFormMatchesTheDetail() {
+        // "2 of 5 · 12.4 of 48 MB": the count is the pattern's, the figures are sizesOf's.
+        val (sent, size) = sizesOf(12_400_000, 48_000_000, Locale.US)
+        assertEquals("2 of 5 · $sent of $size", "%1\$d of %2\$d · %3\$s".format(2, 5, "$sent of $size"))
     }
 
     @Test
