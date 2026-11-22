@@ -163,7 +163,7 @@
   <string name="piece_now_playing">正在播放</string>
   <string name="piece_transport">上一首 · 播放 · 下一首</string>
   <string name="media_layout_reset">重置位置</string>
-  <string name="media_layout_reset_confirm">重置位置？再点一次确认</string>
+  <string name="editor_reset_confirm">再点一次即可重置</string>
   <string name="editor_options">选项</string>
   <string name="editor_done">完成</string>
   <string name="media_scale">大小</string>

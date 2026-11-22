@@ -173,7 +173,7 @@
   <string name="piece_now_playing">Lecture en cours</string>
   <string name="piece_transport">Précédent · lecture · suivant</string>
   <string name="media_layout_reset">Réinitialiser les positions</string>
-  <string name="media_layout_reset_confirm">Réinitialiser ? Appuyez à nouveau</string>
+  <string name="editor_reset_confirm">Appuyez à nouveau pour réinitialiser</string>
   <string name="editor_options">Options</string>
   <string name="editor_done">OK</string>
   <string name="media_scale">Taille</string>

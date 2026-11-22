@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.screens
 
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -31,9 +32,11 @@ object EditorFrame {
     private const val EDGE_DP = 8f
     private const val TOP_DP = 6f
     private const val TITLE_TOP_DP = 15f
-    private const val POPUP_WIDTH_DP = 260f
+    private const val POPUP_WIDTH_DP = 220f
+    private const val POPUP_LEFT_DP = 14f
+    private const val POPUP_TOP_PAD_DP = 10f
+    private const val POPUP_RIGHT_DP = 12f
     private const val POPUP_GAP_DP = 8f
-    private const val POPUP_TOP_DP = 4f
     private const val POPUP_ELEVATION_DP = 16f
 
     /** The round buttons' soft shadow on the light theme; on the dark one a shadow would not show. */
@@ -69,7 +72,12 @@ object EditorFrame {
                     val panel =
                         LinearLayout(ui.context).apply {
                             orientation = LinearLayout.VERTICAL
-                            setPadding(ui.dp(Space.L), ui.dp(POPUP_TOP_DP), ui.dp(Space.L), ui.dp(Space.M))
+                            setPadding(
+                                ui.dp(POPUP_LEFT_DP),
+                                ui.dp(POPUP_TOP_PAD_DP),
+                                ui.dp(POPUP_RIGHT_DP),
+                                ui.dp(Space.M),
+                            )
                             addView(content)
                         }
                     window.contentView = ScrollView(ui.context).apply { addView(panel) }
@@ -305,4 +313,124 @@ object EditorFrame {
             }
         return button
     }
+
+    /** A slider for [sizePanel]: [valueOf] words each step beside the heading as it moves. */
+    class Slider(
+        val steps: Int,
+        val progress: Int,
+        val valueOf: (Int) -> CharSequence,
+        val onChange: (Int) -> Unit,
+    )
+
+    /**
+     * The options panel's content: a header of [title] and its value, then a round reset icon at the far end;
+     * the [slider] under it; one filled Done at the foot. The first tap on the icon turns it red and shows the
+     * hint, a second within [CONFIRM_MS] calls [onReset], otherwise it goes back. Without a [slider] there is
+     * no heading, only the icon.
+     */
+    fun sizePanel(
+        ui: Ui,
+        title: CharSequence?,
+        slider: Slider?,
+        onReset: () -> Unit,
+        onDone: () -> Unit,
+    ): View {
+        val value = ui.text(slider?.let { it.valueOf(it.progress) } ?: "", Type.SMALL, ui.palette.dim)
+        val hint =
+            ui.text(ui.string(R.string.editor_reset_confirm), Type.MICRO, ui.palette.danger).apply {
+                maxLines = 1
+                gravity = Gravity.END
+                visibility = View.INVISIBLE
+                setAutoSizeTextTypeUniformWithConfiguration(
+                    HINT_MIN_SP,
+                    Type.MICRO.toInt(),
+                    1,
+                    TypedValue.COMPLEX_UNIT_SP,
+                )
+            }
+        val reset = resetIcon(ui, hint, onReset)
+        val header =
+            LinearLayout(ui.context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                if (title != null) {
+                    addView(ui.text(title, Type.VALUE, ui.palette.ink, face = Type.bold))
+                    addView(value, LinearLayout.LayoutParams(WRAP, WRAP).apply { marginStart = ui.dp(Space.S) })
+                }
+                addView(View(ui.context), LinearLayout.LayoutParams(0, 0, 1f))
+                addView(reset, LinearLayout.LayoutParams(ui.dp(RESET_DP), ui.dp(RESET_DP)))
+            }
+        return LinearLayout(ui.context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(header)
+            // Full width, so the hint shrinks to fit rather than wrapping.
+            addView(hint, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, WRAP))
+            if (slider != null) {
+                val track =
+                    ui.ruler(slider.steps, slider.progress) { step ->
+                        value.text = slider.valueOf(step)
+                        slider.onChange(step)
+                    }
+                addView(track)
+            }
+            addView(
+                ui.text(ui.string(R.string.editor_done), Type.VALUE, ui.palette.onAccent, face = Type.bold).apply {
+                    gravity = Gravity.CENTER
+                    background = ui.rounded(ui.palette.accent, Space.TILE_RADIUS)
+                    ui.tappable(this, Space.TILE_RADIUS, onDone)
+                },
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(DONE_DP)).apply {
+                    topMargin = ui.dp(Space.S)
+                },
+            )
+        }
+    }
+
+    /** The 36 dp round reset button; [hint] is shown while it waits for its second tap. */
+    private fun resetIcon(
+        ui: Ui,
+        hint: View,
+        onReset: () -> Unit,
+    ): View {
+        val idle = Glyph(ui.context, Glyph.Shape.REFRESH, ui.palette.accent)
+        val armed = Glyph(ui.context, Glyph.Shape.REFRESH, ui.palette.danger).apply { visibility = View.GONE }
+        val guard = ConfirmTap()
+        val button = FrameLayout(ui.context)
+        val revert =
+            Runnable {
+                if (guard.armed) guard.tap()
+                idle.visibility = View.VISIBLE
+                armed.visibility = View.GONE
+                hint.visibility = View.INVISIBLE
+            }
+        val icon = ui.dp(RESET_ICON_DP)
+        val centre = FrameLayout.LayoutParams(icon, icon, Gravity.CENTER)
+        return button.apply {
+            background = ui.rounded(ui.palette.accentSoft, RESET_DP / 2)
+            contentDescription = ui.string(R.string.media_layout_reset)
+            tooltipText = contentDescription
+            addView(idle, centre)
+            addView(armed, FrameLayout.LayoutParams(icon, icon, Gravity.CENTER))
+            ui.tappable(this, RESET_DP / 2) {
+                removeCallbacks(revert)
+                if (guard.tap()) {
+                    revert.run()
+                    onReset()
+                } else {
+                    idle.visibility = View.GONE
+                    armed.visibility = View.VISIBLE
+                    hint.visibility = View.VISIBLE
+                    postDelayed(revert, CONFIRM_MS)
+                }
+            }
+        }
+    }
+
+    private const val WRAP = ViewGroup.LayoutParams.WRAP_CONTENT
+    private const val RESET_DP = 36f
+    private const val RESET_ICON_DP = 18f
+    private const val DONE_DP = 36f
+    private const val HINT_MIN_SP = 9
+
+    /** How long the reset icon waits, red, for its second tap. */
+    private const val CONFIRM_MS = 3000L
 }

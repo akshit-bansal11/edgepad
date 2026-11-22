@@ -157,7 +157,7 @@
   <string name="piece_now_playing">재생 중</string>
   <string name="piece_transport">이전 · 재생 · 다음</string>
   <string name="media_layout_reset">위치 초기화</string>
-  <string name="media_layout_reset_confirm">위치를 초기화할까요? 한 번 더 탭하세요</string>
+  <string name="editor_reset_confirm">다시 탭하면 초기화</string>
   <string name="editor_options">옵션</string>
   <string name="editor_done">완료</string>
   <string name="media_scale">크기</string>

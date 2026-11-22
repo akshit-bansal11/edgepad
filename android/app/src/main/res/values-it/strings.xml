@@ -173,7 +173,7 @@
   <string name="piece_now_playing">In riproduzione</string>
   <string name="piece_transport">Indietro · riproduci · avanti</string>
   <string name="media_layout_reset">Reimposta posizioni</string>
-  <string name="media_layout_reset_confirm">Reimpostare le posizioni? Tocca di nuovo</string>
+  <string name="editor_reset_confirm">Tocca di nuovo per reimpostare</string>
   <string name="editor_options">Opzioni</string>
   <string name="editor_done">Fine</string>
   <string name="media_scale">Dimensione</string>

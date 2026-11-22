@@ -167,7 +167,7 @@
   <string name="piece_now_playing">अभी चल रहा है</string>
   <string name="piece_transport">पिछला · प्ले · अगला</string>
   <string name="media_layout_reset">जगह रीसेट करें</string>
-  <string name="media_layout_reset_confirm">जगह रीसेट करें? फिर टैप करें</string>
+  <string name="editor_reset_confirm">रीसेट करने के लिए फिर टैप करें</string>
   <string name="editor_options">विकल्प</string>
   <string name="editor_done">हो गया</string>
   <string name="media_scale">साइज़</string>

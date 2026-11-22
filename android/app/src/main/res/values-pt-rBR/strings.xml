@@ -173,7 +173,7 @@
   <string name="piece_now_playing">Tocando agora</string>
   <string name="piece_transport">Anterior · tocar · próxima</string>
   <string name="media_layout_reset">Redefinir posições</string>
-  <string name="media_layout_reset_confirm">Redefinir posições? Toque de novo</string>
+  <string name="editor_reset_confirm">Toque de novo para redefinir</string>
   <string name="editor_options">Opções</string>
   <string name="editor_done">Concluir</string>
   <string name="media_scale">Tamanho</string>

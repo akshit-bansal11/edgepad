@@ -9,7 +9,6 @@ import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.accessibility.AccessibilityNodeProvider
-import android.widget.LinearLayout
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
@@ -54,39 +53,31 @@ object MediaLayoutScreen {
                 onBack,
                 backLabel = ui.string(if (widgets) R.string.widgets_title else R.string.settings_surface_title),
             ) { close ->
-                LinearLayout(ui.context).apply {
-                    orientation = LinearLayout.VERTICAL
-                    if (!widgets) {
-                        addView(
-                            ui.slider(
-                                ui.string(R.string.media_scale),
-                                scaleRange.steps,
-                                scaleRange.stepOf(settings.mediaScale),
-                                { step -> ui.string(R.string.multiplier_value, scaleRange.valueAt(step)) },
-                            ) { step ->
-                                settings.mediaScale = scaleRange.valueAt(step)
-                                canvas.rescale()
-                            },
-                        )
-                    }
-                    addView(
-                        EditorFrame.resetAndDone(
-                            ui,
-                            ui.string(R.string.media_layout_reset),
-                            ui.string(R.string.media_layout_reset_confirm),
-                            {
-                                canvas.reset()
-                                if (!widgets) {
-                                    settings.mediaScale = Settings.DEFAULT_MEDIA_SCALE
-                                    canvas.rescale()
-                                }
-                                close()
-                            },
-                            close,
-                            Ui.Style.OUTLINED,
-                        ),
-                    )
-                }
+                EditorFrame.sizePanel(
+                    ui,
+                    if (widgets) null else ui.string(R.string.media_scale),
+                    if (widgets) {
+                        null
+                    } else {
+                        EditorFrame.Slider(
+                            scaleRange.steps,
+                            scaleRange.stepOf(settings.mediaScale),
+                            { step -> ui.string(R.string.multiplier_value, scaleRange.valueAt(step)) },
+                        ) { step ->
+                            settings.mediaScale = scaleRange.valueAt(step)
+                            canvas.rescale()
+                        }
+                    },
+                    {
+                        canvas.reset()
+                        if (!widgets) {
+                            settings.mediaScale = Settings.DEFAULT_MEDIA_SCALE
+                            canvas.rescale()
+                        }
+                        close()
+                    },
+                    close,
+                )
             }
         TipCard.show(
             root,

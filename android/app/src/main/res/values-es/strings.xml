@@ -173,7 +173,7 @@
   <string name="piece_now_playing">En reproducción</string>
   <string name="piece_transport">Anterior · reproducir · siguiente</string>
   <string name="media_layout_reset">Restablecer posiciones</string>
-  <string name="media_layout_reset_confirm">¿Restablecer posiciones? Toca de nuevo</string>
+  <string name="editor_reset_confirm">Toca de nuevo para restablecer</string>
   <string name="editor_options">Opciones</string>
   <string name="editor_done">Listo</string>
   <string name="media_scale">Tamaño</string>

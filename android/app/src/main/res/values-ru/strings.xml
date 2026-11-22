@@ -178,7 +178,7 @@
   <string name="piece_now_playing">Сейчас играет</string>
   <string name="piece_transport">Пред. · пуск · след.</string>
   <string name="media_layout_reset">Сбросить положение</string>
-  <string name="media_layout_reset_confirm">Сбросить положение? Нажмите ещё раз</string>
+  <string name="editor_reset_confirm">Нажмите ещё раз для сброса</string>
   <string name="editor_options">Параметры</string>
   <string name="editor_done">Готово</string>
   <string name="media_scale">Размер</string>

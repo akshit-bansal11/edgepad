@@ -164,7 +164,7 @@
   <string name="piece_now_playing">再生中</string>
   <string name="piece_transport">前へ · 再生 · 次へ</string>
   <string name="media_layout_reset">位置をリセット</string>
-  <string name="media_layout_reset_confirm">位置をリセット？ もう一度タップ</string>
+  <string name="editor_reset_confirm">もう一度タップでリセット</string>
   <string name="editor_options">オプション</string>
   <string name="editor_done">完了</string>
   <string name="media_scale">サイズ</string>

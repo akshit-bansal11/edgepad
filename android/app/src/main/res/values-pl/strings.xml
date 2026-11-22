@@ -178,7 +178,7 @@
   <string name="piece_now_playing">Teraz odtwarzane</string>
   <string name="piece_transport">Poprzedni · odtwórz · następny</string>
   <string name="media_layout_reset">Zresetuj położenie</string>
-  <string name="media_layout_reset_confirm">Zresetować położenie? Stuknij ponownie</string>
+  <string name="editor_reset_confirm">Stuknij ponownie, aby zresetować</string>
   <string name="editor_options">Opcje</string>
   <string name="editor_done">Gotowe</string>
   <string name="media_scale">Rozmiar</string>

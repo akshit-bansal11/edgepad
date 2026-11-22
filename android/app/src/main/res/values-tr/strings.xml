@@ -165,7 +165,7 @@
   <string name="piece_now_playing">Şimdi çalıyor</string>
   <string name="piece_transport">Önceki · oynat · sonraki</string>
   <string name="media_layout_reset">Konumları sıfırla</string>
-  <string name="media_layout_reset_confirm">Konumlar sıfırlansın mı? Tekrar dokunun</string>
+  <string name="editor_reset_confirm">Sıfırlamak için tekrar dokunun</string>
   <string name="editor_options">Seçenekler</string>
   <string name="editor_done">Bitti</string>
   <string name="media_scale">Boyut</string>

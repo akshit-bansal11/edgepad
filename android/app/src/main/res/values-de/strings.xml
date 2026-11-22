@@ -167,7 +167,7 @@
   <string name="piece_now_playing">Aktuelle Wiedergabe</string>
   <string name="piece_transport">Zurück · Wiedergabe · Weiter</string>
   <string name="media_layout_reset">Positionen zurücksetzen</string>
-  <string name="media_layout_reset_confirm">Zurücksetzen? Nochmal tippen</string>
+  <string name="editor_reset_confirm">Zum Zurücksetzen erneut tippen</string>
   <string name="editor_options">Optionen</string>
   <string name="editor_done">Fertig</string>
   <string name="media_scale">Größe</string>

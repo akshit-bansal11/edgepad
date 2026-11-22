@@ -168,7 +168,7 @@
   <string name="piece_now_playing">Nu aan het spelen</string>
   <string name="piece_transport">Vorige · afspelen · volgende</string>
   <string name="media_layout_reset">Posities herstellen</string>
-  <string name="media_layout_reset_confirm">Posities herstellen? Tik nogmaals</string>
+  <string name="editor_reset_confirm">Tik nogmaals om te herstellen</string>
   <string name="editor_options">Opties</string>
   <string name="editor_done">Klaar</string>
   <string name="media_scale">Grootte</string>

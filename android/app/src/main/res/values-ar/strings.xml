@@ -188,7 +188,7 @@
   <string name="piece_now_playing">قيد التشغيل</string>
   <string name="piece_transport">السابق · تشغيل · التالي</string>
   <string name="media_layout_reset">إعادة تعيين المواضع</string>
-  <string name="media_layout_reset_confirm">إعادة تعيين المواضع؟ انقر مجددًا</string>
+  <string name="editor_reset_confirm">انقر مرة أخرى لإعادة التعيين</string>
   <string name="editor_options">خيارات</string>
   <string name="editor_done">تم</string>
   <string name="media_scale">الحجم</string>
