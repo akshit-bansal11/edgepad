@@ -5,10 +5,12 @@ import android.view.View
 import android.widget.FrameLayout
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
+import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.FnMode
+import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
 import me.akshitbansal.edgepad.screens.KeyboardScreen
 import me.akshitbansal.edgepad.screens.KeyboardSize
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
@@ -39,6 +41,7 @@ class GallerySamples(
                     send = {},
                     onBack = {},
                 )
+            "gamepad-layout" -> GamepadLayoutScreen.build(ui, GamepadStore(context)) {}
             "media-layout" -> MediaLayoutScreen.build(ui, settings) {}
             "surface" -> ControlSurface(context, settings, LaptopState(), {}, {}, {})
             else -> null

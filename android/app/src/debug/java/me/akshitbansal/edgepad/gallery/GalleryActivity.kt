@@ -39,7 +39,7 @@ class GalleryActivity : Activity() {
         val view: View = samples.build(screen) ?: samples.blank()
         setContentView(view)
         if (screen == "controls") view.post { samples.showControls(view) }
-        if (screen == "media-layout") view.post { samples.openOptions(view) }
+        if (screen == "media-layout" || screen == "gamepad-layout") view.post { samples.openOptions(view) }
     }
 
     private fun intentFlag(name: String): Boolean = intent?.getBooleanExtra(name, true) ?: true

@@ -110,6 +110,19 @@ object GamepadLayoutScreen {
             LinearLayout(ui.context).apply {
                 orientation = LinearLayout.VERTICAL
                 addView(
+                    EditorFrame.resetRow(
+                        ui,
+                        null,
+                        null,
+                        {
+                            canvas.reset()
+                            close()
+                        },
+                        resetLabel(ui, store),
+                        resetConfirm(ui, store),
+                    ),
+                )
+                addView(
                     layouts(ui, store.all.map { it.name }, store.current.name) { name ->
                         store.choose(name)
                         canvas.reload()
@@ -140,18 +153,7 @@ object GamepadLayoutScreen {
                         },
                     ),
                 )
-                addView(
-                    EditorFrame.resetAndDone(
-                        ui,
-                        resetLabel(ui, store),
-                        resetConfirm(ui, store),
-                        {
-                            canvas.reset()
-                            close()
-                        },
-                        close,
-                    ),
-                )
+                addView(EditorFrame.doneButton(ui, close))
             }
         }
     }
@@ -211,7 +213,7 @@ object GamepadLayoutScreen {
             ui.string(R.string.gamepad_switch_to_confirm, layoutLabel(ui.context, GamepadLayout.presets.first().name))
         }
 
-    /** Two buttons side by side, the way [EditorFrame.resetAndDone] lays its own out. */
+    /** Two buttons side by side. */
     private fun pair(
         ui: Ui,
         first: View,
