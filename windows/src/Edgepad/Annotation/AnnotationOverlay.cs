@@ -50,8 +50,8 @@ internal sealed class AnnotationOverlay : Form
     /// <summary>The other half of not stealing focus: WinForms shows this with SW_SHOWNOACTIVATE.</summary>
     protected override bool ShowWithoutActivation => true;
 
-    /// <summary>Repaints the whole layer with <paramref name="strokes"/> and shows it if it is not up yet.</summary>
-    public void Present(IReadOnlyList<Stroke> strokes, Rectangle screen)
+    /// <summary>Repaints the whole layer with <paramref name="strokes"/> and the laser, and shows it if it is not up yet.</summary>
+    public void Present(IReadOnlyList<Stroke> strokes, LaserFrame? laser, Rectangle screen)
     {
         if (canvas is null || canvas.Size != screen.Size)
         {
@@ -60,7 +60,7 @@ internal sealed class AnnotationOverlay : Form
             canvas = new Canvas(screen.Size);
         }
 
-        canvas.Draw(strokes);
+        canvas.Draw(strokes, laser);
         canvas.Push(Handle, screen.Location);
         if (!Visible)
         {
@@ -94,16 +94,18 @@ internal sealed class AnnotationOverlay : Form
         private const uint UlwAlpha = 2;
 
         /// <summary>The glow reaches this many radii out from the dot's centre.</summary>
-        private const float LaserGlowRadii = 2.2f;
+        private const float LaserGlowRadii = Stroke.LaserGlow;
 
-        private static readonly Color LaserColour = Color.FromArgb(0xFF, 0xFF, 0x1A, 0x1A);
+        /// <summary>The white-hot centre's radius as a share of the core's.</summary>
+        private const float HotCentre = 0.35f;
+
+        private static readonly Color CoreColour = Color.FromArgb(0xFF, 0xFF, 0x1A, 0x1A);
+        private static readonly Color HotColour = Color.FromArgb(0xFF, 0xFF, 0xD0, 0xD0);
 
         private readonly nint dc;
         private readonly nint dib;
         private readonly nint previous;
         private readonly Bitmap bitmap;
-        private PointF[] leftEdge = new PointF[32];
-        private PointF[] rightEdge = new PointF[32];
 
         public Canvas(Size size)
         {
@@ -131,39 +133,51 @@ internal sealed class AnnotationOverlay : Form
 
         public Size Size { get; }
 
-        public void Draw(IReadOnlyList<Stroke> strokes)
+        public void Draw(IReadOnlyList<Stroke> strokes, LaserFrame? laser)
         {
             using var g = Graphics.FromImage(bitmap);
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.Clear(Color.Transparent);
             foreach (var stroke in strokes)
             {
-                if (stroke.IsLaser)
+                if (!stroke.IsLaser)
                 {
-                    DrawLaser(g, stroke);
-                    continue;
+                    SignatureExport.Draw(g, stroke, Size.Width, Size.Height);
                 }
+            }
 
-                SignatureExport.Draw(g, stroke, Size.Width, Size.Height);
+            if (laser is not null)
+            {
+                DrawLaser(g, laser);
             }
         }
 
         /// <summary>
-        /// A laser: a hot core inside a soft red glow, always red whatever the pen's colour, sized by the pen's width.
-        /// The trailing one also draws a red tail that fades and thins away behind the dot.
+        /// A laser: a red core with a white-hot centre inside a soft glow, always red whatever the pen's colour. The
+        /// trail is one filled outline with a tail-to-head alpha gradient, never stroked as segments, so no seams
+        /// show. Every alpha is scaled by the frame's visibility, which is how a lost pen-up fades out.
         /// </summary>
-        private void DrawLaser(Graphics g, Stroke stroke)
+        private static void DrawLaser(Graphics g, LaserFrame frame)
         {
-            var path = stroke.Path(Size.Width, Size.Height);
-            if (path.Length == 0)
+            var radius = frame.Radius;
+            var point = new PointF(frame.Dot.X, frame.Dot.Y);
+
+            // A tail on the dot has no direction for the gradient to run along.
+            if (frame.Outline.Length >= 3 && (frame.Dot - frame.Tail).LengthSquared() >= 1f)
             {
-                return;
+                var polygon = new PointF[frame.Outline.Length];
+                for (var i = 0; i < polygon.Length; i++)
+                {
+                    polygon[i] = new PointF(frame.Outline[i].X, frame.Outline[i].Y);
+                }
+
+                using var fade = new LinearGradientBrush(
+                    new PointF(frame.Tail.X, frame.Tail.Y),
+                    point,
+                    Faded(CoreColour, frame.TailAlpha, frame.Visibility),
+                    Faded(CoreColour, frame.HeadAlpha, frame.Visibility));
+                g.FillPolygon(fade, polygon, FillMode.Winding);
             }
-
-            var point = path[^1];
-            var radius = stroke.LaserRadiusPx(Size.Height);
-
-            DrawTail(g, path, radius);
 
             var glow = radius * LaserGlowRadii;
             using (var disc = new GraphicsPath())
@@ -171,65 +185,21 @@ internal sealed class AnnotationOverlay : Form
                 disc.AddEllipse(point.X - glow, point.Y - glow, glow * 2f, glow * 2f);
                 using var brush = new PathGradientBrush(disc)
                 {
-                    CenterColor = Color.FromArgb(140, LaserColour),
-                    SurroundColors = [Color.FromArgb(0, LaserColour)],
+                    CenterColor = Faded(CoreColour, 140, frame.Visibility),
+                    SurroundColors = [Faded(CoreColour, 0, frame.Visibility)],
                 };
                 g.FillPath(brush, disc);
             }
 
-            using var core = new SolidBrush(LaserColour);
+            using var core = new SolidBrush(Faded(CoreColour, 0xFF, frame.Visibility));
             g.FillEllipse(core, point.X - radius, point.Y - radius, radius * 2f, radius * 2f);
-            var hot = radius * 0.35f;
-            using var centre = new SolidBrush(Color.FromArgb(0xFF, 0xFF, 0xD0, 0xD0));
+            var hot = radius * HotCentre;
+            using var centre = new SolidBrush(Faded(HotColour, 0xFF, frame.Visibility));
             g.FillEllipse(centre, point.X - hot, point.Y - hot, hot * 2f, hot * 2f);
         }
 
-        /// <summary>
-        /// The trail as one smooth ribbon: as wide as the dot at the head, tapering to nothing at the tail, and
-        /// fading with a single gradient, so no joints or dots show. The two edge buffers are reused every frame.
-        /// </summary>
-        private void DrawTail(Graphics g, Vector2[] path, float radius)
-        {
-            var n = path.Length;
-            if (n < 3 || (path[n - 1] - path[0]).LengthSquared() < 1f)
-            {
-                return;
-            }
-
-            if (leftEdge.Length < n)
-            {
-                leftEdge = new PointF[n];
-                rightEdge = new PointF[n];
-            }
-
-            var (nx, ny) = (0f, 1f);
-            for (var i = 0; i < n; i++)
-            {
-                var a = path[Math.Max(i - 1, 0)];
-                var b = path[Math.Min(i + 1, n - 1)];
-                var (dx, dy) = (b.X - a.X, b.Y - a.Y);
-                var length = MathF.Sqrt((dx * dx) + (dy * dy));
-                if (length > 0.001f)
-                {
-                    (nx, ny) = (-dy / length, dx / length);
-                }
-
-                var half = radius * i / (n - 1);
-                leftEdge[i] = new PointF(path[i].X + (nx * half), path[i].Y + (ny * half));
-                rightEdge[n - 1 - i] = new PointF(path[i].X - (nx * half), path[i].Y - (ny * half));
-            }
-
-            using var ribbon = new GraphicsPath();
-            ribbon.AddCurve(leftEdge, 0, n - 1, 0.5f);
-            ribbon.AddCurve(rightEdge, 0, n - 1, 0.5f);
-            ribbon.CloseFigure();
-            using var fade = new LinearGradientBrush(
-                new PointF(path[0].X, path[0].Y),
-                new PointF(path[n - 1].X, path[n - 1].Y),
-                Color.FromArgb(0, LaserColour),
-                Color.FromArgb(220, LaserColour));
-            g.FillPath(fade, ribbon);
-        }
+        private static Color Faded(Color colour, int alpha, float visibility) =>
+            Color.FromArgb((int)Math.Round(alpha * visibility), colour.R, colour.G, colour.B);
 
         public void Push(nint window, Point at)
         {
@@ -250,5 +220,32 @@ internal sealed class AnnotationOverlay : Form
             _ = NativeMethods.DeleteObject(dib);
             _ = NativeMethods.DeleteDC(dc);
         }
+    }
+}
+
+/// <summary>One laser's picture for one frame, taken under the board's lock: dot, size, fade, and the trail's outline.</summary>
+internal sealed record LaserFrame(Vector2 Dot, float Radius, float Visibility, Vector2[] Outline, Vector2 Tail, byte TailAlpha, byte HeadAlpha)
+{
+    /// <summary>The laser's picture at <paramref name="now"/>, or null once it has faded out or has no point.</summary>
+    public static LaserFrame? Of(Stroke stroke, long now, int width, int height)
+    {
+        var visibility = LaserGeometry.Visibility(now, stroke.LastEventMs);
+        if (visibility <= 0f)
+        {
+            return null;
+        }
+
+        var path = stroke.Path(width, height);
+        if (path.Length == 0)
+        {
+            return null;
+        }
+
+        var radius = stroke.LaserRadiusPx(height);
+        var (points, ages) = stroke.Trail(width, height, now);
+        var outline = LaserGeometry.Outline(points, ages, radius);
+        var head = (byte)Math.Round(255f * LaserGeometry.TrailAlpha(0f));
+        var tail = (byte)Math.Round(255f * LaserGeometry.TrailAlpha(ages.Length > 0 ? ages[0] : 0f));
+        return new LaserFrame(path[^1], radius, visibility, outline, points.Length > 0 ? points[0] : path[^1], tail, head);
     }
 }

@@ -33,6 +33,9 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
     private int disposed;
     private int posted;
 
+    /// <summary>The screen-rate redraw, running only while a laser shows. UI thread only; built on first use.</summary>
+    private System.Windows.Forms.Timer? laserTick;
+
     /// <summary>
     /// Where the answer to SIGN_SAVE goes. Set by the session, which owns the socket, for the reason
     /// <see cref="Dispatch.Dispatcher.PadStatusReply"/> is.
@@ -292,38 +295,68 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
     private void Drain()
     {
         Volatile.Write(ref posted, 0);
-        if (Volatile.Read(ref disposed) != 0 || Snapshot() is not { } strokes)
+        var (strokes, laser, live) = Volatile.Read(ref disposed) != 0 ? (null, null, false) : Snapshot();
+        if (strokes is null)
         {
             Remove();
             return;
         }
 
-        Present(strokes);
+        SetLaserTick(live);
+        Present(strokes, laser);
     }
 
-    /// <summary>What the overlay should show, or null when it should not be up.</summary>
-    private Stroke[]? Snapshot()
+    /// <summary>
+    /// What the overlay should show: the strokes (null when it should not be up), the laser's frame, and whether a
+    /// laser still shows anything.
+    /// </summary>
+    private (Stroke[]? Strokes, LaserFrame? Laser, bool Live) Snapshot()
     {
+        var screen = Bounds();
         lock (gate)
         {
             if (board.Mode != BoardMode.Annotate)
             {
-                return null;
+                return (null, null, false);
             }
 
             // The stroke under the finger is still growing on the session thread, so it alone is copied.
             if (board.Active is not { } active)
             {
-                return [.. board.Strokes];
+                return ([.. board.Strokes], null, false);
+            }
+
+            if (active.IsLaser)
+            {
+                var now = board.NowMs;
+                return ([.. board.Strokes], LaserFrame.Of(active, now, screen.Width, screen.Height), board.LaserVisible(now));
             }
 
             var copy = new Stroke(active.Tool, active.Style);
             copy.Points.AddRange(active.Points);
-            return [.. board.Strokes, copy];
+            return ([.. board.Strokes, copy], null, false);
         }
     }
 
-    private void Present(Stroke[] strokes)
+    /// <summary>Runs the 16 ms redraw timer exactly while a laser shows, then stops it. UI thread.</summary>
+    private void SetLaserTick(bool live)
+    {
+        if (!live)
+        {
+            laserTick?.Stop();
+            return;
+        }
+
+        if (laserTick is null)
+        {
+            laserTick = new System.Windows.Forms.Timer { Interval = 16 };
+            laserTick.Tick += (_, _) => Redraw();
+        }
+
+        laserTick.Start();
+    }
+
+    private void Present(Stroke[] strokes, LaserFrame? laser)
     {
         if (stopped)
         {
@@ -333,7 +366,7 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         try
         {
             window ??= new AnnotationOverlay();
-            window.Present(strokes, Bounds());
+            window.Present(strokes, laser, Bounds());
             failures = 0;
         }
         catch (Exception e)
@@ -355,6 +388,7 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
 
     private void Remove()
     {
+        laserTick?.Stop();
         var open = window;
         window = null;
         open?.Dispose();
@@ -484,6 +518,8 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         // queued runs first and sees the session gone.
         Post(() =>
         {
+            laserTick?.Dispose();
+            laserTick = null;
             window?.Dispose();
             window = null;
         });

@@ -1,5 +1,6 @@
 using System.Drawing.Imaging;
 using System.Reflection;
+using Edgepad.Annotation;
 using Edgepad.Transfer;
 using Edgepad.Ui;
 using Xunit;
@@ -52,6 +53,40 @@ public sealed class DesignGallery
         var finished = new TransferView(TransferPhase.Finished, true, 5, 5, "a.pdf", 0, 0, 0, 5, [], 0, false);
         Save(folder, "toast-run", toast, running);
         Save(folder, "toast-finished", toast, finished);
+        SaveLaser(folder, "laser-medium", 15);
+    }
+
+    // The overlay's canvas is a private nested class over a DIB, so it is built and drawn directly, then composited
+    // over a dark background: the laser is per-pixel alpha and would otherwise be saved on transparent.
+    private static void SaveLaser(string folder, string name, int width)
+    {
+        const int w = 640;
+        const int h = 300;
+        var stroke = new Stroke(StrokeTool.LaserTrail, new PenStyle(0xFF0000, width, 100));
+        const int steps = 12;
+        for (var i = 0; i <= steps; i++)
+        {
+            var t = i / (float)steps;
+            var x = (ushort)(65535 * (0.15f + (0.7f * t)));
+            var y = (ushort)(65535 * (0.65f - (0.4f * MathF.Sin(t * MathF.PI))));
+            stroke.Extend(new NormPoint(x, y), i * 20);
+        }
+
+        var now = steps * 20L;
+        var frame = LaserFrame.Of(stroke, now, w, h) ?? throw new InvalidOperationException("No laser frame.");
+        var canvasType = typeof(AnnotationOverlay).GetNestedType("Canvas", BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("AnnotationOverlay.Canvas is gone.");
+        using var canvas = (IDisposable)Activator.CreateInstance(canvasType, new Size(w, h))!;
+        canvasType.GetMethod("Draw")!.Invoke(canvas, [Array.Empty<Stroke>(), frame]);
+        var layer = (Bitmap)canvasType.GetField("bitmap", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(canvas)!;
+        using var output = new Bitmap(w, h);
+        using (var g = Graphics.FromImage(output))
+        {
+            g.Clear(Color.FromArgb(0x1B, 0x1C, 0x20));
+            g.DrawImageUnscaled(layer, 0, 0);
+        }
+
+        output.Save(Path.Combine(folder, name + ".png"), ImageFormat.Png);
     }
 
     // The toast's window is a private nested class that only Show() builds, and Show() posts to a message loop this test
