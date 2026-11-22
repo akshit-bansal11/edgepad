@@ -440,12 +440,6 @@
   <data name="Integrations_WeatherNote" xml:space="preserve">
     <value>只向 open-meteo.com 发送城市名称。</value>
   </data>
-  <data name="Integrations_Claude" xml:space="preserve">
-    <value>Claude Code</value>
-  </data>
-  <data name="Integrations_Codex" xml:space="preserve">
-    <value>Codex</value>
-  </data>
   <data name="Integrations_Connect" xml:space="preserve">
     <value>连接</value>
   </data>
@@ -479,14 +473,8 @@
   <data name="Integrations_Restart" xml:space="preserve">
     <value>请重启已打开的会话，或在 Claude Code 中运行 /reload-plugins。</value>
   </data>
-  <data name="Integrations_GitHub" xml:space="preserve">
-    <value>GitHub</value>
-  </data>
   <data name="Integrations_ForDevelopers" xml:space="preserve">
     <value>开发者</value>
-  </data>
-  <data name="Integrations_SignIn" xml:space="preserve">
-    <value>使用 GitHub 登录</value>
   </data>
   <data name="Integrations_SignOut" xml:space="preserve">
     <value>退出登录</value>
@@ -530,10 +518,86 @@
 3. 在 Codex 中输入 /hooks 并信任 Edgepad。在 Codex 应用中：Settings > Hooks > Review hooks。
 4. 在手机上打开 Controls > AI。Codex 发送第一个事件后就会出现。</value>
   </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>正在处理…</value>
+  </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. 点击“使用 GitHub 登录”。会打开一个 github.com 页面。
+    <value>1. 点击“登录”。会打开一个 github.com 页面。
 2. 输入这里显示的代码，然后点击 Authorize。
 3. 在手机上打开 Controls > GitHub。</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>连接你的 AI 工具和 Git 托管服务，即可在手机上查看。</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>AI 工具</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Git 托管服务</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>如何连接</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>登录</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>添加…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>即将推出</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>服务器地址</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>用户名或邮箱</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>访问令牌</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>请检查服务器地址、名称和令牌，然后重试。</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>服务器不接受此令牌。</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>此令牌没有读取权限。请创建具有读取权限的令牌。</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>在该地址找不到服务器。</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>无法连接到服务器。请检查网络连接。</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>无法保存令牌。请重试。</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. 如果尚未安装，请在这台电脑上安装 Gemini CLI。
+2. 点击“连接”。Edgepad 会把它的钩子添加到 Gemini CLI 的设置中。
+3. 重启已打开的 Gemini CLI 会话。</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. 如果尚未安装，请在这台电脑上安装 OpenCode。
+2. 点击“连接”。Edgepad 会把它的插件添加到 OpenCode 的插件文件夹。
+3. 重启已打开的 OpenCode 会话。</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. 在你的服务器上打开“设置 &gt; 应用”，创建具有读取权限的访问令牌。
+2. 点击“添加”，检查服务器地址（默认是 Codeberg），然后粘贴令牌。</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. 在你的 Atlassian 账户中创建具有 Bitbucket 读取权限的 API 令牌。
+2. 点击“添加”，输入你的 Bitbucket 邮箱，然后粘贴令牌。</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. 在 gitee.com 打开“设置 &gt; 私人令牌”，创建具有读取权限的令牌。
+2. 点击“添加”，然后粘贴令牌。</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>请打开开发者模式以使用这些功能。</value>
   </data>
   <data name="Notice_CodexTrustTitle" xml:space="preserve">
     <value>Codex 需要你再次同意</value>

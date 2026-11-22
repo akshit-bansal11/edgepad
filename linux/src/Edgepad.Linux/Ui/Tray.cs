@@ -69,7 +69,7 @@ internal sealed class Tray : IDisposable
     private readonly NativeMenuItem transfersRow = new(LinuxStrings.Menu_Transfers) { IsVisible = false };
     private readonly NativeMenuItem integrationsRow = new(LinuxStrings.Menu_StatsWeather) { IsVisible = LinuxDashboard.Shared is not null };
     private readonly NativeMenuItem developerRow = Toggle(LinuxStrings.Menu_DeveloperMode);
-    private readonly NativeMenuItem developerIntegrationsRow = new(LinuxStrings.Menu_ForDevelopers) { IsVisible = false };
+    private readonly NativeMenuItem developerIntegrationsRow = new(LinuxStrings.Menu_ForDevelopers);
     private readonly NativeMenuItem securityRow = new(LinuxStrings.Menu_Security);
     private readonly TrayIcon icon;
     private readonly Bus portal = Bus.OnSession();
@@ -196,9 +196,7 @@ internal sealed class Tray : IDisposable
         networkRow.IsChecked = hooks.NetworkOn();
         clipboardRow.IsChecked = hooks.ClipboardOn();
         notifyRow.IsChecked = hooks.NotifyOn();
-        var developer = hooks.DeveloperOn();
-        developerRow.IsChecked = developer;
-        developerIntegrationsRow.IsVisible = developer;
+        developerRow.IsChecked = hooks.DeveloperOn();
         autostartRow.IsChecked = hooks.AutostartOn();
         updatesRow.IsChecked = hooks.UpdatesOn();
     }

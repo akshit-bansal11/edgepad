@@ -527,14 +527,10 @@ internal sealed class Shell : IDisposable
         await Task.Run(() => shared.SetDeveloper(on));
     }
 
-    /// <summary>Developer mode moved, from the tray or the phone (UI thread): the rows follow and a developer window closes when it went off.</summary>
+    /// <summary>Developer mode moved, from the tray or the phone (UI thread): the rows follow and an open developer window reads its rows again.</summary>
     private void OnDeveloperChanged()
     {
-        if (LinuxDashboard.Shared is { } shared && !shared.Settings.Flag(IntegrationSettings.Developer))
-        {
-            shared.CloseDeveloperWindow();
-        }
-
+        LinuxDashboard.Shared?.RefreshDeveloperWindow();
         RefreshViews();
     }
 

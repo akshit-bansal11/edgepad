@@ -440,12 +440,6 @@
   <data name="Integrations_WeatherNote" xml:space="preserve">
     <value>open-meteo.com에는 도시 이름만 보내요.</value>
   </data>
-  <data name="Integrations_Claude" xml:space="preserve">
-    <value>Claude Code</value>
-  </data>
-  <data name="Integrations_Codex" xml:space="preserve">
-    <value>Codex</value>
-  </data>
   <data name="Integrations_Connect" xml:space="preserve">
     <value>연결</value>
   </data>
@@ -479,14 +473,8 @@
   <data name="Integrations_Restart" xml:space="preserve">
     <value>열린 세션을 다시 시작하거나 Claude Code에서 /reload-plugins를 실행하세요.</value>
   </data>
-  <data name="Integrations_GitHub" xml:space="preserve">
-    <value>GitHub</value>
-  </data>
   <data name="Integrations_ForDevelopers" xml:space="preserve">
     <value>개발자용</value>
-  </data>
-  <data name="Integrations_SignIn" xml:space="preserve">
-    <value>GitHub로 로그인</value>
   </data>
   <data name="Integrations_SignOut" xml:space="preserve">
     <value>로그아웃</value>
@@ -530,10 +518,86 @@
 3. Codex에서 /hooks를 입력하고 Edgepad를 신뢰하세요. Codex 앱에서는 Settings > Hooks > Review hooks로 가세요.
 4. 휴대전화에서 Controls > AI를 여세요. Codex가 첫 이벤트를 보내면 나타나요.</value>
   </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>처리 중…</value>
+  </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. GitHub로 로그인을 클릭하세요. github.com 페이지가 열려요.
+    <value>1. 로그인을 클릭하세요. github.com 페이지가 열려요.
 2. 여기 표시된 코드를 입력하고 Authorize를 클릭하세요.
 3. 휴대전화에서 Controls > GitHub를 여세요.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>AI 도구와 Git 호스트를 연결하면 휴대전화에서 볼 수 있습니다.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>AI 도구</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Git 호스트</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>연결 방법</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>로그인</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>추가…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>곧 제공</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>서버 주소</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>사용자 이름 또는 이메일</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>액세스 토큰</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>서버 주소, 이름, 토큰을 확인한 후 다시 시도하세요.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>서버가 이 토큰을 받아들이지 않았습니다.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>이 토큰에는 읽기 권한이 없습니다. 읽기 권한이 있는 토큰을 만드세요.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>해당 주소에서 서버를 찾을 수 없습니다.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>서버에 연결할 수 없습니다. 연결 상태를 확인하세요.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>토큰을 저장하지 못했습니다. 다시 시도하세요.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. 아직 설치하지 않았다면 이 컴퓨터에 Gemini CLI를 설치하세요.
+2. 연결을 클릭하세요. Edgepad가 Gemini CLI 설정에 훅을 추가합니다.
+3. 열려 있는 Gemini CLI 세션을 다시 시작하세요.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. 아직 설치하지 않았다면 이 컴퓨터에 OpenCode를 설치하세요.
+2. 연결을 클릭하세요. Edgepad가 OpenCode 플러그인 폴더에 플러그인을 추가합니다.
+3. 열려 있는 OpenCode 세션을 다시 시작하세요.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. 서버에서 설정 &gt; 애플리케이션을 열고 읽기 권한이 있는 액세스 토큰을 만드세요.
+2. 추가를 클릭하고 서버 주소(기본값은 Codeberg)를 확인한 뒤 토큰을 붙여넣으세요.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. Atlassian 계정에서 Bitbucket 읽기 권한이 있는 API 토큰을 만드세요.
+2. 추가를 클릭하고 Bitbucket 이메일을 입력한 뒤 토큰을 붙여넣으세요.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. gitee.com에서 설정 &gt; 개인 액세스 토큰을 열고 읽기 권한이 있는 토큰을 만드세요.
+2. 추가를 클릭하고 토큰을 붙여넣으세요.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>이 기능을 사용하려면 개발자 모드를 켜세요.</value>
   </data>
   <data name="Notice_CodexTrustTitle" xml:space="preserve">
     <value>Codex에서 다시 허용이 필요해요</value>

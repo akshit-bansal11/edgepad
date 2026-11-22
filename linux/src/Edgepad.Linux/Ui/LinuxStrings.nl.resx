@@ -432,12 +432,6 @@
   <data name="Integrations_WeatherNote" xml:space="preserve">
     <value>Stuurt alleen de naam van de stad naar open-meteo.com.</value>
   </data>
-  <data name="Integrations_Claude" xml:space="preserve">
-    <value>Claude Code</value>
-  </data>
-  <data name="Integrations_Codex" xml:space="preserve">
-    <value>Codex</value>
-  </data>
   <data name="Integrations_Connect" xml:space="preserve">
     <value>Verbinden</value>
   </data>
@@ -471,14 +465,8 @@
   <data name="Integrations_Restart" xml:space="preserve">
     <value>Herstart open sessies, of voer /reload-plugins uit in Claude Code.</value>
   </data>
-  <data name="Integrations_GitHub" xml:space="preserve">
-    <value>GitHub</value>
-  </data>
   <data name="Integrations_ForDevelopers" xml:space="preserve">
     <value>Voor ontwikkelaars</value>
-  </data>
-  <data name="Integrations_SignIn" xml:space="preserve">
-    <value>Inloggen met GitHub</value>
   </data>
   <data name="Integrations_SignOut" xml:space="preserve">
     <value>Uitloggen</value>
@@ -522,10 +510,86 @@
 3. Typ in Codex /hooks en vertrouw Edgepad. In de Codex-app: Settings > Hooks > Review hooks.
 4. Open op je telefoon Controls > AI. Het verschijnt zodra Codex zijn eerste gebeurtenis stuurt.</value>
   </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Bezig…</value>
+  </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Klik op Inloggen met GitHub. Er opent een pagina op github.com.
+    <value>1. Klik op Inloggen. Er opent een pagina op github.com.
 2. Voer de code in die hier staat en klik op Authorize.
 3. Open op je telefoon Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Koppel je AI-tools en Git-hosts om ze op je telefoon te zien.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>AI-tools</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Git-hosts</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>Zo verbind je</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Inloggen</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Toevoegen…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Binnenkort beschikbaar</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Serveradres</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Gebruikersnaam of e-mail</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Toegangstoken</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Controleer het serveradres, de naam en het token en probeer het opnieuw.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>De server heeft dit token niet geaccepteerd.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>Dit token mag niet lezen. Maak er een met leestoegang.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>Geen server gevonden op dat adres.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>De server is niet bereikbaar. Controleer je verbinding.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>Het token kon niet worden opgeslagen. Probeer het opnieuw.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Installeer Gemini CLI op deze computer als je dat nog niet hebt gedaan.
+2. Klik op Verbinden. Edgepad voegt zijn hooks toe aan de instellingen van Gemini CLI.
+3. Start geopende Gemini CLI-sessies opnieuw.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Installeer OpenCode op deze computer als je dat nog niet hebt gedaan.
+2. Klik op Verbinden. Edgepad voegt zijn plug-in toe aan de plug-inmap van OpenCode.
+3. Start geopende OpenCode-sessies opnieuw.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. Open op je server Instellingen &gt; Applicaties en maak een toegangstoken met leestoegang.
+2. Klik op Toevoegen, controleer het serveradres (standaard Codeberg) en plak het token.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. Maak in je Atlassian-account een API-token met leestoegang tot Bitbucket.
+2. Klik op Toevoegen, vul je Bitbucket-e-mailadres in en plak het token.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. Open op gitee.com Instellingen &gt; Persoonlijke toegangstokens en maak een token met leestoegang.
+2. Klik op Toevoegen en plak het token.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Zet de ontwikkelaarsmodus aan om deze te gebruiken.</value>
   </data>
   <data name="Notice_CodexTrustTitle" xml:space="preserve">
     <value>Codex heeft opnieuw je akkoord nodig</value>

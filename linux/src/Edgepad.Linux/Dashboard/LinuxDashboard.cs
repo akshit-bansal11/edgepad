@@ -17,14 +17,21 @@ internal sealed class LinuxDashboard : IDisposable
 {
     // Long enough for the clipboard poll (one tick a second) to see the copy while it is quiet, so it is never sent to the phone.
     private static readonly TimeSpan QuietCopy = TimeSpan.FromMilliseconds(1500);
-    private static readonly string[] AgentKeys = [IntegrationSettings.Claude, IntegrationSettings.Codex];
+    private static readonly string[] AgentKeys = [AgentToken.Claude, AgentToken.Codex, AgentToken.Gemini, AgentToken.OpenCode];
+
+    // The token-pasting git hosts the For developers window adds a token to. GitHub and GitLab sign in by device flow.
+    private static readonly string[] TokenKeys = ["gitea", "bitbucket", "gitee"];
 
     private readonly Lock gate = new();
     private readonly Lock applyGate = new();
     private readonly Lock ensureGate = new();
     private readonly string folder;
     private readonly PluginInstaller installer;
+
+    // Gemini CLI and OpenCode have no plugin CLI: Edgepad writes its own entry into their config instead.
+    private readonly HookConfigInstaller hookConfig;
     private readonly Lazy<LinuxSecretStore> secrets = new(() => new LinuxSecretStore());
+    private readonly Lazy<Dictionary<string, TokenGitHost>> tokenHosts;
     private readonly Lazy<GitHubSignIn> signIn;
     private readonly Lazy<UsageStore> usage;
 
@@ -48,6 +55,7 @@ internal sealed class LinuxDashboard : IDisposable
 
     // UI thread only.
     private IntegrationsWindow? window;
+    private DevelopersWindow? developers;
 
     /// <param name="folder">Where integrations.txt, dashboard-usage.json and the Codex cache live.</param>
     /// <param name="version">This app's version, stamped into the plugin copies.</param>
@@ -55,8 +63,16 @@ internal sealed class LinuxDashboard : IDisposable
     {
         this.folder = folder;
         Settings = new IntegrationSettings(Path.Combine(folder, IntegrationSettings.FileName));
-        installer = new PluginInstaller(new ResourcePluginSource(typeof(LinuxDashboard).Assembly), Settings, PluginInstaller.DefaultRoot(), version);
+        var bundle = new ResourcePluginSource(typeof(LinuxDashboard).Assembly);
+        installer = new PluginInstaller(bundle, Settings, PluginInstaller.DefaultRoot(), version);
+        hookConfig = new HookConfigInstaller(bundle, Settings, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), version, Environment.ProcessPath ?? string.Empty);
         signIn = new(() => new GitHubSignIn(secrets.Value));
+        tokenHosts = new(() => new Dictionary<string, TokenGitHost>
+        {
+            ["gitea"] = new GiteaHost(secrets.Value, Settings),
+            ["bitbucket"] = new BitbucketHost(secrets.Value, Settings),
+            ["gitee"] = new GiteeHost(secrets.Value, Settings),
+        });
         usage = new(() => new UsageStore(Path.Combine(folder, UsageStore.FileName), DateTimeOffset.UtcNow));
     }
 
@@ -162,8 +178,16 @@ internal sealed class LinuxDashboard : IDisposable
                     netInfo ??= new LinuxNetInfo();
                 }
 
+                // Token hosts are made only once one is on, so with every integration off the secret store is not touched.
+                IReadOnlyList<IGitHost>? gitHosts = null;
+                if (TokenKeys.Any(Settings.Active))
+                {
+                    gitHosts = [.. tokenHosts.Value.Values];
+                }
+
                 parts = new DashboardParts
                 {
+                    GitHosts = gitHosts,
                     Sessions = agents?.Sessions,
                     Limits = agents?.Limits,
                     Spend = agents?.Spend,
@@ -219,39 +243,84 @@ internal sealed class LinuxDashboard : IDisposable
     /// <summary>Opens the Integrations window (or, with <paramref name="developer"/>, the developer one), or shows the open one again. UI thread.</summary>
     public void ShowWindow(bool developer)
     {
-        if (window is { } open)
+        if (developer)
         {
-            if (open.IsDeveloper == developer)
-            {
-                open.Show();
-                return;
-            }
-
-            open.Close();
-            window = null;
+            ShowDevelopers();
+            return;
         }
 
-        var made = new IntegrationsWindow(developer, Settings, signIn.Value, secrets.Value, new IntegrationsHooks
+        if (window is { } open)
+        {
+            open.Show();
+            return;
+        }
+
+        var made = new IntegrationsWindow(Settings, OnSwitched);
+        window = made;
+        _ = made.Closed.ContinueWith(_ => OnUi(() => window = ReferenceEquals(window, made) ? null : window), TaskScheduler.Default);
+        made.Show();
+    }
+
+    private void ShowDevelopers()
+    {
+        if (developers is { } open)
+        {
+            open.Show();
+            return;
+        }
+
+        var made = new DevelopersWindow(Settings, signIn.Value, secrets.Value, new DevelopersHooks
         {
             Agent = AgentStateOf,
             Connect = ConnectAsync,
             Switched = OnSwitched,
             Copy = CopyQuietly,
             Opened = EnsureCurrent,
+            SetDeveloper = on => _ = Task.Run(() => SetDeveloper(on)),
+            GitSignedIn = id => tokenHosts.Value.TryGetValue(id, out var host) && host.IsSignedIn,
+            GitSave = SaveGitTokenAsync,
+            GitSignOut = SignOutGit,
+            Login = ct => new GitHubApi(secrets.Value).LoginAsync(ct),
         });
-        window = made;
-        _ = made.Closed.ContinueWith(_ => OnUi(() => window = ReferenceEquals(window, made) ? null : window), TaskScheduler.Default);
+        developers = made;
+        _ = made.Closed.ContinueWith(_ => OnUi(() => developers = ReferenceEquals(developers, made) ? null : developers), TaskScheduler.Default);
         made.Show();
     }
 
-    /// <summary>Closes the developer window if it is the one open (developer mode went off). UI thread.</summary>
-    public void CloseDeveloperWindow()
+    /// <summary>Developer mode moved (the window, the tray or the phone): an open developer window reads its rows again. UI thread.</summary>
+    public void RefreshDeveloperWindow() => developers?.Refresh();
+
+    /// <summary>
+    /// Checks and saves a pasted read-only token for a git host (see <see cref="TokenGitHost.SaveAsync"/>); on success turns the host's
+    /// switch on and keeps the login for the window. The window then calls <see cref="OnSwitched"/>.
+    /// </summary>
+    private async Task<GitSaveResult> SaveGitTokenAsync(string id, string token, string url, string user, CancellationToken cancellationToken)
     {
-        if (window is { IsDeveloper: true } open)
+        if (!tokenHosts.Value.TryGetValue(id, out var host))
         {
-            open.Close();
-            window = null;
+            return new GitSaveResult(GitSaveStatus.Failed, string.Empty);
         }
+
+        var result = await host.SaveAsync(token, url, user, cancellationToken);
+        if (result.Status == GitSaveStatus.Saved)
+        {
+            _ = Settings.SetFlag(id, true);
+            _ = Settings.Set(id + "Login", result.Login);
+        }
+
+        return result;
+    }
+
+    /// <summary>Forgets a git host's token and turns its switch off.</summary>
+    private void SignOutGit(string id)
+    {
+        if (tokenHosts.Value.TryGetValue(id, out var host))
+        {
+            host.SignOut();
+        }
+
+        _ = Settings.SetFlag(id, false);
+        _ = Settings.Set(id + "Login", string.Empty);
     }
 
     public void Dispose()
@@ -314,7 +383,7 @@ internal sealed class LinuxDashboard : IDisposable
         server.AgentReady += _ => OnUi(() =>
         {
             Annotator.FeaturesChanged();
-            window?.Refresh();
+            developers?.Refresh();
         });
         server.Start();
         return new Agents(sessions, limits, spend, broker, endpoint, server);
@@ -352,7 +421,7 @@ internal sealed class LinuxDashboard : IDisposable
         {
             try
             {
-                var found = installer.EnsureCurrentAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var found = installer.EnsureCurrentAsync(CancellationToken.None).GetAwaiter().GetResult().Concat(hookConfig.EnsureCurrent()).ToList();
                 lock (gate)
                 {
                     foreach (var (agent, state) in found)
@@ -388,7 +457,7 @@ internal sealed class LinuxDashboard : IDisposable
             notice = notices.TryGetValue(agent, out var n) ? n : null;
         }
 
-        var status = installer.Status(agent);
+        var status = IsHookConfig(agent) ? hookConfig.Status(agent) : installer.Status(agent);
         var restart = notice == PluginState.RestartSessions;
         return status switch
         {
@@ -400,7 +469,9 @@ internal sealed class LinuxDashboard : IDisposable
 
     private async Task<AgentState> ConnectAsync(string agent, bool on)
     {
-        var result = await Task.Run(() => on ? installer.ConnectAsync(agent, CancellationToken.None) : installer.DisconnectAsync(agent, CancellationToken.None));
+        var result = IsHookConfig(agent)
+            ? await Task.Run(() => on ? hookConfig.Connect(agent) : hookConfig.Disconnect(agent))
+            : await Task.Run(() => on ? installer.ConnectAsync(agent, CancellationToken.None) : installer.DisconnectAsync(agent, CancellationToken.None));
         lock (gate)
         {
             notices.Remove(agent);
@@ -415,10 +486,13 @@ internal sealed class LinuxDashboard : IDisposable
         return StateFor(agent, result, LastHeard(agent));
     }
 
+    private static bool IsHookConfig(string agent) => agent is AgentToken.Gemini or AgentToken.OpenCode;
+
     /// <summary>The window's view of an installer outcome.</summary>
     internal static AgentState StateFor(string agent, PluginResult result, DateTimeOffset? lastHeard = null) => result.State switch
     {
-        PluginState.Connected => new AgentState(AgentStatus.Connected, lastHeard, Restart: agent == AgentToken.Claude),
+        // Claude Code, Gemini CLI and OpenCode read their plugins or hooks when a session starts.
+        PluginState.Connected => new AgentState(AgentStatus.Connected, lastHeard, Restart: agent is AgentToken.Claude or AgentToken.Gemini or AgentToken.OpenCode),
         PluginState.AwaitingTrust => new AgentState(AgentStatus.AwaitingTrust),
         PluginState.RestartSessions => new AgentState(AgentStatus.Connected, lastHeard, Restart: true),
         PluginState.CliNotFound => new AgentState(AgentStatus.NotFound, Commands: Lines(result)),

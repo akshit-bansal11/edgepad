@@ -440,12 +440,6 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Integrations_WeatherNote" xml:space="preserve">
     <value>Solo envía el nombre de la ciudad a open-meteo.com.</value>
   </data>
-  <data name="Integrations_Claude" xml:space="preserve">
-    <value>Claude Code</value>
-  </data>
-  <data name="Integrations_Codex" xml:space="preserve">
-    <value>Codex</value>
-  </data>
   <data name="Integrations_Connect" xml:space="preserve">
     <value>Conectar</value>
   </data>
@@ -479,14 +473,8 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Integrations_Restart" xml:space="preserve">
     <value>Reinicia las sesiones abiertas o ejecuta /reload-plugins en Claude Code.</value>
   </data>
-  <data name="Integrations_GitHub" xml:space="preserve">
-    <value>GitHub</value>
-  </data>
   <data name="Integrations_ForDevelopers" xml:space="preserve">
     <value>Para desarrolladores</value>
-  </data>
-  <data name="Integrations_SignIn" xml:space="preserve">
-    <value>Iniciar sesión con GitHub</value>
   </data>
   <data name="Integrations_SignOut" xml:space="preserve">
     <value>Cerrar sesión</value>
@@ -530,10 +518,86 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
 3. En Codex, escribe /hooks y confía en Edgepad. En la app de Codex: Settings > Hooks > Review hooks.
 4. En tu teléfono, abre Controls > AI. Aparece en cuanto Codex envía su primer evento.</value>
   </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Trabajando…</value>
+  </data>
   <data name="Integrations_GitHubSteps" xml:space="preserve">
-    <value>1. Haz clic en Iniciar sesión con GitHub. Se abre una página de github.com.
+    <value>1. Haz clic en Iniciar sesión. Se abre una página de github.com.
 2. Introduce el código que se muestra aquí y haz clic en Authorize.
 3. En tu teléfono, abre Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Conecta tus herramientas de IA y tus hosts de Git para verlos en el móvil.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>Herramientas de IA</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Hosts de Git</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>Cómo conectar</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Iniciar sesión</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Añadir…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Próximamente</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Dirección del servidor</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Usuario o correo</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Token de acceso</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Revisa la dirección del servidor, el nombre y el token, e inténtalo de nuevo.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>El servidor no aceptó este token.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>Este token no tiene permiso de lectura. Crea uno con acceso de lectura.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>No se encontró ningún servidor en esa dirección.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>No se pudo llegar al servidor. Revisa tu conexión.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>No se pudo guardar el token. Inténtalo de nuevo.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Instala Gemini CLI en este equipo si aún no lo has hecho.
+2. Haz clic en Conectar. Edgepad añade sus hooks a la configuración de Gemini CLI.
+3. Reinicia las sesiones abiertas de Gemini CLI.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Instala OpenCode en este equipo si aún no lo has hecho.
+2. Haz clic en Conectar. Edgepad añade su plugin a la carpeta de plugins de OpenCode.
+3. Reinicia las sesiones abiertas de OpenCode.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. En tu servidor, abre Ajustes &gt; Aplicaciones y crea un token de acceso con permiso de lectura.
+2. Haz clic en Añadir, revisa la dirección del servidor (por defecto, Codeberg) y pega el token.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. En tu cuenta de Atlassian, crea un token de API con acceso de lectura a Bitbucket.
+2. Haz clic en Añadir, escribe tu correo de Bitbucket y pega el token.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. En gitee.com, abre Configuración &gt; Tokens de acceso personal y crea un token con permiso de lectura.
+2. Haz clic en Añadir y pega el token.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Activa el modo desarrollador para usarlas.</value>
   </data>
   <data name="Notice_CodexTrustTitle" xml:space="preserve">
     <value>Codex necesita tu aprobación otra vez</value>
