@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import me.akshitbansal.edgepad.Logos
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -84,7 +85,7 @@ class GitHubScreen(
     private fun brand(): LinearLayout {
         val mark =
             ImageView(ui.context).apply {
-                setImageResource(R.drawable.ic_github)
+                Logos.drawable("github")?.let { setImageResource(it) }
                 setColorFilter(ui.palette.ink)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- OpenCode logo, https://opencode.ai/brand/files/opencode-logo-dark-square.svg, paths unmodified. Marks are Anomaly's. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="24dp"
+  android:height="24dp"
+  android:viewportWidth="300"
+  android:viewportHeight="300">
+  <group android:translateX="30">
+    <path android:fillColor="#4B4B4B" android:pathData="M180 240H60V120H180V240Z" />
+    <path android:fillColor="#EEEEEE" android:pathData="M180 60H60V240H180V60ZM240 300H0V0H240V300Z" />
+  </group>
+</vector>
