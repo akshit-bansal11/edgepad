@@ -232,7 +232,7 @@ final class SessionHost {
             self?.transferTick(address, sending: true, name, done, size, active)
         }
         fileReceiver.ended = { [weak self] name, code in self?.onReceiveEnded?(name, code) }
-        fileReceiver.pausedChanged ={ [weak self] held in self?.onTransferHeld?(held) }
+        fileReceiver.pausedChanged = { [weak self] held in self?.onTransferHeld?(held) }
         fileSender.pausedChanged = { [weak self] held in self?.onTransferHeld?(held) }
         dispatcher.transfers = fileReceiver
         dispatcher.sending = fileSender

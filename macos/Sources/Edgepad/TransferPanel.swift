@@ -170,12 +170,12 @@ final class TransferPanel: NSObject {
         let count = model.total > 1
         let speed = model.bytesPerSecond > 0 ? Self.bytes(Int64(model.bytesPerSecond)) : nil
         switch (count, speed) {
-        case let (true, speed?):
+        case (true, let speed?):
             return tr(
                 "Xfer_PanelDetail", "%1$@ · %2$@ of %3$@ · %4$@/s", file, "\(model.number)", "\(model.total)", speed)
         case (true, nil):
             return tr("Xfer_PanelCount", "%1$@ · %2$@ of %3$@", file, "\(model.number)", "\(model.total)")
-        case let (false, speed?):
+        case (false, let speed?):
             return tr("Xfer_PanelSpeed", "%1$@ · %2$@/s", file, speed)
         case (false, nil):
             return file

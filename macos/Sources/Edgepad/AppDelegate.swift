@@ -147,7 +147,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             guard let failure = TransferFailure.receive(code) else { return }
             self?.transfers.finished(Self.notReceivedLine(failure), failed: true)
         }
-        host.onTransferHeld ={ [weak self] held in self?.transfers.held(held) }
+        host.onTransferHeld = { [weak self] held in self?.transfers.held(held) }
         transfers.onPause = { [weak host] sending in host?.pauseTransfer(sending: sending) ?? false }
         transfers.onResume = { [weak host] sending in host?.resumeTransfer(sending: sending) ?? false }
         transfers.onStop = { [weak host] sending in host?.stopTransfer(sending: sending) }
