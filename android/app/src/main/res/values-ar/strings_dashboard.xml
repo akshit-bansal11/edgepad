@@ -119,6 +119,8 @@
   <string name="perm_notif">يحتاج وكيل ذكاء اصطناعي إلى موافقة.</string>
   <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
   <string name="dev_title">المطوّر</string>
+  <string name="dev_ai">الذكاء الاصطناعي</string>
+  <string name="dev_git">Git</string>
   <string name="hub_switch_laptop">%1$s، تبديل الجهاز</string>
   <string name="phone_battery">البطارية</string>
   <string name="phone_charging">قيد الشحن</string>

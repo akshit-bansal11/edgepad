@@ -96,11 +96,11 @@ class GallerySamples(
 
             "ai-two", "ai-four" -> {
                 val laptop = aiLaptop(four = name == "ai-four")
-                AiScreen(ui, { laptop }, devBar()).view
+                AiScreen(ui, { laptop }, devBar(R.string.dev_ai)).view
             }
 
             "git" -> {
-                GitScreen(ui, { gitLaptop }, devBar()) {}.view
+                GitScreen(ui, { gitLaptop }, devBar(R.string.dev_git)) {}.view
             }
 
             // The app's Settings, top to bottom; "settings-capture" is the same page scrolled to Capture & Annotate.
@@ -192,7 +192,7 @@ class GallerySamples(
         return ui.hubBar(ui.string(R.string.sys_title), DeviceChip(ui, name, onPhone) {}, {})
     }
 
-    private fun devBar(): View = ui.hubBar(ui.string(R.string.dev_title), DeviceChip(ui, SAMPLE_LAPTOP, false) {}, {})
+    private fun devBar(title: Int): View = ui.hubBar(ui.string(title), DeviceChip(ui, SAMPLE_LAPTOP, false) {}, {})
 
     /** A laptop that said who it is and what it can, with a minute of numbers, two disks, and a network and a test. */
     private val sampleLaptop: LaptopState by lazy {

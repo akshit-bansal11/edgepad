@@ -99,6 +99,8 @@
   <string name="perm_notif">AI エージェントが承認を必要としています。</string>
   <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
   <string name="dev_title">開発者</string>
+  <string name="dev_ai">AI</string>
+  <string name="dev_git">Git</string>
   <string name="hub_switch_laptop">%1$s、デバイスを切り替え</string>
   <string name="phone_battery">バッテリー</string>
   <string name="phone_charging">充電中</string>

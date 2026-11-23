@@ -111,6 +111,8 @@
   <string name="perm_notif">Agent AI potrzebuje zatwierdzenia.</string>
   <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
   <string name="dev_title">Programista</string>
+  <string name="dev_ai">AI</string>
+  <string name="dev_git">Git</string>
   <string name="hub_switch_laptop">%1$s, zmień urządzenie</string>
   <string name="phone_battery">Bateria</string>
   <string name="phone_charging">Ładowanie</string>

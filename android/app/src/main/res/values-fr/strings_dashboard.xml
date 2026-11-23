@@ -107,6 +107,8 @@
   <string name="perm_notif">Un agent IA a besoin d’une approbation.</string>
   <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
   <string name="dev_title">Développeur</string>
+  <string name="dev_ai">IA</string>
+  <string name="dev_git">Git</string>
   <string name="hub_switch_laptop">%1$s, changer d’appareil</string>
   <string name="phone_battery">Batterie</string>
   <string name="phone_charging">En charge</string>

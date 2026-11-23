@@ -111,6 +111,8 @@
   <string name="perm_notif">ИИ-агенту нужно подтверждение.</string>
   <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
   <string name="dev_title">Разработчик</string>
+  <string name="dev_ai">ИИ</string>
+  <string name="dev_git">Git</string>
   <string name="hub_switch_laptop">%1$s, сменить устройство</string>
   <string name="phone_battery">Батарея</string>
   <string name="phone_charging">Заряжается</string>

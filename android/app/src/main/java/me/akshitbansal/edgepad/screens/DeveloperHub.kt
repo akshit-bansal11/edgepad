@@ -20,12 +20,11 @@ class DeveloperHub(
     onGitOpen: (String) -> Unit,
     private val onBack: () -> Unit,
 ) {
-    private val title = ui.string(R.string.dev_title)
+    private fun bar(title: Int): View =
+        ui.hubBar(ui.string(title), DeviceChip(ui, laptopName(), false, ::openMenu), onBack)
 
-    private fun bar(): View = ui.hubBar(title, DeviceChip(ui, laptopName(), false, ::openMenu), onBack)
-
-    val ai = AiScreen(ui, state, bar())
-    val git = GitScreen(ui, state, bar(), onGitOpen)
+    val ai = AiScreen(ui, state, bar(R.string.dev_ai))
+    val git = GitScreen(ui, state, bar(R.string.dev_git), onGitOpen)
     val view: View = ui.hubView(listOf(ai.view, git.view), onPage)
 
     private fun openMenu(anchor: View) {
