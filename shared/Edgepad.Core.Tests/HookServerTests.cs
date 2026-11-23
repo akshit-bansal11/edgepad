@@ -174,7 +174,7 @@ public sealed class HookServerTests : IDisposable
             // The context fill is no limit window: it belongs to the session that runs in that folder.
             Assert.False(usage.Limits.ContainsKey((AgentToken.Claude, LimitWindow.Context)));
             Assert.Equal(new SpendTotals(1, 2, 3, 4, 5, 6), usage.Spend[AgentToken.Claude].Totals);
-            Assert.Equal(new SpendTotals(1, 2, 3, 4, 5, 6, TokAll: 7, CentsAll: 8), usage.Spend[AgentToken.Codex].Totals);
+            Assert.Equal(new SpendTotals(1, 2, 3, 4, 5, 6), usage.Spend[AgentToken.Codex].Totals);
         }
 
         Assert.Equal(40, Assert.Single(sessions.Snapshot()).ContextPct);

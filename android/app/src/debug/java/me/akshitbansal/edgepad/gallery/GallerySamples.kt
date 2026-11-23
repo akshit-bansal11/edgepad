@@ -256,10 +256,10 @@ class GallerySamples(
             take(TextKind.LIMITS.frame(limits.joinToString("|")))
             val spend =
                 listOf(
-                    "claude/$measured/1200000/210/9400000/1480/30000000/5200/88000000/16200/0",
-                    "codex/$measured/260000/40/3100000/620/11000000/2100/41000000/7400/0",
-                    "gemini/$measured/182000/0/940000/0/3000000/0/9100000/0/0",
-                    "opencode/$measured/64000/0/410000/0/1900000/0/6200000/0/0",
+                    "claude/$measured/1200000/210/9400000/1480/30000000/5200/0",
+                    "codex/$measured/260000/40/3100000/620/11000000/2100/0",
+                    "gemini/$measured/182000/0/940000/0/3000000/0/0",
+                    "opencode/$measured/64000/0/410000/0/1900000/0/0",
                 )
             take(TextKind.SPEND.frame(spend.take(if (four) 4 else 2).joinToString("|")))
             val sessions =

@@ -6,7 +6,6 @@
   <string name="ai_win_credits">크레딧</string>
   <string name="ai_spend_7d">7일</string>
   <string name="ai_spend_30d">30일</string>
-  <string name="ai_spend_all">전체</string>
   <string name="ai_ctx_full">컨텍스트 %1$d%% 사용 중</string>
   <string name="ai_ctx_unknown">컨텍스트 알 수 없음</string>
 </resources>

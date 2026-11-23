@@ -31,9 +31,6 @@ internal sealed class CodexWatcher : IDisposable
     public const string CacheName = "dashboard-codex-cache.json";
 
     private const int UsageEvery = 12;
-
-    /// <summary>The most bytes of rollouts older than 30 days that one refresh reads; the rest wait for the next.</summary>
-    private const long SpendBytesPerRefresh = 32L * 1024 * 1024;
     private const int MaxFiles = SessionBoard.Capacity;
     private const int LimitFiles = 5;
     private const int MaxTails = 32;
@@ -313,70 +310,49 @@ internal sealed class CodexWatcher : IDisposable
         var today = Today();
         var start7 = today.AddDays(-6);
         var start30 = today.AddDays(-29);
-        long tokDay = 0, centsDay = 0, tokWeek = 0, centsWeek = 0, tokMonth = 0, centsMonth = 0, tokAll = 0, centsAll = 0;
+        long tokDay = 0, centsDay = 0, tokWeek = 0, centsWeek = 0, tokMonth = 0, centsMonth = 0;
         var anyUnpriced = false;
-        var allDone = true;
-        var budget = SpendBytesPerRefresh;
         var live = new HashSet<string>();
-        foreach (var (day, file) in EveryRollout())
+        for (var day = start30; day <= today; day = day.AddDays(1))
         {
-            // The last 30 days are always read; older history is read within the budget, over as many refreshes as it takes.
-            if (!TotalsOf(file, live, day >= start30, ref budget, out var totals))
+            foreach (var file in Rollouts(DayDir(day)))
             {
-                allDone = false;
-                continue;
-            }
+                var totals = TotalsOf(file, live);
+                if (totals.Input == 0 && totals.Output == 0)
+                {
+                    continue;
+                }
 
-            if (totals.Input == 0 && totals.Output == 0)
-            {
-                continue;
-            }
+                var cents = 0L;
+                if (OpenAiPrices.TryGet(totals.Model, out var price))
+                {
+                    cents = OpenAiPrices.Cents(price, totals);
+                }
+                else
+                {
+                    anyUnpriced = true;
+                }
 
-            var cents = 0L;
-            if (OpenAiPrices.TryGet(totals.Model, out var price))
-            {
-                cents = OpenAiPrices.Cents(price, totals);
-            }
-            else
-            {
-                anyUnpriced = true;
-            }
-
-            tokAll += totals.Tokens;
-            centsAll += cents;
-            if (day >= start30)
-            {
                 tokMonth += totals.Tokens;
                 centsMonth += cents;
-            }
+                if (day >= start7)
+                {
+                    tokWeek += totals.Tokens;
+                    centsWeek += cents;
+                }
 
-            if (day >= start7)
-            {
-                tokWeek += totals.Tokens;
-                centsWeek += cents;
-            }
-
-            if (day == today)
-            {
-                tokDay += totals.Tokens;
-                centsDay += cents;
+                if (day == today)
+                {
+                    tokDay += totals.Tokens;
+                    centsDay += cents;
+                }
             }
         }
 
-        if (allDone)
+        foreach (var gone in cache.Keys.Where(k => !live.Contains(k)).ToList())
         {
-            foreach (var gone in cache.Keys.Where(k => !live.Contains(k)).ToList())
-            {
-                cache.Remove(gone);
-                cacheDirty = true;
-            }
-        }
-        else
-        {
-            lock (gate)
-            {
-                usageDue = true; // more history to read: the next poll continues instead of waiting a minute
-            }
+            cache.Remove(gone);
+            cacheDirty = true;
         }
 
         if (cacheDirty)
@@ -390,12 +366,10 @@ internal sealed class CodexWatcher : IDisposable
             return; // no rollout was ever seen: nothing to show, rather than a row of zeros
         }
 
-        // All time is announced only once every rollout was in hand, never as a partial sum.
-        spend.Update(AgentToken.Codex, new SpendTotals(tokDay, centsDay, tokWeek, centsWeek, tokMonth, centsMonth, anyUnpriced, allDone ? tokAll : -1, allDone ? centsAll : -1), clock());
+        spend.Update(AgentToken.Codex, new SpendTotals(tokDay, centsDay, tokWeek, centsWeek, tokMonth, centsMonth, anyUnpriced), clock());
     }
 
-    // False when the file is uncached, is not required and the budget is spent: it is left for the next refresh.
-    private bool TotalsOf(FileInfo file, HashSet<string> live, bool required, ref long budget, out RolloutTotals totals)
+    private RolloutTotals TotalsOf(FileInfo file, HashSet<string> live)
     {
         var key = Path.GetRelativePath(root, file.FullName).Replace('\\', '/');
         live.Add(key);
@@ -403,17 +377,10 @@ internal sealed class CodexWatcher : IDisposable
         var ticks = file.LastWriteTimeUtc.Ticks;
         if (cache.TryGetValue(key, out var hit) && hit.Size == size && hit.Ticks == ticks)
         {
-            totals = new RolloutTotals(hit.Model, hit.Input, hit.CachedInput, hit.Output);
-            return true;
+            return new RolloutTotals(hit.Model, hit.Input, hit.CachedInput, hit.Output);
         }
 
-        if (!required && budget <= 0)
-        {
-            totals = default;
-            return false;
-        }
-
-        budget -= size;
+        RolloutTotals totals;
         try
         {
             using var stream = open(file.FullName);
@@ -422,37 +389,12 @@ internal sealed class CodexWatcher : IDisposable
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            totals = default;
-            return true;
+            return default;
         }
 
         cache[key] = new CacheEntry(size, ticks, totals.Model, totals.Input, totals.CachedInput, totals.Output);
         cacheDirty = true;
-        return true;
-    }
-
-    /// <summary>Every rollout with the day of its folder (year/month/day), newest folder first; a folder whose name is no date is left out.</summary>
-    private IEnumerable<(DateOnly Day, FileInfo File)> EveryRollout()
-    {
-        foreach (var year in Numbered(sessionsDir, 4))
-        {
-            foreach (var month in Numbered(year, 2))
-            {
-                foreach (var folder in Numbered(month, 2))
-                {
-                    var name = $"{Path.GetFileName(year)}-{Path.GetFileName(month)}-{Path.GetFileName(folder)}";
-                    if (!DateOnly.TryParseExact(name, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var day))
-                    {
-                        continue;
-                    }
-
-                    foreach (var file in Rollouts(folder))
-                    {
-                        yield return (day, file);
-                    }
-                }
-            }
-        }
+        return totals;
     }
 
     // ---- files

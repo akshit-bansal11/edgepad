@@ -155,8 +155,6 @@ class DashWireTest {
             centsWeek,
             tokMonth,
             centsMonth,
-            tokAll,
-            centsAll,
             if (unpriced) 1 else 0,
         ).joinToString("/", prefix = agent.token + "/")
 
@@ -193,8 +191,8 @@ class DashWireTest {
 
     @Test
     fun theUnpricedFlagIsRead() {
-        assertTrue(DashWire.spend("codex/1/2/3/4/5/6/7/8/9/1").single().unpriced)
-        assertEquals(false, DashWire.spend("codex/1/2/3/4/5/6/7/8/9/0").single().unpriced)
+        assertTrue(DashWire.spend("codex/1/2/3/4/5/6/7/1").single().unpriced)
+        assertEquals(false, DashWire.spend("codex/1/2/3/4/5/6/7/0").single().unpriced)
     }
 
     @Test
@@ -249,9 +247,8 @@ class DashWireTest {
         assertEquals(session, DashWire.sessions("codex:wait:42:x").single())
         assertEquals(-1, DashWire.sessions("codex:wait:101:x").single().contextPct)
         assertEquals(emptyList<SessionEntry>(), DashWire.sessions("codex:wait:x"))
-        val all = DashWire.spend("claude/1/2/3/4/5/6/7/90000000/31000/0").single()
-        assertEquals(90000000L to 31000L, all.tokAll to all.centsAll)
-        assertEquals(-1L, DashWire.spend("claude/1/2/3/4/5/6/7/-1/-1/0").single().tokAll)
+        assertEquals(7L, DashWire.spend("claude/1/2/3/4/5/6/7/0").single().centsMonth)
+        assertEquals(emptyList<SpendEntry>(), DashWire.spend("claude/1/2/3/4/5/6/7/8/9/0"))
         assertEquals(CiToken.FAIL, DashWire.github("R\ta/b\t1\tt\t\tfail".toByteArray()).single().ci)
     }
 

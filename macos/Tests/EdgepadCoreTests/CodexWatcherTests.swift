@@ -320,32 +320,7 @@ final class CodexWatcherTests: XCTestCase {
         XCTAssertEqual(entry.centsWeek, 6)
         XCTAssertEqual(entry.tokMonth, 4 * 47898)
         XCTAssertEqual(entry.centsMonth, 12)
-        XCTAssertEqual(entry.tokAll, 6 * 47898)
-        XCTAssertEqual(entry.centsAll, 18)
         XCTAssertFalse(watcher.hasUnpriced)
-    }
-
-    func testOldHistoryIsReadWithinABudgetAndAllTimeWaitsForTheRest() throws {
-        let fixture = try RolloutText.fixture()
-        let old = try XCTUnwrap(Calendar.current.date(from: DateComponents(year: 2026, month: 3, day: 2, hour: 12)))
-        try today("rollout-today.jsonl", fixture, age: 3 * hours)
-        let big = try rollout(old.addingTimeInterval(24 * hours), "rollout-big.jsonl", fixture, age: 3 * hours)
-        let handle = try FileHandle(forWritingTo: URL(fileURLWithPath: big))
-        try handle.truncate(atOffset: 33 * 1024 * 1024)  // more than one refresh may read of old history
-        try handle.close()
-        try stamp(big, now.addingTimeInterval(-3 * hours))
-        // The newer folder is read first and spends the budget, so this older one waits.
-        try rollout(old, "rollout-before.jsonl", fixture, age: 3 * hours)
-        watcher.setWatch(CodexWatcher.aiBit)
-
-        watcher.poll()
-        let partial = try XCTUnwrap(spend.snapshot().first)
-        XCTAssertEqual(partial.tokToday, 47898)
-        XCTAssertEqual(partial.tokAll, -1)
-
-        // The unchanged files come from the cache, so the next poll finishes what was left.
-        watcher.poll()
-        XCTAssertEqual(spend.snapshot().first?.tokAll, 3 * 47898)
     }
 
     func testAModelWithNoPriceCountsTokensNotCentsAndIsReported() throws {

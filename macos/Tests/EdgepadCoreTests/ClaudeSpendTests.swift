@@ -114,78 +114,45 @@ final class ClaudeSpendTests: XCTestCase {
         spend.snapshot().first { $0.agent == AgentToken.claude.rawValue }
     }
 
-    func testAllTimeIsReadOnceAndAVanishedTranscriptKeepsItsTotals() throws {
+    func testATranscriptOlderThanTheWindowIsNeverReadAndNothingOlderThan30DaysCounts() throws {
         let now = Date()
-        let old = now.addingTimeInterval(-150 * 86400)
         let model = "claude-sonnet-4-5"
-        write(
-            "old.jsonl",
-            [row("m-old", model, 100_000, 10_000, at: old), row("m-old2", model, 100_000, 10_000, at: old)])
+        write("old.jsonl", [row("m-old", model, 100_000, 10_000, at: now.addingTimeInterval(-150 * 86400))])
         try stamp("old.jsonl", now.addingTimeInterval(-100 * 86400))
-        write("new.jsonl", [row("m-new", model, 100_000, 10_000, at: now)])
+        let before = now.addingTimeInterval(-35 * 86400)
+        write(
+            "new.jsonl",
+            [row("m-new", model, 100_000, 10_000, at: now), row("m-before", model, 5, 5, at: before)])
 
         newSpend().poll()
-        let first = try XCTUnwrap(claudeEntry)
-        XCTAssertEqual(first.tokToday, 110_000)
-        XCTAssertEqual(first.tokAll, 330_000)
-        XCTAssertEqual(first.centsAll, 135)
 
-        // The old transcript was folded to day totals: its ids are not in the cache any more.
+        let entry = try XCTUnwrap(claudeEntry)
+        XCTAssertEqual([entry.tokToday, entry.tokWeek, entry.tokMonth], [110_000, 110_000, 110_000])
         let cached = try String(contentsOfFile: root + "/cache.json", encoding: .utf8)
+        XCTAssertTrue(cached.contains("m-new"))
         XCTAssertFalse(cached.contains("m-old"))
-
-        // A restart gives the same, and so does a transcript Claude Code deleted: its totals stay.
-        try FileManager.default.removeItem(atPath: root + "/projects/app/old.jsonl")
-        var current = now
-        let second = newSpend(clock: { current })
-        second.poll()
-        XCTAssertEqual(claudeEntry?.tokAll, 330_000)
-
-        // Only a new or changed file is read, and all time grows by it.
-        write("later.jsonl", [row("m-later", model, 100_000, 10_000, at: now)])
-        current = now.addingTimeInterval(120)
-        second.poll()
-        XCTAssertEqual(claudeEntry?.tokAll, 440_000)
+        XCTAssertFalse(cached.contains("m-before"))
     }
 
-    func testAllTimeIsNotAnnouncedAsAPartialSumWhileOldHistoryIsStillBeingRead() throws {
+    func testACacheSavedWithOlderDaysStillLoadsAndTheyAreIgnored() throws {
         let now = Date()
-        let old = now.addingTimeInterval(-150 * 86400)
-        let model = "claude-sonnet-4-5"
-        write("a.jsonl", [row("m-big", model, 1, 1, at: old), String(repeating: "x", count: 4000)])
-        try stamp("a.jsonl", now.addingTimeInterval(-100 * 86400))
-        write("b.jsonl", [row("m-b", model, 5, 5, at: old)])
-        try stamp("b.jsonl", now.addingTimeInterval(-101 * 86400))
-        write("new.jsonl", [row("m-new", model, 100_000, 10_000, at: now)])
-        let reader = newSpend()
+        write("new.jsonl", [row("m-other", "claude-sonnet-4-5", 1, 1, at: now)])
+        let attributes = try FileManager.default.attributesOfItem(atPath: root + "/projects/app/new.jsonl")
+        let size = try XCTUnwrap((attributes[.size] as? NSNumber)?.int64Value)
+        let modified = try XCTUnwrap(attributes[.modificationDate] as? Date)
+        let stamp = Int64((modified.timeIntervalSince1970 * 1000).rounded(.down))
+        let day = ClaudeSpend.dayOf(now)
+        let from = ClaudeSpend.periods(now).from
+        let text =
+            "{\"v\":2,\"files\":[{\"p\":\"app/new.jsonl\",\"s\":\(size),\"t\":\(stamp),"
+            + "\"f\":\"\(from)\",\"r\":[[\"m-cached\",\"\(day)\",110000,0.45,1]],"
+            + "\"o\":[[\"2026-05-01\",999999,9,0]]}]}"
+        try text.write(toFile: root + "/cache.json", atomically: true, encoding: .utf8)
 
-        // One tick's whole budget goes to the new file and the first old one; the second old one waits.
-        reader.poll(budget: 3000)
-        let partial = try XCTUnwrap(claudeEntry)
-        XCTAssertEqual(partial.tokToday, 110_000)
-        XCTAssertEqual(partial.tokAll, -1)
+        newSpend().poll()
 
-        reader.poll(budget: 3000)
-        XCTAssertEqual(claudeEntry?.tokAll, 110_012)
-    }
-
-    func testAllTimeKeepsItsLastKnownValueWhenALaterScanRunsOutOfBudget() throws {
-        let now = Date()
-        let model = "claude-sonnet-4-5"
-        write("new.jsonl", [row("m-new", model, 100_000, 10_000, at: now)])
-        var current = now
-        let reader = newSpend(clock: { current })
-        reader.poll(budget: 3000)
-        let known = try XCTUnwrap(claudeEntry).tokAll
-        XCTAssertEqual(known, 110_000)
-
-        write("big.jsonl", [row("m-big", model, 1, 1, at: now), String(repeating: "x", count: 4000)])
-        write("old.jsonl", [row("m-old", model, 5, 5, at: now.addingTimeInterval(-150 * 86400))])
-        try stamp("old.jsonl", now.addingTimeInterval(-100 * 86400))
-        current = now.addingTimeInterval(120)
-        reader.poll(budget: 3000)
-
-        XCTAssertEqual(claudeEntry?.tokAll, known)
+        let entry = try XCTUnwrap(claudeEntry)
+        XCTAssertEqual([entry.tokToday, entry.centsToday, entry.tokMonth], [110_000, 45, 110_000])
     }
 
     func testAResponseCountsOnceByItsLastRowAndOnlyRealOnesCount() {

@@ -6,7 +6,6 @@
   <string name="ai_win_credits">الرصيد</string>
   <string name="ai_spend_7d">7 أيام</string>
   <string name="ai_spend_30d">30 يومًا</string>
-  <string name="ai_spend_all">كل الوقت</string>
   <string name="ai_ctx_full">السياق ممتلئ بنسبة %1$d%%</string>
   <string name="ai_ctx_unknown">السياق غير معروف</string>
 </resources>

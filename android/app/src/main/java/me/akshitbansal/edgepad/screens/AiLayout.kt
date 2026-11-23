@@ -86,11 +86,11 @@ object AiLayout {
         return if (rings <= fits) rings.coerceAtLeast(1) else (rings + 1) / 2
     }
 
-    /** Spend cells in one row: all four when each keeps [MIN_SPEND_CELL_DP], else the compact two by two. */
+    /** Spend cells in one row: all three when each keeps [MIN_SPEND_CELL_DP], else one under another. */
     fun spendColumns(columnWidthDp: Float): Int =
-        if (columnWidthDp - 2 * CARD_PAD_DP >= SPEND_WINDOWS * MIN_SPEND_CELL_DP) SPEND_WINDOWS else 2
+        if (columnWidthDp - 2 * CARD_PAD_DP >= SPEND_WINDOWS * MIN_SPEND_CELL_DP) SPEND_WINDOWS else 1
 
-    /** The four spend windows of a card, each with the tokens and the estimated cents it shows (null for a dash). */
+    /** The three spend windows of a card, each with the tokens and the estimated cents it shows (null for a dash). */
     fun spendCells(
         spend: SpendEntry?,
         priced: Boolean,
@@ -99,7 +99,6 @@ object AiLayout {
             cell(SpendWindow.TODAY, spend?.tokToday, spend?.centsToday, priced),
             cell(SpendWindow.DAYS7, spend?.tokWeek, spend?.centsWeek, priced),
             cell(SpendWindow.DAYS30, spend?.tokMonth, spend?.centsMonth, priced),
-            cell(SpendWindow.ALL, spend?.tokAll, spend?.centsAll, priced),
         )
 
     private fun cell(
@@ -110,7 +109,7 @@ object AiLayout {
     ) = SpendCell(window, tokens?.takeIf { it >= 0 }, cents?.takeIf { priced && it >= 0 })
 
     const val MIN_SPEND_CELL_DP = 72f
-    private const val SPEND_WINDOWS = 4
+    private const val SPEND_WINDOWS = 3
     private const val MAX_COLUMNS = 4
 }
 
@@ -119,7 +118,6 @@ enum class SpendWindow {
     TODAY,
     DAYS7,
     DAYS30,
-    ALL,
 }
 
 /** One spend cell: [tokens] and [cents] are null when they are unknown or, for cents, when the tool has no price. */

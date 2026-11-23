@@ -20,7 +20,7 @@ internal sealed record SessionEntry(string Agent, string State, string Title, in
 internal sealed record LimitEntry(string Agent, string Window, double Pct, long ResetAtMin, long MeasuredAtMin);
 
 /// <summary>One agent of TEXT SPEND. Cents are estimates at API list prices; <paramref name="Unpriced"/> marks them a lower bound (some tokens had no price).</summary>
-internal sealed record SpendEntry(string Agent, long MeasuredAtMin, long TokToday, long CentsToday, long TokWeek, long CentsWeek, long TokMonth, long CentsMonth, bool Unpriced = false, long TokAll = -1, long CentsAll = -1);
+internal sealed record SpendEntry(string Agent, long MeasuredAtMin, long TokToday, long CentsToday, long TokWeek, long CentsWeek, long TokMonth, long CentsMonth, bool Unpriced = false);
 
 /// <summary>TEXT WEATHER.</summary>
 internal sealed record WeatherInfo(int TempTenthsC, int WmoCode, string City);
@@ -356,7 +356,7 @@ internal static class DashWire
 
     // ---- SPEND
 
-    /// <summary>"agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/tokAll/centsAll/unpriced" entries joined by "|"; unpriced is 1 or 0; the all-time pair is -1 when unknown, any other negative is 0.</summary>
+    /// <summary>"agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/unpriced" entries joined by "|"; unpriced is 1 or 0; a negative count is 0.</summary>
     public static string EncodeSpend(IReadOnlyList<SpendEntry> spend)
     {
         var parts = new List<string>();
@@ -364,7 +364,7 @@ internal static class DashWire
         {
             if (IsAgent(s.Agent))
             {
-                parts.Add(string.Join('/', s.Agent, Big(s.MeasuredAtMin, -1), Big(s.TokToday, 0), Big(s.CentsToday, 0), Big(s.TokWeek, 0), Big(s.CentsWeek, 0), Big(s.TokMonth, 0), Big(s.CentsMonth, 0), Big(s.TokAll, -1), Big(s.CentsAll, -1), s.Unpriced ? "1" : "0"));
+                parts.Add(string.Join('/', s.Agent, Big(s.MeasuredAtMin, -1), Big(s.TokToday, 0), Big(s.CentsToday, 0), Big(s.TokWeek, 0), Big(s.CentsWeek, 0), Big(s.TokMonth, 0), Big(s.CentsMonth, 0), s.Unpriced ? "1" : "0"));
             }
         }
 
@@ -375,12 +375,12 @@ internal static class DashWire
         Entries<SpendEntry>(wire, entry =>
         {
             var p = entry.Split('/');
-            if (p.Length != 11 || !IsAgent(p[0]) || p[10] is not ("0" or "1"))
+            if (p.Length != 9 || !IsAgent(p[0]) || p[8] is not ("0" or "1"))
             {
                 return null;
             }
 
-            var n = new long[9];
+            var n = new long[7];
             for (var i = 0; i < n.Length; i++)
             {
                 if (!TryLong(p[i + 1], out n[i]))
@@ -389,7 +389,7 @@ internal static class DashWire
                 }
             }
 
-            return new SpendEntry(p[0], n[0], n[1], n[2], n[3], n[4], n[5], n[6], p[10] == "1", Math.Max(-1, n[7]), Math.Max(-1, n[8]));
+            return new SpendEntry(p[0], n[0], n[1], n[2], n[3], n[4], n[5], n[6], p[8] == "1");
         });
 
     // ---- WEATHER

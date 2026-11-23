@@ -108,15 +108,11 @@ public struct SpendEntry: Equatable {
     public let tokMonth: Int64
     public let centsMonth: Int64
     public let unpriced: Bool
-    public let tokAll: Int64
-    public let centsAll: Int64
 
     public init(
         agent: String, measuredAtMin: Int64, tokToday: Int64, centsToday: Int64, tokWeek: Int64, centsWeek: Int64,
-        tokMonth: Int64, centsMonth: Int64, unpriced: Bool = false, tokAll: Int64 = -1, centsAll: Int64 = -1
+        tokMonth: Int64, centsMonth: Int64, unpriced: Bool = false
     ) {
-        self.tokAll = tokAll
-        self.centsAll = centsAll
         self.agent = agent
         self.measuredAtMin = measuredAtMin
         self.tokToday = tokToday
@@ -407,14 +403,13 @@ public enum DashWire {
     }
 
     // ---- SPEND
-    /// "agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/tokAll/centsAll/unpriced" entries joined by
-    /// "|"; unpriced is 1 or 0; the all-time pair is -1 when unknown, any other negative is 0.
+    /// "agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/unpriced" entries joined by "|";
+    /// unpriced is 1 or 0; a negative count is 0.
     public static func encodeSpend(_ spend: [SpendEntry]) -> String {
         let parts = spend.filter { isAgent($0.agent) }.map { s -> String in
             let today = [big(s.tokToday, 0), big(s.centsToday, 0)]
             let later = [big(s.tokWeek, 0), big(s.centsWeek, 0), big(s.tokMonth, 0), big(s.centsMonth, 0)]
-            let all = [big(s.tokAll, -1), big(s.centsAll, -1)]
-            return ([s.agent, big(s.measuredAtMin, -1)] + today + later + all + [s.unpriced ? "1" : "0"])
+            return ([s.agent, big(s.measuredAtMin, -1)] + today + later + [s.unpriced ? "1" : "0"])
                 .joined(separator: "/")
         }
         return fit255(parts, "|")
@@ -423,16 +418,15 @@ public enum DashWire {
     public static func parseSpend(_ wire: String) -> [SpendEntry] {
         entries(wire) { entry in
             let p = split(entry, "/")
-            guard p.count == 11, isAgent(p[0]), p[10] == "0" || p[10] == "1" else { return nil }
+            guard p.count == 9, isAgent(p[0]), p[8] == "0" || p[8] == "1" else { return nil }
             var n: [Int64] = []
-            for part in p[1..<10] {
+            for part in p[1..<8] {
                 guard let value = long(part) else { return nil }
                 n.append(value)
             }
             return SpendEntry(
                 agent: p[0], measuredAtMin: n[0], tokToday: n[1], centsToday: n[2], tokWeek: n[3], centsWeek: n[4],
-                tokMonth: n[5], centsMonth: n[6], unpriced: p[10] == "1", tokAll: max(-1, n[7]),
-                centsAll: max(-1, n[8]))
+                tokMonth: n[5], centsMonth: n[6], unpriced: p[8] == "1")
         }
     }
 

@@ -6,7 +6,6 @@
   <string name="ai_win_credits">क्रेडिट</string>
   <string name="ai_spend_7d">7 दिन</string>
   <string name="ai_spend_30d">30 दिन</string>
-  <string name="ai_spend_all">अब तक</string>
   <string name="ai_ctx_full">संदर्भ %1$d%% भरा</string>
   <string name="ai_ctx_unknown">संदर्भ अज्ञात</string>
 </resources>

@@ -111,95 +111,40 @@ public sealed class ClaudeSpendTests : IDisposable
     }
 
     [Fact]
-    public void AllTimeIsReadOnceAndAVanishedTranscriptKeepsItsTotals()
+    public void ATranscriptOlderThanTheWindowIsNeverOpenedAndNothingOlderThan30DaysCounts()
     {
-        var old = new DateTime(2026, 5, 1, 12, 0, 0, DateTimeKind.Local);
-        var oldPath = Transcript("p/old.jsonl", Line("m-old", old, Sonnet, 100000, 10000), Line("m-old2", old, Sonnet, 100000, 10000));
-        File.SetLastWriteTimeUtc(oldPath, now.UtcDateTime.AddDays(-100));
-        Transcript("p/new.jsonl", Line("m-new", Day(19), Sonnet, 100000, 10000));
-        Clock = now;
-        using (var first = NewWatcher())
-        {
-            first.SetWatch(ClaudeSpendWatcher.AiBit);
-            first.Poll();
-            var entry = Assert.Single(Spend.Snapshot());
-            Assert.Equal(110000, entry.TokToday);
-            Assert.Equal(330000, entry.TokAll);
-            Assert.Equal(135, entry.CentsAll);
-        }
-
-        // The old transcript was folded to day totals: its ids are not in the cache any more.
-        Assert.DoesNotContain("m-old", File.ReadAllText(CachePath), StringComparison.Ordinal);
-
-        // A restart reads nothing again, and neither does a transcript Claude Code deleted: its totals stay.
-        File.Delete(oldPath);
-        opened.Clear();
-        using var second = NewWatcher();
-        second.SetWatch(ClaudeSpendWatcher.AiBit);
-        second.Poll();
-        Assert.Empty(opened);
-        Assert.Equal(330000, Assert.Single(Spend.Snapshot()).TokAll);
-
-        // Only a new or changed file is read, and all time grows by it.
-        Transcript("p/later.jsonl", Line("m-later", Day(19), Sonnet, 100000, 10000));
-        Clock = now.AddMinutes(2);
-        second.Poll();
-        Assert.Single(opened);
-        Assert.Equal(440000, Assert.Single(Spend.Snapshot()).TokAll);
-    }
-
-    [Fact]
-    public void AllTimeIsNotAnnouncedAsAPartialSumWhileOldHistoryIsStillBeingRead()
-    {
-        var old = new DateTime(2026, 5, 1, 12, 0, 0, DateTimeKind.Local);
-        var first = Transcript("p/a.jsonl", Line("m-big", old, Sonnet, 1, 1));
-        using (var stream = File.OpenWrite(first))
-        {
-            stream.SetLength(ClaudeSpendWatcher.BytesPerTick + 1); // one tick's whole budget
-        }
-
-        File.SetLastWriteTimeUtc(first, now.UtcDateTime.AddDays(-100));
-        var second = Transcript("p/b.jsonl", Line("m-b", old, Sonnet, 5, 5));
-        File.SetLastWriteTimeUtc(second, now.UtcDateTime.AddDays(-101));
-        Transcript("p/new.jsonl", Line("m-new", Day(19), Sonnet, 100000, 10000));
-        Clock = now;
-        using var watcher = NewWatcher();
-        watcher.SetWatch(ClaudeSpendWatcher.AiBit);
-
-        watcher.Poll();
-        var partial = Assert.Single(Spend.Snapshot());
-        Assert.Equal(110000, partial.TokToday);
-        Assert.Equal(-1, partial.TokAll);
-
-        Clock = now.AddSeconds(10);
-        watcher.Poll();
-        Assert.Equal(110012, Assert.Single(Spend.Snapshot()).TokAll);
-    }
-
-    [Fact]
-    public void AllTimeKeepsItsLastKnownValueWhenALaterScanRunsOutOfBudget()
-    {
-        Transcript("p/new.jsonl", Line("m-new", Day(19), Sonnet, 100000, 10000));
-        Clock = now;
-        using var watcher = NewWatcher();
-        watcher.SetWatch(ClaudeSpendWatcher.AiBit);
-        watcher.Poll();
-        var known = Assert.Single(Spend.Snapshot()).TokAll;
-        Assert.Equal(110000, known);
-
-        var big = Transcript("p/big.jsonl", Line("m-big", Day(19), Sonnet, 1, 1));
-        using (var stream = File.OpenWrite(big))
-        {
-            stream.SetLength(ClaudeSpendWatcher.BytesPerTick + 1); // the whole budget, read first as the newest
-        }
-
-        File.SetLastWriteTimeUtc(big, now.UtcDateTime.AddMinutes(-1));
-        var old = Transcript("p/old.jsonl", Line("m-old", new DateTime(2026, 5, 1, 12, 0, 0, DateTimeKind.Local), Sonnet, 5, 5));
+        var old = Transcript("p/old.jsonl", Line("m-old", new DateTime(2026, 5, 1, 12, 0, 0, DateTimeKind.Local), Sonnet, 100000, 10000));
         File.SetLastWriteTimeUtc(old, now.UtcDateTime.AddDays(-100));
-        Clock = now.AddMinutes(2);
+        Transcript("p/new.jsonl", Line("m-new", Day(19), Sonnet, 100000, 10000), Line("m-before", new DateTime(2026, 10, 20, 12, 0, 0, DateTimeKind.Local), Sonnet, 5, 5));
+        Clock = now;
+        using var watcher = NewWatcher();
+        watcher.SetWatch(ClaudeSpendWatcher.AiBit);
+
         watcher.Poll();
 
-        Assert.Equal(known, Assert.Single(Spend.Snapshot()).TokAll);
+        Assert.DoesNotContain(old, opened);
+        var entry = Assert.Single(Spend.Snapshot());
+        Assert.Equal(new SpendEntry(AgentToken.Claude, entry.MeasuredAtMin, 110000, 45, 110000, 45, 110000, 45), entry);
+    }
+
+    [Fact]
+    public void ACacheSavedWithOlderDaysStillLoadsAndTheyAreIgnored()
+    {
+        var path = Transcript("p/new.jsonl", Line("m-other", Day(19), Sonnet, 1, 1));
+        var info = new FileInfo(path);
+        File.WriteAllText(
+            CachePath,
+            "{\"v\":2,\"files\":[{\"p\":\"p/new.jsonl\",\"s\":" + info.Length.ToString(CultureInfo.InvariantCulture) + ",\"t\":" + info.LastWriteTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture)
+            + ",\"f\":\"2026-10-21\",\"r\":[[\"m-cached\",\"2026-11-19\",110000,0.45,1]],\"o\":[[\"2026-05-01\",999999,9,0]]}]}");
+        Clock = now;
+        using var watcher = NewWatcher();
+        watcher.SetWatch(ClaudeSpendWatcher.AiBit);
+
+        watcher.Poll();
+
+        Assert.Empty(opened);
+        var entry = Assert.Single(Spend.Snapshot());
+        Assert.Equal((110000L, 45L, 110000L), (entry.TokToday, entry.CentsToday, entry.TokMonth));
     }
 
     [Fact]
@@ -243,7 +188,7 @@ public sealed class ClaudeSpendTests : IDisposable
         watcher.Poll();
 
         var entry = Assert.Single(Spend.Snapshot());
-        Assert.Equal(new SpendEntry(AgentToken.Claude, entry.MeasuredAtMin, 110000, 45, 220000, 90, 221000, 90, Unpriced: true, TokAll: 221000, CentsAll: 90), entry);
+        Assert.Equal(new SpendEntry(AgentToken.Claude, entry.MeasuredAtMin, 110000, 45, 220000, 90, 221000, 90, Unpriced: true), entry);
         Assert.True(watcher.HasUnpriced);
     }
 

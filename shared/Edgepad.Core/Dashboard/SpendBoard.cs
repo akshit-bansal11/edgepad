@@ -27,9 +27,7 @@ internal sealed class SpendBoard(UsageStore store)
             Math.Clamp(totals.CentsWeek, 0, MaxCents),
             Math.Clamp(totals.TokMonth, 0, MaxTokens),
             Math.Clamp(totals.CentsMonth, 0, MaxCents),
-            totals.Unpriced,
-            Math.Clamp(totals.TokAll, -1, MaxTokens),
-            Math.Clamp(totals.CentsAll, -1, MaxCents));
+            totals.Unpriced);
         bool changed;
         lock (store.Gate)
         {
@@ -56,7 +54,7 @@ internal sealed class SpendBoard(UsageStore store)
             [
                 .. store.Spend
                     .OrderBy(s => s.Key == AgentToken.Claude ? 0 : 1)
-                    .Select(s => new SpendEntry(s.Key, s.Value.MeasuredAtMin, s.Value.Totals.TokToday, s.Value.Totals.CentsToday, s.Value.Totals.TokWeek, s.Value.Totals.CentsWeek, s.Value.Totals.TokMonth, s.Value.Totals.CentsMonth, s.Value.Totals.Unpriced, s.Value.Totals.TokAll, s.Value.Totals.CentsAll)),
+                    .Select(s => new SpendEntry(s.Key, s.Value.MeasuredAtMin, s.Value.Totals.TokToday, s.Value.Totals.CentsToday, s.Value.Totals.TokWeek, s.Value.Totals.CentsWeek, s.Value.Totals.TokMonth, s.Value.Totals.CentsMonth, s.Value.Totals.Unpriced)),
             ];
         }
     }

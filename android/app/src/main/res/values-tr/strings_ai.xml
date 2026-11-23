@@ -6,7 +6,6 @@
   <string name="ai_win_credits">Kredi</string>
   <string name="ai_spend_7d">7 gün</string>
   <string name="ai_spend_30d">30 gün</string>
-  <string name="ai_spend_all">Tümü</string>
   <string name="ai_ctx_full">Bağlam %1$d%% dolu</string>
   <string name="ai_ctx_unknown">Bağlam bilinmiyor</string>
 </resources>

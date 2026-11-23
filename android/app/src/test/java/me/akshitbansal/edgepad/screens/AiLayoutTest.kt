@@ -74,13 +74,14 @@ class AiLayoutTest {
     }
 
     @Test
-    fun spendIsFourAcrossWhenItFitsAndTwoByTwoWhenItDoesNot() {
-        assertEquals(4, AiLayout.spendColumns(AiLayout.columnWidthDp(800f, 1, true)))
-        assertEquals(4, AiLayout.spendColumns(AiLayout.columnWidthDp(800f, 2, true)))
-        assertEquals(4, AiLayout.spendColumns(AiLayout.columnWidthDp(360f, 2, false)))
-        assertEquals(2, AiLayout.spendColumns(AiLayout.columnWidthDp(800f, 3, true)))
-        assertEquals(2, AiLayout.spendColumns(AiLayout.columnWidthDp(800f, 4, true)))
-        assertEquals(2, AiLayout.spendColumns(AiLayout.columnWidthDp(320f, 1, false)))
+    fun spendIsThreeAcrossWhenItFitsAndOneUnderAnotherWhenItDoesNot() {
+        assertEquals(3, AiLayout.spendColumns(AiLayout.columnWidthDp(800f, 1, true)))
+        assertEquals(3, AiLayout.spendColumns(AiLayout.columnWidthDp(800f, 2, true)))
+        assertEquals(3, AiLayout.spendColumns(AiLayout.columnWidthDp(360f, 2, false)))
+        assertEquals(3, AiLayout.spendColumns(AiLayout.columnWidthDp(800f, 3, true)))
+        assertEquals(1, AiLayout.spendColumns(AiLayout.columnWidthDp(800f, 4, true)))
+        assertEquals(3, AiLayout.spendColumns(AiLayout.columnWidthDp(320f, 1, false)))
+        assertEquals(1, AiLayout.spendColumns(AiLayout.columnWidthDp(240f, 1, false)))
     }
 
     @Test
@@ -100,17 +101,13 @@ class AiLayoutTest {
 
     @Test
     fun spendCellsShowDashesForWhatIsUnknownAndDollarsOnlyWherePriced() {
-        val entry = SpendEntry(AgentToken.CLAUDE, 5, 10, 20, 30, 40, 50, 60, false, -1, -1)
+        val entry = SpendEntry(AgentToken.CLAUDE, 5, 10, 20, 30, 40, 50, 60, false)
         val priced = AiLayout.spendCells(entry, true)
-        assertEquals(
-            listOf(SpendWindow.TODAY, SpendWindow.DAYS7, SpendWindow.DAYS30, SpendWindow.ALL),
-            priced.map { it.window },
-        )
-        assertEquals(listOf<Long?>(10, 30, 50, null), priced.map { it.tokens })
-        assertEquals(listOf<Long?>(20, 40, 60, null), priced.map { it.cents })
-        assertEquals(listOf<Long?>(null, null, null, null), AiLayout.spendCells(entry, false).map { it.cents })
-        assertEquals(listOf<Long?>(null, null, null, null), AiLayout.spendCells(null, true).map { it.tokens })
-        assertEquals(90L, AiLayout.spendCells(entry.copy(tokAll = 90, centsAll = 9), true).last().tokens)
+        assertEquals(listOf(SpendWindow.TODAY, SpendWindow.DAYS7, SpendWindow.DAYS30), priced.map { it.window })
+        assertEquals(listOf<Long?>(10, 30, 50), priced.map { it.tokens })
+        assertEquals(listOf<Long?>(20, 40, 60), priced.map { it.cents })
+        assertEquals(listOf<Long?>(null, null, null), AiLayout.spendCells(entry, false).map { it.cents })
+        assertEquals(listOf<Long?>(null, null, null), AiLayout.spendCells(null, true).map { it.tokens })
     }
 
     @Test

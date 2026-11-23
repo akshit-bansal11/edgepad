@@ -81,8 +81,8 @@ data class LimitEntry(
 
 /**
  * One TEXT SPEND entry: tokens (uncached input plus output) and estimated cents, by period. The week is the last 7 days
- * and the month the last 30, both counting today; [tokAll] and [centsAll] are everything the laptop has read, -1 while
- * that is not known. [unpriced]: some tokens came from a model with no price, so the cents are a lower bound.
+ * and the month the last 30, both counting today. [unpriced]: some tokens came from a model with no price, so the cents
+ * are a lower bound.
  */
 data class SpendEntry(
     val agent: AgentToken,
@@ -94,8 +94,6 @@ data class SpendEntry(
     val tokMonth: Long,
     val centsMonth: Long,
     val unpriced: Boolean = false,
-    val tokAll: Long = -1L,
-    val centsAll: Long = -1L,
 )
 
 /** TEXT WEATHER. [wmoCode] -1 is unknown. */
@@ -216,7 +214,7 @@ object DashWire {
     private const val INFO_FIELDS = 5
     private const val DISK_FIELDS = 4
     private const val LIMIT_FIELDS = 5
-    private const val SPEND_FIELDS = 11
+    private const val SPEND_FIELDS = 9
     private const val SESSION_FIELDS = 4
     private val UNPRICED_FLAGS = setOf("0", "1")
     private const val WEATHER_FIELDS = 3
@@ -350,8 +348,6 @@ object DashWire {
                     maxOf(v[5], 0L),
                     maxOf(v[6], 0L),
                     p.last() == "1",
-                    maxOf(v[7], -1L),
-                    maxOf(v[8], -1L),
                 )
             }
         }

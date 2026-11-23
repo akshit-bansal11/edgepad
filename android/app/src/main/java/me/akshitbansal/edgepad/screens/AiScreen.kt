@@ -23,8 +23,8 @@ import java.util.Currency
 /**
  * What the connected AI tools have used: one equal column per tool, side by side when the phone is sideways and one
  * under another when it is upright. A column is a card with two blocks, Usage (a ring for each limit window: five
- * hours, the week, a model's week, the credits) and Spend (today, 7 days, 30 days and all time, as tokens and
- * estimated dollars; a compact two by two in a narrow column), and under it that tool's open sessions, each with how
+ * hours, the week, a model's week, the credits) and Spend (today, 7 days and 30 days, as tokens and estimated
+ * dollars; one under another in a narrow column), and under it that tool's open sessions, each with how
  * full its context window is. A tool that reports no limits says so and shows what it spent; it never gets a ring or
  * a percentage the laptop did not send.
  *
@@ -246,7 +246,7 @@ class AiScreen(
         return block
     }
 
-    /** Today, 7 days, 30 days and all time as tokens and, where the tool has a price, estimated dollars. */
+    /** Today, 7 days and 30 days as tokens and, where the tool has a price, estimated dollars. */
     private fun spendGrid(
         cells: List<SpendCell>,
         perRow: Int,
@@ -286,7 +286,6 @@ class AiScreen(
             SpendWindow.TODAY -> R.string.ai_today
             SpendWindow.DAYS7 -> R.string.ai_spend_7d
             SpendWindow.DAYS30 -> R.string.ai_spend_30d
-            SpendWindow.ALL -> R.string.ai_spend_all
         }
 
     private fun nameOf(tool: AiTool): Int =

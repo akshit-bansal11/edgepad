@@ -510,30 +510,6 @@ final class SpendBoardTests: XCTestCase {
         XCTAssertEqual(again.snapshot().map(\.unpriced), [true, false])
     }
 
-    func testTheAllTimePairIsStoredReadBackAndClamped() {
-        let dir = (NSTemporaryDirectory() as NSString).appendingPathComponent("edgepad-spend-\(UUID().uuidString)")
-        addTeardownBlock { try? FileManager.default.removeItem(atPath: dir) }
-        let path = (dir as NSString).appendingPathComponent(UsageStore.fileName)
-        let board = SpendBoard(store: UsageStore(path: path, now: start))
-        board.update(
-            codex,
-            SpendTotals(
-                tokToday: 1, centsToday: 2, tokWeek: 3, centsWeek: 4, tokMonth: 5, centsMonth: 6, unpriced: true,
-                tokAll: 7, centsAll: 8),
-            now: start)
-        board.update(
-            claude,
-            SpendTotals(
-                tokToday: 1, centsToday: 1, tokWeek: 1, centsWeek: 1, tokMonth: 1, centsMonth: 1, tokAll: -9,
-                centsAll: .max),
-            now: start)
-
-        let again = SpendBoard(store: UsageStore(path: path, now: start))
-        XCTAssertEqual(again.snapshot().map(\.centsAll), [SpendBoard.maxCents, 8])
-        XCTAssertEqual(again.snapshot().map(\.tokAll), [-1, 7])
-        XCTAssertEqual(again.snapshot().last?.unpriced, true)
-    }
-
     func testAnUnknownAgentIsIgnored() {
         let board = newBoard()
         board.update("grok", totals(1, 1, 1, 1, 1, 1), now: start)

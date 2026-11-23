@@ -35,8 +35,7 @@ public final class SpendBoard {
         let clamped = SpendTotals(
             tokToday: tokens(totals.tokToday), centsToday: cents(totals.centsToday), tokWeek: tokens(totals.tokWeek),
             centsWeek: cents(totals.centsWeek), tokMonth: tokens(totals.tokMonth), centsMonth: cents(totals.centsMonth),
-            unpriced: totals.unpriced, tokAll: min(max(totals.tokAll, -1), Self.maxTokens),
-            centsAll: min(max(totals.centsAll, -1), Self.maxCents))
+            unpriced: totals.unpriced)
         store.gate.lock()
         let changed = store.spend[agent]?.totals != clamped
         store.spend[agent] = SpendRow(measuredAtMin: UsageStore.minutes(now), totals: clamped)
@@ -59,7 +58,7 @@ public final class SpendBoard {
             return SpendEntry(
                 agent: agent, measuredAtMin: row.measuredAtMin, tokToday: t.tokToday, centsToday: t.centsToday,
                 tokWeek: t.tokWeek, centsWeek: t.centsWeek, tokMonth: t.tokMonth, centsMonth: t.centsMonth,
-                unpriced: t.unpriced, tokAll: t.tokAll, centsAll: t.centsAll)
+                unpriced: t.unpriced)
         }
     }
 }

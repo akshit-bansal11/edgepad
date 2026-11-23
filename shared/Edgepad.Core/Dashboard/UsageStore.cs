@@ -9,10 +9,9 @@ internal sealed record LimitRow(long Pct, long ResetAtMin, long MeasuredAtMin);
 /// <summary>
 /// Token and cent totals of one agent. Tokens are uncached input plus output; cents are estimates at API list prices.
 /// <paramref name="Unpriced"/>: some tokens came from a model with no price, so the cents are a lower bound. Week is the last 7
-/// days and Month the last 30, both counting today. <paramref name="TokAll"/> and <paramref name="CentsAll"/> are everything ever
-/// read, or -1 while that is not known (a first scan still running, or no source).
+/// days and Month the last 30, both counting today.
 /// </summary>
-internal readonly record struct SpendTotals(long TokToday, long CentsToday, long TokWeek, long CentsWeek, long TokMonth, long CentsMonth, bool Unpriced = false, long TokAll = -1, long CentsAll = -1);
+internal readonly record struct SpendTotals(long TokToday, long CentsToday, long TokWeek, long CentsWeek, long TokMonth, long CentsMonth, bool Unpriced = false);
 
 /// <summary>The last-known spend of one agent and when it was measured.</summary>
 internal sealed record SpendRow(long MeasuredAtMin, SpendTotals Totals);
@@ -132,10 +131,6 @@ internal sealed class UsageStore
                         }
 
                         json.WriteEndArray();
-                        json.WriteStartArray("e");
-                        json.WriteNumberValue(row.Totals.TokAll);
-                        json.WriteNumberValue(row.Totals.CentsAll);
-                        json.WriteEndArray();
                         if (row.Totals.Unpriced)
                         {
                             json.WriteBoolean("u", true);
@@ -206,16 +201,7 @@ internal sealed class UsageStore
                     {
                         // "u" is absent in files saved before the flag, and when false.
                         var unpriced = item.TryGetProperty("u", out var u) && u.ValueKind == JsonValueKind.True;
-                        // "e" (all time) is absent in files saved before it, and then unknown.
-                        long all = -1, allCents = -1;
-                        if (item.TryGetProperty("e", out var extra) && extra.ValueKind == JsonValueKind.Array && extra.GetArrayLength() == 2
-                            && extra[0].ValueKind == JsonValueKind.Number && extra[0].TryGetInt64(out var a0) && extra[1].ValueKind == JsonValueKind.Number && extra[1].TryGetInt64(out var a1))
-                        {
-                            all = Math.Max(-1, a0);
-                            allCents = Math.Max(-1, a1);
-                        }
-
-                        Spend[agent] = new SpendRow(measured, new SpendTotals(n[0], n[1], n[2], n[3], n[4], n[5], unpriced, all, allCents));
+                        Spend[agent] = new SpendRow(measured, new SpendTotals(n[0], n[1], n[2], n[3], n[4], n[5], unpriced));
                     }
                 }
             }

@@ -10,8 +10,7 @@ public struct LimitRow: Equatable {
 
 /// Token and cent totals of one agent. Tokens are uncached input plus output; cents are estimates at API list prices.
 /// `unpriced` means some tokens came from a model with no price, so the cents are a lower bound. Week is the last 7
-/// days and Month the last 30, both counting today. `tokAll` and `centsAll` are everything ever read, or -1 while that is
-/// not known (a first scan still running, or no source).
+/// days and Month the last 30, both counting today.
 public struct SpendTotals: Equatable {
     public let tokToday: Int64
     public let centsToday: Int64
@@ -20,15 +19,11 @@ public struct SpendTotals: Equatable {
     public let tokMonth: Int64
     public let centsMonth: Int64
     public let unpriced: Bool
-    public let tokAll: Int64
-    public let centsAll: Int64
 
     public init(
         tokToday: Int64, centsToday: Int64, tokWeek: Int64, centsWeek: Int64, tokMonth: Int64, centsMonth: Int64,
-        unpriced: Bool = false, tokAll: Int64 = -1, centsAll: Int64 = -1
+        unpriced: Bool = false
     ) {
-        self.tokAll = tokAll
-        self.centsAll = centsAll
         self.tokToday = tokToday
         self.centsToday = centsToday
         self.tokWeek = tokWeek
@@ -122,9 +117,7 @@ public final class UsageStore {
             ["a": key.agent, "w": key.window, "p": row.pct, "r": row.resetAtMin, "m": row.measuredAtMin]
         }
         let spendItems: [[String: Any]] = spend.map { agent, row in
-            var item: [String: Any] = [
-                "a": agent, "m": row.measuredAtMin, "t": row.totals.all, "e": [row.totals.tokAll, row.totals.centsAll],
-            ]
+            var item: [String: Any] = ["a": agent, "m": row.measuredAtMin, "t": row.totals.all]
             if row.totals.unpriced {
                 item["u"] = true
             }
@@ -169,18 +162,11 @@ public final class UsageStore {
             else { continue }
             let n = t.map { JsonRead.int64($0) ?? -1 }
             guard n.allSatisfy({ $0 >= 0 }) else { continue }
-            // "e" (all time) is absent in files saved before it, and then unknown.
-            var allTok: Int64 = -1
-            var allCents: Int64 = -1
-            if let e = item["e"] as? [Any], e.count == 2, let a0 = JsonRead.int64(e[0]), let a1 = JsonRead.int64(e[1]) {
-                allTok = max(-1, a0)
-                allCents = max(-1, a1)
-            }
             spend[agent] = SpendRow(
                 measuredAtMin: measured,
                 totals: SpendTotals(
                     tokToday: n[0], centsToday: n[1], tokWeek: n[2], centsWeek: n[3], tokMonth: n[4], centsMonth: n[5],
-                    unpriced: item["u"] as? Bool == true, tokAll: allTok, centsAll: allCents))
+                    unpriced: item["u"] as? Bool == true))
         }
         if let heardItems = root["heard"] as? [String: Any] {
             for (agent, value) in heardItems where DashWire.isAgent(agent) {

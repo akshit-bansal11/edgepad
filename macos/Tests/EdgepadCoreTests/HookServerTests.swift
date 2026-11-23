@@ -159,9 +159,7 @@ final class HookServerTests: XCTestCase {
             SpendTotals(tokToday: 1, centsToday: 2, tokWeek: 3, centsWeek: 4, tokMonth: 5, centsMonth: 6))
         XCTAssertEqual(
             usage.spend["codex"]?.totals,
-            SpendTotals(
-                tokToday: 1, centsToday: 2, tokWeek: 3, centsWeek: 4, tokMonth: 5, centsMonth: 6, tokAll: 7,
-                centsAll: 8))
+            SpendTotals(tokToday: 1, centsToday: 2, tokWeek: 3, centsWeek: 4, tokMonth: 5, centsMonth: 6))
         usage.gate.unlock()
         XCTAssertEqual(sessions.snapshot().map(\.contextPct), [40])
     }

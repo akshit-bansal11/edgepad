@@ -304,19 +304,12 @@ internal static class HookProtocol
             return null;
         }
 
-        // "all" is optional: an agent that cannot total its whole history leaves it out, and the phone shows a dash.
-        long tokAll = -1, centsAll = -1;
-        if (d.TryGetProperty("all", out _) && !Period(d, "all", out tokAll, out centsAll))
-        {
-            return null;
-        }
-
         if (d.TryGetProperty("unpriced", out var unpriced) && unpriced.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
         {
             return null;
         }
 
-        return new SpendRequest(token, agent, new SpendTotals(tokToday, centsToday, tokWeek, centsWeek, tokMonth, centsMonth, unpriced.ValueKind == JsonValueKind.True, tokAll, centsAll));
+        return new SpendRequest(token, agent, new SpendTotals(tokToday, centsToday, tokWeek, centsWeek, tokMonth, centsMonth, unpriced.ValueKind == JsonValueKind.True));
     }
 
     private static bool Period(JsonElement d, string name, out long tok, out long cents)

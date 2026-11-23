@@ -6,7 +6,6 @@
   <string name="ai_win_credits">Guthaben</string>
   <string name="ai_spend_7d">7 Tage</string>
   <string name="ai_spend_30d">30 Tage</string>
-  <string name="ai_spend_all">Gesamt</string>
   <string name="ai_ctx_full">Kontext zu %1$d%% voll</string>
   <string name="ai_ctx_unknown">Kontext unbekannt</string>
 </resources>

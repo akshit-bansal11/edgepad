@@ -76,27 +76,18 @@ public enum ClaudePrices {
     }
 }
 
-/// What the responses of one local day added up to once their ids were no longer needed: tokens, dollars and whether an
-/// unpriced model had tokens.
-struct ClaudeDay: Equatable {
-    var tokens: Double
-    var usd: Double
-    var unpriced: Bool
-}
-
 /// Claude Code's spend for the dashboard, read from its own transcripts (`<config>/projects/**/*.jsonl`, the Plimsoll
 /// approach of plugins/edgepad/scripts/scan-claude.mjs, so no Node is needed): tokens and estimated cents for today,
-/// the last 7 days, the last 30 days (each counting today) and all time, in local time. Tokens are input + output;
+/// the last 7 days, the last 30 days (each counting today), in local time. Tokens are input + output;
 /// cache reads and writes are priced but not counted as tokens. A response is written once per content block under one
 /// message id, its usage final on the last, so the last row of each id is kept, and an id is counted once across files.
 ///
 /// It reads only while the Claude Code integration is on, a phone is linked AND the phone draws the AI widget or screen
 /// (DASH_WATCH bit 3): then once a minute, with each file's sums cached by size and modification time, so an unchanged
-/// history costs stats only. A file last written over 40 days ago is folded to per-day totals (no ids), once, and a
-/// vanished one keeps them, so "all time" is computed one time and then only new or changed files are read again. A tick
-/// (every 5 s) parses at most `bytesPerTick` of changed files (at least one file), newest first; once the last 30 days
-/// are in hand their totals go to the board with all time unknown (-1), and all time follows only after a scan that had
-/// every file in hand, so a first scan of a large folder never sends a partial sum as a whole. Nothing from a
+/// history costs stats only. A file last written over 40 days ago holds nothing of the last 30 days and is never read;
+/// Claude Code deletes its own history after about 30 days anyway. A tick (every 5 s) parses at most `bytesPerTick` of
+/// changed files (at least one file), newest first, and the totals go to the board only after a scan that had every
+/// file in hand, so a first scan of a large folder never sends a partial sum as a whole. Nothing from a
 /// transcript leaves this class but numbers; the cache holds message ids, days and numbers. The Mac twin of the core's
 /// ClaudeSpendWatcher.
 public final class ClaudeSpend {
@@ -106,7 +97,7 @@ public final class ClaudeSpend {
     public static let saveEvery: TimeInterval = 5 * 60
     public static let bytesPerTick: Int64 = 32 * 1024 * 1024
     public static let cacheName = "dashboard-claude-cache.json"
-    /// A file last written longer ago than this is folded to per-day totals.
+    /// A file last written longer ago than this is never read.
     static let windowDays = 40
 
     private static let maxLine = 4 * 1024 * 1024
@@ -125,17 +116,12 @@ public final class ClaudeSpend {
     typealias Periods = (today: String, start7: String, start30: String, from: String)
 
     // rows: the responses of days on or after `from`, by id (so a resumed session's copy of a response counts once).
-    // old: everything before `from` as per-day totals, which is all "all time" needs.
+    // A cache saved with an "o" (older days) still loads; it is ignored.
     private struct CacheEntry {
         let size: Int64
         let stamp: Int64
         let from: String
         var rows: [String: Row]
-        var old: [String: ClaudeDay]
-
-        func folded() -> CacheEntry {
-            CacheEntry(size: size, stamp: stamp, from: from, rows: [:], old: ClaudeSpend.fold(rows.values, into: old))
-        }
     }
 
     private let settingsOn: () -> Bool
@@ -238,9 +224,8 @@ public final class ClaudeSpend {
         }
     }
 
-    /// One tick: a scan when the last whole one is a minute old (or none was), its totals sent to the board once the
-    /// last 30 days were in hand, all time only once every file was. Internal to the timer and to tests; never overlaps
-    /// itself.
+    /// One tick: a scan when the last whole one is a minute old (or none was), its totals sent to the board once every
+    /// file was in hand. Internal to the timer and to tests; never overlaps itself.
     func poll(budget: Int64 = ClaudeSpend.bytesPerTick) {
         guard pollGate.try() else { return }
         defer { pollGate.unlock() }
@@ -254,9 +239,7 @@ public final class ClaudeSpend {
         guard found.complete else { return }
         gate.lock()
         unpriced = found.unpriced
-        if found.allDone {
-            lastDone = now
-        }
+        lastDone = now
         gate.unlock()
         spend.update(AgentToken.claude.rawValue, found.totals, now: now)
     }
@@ -271,56 +254,26 @@ public final class ClaudeSpend {
         return (dayOf(today, calendar), back(6), start30, start30)
     }
 
-    /// Adds responses to per-day totals, so their ids can be forgotten.
-    static func fold(_ rows: some Sequence<Row>, into start: [String: ClaudeDay] = [:]) -> [String: ClaudeDay] {
-        var days = start
-        for row in rows {
-            merge(&days, row.day, ClaudeDay(tokens: row.tokens, usd: row.usd, unpriced: !row.priced && row.tokens > 0))
-        }
-        return days
-    }
-
-    /// Adds one day's totals into `into`.
-    static func merge(_ into: inout [String: ClaudeDay], _ day: String, _ add: ClaudeDay) {
-        guard let have = into[day] else {
-            into[day] = add
-            return
-        }
-        into[day] = ClaudeDay(
-            tokens: have.tokens + add.tokens, usd: have.usd + add.usd, unpriced: have.unpriced || add.unpriced)
-    }
-
-    /// Today, the last 7 days, the last 30 days and all time, from responses already deduplicated by id plus the
-    /// per-day totals of the ones whose ids were let go; `unpriced` when tokens of an unpriced model counted.
-    static func total(
-        _ rows: some Sequence<Row>, _ older: some Sequence<(key: String, value: ClaudeDay)>, _ periods: Periods
-    ) -> (totals: SpendTotals, unpriced: Bool) {
-        var sums = (day: (0.0, 0.0), week: (0.0, 0.0), month: (0.0, 0.0), all: (0.0, 0.0))
+    /// Today, the last 7 days and the last 30 days, from responses already deduplicated by id; `unpriced` when tokens
+    /// of an unpriced model counted.
+    static func total(_ rows: some Sequence<Row>, _ periods: Periods) -> (totals: SpendTotals, unpriced: Bool) {
+        var sums = (day: (0.0, 0.0), week: (0.0, 0.0), month: (0.0, 0.0))
         var anyUnpriced = false
-        func add(_ day: String, _ tokens: Double, _ usd: Double, _ noPrice: Bool) {
-            sums.all = (sums.all.0 + tokens, sums.all.1 + usd)
-            anyUnpriced = anyUnpriced || noPrice
-            guard day >= periods.start30 else { return }
-            sums.month = (sums.month.0 + tokens, sums.month.1 + usd)
-            if day >= periods.start7 {
-                sums.week = (sums.week.0 + tokens, sums.week.1 + usd)
+        for row in rows where row.day >= periods.start30 {
+            anyUnpriced = anyUnpriced || (!row.priced && row.tokens > 0)
+            sums.month = (sums.month.0 + row.tokens, sums.month.1 + row.usd)
+            if row.day >= periods.start7 {
+                sums.week = (sums.week.0 + row.tokens, sums.week.1 + row.usd)
             }
-            if day == periods.today {
-                sums.day = (sums.day.0 + tokens, sums.day.1 + usd)
+            if row.day == periods.today {
+                sums.day = (sums.day.0 + row.tokens, sums.day.1 + row.usd)
             }
-        }
-        for row in rows {
-            add(row.day, row.tokens, row.usd, !row.priced && row.tokens > 0)
-        }
-        for (day, total) in older {
-            add(day, total.tokens, total.usd, total.unpriced)
         }
         func tok(_ sum: (Double, Double)) -> Int64 { Int64(sum.0.rounded()) }
         func cents(_ sum: (Double, Double)) -> Int64 { Int64((sum.1 * 100).rounded()) }
         let totals = SpendTotals(
             tokToday: tok(sums.day), centsToday: cents(sums.day), tokWeek: tok(sums.week), centsWeek: cents(sums.week),
-            tokMonth: tok(sums.month), centsMonth: cents(sums.month), unpriced: anyUnpriced, tokAll: tok(sums.all),
-            centsAll: cents(sums.all))
+            tokMonth: tok(sums.month), centsMonth: cents(sums.month), unpriced: anyUnpriced)
         return (totals, anyUnpriced)
     }
 
@@ -329,65 +282,45 @@ public final class ClaudeSpend {
         return String(format: "%04ld-%02ld-%02ld", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
     }
 
-    /// The totals for the transcripts under `projects`, with the cache read and saved around it, newest file first. At
-    /// most `budget` bytes of changed files are parsed (at least one file). `complete` is false when a file of the last
-    /// 30 days was left for the next tick, and the totals are then partial. `allDone` is false when any file was left,
-    /// and all time is then -1 in the totals.
-    func scan(budget: Int64 = ClaudeSpend.bytesPerTick) -> (
-        totals: SpendTotals, unpriced: Bool, complete: Bool, allDone: Bool
-    ) {
+    /// The totals for the transcripts written in the last 40 days under `projects`, with the cache read and saved
+    /// around it, newest file first. At most `budget` bytes of changed files are parsed (at least one file). `complete`
+    /// is false when a file was left for the next tick, and the totals are then partial.
+    func scan(budget: Int64 = ClaudeSpend.bytesPerTick) -> (totals: SpendTotals, unpriced: Bool, complete: Bool) {
         let now = clock()
         let periods = Self.periods(now)
         let calendar = Calendar.current
         let oldest = calendar.date(byAdding: .day, value: -Self.windowDays, to: calendar.startOfDay(for: now)) ?? now
-        let oldestStamp = Int64((oldest.timeIntervalSince1970 * 1000).rounded(.down))
         if !cacheLoaded {
             loadCache()
             cacheLoaded = true
         }
 
         var left = budget
-        var recentDone = true
-        var allDone = true
+        var done = true
         var live = Set<String>()
-        // Newest first, so the last 30 days are in hand before the older history, which a first scan reads over ticks.
-        for file in transcripts().sorted(by: { $0.mtime > $1.mtime }) {
-            let recent = file.mtime >= oldest
+        // Newest first, so a first scan of a large folder reads the files that matter most before it runs out of budget.
+        for file in transcripts().filter({ $0.mtime >= oldest }).sorted(by: { $0.mtime > $1.mtime }) {
             live.insert(file.key)
             let stamp = Int64((file.mtime.timeIntervalSince1970 * 1000).rounded(.down))
             let hit = cache[file.key]
             let covers = hit.map { $0.from <= periods.from } ?? false
             if let hit, covers, hit.size == file.size, hit.stamp == stamp {
-                if !recent && !hit.rows.isEmpty {
-                    cache[file.key] = hit.folded()  // a file nobody writes any more needs its totals, not its ids
-                    cacheDirty = true
-                }
                 continue
             }
             if left <= 0 {
-                allDone = false
-                if recent { recentDone = false }
+                done = false
                 continue
             }
             left -= file.size
-            guard let read = Self.read(file.path, from: periods.from) else { continue }  // removed or unreadable
-            let entry = CacheEntry(size: file.size, stamp: stamp, from: periods.from, rows: read.rows, old: read.old)
-            cache[file.key] = recent ? entry : entry.folded()
+            guard let rows = Self.sumFile(file.path, from: periods.from) else { continue }  // removed or unreadable
+            cache[file.key] = CacheEntry(size: file.size, stamp: stamp, from: periods.from, rows: rows)
             cacheDirty = true
         }
-        if allDone {
-            // A transcript Claude Code deleted keeps its day totals once it is old enough to have no ids to dedupe, so
-            // "all time" does not shrink when the folder is cleaned; a recent one that vanished is dropped.
-            for (key, entry) in cache where !live.contains(key) {
-                if entry.stamp < oldestStamp {
-                    if !entry.rows.isEmpty {
-                        cache[key] = entry.folded()
-                        cacheDirty = true
-                    }
-                } else {
-                    cache[key] = nil
-                    cacheDirty = true
-                }
+        if done {
+            // A transcript that vanished or aged out of the window no longer counts.
+            for key in cache.keys where !live.contains(key) {
+                cache[key] = nil
+                cacheDirty = true
             }
         }
         if cacheDirty, lastSaved.map({ now.timeIntervalSince($0) >= Self.saveEvery || now < $0 }) ?? true {
@@ -395,33 +328,11 @@ public final class ClaudeSpend {
         }
 
         var byId: [String: Row] = [:]
-        var older: [(key: String, value: ClaudeDay)] = []
         for entry in cache.values {
             byId.merge(entry.rows) { _, new in new }
-            older.append(contentsOf: entry.old.map { (key: $0.key, value: $0.value) })
         }
-        let found = Self.total(byId.values, older, periods)
-        var totals = found.totals
-        if !allDone {
-            // All time is announced only once every file was in hand, never as a partial sum; until then the last
-            // whole one stays.
-            let last = spend.snapshot().first { $0.agent == AgentToken.claude.rawValue && $0.tokAll >= 0 }
-            totals = SpendTotals(
-                tokToday: totals.tokToday, centsToday: totals.centsToday, tokWeek: totals.tokWeek,
-                centsWeek: totals.centsWeek, tokMonth: totals.tokMonth, centsMonth: totals.centsMonth,
-                unpriced: totals.unpriced, tokAll: last?.tokAll ?? -1, centsAll: last?.centsAll ?? -1)
-        }
-        return (totals, found.unpriced, recentDone, allDone)
-    }
-
-    // The responses of a whole transcript: those from `from` on keep their ids, older ones their day totals.
-    // ponytail: the folded part has no ids, so a `claude --resume` copy of history older than the window, in a second
-    // file, counts twice in "all time" (the 30 days stay exact). Remembering every folded id would undo the folding;
-    // add it only if all time drifts.
-    private static func read(_ path: String, from: String) -> (rows: [String: Row], old: [String: ClaudeDay])? {
-        guard let all = sumFile(path, from: "") else { return nil }
-        let recent = all.filter { $0.value.day >= from }
-        return (recent, fold(all.values.filter { $0.day < from }))
+        let found = Self.total(byId.values, periods)
+        return (found.totals, found.unpriced, done)
     }
 
     /// One transcript's responses on or after `from`, by message id; nil when it cannot be read.
@@ -621,14 +532,7 @@ public final class ClaudeSpend {
                 else { continue }
                 rows[id] = Row(day: day, tokens: tokens, usd: usd, priced: priced == 1)
             }
-            var old: [String: ClaudeDay] = [:]
-            for case let d as [Any] in f["o"] as? [Any] ?? [] where d.count == 4 {
-                guard let day = d[0] as? String, day.utf16.count == 10, let tokens = JsonRead.double(d[1]),
-                    tokens >= 0, let usd = JsonRead.double(d[2]), usd >= 0, let noPrice = JsonRead.int64(d[3])
-                else { continue }
-                old[day] = ClaudeDay(tokens: tokens, usd: usd, unpriced: noPrice == 1)
-            }
-            cache[key] = CacheEntry(size: size, stamp: stamp, from: from, rows: rows, old: old)
+            cache[key] = CacheEntry(size: size, stamp: stamp, from: from, rows: rows)
         }
     }
 
@@ -656,10 +560,7 @@ public final class ClaudeSpend {
     private func saveCache() {
         let files: [[String: Any]] = cache.map { key, entry in
             let rows: [[Any]] = entry.rows.map { id, row in [id, row.day, row.tokens, row.usd, row.priced ? 1 : 0] }
-            let old: [[Any]] = entry.old.map { day, total in [day, total.tokens, total.usd, total.unpriced ? 1 : 0] }
-            let item: [String: Any] = [
-                "p": key, "s": entry.size, "t": entry.stamp, "f": entry.from, "r": rows, "o": old,
-            ]
+            let item: [String: Any] = ["p": key, "s": entry.size, "t": entry.stamp, "f": entry.from, "r": rows]
             return item
         }
         let root: [String: Any] = ["v": Self.cacheVersion, "files": files]

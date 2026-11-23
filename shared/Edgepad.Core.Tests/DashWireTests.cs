@@ -109,7 +109,7 @@ public sealed class DashWireTests
             DashWire.EncodeDisks([.. Enumerable.Repeat(new DiskEntry(wide, 100, long.MaxValue, long.MaxValue), 9)]),
             DashWire.EncodeSessions([.. Enumerable.Repeat(new SessionEntry("codex", "wait", wide, 100), 20)]),
             DashWire.EncodeLimits([.. Enumerable.Repeat(new LimitEntry("codex", "~" + wide, 100, long.MaxValue, long.MaxValue), 20)]),
-            DashWire.EncodeSpend([.. Enumerable.Repeat(new SpendEntry("codex", long.MaxValue, long.MaxValue, long.MaxValue, long.MaxValue, long.MaxValue, long.MaxValue, long.MaxValue, TokAll: long.MaxValue, CentsAll: long.MaxValue), 5)]),
+            DashWire.EncodeSpend([.. Enumerable.Repeat(new SpendEntry("codex", long.MaxValue, long.MaxValue, long.MaxValue, long.MaxValue, long.MaxValue, long.MaxValue, long.MaxValue), 5)]),
             DashWire.EncodeWeather(new WeatherInfo(int.MaxValue, int.MaxValue, wide)),
         };
 
@@ -212,7 +212,7 @@ public sealed class DashWireTests
             case "LIMITSPARSE":
                 return DashWire.EncodeLimits([.. DashWire.ParseLimits(Field(args))]);
             case "SPEND":
-                return DashWire.EncodeSpend([.. Entries(args).Select(e => Fields(e, 11)).Select(f => new SpendEntry(Field(f[0]), Long(f[1]), Long(f[2]), Long(f[3]), Long(f[4]), Long(f[5]), Long(f[6]), Long(f[7]), Field(f[10]) == "1", Long(f[8]), Long(f[9])))]);
+                return DashWire.EncodeSpend([.. Entries(args).Select(e => Fields(e, 9)).Select(f => new SpendEntry(Field(f[0]), Long(f[1]), Long(f[2]), Long(f[3]), Long(f[4]), Long(f[5]), Long(f[6]), Long(f[7]), Field(f[8]) == "1"))]);
             case "SPENDPARSE":
                 return DashWire.EncodeSpend([.. DashWire.ParseSpend(Field(args))]);
             case "WEATHER":

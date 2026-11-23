@@ -300,12 +300,6 @@ public enum HookProtocol {
         guard let today = period(d, "today"), let week = period(d, "week"), let month = period(d, "month") else {
             return nil
         }
-        // "all" is optional: an agent that cannot total its whole history leaves it out, and the phone shows a dash.
-        var all: (tok: Int64, cents: Int64) = (-1, -1)
-        if d["all"] != nil {
-            guard let parsed = period(d, "all") else { return nil }
-            all = parsed
-        }
         var unpriced = false
         if let raw = d["unpriced"] {
             guard let flag = raw as? NSNumber, CFGetTypeID(flag) == CFBooleanGetTypeID() else { return nil }
@@ -313,7 +307,7 @@ public enum HookProtocol {
         }
         let totals = SpendTotals(
             tokToday: today.tok, centsToday: today.cents, tokWeek: week.tok, centsWeek: week.cents,
-            tokMonth: month.tok, centsMonth: month.cents, unpriced: unpriced, tokAll: all.tok, centsAll: all.cents)
+            tokMonth: month.tok, centsMonth: month.cents, unpriced: unpriced)
         return SpendRequest(token: token, agent: agent, totals: totals)
     }
 

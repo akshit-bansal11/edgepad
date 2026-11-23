@@ -235,8 +235,8 @@ TEXT 31 a1b2c3d4e5f6/a = 41 1f 0e 61 31 62 32 63 33 64 34 65 35 66 36 2f 61
 TEXT 32 a1b2c3d4e5f6 = 41 20 0c 61 31 62 32 63 33 64 34 65 35 66 36
 # TEXT 33 LIMITS: the window is minutes (300 is five hours), "ctx" for the context window or "~name" for a limit with no duration.
 TEXT 33 claude:300:42:29500000:29499900|claude:ctx:15:-1:29499900|codex:~spend_limit:80:-1:29499900 = 41 21 5b 63 6c 61 75 64 65 3a 33 30 30 3a 34 32 3a 32 39 35 30 30 30 30 30 3a 32 39 34 39 39 39 30 30 7c 63 6c 61 75 64 65 3a 63 74 78 3a 31 35 3a 2d 31 3a 32 39 34 39 39 39 30 30 7c 63 6f 64 65 78 3a 7e 73 70 65 6e 64 5f 6c 69 6d 69 74 3a 38 30 3a 2d 31 3a 32 39 34 39 39 39 30 30
-# TEXT 34 SPEND: agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/tokAll/centsAll/unpriced; -1 all time is unknown.
-TEXT 34 claude/29499900/120000/310/800000/2100/3000000/9000/90000000/31000/0 = 41 22 44 63 6c 61 75 64 65 2f 32 39 34 39 39 39 30 30 2f 31 32 30 30 30 30 2f 33 31 30 2f 38 30 30 30 30 30 2f 32 31 30 30 2f 33 30 30 30 30 30 30 2f 39 30 30 30 2f 39 30 30 30 30 30 30 30 2f 33 31 30 30 30 2f 30
+# TEXT 34 SPEND: agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/unpriced.
+TEXT 34 claude/29499900/120000/310/800000/2100/3000000/9000/0 = 41 22 35 63 6c 61 75 64 65 2f 32 39 34 39 39 39 30 30 2f 31 32 30 30 30 30 2f 33 31 30 2f 38 30 30 30 30 30 2f 32 31 30 30 2f 33 30 30 30 30 30 30 2f 39 30 30 30 2f 30
 # TEXT 35 WEATHER: 18.5 C is 185, WMO code 3, the city; empty means none.
 TEXT 35 185/3/Oslo = 41 23 0a 31 38 35 2f 33 2f 4f 73 6c 6f
 TEXT 35 = 41 23 00

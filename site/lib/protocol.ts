@@ -363,7 +363,7 @@ const TEXT_DOCS: Record<string, string> = {
   LIMITS:
     "Usage limits as agent:window:pct:resetAtMin:measuredAtMin joined by a bar. The window is minutes (300 is five hours, 10080 a week), ctx for the context window, or a tilde and a name for a limit with no duration. Times are UTC minutes since the Unix epoch, -1 unknown. Laptop to phone.",
   SPEND:
-    "Estimated spend at API list prices as agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/tokAll/centsAll/unpriced joined by a bar. Today, the last 7 days, the last 30 days and all time (-1 while not known). Tokens are uncached input plus output. Laptop to phone.",
+    "Estimated spend at API list prices as agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/unpriced joined by a bar. Today, the last 7 days and the last 30 days. Tokens are uncached input plus output. Laptop to phone.",
   WEATHER:
     "The weather as tempTenthsC/wmoCode/city. Empty means none. Laptop to phone.",
 };

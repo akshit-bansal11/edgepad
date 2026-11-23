@@ -245,10 +245,10 @@ TEXT 32 PERM_GONE
 # Clean(16) for a limit with no duration, such as "~spend_limit". pct 0..100 (floats rounded, clamped). The two times are UTC
 # minutes since the Unix epoch, -1 unknown. An entry with any other window is dropped. On change; snapshot on DASH_WATCH bit3.
 TEXT 33 LIMITS
-# Laptop to phone: "agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/tokAll/centsAll/unpriced|..." integers.
-# 7d and 30d are the last 7 and 30 local days, today counted; All is everything the laptop has read, -1 while not known. Tokens are
-# uncached input plus output; cents are estimates at API list prices; unpriced is 1 when some tokens had no price (cents are a
-# lower bound), else 0. On change; snapshot on DASH_WATCH bit3.
+# Laptop to phone: "agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/unpriced|..." integers. 7d and 30d are the
+# last 7 and 30 local days, today counted; there is nothing longer, because Claude Code deletes its own history after about 30
+# days. Tokens are uncached input plus output; cents are estimates at API list prices; unpriced is 1 when some tokens had no price
+# (cents are a lower bound), else 0. On change; snapshot on DASH_WATCH bit3.
 TEXT 34 SPEND
 # Laptop to phone: "tempTenthsC/wmoCode/city", city Clean(24). Empty means none.
 TEXT 35 WEATHER
