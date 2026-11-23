@@ -66,6 +66,7 @@ final class MacDashboard {
     /// At launch: makes what the saved switches ask for, and re-stamps a connected agent's copy when the app moved or
     /// was updated (the Integrations window says so when it opens).
     func start() {
+        signIn.migrate()
         apply()
         guard Self.agentKeys.contains(where: settings.active) else { return }
         Task { @MainActor [weak self] in _ = await self?.ensureCurrent() }

@@ -12,10 +12,9 @@ enum RefreshOutcome: Equatable {
 
 /// Exchanges the refresh token of a GitHub App user token for a new access token (GitHub docs, "Refreshing user access
 /// tokens"). A token made by the device flow needs no client secret to be refreshed, so none is sent or kept. Each
-/// refresh returns a new refresh token and kills the old one. A token that does not expire (no refresh token saved) is
-/// never refreshed. The twin of the laptop core's GitHubTokenRefresh; unlike it, two refreshes may overlap (only the
-/// sign-in window's login lookup runs outside the API's own one-at-a-time guard), so a refusal of a refresh token that
-/// has meanwhile been replaced counts as the other refresh's success.
+/// refresh returns a new refresh token and kills the old one, so refreshes never overlap: a second caller waits for the
+/// first one's answer. A token that does not expire (no refresh token saved) is never refreshed. The twin of the laptop
+/// core's GitHubTokenRefresh.
 final class GitHubTokenRefresh {
     private static let maxBytes = 16 * 1024
     private static let maxLifeSeconds = 31 * 24 * 3600
@@ -28,6 +27,11 @@ final class GitHubTokenRefresh {
     private let clientId: String
     private let http: HttpSender
     private let now: () -> Date
+
+    // One flight per store, shared by every GitHubApi on it (the window's login lookup builds its own), so refreshes
+    // never overlap.
+    private static let flights = NSLock()
+    private static var running: [ObjectIdentifier: Task<RefreshOutcome, Never>] = [:]
 
     init(store: SecretStore, clientId: String, http: HttpSender, clock: @escaping () -> Date) {
         self.store = store
@@ -50,6 +54,23 @@ final class GitHubTokenRefresh {
     }
 
     func refresh() async -> RefreshOutcome {
+        let task = Self.flights.withLock { () -> Task<RefreshOutcome, Never> in
+            let key = ObjectIdentifier(store)
+            if let running = Self.running[key] { return running }
+            let made = Task { await self.exchange() }
+            Self.running[key] = made
+            return made
+        }
+        let outcome = await task.value
+        Self.flights.withLock {
+            if Self.running[ObjectIdentifier(store)] == task { Self.running[ObjectIdentifier(store)] = nil }
+        }
+        return outcome
+    }
+
+    /// The exchange itself, in a task of its own: a caller that is cancelled while it runs cannot lose the new refresh
+    /// token, and the 15 s timeout bounds it.
+    private func exchange() async -> RefreshOutcome {
         guard let sent = store.get(GitHubApp.refreshName), GitHubApp.isToken(sent) else {
             GitHubApp.forget(store)
             return .rejected
@@ -64,9 +85,16 @@ final class GitHubTokenRefresh {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("Edgepad", forHTTPHeaderField: "User-Agent")
         let reply = await http.send(request, maxBytes: Self.maxBytes, what: "Renewing the GitHub sign-in")
-        guard let reply, let root = JsonRead.object(reply.body, maxDepth: 64) else { return .unavailable }
-        if root["error"] is String {
-            // GitHub answers a refused refresh token with 200 and an error; a busy server says nothing of the kind.
+        guard let reply else { return .unavailable }
+        if reply.status == 401 {
+            GitHubApp.forget(store)
+            return .rejected
+        }
+        guard let root = JsonRead.object(reply.body, maxDepth: 64) else { return .unavailable }
+        if let error = root["error"] as? String {
+            // GitHub answers a refused refresh token with 200 and bad_refresh_token. Any other error (a busy server, a
+            // misunderstanding) keeps the tokens for the next try.
+            guard error == "bad_refresh_token" else { return .unavailable }
             if store.get(GitHubApp.refreshName) != sent { return .refreshed }
             GitHubApp.forget(store)
             return .rejected

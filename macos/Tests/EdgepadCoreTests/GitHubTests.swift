@@ -98,13 +98,13 @@ final class TestClock {
 
 final class GitHubSignInTests: XCTestCase {
     private let client = "Ov23liTestClient0001"
-    private let token = "gho_SecretTokenValue1234567890abcdef"
+    private let token = "ghu_SecretTokenValue1234567890abcdef"
     private let code =
         #"{"device_code":"3584d83530557fdd1f46af8289938c8ef79f9dc5","user_code":"WDJB-MJHT","#
         + #""verification_uri":"https://github.com/login/device","expires_in":900,"interval":5}"#
     private let pending = #"{"error":"authorization_pending"}"#
     private let slowDown = #"{"error":"slow_down","interval":10}"#
-    private let granted = #"{"access_token":"gho_SecretTokenValue1234567890abcdef","token_type":"bearer"}"#
+    private let granted = #"{"access_token":"ghu_SecretTokenValue1234567890abcdef","token_type":"bearer"}"#
 
     private let clock = TestClock()
     private let secrets = MemorySecrets()
@@ -511,7 +511,66 @@ final class GitHubApiTests: XCTestCase {
         XCTAssertTrue(http.seen.isEmpty)
     }
 
+    func testATokenOfTheNewKindWithNoRecordIsKeptAndTheRecordIsWritten() {
+        secrets.delete(GitHubApp.clientName)
+        GitHubApp.migrate(secrets, GitHubApp.clientId)
+        XCTAssertEqual(secrets.get(GitHubApp.tokenName), token)
+        XCTAssertEqual(secrets.get(GitHubApp.clientName), GitHubApp.clientId)
+    }
+
+    func testAnOldKindOfTokenIsDeletedEvenWithTheNewRecord() {
+        _ = secrets.set(GitHubApp.tokenName, "gho_OldOAuthAppToken1234567890")
+        GitHubApp.migrate(secrets, GitHubApp.clientId)
+        XCTAssertNil(secrets.get(GitHubApp.tokenName))
+        XCTAssertTrue(GitHubApp.needsReSignIn(secrets))
+    }
+
+    func testASaveWritesTheRefreshTokenFirstThenTheTokenTheExpiryAndTheRecord() {
+        let recording = RecordingSecrets()
+        let saved = GitHubApp.save(
+            recording, GitHubApp.clientId, access: token, refresh: refreshToken, expires: clock.now.addingTimeInterval(60))
+        XCTAssertTrue(saved)
+        XCTAssertEqual(
+            recording.written, [GitHubApp.refreshName, GitHubApp.tokenName, GitHubApp.expiresName, GitHubApp.clientName])
+    }
+
+    func testOtherRefreshErrorsKeepTheTokensAndOnlyBadRefreshTokenSignsOut() async {
+        expiring(in: 60)
+        let http = FakeHttp { _ in FakeHttp.json200(#"{"error":"temporarily_unavailable"}"#) }
+
+        let result = await newApi(http).refresh()
+
+        XCTAssertNotEqual(result.result, .noPermission)
+        XCTAssertEqual(secrets.get(GitHubApp.tokenName), token)
+        XCTAssertEqual(secrets.get(GitHubApp.refreshName), refreshToken)
+    }
+
+    func testA401OnTheRefreshSignsOut() async {
+        expiring(in: 60)
+        let http = FakeHttp { _ in HttpReply(status: 401) }
+
+        let result = await newApi(http).refresh()
+
+        XCTAssertEqual(result.result, .noPermission)
+        XCTAssertNil(secrets.get(GitHubApp.refreshName))
+    }
+
+    func testTwoClientsOnOneStoreRefreshOnlyOnce() async {
+        expiring(in: 60)
+        let http = routes(renewed)
+        let first = newApi(http)
+        let second = newApi(http)
+
+        async let one = first.refresh()
+        async let two = second.refresh()
+        _ = await (one, two)
+
+        XCTAssertEqual(http.seen.filter { $0.url == "https://github.com/login/oauth/access_token" }.count, 1)
+        XCTAssertEqual(secrets.get(GitHubApp.tokenName), newToken)
+    }
+
     func testATokenFromTheOldOAuthAppIsDeletedAndNobodyIsAsked() async {
+        _ = secrets.set(GitHubApp.tokenName, "gho_OldOAuthAppToken1234567890")
         secrets.delete(GitHubApp.clientName)
         let http = serve(GitHubParseTests.normal)
 
@@ -750,4 +809,18 @@ final class GitHubApiTests: XCTestCase {
                 GitHubRefresh.shouldRun(last: lastDate, now: base + TimeInterval(now), watchBit4: watched), expected)
         }
     }
+}
+
+/// Records the order the names were written in.
+final class RecordingSecrets: SecretStore {
+    private(set) var written: [String] = []
+
+    func get(_ name: String) -> String? { nil }
+
+    func set(_ name: String, _ value: String) -> Bool {
+        written.append(name)
+        return true
+    }
+
+    func delete(_ name: String) {}
 }

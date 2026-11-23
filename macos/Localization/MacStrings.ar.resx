@@ -647,7 +647,7 @@
     <value>اختر المستودعات على GitHub</value>
   </data>
   <data name="Integrations_ReSignIn" xml:space="preserve">
-    <value>سجّل الدخول مجددًا. يستخدم Edgepad الآن وصولًا للقراءة فقط إلى GitHub.</value>
+    <value>سجّل الدخول مجددًا. يستخدم Edgepad الآن وصولًا للقراءة فقط إلى GitHub. ألغِ وصول Edgepad القديم من https://github.com/settings/applications.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>تم تسجيل الدخول باسم {0}</value>

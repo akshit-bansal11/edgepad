@@ -28,6 +28,7 @@ public enum GitHubApp {
     public static let installUrl = "https://github.com/apps/edgepad-dashboard/installations/new"
 
     private static let maxClientId = 64
+    private static let tokenPrefix = "ghu_"
     private static let maxToken = 255
 
     /// The page the user opens to type the code; always this constant, never an address a server sent.
@@ -49,10 +50,16 @@ public enum GitHubApp {
         return token.unicodeScalars.allSatisfy { isAsciiLetterOrDigit($0) || $0 == "_" }
     }
 
-    /// A saved token that no record says `clientId` issued came from the old OAuth app: it is deleted and the "sign in
-    /// again" note is left. Idempotent; a token saved by a sign-in always carries the record.
+    /// A saved token from the old OAuth app (it does not start with `ghu_`, which every GitHub App user token does, or
+    /// the record names another client) is deleted and the "sign in again" note is left. A `ghu_` token with no record
+    /// is one whose save stopped before the record: it is kept and the record is written. Idempotent.
     static func migrate(_ store: SecretStore, _ clientId: String) {
-        guard store.get(tokenName) != nil, store.get(clientName) != clientId else { return }
+        guard let token = store.get(tokenName) else { return }
+        let record = store.get(clientName)
+        if token.hasPrefix(tokenPrefix), record == nil || record == clientId {
+            if record == nil { _ = store.set(clientName, clientId) }
+            return
+        }
         forget(store)
         _ = store.set(reSignInName, "1")
     }
@@ -62,19 +69,24 @@ public enum GitHubApp {
         store.get(reSignInName) == "1" && store.get(tokenName) == nil
     }
 
-    /// Saves a token with its record; false when the access token could not be saved (nothing half-saved stays).
+    /// Saves a token with its record; false when it could not be saved (nothing half-saved stays). The refresh token
+    /// goes first, then the access token, the expiry and the record, so a stop at any point leaves a pair that works or
+    /// one that refreshes.
     static func save(
         _ store: SecretStore, _ clientId: String, access: String, refresh: String?, expires: Date?
     ) -> Bool {
-        var saved = store.set(tokenName, access) && store.set(clientName, clientId)
-        if saved, let refresh, let expires {
+        let saved: Bool
+        if let refresh, let expires {
             let until = String(Int64(expires.timeIntervalSince1970))
-            saved = store.set(refreshName, refresh) && store.set(expiresName, until)
-        } else if saved {
-            store.delete(refreshName)
-            store.delete(expiresName)
+            saved = store.set(refreshName, refresh) && store.set(tokenName, access) && store.set(expiresName, until)
+        } else {
+            saved = store.set(tokenName, access)
+            if saved {
+                store.delete(refreshName)
+                store.delete(expiresName)
+            }
         }
-        guard saved else {
+        guard saved, store.set(clientName, clientId) else {
             forget(store)
             return false
         }
@@ -235,6 +247,12 @@ public final class GitHubSignIn {
     public var isSignedIn: Bool {
         GitHubApp.migrate(store, clientId)
         return GitHubApp.isToken(store.get(GitHubApp.tokenName))
+    }
+
+    /// Deletes a token from the old OAuth app now. The app calls it once at launch, so the old grant goes even if no
+    /// window or phone ever asks.
+    public func migrate() {
+        GitHubApp.migrate(store, clientId)
     }
 
     /// Whether a token from the old OAuth app was deleted and nobody has signed in since: the window says "Sign in

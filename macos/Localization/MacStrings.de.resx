@@ -647,7 +647,7 @@
     <value>Repos auf GitHub auswählen</value>
   </data>
   <data name="Integrations_ReSignIn" xml:space="preserve">
-    <value>Erneut anmelden. Edgepad nutzt jetzt nur lesenden GitHub-Zugriff.</value>
+    <value>Erneut anmelden. Edgepad nutzt jetzt nur lesenden GitHub-Zugriff. Widerrufe das alte Edgepad unter https://github.com/settings/applications.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>Angemeldet als {0}</value>
