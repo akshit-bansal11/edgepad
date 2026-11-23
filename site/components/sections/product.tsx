@@ -387,9 +387,8 @@ export function ProductSections() {
               The app updates itself in place: it checks the release&apos;s signed list
               of file hashes, then replaces itself. Running a newer{" "}
               <C>{DOWNLOADS.windows.file}</C> by hand asks the running copy to quit and
-              takes its place. Starting the
-              same version twice shows &ldquo;Edgepad is already running&rdquo; and the
-              second copy exits.
+              takes its place. Starting the same version twice shows &ldquo;Edgepad is
+              already running&rdquo; and the second copy exits.
             </P>
             <Note label="Optional: ViGEmBus, for the gamepad">
               <p className="mb-3">
@@ -862,17 +861,17 @@ sudo ./install.sh`}
 
         <Sub>Controls, annotate, sign and capture</Sub>
         <P>
-          <strong>Controls</strong> on the surface opens a popup headed Controls, with the
-          edit pencil beside it. Its top row is Controls, Type, Lock and Settings. The
-          tiles fill the popup: Keyboard, Gamepad, Macros, Annotate, Capture, Clipboard,
-          Presenter, Send a file and Stats, and Developer (the AI and Git pages) once
-          Developer mode is on and a tool is connected. A laptop shows only what it can
-          do, so a phone shows no Annotate tile when the laptop does not offer it, and
-          no Capture tile when it cannot capture. Under the tiles, one row of chips
-          holds Hide dials and media, Black out when idle, Air mouse, Floating dials and
-          Sleep when this ends. The Edit chip shows every tile; tap one to hide or show
-          it, and drag to move it. Back from the keyboard, the gamepad and Capture
-          returns to Controls.
+          <strong>Controls</strong> on the surface opens a popup headed Controls, with
+          the edit pencil beside it. Its top row is Controls, Type, Lock and Settings.
+          The tiles fill the popup: Keyboard, Gamepad, Macros, Annotate, Capture,
+          Clipboard, Presenter, Send a file and Stats, and Developer (the AI and Git
+          pages) once Developer mode is on and a tool is connected. A laptop shows only
+          what it can do, so a phone shows no Annotate tile when the laptop does not
+          offer it, and no Capture tile when it cannot capture. Under the tiles, one row
+          of chips holds Hide dials and media, Black out when idle, Air mouse, Floating
+          dials and Sleep when this ends. The Edit chip shows every tile; tap one to
+          hide or show it, and drag to move it. Back from the keyboard, the gamepad and
+          Capture returns to Controls.
         </P>
         <P>
           Annotate draws on the laptop&apos;s primary display, with the phone as an
@@ -921,15 +920,15 @@ sudo ./install.sh`}
         <P>
           A file moves either way, up to 2 GB. On the phone, choose{" "}
           <strong>Controls &gt; Send a file</strong> or use Android&apos;s Share. On a
-          laptop, use the tray or menu-bar row Send a file; Windows also has Explorer&apos;s
-          Send to, the Mac has Open With and a drop on its icon, and Linux has{" "}
-          <C>edgepad --send</C> and a Send to phone entry. Several files go one after
-          another. The phone shows the file name, &ldquo;2 of 5&rdquo;, a bar with
-          percent and speed, and Cancel, then &ldquo;Sent N files&rdquo; or which files
-          failed, with Try again for those. Names are made safe, the SHA-256 is checked,
-          an interrupted transfer resumes, and one file moves at a time per direction.
-          Over Wi-Fi or USB the bytes use a second socket that can only attach to a phone
-          that is already connected.
+          laptop, use the tray or menu-bar row Send a file; Windows also has
+          Explorer&apos;s Send to, the Mac has Open With and a drop on its icon, and
+          Linux has <C>edgepad --send</C> and a Send to phone entry. Several files go
+          one after another. The phone shows the file name, &ldquo;2 of 5&rdquo;, a bar
+          with percent and speed, and Cancel, then &ldquo;Sent N files&rdquo; or which
+          files failed, with Try again for those. Names are made safe, the SHA-256 is
+          checked, an interrupted transfer resumes, and one file moves at a time per
+          direction. Over Wi-Fi or USB the bytes use a second socket that can only
+          attach to a phone that is already connected.
         </P>
 
         <Sub>Presenter and laser pointer</Sub>
@@ -953,28 +952,30 @@ sudo ./install.sh`}
           memory, and only while Share clipboard is on.
         </P>
         <P>
-          <strong>Controls &gt; Stats</strong> has System and Network pages, and a device
-          dropdown for your laptops and this phone. System shows device info, processor,
-          graphics, memory, disks and the battery; Network shows download and upload,
-          ping and a speed test, capped at 25 MB down and 10 MB up, that runs only when
-          you tap it. Turn on System stats in the laptop&apos;s Integrations window. A
-          reading a laptop cannot give shows a dash, and no page shows a Wi-Fi name.
+          <strong>Controls &gt; Stats</strong> has System and Network pages, and a
+          device dropdown for your laptops and this phone. System shows device info,
+          processor, graphics, memory, disks and the battery; Network shows download and
+          upload, ping and a speed test, capped at 25 MB down and 10 MB up, that runs
+          only when you tap it. Turn on System stats in the laptop&apos;s Integrations
+          window. A reading a laptop cannot give shows a dash, and no page shows a Wi-Fi
+          name.
         </P>
 
         <Sub>Trackpad widgets, air mouse and more</Sub>
         <P>
-          <strong>Trackpad widgets</strong> (clock, weather, system, network, and AI usage
-          once connected) sit behind the trackpad and never take a touch: Surface
-          settings &gt; Widgets. <strong>Air mouse</strong> moves the pointer as you tilt
-          the phone while a finger rests on the trackpad, in any grip, and stops when the
-          finger lifts. <strong>Floating dials</strong> draws the dials over other apps
-          and needs Android&apos;s draw-over-apps permission and Stay connected.{" "}
-          <strong>App profiles</strong> switch dials and gestures with the app in front
-          on the laptop; they are off by default and work on Windows, Mac and Linux on X11.{" "}
-          <strong>Sleep when this ends</strong> sleeps or shuts down the laptop when the
-          current video or track ends. Shut down first shows a 60 second countdown
-          (Windows, Mac and Linux). The <strong>Quick Settings tile</strong> and the Stay
-          connected notification&apos;s play/pause and volume buttons are on the phone.{" "}
+          <strong>Trackpad widgets</strong> (clock, weather, system, network, and AI
+          usage once connected) sit behind the trackpad and never take a touch: Surface
+          settings &gt; Widgets. <strong>Air mouse</strong> moves the pointer as you
+          tilt the phone while a finger rests on the trackpad, in any grip, and stops
+          when the finger lifts. <strong>Floating dials</strong> draws the dials over
+          other apps and needs Android&apos;s draw-over-apps permission and Stay
+          connected. <strong>App profiles</strong> switch dials and gestures with the
+          app in front on the laptop; they are off by default and work on Windows, Mac
+          and Linux on X11. <strong>Sleep when this ends</strong> sleeps or shuts down
+          the laptop when the current video or track ends. Shut down first shows a 60
+          second countdown (Windows, Mac and Linux). The{" "}
+          <strong>Quick Settings tile</strong> and the Stay connected
+          notification&apos;s play/pause and volume buttons are on the phone.{" "}
           <strong>Laptop notifications</strong> are off until both sides turn them on,
           and work on Linux only.
         </P>
@@ -986,8 +987,8 @@ sudo ./install.sh`}
           has numbered steps for Claude Code, Codex and GitHub. Their tiles then appear
           in Controls. The AI screen lists usage limits (Claude Code and Codex), spend
           for today, 7 days and 30 days, and the context use of each open Claude Code,
-          Codex, Gemini CLI or OpenCode session. Approval requests can be answered from a
-          sheet over any screen; with no answer in 30 seconds, or on any failure, the
+          Codex, Gemini CLI or OpenCode session. Approval requests can be answered from
+          a sheet over any screen; with no answer in 30 seconds, or on any failure, the
           question stays in the terminal. The Git screen is read-only and lists
           repositories, issues and pull requests from GitHub, GitLab, Gitea, Forgejo,
           Codeberg, Bitbucket and Gitee. The sign-in is stored encrypted on the laptop
@@ -996,8 +997,8 @@ sudo ./install.sh`}
 
         <Sub>What Edgepad uses</Sub>
         <P>
-          A page listing every permission the apps ask for and every network destination,
-          with what each is for. The phone links it on first open and from{" "}
+          A page listing every permission the apps ask for and every network
+          destination, with what each is for. The phone links it on first open and from{" "}
           <strong>Settings &gt; About and updates</strong>; the same content is in{" "}
           <C>docs/DATA-AND-PERMISSIONS.md</C>.
         </P>
@@ -1102,8 +1103,8 @@ sudo ./install.sh`}
         <P>
           If the laptop is older, the phone says &ldquo;Edgepad on LAPTOP is older than
           this app. Update Edgepad on the laptop.&rdquo; If the phone is older it says
-          &ldquo;This app is older than Edgepad on LAPTOP. Update this app in
-          Settings &gt; About and updates.&rdquo; The laptop&apos;s menu names the older half the
+          &ldquo;This app is older than Edgepad on LAPTOP. Update this app in Settings
+          &gt; About and updates.&rdquo; The laptop&apos;s menu names the older half the
           same way. Both halves must come from the same release.
         </P>
 
