@@ -103,6 +103,7 @@
   <string name="git_empty_repos">لا توجد مستودعات لعرضها.</string>
   <string name="git_loading">جارٍ التحميل من الحاسوب المحمول.</string>
   <string name="git_signin">سجّل الدخول إلى مضيف git من قائمة Edgepad على الحاسوب المحمول.</string>
+  <string name="git_install_row">المستودعات الخاصة غير ظاهرة؟ ثبّت Edgepad Dashboard على حسابك</string>
   <string name="git_opening">جارٍ الفتح على الحاسوب المحمول</string>
   <string name="git_item_meta">#%1$s · حُدّث %2$s</string>
   <string name="git_ci_ok">نجحت الفحوصات</string>

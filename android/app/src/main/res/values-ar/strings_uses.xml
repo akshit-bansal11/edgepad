@@ -83,7 +83,7 @@
     <item>من هذا الهاتف ومن تطبيقات اللابتوب، github.com: طلب واحد يسأل عن أحدث إصدار ولا يرسل شيئًا عن جهازك. ويأتي التحديث الذي تختار تنزيله من github.com أيضًا.</item>
     <item>من اللابتوب، فقط عندما تنقر «اختبر السرعة»، speed.cloudflare.com. ينقل بيانات اختبار ولا يرسل شيئًا عنك.</item>
     <item>من اللابتوب، فقط إذا كانت أداة الطقس مفعّلة، api.open-meteo.com وgeocoding-api.open-meteo.com. يُرسل المكان الذي اخترته لإيجاد إحداثياته، ثم يُطلب التوقع.</item>
-    <item>من اللابتوب، فقط بعد أن تسجّل الدخول هناك، وفقط للقراءة: github.com وapi.github.com وgitlab.com أو خادم GitLab الذي تدخله وcodeberg.org أو خادم Gitea أو Forgejo الذي تدخله وapi.bitbucket.org وgitee.com. لا يكتب Edgepad أبدًا: بوابة مدمجة ترفض كل طلب ليس قراءة.</item>
+    <item>من اللابتوب، فقط بعد أن تسجّل الدخول هناك، وفقط للقراءة: github.com وapi.github.com وgitlab.com أو خادم GitLab الذي تدخله وcodeberg.org أو خادم Gitea أو Forgejo الذي تدخله وapi.bitbucket.org وgitee.com. لا يكتب Edgepad أبدًا: بوابة مدمجة ترفض كل طلب ليس قراءة. يستخدم تسجيل الدخول إلى GitHub تطبيق GitHub للقراءة فقط باسم Edgepad Dashboard، ولا يرى إلا المستودعات التي تثبّته عليها.</item>
     <item>من اللابتوب، فقط عند النقر على رابط في متصفحك: getedgepad.com للتوثيق، وصفحة تنزيل ViGEmBus على github.com.</item>
     <item>البحث في تطبيقات الهاتف وWindows وMac وLinux عن عناوين الويب لم يعثر على مضيفات أخرى. لا يوجد حساب، ولا تحليلات، ولا تقارير أعطال، ولا إعلانات.</item>
   </string-array>

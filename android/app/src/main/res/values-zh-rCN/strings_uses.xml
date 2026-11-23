@@ -83,7 +83,7 @@
     <item>github.com，来自此手机及电脑应用：一次请求，用于查询最新版本，不发送你设备的任何信息。你选择下载的更新同样来自 github.com。</item>
     <item>speed.cloudflare.com，仅在你点击“测速”时由电脑发起。它传输测试数据，不发送任何与你相关的信息。</item>
     <item>api.open-meteo.com 和 geocoding-api.open-meteo.com，仅在天气小组件开启时由电脑发起。你选择的地点会被发送以查找坐标，然后再请求天气预报。</item>
-    <item>仅在你于电脑上登录后，且仅用于读取：github.com 和 api.github.com、gitlab.com 或你输入的 GitLab 服务器、codeberg.org 或你输入的 Gitea 或 Forgejo 服务器、api.bitbucket.org，以及 gitee.com。Edgepad 从不写入：内置的门控会拒绝所有非读取请求。</item>
+    <item>仅在你于电脑上登录后，且仅用于读取：github.com 和 api.github.com、gitlab.com 或你输入的 GitLab 服务器、codeberg.org 或你输入的 Gitea 或 Forgejo 服务器、api.bitbucket.org，以及 gitee.com。Edgepad 从不写入：内置的门控会拒绝所有非读取请求。GitHub 登录使用只读的 GitHub 应用 Edgepad Dashboard，它只能看到你安装它的仓库。</item>
     <item>文档所在的 getedgepad.com，以及 github.com 上的 ViGEmBus 下载页面。只有在你点击链接时，浏览器才会打开它们。</item>
     <item>对手机、Windows、Mac 和 Linux 应用中的网址搜索未发现其他主机。没有账户、没有分析、没有崩溃报告，也没有广告。</item>
   </string-array>

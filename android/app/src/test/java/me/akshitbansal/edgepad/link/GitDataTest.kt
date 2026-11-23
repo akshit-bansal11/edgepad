@@ -52,6 +52,21 @@ class GitDataTest {
     }
 
     @Test
+    fun theInstallIndexIsTheNumberOfIndexedLines() {
+        val body =
+            listOf(
+                "H\tgithub\tme\tMe\t1\t1\t9",
+                "P\ta/one\t\tKotlin\t1\t0\t0",
+                "M\ta/one\t3\tFix\t\tnone\topen\t0",
+                "M\ta/bad\t3",
+                "R\ta/one\t4\tReview\t\tok\topen\t0",
+            ).joinToString("\n")
+        val data = GitWire.parse(body.toByteArray())
+        assertEquals(4, data.installIndex)
+        assertEquals("github/9/4", GitWire.openText(data, data.installIndex))
+    }
+
+    @Test
     fun everyHostIdIsItsFeatureToken() {
         assertEquals(
             listOf("github", "gitlab", "gitea", "bitbucket", "gitee"),

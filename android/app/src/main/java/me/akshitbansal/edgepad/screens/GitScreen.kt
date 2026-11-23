@@ -164,9 +164,18 @@ class GitScreen(
             )
             if (data.repos.isEmpty()) note(ui.string(R.string.git_empty_repos))
             data.repos.forEach { add(repo(data, it)) }
+            if (data.host == GitHost.GITHUB.id) add(installRow(data))
             add(View(ui.context), height = ui.dp(Space.S))
         }
     }
+
+    /** A quiet line under GitHub's repositories: the laptop opens the page where the read-only App is installed. */
+    private fun installRow(data: GitData): View =
+        ui.secondary(ui.string(R.string.git_install_row), Type.MICRO).apply {
+            minimumHeight = ui.dp(Space.TOUCH)
+            gravity = Gravity.CENTER_VERTICAL
+            ui.tappable(this) { open(GitWire.openText(data, data.installIndex)) }
+        }
 
     /** The avatar (a drawn initial), the name, and `@login · n repos · n followers`. */
     private fun who(data: GitData): LinearLayout {

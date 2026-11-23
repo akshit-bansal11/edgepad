@@ -83,7 +83,7 @@
     <item>github.com。このスマホと、ノートPCのアプリから: 最新バージョンを問い合わせる1回のリクエストで、お使いの端末に関する情報は送りません。ダウンロードを選んだアップデートも、github.comから届きます。</item>
     <item>speed.cloudflare.com。ノートPCから、「速度をテスト」をタップしたときだけ。テストデータを送受信し、あなたに関する情報は送りません。</item>
     <item>api.open-meteo.comとgeocoding-api.open-meteo.com。ノートPCから、天気ウィジェットがオンのときだけ。選んだ場所は座標を調べるために送られ、その後に予報が要求されます。</item>
-    <item>ノートPCでサインインした後にだけ、読み取り専用で: github.comとapi.github.com、gitlab.comまたはご自身で入力したGitLabサーバー、codeberg.orgまたはご自身で入力したGiteaまたはForgejoサーバー、api.bitbucket.org、gitee.com。Edgepadが書き込むことは決してありません。組み込みのゲートが、読み取り以外のリクエストをすべて拒否します。</item>
+    <item>ノートPCでサインインした後にだけ、読み取り専用で: github.comとapi.github.com、gitlab.comまたはご自身で入力したGitLabサーバー、codeberg.orgまたはご自身で入力したGiteaまたはForgejoサーバー、api.bitbucket.org、gitee.com。Edgepadが書き込むことは決してありません。組み込みのゲートが、読み取り以外のリクエストをすべて拒否します。GitHubへのサインインには、読み取り専用のGitHub App「Edgepad Dashboard」を使います。インストールしたリポジトリだけが見えます。</item>
     <item>ドキュメント用のgetedgepad.com、そしてgithub.com上のViGEmBusダウンロードページ。ブラウザが開くのは、リンクをタップしたときだけです。</item>
     <item>スマホ、Windows、Mac、Linuxの各アプリでWebアドレスを検索したところ、他のホストは見つかりませんでした。アカウント、アクセス解析、クラッシュレポート、広告はありません。</item>
   </string-array>

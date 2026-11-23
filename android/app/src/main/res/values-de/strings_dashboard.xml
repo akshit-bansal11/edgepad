@@ -87,6 +87,7 @@
   <string name="git_empty_repos">Keine Repositories zum Anzeigen.</string>
   <string name="git_loading">Wird von deinem Laptop geladen.</string>
   <string name="git_signin">Melde dich im Edgepad-Menü auf deinem Laptop bei einem Git-Host an.</string>
+  <string name="git_install_row">Private Repos fehlen? Installiere Edgepad Dashboard auf deinem Konto</string>
   <string name="git_opening">Wird auf deinem Laptop geöffnet</string>
   <string name="git_item_meta">#%1$s · aktualisiert %2$s</string>
   <string name="git_ci_ok">Prüfungen bestanden</string>

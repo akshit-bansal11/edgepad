@@ -110,6 +110,8 @@ data class GitData(
     val rev: Long,
     val repos: List<GitRepo>,
     val items: List<GitItem>,
+    /** What `GitOpen` names for the laptop's one extra address (GitHub's repository choice): the lines counted. */
+    val installIndex: Int = 0,
 ) {
     /** The items of [section], grouped by repository in the order each repository first appears. */
     fun grouped(section: GitSection): List<Pair<String, List<GitItem>>> =
@@ -183,7 +185,7 @@ object GitWire {
             }
         }
         if (old.isNotEmpty()) items += oldItems(old.toString())
-        return GitData(host, login, name, repoCount, followers, rev, repos, items)
+        return GitData(host, login, name, repoCount, followers, rev, repos, items, index)
     }
 
     /** The text of a `GitOpen` for the line at [index] of the page [data]: `host/rev/index`, never an address. */

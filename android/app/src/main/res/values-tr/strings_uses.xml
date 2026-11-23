@@ -83,7 +83,7 @@
     <item>github.com, bu telefondan ve bilgisayar uygulamalarından: en yeni sürümü soran ve cihazınız hakkında hiçbir şey göndermeyen tek bir istek. Seçtiğiniz bir güncelleme indirilirse o da github.com’dan gelir.</item>
     <item>speed.cloudflare.com, bilgisayardan, yalnızca Hızı test et’e dokunduğunuzda. Test verisi taşır, sizinle ilgili hiçbir şey göndermez.</item>
     <item>api.open-meteo.com ve geocoding-api.open-meteo.com, bilgisayardan, yalnızca hava durumu bileşeni açıksa. Seçtiğiniz yer koordinatlarını bulmak için gönderilir, ardından tahmin istenir.</item>
-    <item>Yalnızca bilgisayarda oturum açtıktan sonra ve yalnızca okumak için bilgisayardan: github.com ve api.github.com, gitlab.com ya da girdiğiniz GitLab sunucusu, codeberg.org ya da girdiğiniz Gitea ya da Forgejo sunucusu, api.bitbucket.org ve gitee.com. Edgepad hiçbir zaman yazmaz: yerleşik bir kapı okuma olmayan her isteği reddeder.</item>
+    <item>Yalnızca bilgisayarda oturum açtıktan sonra ve yalnızca okumak için bilgisayardan: github.com ve api.github.com, gitlab.com ya da girdiğiniz GitLab sunucusu, codeberg.org ya da girdiğiniz Gitea ya da Forgejo sunucusu, api.bitbucket.org ve gitee.com. Edgepad hiçbir zaman yazmaz: yerleşik bir kapı okuma olmayan her isteği reddeder. GitHub girişi salt okunur bir GitHub uygulaması olan Edgepad Dashboard’u kullanır; yalnızca onu yüklediğiniz depoları görür.</item>
     <item>Belgeler için getedgepad.com ve github.com üzerindeki ViGEmBus indirme sayfası. Tarayıcınız bunları yalnızca bir bağlantıya dokunduğunuzda açar.</item>
     <item>Telefon, Windows, Mac ve Linux uygulamalarında yapılan web adresi aramasında başka hiçbir sunucu bulunmadı. Hesap, analiz, çökme raporu ve reklam yok.</item>
   </string-array>

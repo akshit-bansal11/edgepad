@@ -86,7 +86,7 @@
     <item>github.com, from this phone and from the laptop apps: one request that asks for the newest version and sends nothing about your device. An update you choose to download comes from github.com too.</item>
     <item>speed.cloudflare.com, from the laptop, only when you tap Test speed. It moves test data and sends nothing about you.</item>
     <item>api.open-meteo.com and geocoding-api.open-meteo.com, from the laptop, only if the weather widget is on. The place you chose is sent to find its coordinates, then the forecast is asked for.</item>
-    <item>From the laptop, only after you sign in there, and only to read: github.com and api.github.com, gitlab.com or the GitLab server you enter, codeberg.org or the Gitea or Forgejo server you enter, api.bitbucket.org, and gitee.com. Edgepad never writes: a built-in gate refuses every request that is not a read.</item>
+    <item>From the laptop, only after you sign in there, and only to read: github.com and api.github.com, gitlab.com or the GitLab server you enter, codeberg.org or the Gitea or Forgejo server you enter, api.bitbucket.org, and gitee.com. Edgepad never writes: a built-in gate refuses every request that is not a read. GitHub sign-in uses a read-only GitHub App, Edgepad Dashboard, which sees only the repositories you install it on.</item>
     <item>getedgepad.com for the documentation, and the ViGEmBus download page on github.com. Your browser opens them only when you tap a link.</item>
     <item>A search of the phone, Windows, Mac and Linux apps for web addresses found no other host. There is no account, no analytics, no crash reporting and no advertising.</item>
   </string-array>

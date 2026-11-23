@@ -91,6 +91,7 @@
   <string name="git_empty_repos">Aucun dépôt à afficher.</string>
   <string name="git_loading">Chargement depuis votre ordinateur portable.</string>
   <string name="git_signin">Connectez-vous à un hôte git dans le menu Edgepad de votre ordinateur portable.</string>
+  <string name="git_install_row">Dépôts privés absents ? Installez Edgepad Dashboard sur votre compte</string>
   <string name="git_opening">Ouverture sur votre ordinateur portable</string>
   <string name="git_item_meta">#%1$s · mis à jour %2$s</string>
   <string name="git_ci_ok">Vérifications réussies</string>

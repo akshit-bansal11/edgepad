@@ -83,7 +83,7 @@
     <item>github.com. 이 휴대전화와 노트북 앱에서: 최신 버전을 요청하는 요청 한 번이며, 내 기기에 대한 정보는 보내지 않아요. 내려받기로 선택한 업데이트도 github.com에서 와요.</item>
     <item>speed.cloudflare.com. 노트북에서, ‘속도 테스트’를 눌렀을 때만. 테스트 데이터를 주고받으며 나에 대한 정보는 보내지 않아요.</item>
     <item>api.open-meteo.com과 geocoding-api.open-meteo.com. 노트북에서, 날씨 위젯을 켰을 때만. 선택한 위치는 좌표를 찾기 위해 보내고, 그다음 예보를 요청해요.</item>
-    <item>노트북에서 로그인한 후에만, 그리고 읽기만: github.com과 api.github.com, gitlab.com 또는 내가 입력한 GitLab 서버, codeberg.org 또는 내가 입력한 Gitea나 Forgejo 서버, api.bitbucket.org, gitee.com. Edgepad는 절대 쓰지 않아요. 내장된 게이트가 읽기가 아닌 모든 요청을 막아요.</item>
+    <item>노트북에서 로그인한 후에만, 그리고 읽기만: github.com과 api.github.com, gitlab.com 또는 내가 입력한 GitLab 서버, codeberg.org 또는 내가 입력한 Gitea나 Forgejo 서버, api.bitbucket.org, gitee.com. Edgepad는 절대 쓰지 않아요. 내장된 게이트가 읽기가 아닌 모든 요청을 막아요. GitHub 로그인은 읽기 전용 GitHub 앱인 Edgepad Dashboard를 사용해요. 이 앱은 설치한 저장소만 볼 수 있어요.</item>
     <item>문서용 getedgepad.com, 그리고 github.com의 ViGEmBus 다운로드 페이지. 링크를 눌렀을 때만 브라우저가 열어 줘요.</item>
     <item>휴대전화, Windows, Mac, Linux 앱에서 웹 주소를 검색한 결과 다른 호스트는 없었어요. 계정, 분석, 충돌 보고, 광고가 없어요.</item>
   </string-array>

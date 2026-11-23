@@ -83,6 +83,7 @@
   <string name="git_empty_repos">没有可显示的仓库。</string>
   <string name="git_loading">正在从笔记本电脑加载。</string>
   <string name="git_signin">在笔记本电脑的 Edgepad 菜单中登录 Git 主机。</string>
+  <string name="git_install_row">看不到私有仓库？请在你的账户上安装 Edgepad Dashboard</string>
   <string name="git_opening">正在笔记本电脑上打开</string>
   <string name="git_item_meta">#%1$s · 更新于 %2$s</string>
   <string name="git_ci_ok">检查已通过</string>

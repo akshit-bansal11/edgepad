@@ -83,6 +83,7 @@
   <string name="git_empty_repos">表示できるリポジトリはありません。</string>
   <string name="git_loading">ノートパソコンから読み込み中です。</string>
   <string name="git_signin">ノートパソコンの Edgepad メニューで Git ホストにサインインしてください。</string>
+  <string name="git_install_row">プライベートリポジトリが表示されない場合は、アカウントに Edgepad Dashboard をインストールしてください</string>
   <string name="git_opening">ノートパソコンで開いています</string>
   <string name="git_item_meta">#%1$s · %2$s更新</string>
   <string name="git_ci_ok">チェック成功</string>

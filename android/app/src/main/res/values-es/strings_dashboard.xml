@@ -91,6 +91,7 @@
   <string name="git_empty_repos">No hay repositorios que mostrar.</string>
   <string name="git_loading">Cargando desde tu portátil.</string>
   <string name="git_signin">Inicia sesión en un host de git en el menú de Edgepad en tu portátil.</string>
+  <string name="git_install_row">¿Faltan repos privados? Instala Edgepad Dashboard en tu cuenta</string>
   <string name="git_opening">Abriendo en tu portátil</string>
   <string name="git_item_meta">#%1$s · actualizado %2$s</string>
   <string name="git_ci_ok">Comprobaciones superadas</string>

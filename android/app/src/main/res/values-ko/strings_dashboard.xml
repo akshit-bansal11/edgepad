@@ -83,6 +83,7 @@
   <string name="git_empty_repos">표시할 저장소가 없습니다.</string>
   <string name="git_loading">노트북에서 불러오는 중입니다.</string>
   <string name="git_signin">노트북의 Edgepad 메뉴에서 Git 호스트에 로그인해 주세요.</string>
+  <string name="git_install_row">비공개 저장소가 보이지 않나요? 계정에 Edgepad Dashboard를 설치하세요</string>
   <string name="git_opening">노트북에서 여는 중입니다</string>
   <string name="git_item_meta">#%1$s · %2$s 업데이트</string>
   <string name="git_ci_ok">검사 통과</string>

@@ -83,7 +83,7 @@
     <item>github.com, z tego telefonu i z aplikacji na laptopie: jedno żądanie o najnowszą wersję, bez wysyłania czegokolwiek o urządzeniu. Aktualizacja, którą wybierzesz do pobrania, też pochodzi z github.com.</item>
     <item>speed.cloudflare.com, z laptopa, tylko gdy stukniesz Testuj prędkość. Przesyła dane testowe i nie wysyła nic o Tobie.</item>
     <item>api.open-meteo.com i geocoding-api.open-meteo.com, z laptopa, tylko gdy widżet pogody jest włączony. Wybrane miejsce jest wysyłane, by znaleźć jego współrzędne, a potem pobierana jest prognoza.</item>
-    <item>Z laptopa, tylko po zalogowaniu tam i tylko do odczytu: github.com i api.github.com, gitlab.com lub wpisany przez Ciebie serwer GitLab, codeberg.org lub wpisany przez Ciebie serwer Gitea albo Forgejo, api.bitbucket.org oraz gitee.com. Edgepad nigdy nie zapisuje: wbudowana bramka odrzuca każde żądanie, które nie jest odczytem.</item>
+    <item>Z laptopa, tylko po zalogowaniu tam i tylko do odczytu: github.com i api.github.com, gitlab.com lub wpisany przez Ciebie serwer GitLab, codeberg.org lub wpisany przez Ciebie serwer Gitea albo Forgejo, api.bitbucket.org oraz gitee.com. Edgepad nigdy nie zapisuje: wbudowana bramka odrzuca każde żądanie, które nie jest odczytem. Logowanie do GitHuba używa aplikacji GitHub tylko do odczytu, Edgepad Dashboard, która widzi tylko te repozytoria, na których ją zainstalujesz.</item>
     <item>getedgepad.com dla dokumentacji oraz strona pobierania ViGEmBus na github.com. Przeglądarka otwiera je tylko wtedy, gdy stukniesz link.</item>
     <item>Przeszukanie aplikacji na telefon, Windows, Mac i Linux pod kątem adresów internetowych nie znalazło innych hostów. Nie ma konta, analityki, raportowania awarii ani reklam.</item>
   </string-array>

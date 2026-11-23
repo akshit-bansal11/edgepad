@@ -95,6 +95,7 @@
   <string name="git_empty_repos">Нет репозиториев для показа.</string>
   <string name="git_loading">Загрузка с ноутбука.</string>
   <string name="git_signin">Войдите в git-хостинг в меню Edgepad на ноутбуке.</string>
+  <string name="git_install_row">Не видно закрытых репозиториев? Установите Edgepad Dashboard на свой аккаунт</string>
   <string name="git_opening">Открывается на ноутбуке</string>
   <string name="git_item_meta">#%1$s · обновлено %2$s</string>
   <string name="git_ci_ok">Проверки пройдены</string>

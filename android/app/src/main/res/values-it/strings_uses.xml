@@ -83,7 +83,7 @@
     <item>github.com, da questo telefono e dalle app del portatile: una richiesta che chiede la versione più recente e non invia nulla sul tuo dispositivo. Anche un aggiornamento che scegli di scaricare arriva da github.com.</item>
     <item>speed.cloudflare.com, dal portatile, solo quando tocchi Prova la velocità. Sposta dati di prova e non invia nulla su di te.</item>
     <item>api.open-meteo.com e geocoding-api.open-meteo.com, dal portatile, solo se il widget meteo è attivo. La località scelta viene inviata per trovarne le coordinate, poi viene richiesta la previsione.</item>
-    <item>Dal portatile, solo dopo che accedi lì, e solo per leggere: github.com e api.github.com, gitlab.com o il server GitLab che inserisci, codeberg.org o il server Gitea o Forgejo che inserisci, api.bitbucket.org e gitee.com. Edgepad non scrive mai: un filtro integrato rifiuta ogni richiesta che non sia una lettura.</item>
+    <item>Dal portatile, solo dopo che accedi lì, e solo per leggere: github.com e api.github.com, gitlab.com o il server GitLab che inserisci, codeberg.org o il server Gitea o Forgejo che inserisci, api.bitbucket.org e gitee.com. Edgepad non scrive mai: un filtro integrato rifiuta ogni richiesta che non sia una lettura. L’accesso a GitHub usa una app GitHub di sola lettura, Edgepad Dashboard, che vede solo i repository su cui la installi.</item>
     <item>getedgepad.com per la documentazione, e la pagina di download di ViGEmBus su github.com. Il tuo browser le apre solo quando tocchi un link.</item>
     <item>Una ricerca nelle app Android, Windows, Mac e Linux di Edgepad per indirizzi web non ha trovato altri host. Non ci sono account, analisi, segnalazioni di arresti anomali né pubblicità.</item>
   </string-array>

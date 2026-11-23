@@ -95,6 +95,7 @@
   <string name="git_empty_repos">Brak repozytoriów do pokazania.</string>
   <string name="git_loading">Wczytywanie z laptopa.</string>
   <string name="git_signin">Zaloguj się do hosta git w menu Edgepad na laptopie.</string>
+  <string name="git_install_row">Brakuje prywatnych repozytoriów? Zainstaluj Edgepad Dashboard na swoim koncie</string>
   <string name="git_opening">Otwieranie na laptopie</string>
   <string name="git_item_meta">#%1$s · zaktualizowano %2$s</string>
   <string name="git_ci_ok">Sprawdzenia zaliczone</string>
