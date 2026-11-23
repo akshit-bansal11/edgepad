@@ -264,8 +264,9 @@ public sealed class ClaudeSpendTests : IDisposable
         watcher.Poll();
 
         Assert.Equal(45, Spend.Snapshot().Single().CentsToday);
-        Assert.Equal(2, opened.Count(p => p == path));
-        Assert.DoesNotContain(other, opened);
+        // Transcript() joins with a forward slash; the watcher opens the normalised full path.
+        Assert.Equal(2, opened.Count(p => p == Path.GetFullPath(path)));
+        Assert.DoesNotContain(Path.GetFullPath(other), opened);
     }
 
     // Short junk lines; each 1 MB chunk ends mid-line, so the file's end is never a line end.
