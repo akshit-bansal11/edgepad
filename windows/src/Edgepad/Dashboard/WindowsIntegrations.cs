@@ -86,7 +86,14 @@ internal sealed partial class WindowsIntegrations : IDisposable
             ["bitbucket"] = new BitbucketHost(Secrets, Settings),
             ["gitee"] = new GiteeHost(Secrets, Settings),
         };
+        ((GitLabHost)gitHosts["gitlab"]).Expired += () => GitLabExpired?.Invoke();
     }
+
+    /// <summary>GitLab refused to renew the gitlab.com sign-in. Raised on a refresh thread; the tray shows the notice.</summary>
+    public event Action? GitLabExpired;
+
+    /// <summary>Whether the gitlab.com sign-in expired and none has been made since, for the window's notice.</summary>
+    public bool GitLabSignInExpired => gitHosts["gitlab"] is GitLabHost { SignInExpired: true };
 
     /// <summary>An agent started working with Edgepad (its first hook since Connect, or Codex trusted). Raised on a hook thread.</summary>
     public event Action? Trusted;

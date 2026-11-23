@@ -562,6 +562,15 @@
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>在你的服务器上创建一个仅有 read_api 范围的个人访问令牌，然后粘贴到下方。</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>GitLab 登录已过期 — 请重新登录</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>改用令牌</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>在 gitlab.com 上创建仅含 read_api 范围的个人访问令牌，然后粘贴到下方。与登录不同，它不会在 2 小时后失效。</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>用户名或邮箱</value>
   </data>

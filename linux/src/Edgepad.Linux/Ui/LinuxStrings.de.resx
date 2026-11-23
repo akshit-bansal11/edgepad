@@ -562,6 +562,15 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>Erstelle auf deinem Server ein persönliches Zugriffstoken nur mit dem Scope read_api und füge es unten ein.</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>GitLab-Anmeldung abgelaufen — melde dich erneut an</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Stattdessen ein Token verwenden</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>Erstelle auf gitlab.com ein persönliches Zugriffstoken nur mit dem Scope read_api und füge es unten ein. Anders als die Anmeldung läuft es nicht nach 2 Stunden ab.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Benutzername oder E-Mail</value>
   </data>

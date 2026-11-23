@@ -48,6 +48,7 @@ internal sealed class DevelopersWindow : Form
     private readonly FlatButton copyCode;
     private readonly LinkButton chooseRepos;
     private readonly LinkButton selfHost;
+    private readonly LinkButton useToken;
     private readonly Label hintLabel = new() { AutoSize = false, UseMnemonic = false };
 
     // The inline form a token host's Add opens (one at a time).
@@ -73,6 +74,9 @@ internal sealed class DevelopersWindow : Form
 
     private Font? mono;
     private DevRow? editing;
+
+    // The open form is GitLab's "Use a token instead": gitlab.com, so no address field and the address is GitLabApp.ComUrl.
+    private bool comToken;
     private bool saving;
     private string saveError = string.Empty;
 
@@ -126,6 +130,7 @@ internal sealed class DevelopersWindow : Form
         copyCode = new FlatButton(Strings.Integrations_Copy, ButtonKind.Outline, palette);
         chooseRepos = new LinkButton(palette) { Text = Strings.Integrations_ChooseRepos, AccessibleName = Strings.Integrations_ChooseRepos };
         selfHost = new LinkButton(palette) { Text = Strings.Dev_GitLabServer, AccessibleName = Strings.Dev_GitLabServer };
+        useToken = new LinkButton(palette) { Text = Strings.Dev_GitLabUseToken, AccessibleName = Strings.Dev_GitLabUseToken };
         saveButton = new FlatButton(Strings.Common_Save, ButtonKind.Primary, palette);
         cancelForm = new FlatButton(Strings.Common_Cancel, ButtonKind.Outline, palette);
         codeBackdrop = new Backdrop(palette);
@@ -152,6 +157,7 @@ internal sealed class DevelopersWindow : Form
         };
         openPage.Click += (_, _) => actions.Open(openUrl, openName);
         selfHost.Click += (_, _) => OpenForm(rows.First(r => r.Provider.Id == "gitlab"));
+        useToken.Click += (_, _) => OpenForm(rows.First(r => r.Provider.Id == "gitlab"), com: true);
         copyCode.Click += (_, _) =>
         {
             if (shownCode is { } text)
@@ -199,7 +205,7 @@ internal sealed class DevelopersWindow : Form
             Controls.AddRange(row.Controls);
         }
 
-        Controls.AddRange([codeLabel, waiting, openPage, copyCode, chooseRepos, selfHost, hintLabel, urlLabel, urlFrame, userLabel, userFrame, tokenLabel, tokenFrame, errorLabel, saveButton, cancelForm, close]);
+        Controls.AddRange([codeLabel, waiting, openPage, copyCode, chooseRepos, selfHost, useToken, hintLabel, urlLabel, urlFrame, userLabel, userFrame, tokenLabel, tokenFrame, errorLabel, saveButton, cancelForm, close]);
 
         // Last, so the panel sits behind the labels drawn on it (a control added later is further back).
         Controls.Add(codeBackdrop);
@@ -623,10 +629,11 @@ internal sealed class DevelopersWindow : Form
         Relayout();
     }
 
-    private void OpenForm(DevRow row)
+    private void OpenForm(DevRow row, bool com = false)
     {
         var id = row.Provider.Id;
         editing = row;
+        comToken = com;
         saveError = string.Empty;
         tokenBox.Clear();
         var saved = actions.Settings.Text(GitTokens.UrlKey(id));
@@ -634,13 +641,14 @@ internal sealed class DevelopersWindow : Form
         userBox.Text = actions.Settings.Text(GitTokens.UserKey(id));
         expanded.Remove(id);
         Relayout();
-        (id is "gitea" or "gitlab" ? urlBox : id == "bitbucket" ? userBox : tokenBox).Focus();
+        (id is "gitea" or "gitlab" && !com ? urlBox : id == "bitbucket" ? userBox : tokenBox).Focus();
     }
 
     private void CloseForm()
     {
         tokenBox.Clear();
         editing = null;
+        comToken = false;
         saveError = string.Empty;
         Relayout();
     }
@@ -660,7 +668,7 @@ internal sealed class DevelopersWindow : Form
         GitSaveResult result;
         try
         {
-            result = await actions.GitSave(id, tokenBox.Text, urlBox.Text, userBox.Text, closing.Token);
+            result = await actions.GitSave(id, tokenBox.Text, comToken ? GitLabApp.ComUrl : urlBox.Text, userBox.Text, closing.Token);
         }
         catch (OperationCanceledException)
         {
@@ -686,6 +694,7 @@ internal sealed class DevelopersWindow : Form
         else
         {
             editing = null;
+            comToken = false;
             actions.Changed(id);
         }
 
@@ -735,12 +744,14 @@ internal sealed class DevelopersWindow : Form
         {
             var on = actions.GitSignedIn(id) && actions.Settings.Flag(id);
             var who = actions.Settings.Text("gitlabLogin");
+            var expired = !on && !gitlabIn && actions.GitLabExpired?.Invoke() == true;
             return new RowView(
                 on ? Strings.Integrations_SignedIn.Fill(who.Length > 0 ? who : provider.Name)
                     : gitlabIn && gitlabCode is null ? Strings.Integrations_Working
+                    : expired ? Strings.Dev_GitLabExpired
                     : Strings.Integrations_NotConnected,
                 Dot: on,
-                Calm: !on,
+                Calm: !on && !expired,
                 Go: on || gitlabIn ? null : Strings.Dev_SignIn,
                 GoEnabled: actions.GitLab is not null && !saving,
                 Undo: on ? Strings.Integrations_SignOut : gitlabIn ? Strings.Common_Cancel : null,
@@ -1017,6 +1028,11 @@ internal sealed class DevelopersWindow : Form
             }
             else if (!gitlabIn && editing != row && !(actions.GitSignedIn("gitlab") && actions.Settings.Flag("gitlab")))
             {
+                useToken.Font = Theme.Font(Theme.Scale(13f, DeviceDpi), Weight.Regular);
+                useToken.Enabled = developerOn;
+                Place(useToken, detailX, top, Math.Min(useToken.FitWidth(), detailWidth), S(24));
+                order.Add(useToken);
+                top += S(30);
                 selfHost.Font = Theme.Font(Theme.Scale(13f, DeviceDpi), Weight.Regular);
                 selfHost.Enabled = developerOn;
                 Place(selfHost, detailX, top, Math.Min(selfHost.FitWidth(), detailWidth), S(24));
@@ -1079,14 +1095,14 @@ internal sealed class DevelopersWindow : Form
             top += S(FieldHeight + 10);
         }
 
-        if (row.Provider.Id is "gitea" or "gitlab")
+        if (row.Provider.Id is "gitea" or "gitlab" && !comToken)
         {
             Field(urlLabel, urlFrame);
         }
 
         if (row.Provider.Id == "gitlab")
         {
-            hintLabel.Text = Strings.Dev_GitLabTokenHint;
+            hintLabel.Text = comToken ? Strings.Dev_GitLabComTokenHint : Strings.Dev_GitLabTokenHint;
             Put(hintLabel, x, wide, 12f, Weight.Regular, palette.Dim, palette.Card, S(8));
         }
 

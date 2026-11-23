@@ -804,6 +804,15 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>Sunucunuzda yalnızca read_api kapsamına sahip bir kişisel erişim belirteci oluşturun ve aşağıya yapıştırın.</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>GitLab oturumunun süresi doldu — yeniden oturum açın</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Bunun yerine belirteç kullan</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>gitlab.com’da yalnızca read_api kapsamlı bir kişisel erişim belirteci oluşturun ve aşağıya yapıştırın. Oturum açmanın aksine 2 saat sonra sona ermez.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Kullanıcı adı veya e-posta</value>
   </data>

@@ -814,6 +814,15 @@
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>على خادمك، أنشئ رمز وصول شخصيًا بنطاق read_api فقط، ثم الصقه أدناه.</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>انتهت صلاحية تسجيل الدخول إلى GitLab — سجّل الدخول مرة أخرى</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>استخدم رمزًا بدلًا من ذلك</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>على gitlab.com، أنشئ رمز وصول شخصيًا بنطاق read_api فقط، ثم الصقه أدناه. بخلاف تسجيل الدخول، لا تنتهي صلاحيته بعد ساعتين.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>اسم المستخدم أو البريد الإلكتروني</value>
   </data>

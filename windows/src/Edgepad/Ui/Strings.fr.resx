@@ -814,6 +814,15 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>Sur votre serveur, créez un jeton d’accès personnel avec le seul périmètre read_api, puis collez-le ci-dessous.</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>La connexion à GitLab a expiré — reconnectez-vous</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Utiliser plutôt un jeton</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>Sur gitlab.com, créez un jeton d’accès personnel avec le seul périmètre read_api, puis collez-le ci-dessous. Contrairement à la connexion, il n’expire pas au bout de 2 heures.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Nom d’utilisateur ou e-mail</value>
   </data>

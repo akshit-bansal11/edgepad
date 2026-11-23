@@ -73,6 +73,22 @@ public sealed class DevRowsTests : IDisposable
     }
 
     [Fact]
+    public void AnExpiredGitLabSignInSaysSoAndStillOffersSignIn()
+    {
+        var plain = DevRows.GitLab("GitLab", false, false, false, string.Empty, false);
+        var expired = DevRows.GitLab("GitLab", false, false, false, string.Empty, false, expired: true);
+        Assert.NotEqual(plain.Status, expired.Status);
+        Assert.True(plain.Calm);
+        Assert.False(expired.Calm);
+        Assert.NotNull(expired.Go);
+        Assert.True(expired.GoEnabled);
+
+        // Signed in again, or signing in, the notice is gone.
+        Assert.Equal(DevRows.GitLab("GitLab", true, false, false, "ana", false).Status, DevRows.GitLab("GitLab", true, false, false, "ana", false, expired: true).Status);
+        Assert.Equal(DevRows.GitLab("GitLab", false, true, true, string.Empty, false).Status, DevRows.GitLab("GitLab", false, true, true, string.Empty, false, expired: true).Status);
+    }
+
+    [Fact]
     public void GitLabRowFollowsItsSignIn()
     {
         var idle = DevRows.GitLab("GitLab", false, false, false, string.Empty, false);

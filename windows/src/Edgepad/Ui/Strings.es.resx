@@ -814,6 +814,15 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>En tu servidor, crea un token de acceso personal solo con el alcance read_api y pégalo abajo.</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>El inicio de sesión de GitLab caducó — vuelve a iniciar sesión</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Usar un token en su lugar</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>En gitlab.com, crea un token de acceso personal solo con el alcance read_api y pégalo abajo. A diferencia del inicio de sesión, no caduca a las 2 horas.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Usuario o correo</value>
   </data>

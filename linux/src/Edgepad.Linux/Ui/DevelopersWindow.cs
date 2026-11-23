@@ -49,6 +49,9 @@ internal sealed class DevelopersHooks
 
     /// <summary>The signed-in GitLab login (gitlab.com or the self-hosted server), or null.</summary>
     public required Func<CancellationToken, Task<string?>> GitLabLogin { get; init; }
+
+    /// <summary>Whether GitLab refused to renew the gitlab.com sign-in, so the row asks the person to sign in again.</summary>
+    public required Func<bool> GitLabExpired { get; init; }
 }
 
 /// <summary>
@@ -84,6 +87,7 @@ internal sealed class DevelopersWindow : IDisposable
     private readonly TextBlock codeText;
     private readonly Button chooseRepos;
     private readonly Button selfHost;
+    private readonly Button useToken;
     private readonly Button openButton;
     private readonly TextBlock hintText;
     private readonly StackPanel formPanel = new() { Spacing = 6 };
@@ -96,6 +100,9 @@ internal sealed class DevelopersWindow : IDisposable
     private readonly Button saveButton;
 
     private string? editing;
+
+    // The open form is GitLab's "Use a token instead": gitlab.com, so no address field and the address is GitLabApp.ComUrl.
+    private bool comToken;
     private bool saving;
     private string saveError = string.Empty;
     private string? userCode;
@@ -138,6 +145,10 @@ internal sealed class DevelopersWindow : IDisposable
         selfHost.HorizontalAlignment = HorizontalAlignment.Left;
         AutomationProperties.SetName(selfHost, LinuxStrings.Dev_GitLabServer);
         selfHost.Click += (_, _) => OpenForm("gitlab");
+        useToken = look.Button(LinuxStrings.Dev_GitLabUseToken);
+        useToken.HorizontalAlignment = HorizontalAlignment.Left;
+        AutomationProperties.SetName(useToken, LinuxStrings.Dev_GitLabUseToken);
+        useToken.Click += (_, _) => OpenForm("gitlab", com: true);
         hintText = look.Text(LinuxStrings.Dev_GitLabTokenHint, 12, dim: true);
         hintText.TextWrapping = TextWrapping.Wrap;
         codeText = look.Text(string.Empty, 24, FontWeight.Bold);
@@ -377,7 +388,7 @@ internal sealed class DevelopersWindow : IDisposable
         }
 
         return id == "gitlab"
-            ? DevRows.GitLab(provider.Name, settings.Flag(id) && hooks.GitSignedIn(id), gitlabIn, gitlabCode is not null, settings.Text("gitlabLogin"), saving)
+            ? DevRows.GitLab(provider.Name, settings.Flag(id) && hooks.GitSignedIn(id), gitlabIn, gitlabCode is not null, settings.Text("gitlabLogin"), saving, hooks.GitLabExpired())
             : DevRows.Token(provider.Name, settings.Flag(id) && hooks.GitSignedIn(id), settings.Text(id + "Login"), saving);
     }
 
@@ -511,6 +522,9 @@ internal sealed class DevelopersWindow : IDisposable
 
         if (id == "gitlab" && !gitlabIn && editing != id && !(settings.Flag(id) && hooks.GitSignedIn(id)))
         {
+            useToken.Margin = new Thickness(44, 0, 0, 0);
+            useToken.IsEnabled = developerOn;
+            list.Children.Add(useToken);
             selfHost.Margin = new Thickness(44, 0, 0, 0);
             selfHost.IsEnabled = developerOn;
             list.Children.Add(selfHost);
@@ -529,8 +543,9 @@ internal sealed class DevelopersWindow : IDisposable
 
         if (editing == id)
         {
-            urlField.IsVisible = id is "gitea" or "gitlab";
+            urlField.IsVisible = id is "gitea" or "gitlab" && !comToken;
             hintText.IsVisible = id == "gitlab";
+            hintText.Text = comToken ? LinuxStrings.Dev_GitLabComTokenHint : LinuxStrings.Dev_GitLabTokenHint;
             userField.IsVisible = id == "bitbucket";
             errorText.Text = saveError;
             errorText.IsVisible = saveError.Length > 0;
@@ -828,9 +843,10 @@ internal sealed class DevelopersWindow : IDisposable
         Render();
     }
 
-    private void OpenForm(string id)
+    private void OpenForm(string id, bool com = false)
     {
         editing = id;
+        comToken = com;
         saveError = string.Empty;
         tokenBox.Text = string.Empty;
         var saved = settings.Text(GitTokens.UrlKey(id));
@@ -838,13 +854,14 @@ internal sealed class DevelopersWindow : IDisposable
         userBox.Text = settings.Text(GitTokens.UserKey(id));
         expanded.Remove(id);
         Render();
-        (id is "gitea" or "gitlab" ? urlBox : id == "bitbucket" ? userBox : tokenBox).Focus();
+        (id is "gitea" or "gitlab" && !com ? urlBox : id == "bitbucket" ? userBox : tokenBox).Focus();
     }
 
     private void CloseForm()
     {
         tokenBox.Text = string.Empty;
         editing = null;
+        comToken = false;
         saveError = string.Empty;
         Render();
     }
@@ -863,7 +880,7 @@ internal sealed class DevelopersWindow : IDisposable
         GitSaveResult result;
         try
         {
-            result = await hooks.GitSave(id, tokenBox.Text ?? string.Empty, urlBox.Text ?? string.Empty, userBox.Text ?? string.Empty, closing.Token);
+            result = await hooks.GitSave(id, tokenBox.Text ?? string.Empty, comToken ? GitLabApp.ComUrl : urlBox.Text ?? string.Empty, userBox.Text ?? string.Empty, closing.Token);
         }
         catch (OperationCanceledException)
         {
@@ -884,6 +901,7 @@ internal sealed class DevelopersWindow : IDisposable
         else
         {
             editing = null;
+            comToken = false;
             hooks.Switched(id, true);
         }
 

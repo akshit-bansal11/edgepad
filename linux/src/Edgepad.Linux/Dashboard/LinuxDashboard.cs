@@ -74,12 +74,19 @@ internal sealed class LinuxDashboard : IDisposable
         gitlabSignIn = new(() => new GitLabSignIn(secrets.Value, Settings));
         // The old OAuth app's token goes at start, off the constructor's thread (the secret store may reach for the keyring).
         _ = Task.Run(() => signIn.Value.Migrate());
-        tokenHosts = new(() => new Dictionary<string, TokenGitHost>
+        tokenHosts = new(() =>
         {
-            ["gitlab"] = new GitLabHost(secrets.Value, Settings),
-            ["gitea"] = new GiteaHost(secrets.Value, Settings),
-            ["bitbucket"] = new BitbucketHost(secrets.Value, Settings),
-            ["gitee"] = new GiteeHost(secrets.Value, Settings),
+            var hosts = new Dictionary<string, TokenGitHost>
+            {
+                ["gitlab"] = new GitLabHost(secrets.Value, Settings),
+                ["gitea"] = new GiteaHost(secrets.Value, Settings),
+                ["bitbucket"] = new BitbucketHost(secrets.Value, Settings),
+                ["gitee"] = new GiteeHost(secrets.Value, Settings),
+            };
+
+            // A refused renewal reaches the open window at once; Linux has no tray balloon, so the row's own notice is the message.
+            ((GitLabHost)hosts["gitlab"]).Expired += () => OnUi(() => developers?.Refresh());
+            return hosts;
         });
         usage = new(() => new UsageStore(Path.Combine(folder, UsageStore.FileName), DateTimeOffset.UtcNow));
     }
@@ -298,6 +305,7 @@ internal sealed class LinuxDashboard : IDisposable
             Login = ct => new GitHubApi(secrets.Value).LoginAsync(ct),
             GitLabSignIn = gitlabSignIn.Value,
             GitLabLogin = ct => tokenHosts.Value["gitlab"].LoginAsync(ct),
+            GitLabExpired = () => tokenHosts.Value["gitlab"] is GitLabHost { SignInExpired: true },
         });
         developers = made;
         _ = made.Closed.ContinueWith(_ => OnUi(() =>

@@ -366,6 +366,13 @@ internal sealed class TrayContext : ApplicationContext
         // that an update or a moved Node.js left behind is re-stamped off this thread (no program runs while both agents are off).
         integrations.Trusted += () => ui.Post(_ => ReloadIntegrations(), null);
         integrations.DeveloperChanged += () => ui.Post(_ => OnDeveloperChanged(), null);
+        integrations.GitLabExpired += () => ui.Post(
+            _ =>
+            {
+                Balloon(Strings.Dev_GitLabExpired, ToolTipIcon.Warning, ShowDevelopers);
+                ReloadIntegrations();
+            },
+            null);
         integrations.Start();
         if (integrations.Settings.Flag(IntegrationSettings.Claude) || integrations.Settings.Flag(IntegrationSettings.Codex))
         {
@@ -1628,7 +1635,8 @@ internal sealed class TrayContext : ApplicationContext
         integrations.SaveGitTokenAsync,
         integrations.SignOutGit,
         integrations.GitLab,
-        integrations.GitLabLoginAsync);
+        integrations.GitLabLoginAsync,
+        () => integrations.GitLabSignInExpired);
 
     // Developer mode moved (the window, the tray or the phone). UI thread. The developer window stays open: its switch is how it is turned back on.
     private void OnDeveloperChanged() => ReloadIntegrations();

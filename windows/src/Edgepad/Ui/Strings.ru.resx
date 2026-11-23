@@ -814,6 +814,15 @@
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>На своём сервере создайте персональный токен доступа только с областью read_api и вставьте его ниже.</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>Вход в GitLab истёк — войдите снова</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Использовать токен</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>На gitlab.com создайте персональный токен доступа только с областью read_api и вставьте его ниже. В отличие от входа, он не истекает через 2 часа.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Имя пользователя или e-mail</value>
   </data>

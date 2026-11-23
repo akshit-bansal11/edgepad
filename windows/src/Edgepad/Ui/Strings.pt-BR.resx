@@ -814,6 +814,15 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>No seu servidor, crie um token de acesso pessoal somente com o escopo read_api e cole-o abaixo.</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>O login do GitLab expirou — entre novamente</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Usar um token em vez disso</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>No gitlab.com, crie um token de acesso pessoal somente com o escopo read_api e cole abaixo. Ao contrário do login, ele não expira após 2 horas.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Nome de usuário ou e-mail</value>
   </data>

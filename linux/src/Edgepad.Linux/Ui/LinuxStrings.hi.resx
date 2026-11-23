@@ -562,6 +562,15 @@
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>अपने सर्वर पर केवल read_api स्कोप वाला पर्सनल एक्सेस टोकन बनाएँ, फिर उसे नीचे चिपकाएँ।</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>GitLab साइन-इन समाप्त हो गया — फिर से साइन इन करें</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>इसके बजाय टोकन इस्तेमाल करें</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>gitlab.com पर केवल read_api स्कोप वाला पर्सनल एक्सेस टोकन बनाएँ, फिर उसे नीचे पेस्ट करें। साइन-इन के उलट, यह 2 घंटे बाद समाप्त नहीं होता।</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>यूज़रनेम या ईमेल</value>
   </data>

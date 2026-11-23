@@ -44,6 +44,7 @@ internal sealed record AgentStatus(AgentState State, string Commands = "", bool 
 /// <param name="GitSignOut">Forgets a git host's token (and, for GitLab, its refresh token).</param>
 /// <param name="GitLab">The gitlab.com device sign-in; null where there is none (the design gallery).</param>
 /// <param name="GitLabLogin">The signed-in GitLab account's login, for display only.</param>
+/// <param name="GitLabExpired">Whether GitLab refused to renew the gitlab.com sign-in, so the person is asked to sign in again.</param>
 internal sealed record IntegrationActions(
     IntegrationSettings Settings,
     GitHubSignIn SignIn,
@@ -61,7 +62,8 @@ internal sealed record IntegrationActions(
     Func<string, string, string, string, CancellationToken, Task<GitSaveResult>> GitSave,
     Action<string> GitSignOut,
     GitLabSignIn? GitLab = null,
-    Func<CancellationToken, Task<string?>>? GitLabLogin = null);
+    Func<CancellationToken, Task<string?>>? GitLabLogin = null,
+    Func<bool>? GitLabExpired = null);
 
 /// <summary>
 /// The place the dashboard's stats, weather and city are turned on. Everything is off until the owner turns it on here. Not

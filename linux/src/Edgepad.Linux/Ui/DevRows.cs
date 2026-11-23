@@ -111,12 +111,13 @@ internal static class DevRows
         CanHowTo: configured && !signedIn && !signingIn);
 
     /// <summary>GitLab: signed in (gitlab.com by device flow, or a self-hosted server by a pasted token), signing in, or not connected.</summary>
-    internal static RowView GitLab(string name, bool signedIn, bool signingIn, bool codeShown, string login, bool saving) => new(
+    internal static RowView GitLab(string name, bool signedIn, bool signingIn, bool codeShown, string login, bool saving, bool expired = false) => new(
         signedIn ? Say.Format(LinuxStrings.Integrations_SignedIn, login.Length > 0 ? login : name)
             : signingIn && !codeShown ? LinuxStrings.Integrations_Working
+            : expired && !signingIn ? LinuxStrings.Dev_GitLabExpired
             : LinuxStrings.Integrations_NotConnected,
         Dot: signedIn,
-        Calm: !signedIn,
+        Calm: !signedIn && !(expired && !signingIn),
         Go: signedIn || signingIn ? null : LinuxStrings.Dev_SignIn,
         GoEnabled: !saving,
         Undo: signedIn ? LinuxStrings.Integrations_SignOut : signingIn ? LinuxStrings.Common_Cancel : null,

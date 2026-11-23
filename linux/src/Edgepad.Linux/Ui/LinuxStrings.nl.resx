@@ -554,6 +554,15 @@
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>Maak op je server een persoonlijk toegangstoken met alleen de scope read_api en plak het hieronder.</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>GitLab-aanmelding verlopen — meld je opnieuw aan</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Gebruik in plaats daarvan een token</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>Maak op gitlab.com een persoonlijk toegangstoken met alleen het bereik read_api en plak het hieronder. Anders dan de aanmelding verloopt het niet na 2 uur.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Gebruikersnaam of e-mail</value>
   </data>

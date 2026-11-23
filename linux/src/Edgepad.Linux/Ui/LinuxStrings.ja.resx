@@ -562,6 +562,15 @@
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>サーバーで read_api スコープだけを持つパーソナルアクセストークンを作成し、下に貼り付けてください。</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>GitLab のサインインの有効期限が切れました — もう一度サインインしてください</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>代わりにトークンを使う</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>gitlab.com で read_api スコープだけのパーソナルアクセストークンを作成し、下に貼り付けてください。サインインと違い、2 時間で切れることはありません。</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>ユーザー名またはメールアドレス</value>
   </data>
