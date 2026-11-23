@@ -2,7 +2,7 @@ name: Claude TL;DR
 
 # Every new issue and pull request gets one comment from Claude: what it is, what is wrong or missing, and what
 # to do next, so the owner can implement, fix or close it without reading it all first. Line-by-line review of a
-# PR's code stays with claude-code-review.yml.
+# PR's code stays with claude-review.yml.
 #
 # pull_request_target, not pull_request: a PR from a fork gets no secrets under pull_request, so most outside PRs
 # would never be summarised. pull_request_target runs this file as it is on main and checks out main, never the
