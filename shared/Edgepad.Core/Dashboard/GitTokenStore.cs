@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
@@ -68,7 +69,7 @@ internal static class GitTokens
     public static string UserKey(string id) => id + "User";
 
     /// <summary>Visible ASCII only, 8 to 512 characters: every token these hosts issue.</summary>
-    public static bool IsToken(string? token) =>
+    public static bool IsToken([NotNullWhen(true)] string? token) =>
         token is { Length: >= 8 and <= MaxToken } && token.All(c => c is > ' ' and <= '~');
 
     /// <summary>Visible ASCII, no colon (it separates the name from the token in Basic authentication).</summary>
@@ -79,7 +80,12 @@ internal static class GitTokens
     /// The API root (<c>https://host[:port][/path]/api/v1/</c>) of a Gitea-compatible server given its web address. Only an
     /// absolute https address with no user info, query or fragment passes; anything else is null.
     /// </summary>
-    public static Uri? GiteaApi(string? url)
+    public static Uri? GiteaApi(string? url) => ApiRoot(url, "/api/v1/");
+
+    /// <summary>The API root (<c>https://host[:port][/path]/api/v4/</c>) of a GitLab server given its web address, under the same rules as <see cref="GiteaApi"/>; null when it is not one.</summary>
+    public static Uri? GitLabApi(string? url) => ApiRoot(url, "/api/v4/");
+
+    private static Uri? ApiRoot(string? url, string suffix)
     {
         var text = url?.Trim();
 
@@ -91,7 +97,7 @@ internal static class GitTokens
             return null;
         }
 
-        return new Uri(uri.GetLeftPart(UriPartial.Authority) + uri.AbsolutePath.TrimEnd('/') + "/api/v1/");
+        return new Uri(uri.GetLeftPart(UriPartial.Authority) + uri.AbsolutePath.TrimEnd('/') + suffix);
     }
 }
 
@@ -256,7 +262,30 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
             }
 
             var before = book.Page?.Rev;
+            if (RenewDue && await RenewAsync().ConfigureAwait(false) == RefreshOutcome.Rejected)
+            {
+                book.Clear();
+                return new GitHubRefreshResult(GitHubResult.NoPermission, book.Page?.Rev != before);
+            }
+
+            token = store.Get(GitTokens.TokenName(id)) ?? token;
             var read = await ReadAsync(Getter(token, user), api, ct).ConfigureAwait(false);
+            if (read.Snapshot is null && read.Failure?.Status == HttpStatusCode.Unauthorized && CanRenew && store.Get(GitTokens.TokenName(id)) == token)
+            {
+                switch (await RenewAsync().ConfigureAwait(false))
+                {
+                    case RefreshOutcome.Refreshed when store.Get(GitTokens.TokenName(id)) is { } fresh && GitTokens.IsToken(fresh):
+                        token = fresh;
+                        read = await ReadAsync(Getter(token, user), api, ct).ConfigureAwait(false);
+                        break;
+                    case RefreshOutcome.Unavailable:
+                        return new GitHubRefreshResult(GitHubResult.Failed, false);
+                    case RefreshOutcome.Rejected:
+                        book.Clear();
+                        return new GitHubRefreshResult(GitHubResult.NoPermission, book.Page?.Rev != before);
+                }
+            }
+
             if (read.Snapshot is { } snapshot)
             {
                 book.Update(snapshot);
@@ -357,8 +386,17 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
         return new GitSaveResult(GitSaveStatus.Saved, login);
     }
 
+    /// <summary>Whether the saved token expires and is about to (or has); only a host that signs in by a refreshable sign-in says yes.</summary>
+    protected virtual bool RenewDue => false;
+
+    /// <summary>Whether a refresh token is saved, so a 401 may be answered by a renewal.</summary>
+    protected virtual bool CanRenew => false;
+
+    /// <summary>Exchanges the refresh token for a new access token and saves it in the secret store.</summary>
+    protected virtual Task<RefreshOutcome> RenewAsync() => Task.FromResult(RefreshOutcome.Rejected);
+
     /// <summary>Forgets the token and the page; the address and name stay for the next sign-in.</summary>
-    public void SignOut()
+    public virtual void SignOut()
     {
         lock (tokenGate)
         {
