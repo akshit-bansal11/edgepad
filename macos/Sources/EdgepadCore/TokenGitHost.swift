@@ -294,7 +294,7 @@ public class TokenGitHost: GitHost {
             return GitHubRefreshResult(result: .rateLimited, changed: false)
         }
         let user = settings.text(GitTokens.userKey(spec.id))
-        guard let token = store.get(GitTokens.tokenName(spec.id)), GitTokens.isToken(token), let api,
+        guard let saved = store.get(GitTokens.tokenName(spec.id)), GitTokens.isToken(saved), let api,
             !spec.requiresUser || GitTokens.isUser(user)
         else { return GitHubRefreshResult(result: .notSignedIn, changed: false) }
 
