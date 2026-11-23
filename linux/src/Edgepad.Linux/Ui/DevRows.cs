@@ -110,9 +110,18 @@ internal static class DevRows
         UndoEnabled: true,
         CanHowTo: configured && !signedIn && !signingIn);
 
-    /// <summary>GitLab's device sign-in needs a registered client ID; until then the row says so and does nothing.</summary>
-    internal static RowView GitLab() =>
-        new(LinuxStrings.Integrations_NotConnected, Dot: false, Calm: true, Go: LinuxStrings.Dev_ComingSoon, GoEnabled: false, Undo: null, UndoEnabled: false, CanHowTo: false);
+    /// <summary>GitLab: signed in (gitlab.com by device flow, or a self-hosted server by a pasted token), signing in, or not connected.</summary>
+    internal static RowView GitLab(string name, bool signedIn, bool signingIn, bool codeShown, string login, bool saving) => new(
+        signedIn ? Say.Format(LinuxStrings.Integrations_SignedIn, login.Length > 0 ? login : name)
+            : signingIn && !codeShown ? LinuxStrings.Integrations_Working
+            : LinuxStrings.Integrations_NotConnected,
+        Dot: signedIn,
+        Calm: !signedIn,
+        Go: signedIn || signingIn ? null : LinuxStrings.Dev_SignIn,
+        GoEnabled: !saving,
+        Undo: signedIn ? LinuxStrings.Integrations_SignOut : signingIn ? LinuxStrings.Common_Cancel : null,
+        UndoEnabled: true,
+        CanHowTo: false);
 
     /// <summary>A token host (Gitea, Bitbucket, Gitee).</summary>
     internal static RowView Token(string name, bool signedIn, string login, bool saving) => new(

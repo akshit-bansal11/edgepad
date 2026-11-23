@@ -545,6 +545,15 @@
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>Serveradres</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Een zelf gehoste server toevoegen…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>gitlab.com/oauth/device openen</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>Maak op je server een persoonlijk toegangstoken met alleen de scope read_api en plak het hieronder.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Gebruikersnaam of e-mail</value>
   </data>

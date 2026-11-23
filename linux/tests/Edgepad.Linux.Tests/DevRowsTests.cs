@@ -73,12 +73,23 @@ public sealed class DevRowsTests : IDisposable
     }
 
     [Fact]
-    public void GitLabIsComingSoonAndDisabled()
+    public void GitLabRowFollowsItsSignIn()
     {
-        var row = DevRows.GitLab();
-        Assert.False(row.GoEnabled);
-        Assert.False(row.CanHowTo);
-        Assert.Null(row.Undo);
+        var idle = DevRows.GitLab("GitLab", false, false, false, string.Empty, false);
+        Assert.NotNull(idle.Go);
+        Assert.True(idle.GoEnabled);
+        Assert.Null(idle.Undo);
+        Assert.False(idle.CanHowTo);
+
+        var signing = DevRows.GitLab("GitLab", false, true, true, string.Empty, false);
+        Assert.Null(signing.Go);
+        Assert.NotNull(signing.Undo);
+
+        var done = DevRows.GitLab("GitLab", true, false, false, "ana", false);
+        Assert.True(done.Dot);
+        Assert.Null(done.Go);
+        Assert.Contains("ana", done.Status, StringComparison.Ordinal);
+        Assert.NotNull(done.Undo);
     }
 
     [Fact]

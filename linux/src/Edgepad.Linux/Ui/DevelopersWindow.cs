@@ -43,6 +43,12 @@ internal sealed class DevelopersHooks
 
     /// <summary>The signed-in GitHub login, or null.</summary>
     public required Func<CancellationToken, Task<string?>> Login { get; init; }
+
+    /// <summary>The gitlab.com device sign-in.</summary>
+    public required GitLabSignIn GitLabSignIn { get; init; }
+
+    /// <summary>The signed-in GitLab login (gitlab.com or the self-hosted server), or null.</summary>
+    public required Func<CancellationToken, Task<string?>> GitLabLogin { get; init; }
 }
 
 /// <summary>
@@ -77,6 +83,9 @@ internal sealed class DevelopersWindow : IDisposable
     private readonly StackPanel codePanel = new() { Spacing = 8 };
     private readonly TextBlock codeText;
     private readonly Button chooseRepos;
+    private readonly Button selfHost;
+    private readonly Button openButton;
+    private readonly TextBlock hintText;
     private readonly StackPanel formPanel = new() { Spacing = 6 };
     private readonly StackPanel urlField = new() { Spacing = 4 };
     private readonly StackPanel userField = new() { Spacing = 4 };
@@ -93,6 +102,14 @@ internal sealed class DevelopersWindow : IDisposable
     private bool signingIn;
     private int signInRun;
     private bool signedIn;
+
+    // GitLab sign-in, the same way, and what the code panel opens and copies now (GitHub's or GitLab's).
+    private string? gitlabCode;
+    private bool gitlabIn;
+    private int gitlabRun;
+    private string openUrl = GitHubApp.DevicePage.AbsoluteUri;
+    private string openName = "GitHub";
+    private string? shownCode;
 
     // Set while the window writes its own controls, so their events do not echo into the settings.
     private bool filling;
@@ -117,9 +134,15 @@ internal sealed class DevelopersWindow : IDisposable
         chooseRepos.HorizontalAlignment = HorizontalAlignment.Left;
         AutomationProperties.SetName(chooseRepos, LinuxStrings.Integrations_ChooseRepos);
         chooseRepos.Click += (_, _) => Tray.OpenWithDesktop(GitHubApp.InstallUri.AbsoluteUri, "GitHub");
+        selfHost = look.Button(LinuxStrings.Dev_GitLabServer);
+        selfHost.HorizontalAlignment = HorizontalAlignment.Left;
+        AutomationProperties.SetName(selfHost, LinuxStrings.Dev_GitLabServer);
+        selfHost.Click += (_, _) => OpenForm("gitlab");
+        hintText = look.Text(LinuxStrings.Dev_GitLabTokenHint, 12, dim: true);
+        hintText.TextWrapping = TextWrapping.Wrap;
         codeText = look.Text(string.Empty, 24, FontWeight.Bold);
         codeText.FontFamily = Mono;
-        BuildCodePanel();
+        openButton = BuildCodePanel();
 
         urlBox = Field(GitTokens.MaxUrl, LinuxStrings.Dev_FieldUrl);
         userBox = Field(GitTokens.MaxUser, LinuxStrings.Dev_FieldUser);
@@ -136,6 +159,7 @@ internal sealed class DevelopersWindow : IDisposable
         var tokenField = new StackPanel { Spacing = 4 };
         AddField(tokenField, LinuxStrings.Dev_FieldToken, tokenBox);
         formPanel.Children.Add(urlField);
+        formPanel.Children.Add(hintText);
         formPanel.Children.Add(userField);
         formPanel.Children.Add(tokenField);
         formPanel.Children.Add(errorText);
@@ -184,6 +208,12 @@ internal sealed class DevelopersWindow : IDisposable
             if (signingIn)
             {
                 signIn.Cancel();
+            }
+
+            gitlabRun++;
+            if (gitlabIn)
+            {
+                hooks.GitLabSignIn.Cancel();
             }
 
             closed.TrySetResult();
@@ -247,14 +277,14 @@ internal sealed class DevelopersWindow : IDisposable
         field.Children.Add(box);
     }
 
-    private void BuildCodePanel()
+    private Button BuildCodePanel()
     {
         var open = look.Button(LinuxStrings.Integrations_OpenPage, primary: true);
-        open.Click += (_, _) => Tray.OpenWithDesktop(GitHubApp.DevicePage.AbsoluteUri, "GitHub");
+        open.Click += (_, _) => Tray.OpenWithDesktop(openUrl, openName);
         var copy = look.Button(LinuxStrings.Integrations_Copy);
         copy.Click += (_, _) =>
         {
-            if (userCode is { } text)
+            if (shownCode is { } text)
             {
                 hooks.Copy(text);
             }
@@ -266,6 +296,7 @@ internal sealed class DevelopersWindow : IDisposable
         codePanel.Children.Add(codeText);
         codePanel.Children.Add(row);
         codePanel.Children.Add(look.Text(LinuxStrings.Integrations_Waiting, 13, dim: true));
+        return open;
     }
 
     private void CloseFormOrWindow()
@@ -346,7 +377,7 @@ internal sealed class DevelopersWindow : IDisposable
         }
 
         return id == "gitlab"
-            ? DevRows.GitLab()
+            ? DevRows.GitLab(provider.Name, settings.Flag(id) && hooks.GitSignedIn(id), gitlabIn, gitlabCode is not null, settings.Text("gitlabLogin"), saving)
             : DevRows.Token(provider.Name, settings.Flag(id) && hooks.GitSignedIn(id), settings.Text(id + "Login"), saving);
     }
 
@@ -456,6 +487,10 @@ internal sealed class DevelopersWindow : IDisposable
         {
             if (signingIn && userCode is not null)
             {
+                shownCode = userCode;
+                openUrl = GitHubApp.DevicePage.AbsoluteUri;
+                openName = "GitHub";
+                openButton.Content = LinuxStrings.Integrations_OpenPage;
                 codeText.Text = Say.Format(LinuxStrings.Integrations_Code, userCode);
                 AutomationProperties.SetName(codeText, codeText.Text);
                 list.Children.Add(codePanel);
@@ -474,9 +509,28 @@ internal sealed class DevelopersWindow : IDisposable
             }
         }
 
+        if (id == "gitlab" && !gitlabIn && editing != id && !(settings.Flag(id) && hooks.GitSignedIn(id)))
+        {
+            selfHost.Margin = new Thickness(44, 0, 0, 0);
+            selfHost.IsEnabled = developerOn;
+            list.Children.Add(selfHost);
+        }
+
+        if (id == "gitlab" && gitlabIn && gitlabCode is not null)
+        {
+            shownCode = gitlabCode;
+            openUrl = GitLabApp.DevicePage.AbsoluteUri;
+            openName = "GitLab";
+            openButton.Content = LinuxStrings.Dev_GitLabOpenPage;
+            codeText.Text = Say.Format(LinuxStrings.Integrations_Code, gitlabCode);
+            AutomationProperties.SetName(codeText, codeText.Text);
+            list.Children.Add(codePanel);
+        }
+
         if (editing == id)
         {
-            urlField.IsVisible = id == "gitea";
+            urlField.IsVisible = id is "gitea" or "gitlab";
+            hintText.IsVisible = id == "gitlab";
             userField.IsVisible = id == "bitbucket";
             errorText.Text = saveError;
             errorText.IsVisible = saveError.Length > 0;
@@ -528,6 +582,9 @@ internal sealed class DevelopersWindow : IDisposable
             case "github":
                 SignInFlow();
                 break;
+            case "gitlab":
+                GitLabFlow();
+                break;
             case "gitea" or "bitbucket" or "gitee":
                 OpenForm(provider.Id);
                 break;
@@ -560,7 +617,14 @@ internal sealed class DevelopersWindow : IDisposable
                 }
 
                 break;
-            case "gitea" or "bitbucket" or "gitee":
+            case "gitlab" when gitlabIn:
+                gitlabRun++;
+                hooks.GitLabSignIn.Cancel();
+                gitlabIn = false;
+                gitlabCode = null;
+                Render();
+                break;
+            case "gitlab" or "gitea" or "bitbucket" or "gitee":
                 hooks.GitSignOut(provider.Id);
                 hooks.Switched(provider.Id, false);
                 Render();
@@ -606,6 +670,14 @@ internal sealed class DevelopersWindow : IDisposable
     /// </summary>
     private async void SignInFlow()
     {
+        if (gitlabIn)
+        {
+            gitlabRun++;
+            hooks.GitLabSignIn.Cancel();
+            gitlabIn = false;
+            gitlabCode = null;
+        }
+
         var run = ++signInRun;
         signingIn = true;
         userCode = null;
@@ -652,6 +724,79 @@ internal sealed class DevelopersWindow : IDisposable
         Render();
     }
 
+    /// <summary>
+    /// GitLab's device flow, the same way as GitHub's: ask for a code, show it with Copy and the page to type it on, and wait. A newer
+    /// flow (or a sign-out) replaces an older one, whose continuation then does nothing. A saved server address is cleared by the flow.
+    /// </summary>
+    private async void GitLabFlow()
+    {
+        if (signingIn)
+        {
+            signInRun++;
+            signIn.Cancel();
+            signingIn = false;
+            userCode = null;
+        }
+
+        var run = ++gitlabRun;
+        gitlabIn = true;
+        gitlabCode = null;
+        Render();
+        var state = SignInState.Failed;
+        try
+        {
+            var started = await hooks.GitLabSignIn.StartAsync(CancellationToken.None);
+            if (run != gitlabRun)
+            {
+                return;
+            }
+
+            state = started.State;
+            if (state == SignInState.Started)
+            {
+                gitlabCode = started.UserCode;
+                Render();
+                state = await hooks.GitLabSignIn.WaitAsync(CancellationToken.None);
+            }
+        }
+        catch (Exception e)
+        {
+            // An escape from an async void handler ends the tray app.
+            Log.Write($"GitLab sign-in failed: {e.GetType().Name}");
+        }
+
+        if (run != gitlabRun)
+        {
+            return;
+        }
+
+        gitlabIn = false;
+        gitlabCode = null;
+        if (state == SignInState.SignedIn)
+        {
+            _ = settings.SetFlag("gitlab", true);
+            string? login = null;
+            try
+            {
+                login = await hooks.GitLabLogin(CancellationToken.None);
+            }
+            catch (Exception e)
+            {
+                Log.Write($"GitLab login name unavailable: {e.GetType().Name}");
+            }
+
+            if (run != gitlabRun)
+            {
+                return;
+            }
+
+            _ = settings.Set("gitlabLogin", login ?? string.Empty);
+            hooks.Switched("gitlab", true);
+        }
+
+        Render();
+    }
+
     private async Task ShowLogin(int run)
     {
         string? login = null;
@@ -688,11 +833,12 @@ internal sealed class DevelopersWindow : IDisposable
         editing = id;
         saveError = string.Empty;
         tokenBox.Text = string.Empty;
-        urlBox.Text = settings.Text(GitTokens.UrlKey(id)) is { Length: > 0 } url ? url : GiteaHost.DefaultUrl;
+        var saved = settings.Text(GitTokens.UrlKey(id));
+        urlBox.Text = saved.Length > 0 ? saved : id == "gitea" ? GiteaHost.DefaultUrl : string.Empty;
         userBox.Text = settings.Text(GitTokens.UserKey(id));
         expanded.Remove(id);
         Render();
-        (id == "gitea" ? urlBox : id == "bitbucket" ? userBox : tokenBox).Focus();
+        (id is "gitea" or "gitlab" ? urlBox : id == "bitbucket" ? userBox : tokenBox).Focus();
     }
 
     private void CloseForm()

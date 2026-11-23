@@ -553,6 +553,15 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>Indirizzo del server</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Aggiungi un server self-hosted…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>Apri gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>Sul tuo server crea un token di accesso personale solo con l’ambito read_api, poi incollalo qui sotto.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Nome utente o e-mail</value>
   </data>

@@ -553,6 +553,15 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>Adres serwera</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Dodaj serwer hostowany samodzielnie…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>Otwórz gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>Na swoim serwerze utwórz osobisty token dostępu wyłącznie z zakresem read_api i wklej go poniżej.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Nazwa użytkownika lub e-mail</value>
   </data>

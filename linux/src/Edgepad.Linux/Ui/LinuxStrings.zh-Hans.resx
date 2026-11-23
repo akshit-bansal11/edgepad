@@ -553,6 +553,15 @@
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>服务器地址</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>添加自托管服务器…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>打开 gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>在你的服务器上创建一个仅有 read_api 范围的个人访问令牌，然后粘贴到下方。</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>用户名或邮箱</value>
   </data>

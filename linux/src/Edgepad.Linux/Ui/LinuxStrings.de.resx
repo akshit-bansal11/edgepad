@@ -553,6 +553,15 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>Serveradresse</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Selbst gehosteten Server hinzufügen…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>gitlab.com/oauth/device öffnen</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>Erstelle auf deinem Server ein persönliches Zugriffstoken nur mit dem Scope read_api und füge es unten ein.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Benutzername oder E-Mail</value>
   </data>

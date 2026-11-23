@@ -19,8 +19,8 @@ internal sealed class LinuxDashboard : IDisposable
     private static readonly TimeSpan QuietCopy = TimeSpan.FromMilliseconds(1500);
     private static readonly string[] AgentKeys = [AgentToken.Claude, AgentToken.Codex, AgentToken.Gemini, AgentToken.OpenCode];
 
-    // The token-pasting git hosts the For developers window adds a token to. GitHub and GitLab sign in by device flow.
-    private static readonly string[] TokenKeys = ["gitea", "bitbucket", "gitee"];
+    // The git hosts besides GitHub: GitLab signs in by device flow (or takes a pasted token for a self-hosted server), the rest take a pasted token.
+    private static readonly string[] TokenKeys = ["gitlab", "gitea", "bitbucket", "gitee"];
 
     private readonly Lock gate = new();
     private readonly Lock applyGate = new();
@@ -33,6 +33,7 @@ internal sealed class LinuxDashboard : IDisposable
     private readonly Lazy<LinuxSecretStore> secrets = new(() => new LinuxSecretStore());
     private readonly Lazy<Dictionary<string, TokenGitHost>> tokenHosts;
     private readonly Lazy<GitHubSignIn> signIn;
+    private readonly Lazy<GitLabSignIn> gitlabSignIn;
     private readonly Lazy<UsageStore> usage;
 
     // What EnsureCurrent last said about each agent (re-stamped, Node gone), until the next Connect or Disconnect. Under gate.
@@ -70,10 +71,12 @@ internal sealed class LinuxDashboard : IDisposable
         installer = new PluginInstaller(bundle, Settings, PluginInstaller.DefaultRoot(), version);
         hookConfig = new HookConfigInstaller(bundle, Settings, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), version, Environment.ProcessPath ?? string.Empty);
         signIn = new(() => new GitHubSignIn(secrets.Value));
+        gitlabSignIn = new(() => new GitLabSignIn(secrets.Value, Settings));
         // The old OAuth app's token goes at start, off the constructor's thread (the secret store may reach for the keyring).
         _ = Task.Run(() => signIn.Value.Migrate());
         tokenHosts = new(() => new Dictionary<string, TokenGitHost>
         {
+            ["gitlab"] = new GitLabHost(secrets.Value, Settings),
             ["gitea"] = new GiteaHost(secrets.Value, Settings),
             ["bitbucket"] = new BitbucketHost(secrets.Value, Settings),
             ["gitee"] = new GiteeHost(secrets.Value, Settings),
@@ -293,6 +296,8 @@ internal sealed class LinuxDashboard : IDisposable
             GitSave = SaveGitTokenAsync,
             GitSignOut = SignOutGit,
             Login = ct => new GitHubApi(secrets.Value).LoginAsync(ct),
+            GitLabSignIn = gitlabSignIn.Value,
+            GitLabLogin = ct => tokenHosts.Value["gitlab"].LoginAsync(ct),
         });
         developers = made;
         _ = made.Closed.ContinueWith(_ => OnUi(() =>
@@ -317,7 +322,8 @@ internal sealed class LinuxDashboard : IDisposable
             return new GitSaveResult(GitSaveStatus.Failed, string.Empty);
         }
 
-        var result = await host.SaveAsync(token, url, user, cancellationToken);
+        // GitLab's form is for a self-hosted server only: gitlab.com signs in by the device flow.
+        var result = await (host is GitLabHost gitlab ? gitlab.SaveServerAsync(token, url, cancellationToken) : host.SaveAsync(token, url, user, cancellationToken));
         if (result.Status == GitSaveStatus.Saved)
         {
             _ = Settings.SetFlag(id, true);

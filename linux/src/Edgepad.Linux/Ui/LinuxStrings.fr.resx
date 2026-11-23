@@ -553,6 +553,15 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>Adresse du serveur</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Ajouter un serveur auto-hébergé…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>Ouvrir gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>Sur votre serveur, créez un jeton d’accès personnel avec le seul périmètre read_api, puis collez-le ci-dessous.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Nom d’utilisateur ou e-mail</value>
   </data>

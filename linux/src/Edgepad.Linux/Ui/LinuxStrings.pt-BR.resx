@@ -553,6 +553,15 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>Endereço do servidor</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Adicionar um servidor auto-hospedado…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>Abrir gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>No seu servidor, crie um token de acesso pessoal somente com o escopo read_api e cole-o abaixo.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Nome de usuário ou e-mail</value>
   </data>
