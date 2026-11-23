@@ -155,7 +155,6 @@
   <string name="link_notice_reconnecting_text">Edgepad пытается восстановить связь. Нажмите, чтобы открыть.</string>
   <string name="link_notice_text">Нажмите, чтобы открыть Edgepad.</string>
   <string name="link_notice_text_clipboard">Нажмите, чтобы открыть Edgepad. Если включён общий буфер обмена, при этом отправится и скопированное вами.</string>
-  <string name="settings_clipboard">Буфер обмена</string>
   <string name="clipboard_share">Общий буфер обмена</string>
   <string name="clipboard_share_caption">Копируйте на одном устройстве, вставляйте на другом: текст и изображения. Чтобы отправить с телефона, скопируйте и вернитесь в Edgepad.</string>
   <string name="sharing_title">Прежде чем начать</string>

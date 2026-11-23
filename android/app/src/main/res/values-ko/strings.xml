@@ -134,7 +134,6 @@
   <string name="link_notice_reconnecting_text">Edgepad가 연결을 복구하고 있어요. 탭하면 앱이 열려요.</string>
   <string name="link_notice_text">탭해서 Edgepad 열기</string>
   <string name="link_notice_text_clipboard">탭하면 Edgepad가 열려요. 클립보드 공유가 켜져 있으면 복사한 내용도 함께 전송돼요.</string>
-  <string name="settings_clipboard">클립보드</string>
   <string name="clipboard_share">클립보드 공유</string>
   <string name="clipboard_share_caption">한쪽에서 복사해 다른 쪽에 붙여넣어요. 텍스트와 이미지를 지원해요. 이 휴대전화에서 보내려면 복사한 뒤 Edgepad로 돌아오세요.</string>
   <string name="sharing_title">시작하기 전에</string>

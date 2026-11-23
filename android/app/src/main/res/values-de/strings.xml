@@ -144,7 +144,6 @@
   <string name="link_notice_reconnecting_text">Edgepad versucht, die Verbindung wiederherzustellen. Tippen zum Öffnen.</string>
   <string name="link_notice_text">Tippen, um Edgepad zu öffnen.</string>
   <string name="link_notice_text_clipboard">Tippen, um Edgepad zu öffnen. Ist die Zwischenablage geteilt, wird dabei auch gesendet, was du kopiert hast.</string>
-  <string name="settings_clipboard">Zwischenablage</string>
   <string name="clipboard_share">Zwischenablage teilen</string>
   <string name="clipboard_share_caption">Auf dem einen Gerät kopieren, auf dem anderen einfügen: Text und Bilder. Um vom Handy zu senden, kopiere und kehre dann zu Edgepad zurück.</string>
   <string name="sharing_title">Vor dem Start</string>

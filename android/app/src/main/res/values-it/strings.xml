@@ -150,7 +150,6 @@
   <string name="link_notice_reconnecting_text">Edgepad sta cercando di ripristinare la connessione. Tocca per aprirlo.</string>
   <string name="link_notice_text">Tocca per aprire Edgepad.</string>
   <string name="link_notice_text_clipboard">Tocca per aprire Edgepad. Con la condivisione degli appunti attiva, viene inviato anche ciò che hai copiato.</string>
-  <string name="settings_clipboard">Appunti</string>
   <string name="clipboard_share">Condividi appunti</string>
   <string name="clipboard_share_caption">Copia su un dispositivo, incolla sull’altro: testo e immagini. Per inviare da questo telefono, copia e poi torna su Edgepad.</string>
   <string name="sharing_title">Prima di iniziare</string>

@@ -155,7 +155,6 @@
   <string name="link_notice_reconnecting_text">Edgepad próbuje przywrócić połączenie. Stuknij, aby go otworzyć.</string>
   <string name="link_notice_text">Stuknij, aby otworzyć Edgepad.</string>
   <string name="link_notice_text_clipboard">Stuknij, aby otworzyć Edgepad. Przy włączonym udostępnianiu schowka wyśle to też to, co skopiowano.</string>
-  <string name="settings_clipboard">Schowek</string>
   <string name="clipboard_share">Udostępnij schowek</string>
   <string name="clipboard_share_caption">Kopiuj na jednym urządzeniu, wklejaj na drugim: tekst i obrazy. Aby wysłać z tego telefonu, skopiuj, a potem wróć do Edgepad.</string>
   <string name="sharing_title">Zanim zaczniesz</string>

@@ -32,9 +32,6 @@ import me.akshitbansal.edgepad.surface.Strokes
  * the surface's settings. Every change is saved as it is made. Sideways, the sections sit in two columns.
  */
 object SettingsScreen {
-    private const val OPAQUE = 0xFF000000.toInt()
-    private const val RGB_MASK = 0xFFFFFF
-
     /** Where the rows lead. */
     class Routes(
         val devices: () -> Unit,
@@ -105,21 +102,6 @@ object SettingsScreen {
             largeTitle(ui.string(R.string.settings_system))
             columns(
                 {
-                    section(ui.string(R.string.settings_surface))
-                    SurfaceSettingsScreen.rows(this, settings, routes.surface)
-
-                    section(ui.string(R.string.controls_keyboard))
-                    card { add(ui.link(ui.string(R.string.keyboard_settings_title), null, routes.keyboard)) }
-
-                    section(ui.string(R.string.controls_gamepad))
-                    card { add(ui.link(ui.string(R.string.gamepad_settings_title), null, routes.gamepad)) }
-
-                    section(ui.string(R.string.controls_macros))
-                    card { add(ui.link(ui.string(R.string.macros_settings), null, routes.macros)) }
-
-                    presenterRows(settings)
-                    captureRows(settings, routes)
-
                     section(ui.string(R.string.settings_clipboard_files))
                     card {
                         add(
@@ -143,8 +125,46 @@ object SettingsScreen {
                             if (developerEditable) R.string.developer_mode_hint else R.string.developer_mode_offline,
                         ),
                     )
+                    section(ui.string(R.string.settings_surface))
+                    SurfaceSettingsScreen.rows(this, settings, routes.surface)
+
+                    section(ui.string(R.string.controls_keyboard))
+                    card { add(ui.link(ui.string(R.string.keyboard_settings_title), null, routes.keyboard)) }
+
+                    section(ui.string(R.string.controls_gamepad))
+                    card { add(ui.link(ui.string(R.string.gamepad_settings_title), null, routes.gamepad)) }
+
+                    section(ui.string(R.string.controls_macros))
+                    card { add(ui.link(ui.string(R.string.macros_settings), null, routes.macros)) }
+
+                    presenterRows(settings)
+                    captureRows(settings, routes)
                 },
                 {
+                    section(ui.string(R.string.settings_clipboard_files))
+                    card {
+                        add(
+                            ui.toggle(ui.string(R.string.clipboard_share), settings.clipboardSync) {
+                                settings.clipboardSync = it
+                                routes.clipboard()
+                            },
+                        )
+                    }
+                    footnote(ui.string(R.string.clipboard_share_caption))
+
+                    section(ui.string(R.string.settings_developer))
+                    card {
+                        val toggle =
+                            ui.toggle(ui.string(R.string.developer_mode_title), developer) { routes.developer(it) }
+                        ui.enable(toggle, developerEditable)
+                        add(toggle)
+                    }
+                    footnote(
+                        ui.string(
+                            if (developerEditable) R.string.developer_mode_hint else R.string.developer_mode_offline,
+                        ),
+                    )
+
                     section(ui.string(R.string.settings_devices))
                     card { add(ui.link(ui.string(R.string.pairing_title), null, routes.devices)) }
 
@@ -296,9 +316,9 @@ object SettingsScreen {
                 ColorPicker.build(
                     ui,
                     ui.string(R.string.settings_pen_colour),
-                    OPAQUE or settings.penRgb,
+                    ColorPicker.OPAQUE or settings.penRgb,
                     editable = true,
-                ) { colour -> settings.penRgb = colour and RGB_MASK },
+                ) { colour -> settings.penRgb = colour and ColorPicker.RGB },
             )
             hairline()
             add(
@@ -347,13 +367,14 @@ object SettingsScreen {
                         .Builder(ui.context)
                         .setTitle(ui.string(R.string.settings_language))
                         .setSingleChoiceItems(names, checked) { dialog, i ->
+                            // Closed first: setting the language rebuilds the activity under the dialog.
+                            dialog.dismiss()
                             manager.applicationLocales =
                                 if (i == 0) {
                                     LocaleList.getEmptyLocaleList()
                                 } else {
                                     LocaleList.forLanguageTags(AppLanguages.all[i - 1].tag)
                                 }
-                            dialog.dismiss()
                         }.showOver(row)
                 })
             add(row)

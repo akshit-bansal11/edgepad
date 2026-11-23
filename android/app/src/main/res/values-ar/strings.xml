@@ -165,7 +165,6 @@
   <string name="link_notice_reconnecting_text">يحاول Edgepad استعادة الاتصال. انقر لفتحه.</string>
   <string name="link_notice_text">انقر لفتح Edgepad.</string>
   <string name="link_notice_text_clipboard">انقر لفتح Edgepad. إذا كانت مشاركة الحافظة مفعّلة، فهذا يرسل أيضًا ما نسخته.</string>
-  <string name="settings_clipboard">الحافظة</string>
   <string name="clipboard_share">مشاركة الحافظة</string>
   <string name="clipboard_share_caption">انسخ على أحد الجهازين والصق على الآخر: نصوصًا وصورًا. للإرسال من هذا الهاتف، انسخ ثم عُد إلى Edgepad.</string>
   <string name="sharing_title">قبل أن تبدأ</string>

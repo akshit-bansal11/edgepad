@@ -83,6 +83,9 @@ private const val LAPTOP_TILE_LARGE_DP = 44f
 class Ui(
     val context: Context,
 ) {
+    /** Names the page back leads to on every bar built, in place of the one a page gives; null leaves them as given. */
+    var backOverride: CharSequence? = null
+
     enum class Style {
         /** The one main action on a page: an accent fill. */
         FILLED,
@@ -202,7 +205,8 @@ class Ui(
                 LinearLayout(context).apply {
                     gravity = Gravity.CENTER_VERTICAL
                     if (onBack != null) {
-                        addView(back(backLabel ?: string(R.string.back), backLabel != null, onBack))
+                        val label = backOverride ?: backLabel
+                        addView(back(label ?: string(R.string.back), label != null, onBack))
                     } else if (lead != null) {
                         addView(
                             lead,

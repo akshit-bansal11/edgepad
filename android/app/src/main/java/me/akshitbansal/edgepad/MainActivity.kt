@@ -277,6 +277,7 @@ class MainActivity :
         val screen: Screen,
         val settingsReturn: Screen,
         val resumeScreen: Screen?,
+        val childFrom: Screen?,
     )
 
     private val handler = Handler(Looper.getMainLooper())
@@ -612,6 +613,8 @@ class MainActivity :
             }
         if (retained != null) {
             settingsReturn = retained.settingsReturn
+            // Or a rotation on a page opened from Settings sends back to the feature screen, which needs the link.
+            childFrom = retained.childFrom
             // Or a rotation on Reconnecting forgets the screen to go back to, and returns to the surface instead.
             resumeScreen = retained.resumeScreen
             // Carried over, or the readout would stand blank after a rotation and then restart from one sample.
@@ -627,7 +630,7 @@ class MainActivity :
     }
 
     override fun onRetainNonConfigurationInstance(): Any =
-        Retained(manager, clipboard, apps, screen, settingsReturn, resumeScreen)
+        Retained(manager, clipboard, apps, screen, settingsReturn, resumeScreen, childFrom)
 
     override fun onStart() {
         super.onStart()
@@ -1181,6 +1184,9 @@ class MainActivity :
         // A page opened from Settings goes back there; clearing it at the pages that start a trip of their own.
         if (next in tripStarts) childFrom = null
         screen = next
+        // The bars on a page opened from a row of Settings say so; deeper pages keep their own labels.
+        val fromSettings = childFrom == Screen.SETTINGS && next in settingsPages
+        ui.backOverride = if (fromSettings) getString(R.string.settings_title) else null
         statsPage = 0
         statsPhone = false
         syncDashWatch()
@@ -2193,8 +2199,8 @@ class MainActivity :
         from: Screen?,
         page: Screen,
     ) {
-        goTo(page)
         childFrom = from
+        goTo(page)
     }
 
     private fun openSettings() {
@@ -3414,6 +3420,22 @@ class MainActivity :
 
         /** The pages that need the link: with it gone they go back to Devices, as the screens they belong to do. */
         val settingsOfControls = setOf(Screen.KEYBOARD_SETTINGS, Screen.GAMEPAD_SETTINGS, Screen.MACRO_SETTINGS)
+
+        /** The pages a row of Settings opens; the pages they open in turn are not here. */
+        val settingsPages =
+            setOf(
+                Screen.CORNERS,
+                Screen.GESTURES,
+                Screen.SHAPES,
+                Screen.DIAL_FEEL,
+                Screen.APPEARANCE,
+                Screen.PROFILES,
+                Screen.MEDIA_LAYOUT,
+                Screen.WIDGETS,
+                Screen.KEYBOARD_SETTINGS,
+                Screen.GAMEPAD_SETTINGS,
+                Screen.MACRO_SETTINGS,
+            )
 
         /** Where a trip out of Settings ends: arriving at any of these forgets which page it began from. */
         val tripStarts =

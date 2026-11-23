@@ -145,7 +145,6 @@
   <string name="link_notice_reconnecting_text">Edgepad probeert de verbinding te herstellen. Tik om te openen.</string>
   <string name="link_notice_text">Tik om Edgepad te openen.</string>
   <string name="link_notice_text_clipboard">Tik om Edgepad te openen. Als klembord delen aanstaat, wordt daarbij ook verstuurd wat je kopieerde.</string>
-  <string name="settings_clipboard">Klembord</string>
   <string name="clipboard_share">Klembord delen</string>
   <string name="clipboard_share_caption">Kopieer op het ene apparaat, plak op het andere: tekst en afbeeldingen. Om vanaf deze telefoon te versturen kopieer je en ga je terug naar Edgepad.</string>
   <string name="sharing_title">Voor je begint</string>

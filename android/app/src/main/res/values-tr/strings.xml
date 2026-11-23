@@ -142,7 +142,6 @@
   <string name="link_notice_reconnecting_text">Edgepad bağlantıyı geri getirmeye çalışıyor. Açmak için dokunun.</string>
   <string name="link_notice_text">Edgepad’i açmak için dokunun.</string>
   <string name="link_notice_text_clipboard">Edgepad’i açmak için dokunun. Pano paylaşımı açıksa bu, kopyaladığınızı da gönderir.</string>
-  <string name="settings_clipboard">Pano</string>
   <string name="clipboard_share">Panoyu paylaş</string>
   <string name="clipboard_share_caption">Birinde kopyalayın, ötekine yapıştırın: metin ve resimler. Bu telefondan göndermek için kopyalayın, sonra Edgepad’e dönün.</string>
   <string name="sharing_title">Başlamadan önce</string>

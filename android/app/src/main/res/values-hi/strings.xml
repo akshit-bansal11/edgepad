@@ -144,7 +144,6 @@
   <string name="link_notice_reconnecting_text">Edgepad कनेक्शन वापस लाने की कोशिश कर रहा है। खोलने के लिए टैप करें।</string>
   <string name="link_notice_text">Edgepad खोलने के लिए टैप करें।</string>
   <string name="link_notice_text_clipboard">Edgepad खोलने के लिए टैप करें। क्लिपबोर्ड शेयर चालू होने पर इससे आपका कॉपी किया हुआ भी भेज दिया जाता है।</string>
-  <string name="settings_clipboard">क्लिपबोर्ड</string>
   <string name="clipboard_share">क्लिपबोर्ड शेयर करें</string>
   <string name="clipboard_share_caption">एक पर कॉपी करें, दूसरे पर पेस्ट करें: टेक्स्ट और इमेज। इस फ़ोन से भेजने के लिए कॉपी करें, फिर Edgepad में लौटें।</string>
   <string name="sharing_title">शुरू करने से पहले</string>

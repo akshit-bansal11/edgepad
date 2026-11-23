@@ -141,7 +141,6 @@
   <string name="link_notice_reconnecting_text">Edgepadが接続を回復しようとしています。タップして開きます。</string>
   <string name="link_notice_text">タップしてEdgepadを開きます。</string>
   <string name="link_notice_text_clipboard">タップしてEdgepadを開きます。クリップボードの共有がオンの場合、コピーした内容も送信されます。</string>
-  <string name="settings_clipboard">クリップボード</string>
   <string name="clipboard_share">クリップボードを共有</string>
   <string name="clipboard_share_caption">一方でコピーして、もう一方で貼り付けます。テキストと画像に対応しています。このスマホから送るには、コピーしてからEdgepadに戻ってください。</string>
   <string name="sharing_title">はじめに</string>

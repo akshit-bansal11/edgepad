@@ -140,7 +140,6 @@
   <string name="link_notice_reconnecting_text">Edgepad 正在尝试恢复连接。点按即可打开。</string>
   <string name="link_notice_text">点按即可打开 Edgepad。</string>
   <string name="link_notice_text_clipboard">点按即可打开 Edgepad。已开启共享剪贴板时，也会同时发送你复制的内容。</string>
-  <string name="settings_clipboard">剪贴板</string>
   <string name="clipboard_share">共享剪贴板</string>
   <string name="clipboard_share_caption">在一台设备上复制，在另一台上粘贴，支持文字和图片。要从这部手机发送，请先复制，再回到 Edgepad。</string>
   <string name="sharing_title">开始之前</string>

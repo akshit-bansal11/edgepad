@@ -151,7 +151,6 @@
   <string name="link_notice_reconnecting_text">Edgepad is trying to get the connection back. Tap to open it.</string>
   <string name="link_notice_text">Tap to open Edgepad.</string>
   <string name="link_notice_text_clipboard">Tap to open Edgepad. With clipboard sharing on, that also sends what you copied.</string>
-  <string name="settings_clipboard">Clipboard</string>
   <string name="clipboard_share">Share clipboard</string>
   <string name="clipboard_share_caption">Copy on one, paste on the other: text and images. To send from this phone, copy, then return to Edgepad.</string>
   <string name="sharing_title">Before you start</string>
