@@ -5,6 +5,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -123,14 +124,16 @@ internal fun Ui.hubView(
     }
 }
 
-/** A dim label and its value in bold at the far side, 36 dp high. */
+/** A dim label and its value in bold at the far side, 36 dp high. Returns the value, for a row that updates in place. */
 internal fun Column.kv(
     label: String,
     value: String,
-) {
-    val row = ui.row(ui.secondary(label, Type.VALUE), ui.text(value, Type.VALUE, ui.palette.ink, face = Type.bold))
+): TextView {
+    val text = ui.text(value, Type.VALUE, ui.palette.ink, face = Type.bold)
+    val row = ui.row(ui.secondary(label, Type.VALUE), text)
     row.minimumHeight = ui.dp(KV_ROW_DP)
     add(row)
+    return text
 }
 
 /** A 6 dp bar filled to [pct] percent in [color], named [name] for a screen reader. */

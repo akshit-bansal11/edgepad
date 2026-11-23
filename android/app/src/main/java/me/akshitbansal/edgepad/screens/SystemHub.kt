@@ -2,8 +2,10 @@ package me.akshitbansal.edgepad.screens
 
 import android.view.View
 import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.link.HubPages
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.PhoneStats
+import me.akshitbansal.edgepad.link.TrafficSampler
 
 /**
  * Stats: the System and Network pages of one [Pager] with its [PageDots], under one nav bar each whose chip names the
@@ -13,7 +15,8 @@ import me.akshitbansal.edgepad.link.PhoneStats
  * nothing while the phone is the device.
  *
  * The phone's own numbers are read only while the phone is the device and the app is in front: [setActive] says
- * whether it is, and every callback and timer [PhoneStats] holds is closed otherwise.
+ * whether it is, and every callback and timer [PhoneStats] holds is closed otherwise. The speed sampler runs on top
+ * of that only while the Network page shows.
  */
 class SystemHub(
     private val ui: Ui,
@@ -23,13 +26,14 @@ class SystemHub(
     private val onDevice: (Boolean) -> Unit,
     rtt: () -> Int,
     onSpeed: (Boolean) -> Unit,
-    onPage: (Int) -> Unit,
+    private val onPage: (Int) -> Unit,
     private val onBack: () -> Unit,
 ) {
     private val phoneName = ui.string(R.string.battery_this_phone)
     private val chips = ArrayList<DeviceChip>()
     private var onPhone = false
     private var active = true
+    private var page = HubPages.SYSTEM
 
     private fun bar(): View {
         val chip = DeviceChip(ui, laptopName(), false, ::openMenu)
@@ -47,7 +51,15 @@ class SystemHub(
             network.phoneChanged(it)
         }
 
-    val view: View = ui.hubView(listOf(laptop.view, network.view), onPage)
+    // Runs only while the phone is picked, the Network page shows and the app is in front.
+    private val traffic = TrafficSampler(network::phoneRate)
+
+    val view: View =
+        ui.hubView(listOf(laptop.view, network.view)) { at ->
+            page = at
+            sync()
+            onPage(at)
+        }
 
     private fun openMenu(anchor: View) {
         val rows = DeviceChoices.of(devices.laptops(), devices.selectedId(), phoneName, onPhone)
@@ -75,5 +87,6 @@ class SystemHub(
 
     private fun sync() {
         if (active && onPhone) stats.observe() else stats.stop()
+        if (active && onPhone && page == HubPages.NETWORK) traffic.start() else traffic.stop()
     }
 }

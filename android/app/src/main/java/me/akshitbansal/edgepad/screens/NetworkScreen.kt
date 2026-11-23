@@ -7,6 +7,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -42,6 +43,10 @@ class NetworkScreen(
     private val holder = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
     private var phone = PhoneSnapshot()
     private var onPhone = false
+    private var phoneDown = -1
+    private var phoneUp = -1
+    private var downText: TextView? = null
+    private var upText: TextView? = null
 
     val view: View = ui.page(bar) { add(holder) }
 
@@ -55,6 +60,18 @@ class NetworkScreen(
         if (onPhone) refresh()
     }
 
+    /** This phone's speeds in KiB/s, -1 while unknown. Only the two texts change, nothing else is redrawn. */
+    fun phoneRate(
+        down: Int,
+        up: Int,
+    ) {
+        phoneDown = down
+        phoneUp = up
+        if (!onPhone) return
+        downText?.text = fmt.rate(down)
+        upText?.text = fmt.rate(up)
+    }
+
     /** Shows this phone's connection, with no speed test, in place of the laptop's, or the laptop's again. */
     fun showPhone(on: Boolean) {
         onPhone = on
@@ -64,6 +81,8 @@ class NetworkScreen(
     /** Draws what the laptop and the phone have said so far. */
     fun refresh() {
         holder.removeAllViews()
+        downText = null
+        upText = null
         Column(ui, holder).render(state())
     }
 
@@ -105,9 +124,9 @@ class NetworkScreen(
         card(Space.M) {
             val link = phone.net
             header(R.string.net_card_phone, Build.MODEL)
-            // Android lets an app read no live speed without polling, so the phone's rows stay dashes.
-            kv(ui.string(R.string.sys_down), none)
-            kv(ui.string(R.string.sys_up), none)
+
+            downText = kv(ui.string(R.string.sys_down), fmt.rate(phoneDown))
+            upText = kv(ui.string(R.string.sys_up), fmt.rate(phoneUp))
             kv(ui.string(R.string.net_connection), link?.let { net.connection(it.kind, it.band) } ?: none)
             kv(ui.string(R.string.net_link_speed), net.linkSpeed(link?.linkMbps ?: -1))
             kv(ui.string(R.string.net_signal), net.signal(link?.signal ?: SignalLevel.UNKNOWN))
