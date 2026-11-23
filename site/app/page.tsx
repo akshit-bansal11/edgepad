@@ -1,24 +1,37 @@
 import {
   Activity,
+  AppWindow,
   ArrowRight,
+  Bell,
   Camera,
+  ChartColumn,
   ChevronDown,
   ClipboardCopy,
+  Download,
   Gamepad2,
   Gauge,
+  History,
   Keyboard,
   Laptop,
   LayoutGrid,
   Link2,
+  ListChecks,
   type LucideIcon,
+  Moon,
   MousePointer2,
+  Move,
   Music,
   PenLine,
+  PictureInPicture2,
+  Presentation,
+  Send,
   ShieldCheck,
   SlidersHorizontal,
   Smartphone,
   Spline,
   Star,
+  Terminal,
+  ToggleRight,
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -65,6 +78,76 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
     title: "Keyboard",
     Icon: Keyboard,
     body: "A full on-screen keyboard. Hold or tap the modifier keys. It opens sideways.",
+  },
+  {
+    title: "Send files",
+    Icon: Send,
+    body: "Move a file either way, up to 2 GB, from Controls › Send a file, the share sheet, or the laptop’s tray and Send to. Many files go one after another, and a broken transfer resumes.",
+  },
+  {
+    title: "Presenter and laser pointer",
+    Icon: Presentation,
+    body: "Next and previous slide from the phone, with the volume keys too. The laser pad draws a red dot on the laptop and leaves nothing behind.",
+  },
+  {
+    title: "Stats",
+    Icon: ChartColumn,
+    body: "Controls › Stats shows a laptop’s or this phone’s processor, memory, disks and battery, plus network speed and a speed test you start yourself. Turn on System stats in the laptop’s Integrations window.",
+  },
+  {
+    title: "Clipboard history",
+    Icon: History,
+    body: "The last copies from the laptop and the phone. Tap one to send it again. Windows also has a clipboard panel on Win+Alt+V.",
+  },
+  {
+    title: "Trackpad widgets",
+    Icon: AppWindow,
+    body: "Clock, weather, system and network can sit behind the trackpad and never take a touch. Surface settings › Widgets.",
+  },
+  {
+    title: "App profiles",
+    Icon: ToggleRight,
+    body: "Dials and gestures switch with the app in front on the laptop. Off by default. Windows, Mac and Linux on X11.",
+  },
+  {
+    title: "Air mouse",
+    Icon: Move,
+    body: "Tilt the phone to move the pointer while a finger rests on the trackpad. It stops when the finger lifts.",
+  },
+  {
+    title: "Floating dials",
+    Icon: PictureInPicture2,
+    body: "Keep the dials over other apps on the phone. Needs Android’s draw-over-apps permission and Stay connected.",
+  },
+  {
+    title: "Sleep when this ends",
+    Icon: Moon,
+    body: "Sleep or shut down the laptop when the current video or track ends. Shut down shows a 60 second countdown you can cancel. Windows, Mac and Linux.",
+  },
+  {
+    title: "Quick Settings tile",
+    Icon: ToggleRight,
+    body: "A tile in Android’s quick settings, and play/pause and volume buttons in the Stay connected notification.",
+  },
+  {
+    title: "Update in place",
+    Icon: Download,
+    body: "The phone offers Later and Skip this version. Windows, Mac and Linux check a signed list of file hashes before replacing themselves.",
+  },
+  {
+    title: "Laptop notifications",
+    Icon: Bell,
+    body: "Show the laptop’s notifications on the phone. Off by default, and Linux only for now.",
+  },
+  {
+    title: "For developers: AI screen and Git screen",
+    Icon: Terminal,
+    body: "Optional, off until connected in the laptop’s Integrations window. See limits and spend for Claude Code, Codex, Gemini CLI and OpenCode sessions, and browse repositories, issues and pull requests read-only on GitHub, GitLab, Gitea, Forgejo, Codeberg, Bitbucket and Gitee.",
+  },
+  {
+    title: "What Edgepad uses",
+    Icon: ListChecks,
+    body: "A page listing every permission the apps ask for and every network destination, and what each is for. Settings › About and updates.",
   },
   {
     title: "Gamepad",
@@ -126,10 +209,10 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
 const CORE_TITLES = new Set([
   "Corner dials",
   "Trackpad",
-  "Media",
   "Keyboard",
-  "Gamepad",
-  "Macros",
+  "Send files",
+  "Presenter and laser pointer",
+  "Stats",
 ]);
 const CORE_FEATURES = FEATURES.filter((feature) => CORE_TITLES.has(feature.title));
 const MORE_FEATURES = FEATURES.filter((feature) => !CORE_TITLES.has(feature.title));
@@ -172,7 +255,9 @@ const STEPS: { step: string; title: string; body: string }[] = [
 
 const LIMITS: string[] = [
   "The default link is Bluetooth, so both ends need it, and it does not reach another room or the internet. Wi-Fi and USB connections are optional, and the phone’s half of them has not been tried on real devices yet.",
-  "Mac and Linux are still in testing. Please use them at your own risk. The Windows app is the one that has been run on a real laptop; the Linux app has not been seen working on a Linux laptop yet.",
+  "Mac and Linux are still in testing. Please use them at your own risk. 5.0.0 was tried on an Android phone and a Windows laptop; the Mac and Linux apps passed automated checks only and have not been tried on a device, and the Linux arm64 build has never been run on one.",
+  "Phone and laptop must come from the same release. A 5.x half refuses a 4.x half and says which side to update.",
+  "Some features depend on the system: laptop notifications work on Linux only, app profiles on Windows, Mac and Linux on X11, and the Win+Alt+V clipboard panel on Windows.",
   "The laptop half needs Windows 10 version 2004 or later (64-bit), macOS 13 or later, or a 64-bit Linux laptop with BlueZ. The phone half needs Android 12 or later.",
   "Edgepad.exe is not code-signed, so SmartScreen warns the first time you run it.",
   "The gamepad’s virtual controller needs ViGEmBus, a third-party signed kernel driver you install yourself. It was archived by its author in November 2023 and receives no updates, though it remains signed and working. Without it the gamepad sends keyboard keys instead, and the laptop tells the phone which of the two it is in.",

@@ -843,14 +843,18 @@ TEXT 6, the macro icons, arrive only after the phone asks with TEXT 7.`}
             without it.
           </li>
           <li>
-            Nothing leaves the two devices: no server, no account, no telemetry. With
-            the optional Wi-Fi link on, they talk over the local network and nowhere
-            else. The laptop writes a local log of connections and errors and nothing
-            else.
+            No server, no account, no telemetry. The two devices talk to each other,
+            over the local network too when Wi-Fi is on. The apps contact the network
+            otherwise only for the daily update check, an update you choose, and the
+            features you turn on (weather, the speed test, the Git screen). What Edgepad
+            uses lists each destination. The laptop writes a local log of connections
+            and errors and nothing else.
           </li>
           <li>
             Release builds are signed, and every release is signed with the same key, so
-            a phone will refuse an update that was not built by this project.
+            a phone will refuse an update that was not built by this project. The
+            desktop apps verify a signed list of file hashes before they replace
+            themselves; see <C>docs/UPDATES.md</C>.
           </li>
         </ul>
       </Section>

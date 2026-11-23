@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
 <!-- Edgepad social preview, 1280x640. Text is set in Lato (OFL): the icons CI job renders it with fonts-lato installed. Icons are Edgepad's own, as the app ships them. -->
-<title>Edgepad: your laptop, from anywhere in the room</title>
+<title>Edgepad: your laptop, from across the room</title>
 <defs>
 <radialGradient id="glow" cx="1105" cy="320" r="460" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4DA3FF" stop-opacity="0.22"/><stop offset="1" stop-color="#4DA3FF" stop-opacity="0"/></radialGradient>
 <linearGradient id="trail" x1="118" y1="520" x2="238" y2="432" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#F2F3F5" stop-opacity="0"/><stop offset="1" stop-color="#F2F3F5" stop-opacity="0.22"/></linearGradient>
@@ -17,14 +17,14 @@
     <path stroke="#0068D6" d="M496.5 496.5L348 348M504 744A240 240 0 0 1 744 504"/>
   </g></g>
 <text x="130" y="79" font-size="30" font-weight="700" fill="#F2F3F5">Edgepad</text>
-<text font-size="58" font-weight="900" fill="#F2F3F5" letter-spacing="-1"><tspan x="64" y="202">Your laptop, from anywhere</tspan><tspan x="64" y="270" fill="#4DA3FF">in the room.</tspan></text>
-<text font-size="24" fill="#9A9CA3"><tspan x="64" y="326">A trackpad, corner dials, keyboard, gamepad, pen and</tspan><tspan x="64" y="360">macros on your Android phone.</tspan></text>
+<text font-size="58" font-weight="900" fill="#F2F3F5" letter-spacing="-1"><tspan x="64" y="202">Your laptop, from</tspan><tspan x="64" y="270" fill="#4DA3FF">across the room.</tspan></text>
+<text font-size="24" fill="#9A9CA3"><tspan x="64" y="326">A trackpad, corner dials, keyboard, presenter,</tspan><tspan x="64" y="360">file transfer and stats on your Android phone.</tspan></text>
 <rect x="64" y="400" width="145.58" height="42" rx="21" fill="#2B2D33"/><circle cx="86" cy="421" r="4" fill="#4DA3FF"/>
 <rect x="221.58" y="400" width="138" height="42" rx="21" fill="#2B2D33"/><circle cx="243.58" cy="421" r="4" fill="#4DA3FF"/>
 <rect x="372.58" y="400" width="125.51" height="42" rx="21" fill="#2B2D33"/><circle cx="394.58" cy="421" r="4" fill="#4DA3FF"/>
 <text font-size="17" font-weight="700" fill="#F2F3F5"><tspan x="100" y="427">No account</tspan><tspan x="257.58" y="427">No server</tspan><tspan x="408.58" y="427">No cloud</tspan></text>
 <text font-size="14" font-weight="700" fill="#9A9CA3" letter-spacing="2.2"><tspan x="64" y="584">ANDROID</tspan><tspan x="186" y="584">WINDOWS · MAC · LINUX</tspan></text>
-<text x="900" y="584" text-anchor="end" font-size="14" font-weight="700" fill="#9A9CA3" letter-spacing="2.2">OPEN SOURCE · MIT</text>
+<text x="900" y="584" text-anchor="end" font-size="14" font-weight="700" fill="#9A9CA3" letter-spacing="2.2">VERSION 5.0 · OPEN SOURCE · MIT</text>
 <g transform="translate(155.97 571) scale(0.67)" fill="none" stroke="#4DA3FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.75 7.5L16.75 16.25L12 20.5V3.5L16.75 7.75L6.75 16.5"/></g>
 </g>
 </svg>

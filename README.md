@@ -62,11 +62,34 @@ It is for the times the laptop is across the room rather than under your hands: 
 **Sharing**
 
 - **Shared clipboard.** Text and images copied on the laptop arrive on the phone; the phone's copy is sent when you return to Edgepad.
+- **Clipboard history.** Controls > Clipboard lists the last copies from the laptop and the phone; tap one to send it again. On Windows, Win+Alt+V opens the same history as a panel.
 - **Share > Edgepad.** Send one text or image from any Android app, after a confirm screen that names the laptop.
+- **Send files.** Move one or many files, up to 2 GB each, either way: Controls > Send a file on the phone, the tray or menu-bar row on the laptop. Checked by SHA-256, and an interrupted transfer resumes.
+- **Update in place.** The phone and the laptop apps update themselves from a signed release. See [docs/UPDATES.md](docs/UPDATES.md).
+
+**Presenting and moving**
+
+- **Presenter and laser pointer.** Next and Previous slide, the volume keys stepping slides, and a laser dot drawn on the laptop that leaves nothing behind.
+- **Air mouse.** Tilt the phone to move the pointer while a finger rests on the trackpad.
+- **Floating dials.** The dials over other apps, with Android's draw-over-apps permission.
+- **App profiles.** Dials and gestures switch with the app in front on the laptop. Off by default. Windows, Mac and Linux on X11.
+
+**On the phone**
+
+- **Stats.** Controls > Stats shows System and Network pages for each laptop and for the phone.
+- **Trackpad widgets.** Clock, weather, system and network drawn behind the trackpad.
+- **Sleep when this ends.** Sleep or shut down the laptop when the current video or track ends.
+- **Quick Settings tile** and play/pause and volume buttons in the stay-connected notification.
+- **Laptop notifications.** Off by default; Linux only for now.
+
+**For developers (optional, off until connected)**
+
+- **AI screen and Git screen.** Limits, spend and sessions for Claude Code, Codex, Gemini CLI and OpenCode, with approvals answered from the phone; and a read-only list of repositories, issues and pull requests from GitHub, GitLab, Gitea, Forgejo, Codeberg, Bitbucket and Gitee. See [Optional extras](#optional-extras).
 
 **And**
 
-- **15 languages** on the phone and the Windows app.
+- **15 languages** on the phone and the Windows app; the Mac and Linux apps follow the system language in 14 languages.
+- **What Edgepad uses.** One page listing every permission and every network destination, from the phone's first open and Settings > About and updates.
 - **Security levels.** Trust the phone once, or add a six-digit PIN once per phone or on every connection.
 - **Light or dark, upright or sideways,** and a first-run guide.
 
@@ -164,58 +187,79 @@ Read more: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the apps, their thre
 
 Edgepad does everything above without these. They are here if you want them, and each one is off until you turn it on. In the laptop app, open the menu and choose **Integrations…**. Nothing is assumed to be installed.
 
-- **Widgets on the phone.** Clock, weather, system numbers and network (and AI usage, once Claude Code or Codex is connected), drawn behind the trackpad. Move them in the layout editor.
-- **System screen.** The laptop's processor, memory, disks and network, from the Controls popup on the phone.
+- **Trackpad widgets.** Clock, weather, system numbers and network (and AI usage, once Claude Code or Codex is connected), drawn behind the trackpad. Move them in the layout editor.
+- **Stats.** The laptop's processor, memory, disks and network, from Controls > Stats on the phone. Turn on System stats in the Integrations window.
 
-For developers, there are also AI and GitHub screens. They never appear in the phone's Controls until you connect them on the laptop, and you can hide any Controls tile with **Edit**.
+For developers, there are also an AI screen and a Git screen. They never appear in the phone's Controls until you connect them on the laptop, and you can hide any Controls tile with **Edit**.
 
-- **Claude Code and Codex.** Approve their requests from the phone, and see their sessions, limits and spend. Needs Claude Code, or Codex 0.159 or newer. Nothing else to install: the hooks run the Edgepad app itself, and the app reads Claude spend from Claude Code's own transcripts.
-- **GitHub.** Sign in with a GitHub account to see review requests and your pull requests with their checks. Edgepad signs in through a read-only GitHub App, "Edgepad Dashboard", which can read but never change anything and sees only the repositories you install it on. Private repositories show up once you choose them: click **Choose repos on GitHub** in the laptop window, or tap "Private repos missing?" on the phone. If you signed in before 5.0.0, sign in again.
+- **AI tools.** Claude Code, Codex, Gemini CLI and OpenCode. Approve their requests from the phone and see their sessions. Usage limits are shown for Claude Code and Codex only. Needs Claude Code, Codex 0.159 or newer, Gemini CLI or OpenCode. Nothing else to install: the hooks run the Edgepad app itself, and the app reads Claude spend from Claude Code's own transcripts.
+- **Git hosts.** A read-only list of repositories, issues and pull requests from GitHub, GitLab, Gitea, Forgejo, Codeberg, Bitbucket and Gitee. Edgepad calls no write endpoint of any host. GitHub signs in through a read-only GitHub App, "Edgepad Dashboard", which can read but never change anything and sees only the repositories you install it on. Private repositories show up once you choose them: click **Choose repos on GitHub** in the laptop window, or tap "Private repos missing?" on the phone. If you signed in before 5.0.0, sign in again.
 
 What leaves the laptop:
 
 - The city name, sent to open-meteo.com for the weather widget. Weather data by Open-Meteo.com.
-- GitHub API calls, made with your own GitHub sign-in, when GitHub is on.
-- Nothing else. There is no server and no telemetry.
+- Calls to the Git host you connect, made with your own sign-in or token, while it is connected.
+- The speed test, only when you tap it on the phone's Network page.
+- Nothing else. There is no server and no telemetry. Every destination is listed in [docs/DATA-AND-PERMISSIONS.md](docs/DATA-AND-PERMISSIONS.md).
 
 What the laptop reads locally:
 
 - Claude Code transcripts, to count tokens.
 - Codex `sessions` files, for its state, tokens and limits. Codex's `auth.json` is never opened.
 
-Dollar amounts are estimates at API list prices, and the screens say so. A model with no price yet counts as $0, and the screen says "Some models have no price yet".
+Dollar amounts are estimates at API list prices, and the screens say so. A model with no published price shows "at least".
 
 Codex must trust the Edgepad plugin before its approvals work. This is a step inside Codex, not in Edgepad. In the Codex CLI, type `/hooks` and trust Edgepad. In the Codex desktop app, go to Settings > Hooks > Review hooks. The Integrations window waits until the first event arrives.
 
-Open the Integrations window from the tray icon > **Integrations…** on Windows and Linux, or the menu-bar icon > **Integrations…** on macOS. The AI and GitHub tiles appear in the phone's Controls only after you connect them here.
+Open the Integrations window from the tray icon > **Integrations…** on Windows and Linux, or the menu-bar icon > **Integrations…** on macOS. The AI and Git tiles appear in the phone's Controls only after you connect something here.
 
 Connect Claude Code:
 
 1. Install Claude Code on this computer if you have not: https://claude.com/claude-code
 2. Click **Connect**. Edgepad adds its plugin to Claude Code.
 3. Restart open Claude Code sessions, or type `/reload-plugins` in them.
-4. On your phone, open Controls > AI.
+4. On your phone, turn on Settings › Developer › Developer mode, then open Controls › Developer › AI.
 
 Connect Codex:
 
 1. Install Codex on this computer if you have not: https://developers.openai.com/codex
 2. Click **Connect**. Edgepad adds its plugin to Codex.
 3. In Codex, type `/hooks` and trust Edgepad. In the Codex app: Settings > Hooks > Review hooks.
-4. On your phone, open Controls > AI. It appears once Codex sends its first event.
+4. On your phone, turn on Settings › Developer › Developer mode, then open Controls › Developer › AI. It appears once Codex sends its first event.
 
 After an Edgepad update that changes the plugin's hooks, Codex skips them until you trust them again. Edgepad shows a notification when that happens: type `/hooks` in Codex and trust Edgepad again.
+
+Connect Gemini CLI:
+
+1. Install Gemini CLI on this computer if you have not.
+2. Click **Connect**. Edgepad adds its hooks to your Gemini CLI settings.
+3. Restart open Gemini CLI sessions.
+
+Connect OpenCode:
+
+1. Install OpenCode on this computer if you have not.
+2. Click **Connect**. Edgepad adds its plugin to the OpenCode plugins folder.
+3. Restart open OpenCode sessions.
 
 Connect GitHub:
 
 1. Click **Sign in with GitHub**. A github.com page opens.
 2. Enter the code shown in the Integrations window and click **Authorize**.
-3. On your phone, open Controls > GitHub.
+3. On your phone, turn on Settings › Developer › Developer mode, then open Controls › Developer › Git.
 
-Before you uninstall Edgepad, press **Disconnect** for Claude Code and Codex in the Integrations window. Otherwise a leftover entry stays in each tool. To revoke GitHub access, open https://github.com/settings/apps/authorizations, find Edgepad Dashboard, and choose **Revoke**.
+Connect GitLab: click **Sign in** and enter the code on the page that opens. For a self-hosted server, click **Add a self-hosted server…**, and paste a personal access token with only the `read_api` scope. On gitlab.com, **Use a token instead** takes the same kind of token, and unlike the sign-in it does not run out after 2 hours.
+
+Connect Gitea, Forgejo or Codeberg: on your server, open Settings > Applications and create an access token with read access. Click **Add**, check the server address (Codeberg is the default) and paste the token.
+
+Connect Bitbucket: in your Atlassian account, create an API token with read access to Bitbucket. Click **Add**, enter your Bitbucket email and paste the token.
+
+Connect Gitee: on gitee.com, open Settings > Personal access tokens and create a token with read access. Click **Add** and paste the token.
+
+Before you uninstall Edgepad, press **Disconnect** for each AI tool in the Integrations window. Otherwise a leftover entry stays in each tool. To revoke GitHub access, open https://github.com/settings/apps/authorizations, find Edgepad Dashboard, and choose **Revoke**.
 
 ## Languages
 
-Edgepad speaks English plus Simplified Chinese, Spanish, Hindi, German, French, Portuguese (Brazil), Japanese, Arabic, Russian, Korean, Italian, Dutch, Turkish and Polish: 15 in all, on the phone app and the Windows app. The phone follows the system language, and on Android 13 and later Edgepad can have its own language in Android's per-app language settings. Windows follows its display language. Translators: see [docs/i18n/README.md](docs/i18n/README.md).
+Edgepad speaks English plus Simplified Chinese, Spanish, Hindi, German, French, Portuguese (Brazil), Japanese, Arabic, Russian, Korean, Italian, Dutch, Turkish and Polish: 15 in all, on the phone app and the Windows app. The Mac and Linux apps follow the system language in 14 languages. The phone follows the system language, and on Android 13 and later Edgepad can have its own language in Android's per-app language settings. Windows follows its display language. Translators: see [docs/i18n/README.md](docs/i18n/README.md).
 
 ## Security
 

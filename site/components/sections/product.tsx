@@ -201,7 +201,7 @@ export function ProductSections() {
             },
             {
               title: "Controls",
-              body: "One button on the surface opens a grid of the keyboard, the gamepad, macros, annotate and capture. A laptop shows only what it can do, and the grid can be rearranged like the macro deck.",
+              body: "One button on the surface opens a popup of tiles: the keyboard, the gamepad, macros, annotate, capture, clipboard, Presenter, Send a file and Stats, and Developer (AI and Git) once Developer mode is on and a tool is connected. The top row is Controls, Type, Lock and Settings. A laptop shows only what it can do, and Edit under the tiles hides, shows and drags them.",
             },
             {
               title: "Share clipboard",
@@ -209,7 +209,7 @@ export function ProductSections() {
             },
             {
               title: "Several laptops",
-              body: "The phone stays connected to every laptop you connect, and you choose which one you control from System settings or the Devices dial. Stay connected keeps the link in a notification while Edgepad is minimized.",
+              body: "The phone stays connected to every laptop you connect, and you choose which one you control from Settings › Devices & connection or the Switch laptop dial. Stay connected keeps the link in a notification while Edgepad is minimized.",
             },
             {
               title: "Annotate and sign",
@@ -217,7 +217,7 @@ export function ProductSections() {
             },
             {
               title: "Capture",
-              body: "Buttons for a region, the whole screen and a recording press the laptop’s own screenshot shortcut, with a trackpad under them to drag out the region.",
+              body: "Buttons for a region, the whole screen and a recording press the laptop’s own screenshot shortcut. For a region, point at one corner, tap Region, then drag on the trackpad under the buttons to the opposite corner. No hold is needed.",
             },
             {
               title: "Security levels and a PIN",
@@ -226,6 +226,62 @@ export function ProductSections() {
             {
               title: "Live state",
               body: "The dials show the laptop’s real volume, mute, brightness and playback position, and follow changes made on the laptop itself.",
+            },
+            {
+              title: "Send files",
+              body: "Move a file either way, up to 2 GB. From the phone: Controls > Send a file, or Share. From a laptop: the tray or menu-bar row Send a file, Send to on Windows, Open With or a drop on the icon on the Mac, edgepad --send on Linux. Several files go one after another with a progress card and Try again for the ones that failed. The SHA-256 is checked and an interrupted transfer resumes.",
+            },
+            {
+              title: "Update in place",
+              body: "Windows, Mac and Linux check a signed list of file hashes before they replace themselves. The phone offers Later and Skip this version. Install both halves from the same release.",
+            },
+            {
+              title: "Presenter and laser pointer",
+              body: "Controls > Presenter has Next and Previous slide, and the volume keys step slides while it is open. The laser pad draws a red dot on the laptop and leaves nothing behind. Settings > Presenter sets the laser size and Show trail.",
+            },
+            {
+              title: "Clipboard history",
+              body: "Controls > Clipboard lists the last copies from the laptop and from the phone, each with where it came from and how long ago. Tap one to send it again. On Windows, Win+Alt+V opens a panel of recent copies that Click or Enter pastes from.",
+            },
+            {
+              title: "Stats",
+              body: "Controls > Stats has System and Network pages, each with a device dropdown. System shows processor, graphics, memory, disks and battery; Network shows download and upload, ping and a speed test that runs only when you tap it. Turn on System stats in the laptop’s Integrations window.",
+            },
+            {
+              title: "Trackpad widgets",
+              body: "Clock, weather, system and network can sit on the trackpad as a background that never takes a touch. Turn them on under Surface settings > Widgets. Weather uses Open-Meteo with a city you type on the laptop.",
+            },
+            {
+              title: "App profiles",
+              body: "Dials and gestures switch with the app in front on the laptop. Off by default. Windows, Mac and Linux on X11.",
+            },
+            {
+              title: "Air mouse",
+              body: "Tilt the phone to move the pointer while a finger rests on the trackpad. It stops the moment the finger lifts.",
+            },
+            {
+              title: "Floating dials",
+              body: "Dials over other apps, using Android’s draw-over-apps permission and Stay connected.",
+            },
+            {
+              title: "Sleep when this ends",
+              body: "Sleep or shut down the laptop when the current video or track ends. Shut down shows a 60 second countdown on the laptop that you can cancel. Windows, Mac and Linux.",
+            },
+            {
+              title: "Quick Settings tile",
+              body: "A tile in Android’s Quick Settings, and play/pause and volume buttons in the Stay connected notification.",
+            },
+            {
+              title: "Laptop notifications",
+              body: "Show laptop notifications on the phone. Off by default on both sides, and Linux only.",
+            },
+            {
+              title: "For developers: AI screen and Git screen",
+              body: "Optional, and off until connected in the laptop’s Integrations window. The AI screen shows usage limits (Claude Code and Codex), spend, and open sessions from Claude Code, Codex, Gemini CLI and OpenCode, and lets you answer an approval request from the phone. The Git screen is read-only: repositories, issues and pull requests from GitHub, GitLab, Gitea, Forgejo, Codeberg, Bitbucket and Gitee.",
+            },
+            {
+              title: "What Edgepad uses",
+              body: "A page listing every permission the apps ask for and every network destination, with what each is for. Open it from Settings > About and updates on the phone.",
             },
           ].map((feature) => (
             <div
@@ -319,14 +375,20 @@ export function ProductSections() {
                 <strong className="text-foreground">Security…</strong>,{" "}
                 <strong className="text-foreground">Documentation</strong>,{" "}
                 <strong className="text-foreground">Open log</strong> and{" "}
-                <strong className="text-foreground">Quit Edgepad</strong>.
+                <strong className="text-foreground">Quit Edgepad</strong>. It also has{" "}
+                <strong className="text-foreground">Send a file</strong>,{" "}
+                <strong className="text-foreground">Clipboard history</strong>,{" "}
+                <strong className="text-foreground">Integrations…</strong> and{" "}
+                <strong className="text-foreground">Restart as administrator</strong>,
+                which lets input reach elevated windows.
               </li>
             </ol>
             <P>
-              Running a newer <C>{DOWNLOADS.windows.file}</C> asks the running copy to
-              quit and takes its place, so an update takes over cleanly. Starting the
-              same version twice shows &ldquo;Edgepad is already running&rdquo; and the
-              second copy exits.
+              The app updates itself in place: it checks the release&apos;s signed list
+              of file hashes, then replaces itself. Running a newer{" "}
+              <C>{DOWNLOADS.windows.file}</C> by hand asks the running copy to quit and
+              takes its place. Starting the same version twice shows &ldquo;Edgepad is
+              already running&rdquo; and the second copy exits.
             </P>
             <Note label="Optional: ViGEmBus, for the gamepad">
               <p className="mb-3">
@@ -395,9 +457,9 @@ export function ProductSections() {
             </Note>
             <Note label="In testing">
               The Mac app has been compiled and unit-tested in CI but not yet run on a
-              real Mac, and it has no now playing, level readout or virtual controller
-              yet. It offers Wi-Fi connections; USB is not supported there. The README
-              lists what differs.
+              real Mac, and it has no virtual controller. It shows now playing and
+              position for Music and Spotify. It offers Wi-Fi connections; USB is not
+              supported there. The README lists what differs.
             </Note>
           </TabsContent>
 
@@ -503,13 +565,16 @@ sudo ./install.sh`}
                 you turn Wi-Fi and USB connections on, to find laptops on your network.
               </li>
               <li>
-                Later releases install over this one and keep your settings.{" "}
+                Later releases install over this one and keep your settings. The phone
+                posts a notice and offers{" "}
+                <strong className="text-foreground">Later</strong> and{" "}
+                <strong className="text-foreground">Skip this version</strong>;{" "}
                 <strong className="text-foreground">
-                  System settings &gt; Updates
+                  Settings &gt; About and updates
                 </strong>{" "}
-                on the phone and the laptop&apos;s{" "}
-                <strong className="text-foreground">Update available</strong> row tell
-                you when one exists. Update both halves together.
+                and the laptop&apos;s{" "}
+                <strong className="text-foreground">Update available</strong> row also
+                tell you. Update both halves together.
               </li>
             </ol>
           </TabsContent>
@@ -594,7 +659,8 @@ sudo ./install.sh`}
           <li>
             The phone shows a six-digit pairing code. Type it into the laptop&apos;s
             pairing window (&ldquo;Type the pairing code shown on the phone:&rdquo;)
-            before it expires, then tap{" "}
+            before it expires. On Windows the window has one box per digit, and pasting
+            fills them all. Then tap{" "}
             <strong className="text-foreground">Yes, paired</strong> on the phone if the
             laptop said the code matched. After that the laptop is remembered.
           </li>
@@ -795,11 +861,17 @@ sudo ./install.sh`}
 
         <Sub>Controls, annotate, sign and capture</Sub>
         <P>
-          <strong>Controls</strong> on the surface opens a grid of Keyboard, Gamepad,
-          Capture and Annotate. A laptop shows only what it can do, so a phone shows no
-          Annotate tile when the laptop does not offer it, and no Capture tile when it
-          cannot capture. Back from the keyboard, the gamepad and Capture returns to
-          Controls.
+          <strong>Controls</strong> on the surface opens a popup headed Controls, with
+          the edit pencil beside it. Its top row is Controls, Type, Lock and Settings.
+          The tiles fill the popup: Keyboard, Gamepad, Macros, Annotate, Capture,
+          Clipboard, Presenter, Send a file and Stats, and Developer (the AI and Git
+          pages) once Developer mode is on and a tool is connected. A laptop shows only
+          what it can do, so a phone shows no Annotate tile when the laptop does not
+          offer it, and no Capture tile when it cannot capture. Under the tiles, one row
+          of chips holds Hide dials and media, Black out when idle, Air mouse, Floating
+          dials and Sleep when this ends. The Edit chip shows every tile; tap one to
+          hide or show it, and drag to move it. Back from the keyboard, the gamepad and
+          Capture returns to Controls.
         </P>
         <P>
           Annotate draws on the laptop&apos;s primary display, with the phone as an
@@ -814,10 +886,12 @@ sudo ./install.sh`}
           testing.
         </P>
         <P>
-          Capture presses the laptop&apos;s own screenshot or recording shortcut, and
-          has a trackpad under its buttons to drag out the region. With Save to: Phone,
-          the laptop sends what it just captured to the phone, unverified on real
-          laptops.
+          Capture presses the laptop&apos;s own screenshot or recording shortcut. For a
+          region, point at one corner, tap Region, then drag on the trackpad under the
+          buttons to the opposite corner; there is no hold. Until that drag, taps send
+          nothing on Windows and Mac, and on Windows Record starts the same way. With
+          Save to: Phone, the laptop sends what it just captured to the phone,
+          unverified on real laptops.
         </P>
         <Table>
           <TableHeader>
@@ -841,6 +915,93 @@ sudo ./install.sh`}
             ))}
           </TableBody>
         </Table>
+
+        <Sub>Send a file</Sub>
+        <P>
+          A file moves either way, up to 2 GB. On the phone, choose{" "}
+          <strong>Controls &gt; Send a file</strong> or use Android&apos;s Share. On a
+          laptop, use the tray or menu-bar row Send a file; Windows also has
+          Explorer&apos;s Send to, the Mac has Open With and a drop on its icon, and
+          Linux has <C>edgepad --send</C> and a Send to phone entry. Several files go
+          one after another. The phone shows the file name, &ldquo;2 of 5&rdquo;, a bar
+          with percent and speed, and Cancel, then &ldquo;Sent N files&rdquo; or which
+          files failed, with Try again for those. Names are made safe, the SHA-256 is
+          checked, an interrupted transfer resumes, and one file moves at a time per
+          direction. Over Wi-Fi or USB the bytes use a second socket that can only
+          attach to a phone that is already connected.
+        </P>
+
+        <Sub>Presenter and laser pointer</Sub>
+        <P>
+          <strong>Controls &gt; Presenter</strong> has Next and Previous slide, and the
+          volume keys step slides while the screen is open. The laser pad is always
+          shown. The laser pointer draws a bright red dot with a glow on the laptop
+          (Windows, Mac, Linux); nothing is left behind, and the laptop clears the dot
+          if the link drops. <strong>Settings &gt; Presenter</strong> holds Laser size
+          (three steps) and Show trail, a tail that tapers over 250 ms.
+        </P>
+
+        <Sub>Clipboard history and Stats</Sub>
+        <P>
+          <strong>Controls &gt; Clipboard</strong> lists the last copies from the laptop
+          and from the phone, each with where it came from and how long ago. Tap one to
+          send it again; an empty list says Nothing copied yet. On Windows,{" "}
+          <strong>Win+Alt+V</strong> (or Clipboard history in the tray) opens a panel of
+          recent copies, newest first: Click or Enter pastes into the app you were in,
+          Ctrl+Enter sends it to the phone, Esc closes. It holds text only, 25 items, in
+          memory, and only while Share clipboard is on.
+        </P>
+        <P>
+          <strong>Controls &gt; Stats</strong> has System and Network pages, and a
+          device dropdown for your laptops and this phone. System shows device info,
+          processor, graphics, memory, disks and the battery; Network shows download and
+          upload, ping and a speed test, capped at 25 MB down and 10 MB up, that runs
+          only when you tap it. Turn on System stats in the laptop&apos;s Integrations
+          window. A reading a laptop cannot give shows a dash, and no page shows a Wi-Fi
+          name.
+        </P>
+
+        <Sub>Trackpad widgets, air mouse and more</Sub>
+        <P>
+          <strong>Trackpad widgets</strong> (clock, weather, system, network, and AI
+          usage once connected) sit behind the trackpad and never take a touch: Surface
+          settings &gt; Widgets. <strong>Air mouse</strong> moves the pointer as you
+          tilt the phone while a finger rests on the trackpad, in any grip, and stops
+          when the finger lifts. <strong>Floating dials</strong> draws the dials over
+          other apps and needs Android&apos;s draw-over-apps permission and Stay
+          connected. <strong>App profiles</strong> switch dials and gestures with the
+          app in front on the laptop; they are off by default and work on Windows, Mac
+          and Linux on X11. <strong>Sleep when this ends</strong> sleeps or shuts down
+          the laptop when the current video or track ends. Shut down first shows a 60
+          second countdown (Windows, Mac and Linux). The{" "}
+          <strong>Quick Settings tile</strong> and the Stay connected
+          notification&apos;s play/pause and volume buttons are on the phone.{" "}
+          <strong>Laptop notifications</strong> are off until both sides turn them on,
+          and work on Linux only.
+        </P>
+
+        <Sub>For developers: AI screen and Git screen</Sub>
+        <P>
+          Both are off until you connect them in the laptop&apos;s{" "}
+          <strong>Integrations…</strong> window (tray, or the Mac menu-bar item), which
+          has numbered steps for Claude Code, Codex and GitHub. Their tiles then appear
+          in Controls. The AI screen lists usage limits (Claude Code and Codex), spend
+          for today, 7 days and 30 days, and the context use of each open Claude Code,
+          Codex, Gemini CLI or OpenCode session. Approval requests can be answered from
+          a sheet over any screen; with no answer in 30 seconds, or on any failure, the
+          question stays in the terminal. The Git screen is read-only and lists
+          repositories, issues and pull requests from GitHub, GitLab, Gitea, Forgejo,
+          Codeberg, Bitbucket and Gitee. The sign-in is stored encrypted on the laptop
+          and never sent to the phone.
+        </P>
+
+        <Sub>What Edgepad uses</Sub>
+        <P>
+          A page listing every permission the apps ask for and every network
+          destination, with what each is for. The phone links it on first open and from{" "}
+          <strong>Settings &gt; About and updates</strong>; the same content is in{" "}
+          <C>docs/DATA-AND-PERMISSIONS.md</C>.
+        </P>
       </Section>
 
       <Section
@@ -852,13 +1013,17 @@ sudo ./install.sh`}
         <P>
           Each screen has its own settings behind its own gear, and a feature&apos;s
           settings live only there. Since 4.0.0 the old single settings hub is split
-          that way.
+          that way. The phone&apos;s Settings screen is in sections, in this order:
+          Surface, Keyboard, Gamepad, Macros, Presenter, Capture &amp; Annotate,
+          Clipboard &amp; files, Developer, Devices &amp; connection, App appearance,
+          Language, Help, and About and updates. Capture &amp; Annotate also holds the
+          pen colour, width and opacity.
         </P>
         <div className="grid gap-3 sm:grid-cols-2">
           {[
             {
               title: "Surface settings",
-              body: "From the surface’s gear: Corners and Split corners, Gestures (pointer and scroll speed, natural scrolling, the three- and four-finger map and the on-screen hints), Shapes (draw one, bind it, delete it), Dial feel (slide sensitivity — shared or per dial kind — dial length and height, haptic ticks, snapping to round numbers, with a live preview), Media layout and Background (a control colour, a colour, gradient or image behind the surface, and a grid, dots or checker over it).",
+              body: "From the surface’s gear: Corners and Split corners, Gestures (pointer and scroll speed, natural scrolling, the three- and four-finger map and the on-screen hints, which are off by default), Shapes (draw one, bind it, delete it), Dial feel (slide sensitivity — shared or per dial kind — dial length and height, haptic ticks, snapping to round numbers, with a live preview), Media layout and Background (a control colour, a colour, gradient or image behind the surface, and a grid, dots or checker over it) and Widgets.",
             },
             {
               title: "Keyboard, gamepad and macros",
@@ -866,7 +1031,7 @@ sudo ./install.sh`}
             },
             {
               title: "System settings",
-              body: "From the Devices screen’s gear or the last row of Surface settings, and only what applies everywhere: the laptop, theme, upright or sideways, Stay connected, the guide and updates. The guide opens on the first run and again from here.",
+              body: "From the Devices screen’s gear or the last row of Surface settings, and only what applies everywhere: the laptop, theme, upright or sideways, Stay connected, Language (15 languages on Android 13 and later), the guide and updates. The guide opens on the first run and again from here.",
             },
           ].map((item) => (
             <div
@@ -938,8 +1103,8 @@ sudo ./install.sh`}
         <P>
           If the laptop is older, the phone says &ldquo;Edgepad on LAPTOP is older than
           this app. Update Edgepad on the laptop.&rdquo; If the phone is older it says
-          &ldquo;This app is older than Edgepad on LAPTOP. Update this app in System
-          settings &gt; Updates.&rdquo; The laptop&apos;s menu names the older half the
+          &ldquo;This app is older than Edgepad on LAPTOP. Update this app in Settings
+          &gt; About and updates.&rdquo; The laptop&apos;s menu names the older half the
           same way. Both halves must come from the same release.
         </P>
 

@@ -4,13 +4,13 @@ Everything about using Edgepad that the [README](../README.md) leaves out: insta
 
 ## Install
 
-Both apps come from the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest), under **Assets**. Each file is named for its release, so `Edgepad-4.0.0.exe` and `Edgepad-4.0.0.apk` are the two halves of 4.0.0; on a Mac the laptop half is `Edgepad-<version>-mac.zip`, from 3.4.0, and on Linux `Edgepad-<version>-linux-x64.tar.gz`, from 4.0.0. Always install both from the same release: the two refuse each other at the handshake when their protocol versions differ, and say so. 3.0.0 moved the protocol from version 3 to version 4, so a 2.x app on either side will not talk to a 3.x one — update both halves together or neither connects. 4.0.0 moves it to version 5, so a 3.x app will not talk to a 4.x one either. Releases after 3.1.1 also carry `SHA256SUMS.txt`, and `gh attestation verify Edgepad-<version>.apk --repo akshit-bansal11/edgepad` checks that a file was built by this repository's release workflow.
+Both apps come from the [latest release](https://github.com/akshit-bansal11/edgepad/releases/latest), under **Assets**. Each file is named for its release, so `Edgepad-5.0.0.exe` and `Edgepad-5.0.0.apk` are the two halves of 5.0.0; on a Mac the laptop half is `Edgepad-<version>-mac.zip`, from 3.4.0, and on Linux `Edgepad-<version>-linux-x64.tar.gz` (or `-linux-arm64.tar.gz` on an ARM laptop, from 5.0.0), from 4.0.0. Always install both from the same release: the two refuse each other at the handshake when their protocol versions differ, and say so. 3.0.0 moved the protocol from version 3 to version 4, so a 2.x app on either side will not talk to a 3.x one — update both halves together or neither connects. 4.0.0 moved it to version 5, and 5.0.0 moves it to version 6, so a 4.x app will not talk to a 5.x one either. Releases after 3.1.1 also carry `SHA256SUMS.txt` (signed from 5.0.0, see [UPDATES.md](UPDATES.md)), and `gh attestation verify Edgepad-<version>.apk --repo akshit-bansal11/edgepad` checks that a file was built by this repository's release workflow.
 
 ### Laptop (Windows 10 version 2004 or later, 64-bit)
 
 1. Download `Edgepad-<version>.exe`. It is a single self-contained file; nothing else needs installing.
 2. Run it. It is not code-signed, so SmartScreen asks first: choose **More info**, then **Run anyway**.
-3. It lives in the system tray, and a left or a right click on its icon opens the same menu. The menu shows whether a phone is connected (**Waiting for your phone**, or **Connected to NAME · Bluetooth**), then **Update available: VERSION** when a newer release exists, a row for whatever needs doing (**Open Bluetooth settings** while no phone is trusted, a Wi-Fi or USB problem, **Allow through Windows Firewall…** while Wi-Fi and USB connections are on), then **Wi-Fi and USB connections**, **Share clipboard**, **Clipboard history**, **Start with Windows**, **Check for updates daily**, **Macros…**, **Security…**, **Documentation**, **Open log** and **Quit Edgepad**. Forgetting a trusted phone is in **Security…**, per phone, with **Forget all…**. It follows Windows' light or dark app mode.
+3. It lives in the system tray, and a left or a right click on its icon opens the same menu. The menu shows whether a phone is connected (**Waiting for your phone**, or **Connected to NAME · Bluetooth**), then **Update available: VERSION** when a newer release exists, a row for whatever needs doing (**Open Bluetooth settings** while no phone is trusted, a Wi-Fi or USB problem, **Allow through Windows Firewall…** while Wi-Fi and USB connections are on), then **Wi-Fi and USB connections**, **Share clipboard**, **Clipboard history**, **Send a file**, **Start with Windows**, **Check for updates daily**, **Macros…**, **Security…**, **Integrations…**, **Restart as administrator**, **Documentation**, **Open log** and **Quit Edgepad**. Forgetting a trusted phone is in **Security…**, per phone, with **Forget all…**. It follows Windows' light or dark app mode.
 
 Running a newer release's exe asks the running copy to quit and takes its place. Running the same version again shows "Edgepad is already running. Find it in the taskbar corner." and exits. **Share clipboard** starts off; the first run asks about it together with **Let phones find this laptop?**, and offers **Start with Windows**, unticked (existing installs keep their value). From 3.3.0 the tray app asks GitHub once a day whether a newer release exists (**Check for updates daily** switches it off), and shows an **Update available** row at the top of its menu when one does.
 
@@ -31,11 +31,11 @@ Because the signature is ad hoc, macOS treats every new version as a different a
 
 **Still in testing; use it at your own risk.** [docs/LINUX.md](LINUX.md) lists everything that has not been seen working.
 
-1. Download `Edgepad-<version>-linux-x64.tar.gz` and check it against `SHA256SUMS.txt`.
+1. Download `Edgepad-<version>-linux-x64.tar.gz`, or `Edgepad-<version>-linux-arm64.tar.gz` on an ARM laptop, and check it against `SHA256SUMS.txt`. The arm64 build has never run on a device.
 2. Extract it and run the installer as root:
 
    ```sh
-   tar xzf Edgepad-<version>-linux-x64.tar.gz
+   tar xzf Edgepad-<version>-linux-x64.tar.gz   # or -linux-arm64.tar.gz
    cd edgepad-<version>
    sudo ./install.sh            # or: sudo ./install.sh /opt/edgepad  to install under another prefix
    ```
@@ -60,14 +60,14 @@ On Wayland, the layer annotate draws on runs under XWayland and the compositor m
 
 1. Download `Edgepad-<version>.apk` on the phone and open it. Allow installing from this source if asked.
 2. On first run, allow the **Nearby devices** permission. Edgepad uses it to see the laptops already paired over Bluetooth and, if you turn Wi-Fi and USB on, to find laptops on your network.
-3. Every later release installs over the previous one; settings are kept. From 3.3.0 the app fetches them itself: **System settings › Updates** says when a newer release exists, and a tap downloads and installs it. Update the laptop app to the same release.
+3. Every later release installs over the previous one; settings are kept. From 3.3.0 the app fetches them itself: **Settings › About and updates** says when a newer release exists, and a tap downloads and installs it. Update the laptop app to the same release.
 
 ## Use
 
 1. Pair the phone with the laptop once, in Windows **Settings > Bluetooth & devices**, macOS **System Settings > Bluetooth** or your Linux desktop's Bluetooth settings, and confirm the code on both sides.
 2. Keep Edgepad running in the laptop's tray, or on a Mac in the menu bar. On Linux the tray needs a desktop that shows StatusNotifier icons; GNOME needs the AppIndicator extension.
 3. Open Edgepad on the phone and tap the laptop. The first time, the laptop asks **Trust this phone?**; choose **Trust** there (no answer within a minute counts as no). Every paired phone is asked about once, and each one you trust is remembered; the laptop's **Security…** window lists them, each with **Forget**, and has **Forget all…**. On the phone, a laptop's **Forget** removes it from the list and deletes its pairing code; Android's own Bluetooth pairing stays, so remove that in Bluetooth settings. One phone drives the laptop at a time: a trusted phone that connects takes over from the connected one, and the phone it replaced is refused for 30 seconds, so the two do not take the laptop back and forth. After that it can reconnect with Retry.
-4. The phone remembers the laptop and reconnects when the app opens. **Disconnect** on Devices stops that until you tap the laptop again. If the link drops, the phone retries up to ten times, two seconds apart, and says so; **Stop trying** ends it early. With Stay connected on it keeps retrying while Edgepad is minimized, with a "Reconnecting to NAME…" notification. The phone stays connected to every laptop you connect, and you choose which one you control from System settings › Devices or the Switch laptop dial.
+4. The phone remembers the laptop and reconnects when the app opens. **Disconnect** on Devices stops that until you tap the laptop again. If the link drops, the phone retries up to ten times, two seconds apart, and says so; **Stop trying** ends it early. With Stay connected on it keeps retrying while Edgepad is minimized, with a "Reconnecting to NAME…" notification. The phone stays connected to every laptop you connect, and you choose which one you control from Settings › Devices & connection or the Switch laptop dial.
 5. **Share clipboard** and **Stay connected** start off. The phone asks about both on one screen after the first successful connection, and each laptop asks about the clipboard on its first run; an install that already chose keeps its choice. With Stay connected on, a notification keeps the link while Edgepad is minimized, with a Disconnect button.
 
 ### Wi-Fi and USB connections
@@ -106,7 +106,7 @@ The phone asks on its own keypad, so no keyboard app sees the digits; it never s
 
 ### Controls, annotate, sign and capture
 
-**Controls** on the surface opens a grid of Keyboard, Gamepad, Macros, Annotate and Capture. A laptop shows only what it can do, so a phone shows no Annotate tile when the laptop does not offer it.
+**Controls** on the surface opens a popup with the heading **Controls** and, beside it, the edit pencil. Its top row is Controls, Type, Lock, Settings. The tiles are Keyboard, Gamepad, Macros, Annotate, Capture, Clipboard, Presenter, Send a file, Stats and, with Developer mode on (Settings › Developer) and a tool connected on the laptop, Developer, which holds the AI and Git pages. Under them are chips: Edit, Hide dials and media, Black out when idle, Air mouse, Floating dials and Sleep when this ends. A laptop shows only what it can do, so a phone shows no Annotate tile when the laptop does not offer it. Each one is described below.
 
 #### Annotate and sign
 
@@ -128,26 +128,65 @@ Capture presses the laptop's own screenshot shortcut; the phone has a trackpad u
 | Mac | Cmd+Shift+4 | Cmd+Shift+3 | Cmd+Shift+5 |
 | Linux | Print | Print | Ctrl+Shift+Alt+R on GNOME, Meta+Alt+R on KDE (unverified) |
 
-### New in 5.0.0
+#### Send files
 
-Everything here is built and has not yet run on a phone with a laptop. Phone and laptop must both be 5.0.0: a 5.0 phone and a 4.x laptop refuse each other at the handshake.
+On the phone, **Controls › Send a file** picks one or several files, and the Android share sheet takes several. On the laptop, use the tray or menu-bar **Send a file** row (it picks several on Windows and Linux), Windows' Send to menu (several files), a file dropped on the Mac app, or on Linux `edgepad --send FILE` and the Send to phone desktop entry. Files go one after another, up to 2 GB each. The name is made safe, the SHA-256 is checked, an interrupted transfer resumes, and one file moves at a time per direction. Over Wi-Fi or USB the bytes use a second socket that can only attach to a phone that is already connected. It needs a connected laptop.
 
-- **Update in place.** The phone's **System settings › Updates** offers **Later** and **Skip this version**, and posts a notice when a newer release exists. Windows, Mac and Linux check the signed list of file hashes before replacing themselves; with no signing key in the build they open the release page instead. Details: [docs/UPDATES.md](UPDATES.md).
-- **Send a file.** On the phone, **Controls › Send a file**, or Share a file to Edgepad. On the laptop, the tray or menu-bar **Send a file** row, Windows' Send to menu, a file dropped on the Mac app, or on Linux `edgepad --send FILE`. Several files at once: Send a file picks several on the phone and on Windows, the Android share sheet takes several, Explorer's Send to takes several files, and the Linux picker takes several. Files go one after another. The phone shows a card with the file name, "2 of 5", a progress bar with percent and speed, and **Cancel**. At the end it says "Sent N files", or which files failed and why, with **Try again**, which re-sends only the failed ones. Windows shows the same as a toast near the tray. A file that fails does not stop the rest; **Cancel** or a lost link does. Files up to 2 GB; an interrupted transfer resumes. Needs a connected laptop.
-- **Sleep when this ends.** In the Controls popup while something plays: **Sleep the laptop** or **Shut the laptop down** when it ends, **Cancel** to disarm. It needs a media end time. Shutdown shows a 60 second cancellable countdown on the laptop.
-- **Show laptop notifications.** Off until you turn it on, on both sides: **Settings › Show laptop notifications** on the phone, and the **Forward notifications to phone** row in the Linux tray. Linux only so far. Windows waits for a check of its notification listener, and macOS has no public way to do it.
-- **Clipboard history.** **Controls › Clipboard** lists the last copies from the laptop and from this phone, each with where it came from and how long ago; tap one to send it again. An empty list says **Nothing copied yet**. It records copies only while **Share clipboard** is on, and keeps text only, in memory only. On Windows, **Win+Alt+V** opens the same history as a panel: click or Enter pastes into the app you were in, Ctrl+Enter sends the item to the phone, and Esc closes it. The panel is also in the tray menu as **Clipboard history**. If another app owns Win+Alt+V, the tray row still opens the panel.
-- **Quick Settings tile.** Add **Edgepad** from your phone's Quick Settings edit screen. The stay-connected notification gains play/pause and volume buttons.
-- **Presenter.** **Controls › Presenter** always shows the laser pad, with Next slide and Previous slide as tall columns at the sides in landscape and a row below in portrait. There is no laser switch any more. The **Laser pointer** draws a bright red dot with a glow on the laptop, sized by **Laser size** in Presenter settings, with a short red tail when **Show trail** is on; it leaves nothing behind. The volume keys change slides only while this screen is open.
-- **App profiles.** **Settings › App profiles › Switch dials and gestures by app.** The laptop tells the phone which app is in front, only while this is on, and the name is not stored on the laptop. Not available on a Linux Wayland session.
-- **Air mouse.** **Controls › Air mouse**: tilt the phone to move the pointer while a finger rests on the trackpad. It works in any grip (flat, held like a remote, or upright) and stops the moment the finger lifts. The gyroscope is read only then. While it is on, a held finger does not drag; taps still click. A line under the switch says how to use it.
-- **Floating dials.** **Controls › Floating dials** shows the dials over other apps. It asks for Android's "draw over other apps" permission and needs a connected laptop and **Stay connected**. The note about the permission hides once it is granted.
-- **Edit Controls.** Tap **Edit**, the first chip under the tiles in the Controls popup. Tap a tile to hide it or show it again; hidden tiles are dimmed and say **Hidden**. Hold and drag a tile to move it. Tap **Done** when finished. If every tile is hidden, the popup says so and **Edit** brings them back.
-- **Mac and Linux in your language.** Both follow the system language in the same 14 languages as the phone.
-- **Mac and Linux catch up.** The Mac shows now playing for Music and Spotify, holds the phone off while the Mac is locked or switched to another user, and sends a copied screenshot when Capture is set to send to the phone. Linux gains the refresh-rate dial and an arm64 build.
-- **Motion.** Presses answer within 160 ms, popovers and windows open within 300 ms, and screen changes take at most 400 ms; screens carry across instead of cutting.
-- **Docs search** on the website.
-- **Windows** also gains a tray row, **Restart as administrator**, so input reaches elevated windows such as Task Manager.
+The phone shows a card with the file name, "2 of 5", a progress bar with percent and speed, and **Cancel**. At the end it says "Sent N files", or which files failed and why, with **Try again**, which re-sends only the failed ones. Windows shows the same as a toast near the tray; the Mac and Linux transfer cards have pause, stop and close. A file that fails does not stop the rest; **Cancel** or a lost link does.
+
+#### Clipboard history
+
+**Controls › Clipboard** lists the last copies from the laptop and from this phone, each with where it came from and how long ago; tap one to send it again. An empty list says **Nothing copied yet**. It records copies only while **Share clipboard** is on, and keeps text only, in memory only. On Windows, **Win+Alt+V** opens the same history as a panel: click or Enter pastes into the app you were in, Ctrl+Enter sends the item to the phone, and Esc closes it. The panel is also in the tray menu as **Clipboard history**. If another app owns Win+Alt+V, the tray row still opens the panel.
+
+#### Presenter and laser pointer
+
+**Controls › Presenter** always shows the laser pad, with Next slide and Previous slide as tall columns at the sides in landscape and a row below in portrait. The volume keys change slides only while this screen is open. The **Laser pointer** draws a bright red dot with a glow on the laptop (Windows, Mac and Linux) and leaves nothing behind; if the link drops, the laptop clears the dot. **Laser size** in Presenter settings has three steps, and a short red tail follows when **Show trail** is on.
+
+#### Air mouse and Floating dials
+
+**Controls › Air mouse**: tilt the phone to move the pointer while a finger rests on the trackpad. It works in any grip (flat, held like a remote, or upright) and stops the moment the finger lifts. The gyroscope is read only then. While it is on, a held finger does not drag; taps still click.
+
+**Controls › Floating dials** shows the dials over other apps. It asks for Android's "draw over other apps" permission and needs a connected laptop and **Stay connected**.
+
+#### Sleep when this ends
+
+In the Controls popup while something plays: **Sleep the laptop** or **Shut the laptop down** when it ends, **Cancel** to disarm. It needs a media end time. Shutdown shows a 60 second cancellable countdown on the laptop. Windows, Mac and Linux.
+
+#### Stats
+
+**Controls › Stats** has two pages, System and Network, each with a device dropdown listing your laptops and this phone. System shows device info, processor, graphics card, memory, every disk, and the battery. Network shows current download and upload, ping and a speed test against Cloudflare, which runs only when you tap it. Turn on **System stats** in the laptop's **Integrations…** window. Readings run only while the page or a widget is on show, and a reading a laptop cannot give shows a dash. No page shows a Wi-Fi name.
+
+#### Trackpad widgets
+
+**Surface settings › Widgets** puts a clock, weather, system and network (and AI usage, once connected) behind the trackpad. They never take a touch. Weather uses Open-Meteo with a city you type on the laptop, and nothing else.
+
+#### App profiles
+
+**Settings › App profiles › Switch dials and gestures by app.** The laptop tells the phone which app is in front, only while this is on, and the name is not stored on the laptop. Off by default. Windows, Mac and Linux on X11; not on a Linux Wayland session.
+
+#### Laptop notifications
+
+**Settings › Show laptop notifications** on the phone, and the **Forward notifications to phone** row in the Linux tray. Off until both sides turn it on, sent only while connected, and never logged. Linux only: Windows waits for a check of its notification listener, and macOS has no public way to do it.
+
+#### Quick Settings tile
+
+Add **Edgepad** from your phone's Quick Settings edit screen. The stay-connected notification has play/pause and volume buttons.
+
+#### Edit Controls
+
+Tap **Edit**, the first chip under the tiles in the Controls popup. Tap a tile to hide it or show it again; hidden tiles are dimmed and say **Hidden**. Hold and drag a tile to move it. Tap **Done** when finished. If every tile is hidden, the popup says so and **Edit** brings them back.
+
+#### For developers: AI screen and Git screen
+
+Optional, off until you connect something in the laptop's **Integrations…** window (tray, or the menu-bar icon on a Mac). Their tiles appear in Controls only after that. Claude Code, Codex, Gemini CLI and OpenCode sessions are supported; usage limits are shown for Claude Code and Codex. Approval requests can be answered from a sheet over any screen, with the full command and Deny and Allow; no answer in 30 seconds, or any failure, leaves the question in the terminal. The Git page is read-only and lists repositories, issues and pull requests from GitHub, GitLab, Gitea, Forgejo, Codeberg, Bitbucket and Gitee. The sign-in is stored encrypted on the laptop and never sent to the phone. The step-by-step connect instructions for each tool and host are in the [README](../README.md#optional-extras).
+
+#### What Edgepad uses
+
+The phone links this page on first open and from **Settings › About and updates**. It lists every permission the apps ask for and every network destination, with what each is for; the same content is in [DATA-AND-PERMISSIONS.md](DATA-AND-PERMISSIONS.md).
+
+#### Update in place
+
+The phone's **Settings › About and updates** offers **Later** and **Skip this version**, and posts a notice when a newer release exists. Windows, Mac and Linux check the signed list of file hashes before replacing themselves; with no signing key in the build they open the release page instead. Details: [UPDATES.md](UPDATES.md). Phone and laptop must both be 5.0.0: a 5.0 phone and a 4.x laptop refuse each other at the handshake. On Windows the tray also has **Restart as administrator**, so input reaches elevated windows such as Task Manager.
 
 ### On a Mac
 
@@ -175,7 +214,7 @@ Pointer, click, drag, scroll, typing, the on-screen keyboard, the corner dials f
 
 **Macros** are edited under **Macros…** in the menu bar: add, edit, remove, reorder, browse for an app or file, and an optional icon. Files, folders and web addresses are opened; for an `.app`, arguments are split on spaces with no quoting.
 
-**Not in the Mac app yet:** now playing (title, app, position and seeking; the transport buttons still work), the on-screen level readout, and the virtual game controller (the gamepad screen says **keyboard mode**, because there is no driver; controls bound to keys work).
+**Not in the Mac app yet:** now playing outside Music and Spotify, the on-screen level readout, and the virtual game controller (the gamepad screen says **keyboard mode**, because there is no driver; controls bound to keys work).
 
 ### When the laptop ignores the phone
 
@@ -189,11 +228,21 @@ If the phone says the laptop hung up before the handshake (an older phone app sh
 
 ### Settings
 
-Each screen has its own settings behind its own gear.
+Settings is in sections, in this order. Each screen also keeps its own gear for what only applies to it.
 
-- **Surface settings** (the surface's gear): Corners and Split corners, Trackpad (the gesture map, pointer and scroll speed, natural scrolling and on-screen hints, which are off by default), Shapes (every stroke you have drawn, with what it runs), Dial feel (slide sensitivity, dial length and height, haptic ticks, snapping to round numbers, with a live preview), Media layout, Control colour and Look (a colour, gradient or image behind the surface, and a grid, dots or checker over it).
-- **Keyboard, gamepad and macro screen:** each has its own gear. The two layouts are full-screen canvases where pieces are dragged anywhere; the macro settings set how many macros show on a page and let you add one from the laptop's apps.
-- **System settings** (the Devices screen's gear, or the last row of Surface settings): only what applies everywhere: the laptop, theme, upright or sideways, Stay connected, the guide and updates.
+1. **Surface** (also the surface's gear): Corners and Split corners, Trackpad (the gesture map, pointer and scroll speed, natural scrolling and on-screen hints, which are off by default), Shapes (every stroke you have drawn, with what it runs), Dial feel (slide sensitivity, dial length and height, haptic ticks, snapping to round numbers, with a live preview), Media layout, Control colour, Widgets and Look (a colour, gradient or image behind the surface, and a grid, dots or checker over it).
+2. **Keyboard**: its own gear; a full-screen canvas where pieces are dragged anywhere.
+3. **Gamepad**: the same kind of canvas.
+4. **Macros**.
+5. **Presenter**: Laser size and Show trail.
+6. **Capture & Annotate**: the pen colour, width and opacity (also on the toolbar).
+7. **Clipboard & files**.
+8. **Developer**.
+9. **Devices & connection**.
+10. **App appearance**.
+11. **Language**: the app's 15 languages on Android 13 and later; older phones follow the system language.
+12. **Help**.
+13. **About and updates**: updates, and what the phone sends (only the update check and an update you choose), with a link to What Edgepad uses.
 
 ## How it works, in more words
 
