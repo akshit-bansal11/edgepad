@@ -140,13 +140,19 @@ jobs:
           BASE_REF: ${{ steps.pr.outputs.base_ref }}
           OWNER: ${{ github.repository_owner }}
         run: |
-          g() { git -c core.hooksPath=/dev/null "$@"; }
+          g() { git -c core.hooksPath=/dev/null -c core.fsmonitor= -c diff.external= -c core.pager=cat "$@"; }
           g fetch -q origin "$BASE_REF"
           n=$(g log "origin/$BASE_REF..HEAD" --format=%s | grep -c '^fix(review): round ' || true)
           echo "n=$n" >> "$GITHUB_OUTPUT"
           if [ "$n" -ge 3 ]; then echo "may_fix=false" >> "$GITHUB_OUTPUT"; else echo "may_fix=true" >> "$GITHUB_OUTPUT"; fi
           mkdir -p .review
           printf '.review/\n.claude-pr/\n' >> .git/info/exclude
+          # Claude gets no git at all (git diff --output= could write .git/config). It reads these files instead.
+          g diff --stat "origin/$BASE_REF...HEAD" > .review/stat.txt
+          g diff "origin/$BASE_REF...HEAD" > .review/diff.patch
+          g log --format='%h %s' "origin/$BASE_REF..HEAD" > .review/log.txt
+          # A known-good copy of the repo's git config and hooks, restored before any later git command.
+          mkdir -p /tmp/gitsafe && cp .git/config /tmp/gitsafe/config
           # Title, body and the owner's comments only: anyone can comment on a public PR.
           gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json title,body,comments \
             | jq -r --arg o "$OWNER" '"# " + .title + "\n\n" + (.body // "") + "\n\n## Comments by the owner\n"
@@ -163,7 +169,7 @@ jobs:
           github_token: ${{ github.token }}
           # A dispatched run's actor, and the author of a claude/issue-* PR, is github-actions[bot].
           allowed_bots: 'github-actions'
-          # Claude runs no repository code here (git diff/log/show/status only). Left on, this would swap files of a
+          # Claude runs no command at all here (it reads prepared files). Left on, this would swap files of a
           # bot-authored PR for main's, and the fix commit would stage the swap.
           restrict_untrusted_prs: 'false'
           prompt: |
@@ -171,10 +177,11 @@ jobs:
             ${{ steps.pr.outputs.head_ref }} into ${{ steps.pr.outputs.base_ref }}). First read
             .github/claude-review.md and follow it.
 
-            .review/pr.md holds the PR's title, description and the owner's comments. See the change with
-            `git diff origin/${{ steps.pr.outputs.base_ref }}...HEAD` (use `--stat` first; on a very large change,
-            read the riskiest files fully and sample the rest, and say so). Read surrounding code, not only the
-            diff: a bug is often in what the change forgot to update.
+            .review/pr.md holds the PR's title, description and the owner's comments. The change is in
+            .review/diff.patch, with .review/stat.txt (files and line counts) and .review/log.txt (its commits).
+            Read stat.txt first; on a very large change, read the riskiest files fully and sample the rest, and
+            say so. Read surrounding code in the checkout, not only the diff: a bug is often in what the change
+            forgot to update.
 
             ${{ steps.rounds.outputs.may_fix == 'true' && 'Then FIX every real problem you found by editing the files. Fix only real problems in this change, not style. Do not commit or push; a later step does. If a fix needs a build to be sure, still make it and say so.' || 'This PR has had three rounds of review fixes already. Do NOT edit anything; only report.' }}
 
@@ -185,8 +192,8 @@ jobs:
           claude_args: >-
             --max-turns 120
             --permission-mode default
-            --allowedTools "Read,Grep,Glob,${{ steps.rounds.outputs.may_fix == 'true' && 'Edit,Write,' || '' }}Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git status:*)"
-            --disallowedTools "WebFetch,WebSearch,Read(//proc/**),Read(//tmp/**),Read(//etc/**),Read(//run/**),Read(//home/runner/work/_temp/**),Read(//home/runner/.*/**),Read(./.git/config),Read(**/.env*),Edit(./.git/**),Write(./.git/**),Edit(./.github/**),Write(./.github/**)"
+            --allowedTools "Read,Grep,Glob${{ steps.rounds.outputs.may_fix == 'true' && ',Edit,Write' || '' }}"
+            --disallowedTools "Bash,WebFetch,WebSearch,Read(//proc/**),Read(//tmp/**),Read(//etc/**),Read(//run/**),Read(//home/runner/work/_temp/**),Read(//home/runner/.*/**),Read(./.git/config),Read(**/.env*),Edit(./.git/**),Write(./.git/**),Edit(./.github/**),Write(./.github/**)"
             --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["pass","fail"]},"summary":{"type":"string"}},"required":["verdict","summary"]}'
 
       - name: Check and push the fixes as one round (no AI in this step)
@@ -201,7 +208,9 @@ jobs:
           ROUNDS: ${{ steps.rounds.outputs.n }}
           MAY_FIX: ${{ steps.rounds.outputs.may_fix }}
         run: |
-          g() { git -c core.hooksPath=/dev/null "$@"; }
+          # Before any git: put back the config saved before Claude ran, and run git with nothing it could hook.
+          cp /tmp/gitsafe/config .git/config
+          g() { git -c core.hooksPath=/dev/null -c core.fsmonitor= -c diff.external= -c core.pager=cat "$@"; }
           verdict=$(printf '%s' "$OUTPUT" | jq -r '.verdict // ""')
           [ "$verdict" = pass ] || verdict=fail
           printf '%s\n' "$(printf '%s' "$OUTPUT" | jq -r '.summary // ""')" | head -c 6000 > .review/summary.md

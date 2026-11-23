@@ -52,6 +52,8 @@ jobs:
           gh issue view "$NUMBER" --repo "$GITHUB_REPOSITORY" --json title,body \
             --jq '"# " + .title + "\n\n" + .body' > ./.issue.txt
           echo ".issue.txt" >> .git/info/exclude
+          # A known-good git config, restored before any later git command, so Claude cannot plant one.
+          mkdir -p /tmp/gitsafe && cp .git/config /tmp/gitsafe/config
 
       - name: Claude fixes it
         id: claude
@@ -72,8 +74,8 @@ jobs:
           claude_args: >-
             --max-turns 150
             --permission-mode default
-            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(git diff:*),Bash(git status:*),Bash(git log:*)"
-            --disallowedTools "WebFetch,WebSearch,Read(//proc/**),Read(//tmp/**),Read(//etc/**),Read(//run/**),Read(//home/runner/work/_temp/**),Read(//home/runner/.*/**),Read(./.git/config),Read(**/.env*),Edit(./.git/**),Write(./.git/**),Edit(./.github/**),Write(./.github/**)"
+            --allowedTools "Read,Grep,Glob,Edit,Write"
+            --disallowedTools "Bash,WebFetch,WebSearch,Read(//proc/**),Read(//tmp/**),Read(//etc/**),Read(//run/**),Read(//home/runner/work/_temp/**),Read(//home/runner/.*/**),Read(./.git/config),Read(**/.env*),Edit(./.git/**),Write(./.git/**),Edit(./.github/**),Write(./.github/**)"
             --json-schema '{"type":"object","properties":{"title":{"type":"string"},"body":{"type":"string"}},"required":["title","body"]}'
 
       - &open-pr
@@ -84,7 +86,8 @@ jobs:
           OAUTH: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           OUTPUT: ${{ steps.claude.outputs.structured_output }}
         run: |
-          g() { git -c core.hooksPath=/dev/null "$@"; }
+          cp /tmp/gitsafe/config .git/config
+          g() { git -c core.hooksPath=/dev/null -c core.fsmonitor= -c diff.external= -c core.pager=cat "$@"; }
           rm -f .issue.txt
           g add -A
           if g diff --cached --quiet; then
