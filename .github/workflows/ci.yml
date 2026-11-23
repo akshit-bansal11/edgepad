@@ -399,6 +399,10 @@ jobs:
         env:
           BEFORE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: |
+          # A dispatched run (the Claude review's fix rounds) has no "before": compare with where it left main.
+          if [ -z "$BEFORE" ] && git cat-file -e origin/main 2>/dev/null; then
+            BEFORE=$(git merge-base origin/main HEAD)
+          fi
           # No usable "before" (a new branch is all zeros, or the commit is not here): treat as changed.
           if [ -z "$BEFORE" ] || [ "$BEFORE" = 0000000000000000000000000000000000000000 ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -524,3 +528,19 @@ jobs:
           name: edgepad-video-sheets
           path: ${{ runner.temp }}/sheets/
           if-no-files-found: error
+
+  # The one check branch protection waits for, so adding or renaming a job above never needs a settings change.
+  # It fails if any job failed or was cancelled; a job skipped on purpose passes.
+  ci-ok:
+    if: always()
+    needs: [android, core, linux, linux-arm64, windows, lockfiles, android-gallery, macos, plugin, design-doc, icons, video]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every job passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "$RESULTS"
+          for r in $RESULTS; do
+            case "$r" in success|skipped) ;; *) echo "::error::A CI job ended $r."; exit 1;; esac
+          done

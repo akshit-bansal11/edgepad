@@ -2,7 +2,7 @@ name: Claude TL;DR
 
 # Every new issue and pull request gets one comment from Claude: what it is, what is wrong or missing, and what
 # to do next, so the owner can implement, fix or close it without reading it all first. Line-by-line review of a
-# PR's code stays with claude-code-review.yml.
+# PR's code stays with claude-review.yml.
 #
 # pull_request_target, not pull_request: a PR from a fork gets no secrets under pull_request, so most outside PRs
 # would never be summarised. pull_request_target runs this file as it is on main and checks out main, never the
@@ -32,7 +32,10 @@ permissions:
 jobs:
   tldr:
     # Bots (Dependabot and the like) say what they are in their own titles; a summary would only add noise.
-    if: github.event.sender.type != 'Bot'
+    # A PR from a branch of this repo gets the full claude-review.yml instead, so only forks are summarised here.
+    if: >-
+      github.event.sender.type != 'Bot' &&
+      (github.event_name == 'issues' || github.event.pull_request.head.repo.full_name != github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -40,7 +43,7 @@ jobs:
       KIND: ${{ github.event_name == 'issues' && 'issue' || 'pr' }}
     steps:
       - name: Check out main (never the PR's code)
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -60,7 +63,7 @@ jobs:
           fi
 
       - name: Claude drafts the summary
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@acfe7992852970efb4fee683d63d628e3e52df67 # v1.0.286
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
