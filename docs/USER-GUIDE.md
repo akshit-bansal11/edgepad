@@ -60,7 +60,7 @@ On Wayland, the layer annotate draws on runs under XWayland and the compositor m
 
 1. Download `Edgepad-<version>.apk` on the phone and open it. Allow installing from this source if asked.
 2. On first run, allow the **Nearby devices** permission. Edgepad uses it to see the laptops already paired over Bluetooth and, if you turn Wi-Fi and USB on, to find laptops on your network.
-3. Every later release installs over the previous one; settings are kept. From 3.3.0 the app fetches them itself: **Settings › Updates & About** says when a newer release exists, and a tap downloads and installs it. Update the laptop app to the same release.
+3. Every later release installs over the previous one; settings are kept. From 3.3.0 the app fetches them itself: **Settings › About and updates** says when a newer release exists, and a tap downloads and installs it. Update the laptop app to the same release.
 
 ## Use
 
@@ -182,11 +182,11 @@ Optional, off until you connect something in the laptop's **Integrations…** wi
 
 #### What Edgepad uses
 
-The phone links this page on first open and from **Settings › Updates & About**. It lists every permission the apps ask for and every network destination, with what each is for; the same content is in [DATA-AND-PERMISSIONS.md](DATA-AND-PERMISSIONS.md).
+The phone links this page on first open and from **Settings › About and updates**. It lists every permission the apps ask for and every network destination, with what each is for; the same content is in [DATA-AND-PERMISSIONS.md](DATA-AND-PERMISSIONS.md).
 
 #### Update in place
 
-The phone's **Settings › Updates & About** offers **Later** and **Skip this version**, and posts a notice when a newer release exists. Windows, Mac and Linux check the signed list of file hashes before replacing themselves; with no signing key in the build they open the release page instead. Details: [UPDATES.md](UPDATES.md). Phone and laptop must both be 5.0.0: a 5.0 phone and a 4.x laptop refuse each other at the handshake. On Windows the tray also has **Restart as administrator**, so input reaches elevated windows such as Task Manager.
+The phone's **Settings › About and updates** offers **Later** and **Skip this version**, and posts a notice when a newer release exists. Windows, Mac and Linux check the signed list of file hashes before replacing themselves; with no signing key in the build they open the release page instead. Details: [UPDATES.md](UPDATES.md). Phone and laptop must both be 5.0.0: a 5.0 phone and a 4.x laptop refuse each other at the handshake. On Windows the tray also has **Restart as administrator**, so input reaches elevated windows such as Task Manager.
 
 ### On a Mac
 
@@ -242,7 +242,7 @@ Settings is in sections, in this order. Each screen also keeps its own gear for 
 10. **App appearance**.
 11. **Language**: the app's 15 languages on Android 13 and later; older phones follow the system language.
 12. **Help**.
-13. **Updates & About**: updates, and what the phone sends (only the update check and an update you choose), with a link to What Edgepad uses.
+13. **About and updates**: updates, and what the phone sends (only the update check and an update you choose), with a link to What Edgepad uses.
 
 ## How it works, in more words
 

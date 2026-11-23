@@ -89,7 +89,7 @@ It is for the times the laptop is across the room rather than under your hands: 
 **And**
 
 - **15 languages** on the phone and the Windows app; the Mac and Linux apps follow the system language in 14 languages.
-- **What Edgepad uses.** One page listing every permission and every network destination, from the phone's first open and Settings > About.
+- **What Edgepad uses.** One page listing every permission and every network destination, from the phone's first open and Settings > About and updates.
 - **Security levels.** Trust the phone once, or add a six-digit PIN once per phone or on every connection.
 - **Light or dark, upright or sideways,** and a first-run guide.
 

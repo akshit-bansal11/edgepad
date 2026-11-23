@@ -147,7 +147,7 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
   {
     title: "What Edgepad uses",
     Icon: ListChecks,
-    body: "A page listing every permission the apps ask for and every network destination, and what each is for. Settings › About.",
+    body: "A page listing every permission the apps ask for and every network destination, and what each is for. Settings › About and updates.",
   },
   {
     title: "Gamepad",

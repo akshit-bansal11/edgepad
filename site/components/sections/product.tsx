@@ -281,7 +281,7 @@ export function ProductSections() {
             },
             {
               title: "What Edgepad uses",
-              body: "A page listing every permission the apps ask for and every network destination, with what each is for. Open it from Settings > Updates & About on the phone.",
+              body: "A page listing every permission the apps ask for and every network destination, with what each is for. Open it from Settings > About and updates on the phone.",
             },
           ].map((feature) => (
             <div
@@ -571,7 +571,7 @@ sudo ./install.sh`}
                 <strong className="text-foreground">Later</strong> and{" "}
                 <strong className="text-foreground">Skip this version</strong>;{" "}
                 <strong className="text-foreground">
-                  Settings &gt; Updates &amp; About
+                  Settings &gt; About and updates
                 </strong>{" "}
                 and the laptop&apos;s{" "}
                 <strong className="text-foreground">Update available</strong> row also
@@ -998,7 +998,7 @@ sudo ./install.sh`}
         <P>
           A page listing every permission the apps ask for and every network destination,
           with what each is for. The phone links it on first open and from{" "}
-          <strong>Settings &gt; Updates &amp; About</strong>; the same content is in{" "}
+          <strong>Settings &gt; About and updates</strong>; the same content is in{" "}
           <C>docs/DATA-AND-PERMISSIONS.md</C>.
         </P>
       </Section>
@@ -1015,7 +1015,7 @@ sudo ./install.sh`}
           that way. The phone&apos;s Settings screen is in sections, in this order:
           Surface, Keyboard, Gamepad, Macros, Presenter, Capture &amp; Annotate,
           Clipboard &amp; files, Developer, Devices &amp; connection, App appearance,
-          Language, Help, and Updates &amp; About. Capture &amp; Annotate also holds the
+          Language, Help, and About and updates. Capture &amp; Annotate also holds the
           pen colour, width and opacity.
         </P>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -1103,7 +1103,7 @@ sudo ./install.sh`}
           If the laptop is older, the phone says &ldquo;Edgepad on LAPTOP is older than
           this app. Update Edgepad on the laptop.&rdquo; If the phone is older it says
           &ldquo;This app is older than Edgepad on LAPTOP. Update this app in
-          Settings &gt; Updates &amp; About.&rdquo; The laptop&apos;s menu names the older half the
+          Settings &gt; About and updates.&rdquo; The laptop&apos;s menu names the older half the
           same way. Both halves must come from the same release.
         </P>
 
