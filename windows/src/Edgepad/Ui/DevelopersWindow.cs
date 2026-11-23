@@ -460,6 +460,14 @@ internal sealed class DevelopersWindow : Form
     /// </summary>
     private async void SignInFlow()
     {
+        if (gitlabIn)
+        {
+            gitlabRun++;
+            actions.GitLab?.Cancel();
+            gitlabIn = false;
+            gitlabCode = null;
+        }
+
         var run = ++signInRun;
         signingIn = true;
         userCode = null;
@@ -546,6 +554,14 @@ internal sealed class DevelopersWindow : Form
         if (actions.GitLab is not { } signIn)
         {
             return;
+        }
+
+        if (signingIn)
+        {
+            signInRun++;
+            actions.SignIn.Cancel();
+            signingIn = false;
+            userCode = null;
         }
 
         var run = ++gitlabRun;
