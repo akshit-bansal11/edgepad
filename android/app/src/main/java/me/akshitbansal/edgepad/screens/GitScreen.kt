@@ -71,11 +71,20 @@ class GitScreen(
             GitHost.entries.filter {
                 it.feature in s.features && s.unavailable[it.feature.token] != UnavailableReason.NO_PERMISSION
             }
+        // GitLab's gitlab.com sign-in lapsed (the laptop could not renew it): said here, not dropped silently.
+        val gitlabExpired = s.unavailable[Feature.GITLAB.token] == UnavailableReason.NO_PERMISSION
         if (hosts.isEmpty()) {
             val again = s.unavailable[Feature.GITHUB.token] == UnavailableReason.NO_PERMISSION
-            card { note(ui.string(if (again) R.string.unavailable_github_resign else R.string.git_signin)) }
+            val line =
+                when {
+                    gitlabExpired -> R.string.unavailable_gitlab_expired
+                    again -> R.string.unavailable_github_resign
+                    else -> R.string.git_signin
+                }
+            card { note(ui.string(line)) }
             return
         }
+        if (gitlabExpired) card { note(ui.string(R.string.unavailable_gitlab_expired)) }
         val current = hosts.firstOrNull { it == host } ?: hosts.first()
         host = current
         if (hosts.size > 1) add(chips(hosts, current))

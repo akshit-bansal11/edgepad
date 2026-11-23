@@ -85,6 +85,7 @@
   <string name="git_empty_repos">दिखाने के लिए कोई रिपॉज़िटरी नहीं है।</string>
   <string name="git_loading">आपके लैपटॉप से लोड हो रहा है।</string>
   <string name="git_signin">अपने लैपटॉप पर Edgepad मेनू में किसी git होस्ट से साइन इन करें।</string>
+  <string name="unavailable_gitlab_expired">GitLab साइन-इन समाप्त हो गया। अपने लैपटॉप पर फिर से साइन इन करें।</string>
   <string name="git_install_row">निजी रिपॉज़िटरी नहीं दिख रहीं? अपने खाते पर Edgepad Dashboard इंस्टॉल करें</string>
   <string name="git_opening">आपके लैपटॉप पर खुल रहा है</string>
   <string name="git_item_meta">#%1$s · अपडेट: %2$s</string>

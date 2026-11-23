@@ -85,6 +85,7 @@
   <string name="git_empty_repos">Gösterilecek depo yok.</string>
   <string name="git_loading">Dizüstü bilgisayarınızdan yükleniyor.</string>
   <string name="git_signin">Dizüstü bilgisayarınızdaki Edgepad menüsünden bir git hizmetinde oturum açın.</string>
+  <string name="unavailable_gitlab_expired">GitLab oturumunun süresi doldu. Bilgisayarınızda yeniden oturum açın.</string>
   <string name="git_install_row">Özel depolar görünmüyor mu? Edgepad Dashboard’u hesabınıza yükleyin</string>
   <string name="git_opening">Dizüstü bilgisayarınızda açılıyor</string>
   <string name="git_item_meta">#%1$s · güncellendi: %2$s</string>

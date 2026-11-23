@@ -85,6 +85,7 @@
   <string name="git_empty_repos">Geen repositories om te tonen.</string>
   <string name="git_loading">Laden vanaf je laptop.</string>
   <string name="git_signin">Meld je aan bij een git-host via het Edgepad-menu op je laptop.</string>
+  <string name="unavailable_gitlab_expired">GitLab-aanmelding verlopen. Meld je opnieuw aan op je laptop.</string>
   <string name="git_install_row">Ontbreken privérepository’s? Installeer Edgepad Dashboard op je account</string>
   <string name="git_opening">Openen op je laptop</string>
   <string name="git_item_meta">#%1$s · bijgewerkt %2$s</string>

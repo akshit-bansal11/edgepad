@@ -89,6 +89,7 @@
   <string name="git_empty_repos">Nessun repository da mostrare.</string>
   <string name="git_loading">Caricamento dal tuo laptop.</string>
   <string name="git_signin">Accedi a un host git nel menu Edgepad sul tuo laptop.</string>
+  <string name="unavailable_gitlab_expired">Accesso a GitLab scaduto. Accedi di nuovo dal tuo laptop.</string>
   <string name="git_install_row">Mancano repository privati? Installa Edgepad Dashboard sul tuo account</string>
   <string name="git_opening">Apertura sul tuo laptop</string>
   <string name="git_item_meta">#%1$s · aggiornato %2$s</string>
