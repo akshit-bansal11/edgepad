@@ -4,7 +4,9 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
-Wire protocol 6. A 5.0 phone and a 4.x laptop (or the reverse) refuse each other at the handshake and say which side needs updating, so install the phone and the laptop from the same release. Windows needs nothing new installed or allowed. All of this is built and has passed CI only; none of it has run on a phone with a laptop.
+## [5.0.0] - 2026-11-23
+
+Wire protocol 6. A 5.0 phone and a 4.x laptop (or the reverse) refuse each other at the handshake and say which side needs updating, so install the phone and the laptop from the same release. Windows needs nothing new installed or allowed. It has been tested on the owner's phone and Windows laptop through drafts 83 to 87. The Mac and Linux apps have passed CI only and have not been tried on a device.
 
 ### Added
 
@@ -16,7 +18,7 @@ Wire protocol 6. A 5.0 phone and a 4.x laptop (or the reverse) refuse each other
 - **Phone: clipboard history.** The last copies from the laptop and from this phone, each with where it came from (phone or laptop) and how long ago. Tap one to send it again. An empty list says Nothing copied yet.
 - **Windows: clipboard panel.** Win+Alt+V opens Edgepad's clipboard panel: recent copies from the phone and the laptop, newest first. Click or Enter pastes into the app you were in; Ctrl+Enter sends the item to the phone; Esc closes. Also in the tray menu as Clipboard history. Text only, 25 items, kept in memory only, and only while Share clipboard is on. If another app owns Win+Alt+V, the tray row still opens the panel.
 - **Phone: Presenter** with Next and Previous slide, and the volume keys stepping slides while the screen is open. The laser pad is always shown: Previous and Next are tall columns at the sides in landscape and a row below in portrait, and the laser switch is gone. Presenter settings hold a Laser size slider and Show trail. The **Laser pointer** draws a dot on the laptop and leaves nothing behind (Windows, Mac, Linux).
-- **Phone and laptops: the laser.** A bright red dot with a glow, sized by the slider. With Show trail on, a short red tail follows it. Both lasers take their size from PEN_WIDTH.
+- **Phone and laptops: the laser.** A bright red dot with a glow. The size has three steps, 0.5, 0.75 and 1% of the screen height. With Show trail on, a smooth tail tapers over 250 ms. A watchdog on the laptop clears the dot if the link drops, so a dropped link never leaves a dot on screen. Both lasers take their size from PEN_WIDTH.
 - **Phone: app profiles.** Dials and gestures switch with the app in front on the laptop. Off by default; the laptop sends the app only while it is on. Windows, Mac and Linux on X11.
 - **Phone: Air mouse.** Tilt to move the pointer while a finger rests on the trackpad. It turns left and right in any grip (flat, held like a remote, upright) and stops the moment the finger lifts. A line under the switch says how to use it.
 - **Phone: Floating dials** over other apps, with Android's draw-over-apps permission and Stay connected.
@@ -27,25 +29,35 @@ Wire protocol 6. A 5.0 phone and a 4.x laptop (or the reverse) refuse each other
 - **Mac and Linux: every language the phone has.** The menus and dialogs follow the system language in 14 languages; Arabic is right to left on Linux.
 - **Linux: refresh-rate dial** (xrandr on X11, Mutter on Wayland GNOME), **arm64 archive** `Edgepad-<version>-linux-arm64.tar.gz`, and the same cleaned titles, media icons and capture fallback as Windows.
 - **Site: docs search.**
-- **Phone: System screen.** Controls › System shows the laptop's processor, graphics card, graphics memory, memory, every disk, Wi-Fi download and upload, and ping to the router, each with a one-minute graph, upright or sideways. Turn on System stats in the laptop's Integrations window. Readings run only while the screen or a widget is on show. CPU temperature on Windows, temperatures on the Mac and AMD graphics temperature on Windows show a dash.
+- **Phone: Stats.** Controls › Stats has two pages, System and Network, and each has a device dropdown listing your laptops and this phone. System shows device info, processor, graphics card, memory and graphics memory, every disk with used and free space, and the battery with health and temperature (health on Windows only; Linux and Mac send both when the system reports them). Network shows current download and upload, ping and a speed test against Cloudflare, capped at 25 MB down and 10 MB up. The speed test runs only when you tap it. Turn on System stats in the laptop's Integrations window. Readings run only while the page or a widget is on show. A reading a laptop cannot give shows a dash. No page shows a Wi-Fi name.
 - **Phone: trackpad widgets.** Clock, weather, system and network (and AI usage, once connected) can sit on the trackpad as a background that never takes a touch. Surface settings › Widgets. Weather uses Open-Meteo with a city you type on the laptop and nothing else.
-- **Phone: a roomier Controls popup.** The tiles fill the popup, as on the macro deck, and the switches under them (Hide dials and media, Black out when idle, Air mouse, Floating dials, Sleep when this ends) are one row of chips. Keyboard, Annotate, Clipboard and Presenter have clearer icons, and Send a file has its own paper plane instead of the Capture icon.
+- **Phone: a bigger Controls popup.** The heading "Controls" sits beside the edit pencil, and the icons are smaller. The top row is Controls, Type, Lock, Settings, in that order. The tiles fill the popup, as on the macro deck, and the switches under them (Hide dials and media, Black out when idle, Air mouse, Floating dials, Sleep when this ends) are one row of chips. Keyboard, Annotate, Clipboard and Presenter have clearer icons, and Send a file has its own paper plane instead of the Capture icon.
 - **Phone: edit Controls.** The Edit chip under the tiles shows every tile; tap one to hide or show it, and drag to move it. Hidden tiles stay hidden until shown again.
 - **Laptops: Integrations window** (tray › Integrations…, or the menu-bar item on the Mac), every switch off by default, with numbered steps for Claude Code, Codex and GitHub. Connect installs the Edgepad plugin that ships inside each release; it runs Edgepad itself, so nothing else needs installing. Codex asks you once to trust it in /hooks, and again after an update that changes its hooks, which Edgepad says in a notification.
-- **Optional, for developers: AI and GitHub screens.** Off until connected in the Integrations window, and their tiles appear in Controls only after that. Controls › AI shows Claude Code and Codex usage limits, spend in tokens and estimated dollars ("at least" when a model has no published price) and open sessions. Their approval requests can be answered from a sheet over any screen, with the full command and Deny and Allow; no answer in 30 seconds, a cut-off request or any failure leaves the question in the terminal, and hidden or direction-changing characters are shown as <U+XXXX>. Controls › GitHub lists pull requests waiting for your review and your own, with checks and review state, and your unread notification count; the sign-in is stored encrypted on the laptop and never sent to the phone.
+- **Optional, for developers: AI and Git screens.** Off until connected in the Integrations window, and their tiles appear in Controls only after that. The AI page shows two blocks. Usage lists the limits the tools report: for Claude Code the 5 hour and weekly limits, a weekly limit for a model such as Fable, and credits; for Codex the 5 hour and weekly limits. Spend shows today, the last 7 days and the last 30 days, in tokens and estimated dollars ("at least" when a model has no published price). Each open session shows its context use. Claude Code, Codex, Gemini CLI and OpenCode sessions are supported. Their approval requests can be answered from a sheet over any screen, with the full command and Deny and Allow; no answer in 30 seconds, a cut-off request or any failure leaves the question in the terminal, and hidden or direction-changing characters are shown as <U+XXXX>. The Git page is read-only and lists repositories, issues and pull requests from GitHub (a read-only GitHub App with tokens that expire and renew), GitLab (a gitlab.com sign-in that renews itself, or a token for a self-hosted server), Gitea, Forgejo and Codeberg, Bitbucket and Gitee. A private repository shows only where the GitHub App is installed, and the page links to how to install it. The sign-in is stored encrypted on the laptop and never sent to the phone. Edgepad calls no write endpoint of any host.
+- **Phone and laptops: What Edgepad uses.** A page that lists every permission the apps ask for and every network destination, with what each is for. The phone links it on first open and from Settings › About; the same content is in `docs/DATA-AND-PERMISSIONS.md`.
+- **Phone: a language picker.** Settings › Language offers the app's 15 languages on Android 13 and later. Older phones follow the system language.
+- **Phone: pen colour, width and opacity** in Settings › Capture & Annotate, as well as on the toolbar.
+- **Phone: official logos** for the AI tools and Git hosts where the owner could download a mark; a letter tile stays where there is none.
+- **Mac and Linux: the transfer card** has pause, stop and close, and shows sessions before the app opens.
+- **Laptops: tray menu submenus,** and a decluttered For developers window.
 
 ### Changed
 
 - **The website moved to https://getedgepad.com.** The Documentation links in every app, the Linux installer and the README point there, and the old address redirects to it.
-- **Protocol 6.** New frames BULK_HELLO and XFER_BEGIN, XFER_CHUNK, XFER_END, XFER_STATUS; ACTION 37, ACTION 38 (TOOL_LASER_TRAIL) and 60 to 62, CONTROL 10 to 12, TEXT 21 to 35 and BLOB kinds 4 to 7. See `docs/PROTOCOL.md`.
+- **Protocol 6.** New frames BULK_HELLO and XFER_BEGIN, XFER_CHUNK, XFER_END, XFER_STATUS (statuses 8 PAUSED and 9 RESUME let either end hold a transfer); ACTION 37, ACTION 38 (TOOL_LASER_TRAIL) and 60 to 62, CONTROL 10 to 14 (12 DASH_WATCH, 13 DEVELOPER, 14 SPEED_TEST), TEXT 21 to 38 (36 NET_INFO, 37 SPEED_RESULT, 38 GIT_OPEN) and BLOB kinds 4 to 7 (kind 7 is GIT, once GITHUB). TEXT 19 battery entries are now `kind:level:charging:health:temp:name`, with `-` for what a laptop cannot say. See `docs/PROTOCOL.md`.
 - **Phone: motion that carries.** Presses answer within 160 ms, popovers and windows open from where they were opened within 300 ms, and a screen change takes at most 400 ms and carries across instead of cutting. The same tiers apply on Windows, Linux and the website.
-- **Phone: the battery strip is an underline** instead of pills.
+- **Phone: the battery strip is an underline** instead of pills (design B). Usage rings are green, turn yellow from 50%, orange from 75% and red from 90%.
 - **Phone: Capture's region is a plain drag (#75).** Point at one corner, tap Region, then drag on the trackpad to the opposite corner; no hold. Until that drag, taps send nothing on Windows and Mac, where a click ended the selection as a few pixels. On Windows, Record starts the same way. On the main trackpad a ring now fills while a finger holds still, and turns the accent colour when the drag starts. During the drag the pointer's reach scales with the laptop's screen, so two thirds of the pad crosses a large monitor.
 - **Phone, laptops: media titles are cleaned** of brackets, "feat." and the artist's name, from one shared test list.
 - **Phone: gesture hints are off by default.**
 - **Phone: the Presenter laser pad no longer draws a trail of the finger.** Only the dot shows, or the red tail when Show trail is on.
 - **Windows: the pairing code is typed into one box per digit;** paste fills them all.
 - **Site: download links read the newest published release,** not the changelog, so they no longer 404 before the tag publishes.
+- **Phone: Settings is in sections,** in this order: Surface, Keyboard, Gamepad, Macros, Presenter, Capture & Annotate, Clipboard & files, Developer, Devices & connection, App appearance, Language, Help, Updates & About.
+- **Phone: the status and navigation bars are hidden,** and the app draws under the camera cutout instead of leaving a black strip in landscape.
+- **Phone: the editor wraps long text.**
+- **Phone: the About note says what the phone sends:** only the update check and an update you choose. It points to What Edgepad uses.
 
 ### Fixed
 
@@ -1063,7 +1075,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v4.2.1...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v5.0.0...HEAD
+[5.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v4.2.1...v5.0.0
 [4.2.1]: https://github.com/akshit-bansal11/edgepad/compare/v4.2.0...v4.2.1
 [4.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v4.1.0...v4.2.0
 [4.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v4.0.0...v4.1.0
