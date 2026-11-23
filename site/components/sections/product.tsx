@@ -209,7 +209,7 @@ export function ProductSections() {
             },
             {
               title: "Several laptops",
-              body: "The phone stays connected to every laptop you connect, and you choose which one you control from Settings › Devices &amp; connection or the Switch laptop dial. Stay connected keeps the link in a notification while Edgepad is minimized.",
+              body: "The phone stays connected to every laptop you connect, and you choose which one you control from Settings › Devices & connection or the Switch laptop dial. Stay connected keeps the link in a notification while Edgepad is minimized.",
             },
             {
               title: "Annotate and sign",
