@@ -241,6 +241,12 @@ const LIMITS: Limit[] = [
 
 const HISTORY: { version: string; date: string; summary: string }[] = [
   {
+    version: "5.0.0",
+    date: "2026-11-23",
+    summary:
+      "Files, a presenter, stats and developer screens. The wire protocol moves to version 6. Send files either way, up to 2 GB, over a second socket that can only attach to a phone that is already connected. Windows, Mac and Linux update themselves in place after checking a signed list of file hashes. Presenter and a laser pointer, clipboard history, Stats, trackpad widgets, app profiles, an air mouse, floating dials, Sleep when this ends, a Quick Settings tile and laptop notifications on Linux. The optional AI and Git screens read Claude Code, Codex, Gemini CLI and OpenCode sessions and the repositories of seven Git hosts, read-only. What Edgepad uses lists every permission and network destination. Capture’s region is a plain drag, and gesture hints are off by default. The website moves to getedgepad.com. Tested on an Android phone and a Windows laptop; the Mac and Linux apps passed CI only.",
+  },
+  {
     version: "4.0.0",
     date: "2026-10-31",
     summary:
@@ -392,8 +398,9 @@ export function ReferenceSections() {
           The two apps refuse each other at the handshake when their protocol versions
           differ, and say so. 1.0.0 through 2.3.0 all speak version 3, so any two of
           them interoperate, and only the matching pair knows about the newer controls.
-          3.0.0 through 3.5.0 speak version 4 and 4.0.0 speaks version 5; each refuses
-          the others outright, which is what a new frame type costs.
+          3.0.0 through 3.5.0 speak version 4, 4.0.0 through 4.2.1 speak version 5 and
+          5.0.0 speaks version 6; each refuses the others outright, which is what a new
+          frame type costs.
         </Note>
       </Section>
 

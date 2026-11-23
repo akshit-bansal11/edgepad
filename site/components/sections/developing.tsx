@@ -636,14 +636,16 @@ git remote add upstream https://github.com/akshit-bansal11/edgepad.git`}
       >
         <P>
           Each release carries a signed APK and a compressed self-contained exe, named
-          for the version, <C>Edgepad-4.0.0.apk</C> and <C>Edgepad-4.0.0.exe</C>, so
+          for the version, <C>Edgepad-5.0.0.apk</C> and <C>Edgepad-5.0.0.exe</C>, so
           several downloads on one phone or laptop can be told apart. The app&apos;s{" "}
           <C>versionName</C> comes from the release tag and its <C>versionCode</C> from
           a number that only increases, so an update always installs over the previous
           one. From 3.4.0 a release also carries <C>Edgepad-x.y.z-mac.zip</C>, built by{" "}
           <C>macos/bundle.sh</C>, and from 4.0.0 <C>Edgepad-x.y.z-linux-x64.tar.gz</C>,
           packed by <C>linux/packaging/pack.sh</C>; both are listed in{" "}
-          <C>SHA256SUMS.txt</C> and the provenance attestation.
+          <C>SHA256SUMS.txt</C> and the provenance attestation. A signature over that
+          list, <C>SHA256SUMS.txt.sig</C>, is what the desktop apps verify before they
+          update in place; see <C>docs/UPDATES.md</C>.
         </P>
 
         <Note label="Release builds are signed">
