@@ -169,6 +169,25 @@ final class ClaudeSpendTests: XCTestCase {
         XCTAssertEqual(claudeEntry?.tokAll, 110_012)
     }
 
+    func testAllTimeKeepsItsLastKnownValueWhenALaterScanRunsOutOfBudget() throws {
+        let now = Date()
+        let model = "claude-sonnet-4-5"
+        write("new.jsonl", [row("m-new", model, 100_000, 10_000, at: now)])
+        var current = now
+        let reader = newSpend(clock: { current })
+        reader.poll(budget: 3000)
+        let known = try XCTUnwrap(claudeEntry).tokAll
+        XCTAssertEqual(known, 110_000)
+
+        write("big.jsonl", [row("m-big", model, 1, 1, at: now), String(repeating: "x", count: 4000)])
+        write("old.jsonl", [row("m-old", model, 5, 5, at: now.addingTimeInterval(-150 * 86400))])
+        try stamp("old.jsonl", now.addingTimeInterval(-100 * 86400))
+        current = now.addingTimeInterval(120)
+        reader.poll(budget: 3000)
+
+        XCTAssertEqual(claudeEntry?.tokAll, known)
+    }
+
     func testAResponseCountsOnceByItsLastRowAndOnlyRealOnesCount() {
         let now = Date()
         let old = now.addingTimeInterval(-45 * 24 * 60 * 60)

@@ -403,16 +403,21 @@ public final class ClaudeSpend {
         let found = Self.total(byId.values, older, periods)
         var totals = found.totals
         if !allDone {
-            // All time is announced only once every file was in hand, never as a partial sum.
+            // All time is announced only once every file was in hand, never as a partial sum; until then the last
+            // whole one stays.
+            let last = spend.snapshot().first { $0.agent == AgentToken.claude.rawValue && $0.tokAll >= 0 }
             totals = SpendTotals(
                 tokToday: totals.tokToday, centsToday: totals.centsToday, tokWeek: totals.tokWeek,
                 centsWeek: totals.centsWeek, tokMonth: totals.tokMonth, centsMonth: totals.centsMonth,
-                unpriced: totals.unpriced)
+                unpriced: totals.unpriced, tokAll: last?.tokAll ?? -1, centsAll: last?.centsAll ?? -1)
         }
         return (totals, found.unpriced, recentDone, allDone)
     }
 
     // The responses of a whole transcript: those from `from` on keep their ids, older ones their day totals.
+    // ponytail: the folded part has no ids, so a `claude --resume` copy of history older than the window, in a second
+    // file, counts twice in "all time" (the 30 days stay exact). Remembering every folded id would undo the folding;
+    // add it only if all time drifts.
     private static func read(_ path: String, from: String) -> (rows: [String: Row], old: [String: ClaudeDay])? {
         guard let all = sumFile(path, from: "") else { return nil }
         let recent = all.filter { $0.value.day >= from }

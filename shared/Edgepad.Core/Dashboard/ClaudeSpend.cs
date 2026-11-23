@@ -101,7 +101,7 @@ internal static class ClaudePrices
 
 /// <summary>
 /// Sums Claude Code's transcripts the way Plimsoll does: responses by message id (a response is written once per content block, its
-/// usage final on the last, so the last row of an id is kept), days in local time, weeks from Monday. Tokens are input + output;
+/// usage final on the last, so the last row of an id is kept), days in local time, the week the last 7 days. Tokens are input + output;
 /// cache reads and writes are priced, not counted as tokens. A line over <see cref="MaxLine"/> bytes is skipped unread.
 /// </summary>
 internal static class ClaudeSpend

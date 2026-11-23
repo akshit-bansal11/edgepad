@@ -297,12 +297,18 @@ internal sealed class ClaudeSpendWatcher : IDisposable
             return true; // no transcript was ever seen: nothing to show, rather than a row of zeros
         }
 
-        // All time is announced only once every file was in hand, never as a partial sum.
-        spend.Update(AgentToken.Claude, allDone ? totals with { Unpriced = anyUnpriced } : totals with { Unpriced = anyUnpriced, TokAll = -1, CentsAll = -1 }, now);
+        // All time is announced only once every file was in hand, never as a partial sum; until then the last whole one stays.
+        var last = spend.Snapshot().FirstOrDefault(e => e.Agent == AgentToken.Claude && e.TokAll >= 0);
+        spend.Update(
+            AgentToken.Claude,
+            allDone ? totals with { Unpriced = anyUnpriced } : totals with { Unpriced = anyUnpriced, TokAll = last?.TokAll ?? -1, CentsAll = last?.CentsAll ?? -1 },
+            now);
         return allDone;
     }
 
     // The responses of a whole transcript: those from the cache window on keep their ids, older ones keep their day totals.
+    // ponytail: the folded part has no ids, so a `claude --resume` copy of history older than the window, in a second file, counts
+    // twice in "all time" (the 30 days stay exact). Remembering every folded id would undo the folding; add it only if all time drifts.
     private static CacheEntry Read(Stream stream, string from)
     {
         var all = ClaudeSpend.SumFile(stream, string.Empty);

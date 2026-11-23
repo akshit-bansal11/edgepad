@@ -177,6 +177,32 @@ public sealed class ClaudeSpendTests : IDisposable
     }
 
     [Fact]
+    public void AllTimeKeepsItsLastKnownValueWhenALaterScanRunsOutOfBudget()
+    {
+        Transcript("p/new.jsonl", Line("m-new", Day(19), Sonnet, 100000, 10000));
+        Clock = now;
+        using var watcher = NewWatcher();
+        watcher.SetWatch(ClaudeSpendWatcher.AiBit);
+        watcher.Poll();
+        var known = Assert.Single(Spend.Snapshot()).TokAll;
+        Assert.Equal(110000, known);
+
+        var big = Transcript("p/big.jsonl", Line("m-big", Day(19), Sonnet, 1, 1));
+        using (var stream = File.OpenWrite(big))
+        {
+            stream.SetLength(ClaudeSpendWatcher.BytesPerTick + 1); // the whole budget, read first as the newest
+        }
+
+        File.SetLastWriteTimeUtc(big, now.UtcDateTime.AddMinutes(-1));
+        var old = Transcript("p/old.jsonl", Line("m-old", new DateTime(2026, 5, 1, 12, 0, 0, DateTimeKind.Local), Sonnet, 5, 5));
+        File.SetLastWriteTimeUtc(old, now.UtcDateTime.AddDays(-100));
+        Clock = now.AddMinutes(2);
+        watcher.Poll();
+
+        Assert.Equal(known, Assert.Single(Spend.Snapshot()).TokAll);
+    }
+
+    [Fact]
     public void AFileKeepsTheLastRowOfEachIdAndSkipsWhatDoesNotCount()
     {
         var text = string.Join(
