@@ -93,6 +93,10 @@ public sealed class DevRowsTests : IDisposable
         var done = DevRows.GitHub("GitHub", true, signedIn: true, false, false, "octo");
         Assert.True(done.Dot);
         Assert.Contains("octo", done.Status, StringComparison.Ordinal);
+
+        var again = DevRows.GitHub("GitHub", true, false, false, false, string.Empty, reSignIn: true);
+        Assert.Equal(LinuxStrings.Integrations_ReSignIn, again.Status);
+        Assert.NotNull(again.Go);
     }
 
     [Fact]

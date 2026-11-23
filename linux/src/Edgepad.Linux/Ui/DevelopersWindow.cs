@@ -76,7 +76,7 @@ internal sealed class DevelopersWindow : IDisposable
     // The persistent pieces: added under a row when it needs them, so their text survives a redraw.
     private readonly StackPanel codePanel = new() { Spacing = 8 };
     private readonly TextBlock codeText;
-    private readonly CheckBox includePrivate;
+    private readonly Button chooseRepos;
     private readonly StackPanel formPanel = new() { Spacing = 6 };
     private readonly StackPanel urlField = new() { Spacing = 4 };
     private readonly StackPanel userField = new() { Spacing = 4 };
@@ -113,14 +113,10 @@ internal sealed class DevelopersWindow : IDisposable
             }
         });
         hint = look.Text(LinuxStrings.Dev_NeedDeveloper, 13, FontWeight.Bold);
-        includePrivate = Check(LinuxStrings.Integrations_Private, false, on =>
-        {
-            if (!filling)
-            {
-                // The scope is chosen at sign-in, so a change while signed in signs in again; the box goes back if that does not finish.
-                SignInFlow(on, revert: true);
-            }
-        });
+        chooseRepos = look.Button(LinuxStrings.Integrations_ChooseRepos);
+        chooseRepos.HorizontalAlignment = HorizontalAlignment.Left;
+        AutomationProperties.SetName(chooseRepos, LinuxStrings.Integrations_ChooseRepos);
+        chooseRepos.Click += (_, _) => Tray.OpenWithDesktop(GitHubApp.InstallUri.AbsoluteUri, "GitHub");
         codeText = look.Text(string.Empty, 24, FontWeight.Bold);
         codeText.FontFamily = Mono;
         BuildCodePanel();
@@ -317,7 +313,6 @@ internal sealed class DevelopersWindow : IDisposable
         var developerOn = settings.Flag(IntegrationSettings.Developer);
         filling = true;
         developerSwitch.IsChecked = developerOn;
-        includePrivate.IsChecked = settings.Flag(IntegrationSettings.GitHubPrivate);
         filling = false;
         hint.IsVisible = !developerOn;
         foreach (var (title, kind) in new[] { (LinuxStrings.Dev_SectionAi, DevKind.Ai), (LinuxStrings.Dev_SectionGit, DevKind.Git) })
@@ -347,7 +342,7 @@ internal sealed class DevelopersWindow : IDisposable
 
         if (id == "github")
         {
-            return DevRows.GitHub(provider.Name, GitHubApp.IsConfigured(GitHubApp.ClientId), signedIn, signingIn, userCode is not null, settings.Text(IntegrationSettings.GitHubLogin));
+            return DevRows.GitHub(provider.Name, GitHubApp.IsConfigured(GitHubApp.ClientId), signedIn, signingIn, userCode is not null, settings.Text(IntegrationSettings.GitHubLogin), signIn.NeedsReSignIn);
         }
 
         return id == "gitlab"
@@ -474,8 +469,8 @@ internal sealed class DevelopersWindow : IDisposable
                     list.Children.Add(plain);
                 }
 
-                includePrivate.Margin = new Thickness(44, 0, 0, 0);
-                list.Children.Add(includePrivate);
+                chooseRepos.Margin = new Thickness(44, 0, 0, 0);
+                list.Children.Add(chooseRepos);
             }
         }
 
@@ -531,7 +526,7 @@ internal sealed class DevelopersWindow : IDisposable
         switch (provider.Id)
         {
             case "github":
-                SignInFlow(settings.Flag(IntegrationSettings.GitHubPrivate), revert: false);
+                SignInFlow();
                 break;
             case "gitea" or "bitbucket" or "gitee":
                 OpenForm(provider.Id);
@@ -607,9 +602,9 @@ internal sealed class DevelopersWindow : IDisposable
 
     /// <summary>
     /// The device flow: ask for a code, show it with Copy and the page to type it on, and wait. A newer flow replaces an older one,
-    /// whose continuation then does nothing. <paramref name="revert"/> puts the private box back when this one does not finish.
+    /// whose continuation then does nothing.
     /// </summary>
-    private async void SignInFlow(bool withPrivate, bool revert)
+    private async void SignInFlow()
     {
         var run = ++signInRun;
         signingIn = true;
@@ -618,7 +613,7 @@ internal sealed class DevelopersWindow : IDisposable
         var state = SignInState.Failed;
         try
         {
-            var started = await signIn.StartAsync(withPrivate, CancellationToken.None);
+            var started = await signIn.StartAsync(CancellationToken.None);
             if (run != signInRun)
             {
                 return;
@@ -648,15 +643,10 @@ internal sealed class DevelopersWindow : IDisposable
         if (state == SignInState.SignedIn)
         {
             _ = settings.SetFlag(IntegrationSettings.GitHub, true);
-            _ = settings.SetFlag(IntegrationSettings.GitHubPrivate, withPrivate);
             signedIn = true;
             Render();
             await ShowLogin(run);
             hooks.Switched(IntegrationSettings.GitHub, true);
-        }
-        else if (revert)
-        {
-            _ = settings.SetFlag(IntegrationSettings.GitHubPrivate, !withPrivate);
         }
 
         Render();

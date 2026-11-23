@@ -96,10 +96,11 @@ internal static class DevRows
             CanHowTo: ready && !connected);
     }
 
-    internal static RowView GitHub(string name, bool configured, bool signedIn, bool signingIn, bool codeShown, string login) => new(
+    internal static RowView GitHub(string name, bool configured, bool signedIn, bool signingIn, bool codeShown, string login, bool reSignIn = false) => new(
         !configured ? LinuxStrings.Integrations_NoClientId
             : signedIn ? Say.Format(LinuxStrings.Integrations_SignedIn, login.Length > 0 ? login : name)
             : signingIn && !codeShown ? LinuxStrings.Integrations_Working
+            : reSignIn ? LinuxStrings.Integrations_ReSignIn
             : LinuxStrings.Integrations_NotConnected,
         Dot: signedIn,
         Calm: !signedIn,

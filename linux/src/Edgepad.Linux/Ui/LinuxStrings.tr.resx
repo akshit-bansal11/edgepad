@@ -484,8 +484,11 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Integrations_Waiting" xml:space="preserve">
     <value>Tarayıcıda onaylamanız bekleniyor…</value>
   </data>
-  <data name="Integrations_Private" xml:space="preserve">
-    <value>Özel depoları dahil et</value>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>GitHub’da depoları seç</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Yeniden oturum açın. Edgepad artık GitHub’a salt okunur erişim kullanıyor.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>{0} olarak oturum açıldı</value>

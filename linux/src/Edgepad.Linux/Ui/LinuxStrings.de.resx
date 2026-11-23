@@ -488,8 +488,11 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Integrations_Waiting" xml:space="preserve">
     <value>Warte auf deine Zustimmung im Browser…</value>
   </data>
-  <data name="Integrations_Private" xml:space="preserve">
-    <value>Private Repositorys einbeziehen</value>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>Repos auf GitHub auswählen</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Erneut anmelden. Edgepad nutzt jetzt nur lesenden GitHub-Zugriff.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>Angemeldet als {0}</value>

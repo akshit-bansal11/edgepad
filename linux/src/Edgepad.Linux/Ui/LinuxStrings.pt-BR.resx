@@ -488,8 +488,11 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   <data name="Integrations_Waiting" xml:space="preserve">
     <value>Aguardando sua aprovação no navegador…</value>
   </data>
-  <data name="Integrations_Private" xml:space="preserve">
-    <value>Incluir repositórios privados</value>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>Escolher repositórios no GitHub</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Entre novamente. O Edgepad agora usa acesso somente leitura ao GitHub.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>Conectado como {0}</value>
