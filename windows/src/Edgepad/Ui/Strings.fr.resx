@@ -746,8 +746,11 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Integrations_Waiting" xml:space="preserve">
     <value>En attente de votre approbation dans le navigateur…</value>
   </data>
-  <data name="Integrations_Private" xml:space="preserve">
-    <value>Inclure les dépôts privés</value>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>Choisir les dépôts sur GitHub</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Reconnectez-vous. Edgepad utilise désormais un accès GitHub en lecture seule.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>Connecté en tant que {0}</value>

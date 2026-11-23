@@ -746,8 +746,11 @@ Wi-Fi 및 USB 페어링을 등록 해제하지 못했어요. 파일을 삭제하
   <data name="Integrations_Waiting" xml:space="preserve">
     <value>브라우저에서 승인하기를 기다리는 중…</value>
   </data>
-  <data name="Integrations_Private" xml:space="preserve">
-    <value>비공개 저장소 포함</value>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>GitHub에서 저장소 선택</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>다시 로그인하세요. Edgepad는 이제 읽기 전용 GitHub 접근을 사용합니다.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>{0}(으)로 로그인됨</value>

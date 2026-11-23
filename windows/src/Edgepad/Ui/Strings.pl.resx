@@ -746,8 +746,11 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Integrations_Waiting" xml:space="preserve">
     <value>Czekanie na Twoje zatwierdzenie w przeglądarce…</value>
   </data>
-  <data name="Integrations_Private" xml:space="preserve">
-    <value>Uwzględnij prywatne repozytoria</value>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>Wybierz repozytoria na GitHubie</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Zaloguj się ponownie. Edgepad używa teraz dostępu do GitHuba tylko do odczytu.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>Zalogowano jako {0}</value>

@@ -108,7 +108,8 @@ public sealed class DesignGallery
         {
             _ = settings.SetFlag(IntegrationSettings.GitHub, true);
             _ = settings.Set(IntegrationSettings.GitHubLogin, "akshit-bansal11");
-            _ = secrets.Set(GitHubApp.TokenName, "gho_abcdefghijklmnop123456");
+            _ = secrets.Set(GitHubApp.TokenName, "ghu_abcdefghijklmnop123456");
+            _ = secrets.Set(GitHubApp.ClientName, GitHubApp.ClientId);
         }
 
         var heard = new DateTimeOffset(DateTime.Today.AddHours(9).AddMinutes(56)).ToUnixTimeSeconds() / 60;

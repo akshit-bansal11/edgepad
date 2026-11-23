@@ -746,8 +746,11 @@ Wi-Fi 和 USB 配对未能忘记：它们的文件无法删除或清空。Edgepa
   <data name="Integrations_Waiting" xml:space="preserve">
     <value>正在等待你在浏览器中批准…</value>
   </data>
-  <data name="Integrations_Private" xml:space="preserve">
-    <value>包括私有仓库</value>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>在 GitHub 上选择仓库</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>请重新登录。Edgepad 现在使用只读的 GitHub 访问权限。</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>已登录为 {0}</value>

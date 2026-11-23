@@ -746,8 +746,11 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
   <data name="Integrations_Waiting" xml:space="preserve">
     <value>ブラウザーでの承認を待っています…</value>
   </data>
-  <data name="Integrations_Private" xml:space="preserve">
-    <value>プライベートリポジトリを含める</value>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>GitHubでリポジトリを選ぶ</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>もう一度サインインしてください。Edgepad は読み取り専用の GitHub アクセスを使うようになりました。</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>{0} としてサインイン中</value>

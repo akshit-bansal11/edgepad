@@ -40,13 +40,13 @@ internal sealed class DevelopersWindow : Form
     private readonly Label gitHeading = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Dev_SectionGit.ToUpper(CultureInfo.CurrentCulture) };
     private readonly FlatButton close;
 
-    // GitHub's sign-in code panel and its private-repositories box.
+    // GitHub's sign-in code panel and the link to the page where the user chooses which repositories the App may read.
     private readonly Backdrop codeBackdrop;
     private readonly Label codeLabel = new() { AutoSize = false, UseMnemonic = false };
     private readonly Label waiting = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Integrations_Waiting };
     private readonly FlatButton openPage;
     private readonly FlatButton copyCode;
-    private readonly CheckBox includePrivate = new() { AutoSize = false, Text = Mnemonic.Escape(Strings.Integrations_Private), AccessibleName = Strings.Integrations_Private, UseVisualStyleBackColor = false };
+    private readonly LinkButton chooseRepos;
 
     // The inline form a token host's Add opens (one at a time).
     private readonly Label urlLabel = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Dev_FieldUrl };
@@ -112,6 +112,7 @@ internal sealed class DevelopersWindow : Form
         close = new FlatButton(Strings.Common_Close, ButtonKind.Outline, palette);
         openPage = new FlatButton(Strings.Integrations_OpenPage, ButtonKind.Primary, palette);
         copyCode = new FlatButton(Strings.Integrations_Copy, ButtonKind.Outline, palette);
+        chooseRepos = new LinkButton(palette) { Text = Strings.Integrations_ChooseRepos, AccessibleName = Strings.Integrations_ChooseRepos };
         saveButton = new FlatButton(Strings.Common_Save, ButtonKind.Primary, palette);
         cancelForm = new FlatButton(Strings.Common_Cancel, ButtonKind.Outline, palette);
         codeBackdrop = new Backdrop(palette);
@@ -144,14 +145,7 @@ internal sealed class DevelopersWindow : Form
                 actions.Copy(text);
             }
         };
-        includePrivate.CheckedChanged += (_, _) =>
-        {
-            if (!filling)
-            {
-                // A different scope is a different grant: sign in again, and put the box back if that does not finish.
-                SignInFlow(includePrivate.Checked, revert: true);
-            }
-        };
+        chooseRepos.Click += (_, _) => actions.Open(GitHubApp.InstallUri.AbsoluteUri, "the page where the GitHub repositories are chosen");
         saveButton.Click += (_, _) => SaveToken();
         cancelForm.Click += (_, _) => CloseForm();
         foreach (var box in new[] { urlBox, userBox, tokenBox })
@@ -191,7 +185,7 @@ internal sealed class DevelopersWindow : Form
             Controls.AddRange(row.Controls);
         }
 
-        Controls.AddRange([codeLabel, waiting, openPage, copyCode, includePrivate, urlLabel, urlFrame, userLabel, userFrame, tokenLabel, tokenFrame, errorLabel, saveButton, cancelForm, close]);
+        Controls.AddRange([codeLabel, waiting, openPage, copyCode, chooseRepos, urlLabel, urlFrame, userLabel, userFrame, tokenLabel, tokenFrame, errorLabel, saveButton, cancelForm, close]);
 
         // Last, so the panel sits behind the labels drawn on it (a control added later is further back).
         Controls.Add(codeBackdrop);
@@ -267,7 +261,6 @@ internal sealed class DevelopersWindow : Form
     {
         filling = true;
         developerSwitch.Checked = actions.Settings.Flag(IntegrationSettings.Developer);
-        includePrivate.Checked = actions.Settings.Flag(IntegrationSettings.GitHubPrivate);
         filling = false;
 
         foreach (var row in rows)
@@ -356,7 +349,7 @@ internal sealed class DevelopersWindow : Form
         switch (row.Provider.Id)
         {
             case "github":
-                SignInFlow(actions.Settings.Flag(IntegrationSettings.GitHubPrivate), revert: false);
+                SignInFlow();
                 break;
             case "gitea" or "bitbucket" or "gitee":
                 OpenForm(row);
@@ -438,9 +431,9 @@ internal sealed class DevelopersWindow : Form
 
     /// <summary>
     /// The device flow: ask for a code, show it with Copy and the page to type it on, and wait. A newer flow replaces an older
-    /// one, whose continuation then does nothing. <paramref name="revert"/> puts the private box back when this one does not finish.
+    /// one, whose continuation then does nothing.
     /// </summary>
-    private async void SignInFlow(bool withPrivate, bool revert)
+    private async void SignInFlow()
     {
         var run = ++signInRun;
         signingIn = true;
@@ -450,7 +443,7 @@ internal sealed class DevelopersWindow : Form
         var state = SignInState.Failed;
         try
         {
-            var started = await actions.SignIn.StartAsync(withPrivate, closing.Token);
+            var started = await actions.SignIn.StartAsync(closing.Token);
             if (IsDisposed || run != signInRun)
             {
                 return;
@@ -479,17 +472,10 @@ internal sealed class DevelopersWindow : Form
         if (state == SignInState.SignedIn)
         {
             _ = actions.Settings.SetFlag(IntegrationSettings.GitHub, true);
-            _ = actions.Settings.SetFlag(IntegrationSettings.GitHubPrivate, withPrivate);
             signedIn = true;
             Relayout();
             await ShowLogin(run);
             actions.Changed(IntegrationSettings.GitHub);
-        }
-        else if (revert)
-        {
-            filling = true;
-            includePrivate.Checked = !withPrivate;
-            filling = false;
         }
 
         Relayout();
@@ -620,6 +606,7 @@ internal sealed class DevelopersWindow : Form
             var line = !configured ? Strings.Integrations_NoClientId
                 : signedIn ? Strings.Integrations_SignedIn.Fill(login.Length > 0 ? login : provider.Name)
                 : signingIn && userCode is null ? Strings.Integrations_Working
+                : actions.SignIn.NeedsReSignIn ? Strings.Integrations_ReSignIn
                 : Strings.Integrations_NotConnected;
             return new RowView(
                 line,
@@ -892,12 +879,10 @@ internal sealed class DevelopersWindow : Form
 
             if (signedIn && !signingIn)
             {
-                includePrivate.Font = Theme.Font(Theme.Scale(13f, DeviceDpi), Weight.Regular);
-                includePrivate.ForeColor = palette.Ink;
-                includePrivate.BackColor = palette.Card;
-                Place(includePrivate, detailX, top, detailWidth, S(28));
-                order.Add(includePrivate);
-                top += S(32);
+                chooseRepos.Font = Theme.Font(Theme.Scale(13f, DeviceDpi), Weight.Regular);
+                Place(chooseRepos, detailX, top, Math.Min(chooseRepos.FitWidth(), detailWidth), S(24));
+                order.Add(chooseRepos);
+                top += S(30);
             }
         }
 

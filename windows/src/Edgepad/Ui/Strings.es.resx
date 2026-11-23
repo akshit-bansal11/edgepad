@@ -746,8 +746,11 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Integrations_Waiting" xml:space="preserve">
     <value>Esperando a que lo apruebes en el navegador…</value>
   </data>
-  <data name="Integrations_Private" xml:space="preserve">
-    <value>Incluir repositorios privados</value>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>Elegir repos en GitHub</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Inicia sesión de nuevo. Edgepad ahora usa acceso de solo lectura a GitHub.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>Sesión iniciada como {0}</value>
