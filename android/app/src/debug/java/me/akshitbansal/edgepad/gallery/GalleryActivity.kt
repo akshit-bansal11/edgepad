@@ -14,7 +14,6 @@ import me.akshitbansal.edgepad.screens.hideBars
  * attached when attachBaseContext runs, so an override read from it there always saw the default, night.
  */
 class GalleryActivity : Activity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestedOrientation =

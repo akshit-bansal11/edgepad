@@ -17,8 +17,8 @@ adb shell settings put secure immersive_mode_confirmations confirmed
 # Errors and crashes land beside the PNGs, so a blank or home-screen shot comes with its reason.
 adb logcat -c
 
-for screen in $screens; do
-  for night in true false; do
+for night in true false; do
+  for screen in $screens; do
     for land in true false; do
       day=day
       [ "$night" = true ] && day=night
@@ -28,8 +28,14 @@ for screen in $screens; do
       rotation=0
       [ "$land" = true ] && rotation=1
       adb shell settings put system user_rotation "$rotation"
-      # The system's own day/night: the activity follows it like the app does.
-      if [ "$night" = true ]; then adb shell cmd uimode night yes; else adb shell cmd uimode night no; fi
+      # The system's own day/night: the activity follows it like the app does. Switching it restarts System UI
+      # for a moment, which can undo the rotation, so it is set only on a change and given time to settle.
+      if [ "$night" != "${shown:-}" ]; then
+        if [ "$night" = true ]; then adb shell cmd uimode night yes; else adb shell cmd uimode night no; fi
+        shown=$night
+        sleep 3
+        adb shell settings put system user_rotation "$rotation"
+      fi
       adb shell am force-stop me.akshitbansal.edgepad
       adb shell am start -W -n me.akshitbansal.edgepad/.gallery.GalleryActivity \
         --es screen "$screen" --ez land "$land" > /dev/null
