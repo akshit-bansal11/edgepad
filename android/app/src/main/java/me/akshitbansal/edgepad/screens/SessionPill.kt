@@ -10,6 +10,7 @@ import android.text.TextUtils
 import android.util.TypedValue
 import android.view.View
 import me.akshitbansal.edgepad.Palette
+import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.protocol.AgentToken
@@ -39,11 +40,21 @@ object SessionRow {
         minTitle: Float,
     ): Boolean =
         fullStateWidth <= stateRoom(rowWidth) && titleRoom(rowWidth, circleRight, gaps, fullStateWidth) >= minTitle
+
+    /** Whether [pct] is a real context fill; anything else draws a dash. */
+    fun knowsContext(pct: Int): Boolean = pct in 0..FULL
+
+    /** The arc of the context ring for [pct], in degrees: 0 for unknown, a full turn at 100. */
+    fun contextSweep(pct: Int): Float = if (knowsContext(pct)) pct * FULL_TURN / FULL else 0f
+
+    private const val FULL = 100
+    private const val FULL_TURN = 360f
 }
 
 /**
- * One agent session as a plain row: the agent's initial in a circle, the session's title, and at the end a state dot
- * with its word. It draws the initial, never a vendor logo. The row is [HEIGHT_DP] tall and the parent's width.
+ * One agent session as a plain row: the agent's mark in a circle, the session's title, a state dot with its word, and
+ * at the very end a small ring for how full that session's context window is (a dash when that is not known). The
+ * row is [HEIGHT_DP] tall and the parent's width.
  */
 class SessionPill(
     context: Context,
@@ -51,6 +62,7 @@ class SessionPill(
     private val metrics = resources.displayMetrics
     private val density = metrics.density
     private val palette = Palette.of(context)
+    private val none = context.getString(R.string.sys_none)
     private val body = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.faint }
     private val badge = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.accent }
     private val dot = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.track }
@@ -73,11 +85,28 @@ class SessionPill(
             textSize = sp(Type.MICRO)
             color = palette.dim
         }
+    private val contextTrack =
+        Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = CTX_STROKE_DP * density
+            color = palette.track
+        }
+    private val contextArc =
+        Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = CTX_STROKE_DP * density
+            strokeCap = Paint.Cap.ROUND
+            color = palette.accent
+        }
+    private val levels = intArrayOf(palette.levelGreen, palette.levelYellow, palette.levelOrange, palette.levelRed)
     private val initialMetrics = initialPaint.fontMetrics
     private val titleMetrics = titlePaint.fontMetrics
     private val stateMetrics = statePaint.fontMetrics
     private val row = RectF()
     private val circle = RectF()
+    private val contextRing = RectF()
+    private var contextPct = -1
+    private var contextSweep = 0f
 
     private var initial = ""
     private var title = ""
@@ -96,7 +125,8 @@ class SessionPill(
 
     /**
      * Shows a session of [agent] called [title] in [state], whose words are [stateLabel] from the screen's strings.
-     * The avatar is the tool's [logoRes] when it has one, else its [brand] colour with the agent's initial.
+     * The avatar is the tool's [logoRes] when it has one, else its [brand] colour with the agent's initial. [context]
+     * is how full its context window is, 0 to 100 or below 0 for unknown, and [contextLabel] says so in words.
      */
     fun set(
         agent: AgentToken,
@@ -105,6 +135,8 @@ class SessionPill(
         stateLabel: String,
         brand: Int,
         logoRes: Int?,
+        context: Int = -1,
+        contextLabel: String = "",
     ) {
         initial = agent.token.take(1).uppercase()
         badge.color = brand
@@ -120,7 +152,10 @@ class SessionPill(
                 SessionStateToken.WAIT -> palette.levelOrange
                 SessionStateToken.IDLE -> palette.track
             }
-        contentDescription = "$title, $stateLabel"
+        contextPct = if (SessionRow.knowsContext(context)) context else -1
+        contextSweep = SessionRow.contextSweep(contextPct)
+        contextArc.color = if (contextPct < 0) palette.track else levels[RingLevel.colourIndex(contextPct)]
+        contentDescription = listOf(title, stateLabel, contextLabel).filter { it.isNotEmpty() }.joinToString(", ")
         shorten()
         invalidate()
     }
@@ -144,6 +179,16 @@ class SessionPill(
         // The circle sits XS inside the row, so its radius is half the row less XS: 14 dp in a 36 dp row.
         val inset = Space.XS * density
         circle.set(inset, inset, h - inset, h - inset)
+        // The context ring sits at the end of the row, in a slot of its own.
+        val side = CTX_DP * density
+        val right = w - Space.M * density
+        val half = contextTrack.strokeWidth / 2f
+        contextRing.set(
+            right - side + half,
+            (h - side) / 2f + half,
+            right - half,
+            (h + side) / 2f - half,
+        )
         placeLogo()
         shorten()
     }
@@ -156,7 +201,7 @@ class SessionPill(
     private fun shorten() {
         if (width <= 0) return
         val stateRoom = SessionRow.stateRoom(width.toFloat())
-        val gaps = (Space.M * 3 + DOT_DP + Space.S) * density
+        val gaps = (Space.M * 4 + DOT_DP + Space.S + CTX_DP) * density
         val full = statePaint.measureText(stateLabel)
         val minTitle = MIN_TITLE_DP * density
         if (SessionRow.showsState(width.toFloat(), circle.right, gaps, full, minTitle)) {
@@ -188,12 +233,26 @@ class SessionPill(
         val centreY = height / 2f
         val titleY = centreY - (titleMetrics.ascent + titleMetrics.descent) / 2f
         canvas.drawText(shownTitle, circle.right + Space.M * density, titleY, titlePaint)
-        val stateX = width - Space.M * density - stateWidth
+        drawContext(canvas)
+        val stateX = width - Space.M * 2 * density - CTX_DP * density - stateWidth
         val stateY = centreY - (stateMetrics.ascent + stateMetrics.descent) / 2f
         canvas.drawText(shownState, stateX, stateY, statePaint)
         val radius = DOT_DP * density / 2f
         val gap = if (shownState.isEmpty()) 0f else Space.S * density
         canvas.drawCircle(stateX - gap - radius, centreY, radius, dot)
+    }
+
+    // A ring in the level colour for a known fill, else a dash on the track's colour.
+    private fun drawContext(canvas: Canvas) {
+        if (contextPct < 0) {
+            val y = contextRing.centerY() - (stateMetrics.ascent + stateMetrics.descent) / 2f
+            statePaint.textAlign = Paint.Align.CENTER
+            canvas.drawText(none, contextRing.centerX(), y, statePaint)
+            statePaint.textAlign = Paint.Align.LEFT
+            return
+        }
+        canvas.drawArc(contextRing, 0f, FULL_TURN, false, contextTrack)
+        canvas.drawArc(contextRing, START, contextSweep, false, contextArc)
     }
 
     private fun sp(value: Float): Float = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, metrics)
@@ -203,5 +262,9 @@ class SessionPill(
         const val HEIGHT_DP = 36f
         const val DOT_DP = 8f
         const val MIN_TITLE_DP = 90f
+        const val CTX_DP = 16f
+        const val CTX_STROKE_DP = 2.5f
+        const val START = -90f
+        const val FULL_TURN = 360f
     }
 }

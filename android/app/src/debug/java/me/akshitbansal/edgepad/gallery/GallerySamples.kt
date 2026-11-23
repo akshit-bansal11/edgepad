@@ -208,27 +208,27 @@ class GallerySamples(
                 listOf(
                     "claude:300:34:${now + 180}:$measured",
                     "claude:10080:62:${now + 4_320}:$measured",
-                    "claude:ctx:81:-1:$measured",
+                    "claude:~seven_day_fable:81:${now + 5_760}:$measured",
+                    "claude:~spend_limit:23:${now + 20_000}:$measured",
                     "codex:300:12:${now + 240}:$measured",
                     "codex:10080:93:${now + 1_440}:$measured",
-                    "codex:ctx:40:-1:$measured",
                 )
             take(TextKind.LIMITS.frame(limits.joinToString("|")))
             val spend =
                 listOf(
-                    "claude/$measured/1200000/210/9400000/1480/30000000/5200/0",
-                    "codex/$measured/260000/40/3100000/620/11000000/2100/0",
-                    "gemini/$measured/182000/0/940000/0/3000000/0/0",
-                    "opencode/$measured/64000/0/410000/0/1900000/0/0",
+                    "claude/$measured/1200000/210/9400000/1480/30000000/5200/88000000/16200/0",
+                    "codex/$measured/260000/40/3100000/620/11000000/2100/41000000/7400/0",
+                    "gemini/$measured/182000/0/940000/0/3000000/0/9100000/0/0",
+                    "opencode/$measured/64000/0/410000/0/1900000/0/6200000/0/0",
                 )
             take(TextKind.SPEND.frame(spend.take(if (four) 4 else 2).joinToString("|")))
             val sessions =
                 listOf(
-                    "claude:busy:edgepad",
-                    "claude:idle:plimsoll",
-                    "codex:wait:spotatui",
-                    "gemini:idle:site",
-                    "opencode:busy:notes",
+                    "claude:busy:42:edgepad",
+                    "claude:idle:81:plimsoll",
+                    "codex:wait:18:spotatui",
+                    "gemini:idle:-1:site",
+                    "opencode:busy:-1:notes",
                 )
             take(TextKind.SESSIONS.frame(sessions.joinToString("|")))
         }

@@ -142,13 +142,23 @@ class DashWireTest {
 
     private fun DiskEntry.wire() = "$label:$usedPct:$totalGiB:$freeGiB"
 
-    private fun SessionEntry.wire() = "${agent.token}:${state.token}:$title"
+    private fun SessionEntry.wire() = "${agent.token}:${state.token}:$contextPct:$title"
 
     private fun LimitEntry.wire() = "${agent.token}:${window.text}:$pct:$resetAtMin:$measuredAtMin"
 
     private fun SpendEntry.wire() =
-        listOf(measuredAtMin, tokToday, centsToday, tokWeek, centsWeek, tokMonth, centsMonth, if (unpriced) 1 else 0)
-            .joinToString("/", prefix = agent.token + "/")
+        listOf(
+            measuredAtMin,
+            tokToday,
+            centsToday,
+            tokWeek,
+            centsWeek,
+            tokMonth,
+            centsMonth,
+            tokAll,
+            centsAll,
+            if (unpriced) 1 else 0,
+        ).joinToString("/", prefix = agent.token + "/")
 
     private fun GithubRow.wire(): String {
         if (section == GithubSection.NOTIFICATIONS) return "N\t\t$number\t\t\tnone"
@@ -183,8 +193,8 @@ class DashWireTest {
 
     @Test
     fun theUnpricedFlagIsRead() {
-        assertTrue(DashWire.spend("codex/1/2/3/4/5/6/7/1").single().unpriced)
-        assertEquals(false, DashWire.spend("codex/1/2/3/4/5/6/7/0").single().unpriced)
+        assertTrue(DashWire.spend("codex/1/2/3/4/5/6/7/8/9/1").single().unpriced)
+        assertEquals(false, DashWire.spend("codex/1/2/3/4/5/6/7/8/9/0").single().unpriced)
     }
 
     @Test
@@ -235,8 +245,13 @@ class DashWireTest {
 
     @Test
     fun parsesTheTypedFields() {
-        val session = SessionEntry(AgentToken.CODEX, SessionStateToken.WAIT, "x")
-        assertEquals(session, DashWire.sessions("codex:wait:x").single())
+        val session = SessionEntry(AgentToken.CODEX, SessionStateToken.WAIT, "x", 42)
+        assertEquals(session, DashWire.sessions("codex:wait:42:x").single())
+        assertEquals(-1, DashWire.sessions("codex:wait:101:x").single().contextPct)
+        assertEquals(emptyList<SessionEntry>(), DashWire.sessions("codex:wait:x"))
+        val all = DashWire.spend("claude/1/2/3/4/5/6/7/90000000/31000/0").single()
+        assertEquals(90000000L to 31000L, all.tokAll to all.centsAll)
+        assertEquals(-1L, DashWire.spend("claude/1/2/3/4/5/6/7/-1/-1/0").single().tokAll)
         assertEquals(CiToken.FAIL, DashWire.github("R\ta/b\t1\tt\t\tfail".toByteArray()).single().ci)
     }
 

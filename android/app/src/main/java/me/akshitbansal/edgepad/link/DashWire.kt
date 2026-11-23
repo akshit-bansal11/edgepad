@@ -37,11 +37,12 @@ data class DiskEntry(
     val freeGiB: Int,
 )
 
-/** One TEXT SESSIONS entry. */
+/** One TEXT SESSIONS entry. [contextPct] is how full the session's context window is, 0 to 100; -1 when unknown. */
 data class SessionEntry(
     val agent: AgentToken,
     val state: SessionStateToken,
     val title: String,
+    val contextPct: Int = -1,
 )
 
 /** The window of a TEXT LIMITS entry: a length in minutes, the session's context, or a named limit with no length. */
@@ -79,8 +80,9 @@ data class LimitEntry(
 }
 
 /**
- * One TEXT SPEND entry: tokens (uncached input plus output) and estimated cents, by period. [unpriced]: some tokens came from
- * a model with no price, so the cents are a lower bound.
+ * One TEXT SPEND entry: tokens (uncached input plus output) and estimated cents, by period. The week is the last 7 days
+ * and the month the last 30, both counting today; [tokAll] and [centsAll] are everything the laptop has read, -1 while
+ * that is not known. [unpriced]: some tokens came from a model with no price, so the cents are a lower bound.
  */
 data class SpendEntry(
     val agent: AgentToken,
@@ -92,6 +94,8 @@ data class SpendEntry(
     val tokMonth: Long,
     val centsMonth: Long,
     val unpriced: Boolean = false,
+    val tokAll: Long = -1L,
+    val centsAll: Long = -1L,
 )
 
 /** TEXT WEATHER. [wmoCode] -1 is unknown. */
@@ -212,7 +216,8 @@ object DashWire {
     private const val INFO_FIELDS = 5
     private const val DISK_FIELDS = 4
     private const val LIMIT_FIELDS = 5
-    private const val SPEND_FIELDS = 9
+    private const val SPEND_FIELDS = 11
+    private const val SESSION_FIELDS = 4
     private val UNPRICED_FLAGS = setOf("0", "1")
     private const val WEATHER_FIELDS = 3
     private const val NET_FIELDS = 6
@@ -282,10 +287,15 @@ object DashWire {
     fun sessions(text: String): List<SessionEntry> =
         entries(text)
             .mapNotNull { entry ->
-                val p = entry.split(':', limit = 3)
+                val p = entry.split(':', limit = SESSION_FIELDS)
                 val agent = AgentToken.of(p[0])
                 val state = p.getOrNull(1)?.let(SessionStateToken::of)
-                if (p.size != 3 || agent == null || state == null) null else SessionEntry(agent, state, p[2])
+                val context = p.getOrNull(2)?.toLongOrNull()
+                if (p.size != SESSION_FIELDS || agent == null || state == null || context == null) {
+                    null
+                } else {
+                    SessionEntry(agent, state, p[3], if (context in 0..PERCENT_MAX.toLong()) context.toInt() else -1)
+                }
             }.take(MAX_SESSIONS)
 
     /** Null for an unknown form: zero, past a year, a leading zero or sign, a fraction, `5h`, an empty `~` name. */
@@ -340,6 +350,8 @@ object DashWire {
                     maxOf(v[5], 0L),
                     maxOf(v[6], 0L),
                     p.last() == "1",
+                    maxOf(v[7], -1L),
+                    maxOf(v[8], -1L),
                 )
             }
         }

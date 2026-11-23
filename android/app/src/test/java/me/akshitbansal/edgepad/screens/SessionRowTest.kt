@@ -21,6 +21,19 @@ class SessionRowTest {
     }
 
     @Test
+    fun theContextRingKnowsOnlyZeroToOneHundred() {
+        assertFalse(SessionRow.knowsContext(-1))
+        assertTrue(SessionRow.knowsContext(0))
+        assertTrue(SessionRow.knowsContext(100))
+        assertFalse(SessionRow.knowsContext(101))
+        assertEquals(0f, SessionRow.contextSweep(-1), 0.001f)
+        assertEquals(0f, SessionRow.contextSweep(0), 0.001f)
+        assertEquals(151.2f, SessionRow.contextSweep(42), 0.001f)
+        assertEquals(360f, SessionRow.contextSweep(100), 0.001f)
+        assertEquals(0f, SessionRow.contextSweep(250), 0.001f)
+    }
+
+    @Test
     fun longStateAndLongTitleStillLeaveTheTitleRoom() {
         val width = 200f
         val state = minOf(500f, SessionRow.stateRoom(width))

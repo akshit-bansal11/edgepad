@@ -1,5 +1,8 @@
 package me.akshitbansal.edgepad.screens
 
+import me.akshitbansal.edgepad.link.LimitEntry
+import me.akshitbansal.edgepad.link.LimitWindow
+import me.akshitbansal.edgepad.link.SpendEntry
 import me.akshitbansal.edgepad.protocol.AgentToken
 import me.akshitbansal.edgepad.protocol.Feature
 
@@ -23,7 +26,8 @@ object AiLayout {
             AiTool(AgentToken.OPENCODE, Feature.OPENCODE, "opencode", false, 0xFF3A3A3A.toInt()),
         )
 
-    const val MAX_RINGS = 3
+    /** Five hours, the week, one model's week and the credits. */
+    const val MAX_RINGS = 4
     const val PAGE_DP = 16f
     const val GAP_DP = 10f
     const val CARD_PAD_DP = 14f
@@ -58,8 +62,72 @@ object AiLayout {
     /** The logo tile's side: smaller once three or four columns share the width. */
     fun logoDp(columns: Int): Float = if (columns <= 2) 28f else 24f
 
+    /**
+     * The rings a card shows, in order: no context (that is per session now), the shortest windows first, then the
+     * model limits, with the credits last. When there are more than [MAX_RINGS] the credits stay and the last model
+     * limits go.
+     */
+    fun pick(limits: List<LimitEntry>): List<LimitEntry> {
+        val sorted = limits.filter { it.window != LimitWindow.Context }.sortedWith(LimitWindowLabel.shortestFirst)
+        if (sorted.size <= MAX_RINGS) return sorted
+        val credits = sorted.filter { LimitWindowLabel.isCredits(it.window) }.take(1)
+        return sorted.filter { it !in credits }.take(MAX_RINGS - credits.size) + credits
+    }
+
+    /**
+     * How many rings share a row: all of them while each keeps [MIN_RING_DP], else half of them rounded up, so four
+     * rings in a narrow column make two rows of two.
+     */
+    fun ringsPerRow(
+        columnWidthDp: Float,
+        rings: Int,
+    ): Int {
+        val fits = ((columnWidthDp - 2 * CARD_PAD_DP) / MIN_RING_DP).toInt().coerceAtLeast(1)
+        return if (rings <= fits) rings.coerceAtLeast(1) else (rings + 1) / 2
+    }
+
+    /** Spend cells in one row: all four when each keeps [MIN_SPEND_CELL_DP], else the compact two by two. */
+    fun spendColumns(columnWidthDp: Float): Int =
+        if (columnWidthDp - 2 * CARD_PAD_DP >= SPEND_WINDOWS * MIN_SPEND_CELL_DP) SPEND_WINDOWS else 2
+
+    /** The four spend windows of a card, each with the tokens and the estimated cents it shows (null for a dash). */
+    fun spendCells(
+        spend: SpendEntry?,
+        priced: Boolean,
+    ): List<SpendCell> =
+        listOf(
+            cell(SpendWindow.TODAY, spend?.tokToday, spend?.centsToday, priced),
+            cell(SpendWindow.DAYS7, spend?.tokWeek, spend?.centsWeek, priced),
+            cell(SpendWindow.DAYS30, spend?.tokMonth, spend?.centsMonth, priced),
+            cell(SpendWindow.ALL, spend?.tokAll, spend?.centsAll, priced),
+        )
+
+    private fun cell(
+        window: SpendWindow,
+        tokens: Long?,
+        cents: Long?,
+        priced: Boolean,
+    ) = SpendCell(window, tokens?.takeIf { it >= 0 }, cents?.takeIf { priced && it >= 0 })
+
+    const val MIN_SPEND_CELL_DP = 72f
+    private const val SPEND_WINDOWS = 4
     private const val MAX_COLUMNS = 4
 }
+
+/** The periods a card's spend block shows. */
+enum class SpendWindow {
+    TODAY,
+    DAYS7,
+    DAYS30,
+    ALL,
+}
+
+/** One spend cell: [tokens] and [cents] are null when they are unknown or, for cents, when the tool has no price. */
+data class SpendCell(
+    val window: SpendWindow,
+    val tokens: Long?,
+    val cents: Long?,
+)
 
 /** Colour contrast for the brand tiles, pure so a table can test it. Colours are ARGB ints. */
 object TileContrast {
