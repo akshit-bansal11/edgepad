@@ -2,9 +2,9 @@
 
 One list for every planned fix, feature and change after v4.2.0 (`07e83d1`). It replaces `edgepad-4.x.y-fixes.md`, `edgepad-4.x-features.md` and `edgepad-5-features.md`. Written 2026-11-16.
 
-## Status on `feat/5.0.0` (2026-11-16)
+## Status (2026-11-23)
 
-The 4.2.x fixes shipped in 4.2.1. Every item from 4.3.0 to 5.0.0 below is built on the branch `feat/5.0.0` as one release, 5.0.0, on protocol 6. None of it has run on a phone with a laptop; CI is the only thing that has compiled or tested it. Nothing here carries a speed, latency or battery figure.
+The 4.2.x fixes shipped in 4.2.1. Every item from 4.3.0 to 5.0.0 below shipped together in v5.0.0 on 2026-11-23, on protocol 6. It was tested on the owner's Android phone and Windows laptop; the Mac and Linux apps have passed CI only, and Linux arm64 has never run on a device. Nothing here carries a speed, latency or battery figure.
 
 What did not ship, and why:
 
@@ -12,7 +12,7 @@ What did not ship, and why:
 - **Wayland macro windows via KWin (X1c, 4.6.0).** The spike stopped before anything was built. KDE's documentation does not confirm the scripting calls it needs, and it needs a Plasma 6 Wayland session. Macro running state, raise and close stay X11 only on Linux. **Deferred (2026-11-17):** built only together with someone on Plasma 6 Wayland who can test it, so nothing untested ships; GNOME would need a Shell extension of its own. On Wayland the macro tiles still open their apps.
 - **Browser site icon (4.3.0).** Option C was built: the media's own artwork, not an Edgepad browser extension (option B).
 - **ANDU-10** (one macro page planned for 10 tiles) is dropped as designed: the page keeps a stable tile size on purpose.
-- **Update signing key (5.0.0).** Created by the owner with `scripts/new-update-key.ps1` on 2026-11-16 and embedded (`protocol/update-key.txt`, `e9076b9`). The laptop apps install a verified release in place; the first end-to-end update is 5.0.0 to the next release.
+- **Update signing key (5.0.0).** Created by the owner with `scripts/new-update-key.ps1` on 2026-11-16 and embedded (`protocol/update-key.txt`, `e9076b9`). The laptop apps install a verified release in place; the first end-to-end update is 5.0.0 to the next release, so that path has not yet been used on a real release.
 
 ## Version rule (owner, 2026-11-16)
 
