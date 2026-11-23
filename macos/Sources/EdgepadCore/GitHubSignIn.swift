@@ -142,7 +142,8 @@ public struct DeviceCode: Equatable {
 /// The token goes straight into the `SecretStore` under `GitHubApp.tokenName`;
 /// it is never logged, never returned, and
 /// never sent to the phone. github.com is the only host asked, redirects are refused, every reply is capped at 16 KiB
-/// and 15 s, and there is no client secret anywhere. One flow at a time: starting another cancels the first. The twin of the core's GitHubSignIn.
+/// and 15 s, and there is no client secret anywhere. One flow at a time: starting another cancels the first. The twin
+/// of the core's GitHubSignIn.
 public final class GitHubSignIn {
     public static let maxBytes = 16 * 1024
     public static let slowDownSeconds = 5
