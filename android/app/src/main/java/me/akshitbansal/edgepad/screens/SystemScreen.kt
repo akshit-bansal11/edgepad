@@ -13,16 +13,18 @@ import me.akshitbansal.edgepad.link.DiskEntry
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.StatsFormat
 import me.akshitbansal.edgepad.link.StatsRing
+import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.surface.StatCards
 import me.akshitbansal.edgepad.surface.StatMetric
 
 /**
- * The System page of Stats, under the [bar] the hub draws; [showPhone] swaps it to this phone's own [phone] numbers. The laptop's processor, graphics, memory and network as
- * rounded cards with a graph of the last minute (the same cards the widgets draw), then their details, ping and
- * disks, and the batteries of the laptop and what is paired to it. Upright it is one column of two cards a row;
- * sideways the cards (four a row) and their details are on the left and the ping and disks on the right. A graphics
- * card the laptop does not report has no card.
+ * The System page of Stats, under the [bar] the hub draws; [showPhone] swaps it to this phone's own [phone] numbers.
+ * The laptop's name and system, then its processor, graphics and memory as rounded cards with a graph of the last
+ * minute (the same cards the widgets draw), their details, the disks with what is used and free, and the batteries
+ * of the laptop and what is paired to it. Upright it is one column of two cards a row; sideways the cards (four a
+ * row) and their details are on the left and the disks and batteries on the right. A graphics card the laptop does
+ * not report has no card.
  *
  * Nothing here polls: the laptop sends a sample a second only while the phone says this screen is open, and the
  * activity calls [refresh] when one arrived. It sets the texts and the graphs in place, and rebuilds the cards only
@@ -41,9 +43,6 @@ class SystemScreen(
     private val holder = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
     private val updaters = ArrayList<(LaptopState) -> Unit>()
     private var shape: List<Any>? = null
-
-    /** How tall a graph is: 88 dp upright, 72 dp sideways. */
-    private val graphDp = if (ui.landscape) GRAPH_LANDSCAPE_DP else GRAPH_PORTRAIT_DP
 
     private var onPhone = false
 
@@ -83,17 +82,18 @@ class SystemScreen(
 
     private fun Column.render(s: LaptopState) {
         if (Feature.STATS !in s.features) {
+            deviceCard(s)
             card { body(ui.string(R.string.sys_off)).setPadding(0, ui.dp(Space.M), 0, ui.dp(Space.M)) }
             batteryCard(s)
             return
         }
         columns(
             first = {
+                deviceCard(s)
                 grid()
                 detailsCard(s)
             },
             second = {
-                pingCard(0f)
                 disksCard(s.disks.size)
                 batteryCard(s)
             },
@@ -195,20 +195,17 @@ class SystemScreen(
         totalMiB: Int,
     ): String = if (totalMiB < 0 || pct < 0) none else "${fmt.gib(totalMiB * pct / FULL)} / ${fmt.gib(totalMiB)}"
 
-    private fun Column.pingCard(top: Float) {
-        val loss = ui.secondary("", Type.VALUE)
-        metricCard(
-            top,
-            R.string.sys_ping,
-            sub = { "" },
-            value = { "" },
-            graphs = listOf(Graph(StatsRing.PING, R.string.sys_ping, 0, ::millis, MS)),
-            extra = {
-                hairline()
-                add(ui.field(ui.string(R.string.sys_loss), loss))
-                updaters.add { loss.text = fmt.percent(it.stats.latest(StatsRing.LOSS)) }
-            },
-        )
+    /** The laptop's name and its operating system, each a dash when the laptop has not said. */
+    private fun Column.deviceCard(s: LaptopState) {
+        val os =
+            when (s.os) {
+                DeviceOs.WINDOWS -> "Windows"
+                DeviceOs.MACOS -> "macOS"
+                DeviceOs.LINUX -> "Linux"
+                null -> none
+            }
+        val name = ui.text(s.laptopName?.ifEmpty { none } ?: none, Type.BODY, ui.palette.ink, face = Type.bold)
+        card { add(ui.row(name, ui.secondary(os, Type.VALUE))) }
     }
 
     private fun Column.disksCard(count: Int) {
@@ -242,7 +239,7 @@ class SystemScreen(
         updaters.add { s ->
             val disk: DiskEntry = s.disks.getOrNull(index) ?: return@add
             name.text = disk.label
-            free.text = if (disk.freeGiB < 0) none else ui.string(R.string.sys_free, "${disk.freeGiB} GB")
+            free.text = diskText(disk)
             val pct = disk.usedPct.coerceIn(0, FULL)
             track.contentDescription = "${disk.label}, $pct%"
             // The bar is laid out again only when its share moved, not on every DISKS frame.
@@ -256,67 +253,14 @@ class SystemScreen(
         }
     }
 
-    /** One graph of a card: its series, caption, the top of its scale (0 = the running maximum) and its text. */
-    private class Graph(
-        val series: Int,
-        val caption: Int,
-        val fixedMax: Int,
-        val text: (Int) -> String,
-        val unit: String = "",
-    )
-
-    /**
-     * A card: a header row of the name, a sub-line under it and a value at the far side, then a graph for each
-     * [Graph]. [extra] adds rows under the graphs.
-     */
-    private fun Column.metricCard(
-        top: Float,
-        title: Int,
-        sub: (LaptopState) -> String,
-        value: (LaptopState) -> String,
-        graphs: List<Graph>,
-        extra: (Column.() -> Unit)? = null,
-    ) {
-        val heading = ui.text(ui.string(title), Type.BODY, ui.palette.ink)
-        val subLine = ui.secondary("")
-        val valueText = ui.secondary("", Type.VALUE)
-        val lines =
-            LinearLayout(ui.context).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(0, ui.dp(Space.M), 0, ui.dp(Space.M))
-                addView(heading)
-                addView(subLine)
-            }
-        val views = graphs.map { GraphView(ui.context) }
-        card(top) {
-            add(ui.row(lines, valueText))
-            views.forEach { graph ->
-                graph.setPadding(0, 0, 0, ui.dp(Space.M))
-                add(graph, height = ui.dp(graphDp + Space.M))
-            }
-            extra?.invoke(this)
-        }
-        updaters.add { s ->
-            val line = sub(s)
-            subLine.text = line
-            subLine.visibility = if (line.isEmpty()) View.GONE else View.VISIBLE
-            valueText.text = value(s)
-            graphs.forEachIndexed { at, graph ->
-                val latest = s.stats.latest(graph.series)
-                views[at].set(
-                    s.stats,
-                    graph.series,
-                    ui.string(graph.caption),
-                    graph.text(latest),
-                    graph.fixedMax,
-                    graph.unit,
-                    graph.unit.isNotEmpty(),
-                )
-            }
-        }
+    /** "120 GB of 953 GB · 361 GB free"; only the free space when the size is not known, a dash when neither is. */
+    private fun diskText(disk: DiskEntry): String {
+        if (disk.freeGiB < 0) return none
+        val free = ui.string(R.string.sys_free, "${disk.freeGiB} GB")
+        if (disk.totalGiB < 0) return free
+        val used = ui.string(R.string.phone_used_of, "${disk.totalGiB - disk.freeGiB} GB", "${disk.totalGiB} GB")
+        return ui.string(R.string.net_join, used, free)
     }
-
-    private fun millis(v: Int): String = if (v < 0) none else "$v$MS"
 
     private fun degrees(v: Int): String = if (v < 0) none else "$v°C"
 
@@ -324,10 +268,7 @@ class SystemScreen(
         const val FULL = 100
         const val DANGER_FROM = 90
         const val LOW = 20
-        const val MS = " ms"
         const val BAR_DP = 6f
-        const val GRAPH_PORTRAIT_DP = 88f
-        const val GRAPH_LANDSCAPE_DP = 72f
         const val PORTRAIT_COLUMNS = 2
         const val LANDSCAPE_COLUMNS = 4
     }

@@ -22,8 +22,6 @@
   <string name="sys_disks">الأقراص</string>
   <string name="sys_down">التنزيل</string>
   <string name="sys_up">الرفع</string>
-  <string name="sys_ping">Ping</string>
-  <string name="sys_loss">فقدان الحزم</string>
   <string name="sys_free">%1$s متاحة</string>
   <string name="sys_off">فعّل إحصاءات النظام من قائمة Edgepad على الحاسوب المحمول.</string>
   <!-- Not translated: a dash in every locale. -->
@@ -135,6 +133,7 @@
   <string name="phone_health_cold">باردة جدًا</string>
   <string name="phone_storage">التخزين</string>
   <string name="phone_used_of">%1$s من %2$s</string>
+  <string name="stats_hardware">العتاد</string>
   <string name="phone_thermal">الحالة الحرارية</string>
   <string name="phone_thermal_none">عادية</string>
   <string name="phone_thermal_light">دافئة</string>

@@ -15,6 +15,7 @@ import me.akshitbansal.edgepad.link.PhoneSnapshot
 import me.akshitbansal.edgepad.link.SignalLevel
 import me.akshitbansal.edgepad.link.SpeedResult
 import me.akshitbansal.edgepad.link.SpeedStrip
+import me.akshitbansal.edgepad.link.StatsFormat
 import me.akshitbansal.edgepad.link.StatsRing
 import me.akshitbansal.edgepad.link.StripKind
 
@@ -37,6 +38,7 @@ class NetworkScreen(
 ) {
     private val none = ui.string(R.string.sys_none)
     private val net = NetText(ui)
+    private val fmt = StatsFormat(none)
     private val holder = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
     private var phone = PhoneSnapshot()
     private var onPhone = false
@@ -82,6 +84,8 @@ class NetworkScreen(
             val ping = s.stats.latest(StatsRing.PING)
             val loss = s.stats.latest(StatsRing.LOSS)
             header(R.string.net_card_laptop, s.laptopName?.ifEmpty { none } ?: none)
+            kv(ui.string(R.string.sys_down), fmt.rate(s.stats.latest(StatsRing.DOWN)))
+            kv(ui.string(R.string.sys_up), fmt.rate(s.stats.latest(StatsRing.UP)))
             kv(ui.string(R.string.net_connection), info?.let { net.connection(it.kind, it.band) } ?: none)
             kv(ui.string(R.string.net_link_speed), net.linkSpeed(info?.linkMbps ?: -1))
             kv(ui.string(R.string.net_signal), net.signal(info?.signalPct ?: -1))
@@ -101,6 +105,9 @@ class NetworkScreen(
         card(Space.M) {
             val link = phone.net
             header(R.string.net_card_phone, Build.MODEL)
+            // Android lets an app read no live speed without polling, so the phone's rows stay dashes.
+            kv(ui.string(R.string.sys_down), none)
+            kv(ui.string(R.string.sys_up), none)
             kv(ui.string(R.string.net_connection), link?.let { net.connection(it.kind, it.band) } ?: none)
             kv(ui.string(R.string.net_link_speed), net.linkSpeed(link?.linkMbps ?: -1))
             kv(ui.string(R.string.net_signal), net.signal(link?.signal ?: SignalLevel.UNKNOWN))

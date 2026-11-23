@@ -22,8 +22,6 @@
   <string name="sys_disks">डिस्क</string>
   <string name="sys_down">डाउनलोड</string>
   <string name="sys_up">अपलोड</string>
-  <string name="sys_ping">पिंग</string>
-  <string name="sys_loss">पैकेट हानि</string>
   <string name="sys_free">%1$s खाली</string>
   <string name="sys_off">अपने लैपटॉप पर Edgepad मेनू में सिस्टम स्टैट्स चालू करें।</string>
   <!-- Not translated: a dash in every locale. -->
@@ -119,6 +117,7 @@
   <string name="phone_health_cold">बहुत ठंडी</string>
   <string name="phone_storage">स्टोरेज</string>
   <string name="phone_used_of">%2$s में से %1$s</string>
+  <string name="stats_hardware">हार्डवेयर</string>
   <string name="phone_thermal">तापीय स्थिति</string>
   <string name="phone_thermal_none">सामान्य</string>
   <string name="phone_thermal_light">गुनगुना</string>

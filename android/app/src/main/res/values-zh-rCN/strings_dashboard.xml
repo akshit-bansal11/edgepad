@@ -22,8 +22,6 @@
   <string name="sys_disks">磁盘</string>
   <string name="sys_down">下载</string>
   <string name="sys_up">上传</string>
-  <string name="sys_ping">Ping</string>
-  <string name="sys_loss">丢包率</string>
   <string name="sys_free">剩余 %1$s</string>
   <string name="sys_off">在笔记本电脑的 Edgepad 菜单中开启系统统计。</string>
   <!-- Not translated: a dash in every locale. -->
@@ -115,6 +113,7 @@
   <string name="phone_health_cold">过冷</string>
   <string name="phone_storage">存储空间</string>
   <string name="phone_used_of">%1$s / %2$s</string>
+  <string name="stats_hardware">硬件</string>
   <string name="phone_thermal">温控状态</string>
   <string name="phone_thermal_none">正常</string>
   <string name="phone_thermal_light">温热</string>

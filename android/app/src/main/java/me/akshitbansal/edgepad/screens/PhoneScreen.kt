@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.screens
 
+import android.os.Build
 import android.view.View
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.R
@@ -13,7 +14,7 @@ import me.akshitbansal.edgepad.link.StatsFormat
 import me.akshitbansal.edgepad.link.ThermalLevel
 
 /**
- * This phone as a device of Stats: its battery, memory and storage, its connection and how hot it is, shown as the
+ * This phone as a device of Stats: its model, battery, memory, storage and hardware, shown as the
  * [body] of the System page when "This phone" is picked. The numbers are the phone's own, read by
  * [me.akshitbansal.edgepad.link.PhoneStats] only while the phone is the device looked at; [show] draws what it last
  * read, with a dash for what it has not read yet. Nothing here leaves the phone.
@@ -40,12 +41,32 @@ class PhoneScreen(
 
     private fun Column.render(s: PhoneSnapshot) {
         columns(
-            first = { batteryCard(s.battery) },
+            first = {
+                deviceCard()
+                batteryCard(s.battery)
+            },
             second = {
                 usageCard(s)
-                connectionCard(s)
+                hardwareCard(s)
             },
         )
+    }
+
+    /** This phone's model and its Android version. */
+    private fun Column.deviceCard() {
+        val model = ui.text(Build.MODEL.ifEmpty { none }, Type.BODY, ui.palette.ink, face = Type.bold)
+        card { add(ui.row(model, ui.secondary("Android ${Build.VERSION.RELEASE}", Type.VALUE))) }
+    }
+
+    /** What the phone is built on and how hot it is. No processor load: Android does not let an app read it. */
+    private fun Column.hardwareCard(s: PhoneSnapshot) {
+        card(Space.M) {
+            val chip = Build.HARDWARE.ifEmpty { none }
+            val abi = Build.SUPPORTED_ABIS.firstOrNull()
+            kv(ui.string(R.string.stats_hardware), if (abi == null) chip else net.joined(chip, abi))
+            hairline()
+            kv(ui.string(R.string.phone_thermal), thermal(s.thermal))
+        }
     }
 
     /** The charge large, whether it is charging, a bar, and the temperature and health the battery reports. */
@@ -94,15 +115,16 @@ class PhoneScreen(
         add(ui.row(ui.text(title, Type.BODY, ui.palette.ink, face = Type.bold), ui.secondary(text, Type.VALUE)))
         val pct = if (ratio == null) 0 else (ratio.usedBytes * FULL / ratio.totalBytes).toInt()
         meter(title, pct, if (pct >= DANGER_FROM) ui.palette.danger else ui.palette.accent)
-    }
-
-    private fun Column.connectionCard(s: PhoneSnapshot) {
-        card(Space.M) {
-            val phone = s.net
-            kv(ui.string(R.string.net_connection), phone?.let { net.connection(it.kind, it.band) } ?: none)
-            hairline()
-            kv(ui.string(R.string.phone_thermal), thermal(s.thermal))
-        }
+        val rest =
+            if (ratio == null) {
+                none
+            } else {
+                net.joined(
+                    ui.string(R.string.battery_percent, pct),
+                    ui.string(R.string.sys_free, fmt.gib(mib(ratio.totalBytes - ratio.usedBytes))),
+                )
+            }
+        secondary(rest, Type.SMALL, topDp = Space.S)
     }
 
     private fun mib(bytes: Long): Int = (bytes / BYTES_PER_MIB).toInt()

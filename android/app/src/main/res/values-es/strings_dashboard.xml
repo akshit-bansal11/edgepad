@@ -22,8 +22,6 @@
   <string name="sys_disks">Discos</string>
   <string name="sys_down">Descarga</string>
   <string name="sys_up">Subida</string>
-  <string name="sys_ping">Ping</string>
-  <string name="sys_loss">Pérdida de paquetes</string>
   <string name="sys_free">%1$s libres</string>
   <string name="sys_off">Activa las estadísticas del sistema en el menú de Edgepad en tu portátil.</string>
   <!-- Not translated: a dash in every locale. -->
@@ -123,6 +121,7 @@
   <string name="phone_health_cold">Demasiado fría</string>
   <string name="phone_storage">Almacenamiento</string>
   <string name="phone_used_of">%1$s de %2$s</string>
+  <string name="stats_hardware">Hardware</string>
   <string name="phone_thermal">Estado térmico</string>
   <string name="phone_thermal_none">Normal</string>
   <string name="phone_thermal_light">Templado</string>

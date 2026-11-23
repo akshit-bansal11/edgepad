@@ -22,8 +22,6 @@
   <string name="sys_disks">Datenträger</string>
   <string name="sys_down">Download</string>
   <string name="sys_up">Upload</string>
-  <string name="sys_ping">Ping</string>
-  <string name="sys_loss">Paketverlust</string>
   <string name="sys_free">%1$s frei</string>
   <string name="sys_off">Schalte die System-Statistiken im Edgepad-Menü auf deinem Laptop ein.</string>
   <!-- Not translated: a dash in every locale. -->
@@ -119,6 +117,7 @@
   <string name="phone_health_cold">Zu kalt</string>
   <string name="phone_storage">Speicherplatz</string>
   <string name="phone_used_of">%1$s von %2$s</string>
+  <string name="stats_hardware">Hardware</string>
   <string name="phone_thermal">Thermischer Zustand</string>
   <string name="phone_thermal_none">Normal</string>
   <string name="phone_thermal_light">Warm</string>
