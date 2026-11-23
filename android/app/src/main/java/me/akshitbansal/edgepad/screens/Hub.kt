@@ -124,7 +124,10 @@ internal fun Ui.hubView(
     }
 }
 
-/** A dim label and its value in bold at the far side, 36 dp high. Returns the value, for a row that updates in place. */
+/**
+ * A dim label and its value in bold at the far side, 36 dp high.
+ * Returns the value, for a row that updates in place.
+ */
 internal fun Column.kv(
     label: String,
     value: String,

@@ -214,8 +214,9 @@ internal sealed partial class PowerSource : IDisposable
             var design = FirstWmi("DesignedCapacity", "BatteryStaticData");
             health = full > 0 && design > 0 ? (int)Math.Min(100, Math.Round(100.0 * full / design)) : null;
         }
-        catch (Exception e) when (e is ManagementException or COMException or UnauthorizedAccessException)
+        catch (Exception e)
         {
+            // Health is optional: any failure leaves it unknown and must not drop the battery entry.
             LogOnce($"Battery health unreadable: {e.GetType().Name}: {e.Message}");
             health = null;
         }

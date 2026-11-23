@@ -204,7 +204,11 @@ class GallerySamples(
                 take(TextKind.STATS.frame("$cpu/52/${cpu / 2}/20/${SAMPLE_BASE * second}/40/3/0/58/61/45"))
             }
             take(TextKind.DISKS.frame("C:62:953:361|D:35:1863:1210"))
-            take(TextKind.BATTERIES.frame("laptop:97:1:94:34:$SAMPLE_LAPTOP|mouse:64:0:-:-:MX Master 3|headphones:18:0:-:-:WH-1000"))
+            take(
+                TextKind.BATTERIES.frame(
+                    "laptop:97:1:94:34:$SAMPLE_LAPTOP|mouse:64:0:-:-:MX Master 3|headphones:18:0:-:-:WH-1000",
+                ),
+            )
             take(TextKind.NET_INFO.frame("wifi|5|1200|85|192.168.1.23|192.168.1.1"))
             take(TextKind.SPEED_RESULT.frame("done|94200|38100|9|2|$SAMPLE_TEST_MINUTE|96000000"))
         }
