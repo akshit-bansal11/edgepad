@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -29,19 +28,22 @@ private const val DECK = "controls"
 /** The edit hint is shown during the first edit session only. */
 private const val EDIT_TIP = "controls_edit"
 
-/** One tile, in dp: a fixed size, whatever the screen, with a 32 dp picture 8 dp above a 13 sp label. */
-private const val TILE_WIDTH_DP = 104f
-private const val TILE_HEIGHT_DP = 88f
-private const val TILE_ICON_DP = 32f
-private const val TILE_LABEL_SP = 13f
+/**
+ * One tile, in dp: 128 by 112, a 40 dp picture 8 dp above a 15 sp label. It narrows only when the screen cannot hold
+ * five (sideways) or three (upright) of them within 16 dp margins.
+ */
+private const val TILE_WIDTH_DP = 128f
+private const val TILE_HEIGHT_DP = 112f
+private const val TILE_ICON_DP = 40f
+private const val TILE_LABEL_SP = 15f
 private const val TILE_ICON_GAP_DP = 8f
 
-/** The popup's top padding: room for the pencil in the corner, which is all it has in place of a heading. */
-private const val TOP_PAD_DP = 48f
+/** The header row, which is all of the popup's top: the heading at its start and the pencil at its end. */
+private const val HEADER_DP = 48f
+private const val HEADING_SP = 17f
 
-/** The pencil: a 48 dp touch target with a 16 dp glyph 8 dp in from the top and right edges. */
+/** The pencil: a 48 dp touch target with a 16 dp glyph in its centre. */
 private const val PENCIL_DP = 16f
-private const val PENCIL_INSET_DP = 8f
 
 /** What a closing popup shrinks to, matching what [Carry.reveal] grows from. */
 private const val CLOSE_SCALE = 0.85f
@@ -64,11 +66,10 @@ internal fun reasonText(reason: UnavailableReason?): Int =
 
 /**
  * What the phone can drive besides the surface itself, as a small modal centred on the screen: the keyboard, the
- * gamepad, the macros, System and, with Developer mode on, Developer, and, when the laptop says it can, a capture and
- * an annotation. A tile closes the
- * popup and opens that control; a tap outside or Back closes it. It holds the tiles and one pencil at its top right
- * corner, nothing else (owner, 2026-11-20): the switches that were chips here live on the Dials, Surface and System
- * settings pages.
+ * gamepad, the macros, Stats and, with Developer mode on, Developer, and, when the laptop says it can, a capture and
+ * an annotation. A tile closes the popup and opens that control; a tap outside or Back closes it. It holds the tiles
+ * and one header row, the heading Controls with the pencil at its end, nothing else (owner, 2026-11-20): the switches
+ * that were chips here live on the Dials, Surface and System settings pages.
  *
  * The tiles are a [Deck], so they keep drag-to-reorder and the order stored under [DECK]. A tile carries a
  * [Target] in its tag and nothing about where it is drawn, so a reordered deck opens the same screens.
@@ -108,7 +109,7 @@ class ControlsPopup(
         ANNOTATE(R.string.controls_annotate, StencilIcon.Kind.ANNOTATE),
         CLIPBOARD(R.string.controls_clipboard, StencilIcon.Kind.CLIPBOARD),
 
-        /** System: the Laptop, Phone and Network pages. Its key stays "system", so a stored place is kept. */
+        /** Stats: the System and Network pages. Its key stays "system", so a stored place is kept. */
         SYSTEM(R.string.sys_title, StencilIcon.Kind.SYSTEM),
 
         /** Developer: the AI and Git pages. Drawn only with Developer mode on. */
@@ -143,16 +144,21 @@ class ControlsPopup(
     /** The entries of [shown] drawn now: all of them while [editing], the ones not [hidden] otherwise. */
     private var visible: List<Int> = emptyList()
 
+    /** The popup's heading, at the start of the header row. */
+    private val heading =
+        ui.text(ui.string(R.string.controls_title), HEADING_SP, ui.palette.ink, face = Type.bold).apply {
+            isAccessibilityHeading = true
+        }
+
     /**
-     * The popup's only control, in its top right corner. A pencil turns edit mode on; in edit mode it is a check in
-     * the accent. The touch target is 48 dp, the glyph 16 dp, set 8 dp in from the top and right edges.
+     * The popup's only control, at the end of the header row. A pencil turns edit mode on; in edit mode it is a check
+     * in the accent. The touch target is 48 dp, the glyph 16 dp in its centre.
      */
     private val editButton =
         ImageView(ui.context).apply {
             scaleType = ImageView.ScaleType.FIT_CENTER
-            val inset = ui.dp(PENCIL_INSET_DP)
-            val rest = ui.dp(Space.TOUCH) - ui.dp(PENCIL_DP) - inset
-            setPadding(rest, inset, inset, rest)
+            val side = (ui.dp(Space.TOUCH) - ui.dp(PENCIL_DP)) / 2
+            setPadding(side, side, side, side)
             ui.tappable(this, Space.TOUCH / 2) { setEditing(!editing) }
         }
 
@@ -203,26 +209,32 @@ class ControlsPopup(
         deck = Deck(ui, holder)
         tileNote.setPadding(0, 0, 0, ui.dp(Space.S))
         // The views are reused from the last time the popup opened, so they are let go of before they are re-parented.
-        for (view in listOf(tileNote, scroll, editButton)) (view.parent as? ViewGroup)?.removeView(view)
+        for (view in listOf(tileNote, scroll, editButton, heading)) (view.parent as? ViewGroup)?.removeView(view)
         scroll.removeAllViews()
         val match = ViewGroup.LayoutParams.MATCH_PARENT
         scroll.addView(holder, ViewGroup.LayoutParams(match, ViewGroup.LayoutParams.WRAP_CONTENT))
+        // One row: the heading at the start, the pencil at the end, with no padding above or beside the tiles' own.
+        val header =
+            LinearLayout(ui.context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                setPaddingRelative(pad, 0, 0, 0)
+                addView(heading, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                addView(editButton, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
+            }
         val body =
             LinearLayout(ui.context).apply {
                 orientation = LinearLayout.VERTICAL
                 clipChildren = false
                 clipToPadding = false
-                setPadding(pad, ui.dp(TOP_PAD_DP), pad, pad)
+                setPadding(pad, 0, pad, pad)
                 addView(tileNote)
                 addView(scroll, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(Space.TOUCH)))
             }
         val root =
-            FrameLayout(ui.context).apply {
+            LinearLayout(ui.context).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(header, LinearLayout.LayoutParams(match, ui.dp(HEADER_DP)))
                 addView(body)
-                addView(
-                    editButton,
-                    FrameLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH), Gravity.TOP or Gravity.END),
-                )
             }
         draw(capture, annotate)
         val shownDialog =
@@ -253,7 +265,7 @@ class ControlsPopup(
             ui.dp(TILE_HEIGHT_DP),
             ui.dp(Space.S),
             ui.dp(Space.L),
-            ui.dp(TOP_PAD_DP),
+            ui.dp(HEADER_DP),
             ui.dp(Space.L),
         )
 
@@ -273,7 +285,7 @@ class ControlsPopup(
                 tileNote.measuredHeight
             }
         down = plan.grid
-        val room = screenHeight - 2 * ui.dp(Space.PAGE) - ui.dp(TOP_PAD_DP) - ui.dp(Space.L) - taken
+        val room = screenHeight - 2 * ui.dp(Space.PAGE) - ui.dp(HEADER_DP) - ui.dp(Space.L) - taken
         val params = scroll.layoutParams ?: return
         val height = minOf(plan.grid, maxOf(room, ui.dp(Space.TOUCH)))
         if (params.height != height) {
@@ -445,7 +457,7 @@ class ControlsPopup(
 
             Target.ANNOTATE -> annotate
 
-            // Any of the developer integrations: the Phone page of System needs nothing from the laptop.
+            // Any of the developer integrations.
             Target.DEVELOPER -> features().any { it in DEVELOPER_PAGES }
 
             else -> true
