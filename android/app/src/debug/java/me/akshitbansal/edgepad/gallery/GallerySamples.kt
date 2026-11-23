@@ -108,7 +108,7 @@ class GallerySamples(
                 SettingsScreen.build(
                     ui,
                     settings,
-                    "Edgepad 5.0.0 · protocol 4",
+                    "Edgepad 5.0.0 · protocol 6",
                     ui.string(R.string.pairing_title),
                     SettingsScreen.Update(ui.string(R.string.updates_title)) {},
                     SettingsScreen.Routes(

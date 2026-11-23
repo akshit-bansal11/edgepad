@@ -102,29 +102,6 @@ object SettingsScreen {
             largeTitle(ui.string(R.string.settings_system))
             columns(
                 {
-                    section(ui.string(R.string.settings_clipboard_files))
-                    card {
-                        add(
-                            ui.toggle(ui.string(R.string.clipboard_share), settings.clipboardSync) {
-                                settings.clipboardSync = it
-                                routes.clipboard()
-                            },
-                        )
-                    }
-                    footnote(ui.string(R.string.clipboard_share_caption))
-
-                    section(ui.string(R.string.settings_developer))
-                    card {
-                        val toggle =
-                            ui.toggle(ui.string(R.string.developer_mode_title), developer) { routes.developer(it) }
-                        ui.enable(toggle, developerEditable)
-                        add(toggle)
-                    }
-                    footnote(
-                        ui.string(
-                            if (developerEditable) R.string.developer_mode_hint else R.string.developer_mode_offline,
-                        ),
-                    )
                     section(ui.string(R.string.settings_surface))
                     SurfaceSettingsScreen.rows(this, settings, routes.surface)
 
