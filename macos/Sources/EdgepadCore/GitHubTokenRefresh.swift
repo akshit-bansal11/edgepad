@@ -4,7 +4,7 @@ import Foundation
 enum RefreshOutcome: Equatable {
     /// A new access token and refresh token are saved.
     case refreshed
-    /// GitHub refused the refresh token, or there is none: everything saved was deleted and the user must sign in again.
+    /// GitHub refused the refresh token, or there is none: everything saved was deleted; sign in again.
     case rejected
     /// GitHub could not be asked or answered something unusable; the saved tokens are kept for the next try.
     case unavailable
@@ -99,8 +99,9 @@ final class GitHubTokenRefresh {
             GitHubApp.forget(store)
             return .rejected
         }
-        guard reply.isSuccess, let access = root["access_token"] as? String, let next = root["refresh_token"] as? String,
-            GitHubApp.isToken(access), GitHubApp.isToken(next), let life = JsonRead.int32(root["expires_in"]),
+        guard reply.isSuccess, let access = root["access_token"] as? String,
+            let next = root["refresh_token"] as? String, GitHubApp.isToken(access), GitHubApp.isToken(next),
+            let life = JsonRead.int32(root["expires_in"]),
             (1...Self.maxLifeSeconds).contains(life)
         else { return .unavailable }
         let expires = now().addingTimeInterval(TimeInterval(life))

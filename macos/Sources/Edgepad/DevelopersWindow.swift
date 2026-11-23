@@ -267,7 +267,10 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
             if provider.id == IntegrationSettings.gitHub {
                 if let gitHubProblem { return gitHubProblem }
                 if hooks.signIn.needsReSignIn {
-                    return tr("Integrations_ReSignIn", "Sign in again. Edgepad now uses read-only GitHub access.")
+                    return tr(
+                        "Integrations_ReSignIn",
+                        "Sign in again. Edgepad now uses read-only GitHub access. "
+                            + "Revoke the old Edgepad at https://github.com/settings/applications.")
                 }
             }
             return tr("Integrations_NotConnected", "Not connected")

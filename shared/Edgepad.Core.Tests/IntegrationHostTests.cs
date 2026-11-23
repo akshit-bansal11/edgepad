@@ -387,11 +387,16 @@ public sealed class IntegrationHostTests : IDisposable
         Assert.Equal(new Uri("https://github.com/me/my_repo-2/pull/3"), Assert.Single(opened));
 
         Assert.False(host.OpenGit("github/2/0"));
-        Assert.False(host.OpenGit("github/1/7"));
+        // Index 6 is a line without an address; 7 is the one allow-listed install address; 8 is past the end.
         Assert.False(host.OpenGit("github/1/6"));
+        Assert.False(host.OpenGit("github/1/8"));
         Assert.False(host.OpenGit("gitlab/1/0"));
         Assert.False(host.OpenGit("https://evil.example/"));
         Assert.Single(opened);
+
+        Assert.True(host.OpenGit("github/1/7"));
+        Assert.Equal(GitHubApp.InstallUri, opened[^1]);
+        Assert.Equal(2, opened.Count);
     }
 
     [Fact]

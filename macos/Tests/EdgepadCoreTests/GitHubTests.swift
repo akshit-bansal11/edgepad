@@ -328,7 +328,8 @@ final class GitHubSignInTests: XCTestCase {
         let answers = [
             #"{"access_token":"ghu_SecretTokenValue1234567890abcdef","expires_in":28800}"#,
             #"{"access_token":"ghu_SecretTokenValue1234567890abcdef","refresh_token":"ghr_Value123"}"#,
-            #"{"access_token":"ghu_SecretTokenValue1234567890abcdef","refresh_token":"ghr_bad value","expires_in":28800}"#,
+            #"{"access_token":"ghu_SecretTokenValue1234567890abcdef","refresh_token":"ghr_bad value","#
+                + #""expires_in":28800}"#,
             #"{"access_token":"ghu_SecretTokenValue1234567890abcdef","refresh_token":"ghr_Value123","expires_in":0}"#,
         ]
         for answer in answers {
@@ -382,7 +383,6 @@ final class GitHubSignInTests: XCTestCase {
         XCTAssertFalse(log.contains("3584d83530557fdd1f46af8289938c8ef79f9dc5"))
     }
 }
-
 
 final class GitHubApiTests: XCTestCase {
     private let token = "ghu_SecretTokenValue1234567890abcdef"
@@ -528,10 +528,12 @@ final class GitHubApiTests: XCTestCase {
     func testASaveWritesTheRefreshTokenFirstThenTheTokenTheExpiryAndTheRecord() {
         let recording = RecordingSecrets()
         let saved = GitHubApp.save(
-            recording, GitHubApp.clientId, access: token, refresh: refreshToken, expires: clock.now.addingTimeInterval(60))
+            recording, GitHubApp.clientId, access: token, refresh: refreshToken,
+            expires: clock.now.addingTimeInterval(60))
         XCTAssertTrue(saved)
         XCTAssertEqual(
-            recording.written, [GitHubApp.refreshName, GitHubApp.tokenName, GitHubApp.expiresName, GitHubApp.clientName])
+            recording.written,
+            [GitHubApp.refreshName, GitHubApp.tokenName, GitHubApp.expiresName, GitHubApp.clientName])
     }
 
     func testOtherRefreshErrorsKeepTheTokensAndOnlyBadRefreshTokenSignsOut() async {
