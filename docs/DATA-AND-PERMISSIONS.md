@@ -53,7 +53,7 @@ A search of the phone, Windows, Mac and Linux source for web addresses found the
 | `speed.cloudflare.com` | laptop | Only when you tap Test speed | Test data; nothing about you |
 | `api.open-meteo.com`, `geocoding-api.open-meteo.com` | laptop | Only if the weather widget is on | The place you chose, to find its coordinates, then the forecast request |
 | `github.com`, `api.github.com` | laptop | Only after you sign in to GitHub there | Sign-in and renewing the sign-in (the read-only GitHub App "Edgepad Dashboard"; no client secret, no notifications), then read-only requests. It sees only the repositories you install it on; **Choose repos on GitHub** opens that page in your browser |
-| `gitlab.com`, or the GitLab server you enter | laptop | Only after you sign in to GitLab there | Sign-in, then read-only requests |
+| `gitlab.com`, or the GitLab server you enter | laptop | Only after you sign in to GitLab there | On gitlab.com: the device sign-in and renewing it (the "Edgepad" application, scopes `read_api` and `read_user` only, no client secret), then read-only requests. On a server you enter: a `read_api` token you paste, and read-only requests only; Edgepad never sends a sign-in request to your server. It never writes. |
 | `codeberg.org`, or the Gitea or Forgejo server you enter | laptop | Only after you paste a token | Read-only requests |
 | `api.bitbucket.org` | laptop | Only after you paste a token | Read-only requests |
 | `gitee.com` | laptop | Only after you paste a token | Read-only requests |
