@@ -130,6 +130,8 @@ import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DataUsesScreen
 import me.akshitbansal.edgepad.screens.DeveloperHub
+import me.akshitbansal.edgepad.screens.DeviceRef
+import me.akshitbansal.edgepad.screens.DeviceSource
 import me.akshitbansal.edgepad.screens.DialFeelScreen
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
 import me.akshitbansal.edgepad.screens.GamepadScreen
@@ -304,6 +306,19 @@ class MainActivity :
      */
     private val deviceSwitch by lazy { ConnectedLaptops(manager) { goTo(Screen.PAIRING) } }
 
+    /** What the Stats and Developer hubs' device dropdown lists and selects: the same switch path as the dial. */
+    private val hubDevices by lazy {
+        DeviceSource(
+            laptops = {
+                manager.laptops
+                    .filter { it.connected }
+                    .map { DeviceRef(it.id, it.state.laptopName?.takeIf { name -> name.isNotEmpty() } ?: it.name) }
+            },
+            selectedId = { manager.selected?.id },
+            select = manager::select,
+        )
+    }
+
     /** The gamepad while it is the screen, so the laptop's answer about its controller can reach it. */
     private var gamepad: GamepadScreen? = null
 
@@ -337,6 +352,9 @@ class MainActivity :
 
     /** The page of the System or Developer hub that shows. The laptop watches only that page's data. */
     private var statsPage = 0
+
+    /** Whether Stats looks at this phone, which needs nothing from the laptop. */
+    private var statsPhone = false
 
     /** What DASH_WATCH last told the selected laptop (0: nothing). The laptop forgets it at session end. */
     private var dashMask = 0
@@ -891,7 +909,7 @@ class MainActivity :
         val dash =
             when (screen) {
                 Screen.SYSTEM -> {
-                    HubPages.system(statsPage)
+                    HubPages.system(statsPage, statsPhone)
                 }
 
                 Screen.DEVELOPER -> {
@@ -922,6 +940,12 @@ class MainActivity :
     /** A hub page came to rest: the laptop is told to send that page's data and no other. */
     private fun hubPage(page: Int) {
         statsPage = page
+        syncDashWatch()
+    }
+
+    /** Stats switched to this phone, or back to a laptop. */
+    private fun hubDevice(phone: Boolean) {
+        statsPhone = phone
         syncDashWatch()
     }
 
@@ -1152,6 +1176,7 @@ class MainActivity :
         val previous = screen
         screen = next
         statsPage = 0
+        statsPhone = false
         syncDashWatch()
         // Only the surface follows the app in front: every settings page edits the defaults.
         settings.activeProfile = if (next == Screen.SURFACE) frontProfile() else null
@@ -1499,7 +1524,8 @@ class MainActivity :
                             ui,
                             { state },
                             laptopName = ::hubLaptopName,
-                            onSwitch = deviceSwitch::open,
+                            devices = hubDevices,
+                            onDevice = ::hubDevice,
                             rtt = {
                                 selected
                                     ?.rtt
@@ -1522,7 +1548,7 @@ class MainActivity :
                             ui,
                             { state },
                             laptopName = ::hubLaptopName,
-                            onSwitch = deviceSwitch::open,
+                            devices = hubDevices,
                             onPage = ::hubPage,
                             onGitOpen = { text -> manager.send(TextKind.GIT_OPEN.frame(text)) },
                         ) { navigateBack() }

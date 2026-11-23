@@ -5,23 +5,31 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.link.LaptopState
 
 /**
- * Developer: the AI and Git pages of one [Pager] with its [PageDots], under one nav bar each that names the laptop
- * being looked at. The activity keeps the pages ([ai], [git]) to refresh them as frames arrive and is told the
- * page that shows through [onPage], since the laptop sends only the data of the page that is open. [onGitOpen] is
- * handed the `GitOpen` text of a repository or item that was tapped.
+ * Developer: the AI and Git pages of one [Pager] with its [PageDots], under one nav bar each whose chip names the
+ * laptop being looked at and opens a dropdown of the connected laptops (the phone is not a developer device). The
+ * activity keeps the pages ([ai], [git]) to refresh them as frames arrive and is told the page that shows through
+ * [onPage], since the laptop sends only the data of the page that is open. [onGitOpen] is handed the `GitOpen` text
+ * of a repository or item that was tapped.
  */
 class DeveloperHub(
-    ui: Ui,
+    private val ui: Ui,
     state: () -> LaptopState,
-    laptopName: () -> String,
-    onSwitch: () -> Unit,
+    private val laptopName: () -> String,
+    private val devices: DeviceSource,
     onPage: (Int) -> Unit,
     onGitOpen: (String) -> Unit,
-    onBack: () -> Unit,
+    private val onBack: () -> Unit,
 ) {
     private val title = ui.string(R.string.dev_title)
 
-    val ai = AiScreen(ui, state, ui.hubBar(title, laptopName(), onSwitch, onBack))
-    val git = GitScreen(ui, state, ui.hubBar(title, laptopName(), onSwitch, onBack), onGitOpen)
+    private fun bar(): View = ui.hubBar(title, DeviceChip(ui, laptopName(), false, ::openMenu), onBack)
+
+    val ai = AiScreen(ui, state, bar())
+    val git = GitScreen(ui, state, bar(), onGitOpen)
     val view: View = ui.hubView(listOf(ai.view, git.view), onPage)
+
+    private fun openMenu(anchor: View) {
+        val rows = DeviceChoices.of(devices.laptops(), devices.selectedId(), null, false)
+        ui.showDeviceMenu(anchor, rows) { pick -> devices.select(pick.id) }
+    }
 }

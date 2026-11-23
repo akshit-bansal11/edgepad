@@ -24,52 +24,75 @@ private const val METER_DP = 6f
 private const val WHOLE = 100
 private const val GBPS_DIV = 1000.0
 
-/** The laptop's name with a chevron, at the end of a hub's nav bar; a tap opens the device switcher. */
-internal fun Ui.laptopChip(
+/**
+ * The device being looked at with a chevron, at the end of a hub's nav bar: a laptop's name with a laptop icon, or
+ * this phone with a phone icon. A tap hands [onTap] the chip, so the dropdown can open anchored to it.
+ */
+internal class DeviceChip(
+    ui: Ui,
     name: String,
-    onSwitch: () -> Unit,
-): View {
-    val slot = dp(CHIP_ICON_DP)
-    val nameParams =
-        LinearLayout
-            .LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            .also { it.marginStart = dp(Space.XS) }
-    val pill =
-        LinearLayout(context).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            background = rounded(palette.faint, CHIP_RADIUS_DP)
-            setPadding(dp(CHIP_PAD_DP), dp(Space.XS), dp(CHIP_PAD_DP), dp(Space.XS))
-            addView(Glyph(context, Glyph.Shape.LAPTOP, palette.dim), LinearLayout.LayoutParams(slot, slot))
-            addView(
-                text(name, Type.SMALL, palette.ink, face = Type.bold).apply {
-                    maxLines = 1
-                    ellipsize = TextUtils.TruncateAt.END
-                    maxWidth = dp(CHIP_NAME_MAX_DP)
-                },
-                nameParams,
-            )
-            addView(
-                Glyph(context, Glyph.Shape.CHEVRON_RIGHT, palette.dim).apply { rotation = CHEVRON_TURN },
-                LinearLayout.LayoutParams(slot, slot),
-            )
+    phone: Boolean,
+    onTap: (View) -> Unit,
+) {
+    private val label =
+        ui.text(name, Type.SMALL, ui.palette.ink, face = Type.bold).apply {
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
+            maxWidth = ui.dp(CHIP_NAME_MAX_DP)
         }
-    return LinearLayout(context).apply {
-        gravity = Gravity.CENTER_VERTICAL
-        minimumHeight = dp(Space.TOUCH)
-        setPaddingRelative(dp(Space.S), 0, dp(Space.S), 0)
-        contentDescription = string(R.string.hub_switch_laptop, name)
-        addView(pill)
-        tappable(this, Space.M, onSwitch)
+    private val laptopIcon = Glyph(ui.context, Glyph.Shape.LAPTOP, ui.palette.dim)
+    private val phoneIcon = Glyph(ui.context, Glyph.Shape.PHONE, ui.palette.dim)
+
+    val view: View
+
+    init {
+        val slot = ui.dp(CHIP_ICON_DP)
+        val nameParams =
+            LinearLayout
+                .LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                .also { it.marginStart = ui.dp(Space.XS) }
+        val pill =
+            LinearLayout(ui.context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                background = ui.rounded(ui.palette.faint, CHIP_RADIUS_DP)
+                setPadding(ui.dp(CHIP_PAD_DP), ui.dp(Space.XS), ui.dp(CHIP_PAD_DP), ui.dp(Space.XS))
+                addView(laptopIcon, LinearLayout.LayoutParams(slot, slot))
+                addView(phoneIcon, LinearLayout.LayoutParams(slot, slot))
+                addView(label, nameParams)
+                addView(
+                    Glyph(ui.context, Glyph.Shape.CHEVRON_RIGHT, ui.palette.dim).apply { rotation = CHEVRON_TURN },
+                    LinearLayout.LayoutParams(slot, slot),
+                )
+            }
+        view =
+            LinearLayout(ui.context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                minimumHeight = ui.dp(Space.TOUCH)
+                setPaddingRelative(ui.dp(Space.S), 0, ui.dp(Space.S), 0)
+                addView(pill)
+                ui.tappable(this, Space.M) { onTap(pill) }
+            }
+        set(name, phone)
+    }
+
+    /** Names the device [name] and shows the icon of its kind. The name is the chip's accessible name too. */
+    fun set(
+        name: String,
+        phone: Boolean,
+    ) {
+        label.text = name
+        laptopIcon.visibility = if (phone) View.GONE else View.VISIBLE
+        phoneIcon.visibility = if (phone) View.VISIBLE else View.GONE
+        view.contentDescription = label.context.getString(R.string.hub_switch_laptop, name)
     }
 }
 
-/** A hub page's nav bar: Back to Controls, the hub's [title] and the laptop chip. */
+/** A hub page's nav bar: Back to Controls, the hub's [title] and the device [chip]. */
 internal fun Ui.hubBar(
     title: String,
-    laptopName: String,
-    onSwitch: () -> Unit,
+    chip: DeviceChip,
     onBack: () -> Unit,
-): View = bar(title, onBack, laptopChip(laptopName, onSwitch), backLabel = string(R.string.back_to_surface))
+): View = bar(title, onBack, chip.view, backLabel = string(R.string.back_to_surface))
 
 /** [pages] side by side in a [Pager] with its [PageDots] under it; [onPage] is told the page that shows. */
 internal fun Ui.hubView(

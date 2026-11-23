@@ -13,20 +13,20 @@ import me.akshitbansal.edgepad.link.StatsFormat
 import me.akshitbansal.edgepad.link.ThermalLevel
 
 /**
- * The Phone page of System: this phone's battery, memory and storage, its connection and how hot it is. The numbers
- * are the phone's own, read by [me.akshitbansal.edgepad.link.PhoneStats] only while the page shows; [show] draws what
- * it last read, with a dash for what it has not read yet. Nothing here leaves the phone.
+ * This phone as a device of Stats: its battery, memory and storage, its connection and how hot it is, shown as the
+ * [body] of the System page when "This phone" is picked. The numbers are the phone's own, read by
+ * [me.akshitbansal.edgepad.link.PhoneStats] only while the phone is the device looked at; [show] draws what it last
+ * read, with a dash for what it has not read yet. Nothing here leaves the phone.
  */
 class PhoneScreen(
     private val ui: Ui,
-    bar: View,
 ) {
     private val none = ui.string(R.string.sys_none)
     private val fmt = StatsFormat(none)
     private val net = NetText(ui)
     private val holder = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
 
-    val view: View = ui.page(bar) { add(holder) }
+    val body: View = holder
 
     init {
         show(PhoneSnapshot())

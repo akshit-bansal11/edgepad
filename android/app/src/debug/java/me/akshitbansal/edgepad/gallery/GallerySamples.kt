@@ -30,6 +30,7 @@ import me.akshitbansal.edgepad.protocol.TextKind
 import me.akshitbansal.edgepad.screens.AiScreen
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.DataUsesScreen
+import me.akshitbansal.edgepad.screens.DeviceChip
 import me.akshitbansal.edgepad.screens.FnMode
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
 import me.akshitbansal.edgepad.screens.GitScreen
@@ -69,27 +70,35 @@ class GallerySamples(
                 xferOverSurface(paused = name == "xfer-paused")
             }
 
-            "sys-laptop" -> {
+            "stats-system" -> {
                 SystemScreen(ui, { sampleLaptop }, sysBar()).view
             }
 
-            "sys-phone" -> {
-                PhoneScreen(ui, sysBar()).apply { show(samplePhone) }.view
+            "stats-system-phone" -> {
+                val phone = PhoneScreen(ui).apply { show(samplePhone) }
+                SystemScreen(ui, { sampleLaptop }, sysBar(onPhone = true), phone).apply { showPhone(true) }.view
             }
 
-            "sys-network" -> {
-                NetworkScreen(ui, sysBar(), { sampleLaptop }, { SAMPLE_RTT_MS }, {})
-                    .apply { phoneChanged(samplePhone) }
+            "stats-network" -> {
+                NetworkScreen(ui, sysBar(), { sampleLaptop }, { SAMPLE_RTT_MS }, {}).view
+            }
+
+            "stats-network-phone" -> {
+                NetworkScreen(ui, sysBar(onPhone = true), { sampleLaptop }, { SAMPLE_RTT_MS }, {})
+                    .apply {
+                        phoneChanged(samplePhone)
+                        showPhone(true)
+                    }
                     .view
             }
 
             "ai-two", "ai-four" -> {
                 val laptop = aiLaptop(four = name == "ai-four")
-                AiScreen(ui, { laptop }, ui.hubBar(ui.string(R.string.dev_title), SAMPLE_LAPTOP, {}, {})).view
+                AiScreen(ui, { laptop }, devBar()).view
             }
 
             "git" -> {
-                GitScreen(ui, { gitLaptop }, ui.hubBar(ui.string(R.string.dev_title), SAMPLE_LAPTOP, {}, {})) {}.view
+                GitScreen(ui, { gitLaptop }, devBar()) {}.view
             }
 
             "data-uses" -> {
@@ -142,7 +151,12 @@ class GallerySamples(
             }
         }
 
-    private fun sysBar(): View = ui.hubBar(ui.string(R.string.sys_title), SAMPLE_LAPTOP, {}, {})
+    private fun sysBar(onPhone: Boolean = false): View {
+        val name = if (onPhone) ui.string(R.string.battery_this_phone) else SAMPLE_LAPTOP
+        return ui.hubBar(ui.string(R.string.sys_title), DeviceChip(ui, name, onPhone) {}, {})
+    }
+
+    private fun devBar(): View = ui.hubBar(ui.string(R.string.dev_title), DeviceChip(ui, SAMPLE_LAPTOP, false) {}, {})
 
     /** A laptop that said who it is and what it can, with a minute of numbers, two disks, and a network and a test. */
     private val sampleLaptop: LaptopState by lazy {

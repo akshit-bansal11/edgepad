@@ -19,10 +19,11 @@ import me.akshitbansal.edgepad.link.StatsRing
 import me.akshitbansal.edgepad.link.StripKind
 
 /**
- * The Network page of System: the laptop's connection and the phone's side by side (stacked upright), then a speed
- * test of the laptop. No network name is shown anywhere. The laptop sends its part only while this page shows, and
- * the phone's numbers are read only then too; the activity calls [refresh] when either changed. The test runs on the
- * laptop, only after a tap on the button, and [onSpeed] says so with true to start and false to stop.
+ * The Network page of Stats: the connection of the laptop picked, with a speed test of it, or of this phone when
+ * [showPhone] says so (no speed test there). No network name is shown anywhere. The laptop sends its part only while
+ * this page shows and the phone's numbers are read only while the phone is picked; the activity calls [refresh] when
+ * either changed. The test runs on the laptop, only after a tap on the button, and [onSpeed] says so with true to
+ * start and false to stop.
  *
  * @param state The laptop this page shows, read afresh on each [refresh].
  * @param rtt The round trip to the laptop in ms, -1 until measured.
@@ -38,6 +39,7 @@ class NetworkScreen(
     private val net = NetText(ui)
     private val holder = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
     private var phone = PhoneSnapshot()
+    private var onPhone = false
 
     val view: View = ui.page(bar) { add(holder) }
 
@@ -48,6 +50,12 @@ class NetworkScreen(
     /** The phone read new numbers. */
     fun phoneChanged(snapshot: PhoneSnapshot) {
         phone = snapshot
+        if (onPhone) refresh()
+    }
+
+    /** Shows this phone's connection, with no speed test, in place of the laptop's, or the laptop's again. */
+    fun showPhone(on: Boolean) {
+        onPhone = on
         refresh()
     }
 
@@ -58,11 +66,14 @@ class NetworkScreen(
     }
 
     private fun Column.render(s: LaptopState) {
+        if (onPhone) {
+            phoneCard()
+            return
+        }
         columns(
             first = { laptopCard(s) },
-            second = { phoneCard() },
+            second = { speedCard(s.speed) },
         )
-        speedCard(s.speed)
     }
 
     private fun Column.laptopCard(s: LaptopState) {

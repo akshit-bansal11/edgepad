@@ -18,7 +18,7 @@ import me.akshitbansal.edgepad.surface.StatCards
 import me.akshitbansal.edgepad.surface.StatMetric
 
 /**
- * The Laptop page of System, under the [bar] the hub draws. The laptop's processor, graphics, memory and network as
+ * The System page of Stats, under the [bar] the hub draws; [showPhone] swaps it to this phone's own [phone] numbers. The laptop's processor, graphics, memory and network as
  * rounded cards with a graph of the last minute (the same cards the widgets draw), then their details, ping and
  * disks, and the batteries of the laptop and what is paired to it. Upright it is one column of two cards a row;
  * sideways the cards (four a row) and their details are on the left and the ping and disks on the right. A graphics
@@ -34,6 +34,7 @@ class SystemScreen(
     private val ui: Ui,
     private val state: () -> LaptopState,
     bar: View,
+    private val phone: PhoneScreen = PhoneScreen(ui),
 ) {
     private val none = ui.string(R.string.sys_none)
     private val fmt = StatsFormat(none)
@@ -44,14 +45,30 @@ class SystemScreen(
     /** How tall a graph is: 88 dp upright, 72 dp sideways. */
     private val graphDp = if (ui.landscape) GRAPH_LANDSCAPE_DP else GRAPH_PORTRAIT_DP
 
-    val view: View = ui.page(bar) { add(holder) }
+    private var onPhone = false
+
+    val view: View =
+        ui.page(bar) {
+            add(holder)
+            add(phone.body)
+        }
 
     init {
+        phone.body.visibility = View.GONE
         refresh()
+    }
+
+    /** Shows this phone's numbers ([PhoneScreen.show] feeds them) in place of the laptop's, or the laptop's again. */
+    fun showPhone(on: Boolean) {
+        onPhone = on
+        holder.visibility = if (on) View.GONE else View.VISIBLE
+        phone.body.visibility = if (on) View.VISIBLE else View.GONE
+        if (!on) refresh()
     }
 
     /** Shows the newest sample. */
     fun refresh() {
+        if (onPhone) return
         val s = state()
         val reported = StatMetric.entries.map { it.reported(s.stats) }
         val now = listOf(Feature.STATS in s.features, s.disks.map { it.label }, reported, s.batteries)

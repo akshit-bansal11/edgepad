@@ -1,24 +1,23 @@
 package me.akshitbansal.edgepad.link
 
-/** Which dashboard screen's DASH_WATCH bit each page of the System and Developer hubs sets. Pure, for a JVM test. */
+/** Which dashboard screen's DASH_WATCH bit each page of the Stats and Developer hubs sets. Pure, for a JVM test. */
 object HubPages {
-    const val LAPTOP = 0
-    const val PHONE = 1
-    const val NETWORK = 2
+    const val SYSTEM = 0
+    const val NETWORK = 1
     const val GIT = 1
 
-    /** The Phone page needs nothing from the laptop, so it sets no bit. */
-    fun system(page: Int): DashMask.Screen? =
-        when (page) {
-            PHONE -> null
-            NETWORK -> DashMask.Screen.NETWORK
+    /** This phone as the device needs nothing from the laptop, so it sets no bit on either page. */
+    fun system(
+        page: Int,
+        phone: Boolean,
+    ): DashMask.Screen? =
+        when {
+            phone -> null
+            page == NETWORK -> DashMask.Screen.NETWORK
             else -> DashMask.Screen.SYSTEM
         }
 
     fun developer(page: Int): DashMask.Screen = if (page == GIT) DashMask.Screen.GITHUB else DashMask.Screen.AI
-
-    /** Whether the phone's own numbers are read: only on the Phone and Network pages. */
-    fun readsPhone(page: Int): Boolean = page == PHONE || page == NETWORK
 }
 
 /** What the speed strip of the Network page shows for the laptop's last [SpeedResult]. */
