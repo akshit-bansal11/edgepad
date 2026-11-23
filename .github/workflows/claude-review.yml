@@ -1,90 +1,182 @@
 name: Claude Review
 
-# Every pull request gets a check named claude-review, which branch protection on main waits for.
+# Every pull request gets a check named claude-review on its head commit, which branch protection on main waits for.
 #
-# A PR from a branch of this repo (only people with write access can push one) gets the full treatment: Claude
-# reviews the whole change against .github/claude-review.md, fixes what it finds, and the fixes are pushed back
-# to the PR branch with the Claude app's token, so CI and this review run again on them. After three rounds of
-# fixes it only reports. The check fails while real problems remain.
+# Ours (a branch of this repo, opened by the owner, or by github-actions[bot] on a claude/issue-* branch that
+# claude-issue.yml made from the owner's issue) gets the full treatment: Claude reviews the whole change against
+# .github/claude-review.md and fixes what it finds. A plain step squashes the fixes into one "fix(review): round N"
+# commit and pushes it with GITHUB_TOKEN. A GITHUB_TOKEN push starts no pull_request workflow, so that step then
+# dispatches ci.yml and this workflow on the branch; their ci-ok and claude-review checks land on the new head commit.
+# After three rounds it only reports. The check fails while real problems remain.
 #
-# A PR from a fork, or a branch the issue workflow made from someone else's issue (claude/outside-*), is not
-# reviewed here: claude-tldr.yml summarises it and it merges only on the owner's word. The check passes so the
-# owner can still have it merged. Dependabot PRs pass too; CI covers them.
+# Not ours (a fork, claude/outside-*, a pr-N branch from claude.yml, Dependabot): not reviewed here. claude-tldr.yml
+# summarises forks, and these merge only on the owner's word. The check passes so the owner can still merge them.
+#
+# Escape hatch: when the review cannot run (usage limit, outage) and a fix is urgent, add the review-skipped label.
+# While the PR carries it, this check passes with a notice instead of reviewing. Only collaborators can label, so only
+# the owner or the session can use it. Removing the label runs a full review. Any other label change reuses the
+# verdict already posted for the head commit.
+#
+# Claude sees the PR title, body and the owner's comments only, pre-fetched into .review/pr.md. It has no gh, no
+# shell beyond git diff/log/show/status, and is denied the runner's secrets folders, .git config and .github/.
+#
+# Run it by hand: gh workflow run claude-review.yml --ref <pr-branch> -f pr=<number>
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number (run on its head branch)
+        required: true
+        type: string
 
+# A change of some other label waits for the review in progress instead of cancelling it.
 concurrency:
-  group: claude-review-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: claude-review-${{ github.event.pull_request.number || inputs.pr }}
+  cancel-in-progress: ${{ !contains(fromJSON('["labeled","unlabeled"]'), github.event.action) || github.event.label.name == 'review-skipped' }}
 
 permissions:
   contents: write
   pull-requests: write
   issues: write
-  id-token: write
-  actions: read
+  actions: write
 
 jobs:
   claude-review:
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    env:
-      NUMBER: ${{ github.event.pull_request.number }}
-      HEAD_REF: ${{ github.event.pull_request.head.ref }}
-      BASE_REF: ${{ github.event.pull_request.base.ref }}
     steps:
-      - name: Decide whether this PR is ours
-        id: who
+      - name: Find the pull request and decide what to do (no AI in this step)
+        id: pr
         env:
-          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
-          AUTHOR: ${{ github.event.pull_request.user.login }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number || inputs.pr }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          ACTION: ${{ github.event.action }}
+          LABEL: ${{ github.event.label.name }}
+          OWNER: ${{ github.repository_owner }}
         run: |
-          ours=false
-          if [ "$HEAD_REPO" = "$GITHUB_REPOSITORY" ] && [ "$AUTHOR" != "dependabot[bot]" ]; then
-            case "$HEAD_REF" in claude/outside-*) ;; *) ours=true ;; esac
+          case "$PR" in ''|*[!0-9]*) echo "::error::pr must be a pull request number."; exit 1 ;; esac
+          f() { jq -r "$1" "$RUNNER_TEMP/pr.json"; }
+          for try in 1 2 3 4 5 6; do
+            gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" > "$RUNNER_TEMP/pr.json"
+            # A dispatched run's check lands on the commit it was dispatched at, so that must be the PR's head.
+            # Just after a push GitHub can take a moment to move the PR's head; ask again.
+            [ "$GITHUB_EVENT_NAME" != workflow_dispatch ] || [ "$(f .head.sha)" = "$SHA" ] && break
+            sleep 10
+          done
+          head_ref=$(f .head.ref)
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && { [ "$GITHUB_REF_NAME" != "$head_ref" ] || [ "$(f .head.sha)" != "$SHA" ]; }; then
+            echo "::error::Dispatched at a commit that is not the head of PR #$PR; dispatch it on the PR's branch."; exit 1
           fi
-          echo "ours=$ours" >> "$GITHUB_OUTPUT"
-          [ "$ours" = true ] || echo "Not reviewed here: summarised by claude-tldr.yml, merged only on the owner's word."
+          head_repo=$(f '.head.repo.full_name // ""')
+          author=$(f .user.login)
+          ours=false
+          if [ "$head_repo" = "$GITHUB_REPOSITORY" ]; then
+            case "$head_ref" in
+              claude/outside-*) ;;
+              claude/issue-*) if [ "$author" = "$OWNER" ] || [ "$author" = "github-actions[bot]" ]; then ours=true; fi ;;
+              *) if [ "$author" = "$OWNER" ]; then ours=true; fi ;;
+            esac
+          fi
+          if [ "$(f .state)" != open ]; then mode=closed
+          elif [ "$(f 'any(.labels[]; .name == "review-skipped")')" = true ]; then mode=skipped
+          elif [ "$ours" != true ]; then mode=not-ours
+          elif { [ "$ACTION" = labeled ] || [ "$ACTION" = unlabeled ]; } && [ "$LABEL" != review-skipped ]; then mode=reuse
+          else mode=review
+          fi
+          {
+            echo "mode=$mode"
+            echo "number=$PR"
+            echo "sha=$SHA"
+            echo "head_ref=$head_ref"
+            echo "base_ref=$(f .base.ref)"
+          } >> "$GITHUB_OUTPUT"
+          echo "Mode: $mode"
 
-      - name: Check out the PR branch
-        if: steps.who.outputs.ours == 'true'
-        uses: actions/checkout@v4
+      - name: Pass without a review
+        if: steps.pr.outputs.mode == 'skipped' || steps.pr.outputs.mode == 'not-ours' || steps.pr.outputs.mode == 'closed'
+        env:
+          MODE: ${{ steps.pr.outputs.mode }}
+        run: |
+          case "$MODE" in
+            skipped) echo "::notice::review-skipped label: passing without a Claude review. Remove the label to review." ;;
+            not-ours) echo "::notice::Not reviewed here: summarised by claude-tldr.yml if it is a fork, merged only on the owner's word." ;;
+            closed) echo "::notice::The pull request is closed." ;;
+          esac
+
+      - name: Reuse the verdict posted for this commit (no AI in this step)
+        if: steps.pr.outputs.mode == 'reuse'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ steps.pr.outputs.number }}
+          SHA: ${{ steps.pr.outputs.sha }}
+        run: |
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- claude-review -->"))) | .id' | head -n1)
+          # Line 2 is written by the post step, never by Claude.
+          if [ -n "$id" ] && [ "$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$id" --jq .body | sed -n 2p | tr -d '\r')" = "<!-- claude-review: pass $SHA -->" ]; then
+            echo "This commit already passed the review."
+          else
+            echo "::error::No passing review for this commit; re-run the review (remove and re-add a label, or dispatch it)."; exit 1
+          fi
+
+      - name: Check out the PR's head commit
+        if: steps.pr.outputs.mode == 'review'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ steps.pr.outputs.sha }}
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Count earlier fix rounds
-        if: steps.who.outputs.ours == 'true'
+      - name: Count fix rounds and fetch the PR's text (no AI in this step)
+        if: steps.pr.outputs.mode == 'review'
         id: rounds
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ steps.pr.outputs.number }}
+          BASE_REF: ${{ steps.pr.outputs.base_ref }}
+          OWNER: ${{ github.repository_owner }}
         run: |
-          git fetch -q origin "$BASE_REF"
-          n=$(git log "origin/$BASE_REF..HEAD" --format=%s | grep -c '^fix(review):' || true)
+          g() { git -c core.hooksPath=/dev/null "$@"; }
+          g fetch -q origin "$BASE_REF"
+          n=$(g log "origin/$BASE_REF..HEAD" --format=%s | grep -c '^fix(review): round ' || true)
           echo "n=$n" >> "$GITHUB_OUTPUT"
           if [ "$n" -ge 3 ]; then echo "may_fix=false" >> "$GITHUB_OUTPUT"; else echo "may_fix=true" >> "$GITHUB_OUTPUT"; fi
-          git config user.name "claude[bot]"
-          git config user.email "209825114+claude[bot]@users.noreply.github.com"
+          mkdir -p .review
+          printf '.review/\n.claude-pr/\n' >> .git/info/exclude
+          # Title, body and the owner's comments only: anyone can comment on a public PR.
+          gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json title,body,comments \
+            | jq -r --arg o "$OWNER" '"# " + .title + "\n\n" + (.body // "") + "\n\n## Comments by the owner\n"
+                + ([.comments[] | select(.author.login == $o) | "\n---\n" + .body] | join(""))' > .review/pr.md
 
       - name: Claude reviews (and fixes)
-        if: steps.who.outputs.ours == 'true'
+        if: steps.pr.outputs.mode == 'review'
         id: claude
-        uses: anthropics/claude-code-action@v1
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: anthropics/claude-code-action@acfe7992852970efb4fee683d63d628e3e52df67 # v1.0.286
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # GITHUB_TOKEN, not the Claude app's token: the action revokes the app's token when it ends, and nothing
+          # here needs it. No id-token permission is needed either.
+          github_token: ${{ github.token }}
+          # A dispatched run's actor, and the author of a claude/issue-* PR, is github-actions[bot].
+          allowed_bots: 'github-actions'
+          # Claude runs no repository code here (git diff/log/show/status only). Left on, this would swap files of a
+          # bot-authored PR for main's, and the fix commit would stage the swap.
+          restrict_untrusted_prs: 'false'
           prompt: |
-            Review pull request ${{ github.repository }}#${{ env.NUMBER }} (branch ${{ env.HEAD_REF }} into
-            ${{ env.BASE_REF }}). First read .github/claude-review.md and follow it.
+            Review pull request ${{ github.repository }}#${{ steps.pr.outputs.number }} (branch
+            ${{ steps.pr.outputs.head_ref }} into ${{ steps.pr.outputs.base_ref }}). First read
+            .github/claude-review.md and follow it.
 
-            See the change with `git diff origin/${{ env.BASE_REF }}...HEAD` (use `--stat` first; on a very large
-            change, read the riskiest files fully and sample the rest, and say so). `gh pr view ${{ env.NUMBER }}`
-            gives the description. Read surrounding code, not only the diff: a bug is often in what the change
-            forgot to update.
+            .review/pr.md holds the PR's title, description and the owner's comments. See the change with
+            `git diff origin/${{ steps.pr.outputs.base_ref }}...HEAD` (use `--stat` first; on a very large change,
+            read the riskiest files fully and sample the rest, and say so). Read surrounding code, not only the
+            diff: a bug is often in what the change forgot to update.
 
-            ${{ steps.rounds.outputs.may_fix == 'true' && 'Then FIX every real problem you found: edit the files, and make one commit per fix with git, message "fix(review): <what>". Fix only real problems in this change, not style. Do not push; a later step does. If a fix needs a build to be sure, still make it and say so.' || 'This PR has had three rounds of review fixes already. Do NOT edit or commit anything; only report.' }}
+            ${{ steps.rounds.outputs.may_fix == 'true' && 'Then FIX every real problem you found by editing the files. Fix only real problems in this change, not style. Do not commit or push; a later step does. If a fix needs a build to be sure, still make it and say so.' || 'This PR has had three rounds of review fixes already. Do NOT edit anything; only report.' }}
 
             Then give your result as the structured output:
             - verdict: "pass" if no real problem remains unfixed, otherwise "fail".
@@ -92,59 +184,109 @@ jobs:
               left. Plain words, under 250 words, markdown, file:line where useful.
           claude_args: >-
             --max-turns 120
-            --allowedTools "Read,Grep,Glob,${{ steps.rounds.outputs.may_fix == 'true' && 'Edit,Write,Bash(git add:*),Bash(git commit:*),' || '' }}Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git status:*),Bash(gh pr view:*),Bash(gh pr diff:*),mcp__github_inline_comment__create_inline_comment"
+            --permission-mode default
+            --allowedTools "Read,Grep,Glob,${{ steps.rounds.outputs.may_fix == 'true' && 'Edit,Write,' || '' }}Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git status:*)"
+            --disallowedTools "WebFetch,WebSearch,Read(//proc/**),Read(//tmp/**),Read(//etc/**),Read(//run/**),Read(//home/runner/work/_temp/**),Read(//home/runner/.*/**),Read(./.git/config),Read(**/.env*),Edit(./.git/**),Write(./.git/**),Edit(./.github/**),Write(./.github/**)"
             --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["pass","fail"]},"summary":{"type":"string"}},"required":["verdict","summary"]}'
 
-      - name: Push the fixes (no AI in this step)
-        if: steps.who.outputs.ours == 'true' && steps.claude.outcome == 'success'
+      - name: Check and push the fixes as one round (no AI in this step)
+        if: steps.pr.outputs.mode == 'review' && steps.claude.outputs.structured_output != ''
         id: push
         env:
-          TOKEN: ${{ steps.claude.outputs.github_token }}
+          GH_TOKEN: ${{ github.token }}
+          OAUTH: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          OUTPUT: ${{ steps.claude.outputs.structured_output }}
+          START: ${{ steps.pr.outputs.sha }}
+          HEAD_REF: ${{ steps.pr.outputs.head_ref }}
+          ROUNDS: ${{ steps.rounds.outputs.n }}
+          MAY_FIX: ${{ steps.rounds.outputs.may_fix }}
         run: |
-          git fetch -q origin "$HEAD_REF"
-          ahead=$(git rev-list --count "origin/$HEAD_REF..HEAD")
-          echo "ahead=$ahead" >> "$GITHUB_OUTPUT"
-          [ "$ahead" -gt 0 ] || exit 0
-          # The app's token, not GITHUB_TOKEN: a push with GITHUB_TOKEN would not start CI or this review again.
-          git push "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/$HEAD_REF"
+          g() { git -c core.hooksPath=/dev/null "$@"; }
+          verdict=$(printf '%s' "$OUTPUT" | jq -r '.verdict // ""')
+          [ "$verdict" = pass ] || verdict=fail
+          printf '%s\n' "$(printf '%s' "$OUTPUT" | jq -r '.summary // ""')" | head -c 6000 > .review/summary.md
+          # Whatever this run did becomes one commit on top of the commit it reviewed.
+          g reset -q --soft "$START"
+          if [ "$MAY_FIX" = true ]; then g add -A; fi
+          # Everything that leaves this job, checked at once: the change and the summary.
+          { g diff --cached; cat .review/summary.md; } > .review/outgoing.txt
+          for s in "$OAUTH" "$GH_TOKEN"; do
+            [ -n "$s" ] || continue
+            b=$(printf '%s' "$s" | base64 -w0)
+            if grep -qF -e "$s" -e "${b%%=*}" .review/outgoing.txt; then
+              echo "::error::The change or summary holds a secret; nothing pushed or posted."; exit 1
+            fi
+          done
+          if grep -Eq 'sk-ant-[A-Za-z0-9_-]{10,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|eyJ[A-Za-z0-9_-]{20,}\.' .review/outgoing.txt; then
+            echo "::error::The change or summary looks like it holds a token; nothing pushed or posted."; exit 1
+          fi
+          changed=false
+          if ! g diff --cached --quiet; then
+            # git's own pathspec, not a grep over quoted names; and no symlinks, which could point anywhere.
+            if ! g diff --cached --quiet -- .github .git; then
+              echo "::error::The fix touches .github/; not pushed."; exit 1
+            fi
+            if g diff --cached --summary | grep -q ' mode 120000 '; then
+              echo "::error::The fix adds a symlink; not pushed."; exit 1
+            fi
+            g -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -q -m "fix(review): round $((ROUNDS + 1))"
+            g push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/$HEAD_REF"
+            changed=true
+          fi
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
 
       - name: Post the summary (no AI in this step)
-        if: steps.who.outputs.ours == 'true' && steps.claude.outcome == 'success'
+        if: steps.push.outcome == 'success'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERDICT: ${{ fromJSON(steps.claude.outputs.structured_output).verdict }}
-          SUMMARY: ${{ fromJSON(steps.claude.outputs.structured_output).summary }}
-          AHEAD: ${{ steps.push.outputs.ahead }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ steps.pr.outputs.number }}
+          SHA: ${{ steps.pr.outputs.sha }}
+          VERDICT: ${{ steps.push.outputs.verdict }}
+          CHANGED: ${{ steps.push.outputs.changed }}
         run: |
           {
             echo "<!-- claude-review -->"
-            if [ "${AHEAD:-0}" -gt 0 ]; then
-              echo "**Claude review: fixed ${AHEAD} problem(s) and pushed; reviewing again.**"
+            echo "<!-- claude-review: $VERDICT $SHA -->"
+            if [ "$CHANGED" = true ]; then
+              echo "**Claude review: fixed problems and pushed one round; reviewing again.**"
             elif [ "$VERDICT" = pass ]; then
               echo "**Claude review: pass.**"
             else
               echo "**Claude review: problems remain.**"
             fi
             echo
-            printf '%s\n' "$SUMMARY"
-          } > /tmp/review.md
+            cat .review/summary.md
+          } > .review/review.md
           # One comment per PR, edited on each run, so the thread does not fill with old reviews.
-          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$NUMBER/comments" --paginate \
-            --jq '[.[] | select(.body | startswith("<!-- claude-review -->"))][0].id // empty')
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- claude-review -->"))) | .id' | head -n1)
           if [ -n "$id" ]; then
-            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -F body=@/tmp/review.md > /dev/null
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -F body=@.review/review.md > /dev/null
           else
-            gh pr comment "$NUMBER" --body-file /tmp/review.md
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file .review/review.md
           fi
 
-      - name: Pass or fail the check
-        if: steps.who.outputs.ours == 'true'
+      # Last, because the run it starts shares this run's concurrency group and may cancel it.
+      - name: Start CI and the next review on the new commit (no AI in this step)
+        if: steps.push.outputs.changed == 'true'
         env:
-          OUTCOME: ${{ steps.claude.outcome }}
-          VERDICT: ${{ steps.claude.outcome == 'success' && fromJSON(steps.claude.outputs.structured_output).verdict || '' }}
-          AHEAD: ${{ steps.push.outputs.ahead }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ steps.pr.outputs.number }}
+          HEAD_REF: ${{ steps.pr.outputs.head_ref }}
         run: |
-          [ "$OUTCOME" = success ] || { echo "::error::The review did not finish."; exit 1; }
+          gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$HEAD_REF"
+          gh workflow run claude-review.yml --repo "$GITHUB_REPOSITORY" --ref "$HEAD_REF" -f pr="$PR"
+
+      - name: Pass or fail the check
+        if: always() && steps.pr.outputs.mode == 'review'
+        env:
+          PUSHED: ${{ steps.push.outcome }}
+          VERDICT: ${{ steps.push.outputs.verdict }}
+          CHANGED: ${{ steps.push.outputs.changed }}
+        run: |
+          [ "$PUSHED" = success ] || { echo "::error::The review did not finish or gave no result."; exit 1; }
           # Fixes were pushed: the next run reviews them, and that run's check is the one that counts.
-          [ "${AHEAD:-0}" -gt 0 ] && exit 0
+          [ "$CHANGED" = true ] && exit 0
           [ "$VERDICT" = pass ] || { echo "::error::Claude found problems that remain; see the PR comment."; exit 1; }
