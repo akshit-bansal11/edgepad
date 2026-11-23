@@ -38,7 +38,7 @@ Wire protocol 6. A 5.0 phone and a 4.x laptop (or the reverse) refuse each other
 - **Phone and laptops: What Edgepad uses.** A page that lists every permission the apps ask for and every network destination, with what each is for. The phone links it on first open and from Settings › About; the same content is in `docs/DATA-AND-PERMISSIONS.md`.
 - **Phone: a language picker.** Settings › Language offers the app's 15 languages on Android 13 and later. Older phones follow the system language.
 - **Phone: pen colour, width and opacity** in Settings › Capture & Annotate, as well as on the toolbar.
-- **Phone: official logos** for the AI tools and Git hosts where the owner could download a mark; a letter tile stays where there is none.
+- **Phone: official logos** for GitLab and OpenCode; the other AI tools and Git hosts keep a letter tile until their marks are added.
 - **Mac and Linux: the transfer card** has pause, stop and close, and shows sessions before the app opens.
 - **Laptops: tray menu submenus,** and a decluttered For developers window.
 
