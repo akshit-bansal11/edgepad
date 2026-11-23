@@ -28,8 +28,10 @@
 #                             negative MiB is -1. STATSINFOPARSE needs exactly five "|" fields and integers.
 #   DISKS label @ usedPct @ totalGiB @ freeGiB ;; ...     label Clean(16), empty becomes "-"; used clamps 0..100 (negative -1);
 #                             total and free negative -1; at most 6 entries; trailing entries dropped until 255 bytes.
-#   SESSIONS agent @ state @ title ;; ...                 agent claude|codex, state busy|wait|idle (else dropped); title
-#                             Clean(24); at most 8; trailing entries dropped until 255 bytes.
+#   SESSIONS agent @ state @ ctx @ title ;; ...           agent claude|codex|gemini|opencode, state busy|wait|idle (else dropped);
+#                             ctx is how full the session's context window is, 0..100, anything else is -1; title Clean(24); at
+#                             most 8; trailing entries dropped until 255 bytes. SESSIONSPARSE drops an entry whose ctx is not an
+#                             integer or that has not exactly 4 ":" fields (the title is the last and holds no ":").
 #   PERMANSWER wire           => "allow ID" | "deny ID" | <none>. Exactly 12 lowercase hex, "/", then "a" or "d", nothing else.
 #   PERMLABEL id flag         => "id/flag"; PERMLABELPARSE wire => "id flag" | <none>.
 #   PERMASK agent @ tool @ text   => "F body". F is 1 when complete: nothing was cut on the way (the laptop's own flag; these
@@ -42,10 +44,11 @@
 #   LIMITS agent @ window @ pct @ resetAtMin @ measuredAtMin ;; ...   window: canonical decimal 1..525600, "ctx", or "~" and a
 #                             name (Clean(16), not empty); anything else drops the entry. pct (a decimal) clamps 0..100 and
 #                             rounds half up. A negative time is -1. Trailing entries dropped until 255 bytes.
-#   SPEND agent @ measuredAtMin @ tokToday @ centsToday @ tokWeek @ centsWeek @ tokMonth @ centsMonth @ unpriced ;; ...   64-bit
-#                             integers; measuredAtMin negative is -1, the rest negative is 0. unpriced is 1 (some tokens had no
-#                             price: the cents are a lower bound) or 0; SPENDPARSE drops an entry whose flag is anything else or
-#                             that has not exactly 9 fields. Trailing entries dropped to 255.
+#   SPEND agent @ measuredAtMin @ tokToday @ centsToday @ tok7d @ cents7d @ tok30d @ cents30d @ tokAll @ centsAll @ unpriced ;; ...
+#                             64-bit integers; 7d and 30d are the last 7 and 30 local days, today counted. measuredAtMin negative
+#                             is -1 and so is a negative tokAll or centsAll (all time not known); every other negative is 0.
+#                             unpriced is 1 (some tokens had no price: the cents are a lower bound) or 0; SPENDPARSE drops an
+#                             entry whose flag is anything else or that has not exactly 11 fields. Trailing entries dropped to 255.
 #   WEATHER tempTenthsC @ wmoCode @ city   temp clamps -999..999, a wmo outside 0..99 is -1, city Clean(24). "WEATHER none" is
 #                             the empty payload.
 #   GITHUB section @ repo @ number @ title @ flags @ ci ;; ...   section R|M|N (else dropped). For R and M the repo must be
@@ -124,19 +127,23 @@ DISKSPARSE C:150:476:143 => C:100:476:143
 DISKSPARSE C:70:476 => <empty>
 DISKSPARSE C:x:1:2|D:1:2:3 => D:1:2:3
 DISKSPARSE <empty> => <empty>
-
 # ---- SESSIONS
-SESSIONS claude @ busy @ Fix login => claude:busy:Fix login
-SESSIONS codex @ wait @ a|b:c/d => codex:wait:a b c d
-SESSIONS grok @ busy @ x ;; claude @ nap @ y ;; claude @ idle @ ok => claude:idle:ok
-SESSIONS claude @ idle @ \u{20} => claude:idle:
-SESSIONS claude @ busy @ \{30*x} => claude:busy:\{24*x}
+SESSIONS claude @ busy @ 42 @ Fix login => claude:busy:42:Fix login
+SESSIONS codex @ wait @ -1 @ a|b:c/d => codex:wait:-1:a b c d
+SESSIONS grok @ busy @ 0 @ x ;; claude @ nap @ 0 @ y ;; claude @ idle @ 100 @ ok => claude:idle:100:ok
+SESSIONS claude @ idle @ 101 @ over => claude:idle:-1:over
+SESSIONS claude @ idle @ -7 @ under => claude:idle:-1:under
+SESSIONS claude @ idle @ -1 @ \u{20} => claude:idle:-1:
+SESSIONS claude @ busy @ 0 @ \{30*x} => claude:busy:0:\{24*x}
 SESSIONS <empty> => <empty>
-SESSIONS claude @ idle @ s1 ;; claude @ idle @ s2 ;; claude @ idle @ s3 ;; claude @ idle @ s4 ;; claude @ idle @ s5 ;; claude @ idle @ s6 ;; claude @ idle @ s7 ;; claude @ idle @ s8 ;; claude @ idle @ s9 ;; claude @ idle @ s10 => claude:idle:s1|claude:idle:s2|claude:idle:s3|claude:idle:s4|claude:idle:s5|claude:idle:s6|claude:idle:s7|claude:idle:s8
-SESSIONS claude @ busy @ \{30*😀} ;; codex @ wait @ \{30*😀} ;; claude @ idle @ \{30*😀} ;; claude @ idle @ \{30*😀} => claude:busy:\{24*😀}|codex:wait:\{24*😀}
-SESSIONSPARSE claude:busy:Fix login|codex:wait:Refactor => claude:busy:Fix login|codex:wait:Refactor
+SESSIONS claude @ idle @ -1 @ s1 ;; claude @ idle @ -1 @ s2 ;; claude @ idle @ -1 @ s3 ;; claude @ idle @ -1 @ s4 ;; claude @ idle @ -1 @ s5 ;; claude @ idle @ -1 @ s6 ;; claude @ idle @ -1 @ s7 ;; claude @ idle @ -1 @ s8 ;; claude @ idle @ -1 @ s9 ;; claude @ idle @ -1 @ s10 => claude:idle:-1:s1|claude:idle:-1:s2|claude:idle:-1:s3|claude:idle:-1:s4|claude:idle:-1:s5|claude:idle:-1:s6|claude:idle:-1:s7|claude:idle:-1:s8
+SESSIONS claude @ busy @ -1 @ \{30*😀} ;; codex @ wait @ -1 @ \{30*😀} ;; claude @ idle @ -1 @ \{30*😀} ;; claude @ idle @ -1 @ \{30*😀} => claude:busy:-1:\{24*😀}|codex:wait:-1:\{24*😀}
+SESSIONSPARSE claude:busy:42:Fix login|codex:wait:-1:Refactor => claude:busy:42:Fix login|codex:wait:-1:Refactor
 SESSIONSPARSE claude:busy => <empty>
-SESSIONSPARSE grok:busy:x|codex:idle:y => codex:idle:y
+SESSIONSPARSE claude:busy:Fix login => <empty>
+SESSIONSPARSE claude:busy:x:y => <empty>
+SESSIONSPARSE claude:busy:150:y => claude:busy:-1:y
+SESSIONSPARSE grok:busy:0:x|codex:idle:5:y => codex:idle:5:y
 
 # ---- PERMANSWER and PERMLABEL
 PERMANSWER a1b2c3d4e5f6/a => allow a1b2c3d4e5f6
@@ -236,20 +243,22 @@ LIMITSPARSE claude:300:x:1:1 => <empty>
 LIMITSPARSE grok:300:1:1:1|codex:300:2:3:4 => codex:300:2:3:4
 
 # ---- SPEND
-SPEND claude @ 29499900 @ 120000 @ 310 @ 800000 @ 2100 @ 3000000 @ 9000 @ 0 => claude/29499900/120000/310/800000/2100/3000000/9000/0
-SPEND codex @ -4 @ -1 @ -2 @ 5 @ 0 @ 7 @ -9 @ 1 => codex/-1/0/0/5/0/7/0/1
-SPEND claude @ 1 @ 9999999999 @ 1 @ 1 @ 1 @ 1 @ 1 @ 0 => claude/1/9999999999/1/1/1/1/1/0
-SPEND grok @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 0 => <empty>
+SPEND claude @ 29499900 @ 120000 @ 310 @ 800000 @ 2100 @ 3000000 @ 9000 @ 90000000 @ 31000 @ 0 => claude/29499900/120000/310/800000/2100/3000000/9000/90000000/31000/0
+SPEND codex @ -4 @ -1 @ -2 @ 5 @ 0 @ 7 @ -9 @ -1 @ -5 @ 1 => codex/-1/0/0/5/0/7/0/-1/-1/1
+SPEND claude @ 1 @ 9999999999 @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 0 => claude/1/9999999999/1/1/1/1/1/1/1/0
+SPEND gemini @ 5 @ 0 @ 0 @ 0 @ 0 @ 0 @ 0 @ -1 @ -1 @ 0 => gemini/5/0/0/0/0/0/0/-1/-1/0
+SPEND grok @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 0 => <empty>
 SPEND <empty> => <empty>
-SPEND claude @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 1 ;; codex @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 1 => claude/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/1
-SPENDPARSE claude/29499900/120000/310/800000/2100/3000000/9000/0|codex/1/2/3/4/5/6/7/1 => claude/29499900/120000/310/800000/2100/3000000/9000/0|codex/1/2/3/4/5/6/7/1
+SPEND claude @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 1 ;; codex @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 1 => claude/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/1
+SPENDPARSE claude/29499900/120000/310/800000/2100/3000000/9000/90000000/31000/0|codex/1/2/3/4/5/6/7/8/9/1 => claude/29499900/120000/310/800000/2100/3000000/9000/90000000/31000/0|codex/1/2/3/4/5/6/7/8/9/1
 SPENDPARSE claude/1/2/3 => <empty>
-SPENDPARSE claude/1/x/3/4/5/6/7/0 => <empty>
-SPENDPARSE grok/1/2/3/4/5/6/7/0 => <empty>
-SPENDPARSE claude/1/2/3/4/5/6/7 => <empty>
-SPENDPARSE claude/1/2/3/4/5/6/7/2 => <empty>
-SPENDPARSE claude/1/2/3/4/5/6/7/1/0 => <empty>
-SPENDPARSE claude/1/2/3/4/5/6/7/x|codex/1/2/3/4/5/6/7/1 => codex/1/2/3/4/5/6/7/1
+SPENDPARSE claude/1/x/3/4/5/6/7/8/9/0 => <empty>
+SPENDPARSE grok/1/2/3/4/5/6/7/8/9/0 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7/8/9 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7/8/9/2 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7/8/9/1/0 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7/8/9/x|codex/1/2/3/4/5/6/7/8/9/1 => codex/1/2/3/4/5/6/7/8/9/1
+SPENDPARSE claude/1/2/3/4/5/6/7/-3/-1/0 => claude/1/2/3/4/5/6/7/-1/-1/0
 
 # ---- WEATHER
 WEATHER 185 @ 3 @ Oslo => 185/3/Oslo

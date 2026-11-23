@@ -7,8 +7,11 @@ namespace Edgepad.Dashboard;
 /// <summary>One counted Claude response: its local day (yyyy-MM-dd), input + output tokens, estimated dollars and whether its model has a price.</summary>
 internal sealed record ClaudeRow(string Day, double Tokens, double Usd, bool Priced);
 
-/// <summary>The first day of each period in local time (yyyy-MM-dd); <see cref="From"/> is the earliest (a week can start last month).</summary>
-internal readonly record struct ClaudePeriods(string Today, string WeekStart, string MonthStart, string From);
+/// <summary>The first local day (yyyy-MM-dd) of today and of the last 7 and 30 days, today included in each; <see cref="From"/> is the earliest of them.</summary>
+internal readonly record struct ClaudePeriods(string Today, string Start7, string Start30, string From);
+
+/// <summary>What the responses of one local day added up to once their ids were no longer needed: tokens, dollars and whether an unpriced model had tokens.</summary>
+internal sealed record ClaudeDay(double Tokens, double Usd, bool Unpriced);
 
 /// <summary>
 /// Anthropic API list prices in US dollars per million tokens, as of 2026-10-20 (Plimsoll's table). Used to ESTIMATE cost from
@@ -107,14 +110,29 @@ internal static class ClaudeSpend
 
     private static readonly JsonDocumentOptions Options = new() { MaxDepth = 64 };
 
-    /// <summary>The periods of the local day <paramref name="localNow"/> falls in.</summary>
+    /// <summary>The periods of the local day <paramref name="localNow"/> falls in: today, the last 7 days and the last 30, each counting today.</summary>
     public static ClaudePeriods Periods(DateTime localNow)
     {
         var today = DateOnly.FromDateTime(localNow);
-        var week = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
-        var month = new DateOnly(today.Year, today.Month, 1);
-        return new ClaudePeriods(DayOf(today), DayOf(week), DayOf(month), DayOf(week < month ? week : month));
+        var start30 = DayOf(today.AddDays(-29));
+        return new ClaudePeriods(DayOf(today), DayOf(today.AddDays(-6)), start30, start30);
     }
+
+    /// <summary>Adds responses to per-day totals (a new dictionary when <paramref name="into"/> is null), so their ids can be forgotten.</summary>
+    public static Dictionary<string, ClaudeDay> Fold(IEnumerable<ClaudeRow> rows, Dictionary<string, ClaudeDay>? into = null)
+    {
+        var days = into ?? new Dictionary<string, ClaudeDay>(StringComparer.Ordinal);
+        foreach (var row in rows)
+        {
+            Merge(days, row.Day, new ClaudeDay(row.Tokens, row.Usd, !row.Priced && row.Tokens > 0));
+        }
+
+        return days;
+    }
+
+    /// <summary>Adds one day's totals into <paramref name="into"/>.</summary>
+    public static void Merge(Dictionary<string, ClaudeDay> into, string day, ClaudeDay add) =>
+        into[day] = into.TryGetValue(day, out var have) ? new ClaudeDay(have.Tokens + add.Tokens, have.Usd + add.Usd, have.Unpriced || add.Unpriced) : add;
 
     /// <summary>One transcript's responses on or after <paramref name="from"/>, by message id.</summary>
     public static Dictionary<string, ClaudeRow> SumFile(Stream stream, string from)
@@ -166,40 +184,51 @@ internal static class ClaudeSpend
         return rows;
     }
 
-    /// <summary>Today, this week and this month from responses already deduplicated by id; true when tokens of an unpriced model counted.</summary>
-    public static (SpendTotals Totals, bool Unpriced) Total(IEnumerable<ClaudeRow> rows, ClaudePeriods periods)
+    /// <summary>
+    /// Today, the last 7 days, the last 30 days and all time, from responses already deduplicated by id plus the per-day totals of
+    /// the ones whose ids were let go; true when tokens of an unpriced model counted.
+    /// </summary>
+    public static (SpendTotals Totals, bool Unpriced) Total(IEnumerable<ClaudeRow> rows, IEnumerable<KeyValuePair<string, ClaudeDay>> older, ClaudePeriods periods)
     {
-        double tokDay = 0, usdDay = 0, tokWeek = 0, usdWeek = 0, tokMonth = 0, usdMonth = 0;
+        double tokDay = 0, usdDay = 0, tokWeek = 0, usdWeek = 0, tokMonth = 0, usdMonth = 0, tokAll = 0, usdAll = 0;
         var unpriced = false;
-        foreach (var row in rows)
+
+        void Add(string day, double tokens, double usd, bool noPrice)
         {
-            if (string.CompareOrdinal(row.Day, periods.From) < 0)
+            tokAll += tokens;
+            usdAll += usd;
+            unpriced |= noPrice;
+            if (string.CompareOrdinal(day, periods.Start30) < 0)
             {
-                continue;
+                return;
             }
 
-            if (row.Day == periods.Today)
+            tokMonth += tokens;
+            usdMonth += usd;
+            if (string.CompareOrdinal(day, periods.Start7) >= 0)
             {
-                tokDay += row.Tokens;
-                usdDay += row.Usd;
+                tokWeek += tokens;
+                usdWeek += usd;
             }
 
-            if (string.CompareOrdinal(row.Day, periods.WeekStart) >= 0)
+            if (day == periods.Today)
             {
-                tokWeek += row.Tokens;
-                usdWeek += row.Usd;
+                tokDay += tokens;
+                usdDay += usd;
             }
-
-            if (string.CompareOrdinal(row.Day, periods.MonthStart) >= 0)
-            {
-                tokMonth += row.Tokens;
-                usdMonth += row.Usd;
-            }
-
-            unpriced |= !row.Priced && row.Tokens > 0;
         }
 
-        return (new SpendTotals(Round(tokDay), Round(usdDay * 100), Round(tokWeek), Round(usdWeek * 100), Round(tokMonth), Round(usdMonth * 100)), unpriced);
+        foreach (var row in rows)
+        {
+            Add(row.Day, row.Tokens, row.Usd, !row.Priced && row.Tokens > 0);
+        }
+
+        foreach (var (day, total) in older)
+        {
+            Add(day, total.Tokens, total.Usd, total.Unpriced);
+        }
+
+        return (new SpendTotals(Round(tokDay), Round(usdDay * 100), Round(tokWeek), Round(usdWeek * 100), Round(tokMonth), Round(usdMonth * 100), TokAll: Round(tokAll), CentsAll: Round(usdAll * 100)), unpriced);
     }
 
     /// <summary>A usage field as a count: a string, a negative or anything odd counts as nothing, never NaN.</summary>

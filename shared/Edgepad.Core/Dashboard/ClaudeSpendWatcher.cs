@@ -9,10 +9,12 @@ namespace Edgepad.Dashboard;
 /// so the plugin needs no script runtime. Like <see cref="CodexWatcher"/> it has a timer only while the Claude integration is on AND
 /// a phone is linked (<see cref="Evaluate"/>), and it reads files only while a phone draws the AI widget or screen (DASH_WATCH bit 3):
 /// at once when the bit is gained, then once a minute. Each file's responses are cached by size and modification time, in memory
-/// and in <c>cachePath</c> (ids, days and numbers only), so an unchanged month costs stats only; files last written over 40 days ago
-/// are skipped. A tick parses at most <see cref="BytesPerTick"/> of changed files (at least one file); the totals go to the
-/// <see cref="SpendBoard"/> only after a tick that had every file in hand, so a first scan of a large folder spreads over ticks
-/// instead of sending a partial sum. Nothing from a transcript leaves this class except those totals.
+/// and in <c>cachePath</c> (ids, days and numbers only), so an unchanged history costs stats only. A file last written over 40 days
+/// ago is folded to per-day totals (no ids), once, and a vanished one keeps them, so "all time" is computed one time and then only
+/// new or changed files are read again. A tick parses at most <see cref="BytesPerTick"/> of changed files (at least one file),
+/// newest first; once the last 30 days are in hand their totals go to the <see cref="SpendBoard"/> with all time unknown (-1),
+/// and all time follows only after a tick that had every file in hand, so a first scan of a large folder never sends a partial
+/// sum as a whole. Nothing from a transcript leaves this class except those totals.
 /// </summary>
 internal sealed class ClaudeSpendWatcher : IDisposable
 {
@@ -26,7 +28,7 @@ internal sealed class ClaudeSpendWatcher : IDisposable
     public static readonly TimeSpan SaveEvery = TimeSpan.FromMinutes(5);
 
     private const int WindowDays = 40;
-    private const int CacheVersion = 1;
+    private const int CacheVersion = 2;
     private const long MaxCacheBytes = 64L * 1024 * 1024;
 
     private readonly Func<bool> settingsOn;
@@ -199,59 +201,71 @@ internal sealed class ClaudeSpendWatcher : IDisposable
         var periods = ClaudeSpend.Periods(now.ToLocalTime().DateTime);
         var oldest = now.UtcDateTime.AddDays(-WindowDays);
         var budget = BytesPerTick;
-        var complete = true;
+        var recentDone = true;
+        var allDone = true;
         var live = new HashSet<string>(StringComparer.Ordinal);
-        var byId = new Dictionary<string, ClaudeRow>(StringComparer.Ordinal);
-        foreach (var file in Transcripts())
-        {
-            if (file.LastWriteTimeUtc < oldest)
-            {
-                continue;
-            }
 
+        // Newest first, so the last 30 days are in hand before the older history, which a first scan reads over many ticks.
+        foreach (var file in Transcripts().OrderByDescending(f => f.LastWriteTimeUtc))
+        {
+            var recent = file.LastWriteTimeUtc >= oldest;
             var key = Path.GetRelativePath(projects, file.FullName).Replace('\\', '/');
             live.Add(key);
             var size = file.Length;
             var ticks = file.LastWriteTimeUtc.Ticks;
-            Dictionary<string, ClaudeRow> rows;
-            if (cache.TryGetValue(key, out var hit) && hit.Size == size && hit.Ticks == ticks && string.CompareOrdinal(hit.From, periods.From) <= 0)
+            cache.TryGetValue(key, out var hit);
+            var covers = hit is not null && string.CompareOrdinal(hit.From, periods.From) <= 0;
+            if (hit is not null && covers && hit.Size == size && hit.Ticks == ticks)
             {
-                rows = hit.Rows;
-            }
-            else if (budget <= 0)
-            {
-                complete = false;
+                if (!recent && hit.Rows.Count > 0)
+                {
+                    cache[key] = hit.Folded(); // a file nobody writes any more needs its totals, not its ids
+                    cacheDirty = true;
+                }
+
                 continue;
             }
-            else
-            {
-                var grown = hit is not null && hit.Size < size && hit.From == periods.From ? hit : null;
-                budget -= size - (grown?.Size ?? 0);
-                try
-                {
-                    using var stream = open(file.FullName);
-                    rows = (grown is null ? null : Appended(stream, grown, periods.From)) ?? ClaudeSpend.SumFile(stream, periods.From);
-                }
-                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-                {
-                    continue; // removed or locked mid-scan: skipped this time
-                }
 
-                cache[key] = new CacheEntry(size, ticks, periods.From, rows);
-                cacheDirty = true;
+            if (budget <= 0)
+            {
+                allDone = false;
+                recentDone &= !recent;
+                continue;
             }
 
-            foreach (var (id, row) in rows)
+            var grown = hit is not null && covers && hit.Size < size ? hit : null;
+            budget -= size - (grown?.Size ?? 0);
+            CacheEntry entry;
+            try
             {
-                byId[id] = row;
+                using var stream = open(file.FullName);
+                entry = (grown is null ? null : Appended(stream, grown)) ?? Read(stream, periods.From);
             }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                continue; // removed or locked mid-scan: skipped this time
+            }
+
+            entry = entry with { Size = size, Ticks = ticks };
+            cache[key] = recent ? entry : entry.Folded();
+            cacheDirty = true;
         }
 
-        if (complete)
+        if (allDone)
         {
-            foreach (var gone in cache.Keys.Where(k => !live.Contains(k)).ToList())
+            // A transcript Claude Code deleted keeps its day totals once it is old enough to have no ids to dedupe, so "all time"
+            // does not shrink when the folder is cleaned; a recent one that vanished is dropped as before.
+            foreach (var gone in cache.Where(c => !live.Contains(c.Key)).ToList())
             {
-                cache.Remove(gone);
+                if (gone.Value.Ticks < oldest.Ticks)
+                {
+                    cache[gone.Key] = gone.Value.Folded();
+                }
+                else
+                {
+                    cache.Remove(gone.Key);
+                }
+
                 cacheDirty = true;
             }
         }
@@ -262,27 +276,47 @@ internal sealed class ClaudeSpendWatcher : IDisposable
             cacheSaved = now;
         }
 
-        if (!complete)
+        if (!recentDone)
         {
             return false;
         }
 
-        var (totals, anyUnpriced) = ClaudeSpend.Total(byId.Values, periods);
+        var byId = new Dictionary<string, ClaudeRow>(StringComparer.Ordinal);
+        foreach (var entry in cache.Values)
+        {
+            foreach (var (id, row) in entry.Rows)
+            {
+                byId[id] = row;
+            }
+        }
+
+        var (totals, anyUnpriced) = ClaudeSpend.Total(byId.Values, cache.Values.SelectMany(e => e.Old), periods);
         unpriced = anyUnpriced;
-        if (live.Count == 0 && spend.Snapshot().All(e => e.Agent != AgentToken.Claude))
+        if (cache.Count == 0 && spend.Snapshot().All(e => e.Agent != AgentToken.Claude))
         {
             return true; // no transcript was ever seen: nothing to show, rather than a row of zeros
         }
 
-        spend.Update(AgentToken.Claude, totals with { Unpriced = anyUnpriced }, now);
-        return true;
+        // All time is announced only once every file was in hand, never as a partial sum.
+        spend.Update(AgentToken.Claude, allDone ? totals with { Unpriced = anyUnpriced } : totals with { Unpriced = anyUnpriced, TokAll = -1, CentsAll = -1 }, now);
+        return allDone;
     }
+
+    // The responses of a whole transcript: those from the cache window on keep their ids, older ones keep their day totals.
+    private static CacheEntry Read(Stream stream, string from)
+    {
+        var all = ClaudeSpend.SumFile(stream, string.Empty);
+        return new CacheEntry(0, 0, from, Recent(all, from), ClaudeSpend.Fold(all.Values.Where(r => string.CompareOrdinal(r.Day, from) < 0)));
+    }
+
+    private static Dictionary<string, ClaudeRow> Recent(Dictionary<string, ClaudeRow> all, string from) =>
+        all.Where(r => string.CompareOrdinal(r.Value.Day, from) >= 0).ToDictionary(r => r.Key, r => r.Value, StringComparer.Ordinal);
 
     /// <summary>
     /// A transcript that only grew since it was cached: the cached rows plus those of the new bytes, read from the old end. Null
     /// (read it whole) when the stream cannot seek or the old end was not a line end, as when Claude was mid-write.
     /// </summary>
-    private static Dictionary<string, ClaudeRow>? Appended(Stream stream, CacheEntry old, string from)
+    private static CacheEntry? Appended(Stream stream, CacheEntry old)
     {
         if (!stream.CanSeek || old.Size <= 0 || stream.Length < old.Size)
         {
@@ -297,12 +331,20 @@ internal sealed class ClaudeSpendWatcher : IDisposable
         }
 
         var rows = new Dictionary<string, ClaudeRow>(old.Rows, StringComparer.Ordinal);
-        foreach (var (id, row) in ClaudeSpend.SumFile(stream, from))
+        var older = new Dictionary<string, ClaudeDay>(old.Old, StringComparer.Ordinal);
+        foreach (var (id, row) in ClaudeSpend.SumFile(stream, string.Empty))
         {
-            rows[id] = row;
+            if (string.CompareOrdinal(row.Day, old.From) >= 0)
+            {
+                rows[id] = row;
+            }
+            else
+            {
+                ClaudeSpend.Fold([row], older);
+            }
         }
 
-        return rows;
+        return old with { Rows = rows, Old = older };
     }
 
     /// <summary>The most bytes read from the end of one transcript to find its last record.</summary>
@@ -488,7 +530,23 @@ internal sealed class ClaudeSpendWatcher : IDisposable
                     }
                 }
 
-                cache[key] = new CacheEntry(size, ticks, from, rows);
+                var older = new Dictionary<string, ClaudeDay>(StringComparer.Ordinal);
+                if (f.TryGetProperty("o", out var days) && days.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var d in days.EnumerateArray())
+                    {
+                        if (d.ValueKind == JsonValueKind.Array && d.GetArrayLength() == 4
+                            && d[0].ValueKind == JsonValueKind.String && d[0].GetString() is { Length: 10 } day
+                            && d[1].ValueKind == JsonValueKind.Number && d[1].TryGetDouble(out var dayTokens) && dayTokens >= 0
+                            && d[2].ValueKind == JsonValueKind.Number && d[2].TryGetDouble(out var dayUsd) && dayUsd >= 0
+                            && d[3].ValueKind == JsonValueKind.Number && d[3].TryGetInt32(out var noPrice))
+                        {
+                            older[day] = new ClaudeDay(dayTokens, dayUsd, noPrice == 1);
+                        }
+                    }
+                }
+
+                cache[key] = new CacheEntry(size, ticks, from, rows, older);
             }
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException or InvalidOperationException)
@@ -528,6 +586,18 @@ internal sealed class ClaudeSpendWatcher : IDisposable
                     }
 
                     json.WriteEndArray();
+                    json.WriteStartArray("o");
+                    foreach (var (day, total) in e.Old)
+                    {
+                        json.WriteStartArray();
+                        json.WriteStringValue(day);
+                        json.WriteNumberValue(total.Tokens);
+                        json.WriteNumberValue(total.Usd);
+                        json.WriteNumberValue(total.Unpriced ? 1 : 0);
+                        json.WriteEndArray();
+                    }
+
+                    json.WriteEndArray();
                     json.WriteEndObject();
                 }
 
@@ -548,5 +618,11 @@ internal sealed class ClaudeSpendWatcher : IDisposable
     private static long? Long(JsonElement e, string name) =>
         e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number && v.TryGetInt64(out var n) && n >= 0 ? n : null;
 
-    private sealed record CacheEntry(long Size, long Ticks, string From, Dictionary<string, ClaudeRow> Rows);
+    // Rows: the responses of days on or after From, by id (so a resumed session's copy of a response counts once). Old: everything
+    // before From as per-day totals, which is all "all time" needs, so an old transcript costs a few numbers, not a row per response.
+    private sealed record CacheEntry(long Size, long Ticks, string From, Dictionary<string, ClaudeRow> Rows, Dictionary<string, ClaudeDay> Old)
+    {
+        public CacheEntry Folded() =>
+            this with { Rows = [], Old = ClaudeSpend.Fold(Rows.Values, new Dictionary<string, ClaudeDay>(Old, StringComparer.Ordinal)) };
+    }
 }

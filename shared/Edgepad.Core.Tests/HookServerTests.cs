@@ -162,15 +162,22 @@ public sealed class HookServerTests : IDisposable
     [Fact]
     public async Task UsageAndSpendReachTheirBoards()
     {
-        Assert.NotNull(await Exchange(Request(AgentToken.Claude, "usage", """{"limits":[{"kind":"five_hour","percentUsed":12,"resetsAt":null}],"context":{"percent":40}}""") + "\n"));
+        Assert.NotNull(await Exchange(Start() + "\n"));
+        Assert.NotNull(await Exchange(Request(AgentToken.Claude, "usage", """{"limits":[{"kind":"five_hour","percentUsed":12,"resetsAt":null}],"context":{"percent":40},"cwd":"/work/app"}""") + "\n"));
         Assert.NotNull(await Exchange(Request(AgentToken.Claude, "spend", """{"today":{"tok":1,"cents":2},"week":{"tok":3,"cents":4},"month":{"tok":5,"cents":6}}""") + "\n"));
+        Assert.NotNull(await Exchange(Request(AgentToken.Codex, "spend", """{"today":{"tok":1,"cents":2},"week":{"tok":3,"cents":4},"month":{"tok":5,"cents":6},"all":{"tok":7,"cents":8}}""") + "\n"));
 
         lock (usage.Gate)
         {
             Assert.Equal(12, usage.Limits[(AgentToken.Claude, "300")].Pct);
-            Assert.Equal(40, usage.Limits[(AgentToken.Claude, LimitWindow.Context)].Pct);
+
+            // The context fill is no limit window: it belongs to the session that runs in that folder.
+            Assert.False(usage.Limits.ContainsKey((AgentToken.Claude, LimitWindow.Context)));
             Assert.Equal(new SpendTotals(1, 2, 3, 4, 5, 6), usage.Spend[AgentToken.Claude].Totals);
+            Assert.Equal(new SpendTotals(1, 2, 3, 4, 5, 6, TokAll: 7, CentsAll: 8), usage.Spend[AgentToken.Codex].Totals);
         }
+
+        Assert.Equal(40, Assert.Single(sessions.Snapshot()).ContextPct);
     }
 
     [Theory]

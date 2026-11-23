@@ -193,7 +193,13 @@ internal sealed class HookServer : IDisposable
 
                 break;
             case UsageRequest u:
-                limits.Update(u.Agent, u.Windows, u.ContextPct, clock());
+                // The context fill belongs to one session, not to the agent: it goes to that session's row, not the limits.
+                limits.Update(u.Agent, u.Windows, null, clock());
+                if (u.ContextPct is { } fill)
+                {
+                    sessions.SetContext(u.Agent, u.Cwd, fill);
+                }
+
                 break;
             case SpendRequest s:
                 spend.Update(s.Agent, s.Totals, clock());

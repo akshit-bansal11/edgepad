@@ -121,11 +121,47 @@ internal sealed class SessionBoard(Func<DateTimeOffset> clock)
             if (hook.Cwd.Length > 0)
             {
                 session.Title = TitleOf(hook.Cwd);
+                session.Cwd = hook.Cwd.TrimEnd(Separators);
             }
 
             Touch(session);
         });
     }
+
+    /// <summary>
+    /// Records how full a session's context window is (0..100; anything else reads as unknown). An agent that cannot name its session
+    /// (Claude Code's usage mod knows only its folder) is matched by <paramref name="cwd"/>: the newest session of that agent in that
+    /// folder takes it. Touching a session is not a change of state, so its order is left alone.
+    /// </summary>
+    public void SetContext(string agent, string cwd, double pct) =>
+        Run(() =>
+        {
+            var folder = cwd.TrimEnd(Separators);
+            if (folder.Length == 0)
+            {
+                return;
+            }
+
+            var match = sessions
+                .Where(s => s.Key.Agent == agent && string.Equals(s.Value.Cwd, folder, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(s => s.Value.Order)
+                .Select(s => s.Value)
+                .FirstOrDefault();
+            if (match is not null)
+            {
+                match.Context = Percent(pct);
+            }
+        });
+
+    /// <summary>Like <see cref="SetContext(string, string, double)"/> for an agent whose watcher knows the session id (Codex).</summary>
+    public void SetContextById(string agent, string sessionId, double pct) =>
+        Run(() =>
+        {
+            if (sessions.TryGetValue((agent, sessionId), out var session))
+            {
+                session.Context = Percent(pct);
+            }
+        });
 
     /// <summary>
     /// Adds sessions found on disk (a transcript written before Edgepad ran or the phone linked). A session the board already knows
@@ -150,6 +186,7 @@ internal sealed class SessionBoard(Func<DateTimeOffset> clock)
                 {
                     State = seed.State,
                     Title = seed.Cwd.Length > 0 ? TitleOf(seed.Cwd) : string.Empty,
+                    Cwd = seed.Cwd.TrimEnd(Separators),
                     Touched = seed.Touched,
                     Order = ++order,
                 };
@@ -182,6 +219,9 @@ internal sealed class SessionBoard(Func<DateTimeOffset> clock)
             return Project();
         }
     }
+
+    private static int Percent(double pct) =>
+        double.IsNaN(pct) || pct < 0 ? -1 : (int)Math.Floor(Math.Min(pct, 100) + 0.5);
 
     private static string TitleOf(string cwd)
     {
@@ -235,13 +275,18 @@ internal sealed class SessionBoard(Func<DateTimeOffset> clock)
     private List<SessionEntry> Project() =>
         [.. sessions
             .OrderByDescending(s => s.Value.Order)
-            .Select(s => new SessionEntry(s.Key.Agent, s.Value.Waiting ? SessionStateToken.Wait : s.Value.State, s.Value.Title))];
+            .Select(s => new SessionEntry(s.Key.Agent, s.Value.Waiting ? SessionStateToken.Wait : s.Value.State, s.Value.Title, s.Value.Context))];
 
     private sealed class Session
     {
         public string State { get; set; } = SessionStateToken.Idle;
 
         public string Title { get; set; } = string.Empty;
+
+        /// <summary>The whole working folder, kept on the laptop only; it matches a usage report to its session.</summary>
+        public string Cwd { get; set; } = string.Empty;
+
+        public int Context { get; set; } = -1;
 
         public bool Waiting { get; set; }
 

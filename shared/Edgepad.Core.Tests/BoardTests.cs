@@ -29,6 +29,41 @@ public sealed class SessionBoardTests
         Assert.Empty(board.Snapshot());
     }
 
+    [Fact]
+    public void AContextFillGoesToTheNewestSessionOfThatFolderAndIsRoundedAndClamped()
+    {
+        var board = NewBoard();
+        board.Apply(Hook("a", SessionEvent.Start, cwd: "/work/app/"));
+        board.Apply(Hook("b", SessionEvent.Start, cwd: "/work/app"));
+        board.Apply(Hook("c", SessionEvent.Start, cwd: "/work/other"));
+        Assert.All(board.Snapshot(), s => Assert.Equal(-1, s.ContextPct));
+
+        board.SetContext(AgentToken.Claude, "/work/app", 41.6);
+        board.SetContext(AgentToken.Claude, "/nowhere", 90);
+        board.SetContext(AgentToken.Codex, "/work/other", 90);
+
+        Assert.Equal([-1, 42, -1], board.Snapshot().Select(s => s.ContextPct).Reverse().ToArray());
+
+        board.SetContext(AgentToken.Claude, "/work/other", 250);
+        board.SetContextById(AgentToken.Claude, "a", double.NaN);
+        board.SetContextById(AgentToken.Claude, "a", 12);
+        Assert.Equal([12, 42, 100], board.Snapshot().Select(s => s.ContextPct).Reverse().ToArray());
+    }
+
+    [Fact]
+    public void AChangedContextRaisesChangedAndTheSameOneDoesNot()
+    {
+        var board = NewBoard();
+        board.Apply(Hook("a", SessionEvent.Start));
+        var raised = 0;
+        board.Changed += () => raised++;
+
+        board.SetContext(AgentToken.Claude, "/work/app", 30);
+        board.SetContext(AgentToken.Claude, "/work/app", 30);
+
+        Assert.Equal(1, raised);
+    }
+
     [Theory]
     [InlineData("SessionStart", null, SessionEvent.Start)]
     [InlineData("UserPromptSubmit", null, SessionEvent.Prompt)]
@@ -413,13 +448,14 @@ public sealed class LimitsBoardTests : IDisposable
         var limits = NewBoard(out var store);
         var spend = new SpendBoard(store);
         limits.Update(AgentToken.Claude, [new("five_hour", 42, "1787897318")], 7, start);
-        spend.Update(AgentToken.Codex, new SpendTotals(1, 2, 3, 4, 5, 6, Unpriced: true), start);
+        spend.Update(AgentToken.Codex, new SpendTotals(1, 2, 3, 4, 5, 6, Unpriced: true, TokAll: 7, CentsAll: 8), start);
         store.Touch(AgentToken.Codex, start);
 
         var again = new UsageStore(UsagePath, start);
 
         Assert.Equal(limits.Snapshot(), new LimitsBoard(again).Snapshot());
         Assert.Equal(spend.Snapshot(), new SpendBoard(again).Snapshot());
+        Assert.Equal(8, Assert.Single(new SpendBoard(again).Snapshot()).CentsAll);
         Assert.True(Assert.Single(new SpendBoard(again).Snapshot()).Unpriced);
         Assert.Equal(start.ToUnixTimeSeconds() / 60, again.LastHeard(AgentToken.Codex));
         Assert.Equal(-1, again.LastHeard(AgentToken.Claude));

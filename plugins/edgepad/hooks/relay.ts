@@ -11,9 +11,11 @@ const send = async ($: EngineInterface, force: boolean) => {
     if (!force && now - lastSent < MIN_GAP_MS) return
     lastSent = now
     const u = await $.session.usage()
+    // The folder tells the app which session the context fill belongs to; it stays on the laptop.
     const payload = JSON.stringify({
       limits: u.rateLimits.map(l => ({ kind: l.kind, percentUsed: l.percentUsed, resetsAt: l.resetsAt })),
       context: { percent: u.context.percent },
+      cwd: await $.session.cwd(),
     })
     await $.process.run(
       ["__APP__", '--hook', 'claude', 'usage', payload],

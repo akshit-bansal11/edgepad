@@ -62,6 +62,23 @@ public sealed class CodexRolloutTests
         Assert.Equal(3, OpenAiPrices.Cents(price, totals));
     }
 
+    [Theory]
+    [InlineData(48000, 200000, 24)]
+    [InlineData(300000, 200000, 100)]
+    [InlineData(1000, 0, -1)]
+    public void TheContextFillIsTheLastRequestOverTheWindow(long last, long window, int expected)
+    {
+        var line = $$"""{"timestamp":"x","ordinal":6,"type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1,"output_tokens":1},"last_token_usage":{"total_tokens":{{last}}},"model_context_window":{{window}}},"rate_limits":null}}""";
+
+        Assert.Equal(expected, CodexRollout.ParseTail(RolloutText.Stream(RolloutText.Join(RolloutText.Meta, line))).ContextPct);
+    }
+
+    [Fact]
+    public void ATokenCountWithNoInfoLeavesTheContextUnknown()
+    {
+        Assert.Equal(-1, CodexRollout.ParseTail(RolloutText.Stream(RolloutText.Join(RolloutText.Meta, RolloutText.Count("null")))).ContextPct);
+    }
+
     [Fact]
     public void AnUnmatchedTaskStartedIsWorkingAndAbortedIsIdle()
     {

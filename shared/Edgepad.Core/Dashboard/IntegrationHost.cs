@@ -511,7 +511,7 @@ internal sealed class IntegrationHost : IDisposable
     {
         if (parts.Limits is { } limits)
         {
-            Push(new Text((byte)TextKind.Limits, DashWire.EncodeLimits(limits.Snapshot())));
+            Push(new Text((byte)TextKind.Limits, DashWire.EncodeLimits([.. limits.Snapshot().Where(l => l.Window != LimitWindow.Context)])));
         }
     }
 

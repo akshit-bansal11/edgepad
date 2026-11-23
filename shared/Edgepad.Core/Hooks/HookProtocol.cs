@@ -25,7 +25,7 @@ internal sealed record PermRequest(string Token, string Agent, string Session, s
 internal sealed record SessionRequest(string Token, string Agent, string Session, string Event, string Cwd, string? NotificationType) : HookRequest(Token, Agent);
 
 /// <summary>Limits as the agent reported them (Claude's <c>kind</c> or Codex minutes) and the context fill, for <see cref="LimitsBoard"/>.</summary>
-internal sealed record UsageRequest(string Token, string Agent, IReadOnlyList<RawLimit> Windows, double? ContextPct) : HookRequest(Token, Agent);
+internal sealed record UsageRequest(string Token, string Agent, IReadOnlyList<RawLimit> Windows, double? ContextPct, string Cwd = "") : HookRequest(Token, Agent);
 
 /// <summary>Token and cent totals from the spend scanner, for <see cref="SpendBoard"/>.</summary>
 internal sealed record SpendRequest(string Token, string Agent, SpendTotals Totals) : HookRequest(Token, Agent);
@@ -244,13 +244,19 @@ internal static class HookProtocol
             }
         }
 
+        // The session's folder lets the board attach the context fill to the right session; it never reaches the phone.
+        if (OptStr(d, "cwd", MaxCwdLength, out var folder) is false)
+        {
+            return null;
+        }
+
         double? context = null;
         if (d.TryGetProperty("context", out var ctx) && ctx.ValueKind != JsonValueKind.Null)
         {
             var number = ctx.ValueKind == JsonValueKind.Object && ctx.TryGetProperty("percent", out var p) ? p : ctx;
             if (number.ValueKind == JsonValueKind.Null)
             {
-                return new UsageRequest(token, agent, windows, null);
+                return new UsageRequest(token, agent, windows, null, folder ?? string.Empty);
             }
 
             if (number.ValueKind != JsonValueKind.Number || !number.TryGetDouble(out var value) || double.IsNaN(value) || double.IsInfinity(value))
@@ -261,7 +267,7 @@ internal static class HookProtocol
             context = value;
         }
 
-        return new UsageRequest(token, agent, windows, context);
+        return new UsageRequest(token, agent, windows, context, folder ?? string.Empty);
     }
 
     // resetsAt is an ISO date, epoch seconds or milliseconds (as a number or text), null or absent.
@@ -298,12 +304,19 @@ internal static class HookProtocol
             return null;
         }
 
+        // "all" is optional: an agent that cannot total its whole history leaves it out, and the phone shows a dash.
+        long tokAll = -1, centsAll = -1;
+        if (d.TryGetProperty("all", out _) && !Period(d, "all", out tokAll, out centsAll))
+        {
+            return null;
+        }
+
         if (d.TryGetProperty("unpriced", out var unpriced) && unpriced.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
         {
             return null;
         }
 
-        return new SpendRequest(token, agent, new SpendTotals(tokToday, centsToday, tokWeek, centsWeek, tokMonth, centsMonth, unpriced.ValueKind == JsonValueKind.True));
+        return new SpendRequest(token, agent, new SpendTotals(tokToday, centsToday, tokWeek, centsWeek, tokMonth, centsMonth, unpriced.ValueKind == JsonValueKind.True, tokAll, centsAll));
     }
 
     private static bool Period(JsonElement d, string name, out long tok, out long cents)

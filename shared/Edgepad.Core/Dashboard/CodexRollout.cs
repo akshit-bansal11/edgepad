@@ -8,9 +8,10 @@ internal sealed record RolloutWindow(int Minutes, int Pct, long ResetsAtSec);
 
 /// <summary>
 /// What the end of a rollout says: working or idle (null when the tail holds no task_started, task_complete or turn_aborted), the
-/// newest limits, and what the first line says about the session.
+/// newest limits, what the first line says about the session, and how full its context window was at the last <c>token_count</c>
+/// (the last request's tokens over <c>model_context_window</c>, 0..100, -1 when either is missing).
 /// </summary>
-internal sealed record RolloutTail(string? State, IReadOnlyList<RolloutWindow> Limits, string Cwd, string CliVersion);
+internal sealed record RolloutTail(string? State, IReadOnlyList<RolloutWindow> Limits, string Cwd, string CliVersion, int ContextPct = -1);
 
 /// <summary>The cumulative usage a rollout reports last, and the model it last ran. Input includes the cached part.</summary>
 internal readonly record struct RolloutTotals(string? Model, long Input, long CachedInput, long Output)
@@ -245,6 +246,7 @@ internal static class CodexRollout
         private string? state;
         private string cwd = string.Empty;
         private string version = string.Empty;
+        private int context = -1;
         private IReadOnlyList<RolloutWindow>? preferred;
         private IReadOnlyList<RolloutWindow>? other;
 
@@ -275,12 +277,25 @@ internal static class CodexRollout
                     break;
                 case "token_count":
                     TakeLimits(payload);
+                    TakeContext(payload);
                     break;
             }
         }
 
         public RolloutTail Result() =>
-            new(state, preferred ?? other ?? [], cwd.Length > 4096 ? string.Empty : cwd, version.Length > 64 ? string.Empty : version);
+            new(state, preferred ?? other ?? [], cwd.Length > 4096 ? string.Empty : cwd, version.Length > 64 ? string.Empty : version, context);
+
+        // A token_count with no info (Codex sends one right after the limits change) leaves the last fill as it was.
+        private void TakeContext(JsonElement payload)
+        {
+            if (Child(payload, "info", out var info) && Child(info, "last_token_usage", out var last)
+                && info.TryGetProperty("model_context_window", out var window) && window.ValueKind == JsonValueKind.Number
+                && window.TryGetInt64(out var size) && size > 0)
+            {
+                var used = Count(last, "total_tokens");
+                context = (int)Math.Min(100, (used * 100) / size);
+            }
+        }
 
         private void TakeLimits(JsonElement payload)
         {

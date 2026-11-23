@@ -225,15 +225,15 @@ TEXT 27 12/48/-1/-1/1200/340/9/0/55/-1/-1 = 41 1b 21 31 32 2f 34 38 2f 2d 31 2f 
 TEXT 28 Ryzen5|16384|RTX3060|12288|WiFiCafé = 41 1c 24 52 79 7a 65 6e 35 7c 31 36 33 38 34 7c 52 54 58 33 30 36 30 7c 31 32 32 38 38 7c 57 69 46 69 43 61 66 c3 a9
 # TEXT 29 DISKS: label:usedPct:totalGiB:freeGiB entries joined by "|".
 TEXT 29 C:70:476:143|D:10:931:838 = 41 1d 19 43 3a 37 30 3a 34 37 36 3a 31 34 33 7c 44 3a 31 30 3a 39 33 31 3a 38 33 38
-# TEXT 30 SESSIONS: agent:state:title entries joined by "|".
-TEXT 30 claude:busy:FixLogin|codex:wait:Refactor = 41 1e 28 63 6c 61 75 64 65 3a 62 75 73 79 3a 46 69 78 4c 6f 67 69 6e 7c 63 6f 64 65 78 3a 77 61 69 74 3a 52 65 66 61 63 74 6f 72
+# TEXT 30 SESSIONS: agent:state:ctx:title entries joined by "|"; ctx is the session's context fill 0..100, -1 unknown.
+TEXT 30 claude:busy:42:FixLogin|codex:wait:-1:Refactor = 41 1e 2e 63 6c 61 75 64 65 3a 62 75 73 79 3a 34 32 3a 46 69 78 4c 6f 67 69 6e 7c 63 6f 64 65 78 3a 77 61 69 74 3a 2d 31 3a 52 65 66 61 63 74 6f 72
 # TEXT 31 PERM_ANSWER, phone to laptop, and TEXT 32 PERM_GONE, laptop to phone: the id is 12 lowercase hex digits.
 TEXT 31 a1b2c3d4e5f6/a = 41 1f 0e 61 31 62 32 63 33 64 34 65 35 66 36 2f 61
 TEXT 32 a1b2c3d4e5f6 = 41 20 0c 61 31 62 32 63 33 64 34 65 35 66 36
 # TEXT 33 LIMITS: the window is minutes (300 is five hours), "ctx" for the context window or "~name" for a limit with no duration.
 TEXT 33 claude:300:42:29500000:29499900|claude:ctx:15:-1:29499900|codex:~spend_limit:80:-1:29499900 = 41 21 5b 63 6c 61 75 64 65 3a 33 30 30 3a 34 32 3a 32 39 35 30 30 30 30 30 3a 32 39 34 39 39 39 30 30 7c 63 6c 61 75 64 65 3a 63 74 78 3a 31 35 3a 2d 31 3a 32 39 34 39 39 39 30 30 7c 63 6f 64 65 78 3a 7e 73 70 65 6e 64 5f 6c 69 6d 69 74 3a 38 30 3a 2d 31 3a 32 39 34 39 39 39 30 30
-# TEXT 34 SPEND.
-TEXT 34 claude/29499900/120000/310/800000/2100/3000000/9000 = 41 22 33 63 6c 61 75 64 65 2f 32 39 34 39 39 39 30 30 2f 31 32 30 30 30 30 2f 33 31 30 2f 38 30 30 30 30 30 2f 32 31 30 30 2f 33 30 30 30 30 30 30 2f 39 30 30 30
+# TEXT 34 SPEND: agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/tokAll/centsAll/unpriced; -1 all time is unknown.
+TEXT 34 claude/29499900/120000/310/800000/2100/3000000/9000/90000000/31000/0 = 41 22 44 63 6c 61 75 64 65 2f 32 39 34 39 39 39 30 30 2f 31 32 30 30 30 30 2f 33 31 30 2f 38 30 30 30 30 30 2f 32 31 30 30 2f 33 30 30 30 30 30 30 2f 39 30 30 30 2f 39 30 30 30 30 30 30 30 2f 33 31 30 30 30 2f 30
 # TEXT 35 WEATHER: 18.5 C is 185, WMO code 3, the city; empty means none.
 TEXT 35 185/3/Oslo = 41 23 0a 31 38 35 2f 33 2f 4f 73 6c 6f
 TEXT 35 = 41 23 00

@@ -328,17 +328,46 @@ public sealed class CodexWatcherTests : IDisposable
         Today("rollout-today.jsonl", Fixture, TimeSpan.FromHours(3));
         Rollout(now - TimeSpan.FromDays(1), "rollout-yesterday.jsonl", Fixture, TimeSpan.FromHours(3));
         Rollout(new DateTimeOffset(new DateTime(2026, 11, 1, 12, 0, 0, DateTimeKind.Local)), "rollout-first.jsonl", Fixture, TimeSpan.FromHours(3));
-        Rollout(new DateTimeOffset(new DateTime(2026, 10, 31, 12, 0, 0, DateTimeKind.Local)), "rollout-lastmonth.jsonl", Fixture, TimeSpan.FromHours(3));
+        Rollout(new DateTimeOffset(new DateTime(2026, 10, 21, 12, 0, 0, DateTimeKind.Local)), "rollout-thirtieth.jsonl", Fixture, TimeSpan.FromHours(3));
+        Rollout(new DateTimeOffset(new DateTime(2026, 10, 20, 12, 0, 0, DateTimeKind.Local)), "rollout-older.jsonl", Fixture, TimeSpan.FromHours(3));
+        Rollout(new DateTimeOffset(new DateTime(2026, 3, 2, 12, 0, 0, DateTimeKind.Local)), "rollout-march.jsonl", Fixture, TimeSpan.FromHours(3));
         Watcher.SetWatch(CodexWatcher.AiBit);
 
         Watcher.Poll();
 
+        // Today, the last 7 days (13 November on), the last 30 (21 October on) and everything.
         var spend = Assert.Single(Spend.Snapshot());
         Assert.Equal(AgentToken.Codex, spend.Agent);
         Assert.Equal((47898L, 3L), (spend.TokToday, spend.CentsToday));
         Assert.Equal((2 * 47898L, 6L), (spend.TokWeek, spend.CentsWeek));
-        Assert.Equal((3 * 47898L, 9L), (spend.TokMonth, spend.CentsMonth));
+        Assert.Equal((4 * 47898L, 12L), (spend.TokMonth, spend.CentsMonth));
+        Assert.Equal((6 * 47898L, 18L), (spend.TokAll, spend.CentsAll));
         Assert.False(Watcher.HasUnpriced);
+    }
+
+    [Fact]
+    public void OldHistoryIsReadWithinABudgetAndAllTimeWaitsForTheRest()
+    {
+        Today("rollout-today.jsonl", Fixture, TimeSpan.FromHours(3));
+        var old = new DateTimeOffset(new DateTime(2026, 3, 2, 12, 0, 0, DateTimeKind.Local));
+        var big = Rollout(old.AddDays(1), "rollout-big.jsonl", Fixture, TimeSpan.FromHours(3));
+        using (var stream = File.OpenWrite(big))
+        {
+            stream.SetLength(33L * 1024 * 1024); // more than one refresh may read of old history
+        }
+
+        // The newer folder is read first and spends the budget, so this older one waits.
+        Rollout(old, "rollout-before.jsonl", Fixture, TimeSpan.FromHours(3));
+        Watcher.SetWatch(CodexWatcher.AiBit);
+
+        Watcher.Poll();
+        var partial = Assert.Single(Spend.Snapshot());
+        Assert.Equal(47898L, partial.TokToday);
+        Assert.Equal(-1L, partial.TokAll);
+
+        // The unchanged files come from the cache, so the next poll finishes what was left.
+        Watcher.Poll();
+        Assert.Equal(3 * 47898L, Assert.Single(Spend.Snapshot()).TokAll);
     }
 
     [Fact]

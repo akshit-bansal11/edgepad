@@ -254,7 +254,7 @@ public sealed class IntegrationHostTests : IDisposable
         Assert.Equal(string.Empty, Assert.Single(Texts(TextKind.Sessions)).Value);
 
         sessions.Apply(new HookEvent(AgentToken.Claude, "s1", SessionEvent.Prompt, "/work/app"));
-        Assert.Equal("claude:busy:app", Texts(TextKind.Sessions)[^1].Value);
+        Assert.Equal("claude:busy:-1:app", Texts(TextKind.Sessions)[^1].Value);
     }
 
     [Fact]

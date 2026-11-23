@@ -13,14 +13,14 @@ internal sealed record StatsInfo(string CpuName, int RamMiB, string GpuName, int
 /// <summary>One disk of TEXT DISKS.</summary>
 internal sealed record DiskEntry(string Label, int UsedPct, long TotalGiB, long FreeGiB);
 
-/// <summary>One session of TEXT SESSIONS. <paramref name="Agent"/> is an <see cref="AgentToken"/> and <paramref name="State"/> a <see cref="SessionStateToken"/>.</summary>
-internal sealed record SessionEntry(string Agent, string State, string Title);
+/// <summary>One session of TEXT SESSIONS. <paramref name="Agent"/> is an <see cref="AgentToken"/> and <paramref name="State"/> a <see cref="SessionStateToken"/>. <paramref name="ContextPct"/> is how full the session's context window is, 0..100, -1 unknown.</summary>
+internal sealed record SessionEntry(string Agent, string State, string Title, int ContextPct = -1);
 
 /// <summary>One limit of TEXT LIMITS. <paramref name="Window"/> is minutes, <see cref="LimitWindow.Context"/>, or <see cref="LimitWindow.NamedPrefix"/> and a name.</summary>
 internal sealed record LimitEntry(string Agent, string Window, double Pct, long ResetAtMin, long MeasuredAtMin);
 
 /// <summary>One agent of TEXT SPEND. Cents are estimates at API list prices; <paramref name="Unpriced"/> marks them a lower bound (some tokens had no price).</summary>
-internal sealed record SpendEntry(string Agent, long MeasuredAtMin, long TokToday, long CentsToday, long TokWeek, long CentsWeek, long TokMonth, long CentsMonth, bool Unpriced = false);
+internal sealed record SpendEntry(string Agent, long MeasuredAtMin, long TokToday, long CentsToday, long TokWeek, long CentsWeek, long TokMonth, long CentsMonth, bool Unpriced = false, long TokAll = -1, long CentsAll = -1);
 
 /// <summary>TEXT WEATHER.</summary>
 internal sealed record WeatherInfo(int TempTenthsC, int WmoCode, string City);
@@ -236,7 +236,7 @@ internal static class DashWire
 
     private const int MaxSessions = 8;
 
-    /// <summary>"agent:state:title" entries joined by "|", newest first as given, at most 8; an unknown agent or state drops the entry.</summary>
+    /// <summary>"agent:state:ctx:title" entries joined by "|", newest first as given, at most 8; ctx is 0..100 or -1; an unknown agent or state drops the entry.</summary>
     public static string EncodeSessions(IReadOnlyList<SessionEntry> sessions)
     {
         var parts = new List<string>();
@@ -249,7 +249,7 @@ internal static class DashWire
 
             if (IsAgent(s.Agent) && (s.State is SessionStateToken.Busy or SessionStateToken.Wait or SessionStateToken.Idle))
             {
-                parts.Add($"{s.Agent}:{s.State}:{Clean(s.Title, 24)}");
+                parts.Add($"{s.Agent}:{s.State}:{(s.ContextPct is >= 0 and <= 100 ? s.ContextPct : -1).ToString(CultureInfo.InvariantCulture)}:{Clean(s.Title, 24)}");
             }
         }
 
@@ -259,9 +259,10 @@ internal static class DashWire
     public static IReadOnlyList<SessionEntry> ParseSessions(string? wire) =>
         Entries<SessionEntry>(wire, entry =>
         {
-            var p = entry.Split(':', 3);
-            return p.Length == 3 && IsAgent(p[0]) && (p[1] is SessionStateToken.Busy or SessionStateToken.Wait or SessionStateToken.Idle)
-                ? new SessionEntry(p[0], p[1], p[2])
+            var p = entry.Split(':', 4);
+            return p.Length == 4 && IsAgent(p[0]) && (p[1] is SessionStateToken.Busy or SessionStateToken.Wait or SessionStateToken.Idle)
+                && TryLong(p[2], out var ctx)
+                ? new SessionEntry(p[0], p[1], p[3], ctx is >= 0 and <= 100 ? (int)ctx : -1)
                 : null;
         });
 
@@ -340,7 +341,7 @@ internal static class DashWire
 
     // ---- SPEND
 
-    /// <summary>"agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth/unpriced" entries joined by "|"; unpriced is 1 or 0.</summary>
+    /// <summary>"agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/tokAll/centsAll/unpriced" entries joined by "|"; unpriced is 1 or 0; the all-time pair is -1 when unknown, any other negative is 0.</summary>
     public static string EncodeSpend(IReadOnlyList<SpendEntry> spend)
     {
         var parts = new List<string>();
@@ -348,7 +349,7 @@ internal static class DashWire
         {
             if (IsAgent(s.Agent))
             {
-                parts.Add(string.Join('/', s.Agent, Big(s.MeasuredAtMin, -1), Big(s.TokToday, 0), Big(s.CentsToday, 0), Big(s.TokWeek, 0), Big(s.CentsWeek, 0), Big(s.TokMonth, 0), Big(s.CentsMonth, 0), s.Unpriced ? "1" : "0"));
+                parts.Add(string.Join('/', s.Agent, Big(s.MeasuredAtMin, -1), Big(s.TokToday, 0), Big(s.CentsToday, 0), Big(s.TokWeek, 0), Big(s.CentsWeek, 0), Big(s.TokMonth, 0), Big(s.CentsMonth, 0), Big(s.TokAll, -1), Big(s.CentsAll, -1), s.Unpriced ? "1" : "0"));
             }
         }
 
@@ -359,12 +360,12 @@ internal static class DashWire
         Entries<SpendEntry>(wire, entry =>
         {
             var p = entry.Split('/');
-            if (p.Length != 9 || !IsAgent(p[0]) || p[8] is not ("0" or "1"))
+            if (p.Length != 11 || !IsAgent(p[0]) || p[10] is not ("0" or "1"))
             {
                 return null;
             }
 
-            var n = new long[7];
+            var n = new long[9];
             for (var i = 0; i < n.Length; i++)
             {
                 if (!TryLong(p[i + 1], out n[i]))
@@ -373,7 +374,7 @@ internal static class DashWire
                 }
             }
 
-            return new SpendEntry(p[0], n[0], n[1], n[2], n[3], n[4], n[5], n[6], p[8] == "1");
+            return new SpendEntry(p[0], n[0], n[1], n[2], n[3], n[4], n[5], n[6], p[10] == "1", Math.Max(-1, n[7]), Math.Max(-1, n[8]));
         });
 
     // ---- WEATHER
