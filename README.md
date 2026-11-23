@@ -218,14 +218,14 @@ Connect Claude Code:
 1. Install Claude Code on this computer if you have not: https://claude.com/claude-code
 2. Click **Connect**. Edgepad adds its plugin to Claude Code.
 3. Restart open Claude Code sessions, or type `/reload-plugins` in them.
-4. On your phone, open the AI tile in Controls.
+4. On your phone, turn on Settings › Developer › Developer mode, then open Controls › Developer › AI.
 
 Connect Codex:
 
 1. Install Codex on this computer if you have not: https://developers.openai.com/codex
 2. Click **Connect**. Edgepad adds its plugin to Codex.
 3. In Codex, type `/hooks` and trust Edgepad. In the Codex app: Settings > Hooks > Review hooks.
-4. On your phone, open the AI tile in Controls. It appears once Codex sends its first event.
+4. On your phone, turn on Settings › Developer › Developer mode, then open Controls › Developer › AI. It appears once Codex sends its first event.
 
 After an Edgepad update that changes the plugin's hooks, Codex skips them until you trust them again. Edgepad shows a notification when that happens: type `/hooks` in Codex and trust Edgepad again.
 
@@ -245,7 +245,7 @@ Connect GitHub:
 
 1. Click **Sign in with GitHub**. A github.com page opens.
 2. Enter the code shown in the Integrations window and click **Authorize**.
-3. On your phone, open the Git tile in Controls.
+3. On your phone, turn on Settings › Developer › Developer mode, then open Controls › Developer › Git.
 
 Connect GitLab: click **Sign in** and enter the code on the page that opens. For a self-hosted server, click **Add a self-hosted server…**, and paste a personal access token with only the `read_api` scope. On gitlab.com, **Use a token instead** takes the same kind of token, and unlike the sign-in it does not run out after 2 hours.
 

@@ -201,7 +201,7 @@ export function ProductSections() {
             },
             {
               title: "Controls",
-              body: "One button on the surface opens a popup of tiles: the keyboard, the gamepad, macros, annotate, capture, clipboard, Presenter, Send a file and Stats, and AI and Git once connected. The top row is Controls, Type, Lock and Settings. A laptop shows only what it can do, and Edit under the tiles hides, shows and drags them.",
+              body: "One button on the surface opens a popup of tiles: the keyboard, the gamepad, macros, annotate, capture, clipboard, Presenter, Send a file and Stats, and Developer (AI and Git) once Developer mode is on and a tool is connected. The top row is Controls, Type, Lock and Settings. A laptop shows only what it can do, and Edit under the tiles hides, shows and drags them.",
             },
             {
               title: "Share clipboard",
@@ -265,7 +265,7 @@ export function ProductSections() {
             },
             {
               title: "Sleep when this ends",
-              body: "Sleep or shut down the laptop when the current video or track ends, after a 60 second countdown on the laptop that you can cancel. Windows and Linux.",
+              body: "Sleep or shut down the laptop when the current video or track ends, after a 60 second countdown on the laptop that you can cancel. Windows, Mac and Linux.",
             },
             {
               title: "Quick Settings tile",
@@ -865,13 +865,14 @@ sudo ./install.sh`}
           <strong>Controls</strong> on the surface opens a popup headed Controls, with the
           edit pencil beside it. Its top row is Controls, Type, Lock and Settings. The
           tiles fill the popup: Keyboard, Gamepad, Macros, Annotate, Capture, Clipboard,
-          Presenter, Send a file and Stats, and AI and Git once connected. A laptop shows
-          only what it can do, so a phone shows no Annotate tile when the laptop does
-          not offer it, and no Capture tile when it cannot capture. Under the tiles, one
-          row of chips holds Hide dials and media, Black out when idle, Air mouse,
-          Floating dials and Sleep when this ends. The Edit chip shows every tile; tap
-          one to hide or show it, and drag to move it. Back from the keyboard, the
-          gamepad and Capture returns to Controls.
+          Presenter, Send a file and Stats, and Developer (the AI and Git pages) once
+          Developer mode is on and a tool is connected. A laptop shows only what it can
+          do, so a phone shows no Annotate tile when the laptop does not offer it, and
+          no Capture tile when it cannot capture. Under the tiles, one row of chips
+          holds Hide dials and media, Black out when idle, Air mouse, Floating dials and
+          Sleep when this ends. The Edit chip shows every tile; tap one to hide or show
+          it, and drag to move it. Back from the keyboard, the gamepad and Capture
+          returns to Controls.
         </P>
         <P>
           Annotate draws on the laptop&apos;s primary display, with the phone as an
@@ -972,7 +973,7 @@ sudo ./install.sh`}
           on the laptop; they are off by default and work on Windows, Mac and Linux on X11.{" "}
           <strong>Sleep when this ends</strong> sleeps or shuts down the laptop when the
           current video or track ends, after a 60 second countdown you can cancel
-          (Windows and Linux). The <strong>Quick Settings tile</strong> and the Stay
+          (Windows, Mac and Linux). The <strong>Quick Settings tile</strong> and the Stay
           connected notification&apos;s play/pause and volume buttons are on the phone.{" "}
           <strong>Laptop notifications</strong> are off until both sides turn them on,
           and work on Linux only.

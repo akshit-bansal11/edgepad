@@ -106,7 +106,7 @@ The phone asks on its own keypad, so no keyboard app sees the digits; it never s
 
 ### Controls, annotate, sign and capture
 
-**Controls** on the surface opens a popup with the heading **Controls** and, beside it, the edit pencil. Its top row is Controls, Type, Lock, Settings. The tiles are Keyboard, Gamepad, Macros, Annotate, Capture, Clipboard, Presenter, Send a file, Stats and, once connected, the AI and Git tiles. Under them are chips: Edit, Hide dials and media, Black out when idle, Air mouse, Floating dials and Sleep when this ends. A laptop shows only what it can do, so a phone shows no Annotate tile when the laptop does not offer it. Each one is described below.
+**Controls** on the surface opens a popup with the heading **Controls** and, beside it, the edit pencil. Its top row is Controls, Type, Lock, Settings. The tiles are Keyboard, Gamepad, Macros, Annotate, Capture, Clipboard, Presenter, Send a file, Stats and, with Developer mode on (Settings › Developer) and a tool connected on the laptop, Developer, which holds the AI and Git pages. Under them are chips: Edit, Hide dials and media, Black out when idle, Air mouse, Floating dials and Sleep when this ends. A laptop shows only what it can do, so a phone shows no Annotate tile when the laptop does not offer it. Each one is described below.
 
 #### Annotate and sign
 
@@ -150,7 +150,7 @@ The phone shows a card with the file name, "2 of 5", a progress bar with percent
 
 #### Sleep when this ends
 
-In the Controls popup while something plays: **Sleep the laptop** or **Shut the laptop down** when it ends, **Cancel** to disarm. It needs a media end time. Shutdown shows a 60 second cancellable countdown on the laptop. Windows and Linux; the Mac gains it with its now-playing support.
+In the Controls popup while something plays: **Sleep the laptop** or **Shut the laptop down** when it ends, **Cancel** to disarm. It needs a media end time. Shutdown shows a 60 second cancellable countdown on the laptop. Windows, Mac and Linux.
 
 #### Stats
 
