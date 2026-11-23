@@ -14,7 +14,7 @@
   <string name="widget_system">시스템</string>
   <string name="widget_network">네트워크</string>
   <string name="widget_ai">AI 사용량</string>
-  <string name="sys_title">시스템</string>
+  <string name="sys_title">통계</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>
   <string name="sys_ram">메모리</string>

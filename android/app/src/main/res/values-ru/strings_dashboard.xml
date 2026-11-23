@@ -14,7 +14,7 @@
   <string name="widget_system">Система</string>
   <string name="widget_network">Сеть</string>
   <string name="widget_ai">Использование ИИ</string>
-  <string name="sys_title">Система</string>
+  <string name="sys_title">Статистика</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>
   <string name="sys_ram">Память</string>

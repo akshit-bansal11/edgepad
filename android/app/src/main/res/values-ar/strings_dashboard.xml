@@ -14,7 +14,7 @@
   <string name="widget_system">النظام</string>
   <string name="widget_network">الشبكة</string>
   <string name="widget_ai">استخدام الذكاء الاصطناعي</string>
-  <string name="sys_title">النظام</string>
+  <string name="sys_title">الإحصائيات</string>
   <string name="sys_cpu">المعالج</string>
   <string name="sys_gpu">معالج الرسوميات</string>
   <string name="sys_ram">الذاكرة</string>

@@ -14,7 +14,7 @@
   <string name="widget_system">Système</string>
   <string name="widget_network">Réseau</string>
   <string name="widget_ai">Utilisation de l’IA</string>
-  <string name="sys_title">Système</string>
+  <string name="sys_title">Statistiques</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>
   <string name="sys_ram">Mémoire</string>

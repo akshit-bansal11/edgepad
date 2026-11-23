@@ -14,7 +14,7 @@
   <string name="widget_system">Sistem</string>
   <string name="widget_network">Ağ</string>
   <string name="widget_ai">Yapay zeka kullanımı</string>
-  <string name="sys_title">Sistem</string>
+  <string name="sys_title">İstatistikler</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>
   <string name="sys_ram">Bellek</string>

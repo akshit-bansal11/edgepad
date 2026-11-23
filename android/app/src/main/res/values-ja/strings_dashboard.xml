@@ -14,7 +14,7 @@
   <string name="widget_system">システム</string>
   <string name="widget_network">ネットワーク</string>
   <string name="widget_ai">AI の使用状況</string>
-  <string name="sys_title">システム</string>
+  <string name="sys_title">統計</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>
   <string name="sys_ram">メモリ</string>

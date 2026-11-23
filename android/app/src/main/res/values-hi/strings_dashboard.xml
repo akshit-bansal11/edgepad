@@ -14,7 +14,7 @@
   <string name="widget_system">सिस्टम</string>
   <string name="widget_network">नेटवर्क</string>
   <string name="widget_ai">AI उपयोग</string>
-  <string name="sys_title">सिस्टम</string>
+  <string name="sys_title">आँकड़े</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>
   <string name="sys_ram">मेमोरी</string>

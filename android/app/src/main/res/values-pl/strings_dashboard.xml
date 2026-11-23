@@ -14,7 +14,7 @@
   <string name="widget_system">System</string>
   <string name="widget_network">Sieć</string>
   <string name="widget_ai">Użycie AI</string>
-  <string name="sys_title">System</string>
+  <string name="sys_title">Statystyki</string>
   <string name="sys_cpu">CPU</string>
   <string name="sys_gpu">GPU</string>
   <string name="sys_ram">Pamięć</string>
