@@ -208,8 +208,8 @@ internal sealed class UsageStore
                         var unpriced = item.TryGetProperty("u", out var u) && u.ValueKind == JsonValueKind.True;
                         // "e" (all time) is absent in files saved before it, and then unknown.
                         long all = -1, allCents = -1;
-                        if (item.TryGetProperty("e", out var e) && e.ValueKind == JsonValueKind.Array && e.GetArrayLength() == 2
-                            && e[0].ValueKind == JsonValueKind.Number && e[0].TryGetInt64(out var a0) && e[1].ValueKind == JsonValueKind.Number && e[1].TryGetInt64(out var a1))
+                        if (item.TryGetProperty("e", out var extra) && extra.ValueKind == JsonValueKind.Array && extra.GetArrayLength() == 2
+                            && extra[0].ValueKind == JsonValueKind.Number && extra[0].TryGetInt64(out var a0) && extra[1].ValueKind == JsonValueKind.Number && extra[1].TryGetInt64(out var a1))
                         {
                             all = Math.Max(-1, a0);
                             allCents = Math.Max(-1, a1);

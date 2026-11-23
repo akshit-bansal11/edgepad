@@ -36,12 +36,10 @@
   <string name="wx_credit">Hava durumu verileri: Open-Meteo.com</string>
   <string name="ai_win_week">Hafta</string>
   <string name="ai_win_month">Ay</string>
-  <string name="ai_win_spend">Harcama</string>
   <string name="ai_ctx">Bağlam</string>
   <string name="ai_resets">%1$s içinde sıfırlanır</string>
   <string name="ai_updated">%1$s önce güncellendi</string>
   <string name="ai_today">Bugün</string>
-  <string name="ai_week">Bu hafta</string>
   <string name="ai_tokens">%1$s token</string>
   <string name="ai_estimate">API fiyatlarına göre tahmini</string>
   <string name="ai_unpriced">Bazı modellerin henüz fiyatı yok</string>
@@ -117,8 +115,8 @@
   <string name="phone_health_fault">Arıza</string>
   <string name="phone_health_cold">Çok soğuk</string>
   <string name="phone_storage">Depolama</string>
-  <string name="phone_used_of">%1$s / %2$s</string>
   <string name="stats_hardware">Donanım</string>
+  <string name="phone_used_of">%1$s / %2$s</string>
   <string name="phone_thermal">Isı durumu</string>
   <string name="phone_thermal_none">Normal</string>
   <string name="phone_thermal_light">Ilık</string>

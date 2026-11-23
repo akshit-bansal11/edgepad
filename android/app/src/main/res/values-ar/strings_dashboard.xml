@@ -36,12 +36,10 @@
   <string name="wx_credit">بيانات الطقس من Open-Meteo.com</string>
   <string name="ai_win_week">أسبوع</string>
   <string name="ai_win_month">شهر</string>
-  <string name="ai_win_spend">الإنفاق</string>
   <string name="ai_ctx">السياق</string>
   <string name="ai_resets">يُعاد الضبط خلال %1$s</string>
   <string name="ai_updated">حُدّث قبل %1$s</string>
   <string name="ai_today">اليوم</string>
-  <string name="ai_week">هذا الأسبوع</string>
   <string name="ai_tokens">%1$s رمز</string>
   <string name="ai_estimate">مُقدَّر بأسعار واجهة البرمجة</string>
   <string name="ai_unpriced">لبعض النماذج لا سعر بعد</string>
@@ -133,8 +131,8 @@
   <string name="phone_health_fault">عطل</string>
   <string name="phone_health_cold">باردة جدًا</string>
   <string name="phone_storage">التخزين</string>
-  <string name="phone_used_of">%1$s من %2$s</string>
   <string name="stats_hardware">العتاد</string>
+  <string name="phone_used_of">%1$s من %2$s</string>
   <string name="phone_thermal">الحالة الحرارية</string>
   <string name="phone_thermal_none">عادية</string>
   <string name="phone_thermal_light">دافئة</string>

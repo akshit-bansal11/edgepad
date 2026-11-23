@@ -36,12 +36,10 @@
   <string name="wx_credit">天气数据来自 Open-Meteo.com</string>
   <string name="ai_win_week">周</string>
   <string name="ai_win_month">月</string>
-  <string name="ai_win_spend">花费</string>
   <string name="ai_ctx">上下文</string>
   <string name="ai_resets">%1$s后重置</string>
   <string name="ai_updated">%1$s前更新</string>
   <string name="ai_today">今天</string>
-  <string name="ai_week">本周</string>
   <string name="ai_tokens">%1$s 个词元</string>
   <string name="ai_estimate">按 API 价格估算</string>
   <string name="ai_unpriced">部分模型尚无价格</string>
@@ -113,8 +111,8 @@
   <string name="phone_health_fault">故障</string>
   <string name="phone_health_cold">过冷</string>
   <string name="phone_storage">存储空间</string>
-  <string name="phone_used_of">%1$s / %2$s</string>
   <string name="stats_hardware">硬件</string>
+  <string name="phone_used_of">%1$s / %2$s</string>
   <string name="phone_thermal">温控状态</string>
   <string name="phone_thermal_none">正常</string>
   <string name="phone_thermal_light">温热</string>

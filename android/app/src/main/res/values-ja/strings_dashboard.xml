@@ -36,12 +36,10 @@
   <string name="wx_credit">天気データ: Open-Meteo.com</string>
   <string name="ai_win_week">週</string>
   <string name="ai_win_month">月</string>
-  <string name="ai_win_spend">支出</string>
   <string name="ai_ctx">コンテキスト</string>
   <string name="ai_resets">%1$s後にリセット</string>
   <string name="ai_updated">%1$s前に更新</string>
   <string name="ai_today">今日</string>
-  <string name="ai_week">今週</string>
   <string name="ai_tokens">%1$s トークン</string>
   <string name="ai_estimate">API 料金での概算</string>
   <string name="ai_unpriced">料金が未設定のモデルがあります</string>
@@ -113,8 +111,8 @@
   <string name="phone_health_fault">異常</string>
   <string name="phone_health_cold">低温すぎ</string>
   <string name="phone_storage">ストレージ</string>
-  <string name="phone_used_of">%1$s / %2$s</string>
   <string name="stats_hardware">ハードウェア</string>
+  <string name="phone_used_of">%1$s / %2$s</string>
   <string name="phone_thermal">熱の状態</string>
   <string name="phone_thermal_none">正常</string>
   <string name="phone_thermal_light">やや高温</string>

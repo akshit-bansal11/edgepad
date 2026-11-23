@@ -36,12 +36,10 @@
   <string name="wx_credit">Données météo par Open-Meteo.com</string>
   <string name="ai_win_week">Semaine</string>
   <string name="ai_win_month">Mois</string>
-  <string name="ai_win_spend">Dépenses</string>
   <string name="ai_ctx">Contexte</string>
   <string name="ai_resets">Réinitialisation dans %1$s</string>
   <string name="ai_updated">Mis à jour il y a %1$s</string>
   <string name="ai_today">Aujourd’hui</string>
-  <string name="ai_week">Cette semaine</string>
   <string name="ai_tokens">%1$s jetons</string>
   <string name="ai_estimate">Estimé aux tarifs de l’API</string>
   <string name="ai_unpriced">Certains modèles n’ont pas encore de tarif</string>
@@ -121,8 +119,8 @@
   <string name="phone_health_fault">Défaut</string>
   <string name="phone_health_cold">Trop froide</string>
   <string name="phone_storage">Stockage</string>
-  <string name="phone_used_of">%1$s sur %2$s</string>
   <string name="stats_hardware">Matériel</string>
+  <string name="phone_used_of">%1$s sur %2$s</string>
   <string name="phone_thermal">État thermique</string>
   <string name="phone_thermal_none">Normal</string>
   <string name="phone_thermal_light">Tiède</string>

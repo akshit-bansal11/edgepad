@@ -36,12 +36,10 @@
   <string name="wx_credit">날씨 데이터: Open-Meteo.com</string>
   <string name="ai_win_week">주</string>
   <string name="ai_win_month">월</string>
-  <string name="ai_win_spend">지출</string>
   <string name="ai_ctx">컨텍스트</string>
   <string name="ai_resets">%1$s 후 초기화</string>
   <string name="ai_updated">%1$s 전 업데이트</string>
   <string name="ai_today">오늘</string>
-  <string name="ai_week">이번 주</string>
   <string name="ai_tokens">토큰 %1$s개</string>
   <string name="ai_estimate">API 가격 기준 추정</string>
   <string name="ai_unpriced">일부 모델은 아직 가격이 없습니다</string>
@@ -113,8 +111,8 @@
   <string name="phone_health_fault">오류</string>
   <string name="phone_health_cold">너무 차가움</string>
   <string name="phone_storage">저장 공간</string>
-  <string name="phone_used_of">%2$s 중 %1$s</string>
   <string name="stats_hardware">하드웨어</string>
+  <string name="phone_used_of">%2$s 중 %1$s</string>
   <string name="phone_thermal">발열 상태</string>
   <string name="phone_thermal_none">정상</string>
   <string name="phone_thermal_light">따뜻함</string>

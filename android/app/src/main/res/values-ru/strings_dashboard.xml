@@ -36,12 +36,10 @@
   <string name="wx_credit">Данные о погоде: Open-Meteo.com</string>
   <string name="ai_win_week">Неделя</string>
   <string name="ai_win_month">Месяц</string>
-  <string name="ai_win_spend">Расходы</string>
   <string name="ai_ctx">Контекст</string>
   <string name="ai_resets">Сброс через %1$s</string>
   <string name="ai_updated">Обновлено %1$s назад</string>
   <string name="ai_today">Сегодня</string>
-  <string name="ai_week">На этой неделе</string>
   <string name="ai_tokens">Токенов: %1$s</string>
   <string name="ai_estimate">Оценка по ценам API</string>
   <string name="ai_unpriced">У некоторых моделей пока нет цены</string>
@@ -125,8 +123,8 @@
   <string name="phone_health_fault">Неисправность</string>
   <string name="phone_health_cold">Слишком холодная</string>
   <string name="phone_storage">Хранилище</string>
-  <string name="phone_used_of">%1$s из %2$s</string>
   <string name="stats_hardware">Оборудование</string>
+  <string name="phone_used_of">%1$s из %2$s</string>
   <string name="phone_thermal">Тепловое состояние</string>
   <string name="phone_thermal_none">Норма</string>
   <string name="phone_thermal_light">Тепло</string>

@@ -36,12 +36,10 @@
   <string name="wx_credit">Dati meteo di Open-Meteo.com</string>
   <string name="ai_win_week">Settimana</string>
   <string name="ai_win_month">Mese</string>
-  <string name="ai_win_spend">Spesa</string>
   <string name="ai_ctx">Contesto</string>
   <string name="ai_resets">Si azzera tra %1$s</string>
   <string name="ai_updated">Aggiornato %1$s fa</string>
   <string name="ai_today">Oggi</string>
-  <string name="ai_week">Questa settimana</string>
   <string name="ai_tokens">%1$s token</string>
   <string name="ai_estimate">Stimato a prezzi API</string>
   <string name="ai_unpriced">Alcuni modelli non hanno ancora un prezzo</string>

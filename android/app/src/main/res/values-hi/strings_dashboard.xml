@@ -36,12 +36,10 @@
   <string name="wx_credit">मौसम डेटा Open-Meteo.com से</string>
   <string name="ai_win_week">सप्ताह</string>
   <string name="ai_win_month">महीना</string>
-  <string name="ai_win_spend">खर्च</string>
   <string name="ai_ctx">संदर्भ</string>
   <string name="ai_resets">%1$s में रीसेट होगा</string>
   <string name="ai_updated">%1$s पहले अपडेट किया गया</string>
   <string name="ai_today">आज</string>
-  <string name="ai_week">इस सप्ताह</string>
   <string name="ai_tokens">%1$s टोकन</string>
   <string name="ai_estimate">API कीमतों पर अनुमानित</string>
   <string name="ai_unpriced">कुछ मॉडलों की अभी कीमत नहीं है</string>
@@ -117,8 +115,8 @@
   <string name="phone_health_fault">खराबी</string>
   <string name="phone_health_cold">बहुत ठंडी</string>
   <string name="phone_storage">स्टोरेज</string>
-  <string name="phone_used_of">%2$s में से %1$s</string>
   <string name="stats_hardware">हार्डवेयर</string>
+  <string name="phone_used_of">%2$s में से %1$s</string>
   <string name="phone_thermal">तापीय स्थिति</string>
   <string name="phone_thermal_none">सामान्य</string>
   <string name="phone_thermal_light">गुनगुना</string>

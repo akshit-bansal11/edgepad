@@ -36,12 +36,10 @@
   <string name="wx_credit">Weerdata van Open-Meteo.com</string>
   <string name="ai_win_week">Week</string>
   <string name="ai_win_month">Maand</string>
-  <string name="ai_win_spend">Uitgaven</string>
   <string name="ai_ctx">Context</string>
   <string name="ai_resets">Reset over %1$s</string>
   <string name="ai_updated">Bijgewerkt %1$s geleden</string>
   <string name="ai_today">Vandaag</string>
-  <string name="ai_week">Deze week</string>
   <string name="ai_tokens">%1$s tokens</string>
   <string name="ai_estimate">Geschat op basis van API-prijzen</string>
   <string name="ai_unpriced">Sommige modellen hebben nog geen prijs</string>
@@ -117,8 +115,8 @@
   <string name="phone_health_fault">Storing</string>
   <string name="phone_health_cold">Te koud</string>
   <string name="phone_storage">Opslag</string>
-  <string name="phone_used_of">%1$s van %2$s</string>
   <string name="stats_hardware">Hardware</string>
+  <string name="phone_used_of">%1$s van %2$s</string>
   <string name="phone_thermal">Thermische status</string>
   <string name="phone_thermal_none">Normaal</string>
   <string name="phone_thermal_light">Warm</string>
