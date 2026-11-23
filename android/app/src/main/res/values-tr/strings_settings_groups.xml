@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_dials">Kadranlar</string>
+  <string name="settings_capture">Ekran yakalama ve çizim</string>
+  <string name="settings_clipboard_files">Pano ve dosyalar</string>
+  <string name="settings_developer">Geliştirici</string>
+  <string name="settings_devices">Cihazlar ve bağlantı</string>
+  <string name="settings_language">Dil</string>
+  <string name="language_system">Sistem varsayılanı</string>
+  <string name="language_follows_phone">Edgepad telefonun dilini kullanır. Dili telefonun ayarlarından değiştirebilirsin.</string>
+  <string name="settings_pen_colour">Kalem rengi</string>
+</resources>

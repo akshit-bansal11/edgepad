@@ -111,6 +111,7 @@ import me.akshitbansal.edgepad.overlay.FloatingDials
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.AppAddStatus
 import me.akshitbansal.edgepad.protocol.BlobKind
+import me.akshitbansal.edgepad.protocol.CaptureTarget
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Feature
@@ -392,6 +393,9 @@ class MainActivity :
     private var phoneWatch: AutoCloseable? = null
     private var screen = Screen.PAIRING
     private var settingsReturn = Screen.PAIRING
+
+    /** Set to Settings while a page reached from its rows is open, so back returns there; null otherwise. */
+    private var childFrom: Screen? = null
 
     /** The floating transfer card; rebuilt from [Transfers.progress] on every start, never retained. */
     private var xferCard: XferCard? = null
@@ -1174,6 +1178,8 @@ class MainActivity :
         // change, because setting it starts a lost laptop's retry over.
         if (manager.reconnect != settings.reconnect) manager.reconnect = settings.reconnect
         val previous = screen
+        // A page opened from Settings goes back there; clearing it at the pages that start a trip of their own.
+        if (next in tripStarts) childFrom = null
         screen = next
         statsPage = 0
         statsPhone = false
@@ -1276,6 +1282,15 @@ class MainActivity :
                             stayConnected = ::syncService,
                             notify = ::notifyChanged,
                             developer = ::developerChanged,
+                            surface = surfaceRows(from = Screen.SETTINGS),
+                            keyboard = { openFrom(Screen.SETTINGS, Screen.KEYBOARD_SETTINGS) },
+                            gamepad = { openFrom(Screen.SETTINGS, Screen.GAMEPAD_SETTINGS) },
+                            macros = { openFrom(Screen.SETTINGS, Screen.MACRO_SETTINGS) },
+                            capture = { toPhone ->
+                                val target = if (toPhone) CaptureTarget.PHONE else CaptureTarget.LAPTOP
+                                CaptureInbox.install(contentResolver, target)
+                                if (connected) manager.send(target.frame())
+                            },
                             sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
@@ -1301,16 +1316,9 @@ class MainActivity :
                         settings,
                         getString(R.string.settings_surface),
                         SurfaceSettingsScreen.Routes(
-                            corners = { goTo(Screen.CORNERS) },
-                            gestures = { goTo(Screen.GESTURES) },
-                            shapes = { goTo(Screen.SHAPES) },
-                            dialFeel = { goTo(Screen.DIAL_FEEL) },
-                            mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
-                            appearance = { goTo(Screen.APPEARANCE) },
-                            profiles = { goTo(Screen.PROFILES) },
+                            rows = surfaceRows(from = null),
                             system = ::openSettings,
                             back = { navigateBack() },
-                            widgets = { goTo(Screen.WIDGETS) },
                         ),
                     )
                 }
@@ -1760,7 +1768,7 @@ class MainActivity :
             Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.MEDIA_LAYOUT,
             Screen.SHAPES, Screen.PROFILES, Screen.WIDGETS,
             -> {
-                goTo(Screen.SURFACE_SETTINGS)
+                goTo(childFrom ?: Screen.SURFACE_SETTINGS)
             }
 
             Screen.WIDGET_LAYOUT -> {
@@ -1785,15 +1793,15 @@ class MainActivity :
             }
 
             Screen.KEYBOARD_SETTINGS -> {
-                goTo(Screen.KEYBOARD)
+                goTo(childFrom ?: Screen.KEYBOARD)
             }
 
             Screen.GAMEPAD_SETTINGS -> {
-                goTo(Screen.GAMEPAD)
+                goTo(childFrom ?: Screen.GAMEPAD)
             }
 
             Screen.MACRO_SETTINGS -> {
-                goTo(Screen.MACROS)
+                goTo(childFrom ?: Screen.MACROS)
             }
 
             // Opened from the macros, which are only there while the link holds.
@@ -2167,6 +2175,27 @@ class MainActivity :
 
     private fun versionLine(): String =
         getString(R.string.settings_version, getString(R.string.app_version), ProtocolConstants.VERSION)
+
+    /** The surface's pages: from Settings back returns there, from the surface's own settings to those. */
+    private fun surfaceRows(from: Screen?) =
+        SurfaceSettingsScreen.Rows(
+            corners = { openFrom(from, Screen.CORNERS) },
+            gestures = { openFrom(from, Screen.GESTURES) },
+            shapes = { openFrom(from, Screen.SHAPES) },
+            dialFeel = { openFrom(from, Screen.DIAL_FEEL) },
+            mediaLayout = { openFrom(from, Screen.MEDIA_LAYOUT) },
+            appearance = { openFrom(from, Screen.APPEARANCE) },
+            profiles = { openFrom(from, Screen.PROFILES) },
+            widgets = { openFrom(from, Screen.WIDGETS) },
+        )
+
+    private fun openFrom(
+        from: Screen?,
+        page: Screen,
+    ) {
+        goTo(page)
+        childFrom = from
+    }
 
     private fun openSettings() {
         if (screen != Screen.SETTINGS) settingsReturn = screen
@@ -3385,6 +3414,18 @@ class MainActivity :
 
         /** The pages that need the link: with it gone they go back to Devices, as the screens they belong to do. */
         val settingsOfControls = setOf(Screen.KEYBOARD_SETTINGS, Screen.GAMEPAD_SETTINGS, Screen.MACRO_SETTINGS)
+
+        /** Where a trip out of Settings ends: arriving at any of these forgets which page it began from. */
+        val tripStarts =
+            setOf(
+                Screen.SETTINGS,
+                Screen.SURFACE_SETTINGS,
+                Screen.SURFACE,
+                Screen.KEYBOARD,
+                Screen.GAMEPAD,
+                Screen.MACROS,
+                Screen.PAIRING,
+            )
 
         /** The control screens a dropped link returns to; Annotate is not here because the laptop ends that session. */
         val RESUMABLE = setOf(Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE)

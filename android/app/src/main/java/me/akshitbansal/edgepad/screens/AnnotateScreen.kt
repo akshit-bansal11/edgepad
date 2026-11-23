@@ -293,11 +293,11 @@ class AnnotateScreen(
     private fun widthSlider(): View =
         ui.slider(
             ui.string(R.string.annotate_width),
-            WIDTH_STEPS,
-            (strokes.width / Strokes.WIDTH_PER_SIZE - 1).coerceIn(0, WIDTH_STEPS),
+            Strokes.WIDTH_STEPS,
+            Strokes.widthStep(strokes.width),
             { step -> ui.string(R.string.annotate_width_value, step + 1) },
         ) { step ->
-            if (strokes.selectWidth((step + 1) * Strokes.WIDTH_PER_SIZE)) {
+            if (strokes.selectWidth(Strokes.widthAt(step))) {
                 settings.penWidth = strokes.width
                 send(ControlId.PEN_WIDTH.set(strokes.width))
             }
@@ -306,11 +306,11 @@ class AnnotateScreen(
     private fun opacitySlider(): View =
         ui.slider(
             ui.string(R.string.annotate_opacity),
-            OPACITY_STEPS,
-            ((strokes.opacity - Strokes.MIN_OPACITY) / Strokes.OPACITY_STEP).coerceIn(0, OPACITY_STEPS),
-            { step -> ui.string(R.string.percent_value, Strokes.MIN_OPACITY + step * Strokes.OPACITY_STEP) },
+            Strokes.OPACITY_STEPS,
+            Strokes.opacityStep(strokes.opacity),
+            { step -> ui.string(R.string.percent_value, Strokes.opacityAt(step)) },
         ) { step ->
-            if (strokes.selectOpacity(Strokes.MIN_OPACITY + step * Strokes.OPACITY_STEP)) {
+            if (strokes.selectOpacity(Strokes.opacityAt(step))) {
                 settings.penOpacity = strokes.opacity
                 send(ControlId.PEN_OPACITY.set(strokes.opacity))
             }
@@ -449,10 +449,6 @@ class AnnotateScreen(
         const val SWATCHES_PER_ROW = 5
         const val OPAQUE = 0xFF000000.toInt()
         const val RGB_MASK = 0xFFFFFF
-
-        // One slider position per size of WIDTH_PER_SIZE steps from size 1, and per OPACITY_STEP percent from the lowest.
-        const val WIDTH_STEPS = Strokes.MAX_WIDTH / Strokes.WIDTH_PER_SIZE - 1
-        const val OPACITY_STEPS = (Strokes.MAX_OPACITY - Strokes.MIN_OPACITY) / Strokes.OPACITY_STEP
 
         /** The menu may take this much of the screen's height before it scrolls. */
         const val MENU_SCREEN_SHARE = 0.65f

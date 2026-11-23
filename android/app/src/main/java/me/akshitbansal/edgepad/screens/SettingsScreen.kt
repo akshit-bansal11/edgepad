@@ -1,30 +1,40 @@
 package me.akshitbansal.edgepad.screens
 
+import android.app.AlertDialog
+import android.app.LocaleManager
 import android.app.UiModeManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.net.Uri
+import android.os.Build
+import android.os.LocaleList
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import android.widget.TextView
+import me.akshitbansal.edgepad.LaserSizes
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.EndActionToken
+import me.akshitbansal.edgepad.surface.Strokes
 
 /**
- * The app's settings: only what holds everywhere. How the laptops stay connected, what is shared with them, the theme
- * and orientation, help, and the version with its updates. The laptops themselves are on the Devices screen, which the
- * first row opens: connecting, disconnecting and forgetting live there and nowhere else. Every feature's own settings
- * sit behind that feature's gear instead: the surface's, the keyboard's, the gamepad's and the macros'. Opened from the
- * Devices list's gear and from the last row of the surface's settings. Every change is saved as it is made. Sideways,
- * the sections sit in two columns.
+ * The app's settings, one page in sections: Surface (the trackpad, dials, air mouse, widgets, media layout, look,
+ * profiles and blackout), then the Keyboard, Gamepad and Macros, which open their own pages, then the
+ * Presenter's laser, Capture and Annotate (including the pen), Clipboard and files, Developer, Devices and
+ * connection, the app's own appearance, Language, Help, and Updates and About. A setting here and the same setting
+ * on a feature's own screen or sheet edit the same stored value. The laptops themselves are on the Devices screen,
+ * which the first row of Devices and connection opens. Opened from the Devices list's gear and from the last row of
+ * the surface's settings. Every change is saved as it is made. Sideways, the sections sit in two columns.
  */
 object SettingsScreen {
+    private const val OPAQUE = 0xFF000000.toInt()
+    private const val RGB_MASK = 0xFFFFFF
+
     /** Where the rows lead. */
     class Routes(
         val devices: () -> Unit,
@@ -37,10 +47,17 @@ object SettingsScreen {
         val clipboard: () -> Unit,
         val stayConnected: () -> Unit,
         val back: () -> Unit,
+        /** The surface's own pages, the same rows its gear opens. */
+        val surface: SurfaceSettingsScreen.Rows,
         /** The notifications switch changed: on asks for the Android 13 permission, and NOTIFY is sent either way. */
         val notify: (Boolean) -> Unit = {},
         /** The Developer mode switch moved: DEVELOPER is sent to the laptop, whose FEATURES then confirm it. */
         val developer: (Boolean) -> Unit = {},
+        val keyboard: () -> Unit = {},
+        val gamepad: () -> Unit = {},
+        val macros: () -> Unit = {},
+        /** "To phone" changed: the capture inbox is told and the laptop hears it. */
+        val capture: (Boolean) -> Unit = {},
     )
 
     /**
@@ -88,7 +105,47 @@ object SettingsScreen {
             largeTitle(ui.string(R.string.settings_system))
             columns(
                 {
-                    section(ui.string(R.string.paired_laptops))
+                    section(ui.string(R.string.settings_surface))
+                    SurfaceSettingsScreen.rows(this, settings, routes.surface)
+
+                    section(ui.string(R.string.controls_keyboard))
+                    card { add(ui.link(ui.string(R.string.keyboard_settings_title), null, routes.keyboard)) }
+
+                    section(ui.string(R.string.controls_gamepad))
+                    card { add(ui.link(ui.string(R.string.gamepad_settings_title), null, routes.gamepad)) }
+
+                    section(ui.string(R.string.controls_macros))
+                    card { add(ui.link(ui.string(R.string.macros_settings), null, routes.macros)) }
+
+                    presenterRows(settings)
+                    captureRows(settings, routes)
+
+                    section(ui.string(R.string.settings_clipboard_files))
+                    card {
+                        add(
+                            ui.toggle(ui.string(R.string.clipboard_share), settings.clipboardSync) {
+                                settings.clipboardSync = it
+                                routes.clipboard()
+                            },
+                        )
+                    }
+                    footnote(ui.string(R.string.clipboard_share_caption))
+
+                    section(ui.string(R.string.settings_developer))
+                    card {
+                        val toggle =
+                            ui.toggle(ui.string(R.string.developer_mode_title), developer) { routes.developer(it) }
+                        ui.enable(toggle, developerEditable)
+                        add(toggle)
+                    }
+                    footnote(
+                        ui.string(
+                            if (developerEditable) R.string.developer_mode_hint else R.string.developer_mode_offline,
+                        ),
+                    )
+                },
+                {
+                    section(ui.string(R.string.settings_devices))
                     card { add(ui.link(ui.string(R.string.pairing_title), null, routes.devices)) }
 
                     card(Space.XL) {
@@ -109,17 +166,6 @@ object SettingsScreen {
                     }
                     footnote(ui.string(R.string.stay_connected_caption))
 
-                    section(ui.string(R.string.settings_clipboard))
-                    card {
-                        add(
-                            ui.toggle(ui.string(R.string.clipboard_share), settings.clipboardSync) {
-                                settings.clipboardSync = it
-                                routes.clipboard()
-                            },
-                        )
-                    }
-                    footnote(ui.string(R.string.clipboard_share_caption))
-
                     card(Space.XL) {
                         add(
                             ui.toggle(ui.string(R.string.notify_setting), settings.notifyForward) {
@@ -129,27 +175,6 @@ object SettingsScreen {
                         )
                     }
                     footnote(ui.string(R.string.notify_setting_hint))
-
-                    card(Space.XL) {
-                        val toggle =
-                            ui.toggle(ui.string(R.string.developer_mode_title), developer) { routes.developer(it) }
-                        ui.enable(toggle, developerEditable)
-                        add(toggle)
-                    }
-                    footnote(
-                        ui.string(
-                            if (developerEditable) R.string.developer_mode_hint else R.string.developer_mode_offline,
-                        ),
-                    )
-
-                    // Issue #56. The surface reads the setting again when it takes the focus back.
-                    card(Space.XL) {
-                        add(
-                            ui.toggle(ui.string(R.string.controls_blackout), settings.blackout) {
-                                settings.blackout = it
-                            },
-                        )
-                    }
                     if (end.offered) endRow(ui, end)
 
                     section(ui.string(R.string.settings_appearance))
@@ -178,8 +203,9 @@ object SettingsScreen {
                             ),
                         )
                     }
-                },
-                {
+
+                    languageRows()
+
                     section(ui.string(R.string.settings_help))
                     card {
                         add(ui.link(ui.string(R.string.guide_title), null, routes.guide))
@@ -220,6 +246,119 @@ object SettingsScreen {
                 },
             )
         }
+
+    /** The Presenter's laser, as its own sheet sets it: size and trail, the same two stored values. */
+    private fun Column.presenterRows(settings: Settings) {
+        section(ui.string(R.string.controls_presenter))
+        card {
+            val sizes =
+                listOf(
+                    ui.string(R.string.presenter_size_small),
+                    ui.string(R.string.presenter_size_medium),
+                    ui.string(R.string.presenter_size_large),
+                )
+            add(
+                ui.segmentedField(
+                    ui.string(R.string.presenter_size_label),
+                    ui.segmented(sizes, LaserSizes.ALL.indexOf(settings.laserSize)) { i ->
+                        settings.laserSize = LaserSizes.ALL[i]
+                    },
+                ),
+            )
+            hairline()
+            add(
+                ui.toggle(ui.string(R.string.presenter_laser_trail), settings.laserTrail) {
+                    settings.laserTrail = it
+                },
+            )
+        }
+    }
+
+    /**
+     * Capture to the phone, and the pen the Annotate toolbar draws with: its colour, width and opacity, the same three
+     * stored values the toolbar's own controls edit. Each is read when Annotate opens, so a change here shows there.
+     */
+    private fun Column.captureRows(
+        settings: Settings,
+        routes: Routes,
+    ) {
+        section(ui.string(R.string.settings_capture))
+        card {
+            add(
+                ui.toggle(ui.string(R.string.capture_to_phone), settings.captureToPhone) {
+                    settings.captureToPhone = it
+                    routes.capture(it)
+                },
+            )
+        }
+        card(Space.XL) {
+            add(
+                ColorPicker.build(
+                    ui,
+                    ui.string(R.string.settings_pen_colour),
+                    OPAQUE or settings.penRgb,
+                    editable = true,
+                ) { colour -> settings.penRgb = colour and RGB_MASK },
+            )
+            hairline()
+            add(
+                ui.slider(
+                    ui.string(R.string.annotate_width),
+                    Strokes.WIDTH_STEPS,
+                    Strokes.widthStep(settings.penWidth),
+                    { step -> ui.string(R.string.annotate_width_value, step + 1) },
+                ) { step -> settings.penWidth = Strokes.widthAt(step) },
+            )
+            hairline()
+            add(
+                ui.slider(
+                    ui.string(R.string.annotate_opacity),
+                    Strokes.OPACITY_STEPS,
+                    Strokes.opacityStep(settings.penOpacity),
+                    { step -> ui.string(R.string.percent_value, Strokes.opacityAt(step)) },
+                ) { step -> settings.penOpacity = Strokes.opacityAt(step) },
+            )
+        }
+    }
+
+    /**
+     * The app's language: one row naming the current one in its own words, opening a list of every language in its own
+     * name, with System default first. From Android 13 the system keeps the choice per app and rebuilds the activity;
+     * the link survives that. Before it the system has no per-app language, so the row is replaced by a line saying the
+     * app follows the phone.
+     */
+    private fun Column.languageRows() {
+        section(ui.string(R.string.settings_language))
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            footnote(ui.string(R.string.language_follows_phone))
+            return
+        }
+        val manager = ui.context.getSystemService(LocaleManager::class.java)
+        val current = manager.applicationLocales
+        val chosen = if (current.isEmpty) null else AppLanguages.match(current[0].toLanguageTag())
+        val system = ui.string(R.string.language_system)
+        val names = (listOf(system) + AppLanguages.all.map { it.name }).toTypedArray()
+        val checked = if (chosen == null) 0 else AppLanguages.all.indexOf(chosen) + 1
+        card {
+            lateinit var row: View
+            row =
+                ui.link(ui.string(R.string.settings_language), chosen?.name ?: system, {
+                    AlertDialog
+                        .Builder(ui.context)
+                        .setTitle(ui.string(R.string.settings_language))
+                        .setSingleChoiceItems(names, checked) { dialog, i ->
+                            manager.applicationLocales =
+                                if (i == 0) {
+                                    LocaleList.getEmptyLocaleList()
+                                } else {
+                                    LocaleList.forLanguageTags(AppLanguages.all[i - 1].tag)
+                                }
+                            dialog.dismiss()
+                        }.showOver(row)
+                })
+            add(row)
+        }
+    }
 
     /**
      * The Theme choice as last made. Before 3.2 only Dark and Light existed and neither was written down, so

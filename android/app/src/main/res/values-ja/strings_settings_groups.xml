@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_dials">ダイヤル</string>
+  <string name="settings_capture">キャプチャと書き込み</string>
+  <string name="settings_clipboard_files">クリップボードとファイル</string>
+  <string name="settings_developer">開発者</string>
+  <string name="settings_devices">デバイスと接続</string>
+  <string name="settings_language">言語</string>
+  <string name="language_system">システムのデフォルト</string>
+  <string name="language_follows_phone">Edgepad は端末の言語を使います。言語は端末の設定で変更できます。</string>
+  <string name="settings_pen_colour">ペンの色</string>
+</resources>

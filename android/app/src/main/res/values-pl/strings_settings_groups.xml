@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_dials">Suwaki</string>
+  <string name="settings_capture">Przechwytywanie i adnotacje</string>
+  <string name="settings_clipboard_files">Schowek i pliki</string>
+  <string name="settings_developer">Programista</string>
+  <string name="settings_devices">Urządzenia i połączenie</string>
+  <string name="settings_language">Język</string>
+  <string name="language_system">Domyślny systemu</string>
+  <string name="language_follows_phone">Edgepad używa języka telefonu. Zmienisz go w ustawieniach telefonu.</string>
+  <string name="settings_pen_colour">Kolor pióra</string>
+</resources>

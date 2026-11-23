@@ -203,6 +203,18 @@ class Strokes(
         /** The opacity slider moves this many percent a step. */
         const val OPACITY_STEP = 5
 
+        /** Slider positions: one per size from size 1, and one per [OPACITY_STEP] percent from the lowest. */
+        const val WIDTH_STEPS = MAX_WIDTH / WIDTH_PER_SIZE - 1
+        const val OPACITY_STEPS = (MAX_OPACITY - MIN_OPACITY) / OPACITY_STEP
+
+        fun widthStep(width: Int): Int = (width / WIDTH_PER_SIZE - 1).coerceIn(0, WIDTH_STEPS)
+
+        fun widthAt(step: Int): Int = (step + 1) * WIDTH_PER_SIZE
+
+        fun opacityStep(opacity: Int): Int = ((opacity - MIN_OPACITY) / OPACITY_STEP).coerceIn(0, OPACITY_STEPS)
+
+        fun opacityAt(step: Int): Int = MIN_OPACITY + step * OPACITY_STEP
+
         /** One width step is 0.02% of the screen's height, written as a divisor so 20 steps are exactly 0.004. */
         private const val WIDTH_DIVISOR = 5000f
 
