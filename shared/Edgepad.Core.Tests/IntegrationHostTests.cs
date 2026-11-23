@@ -36,6 +36,7 @@ public sealed class IntegrationHostTests : IDisposable
         usage = new UsageStore(Path.Combine(dir.FullName, UsageStore.FileName), clock.Now);
         broker = new PermissionBroker(sessions, () => true, () => clock.Now, TimeSpan.FromSeconds(10));
         secrets.Set(GitHubApp.TokenName, GitHubToken);
+        secrets.Set(GitHubApp.ClientName, GitHubApp.ClientId);
     }
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
@@ -89,8 +90,8 @@ public sealed class IntegrationHostTests : IDisposable
         return timer;
     }
 
-    private HttpResponseMessage GitHubOk(SeenRequest seen) =>
-        FakeHttp.Json(seen.Method == HttpMethod.Post ? GitHubParseTests.Normal : """[{"id":"1"}]""");
+    private static HttpResponseMessage GitHubOk(SeenRequest seen) =>
+        FakeHttp.Json(seen.Method == HttpMethod.Post ? GitHubParseTests.Normal : "{}");
 
     private void Record(Frame frame)
     {
@@ -361,6 +362,7 @@ public sealed class IntegrationHostTests : IDisposable
         Assert.Single(Texts(TextKind.Unavailable));
 
         secrets.Set(GitHubApp.TokenName, GitHubToken);
+        secrets.Set(GitHubApp.ClientName, GitHubApp.ClientId);
         githubReply = GitHubOk;
         clock.Advance(GitHubRefresh.Every);
         await Task.Run(tick.Fire, Ct);

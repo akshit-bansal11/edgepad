@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using Edgepad.Dashboard;
 using Xunit;
@@ -9,24 +8,31 @@ namespace Edgepad.Tests;
 
 public sealed class GitHubApiTests
 {
-    private const string Token = "gho_ApiTokenNeverLogged0987654321";
-    private const string TwoUnread = """[{"id":"1"},{"id":"2"}]""";
+    private const string Token = "ghu_ApiTokenNeverLogged0987654321";
+    private const string Refresh = "ghr_RefreshTokenNeverLogged1234567890";
+    private const string NewToken = "ghu_RenewedTokenValue1234567890abcdef";
+    private const string NewRefresh = "ghr_RenewedRefreshValue1234567890abcdef";
+    private const string Renewed = """{"access_token":"ghu_RenewedTokenValue1234567890abcdef","expires_in":28800,"refresh_token":"ghr_RenewedRefreshValue1234567890abcdef","refresh_token_expires_in":15897600,"scope":"","token_type":"bearer"}""";
 
     private readonly FakeClock clock = new();
     private readonly Secrets secrets = new();
 
-    public GitHubApiTests() => secrets.Set(GitHubApp.TokenName, Token);
+    public GitHubApiTests()
+    {
+        secrets.Set(GitHubApp.TokenName, Token);
+        secrets.Set(GitHubApp.ClientName, GitHubApp.ClientId);
+    }
 
     [Fact]
-    public async Task ARefreshSendsTheConstantQueryThenAsksForNotifications()
+    public async Task ARefreshSendsTheConstantQueryAndNothingElse()
     {
-        var http = Serve(GitHubParseTests.Normal, TwoUnread);
+        var http = Serve(GitHubParseTests.Normal);
         var api = New(http);
 
         var result = await api.RefreshAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(new GitHubRefreshResult(GitHubResult.Ok, true), result);
-        Assert.Equal(2, http.Seen.Count);
+        Assert.Single(http.Seen);
 
         var graphql = http.Seen[0];
         Assert.DoesNotContain("mutation", GitHubApi.Query, StringComparison.OrdinalIgnoreCase);
@@ -40,9 +46,7 @@ public sealed class GitHubApiTests
 
         Assert.Equal("application/json", graphql.ContentType);
 
-        var notifications = http.Seen[1];
-        Assert.Equal(HttpMethod.Get, notifications.Method);
-        Assert.Equal("https://api.github.com/notifications?per_page=50", notifications.Uri.AbsoluteUri);
+        Assert.DoesNotContain(http.Seen, s => s.Uri.AbsolutePath.Contains("notifications", StringComparison.Ordinal));
 
         Assert.All(http.Seen, s =>
         {
@@ -60,7 +64,6 @@ public sealed class GitHubApiTests
             string.Join(
                 '\n',
                 "H\tgithub\tocto-cat\tOcto Cat\t34\t12\t1",
-                "N\t\t2\t\t\tnone",
                 "P\tocto-cat/edgepad\t\tC#\t5\t2\t1",
                 "P\tocto-cat/secret\tp\t\t0\t0\t0",
                 $"M\tme/my_repo-2\t3\tMine\t\tfail\tmerged\t{min}",
@@ -79,6 +82,7 @@ public sealed class GitHubApiTests
                 "https://github.com/octo/edgepad/pull/12",
                 "https://github.com/octo/other.repo/pull/7",
                 string.Empty,
+                "https://github.com/apps/edgepad-dashboard/installations/new",
             },
             page.Urls);
     }
@@ -86,7 +90,7 @@ public sealed class GitHubApiTests
     [Fact]
     public async Task TheRevisionOnlyGoesUpWhenThePageChanges()
     {
-        var http = Serve(GitHubParseTests.Normal, TwoUnread);
+        var http = Serve(GitHubParseTests.Normal);
         var api = New(http);
         var ct = TestContext.Current.CancellationToken;
 
@@ -100,19 +104,19 @@ public sealed class GitHubApiTests
     {
         Assert.Equal(GitHubApi.QueryBody(), GitHubApi.QueryBody());
         Assert.DoesNotContain("{{", GitHubApi.Query, StringComparison.Ordinal);
-        var http = Serve(GitHubParseTests.Normal, TwoUnread);
+        var http = Serve(GitHubParseTests.Normal);
         var api = New(http);
         await api.RefreshAsync(TestContext.Current.CancellationToken);
         clock.Advance(TimeSpan.FromMinutes(2));
         await api.RefreshAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(http.Seen[0].Body, http.Seen[2].Body);
+        Assert.Equal(http.Seen[0].Body, http.Seen[1].Body);
     }
 
     [Fact]
     public async Task WithoutATokenNobodyIsAsked()
     {
         secrets.Delete(GitHubApp.TokenName);
-        var http = Serve(GitHubParseTests.Normal, TwoUnread);
+        var http = Serve(GitHubParseTests.Normal);
         Assert.Equal(GitHubResult.NotSignedIn, (await New(http).RefreshAsync(TestContext.Current.CancellationToken)).Result);
         Assert.Empty(http.Seen);
     }
@@ -120,52 +124,146 @@ public sealed class GitHubApiTests
     [Fact]
     public async Task ATokenThatCouldInjectAHeaderIsNeverSent()
     {
-        secrets.Set(GitHubApp.TokenName, "gho_x\r\nX-Evil: 1");
-        var http = Serve(GitHubParseTests.Normal, TwoUnread);
+        secrets.Set(GitHubApp.TokenName, "ghu_x\r\nX-Evil: 1");
+        var http = Serve(GitHubParseTests.Normal);
         Assert.Equal(GitHubResult.NotSignedIn, (await New(http).RefreshAsync(TestContext.Current.CancellationToken)).Result);
         Assert.Empty(http.Seen);
     }
 
     [Fact]
-    public async Task TheETagIsSentBackAndANotModifiedKeepsTheCount()
+    public async Task ATokenFromTheOldOAuthAppIsDeletedAndNobodyIsAsked()
     {
-        var first = true;
-        var http = new FakeHttp(s =>
-        {
-            if (s.Uri.AbsolutePath == "/graphql")
-            {
-                return FakeHttp.Json(GitHubParseTests.Normal);
-            }
+        secrets.Delete(GitHubApp.ClientName);
+        var http = Serve(GitHubParseTests.Normal);
 
-            if (first)
-            {
-                first = false;
-                var reply = FakeHttp.Json(TwoUnread);
-                reply.Headers.ETag = new EntityTagHeaderValue("\"abc123\"");
-                return reply;
-            }
+        Assert.Equal(GitHubResult.NotSignedIn, (await New(http).RefreshAsync(TestContext.Current.CancellationToken)).Result);
 
-            return FakeHttp.Status(HttpStatusCode.NotModified);
-        });
+        Assert.Empty(http.Seen);
+        Assert.Null(secrets.Get(GitHubApp.TokenName));
+        Assert.True(GitHubApp.NeedsReSignIn(secrets));
+    }
+
+    [Fact]
+    public void ATokenWithTheNewClientIdIsKeptAndANewSignInClearsTheNote()
+    {
+        GitHubApp.Migrate(secrets, GitHubApp.ClientId);
+        Assert.Equal(Token, secrets.Get(GitHubApp.TokenName));
+        Assert.False(GitHubApp.NeedsReSignIn(secrets));
+
+        secrets.Delete(GitHubApp.ClientName);
+        GitHubApp.Migrate(secrets, GitHubApp.ClientId);
+        Assert.True(GitHubApp.NeedsReSignIn(secrets));
+
+        Assert.True(GitHubApp.Save(secrets, GitHubApp.ClientId, Token, null, null));
+        Assert.False(GitHubApp.NeedsReSignIn(secrets));
+        Assert.Equal(GitHubApp.ClientId, secrets.Get(GitHubApp.ClientName));
+    }
+
+    [Fact]
+    public async Task AnExpiringTokenIsRenewedBeforeItRunsOutWithNoSecretAndTheNewOneIsUsed()
+    {
+        Expiring(clock.Now.AddMinutes(2));
+        var http = Routes(Renewed);
+
+        var result = await New(http).RefreshAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(GitHubResult.Ok, result.Result);
+        Assert.Equal(2, http.Seen.Count);
+        var renew = http.Seen[0];
+        Assert.Equal("https://github.com/login/oauth/access_token", renew.Uri.AbsoluteUri);
+        Assert.Equal(HttpMethod.Post, renew.Method);
+        Assert.Equal($"client_id={GitHubApp.ClientId}&grant_type=refresh_token&refresh_token={Refresh}", renew.Body);
+        Assert.DoesNotContain("secret", renew.Body, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("Bearer " + NewToken, http.Seen[1].Header("Authorization"));
+        Assert.Equal(NewToken, secrets.Get(GitHubApp.TokenName));
+        Assert.Equal(NewRefresh, secrets.Get(GitHubApp.RefreshName));
+        Assert.Equal(clock.Now.AddSeconds(28800).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture), secrets.Get(GitHubApp.ExpiresName));
+    }
+
+    [Fact]
+    public async Task ATokenWithTimeLeftIsNotRenewed()
+    {
+        Expiring(clock.Now.AddHours(2));
+        var http = Routes(Renewed);
+
+        await New(http).RefreshAsync(TestContext.Current.CancellationToken);
+
+        Assert.Single(http.Seen);
+        Assert.Equal("/graphql", http.Seen[0].Uri.AbsolutePath);
+    }
+
+    [Fact]
+    public async Task ARefusalIsAnsweredByOneRenewalAndOneRetryThenTheTokenGoes()
+    {
+        Expiring(clock.Now.AddHours(2));
+        var http = new FakeHttp(s => s.Uri.AbsolutePath == "/graphql" ? FakeHttp.Status(HttpStatusCode.Unauthorized) : FakeHttp.Json(Renewed));
+
+        var result = await New(http).RefreshAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(GitHubResult.NoPermission, result.Result);
+        Assert.Equal(3, http.Seen.Count);
+        Assert.Null(secrets.Get(GitHubApp.TokenName));
+        Assert.Null(secrets.Get(GitHubApp.RefreshName));
+    }
+
+    [Fact]
+    public async Task ARefusalThatARenewalFixesIsRetriedOnce()
+    {
+        Expiring(clock.Now.AddHours(2));
+        var graphql = 0;
+        var http = new FakeHttp(s => s.Uri.AbsolutePath == "/graphql"
+            ? (++graphql == 1 ? FakeHttp.Status(HttpStatusCode.Unauthorized) : FakeHttp.Json(GitHubParseTests.Normal))
+            : FakeHttp.Json(Renewed));
+
+        Assert.Equal(GitHubResult.Ok, (await New(http).RefreshAsync(TestContext.Current.CancellationToken)).Result);
+        Assert.Equal(3, http.Seen.Count);
+        Assert.Equal("Bearer " + NewToken, http.Seen[2].Header("Authorization"));
+    }
+
+    [Fact]
+    public async Task ARefusedRefreshTokenSignsOutWithAClearResult()
+    {
+        Expiring(clock.Now.AddMinutes(1));
+        var http = new FakeHttp(_ => FakeHttp.Json("""{"error":"bad_refresh_token","error_description":"The refresh token passed is incorrect or expired."}"""));
         var api = New(http);
-        var ct = TestContext.Current.CancellationToken;
 
-        await api.RefreshAsync(ct);
-        var again = await api.RefreshAsync(ct);
+        var result = await api.RefreshAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(new GitHubRefreshResult(GitHubResult.Ok, false), again);
-        Assert.Null(http.Seen[1].Header("If-None-Match"));
-        Assert.Equal("\"abc123\"", http.Seen[3].Header("If-None-Match"));
-        Assert.Contains("\nN\t\t2\t\t\tnone", api.Page!.Body, StringComparison.Ordinal);
+        Assert.Equal(GitHubResult.NoPermission, result.Result);
+        Assert.Single(http.Seen);
+        Assert.Null(secrets.Get(GitHubApp.TokenName));
+        Assert.Null(secrets.Get(GitHubApp.RefreshName));
+        Assert.Null(api.Page);
+    }
+
+    [Fact]
+    public async Task ARenewalThatCannotReachGitHubKeepsTheTokens()
+    {
+        Expiring(clock.Now.AddMinutes(1));
+        var http = new FakeHttp(s => s.Uri.AbsolutePath == "/graphql" ? FakeHttp.Json(GitHubParseTests.Normal) : throw new HttpRequestException("No route to host"));
+
+        await New(http).RefreshAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(Token, secrets.Get(GitHubApp.TokenName));
+        Assert.Equal(Refresh, secrets.Get(GitHubApp.RefreshName));
+    }
+
+    [Fact]
+    public async Task ATokenThatDoesNotExpireIsNeverRenewedAndARefusalDeletesIt()
+    {
+        var http = new FakeHttp(_ => FakeHttp.Status(HttpStatusCode.Unauthorized));
+
+        Assert.Equal(GitHubResult.NoPermission, (await New(http).RefreshAsync(TestContext.Current.CancellationToken)).Result);
+        Assert.Single(http.Seen);
+        Assert.Equal("/graphql", http.Seen[0].Uri.AbsolutePath);
+        Assert.Null(secrets.Get(GitHubApp.TokenName));
     }
 
     [Fact]
     public async Task ARefusedTokenIsDeletedAndTheScreenEmptied()
     {
         var refuse = false;
-        var http = new FakeHttp(s => refuse
-            ? FakeHttp.Status(HttpStatusCode.Unauthorized)
-            : FakeHttp.Json(s.Uri.AbsolutePath == "/graphql" ? GitHubParseTests.Normal : TwoUnread));
+        var http = new FakeHttp(_ => refuse ? FakeHttp.Status(HttpStatusCode.Unauthorized) : FakeHttp.Json(GitHubParseTests.Normal));
         var api = New(http);
         var ct = TestContext.Current.CancellationToken;
 
@@ -176,7 +274,7 @@ public sealed class GitHubApiTests
         Assert.Equal(new GitHubRefreshResult(GitHubResult.NoPermission, true), result);
         Assert.Null(secrets.Get(GitHubApp.TokenName));
         Assert.Null(api.Page);
-        Assert.Equal(3, http.Seen.Count);
+        Assert.Equal(2, http.Seen.Count);
     }
 
     [Fact]
@@ -194,7 +292,7 @@ public sealed class GitHubApiTests
                 return reply;
             }
 
-            return FakeHttp.Json(s.Uri.AbsolutePath == "/graphql" ? GitHubParseTests.Normal : TwoUnread);
+            return FakeHttp.Json(GitHubParseTests.Normal);
         });
         var api = New(http);
         var ct = TestContext.Current.CancellationToken;
@@ -204,16 +302,16 @@ public sealed class GitHubApiTests
         limited = true;
         Assert.Equal(GitHubResult.RateLimited, (await api.RefreshAsync(ct)).Result);
         Assert.Equal(kept, api.Page);
-        Assert.Equal(3, http.Seen.Count);
+        Assert.Equal(2, http.Seen.Count);
 
         clock.Advance(TimeSpan.FromMinutes(9));
         Assert.Equal(GitHubResult.RateLimited, (await api.RefreshAsync(ct)).Result);
-        Assert.Equal(3, http.Seen.Count);
+        Assert.Equal(2, http.Seen.Count);
 
         limited = false;
         clock.Advance(TimeSpan.FromMinutes(2));
         Assert.Equal(GitHubResult.Ok, (await api.RefreshAsync(ct)).Result);
-        Assert.Equal(5, http.Seen.Count);
+        Assert.Equal(3, http.Seen.Count);
     }
 
     [Fact]
@@ -246,7 +344,7 @@ public sealed class GitHubApiTests
 
         Assert.Equal(GitHubResult.Failed, (await api.RefreshAsync(ct)).Result);
         Assert.Equal(GitHubResult.Failed, (await api.RefreshAsync(ct)).Result);
-        Assert.Equal(4, http.Seen.Count);
+        Assert.Equal(2, http.Seen.Count);
         Assert.NotNull(secrets.Get(GitHubApp.TokenName));
     }
 
@@ -257,9 +355,9 @@ public sealed class GitHubApiTests
     public async Task AnyOtherErrorKeepsTheLastGoodResult(HttpStatusCode status)
     {
         var fail = false;
-        var http = new FakeHttp(s => fail
+        var http = new FakeHttp(_ => fail
             ? (status == HttpStatusCode.Found ? FakeHttp.Redirect("https://evil.example/graphql") : FakeHttp.Status(status))
-            : FakeHttp.Json(s.Uri.AbsolutePath == "/graphql" ? GitHubParseTests.Normal : TwoUnread));
+            : FakeHttp.Json(GitHubParseTests.Normal));
         var api = New(http);
         var ct = TestContext.Current.CancellationToken;
 
@@ -275,7 +373,7 @@ public sealed class GitHubApiTests
     public async Task AReplyOverOneMibIsRefused()
     {
         var huge = """{"data":{"mine":{"nodes":[]}},"pad":"PAD"}""".Replace("PAD", new string('x', 2 * 1024 * 1024), StringComparison.Ordinal);
-        var http = new FakeHttp(s => FakeHttp.Json(s.Uri.AbsolutePath == "/graphql" ? huge : TwoUnread));
+        var http = new FakeHttp(_ => FakeHttp.Json(huge));
         var api = New(http);
 
         Assert.Equal(GitHubResult.Failed, (await api.RefreshAsync(TestContext.Current.CancellationToken)).Result);
@@ -293,7 +391,7 @@ public sealed class GitHubApiTests
         Assert.Equal(GitHubResult.Busy, (await api.RefreshAsync(ct)).Result);
         gate.Open.SetResult();
         Assert.NotEqual(GitHubResult.Busy, (await first).Result);
-        Assert.Equal(2, gate.Calls);
+        Assert.Equal(1, gate.Calls);
     }
 
     [Fact]
@@ -317,7 +415,7 @@ public sealed class GitHubApiTests
     [Fact]
     public async Task ARefusalOfTheOldTokenKeepsANewerOneSavedWhileTheRequestWasOut()
     {
-        const string newer = "gho_NewerTokenValue1234567890abcdefghij";
+        const string newer = "ghu_NewerTokenValue1234567890abcdefghij";
         var http = new FakeHttp(_ =>
         {
             secrets.Set(GitHubApp.TokenName, newer);
@@ -352,13 +450,27 @@ public sealed class GitHubApiTests
 
     private GitHubApi New(FakeHttp http) => new(secrets, http, () => clock.Now);
 
-    private static FakeHttp Serve(string graphql, string notifications) =>
+    private static FakeHttp Serve(string graphql) =>
         new(s => s.Uri.AbsolutePath switch
         {
             "/graphql" => FakeHttp.Json(graphql),
-            "/notifications" => FakeHttp.Json(notifications),
             _ => throw new InvalidOperationException($"Asked {s.Uri}"),
         });
+
+    /// <summary>The refresh answers with <paramref name="renewal"/>, the query with the normal reply.</summary>
+    private static FakeHttp Routes(string renewal) =>
+        new(s => s.Uri.AbsolutePath switch
+        {
+            "/graphql" => FakeHttp.Json(GitHubParseTests.Normal),
+            "/login/oauth/access_token" => FakeHttp.Json(renewal),
+            _ => throw new InvalidOperationException($"Asked {s.Uri}"),
+        });
+
+    private void Expiring(DateTimeOffset at)
+    {
+        secrets.Set(GitHubApp.RefreshName, Refresh);
+        secrets.Set(GitHubApp.ExpiresName, at.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture));
+    }
 
     private sealed class Secrets : ISecretStore
     {
@@ -388,7 +500,7 @@ public sealed class GitHubApiTests
         {
             Interlocked.Increment(ref calls);
             await Open.Task.WaitAsync(cancellationToken);
-            return FakeHttp.Json(request.RequestUri!.AbsolutePath == "/graphql" ? GitHubParseTests.Normal : TwoUnread);
+            return FakeHttp.Json(GitHubParseTests.Normal);
         }
     }
 }

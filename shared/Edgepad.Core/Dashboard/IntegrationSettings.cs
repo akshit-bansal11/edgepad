@@ -21,7 +21,6 @@ internal sealed class IntegrationSettings(string path)
     public const string Codex = "codex";
     public const string GitHub = "github";
     public const string Developer = "developer";
-    public const string GitHubPrivate = "githubPrivate";
     public const string City = "city";
     public const string Lat = "lat";
     public const string Lon = "lon";

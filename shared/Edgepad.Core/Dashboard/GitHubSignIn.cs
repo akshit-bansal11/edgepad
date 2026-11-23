@@ -35,7 +35,7 @@ internal sealed record DeviceCode(SignInState State, string UserCode, Uri Page, 
 }
 
 /// <summary>
-/// GitHub sign-in by the OAuth device flow (GitHub docs, "Authorizing OAuth apps", device flow): ask github.com for a code,
+/// GitHub sign-in by the device flow of a GitHub App (GitHub docs, "Generating a user access token for a GitHub App"): ask github.com for a code,
 /// show it, and poll until the user has entered it at https://github.com/login/device. The token goes straight into the
 /// <see cref="ISecretStore"/> under <see cref="GitHubApp.TokenName"/>; it is never logged, never returned, and never sent to
 /// the phone. github.com is the only host asked, redirects are refused, every reply is capped at 16 KiB and 15 s, and there
@@ -53,6 +53,7 @@ internal sealed class GitHubSignIn(
 
     private const int DefaultInterval = 5;
     private const int MaxDeviceCode = 255;
+    private const int MaxLifeSeconds = 31 * 24 * 3600;
     private const string GrantType = "urn:ietf:params:oauth:grant-type:device_code";
 
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
@@ -62,14 +63,32 @@ internal sealed class GitHubSignIn(
     private readonly Lock gate = new();
     private Flow? current;
 
-    /// <summary>Whether a usable token is saved.</summary>
-    public bool IsSignedIn => GitHubApp.IsToken(store.Get(GitHubApp.TokenName));
+    /// <summary>Whether a usable token is saved. A token from the old OAuth app is deleted first (see <see cref="GitHubApp.Migrate"/>).</summary>
+    public bool IsSignedIn
+    {
+        get
+        {
+            GitHubApp.Migrate(store, clientId);
+            return GitHubApp.IsToken(store.Get(GitHubApp.TokenName));
+        }
+    }
+
+    /// <summary>Whether a token from the old OAuth app was deleted and nobody has signed in since: the window says "Sign in again".</summary>
+    public bool NeedsReSignIn
+    {
+        get
+        {
+            GitHubApp.Migrate(store, clientId);
+            return GitHubApp.NeedsReSignIn(store);
+        }
+    }
 
     /// <summary>
-    /// Asks GitHub for a code. <see cref="SignInState.NotConfigured"/> without a request while the Client ID is the
+    /// Asks GitHub for a code. No scope is sent: a GitHub App's token reads what the App's own read-only permissions and its
+    /// installations allow. <see cref="SignInState.NotConfigured"/> without a request while the Client ID is the
     /// placeholder; <see cref="SignInState.Failed"/> when GitHub cannot be asked or answers outside the documented ranges.
     /// </summary>
-    public async Task<DeviceCode> StartAsync(bool includePrivate, CancellationToken ct)
+    public async Task<DeviceCode> StartAsync(CancellationToken ct)
     {
         if (!GitHubApp.IsConfigured(clientId))
         {
@@ -77,8 +96,7 @@ internal sealed class GitHubSignIn(
         }
 
         Cancel();
-        var scope = includePrivate ? GitHubApp.ScopePrivate : GitHubApp.ScopePublic;
-        var reply = await PostAsync(GitHubApp.DeviceCodeUri, $"client_id={Uri.EscapeDataString(clientId)}&scope={Uri.EscapeDataString(scope)}", "Asking GitHub for a sign-in code", ct).ConfigureAwait(false);
+        var reply = await PostAsync(GitHubApp.DeviceCodeUri, $"client_id={Uri.EscapeDataString(clientId)}", "Asking GitHub for a sign-in code", ct).ConfigureAwait(false);
         if (reply is not { IsSuccess: true } || ParseDeviceCode(reply.Body) is not { } issued)
         {
             return DeviceCode.Not(SignInState.Failed);
@@ -138,7 +156,9 @@ internal sealed class GitHubSignIn(
                 switch (ReadPoll(reply))
                 {
                     case Poll.Token token:
-                        return store.Set(GitHubApp.TokenName, token.Value) ? SignInState.SignedIn : SignInState.Failed;
+                        return GitHubApp.Save(store, clientId, token.Value, token.Refresh, token.ExpiresIn is int life ? now() + TimeSpan.FromSeconds(life) : null)
+                            ? SignInState.SignedIn
+                            : SignInState.Failed;
                     case Poll.Pending:
                         break;
                     case Poll.SlowDown:
@@ -179,7 +199,8 @@ internal sealed class GitHubSignIn(
     public void SignOut()
     {
         Cancel();
-        store.Delete(GitHubApp.TokenName);
+        GitHubApp.Forget(store);
+        store.Delete(GitHubApp.ReSignInName);
     }
 
     /// <summary>
@@ -231,7 +252,7 @@ internal sealed class GitHubSignIn(
 
             if (reply.IsSuccess && Text(root, "access_token") is { } token)
             {
-                return GitHubApp.IsToken(token) ? new Poll.Token(token) : new Poll.End(SignInState.Failed);
+                return ReadToken(root, token);
             }
 
             return Text(root, "error") switch
@@ -249,6 +270,20 @@ internal sealed class GitHubSignIn(
             // A server error page, not an answer: try again at the next interval, until the code runs out.
             return reply.IsSuccess ? new Poll.End(SignInState.Failed) : new Poll.Pending();
         }
+    }
+
+    /// <summary>
+    /// A token reply: an expiring token has a refresh token and expires_in (1 s..31 days); one with neither does not expire. Half of
+    /// the pair, or a value outside the ranges, is a failure.
+    /// </summary>
+    private static Poll ReadToken(JsonElement root, string token)
+    {
+        var refresh = Text(root, "refresh_token");
+        var life = Whole(root, "expires_in");
+        var expiring = refresh is not null || life is not null;
+        var fine = GitHubApp.IsToken(token)
+            && (!expiring || (GitHubApp.IsToken(refresh) && life is > 0 and <= MaxLifeSeconds));
+        return fine ? new Poll.Token(token, refresh, life) : new Poll.End(SignInState.Failed);
     }
 
     private static string? Text(JsonElement root, string name) =>
@@ -290,7 +325,7 @@ internal sealed class GitHubSignIn(
 
         public sealed record SlowDown : Poll;
 
-        public sealed record Token(string Value) : Poll;
+        public sealed record Token(string Value, string? Refresh, int? ExpiresIn) : Poll;
 
         public sealed record End(SignInState State) : Poll;
     }

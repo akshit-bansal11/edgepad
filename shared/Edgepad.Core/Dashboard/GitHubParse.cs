@@ -15,7 +15,6 @@ internal static class GitHubParse
     public const int MaxDepth = 12;
 
     public const int MaxTitle = 80;
-    public const int MaxUnread = 50;
 
     private const int MaxRepoPart = 100;
     private const int MaxLogin = 39;
@@ -62,22 +61,6 @@ internal static class GitHubParse
             AddItems(items, data, "review", GitSection.Review);
             AddItems(items, data, "assigned", GitSection.Assigned);
             return new GitSnapshot(new GitProfile(login, DashWire.Clean(Text(viewer, "name") ?? string.Empty, GitLimits.MaxName), repoTotal, followers), repos, items);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
-    }
-
-    /// <summary>How many unread notifications a <c>GET /notifications</c> reply lists, at most 50; null when it is not a list.</summary>
-    public static int? Unread(byte[] body)
-    {
-        try
-        {
-            using var doc = JsonDocument.Parse(body, Options);
-            return doc.RootElement.ValueKind == JsonValueKind.Array
-                ? Math.Min(doc.RootElement.EnumerateArray().Count(n => n.ValueKind == JsonValueKind.Object), MaxUnread)
-                : null;
         }
         catch (JsonException)
         {

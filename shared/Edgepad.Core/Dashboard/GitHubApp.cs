@@ -1,25 +1,33 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 
 namespace Edgepad.Dashboard;
 
-/// <summary>The GitHub OAuth App Edgepad signs in through, and the fixed names and addresses that go with it.</summary>
+/// <summary>The read-only GitHub App Edgepad signs in through, and the fixed names and addresses that go with it.</summary>
 internal static class GitHubApp
 {
     /// <summary>
-    /// The public Client ID of the Edgepad OAuth App, registered 2026-11-20 with Device Flow on and token expiry off,
-    /// because nothing here refreshes a token. A Client ID is public by design; the device flow needs no client secret,
-    /// and none may ever be added. An empty value reports <see cref="SignInState.NotConfigured"/> and asks nobody.
+    /// The public Client ID of the "Edgepad Dashboard" GitHub App (slug edgepad-dashboard): device flow on, read-only repository
+    /// permissions, no account permissions. A Client ID is public by design; the device flow and the refresh of a device-flow
+    /// token need no client secret (GitHub docs, "Refreshing user access tokens"), and none may ever be added. An empty value
+    /// reports <see cref="SignInState.NotConfigured"/> and asks nobody.
     /// </summary>
-    public const string ClientId = "Ov23li11P3z1LCVz9APf";
+    public const string ClientId = "Iv23lie6SY6AFlHwufmK";
 
-    /// <summary>The <see cref="ISecretStore"/> name the token is kept under.</summary>
+    /// <summary>The <see cref="ISecretStore"/> name the access token is kept under.</summary>
     public const string TokenName = "github.token";
 
-    /// <summary>Public repositories and notifications: the default.</summary>
-    public const string ScopePublic = "public_repo notifications";
+    /// <summary>The refresh token (absent when the app's tokens do not expire).</summary>
+    public const string RefreshName = "github.refresh";
 
-    /// <summary>Private repositories too, when the user ticks "Include private repositories".</summary>
-    public const string ScopePrivate = "repo notifications";
+    /// <summary>When the access token expires, as Unix seconds (absent when it does not expire).</summary>
+    public const string ExpiresName = "github.expires";
+
+    /// <summary>The Client ID that issued the saved token; a token without this record came from the old OAuth app.</summary>
+    public const string ClientName = "github.client";
+
+    /// <summary>Set (to "1") when a token from the old OAuth app was deleted; the windows then say "Sign in again". Cleared by the next sign-in.</summary>
+    public const string ReSignInName = "github.resign";
 
     private const int MaxClientId = 64;
     private const int MaxToken = 255;
@@ -30,6 +38,12 @@ internal static class GitHubApp
     public static readonly Uri DeviceCodeUri = new("https://github.com/login/device/code");
     public static readonly Uri TokenUri = new("https://github.com/login/oauth/access_token");
 
+    /// <summary>
+    /// Where the user chooses which repositories the App may read. The one address besides a host's own lists that a phone can ask the
+    /// laptop to open; it is a constant here, never text from the phone.
+    /// </summary>
+    public static readonly Uri InstallUri = new("https://github.com/apps/edgepad-dashboard/installations/new");
+
     /// <summary>Whether <paramref name="clientId"/> looks like a real Client ID; the empty placeholder does not.</summary>
     public static bool IsConfigured(string clientId) =>
         clientId.Length is > 0 and <= MaxClientId && clientId.All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '_');
@@ -37,4 +51,55 @@ internal static class GitHubApp
     /// <summary>A token GitHub could have issued: 1..255 ASCII letters, digits and underscores. Anything else is never stored or sent.</summary>
     public static bool IsToken([NotNullWhen(true)] string? token) =>
         token is { Length: > 0 and <= MaxToken } && token.All(c => char.IsAsciiLetterOrDigit(c) || c == '_');
+
+    /// <summary>
+    /// A saved token that no record says <paramref name="clientId"/> issued came from the old OAuth app: it is deleted and the
+    /// "sign in again" note is left. Idempotent; a token saved by a sign-in always carries the record.
+    /// </summary>
+    public static void Migrate(ISecretStore store, string clientId)
+    {
+        if (store.Get(TokenName) is null || store.Get(ClientName) == clientId)
+        {
+            return;
+        }
+
+        Forget(store);
+        _ = store.Set(ReSignInName, "1");
+    }
+
+    /// <summary>Whether the old token was deleted and nobody has signed in since.</summary>
+    public static bool NeedsReSignIn(ISecretStore store) => store.Get(ReSignInName) == "1" && store.Get(TokenName) is null;
+
+    /// <summary>Saves a token with its record; false when the access token could not be saved (nothing half-saved stays).</summary>
+    public static bool Save(ISecretStore store, string clientId, string access, string? refresh, DateTimeOffset? expires)
+    {
+        var saved = store.Set(TokenName, access) && store.Set(ClientName, clientId);
+        if (saved && refresh is not null && expires is { } at)
+        {
+            saved = store.Set(RefreshName, refresh) && store.Set(ExpiresName, at.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture));
+        }
+        else if (saved)
+        {
+            store.Delete(RefreshName);
+            store.Delete(ExpiresName);
+        }
+
+        if (!saved)
+        {
+            Forget(store);
+            return false;
+        }
+
+        store.Delete(ReSignInName);
+        return true;
+    }
+
+    /// <summary>Deletes the token and everything that belongs to it.</summary>
+    public static void Forget(ISecretStore store)
+    {
+        store.Delete(TokenName);
+        store.Delete(RefreshName);
+        store.Delete(ExpiresName);
+        store.Delete(ClientName);
+    }
 }

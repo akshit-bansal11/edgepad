@@ -42,7 +42,7 @@ internal sealed record GitRepo(string FullName, bool Private, string Language, i
 internal sealed record GitItem(GitSection Section, string Repo, long Number, string Title, string State, bool IsPull, bool Draft, string Ci, long UpdatedMin, string Url, string? Label = null);
 
 /// <summary>What one host knows about the account: at most <see cref="GitLimits.MaxRepos"/> repositories, recent first, and at most <see cref="GitLimits.MaxItemsPerGroup"/> items per section.</summary>
-internal sealed record GitSnapshot(GitProfile Profile, IReadOnlyList<GitRepo> Repos, IReadOnlyList<GitItem> Items, int? Unread = null);
+internal sealed record GitSnapshot(GitProfile Profile, IReadOnlyList<GitRepo> Repos, IReadOnlyList<GitItem> Items);
 
 /// <summary>Opens an address in the person's default browser. Each laptop app implements it; <see cref="Open"/> says whether it tried.</summary>
 internal interface IUrlOpener

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using Edgepad.Dashboard;
 using Xunit;
@@ -11,7 +12,7 @@ public sealed class GitHubSignInTests
     private const string Code = """{"device_code":"3584d83530557fdd1f46af8289938c8ef79f9dc5","user_code":"WDJB-MJHT","verification_uri":"https://github.com/login/device","expires_in":900,"interval":5}""";
     private const string Pending = """{"error":"authorization_pending"}""";
     private const string SlowDown = """{"error":"slow_down","interval":10}""";
-    private const string Granted = """{"access_token":"gho_SecretTokenValue1234567890abcdef","token_type":"bearer","scope":"public_repo,notifications"}""";
+    private const string Granted = """{"access_token":"gho_SecretTokenValue1234567890abcdef","token_type":"bearer","scope":""}""";
 
     private readonly FakeClock clock = new();
     private readonly MemorySecrets secrets = new();
@@ -23,7 +24,7 @@ public sealed class GitHubSignInTests
         var http = new FakeHttp(_ => FakeHttp.Json(Code));
         var signIn = new GitHubSignIn(secrets, "", http, () => clock.Now, Wait);
 
-        var start = await signIn.StartAsync(false, TestContext.Current.CancellationToken);
+        var start = await signIn.StartAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(SignInState.NotConfigured, start.State);
         Assert.Empty(http.Seen);
@@ -35,30 +36,90 @@ public sealed class GitHubSignInTests
     public async Task StartAsksGitHubForACodeAtTheFixedAddress()
     {
         var http = new FakeHttp(_ => FakeHttp.Json(Code));
-        var start = await New(http).StartAsync(false, TestContext.Current.CancellationToken);
+        var start = await New(http).StartAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(new DeviceCode(SignInState.Started, "WDJB-MJHT", new Uri("https://github.com/login/device"), TimeSpan.FromMinutes(15)), start);
         var request = Assert.Single(http.Seen);
         Assert.Equal(HttpMethod.Post, request.Method);
         Assert.Equal("https://github.com/login/device/code", request.Uri.AbsoluteUri);
-        Assert.Equal("client_id=Ov23liTestClient0001&scope=public_repo%20notifications", request.Body);
+        Assert.Equal("client_id=Ov23liTestClient0001", request.Body);
+        Assert.DoesNotContain("scope", request.Body, StringComparison.Ordinal);
         Assert.Equal("application/json", request.Header("Accept"));
         Assert.DoesNotContain("secret", request.Body, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public async Task PrivateRepositoriesAskForTheRepoScope()
+    public void TheAppIsTheReadOnlyGitHubApp()
     {
-        var http = new FakeHttp(_ => FakeHttp.Json(Code));
-        await New(http).StartAsync(true, TestContext.Current.CancellationToken);
-        Assert.Equal("client_id=Ov23liTestClient0001&scope=repo%20notifications", http.Seen[0].Body);
+        Assert.Equal("Iv23lie6SY6AFlHwufmK", GitHubApp.ClientId);
+        Assert.Equal("https://github.com/apps/edgepad-dashboard/installations/new", GitHubApp.InstallUri.AbsoluteUri);
+    }
+
+    [Fact]
+    public async Task AnExpiringTokenIsSavedWithItsRefreshTokenExpiryAndClientId()
+    {
+        const string expiring = """{"access_token":"ghu_SecretTokenValue1234567890abcdef","expires_in":28800,"refresh_token":"ghr_RefreshValue1234567890abcdef","refresh_token_expires_in":15897600,"scope":"","token_type":"bearer"}""";
+        var signIn = New(Script(Code, expiring));
+        var ct = TestContext.Current.CancellationToken;
+
+        await signIn.StartAsync(ct);
+        Assert.Equal(SignInState.SignedIn, await signIn.WaitAsync(ct));
+
+        Assert.Equal("ghu_SecretTokenValue1234567890abcdef", secrets.Get(GitHubApp.TokenName));
+        Assert.Equal("ghr_RefreshValue1234567890abcdef", secrets.Get(GitHubApp.RefreshName));
+        Assert.Equal(clock.Now.AddSeconds(28800).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture), secrets.Get(GitHubApp.ExpiresName));
+        Assert.Equal(Client, secrets.Get(GitHubApp.ClientName));
+    }
+
+    [Theory]
+    [InlineData("""{"access_token":"ghu_SecretTokenValue1234567890abcdef","expires_in":28800}""")]
+    [InlineData("""{"access_token":"ghu_SecretTokenValue1234567890abcdef","refresh_token":"ghr_Value123"}""")]
+    [InlineData("""{"access_token":"ghu_SecretTokenValue1234567890abcdef","refresh_token":"ghr_bad value","expires_in":28800}""")]
+    [InlineData("""{"access_token":"ghu_SecretTokenValue1234567890abcdef","refresh_token":"ghr_Value123","expires_in":0}""")]
+    public async Task HalfOfAnExpiringPairOrAnOutOfRangeLifeIsAFailure(string answer)
+    {
+        var signIn = New(Script(Code, answer));
+        var ct = TestContext.Current.CancellationToken;
+
+        await signIn.StartAsync(ct);
+        Assert.Equal(SignInState.Failed, await signIn.WaitAsync(ct));
+        Assert.Null(secrets.Get(GitHubApp.TokenName));
+    }
+
+    [Fact]
+    public async Task ATokenFromTheOldOAuthAppIsDeletedOnTheFirstLookAndTheNoteStaysUntilANewSignIn()
+    {
+        secrets.Set(GitHubApp.TokenName, "gho_OldOAuthAppToken1234567890");
+        var signIn = New(Script(Code, Granted));
+        var ct = TestContext.Current.CancellationToken;
+
+        Assert.False(signIn.IsSignedIn);
+        Assert.Null(secrets.Get(GitHubApp.TokenName));
+        Assert.True(signIn.NeedsReSignIn);
+
+        await signIn.StartAsync(ct);
+        await signIn.WaitAsync(ct);
+        Assert.True(signIn.IsSignedIn);
+        Assert.False(signIn.NeedsReSignIn);
+    }
+
+    [Fact]
+    public async Task ATokenFromThisAppIsKept()
+    {
+        var signIn = New(Script(Code, Granted));
+        var ct = TestContext.Current.CancellationToken;
+
+        await signIn.StartAsync(ct);
+        await signIn.WaitAsync(ct);
+        Assert.True(New(Script()).IsSignedIn);
+        Assert.False(New(Script()).NeedsReSignIn);
     }
 
     [Fact]
     public async Task AVerificationUriFromTheServerIsIgnored()
     {
         var http = new FakeHttp(_ => FakeHttp.Json(Code.Replace("https://github.com/login/device", "https://evil.example/login", StringComparison.Ordinal)));
-        var start = await New(http).StartAsync(false, TestContext.Current.CancellationToken);
+        var start = await New(http).StartAsync(TestContext.Current.CancellationToken);
         Assert.Equal(SignInState.Started, start.State);
         Assert.Equal(GitHubApp.DevicePage, start.Page);
     }
@@ -81,7 +142,7 @@ public sealed class GitHubSignInTests
     public async Task AReplyOutsideTheDocumentedRangesFails(string from, string to)
     {
         var http = new FakeHttp(_ => FakeHttp.Json(Code.Replace(from, to, StringComparison.Ordinal)));
-        var start = await New(http).StartAsync(false, TestContext.Current.CancellationToken);
+        var start = await New(http).StartAsync(TestContext.Current.CancellationToken);
         Assert.Equal(SignInState.Failed, start.State);
         Assert.Empty(start.UserCode);
     }
@@ -93,7 +154,7 @@ public sealed class GitHubSignInTests
         var signIn = New(new FakeHttp(_ => FakeHttp.Json(replies.Dequeue())));
         var ct = TestContext.Current.CancellationToken;
 
-        Assert.Equal(SignInState.Started, (await signIn.StartAsync(false, ct)).State);
+        Assert.Equal(SignInState.Started, (await signIn.StartAsync(ct)).State);
         Assert.Equal(SignInState.SignedIn, await signIn.WaitAsync(ct));
         Assert.Equal("5", Waits());
     }
@@ -102,9 +163,9 @@ public sealed class GitHubSignInTests
     public async Task ARedirectOrServerErrorAtStartFails()
     {
         var ct = TestContext.Current.CancellationToken;
-        Assert.Equal(SignInState.Failed, (await New(new FakeHttp(_ => FakeHttp.Redirect("https://evil.example/"))).StartAsync(false, ct)).State);
-        Assert.Equal(SignInState.Failed, (await New(new FakeHttp(_ => FakeHttp.Status(HttpStatusCode.BadGateway))).StartAsync(false, ct)).State);
-        Assert.Equal(SignInState.Failed, (await New(new FakeHttp(_ => FakeHttp.Json(new string(' ', GitHubSignIn.MaxBytes + 1)))).StartAsync(false, ct)).State);
+        Assert.Equal(SignInState.Failed, (await New(new FakeHttp(_ => FakeHttp.Redirect("https://evil.example/"))).StartAsync(ct)).State);
+        Assert.Equal(SignInState.Failed, (await New(new FakeHttp(_ => FakeHttp.Status(HttpStatusCode.BadGateway))).StartAsync(ct)).State);
+        Assert.Equal(SignInState.Failed, (await New(new FakeHttp(_ => FakeHttp.Json(new string(' ', GitHubSignIn.MaxBytes + 1)))).StartAsync(ct)).State);
     }
 
     [Fact]
@@ -114,7 +175,7 @@ public sealed class GitHubSignInTests
         var signIn = New(http);
         var ct = TestContext.Current.CancellationToken;
 
-        await signIn.StartAsync(false, ct);
+        await signIn.StartAsync(ct);
         Assert.Equal(SignInState.SignedIn, await signIn.WaitAsync(ct));
 
         Assert.Equal(Token, secrets.Get(GitHubApp.TokenName));
@@ -137,7 +198,7 @@ public sealed class GitHubSignInTests
         var signIn = New(Script(Code, SlowDown, Pending, Granted));
         var ct = TestContext.Current.CancellationToken;
 
-        await signIn.StartAsync(false, ct);
+        await signIn.StartAsync(ct);
         Assert.Equal(SignInState.SignedIn, await signIn.WaitAsync(ct));
         Assert.Equal("5,10,10", Waits());
     }
@@ -155,7 +216,7 @@ public sealed class GitHubSignInTests
         var signIn = New(Script(Code, answer));
         var ct = TestContext.Current.CancellationToken;
 
-        await signIn.StartAsync(false, ct);
+        await signIn.StartAsync(ct);
         Assert.Equal(expected, await signIn.WaitAsync(ct));
         Assert.Null(secrets.Get(GitHubApp.TokenName));
     }
@@ -166,7 +227,7 @@ public sealed class GitHubSignInTests
         var signIn = New(Script(Code, null, null, Granted));
         var ct = TestContext.Current.CancellationToken;
 
-        await signIn.StartAsync(false, ct);
+        await signIn.StartAsync(ct);
         Assert.Equal(SignInState.SignedIn, await signIn.WaitAsync(ct));
     }
 
@@ -177,7 +238,7 @@ public sealed class GitHubSignInTests
         var signIn = New(http);
         var ct = TestContext.Current.CancellationToken;
 
-        await signIn.StartAsync(false, ct);
+        await signIn.StartAsync(ct);
         Assert.Equal(SignInState.Expired, await signIn.WaitAsync(ct));
         Assert.Equal(900 / 5, http.Seen.Count);
     }
@@ -188,7 +249,7 @@ public sealed class GitHubSignInTests
         var signIn = new GitHubSignIn(secrets, Client, Script(Code), () => clock.Now, (_, token) => Task.Delay(Timeout.Infinite, token));
         var ct = TestContext.Current.CancellationToken;
 
-        await signIn.StartAsync(false, ct);
+        await signIn.StartAsync(ct);
         var waiting = signIn.WaitAsync(ct);
         signIn.Cancel();
         Assert.Equal(SignInState.Cancelled, await waiting);
@@ -200,7 +261,7 @@ public sealed class GitHubSignInTests
         using var stop = new CancellationTokenSource();
         var signIn = new GitHubSignIn(secrets, Client, Script(Code), () => clock.Now, (_, token) => Task.Delay(Timeout.Infinite, token));
 
-        await signIn.StartAsync(false, TestContext.Current.CancellationToken);
+        await signIn.StartAsync(TestContext.Current.CancellationToken);
         var waiting = signIn.WaitAsync(stop.Token);
         await stop.CancelAsync();
         Assert.Equal(SignInState.Cancelled, await waiting);
@@ -212,9 +273,9 @@ public sealed class GitHubSignInTests
         var signIn = new GitHubSignIn(secrets, Client, new FakeHttp(_ => FakeHttp.Json(Code)), () => clock.Now, (_, token) => Task.Delay(Timeout.Infinite, token));
         var ct = TestContext.Current.CancellationToken;
 
-        await signIn.StartAsync(false, ct);
+        await signIn.StartAsync(ct);
         var first = signIn.WaitAsync(ct);
-        Assert.Equal(SignInState.Started, (await signIn.StartAsync(false, ct)).State);
+        Assert.Equal(SignInState.Started, (await signIn.StartAsync(ct)).State);
         Assert.Equal(SignInState.Cancelled, await first);
         signIn.Cancel();
     }
@@ -230,7 +291,7 @@ public sealed class GitHubSignInTests
         var signIn = New(Script(Code, Granted));
         var ct = TestContext.Current.CancellationToken;
 
-        await signIn.StartAsync(false, ct);
+        await signIn.StartAsync(ct);
         Assert.Equal(SignInState.Failed, await signIn.WaitAsync(ct));
         Assert.False(signIn.IsSignedIn);
     }
@@ -241,7 +302,7 @@ public sealed class GitHubSignInTests
         var signIn = New(Script(Code, Granted));
         var ct = TestContext.Current.CancellationToken;
 
-        await signIn.StartAsync(false, ct);
+        await signIn.StartAsync(ct);
         await signIn.WaitAsync(ct);
         signIn.SignOut();
         Assert.Null(secrets.Get(GitHubApp.TokenName));
@@ -254,7 +315,7 @@ public sealed class GitHubSignInTests
         var signIn = New(Script(Code, null, Granted));
         var ct = TestContext.Current.CancellationToken;
 
-        await signIn.StartAsync(false, ct);
+        await signIn.StartAsync(ct);
         Assert.Equal(SignInState.SignedIn, await signIn.WaitAsync(ct));
         Assert.DoesNotContain(Token, LogText.Read(), StringComparison.Ordinal);
         Assert.DoesNotContain("3584d83530557fdd1f46af8289938c8ef79f9dc5", LogText.Read(), StringComparison.Ordinal);

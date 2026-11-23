@@ -14,7 +14,7 @@ internal enum GitHubResult
     /// <summary>No usable token is saved; nobody was asked.</summary>
     NotSignedIn,
 
-    /// <summary>GitHub refused the token (401). It has been deleted; the screen shows "github:no-permission".</summary>
+    /// <summary>GitHub refused the token (401) and it could not be renewed. It has been deleted; the screen shows "github:no-permission".</summary>
     NoPermission,
 
     /// <summary>GitHub's rate limit; the last result is kept and nothing is asked until the limit resets.</summary>
@@ -41,11 +41,13 @@ internal static class GitHubRefresh
 
 /// <summary>
 /// The GitHub screen's data, over https from api.github.com only: one GraphQL query that never changes (the account, its newest
-/// repositories, and the pull requests and issues that are the user's, wait for the user's review or are assigned to the user)
-/// and one REST call for the unread notification count, kept by ETag. It only reads: every request goes through the
-/// <see cref="ReadOnlyGate"/>. The token is read from the <see cref="ISecretStore"/> for each refresh and goes only into the
-/// Authorization header of these requests; it is never held, logged, or put in anything the phone receives. Redirects are
-/// refused, a reply is capped at 1 MiB and 15 s, and refreshes never overlap.
+/// repositories, and the pull requests and issues that are the user's, wait for the user's review or are assigned to the user).
+/// It only reads: every request goes through the <see cref="ReadOnlyGate"/>. The token is a GitHub App user token (read-only, and
+/// limited to what the App is installed on); it is read from the <see cref="ISecretStore"/> for each request and goes only into the
+/// Authorization header of these requests; it is never held, logged, or put in anything the phone receives. An expiring token is
+/// renewed shortly before its end, and once after a 401, by <see cref="GitHubTokenRefresh"/>; when that fails the token is deleted
+/// and the screen says so. Redirects are refused, a reply is capped at 1 MiB and 15 s, and refreshes never overlap. Notifications
+/// are not asked: GitHub gives them only to a classic personal access token.
 /// </summary>
 internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler = null, Func<DateTimeOffset>? clock = null) : IGitHost
 {
@@ -99,7 +101,6 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
         """;
 
     public static readonly Uri GraphQlUri = new("https://api.github.com/graphql");
-    public static readonly Uri NotificationsUri = new("https://api.github.com/notifications?per_page=50");
     public static readonly Uri UserUri = new("https://api.github.com/user");
 
     /// <summary>A rate limit is waited out for at least this long, and never longer than <see cref="MaxBackoff"/>, whatever the reply claims.</summary>
@@ -107,18 +108,15 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
 
     public static readonly TimeSpan MaxBackoff = TimeSpan.FromHours(1);
 
-    private const int MaxETag = 200;
-
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
 
     private readonly Func<DateTimeOffset> now = clock ?? (() => DateTimeOffset.UtcNow);
     private readonly Lock gate = new();
 
-    private readonly GitBook book = new("github");
+    private readonly GitBook book = new("github", GitHubApp.InstallUri.AbsoluteUri);
+    private readonly GitHubTokenRefresh renewal = new(store, GitHubApp.ClientId, handler, clock ?? (() => DateTimeOffset.UtcNow));
 
     private GitSnapshot? snapshot;
-    private int? unread;
-    private string? etag;
     private DateTimeOffset backoffUntil;
     private int running;
 
@@ -143,7 +141,7 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
         return buffer.ToArray();
     }
 
-    /// <summary>Asks for the account, repositories, pull requests and issues, then the notification count. Never throws but on cancellation.</summary>
+    /// <summary>Asks for the account, repositories, pull requests and issues. Never throws but on cancellation.</summary>
     public async Task<GitHubRefreshResult> RefreshAsync(CancellationToken ct)
     {
         if (Interlocked.Exchange(ref running, 1) == 1)
@@ -160,12 +158,6 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
 
             var before = book.Page?.Rev;
             var result = await RefreshPullsAsync(ct).ConfigureAwait(false);
-            if (result is GitHubResult.Ok or GitHubResult.Failed)
-            {
-                var notifications = await RefreshUnreadAsync(ct).ConfigureAwait(false);
-                result = result == GitHubResult.Ok || notifications is not (GitHubResult.Ok or GitHubResult.Failed) ? notifications : result;
-            }
-
             Rebuild();
             return new GitHubRefreshResult(result, book.Page?.Rev != before);
         }
@@ -178,14 +170,8 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
     /// <summary>The signed-in user's login, for display only; null when it cannot be read. A refused token is deleted.</summary>
     public async Task<string?> LoginAsync(CancellationToken ct)
     {
-        using var request = Request(HttpMethod.Get, UserUri);
-        if (request is null)
-        {
-            return null;
-        }
-
-        var reply = await CappedHttp.SendAsync(request, MaxBytes, Timeout, handler, "Asking GitHub who is signed in", ct).ConfigureAwait(false);
-        return Judge(reply, request) == GitHubResult.Ok && reply is not null ? GitHubParse.Login(reply.Body) : null;
+        var (result, reply) = await CallAsync(HttpMethod.Get, UserUri, null, "Asking GitHub who is signed in", ct).ConfigureAwait(false);
+        return result == GitHubResult.Ok && reply is not null ? GitHubParse.Login(reply.Body) : null;
     }
 
     private DateTimeOffset Backoff
@@ -201,15 +187,7 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
 
     private async Task<GitHubResult> RefreshPullsAsync(CancellationToken ct)
     {
-        using var request = Request(HttpMethod.Post, GraphQlUri);
-        if (request is null)
-        {
-            return GitHubResult.NotSignedIn;
-        }
-
-        request.Content = new ByteArrayContent(QueryBody()) { Headers = { ContentType = new MediaTypeHeaderValue("application/json") } };
-        var reply = await CappedHttp.SendAsync(request, MaxBytes, Timeout, handler, "Asking GitHub for pull requests", ct).ConfigureAwait(false);
-        var result = Judge(reply, request);
+        var (result, reply) = await CallAsync(HttpMethod.Post, GraphQlUri, QueryBody(), "Asking GitHub for pull requests", ct).ConfigureAwait(false);
         if (result != GitHubResult.Ok || reply is null)
         {
             return result;
@@ -228,87 +206,83 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
         return GitHubResult.Ok;
     }
 
-    /// <summary>Makes the page from the last good snapshot and unread count; a revision is spent only when what the phone sees changed.</summary>
+    /// <summary>Makes the page from the last good snapshot; a revision is spent only when what the phone sees changed.</summary>
     private void Rebuild()
     {
         GitSnapshot? current;
-        int? count;
         lock (gate)
         {
             current = snapshot;
-            count = unread;
         }
 
         if (current is not null)
         {
-            book.Update(current with { Unread = count });
+            book.Update(current);
         }
     }
 
-    private async Task<GitHubResult> RefreshUnreadAsync(CancellationToken ct)
+    private void ClearScreen()
     {
-        using var request = Request(HttpMethod.Get, NotificationsUri);
-        if (request is null)
-        {
-            return GitHubResult.NotSignedIn;
-        }
-
-        string? known;
         lock (gate)
         {
-            known = unread is null ? null : etag;
+            snapshot = null;
         }
 
-        if (known is not null)
-        {
-            request.Headers.TryAddWithoutValidation("If-None-Match", known);
-        }
-
-        var reply = await CappedHttp.SendAsync(request, MaxBytes, Timeout, handler, "Asking GitHub for notifications", ct).ConfigureAwait(false);
-        if (reply?.Status == HttpStatusCode.NotModified)
-        {
-            return GitHubResult.Ok;
-        }
-
-        var result = Judge(reply, request);
-        if (result != GitHubResult.Ok || reply is null)
-        {
-            return result;
-        }
-
-        if (GitHubParse.Unread(reply.Body) is not int count)
-        {
-            return GitHubResult.Failed;
-        }
-
-        lock (gate)
-        {
-            unread = count;
-            etag = reply.Header("ETag") is { Length: > 0 and <= MaxETag } tag && tag.All(c => c is >= ' ' and <= '~') ? tag : null;
-        }
-
-        return GitHubResult.Ok;
+        book.Clear();
     }
 
-    /// <summary>A request carrying the saved token; null when there is no usable one.</summary>
-    private HttpRequestMessage? Request(HttpMethod method, Uri uri)
+    /// <summary>
+    /// One request with the saved token: the token is renewed first when it is about to expire, and the request is sent once more with
+    /// a new token after a 401 when a renewal makes one. A token from the old OAuth app is deleted first (<see cref="GitHubApp.Migrate"/>).
+    /// </summary>
+    private async Task<(GitHubResult Result, CappedReply? Reply)> CallAsync(HttpMethod method, Uri uri, byte[]? body, string what, CancellationToken ct)
     {
-        var token = store.Get(GitHubApp.TokenName);
-        if (!GitHubApp.IsToken(token))
+        GitHubApp.Migrate(store, GitHubApp.ClientId);
+        if (renewal.IsDue() && await renewal.RefreshAsync(ct).ConfigureAwait(false) == RefreshOutcome.Rejected)
         {
-            return null;
+            ClearScreen();
+            return (GitHubResult.NoPermission, null);
         }
 
-        var request = new HttpRequestMessage(method, uri);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        request.Headers.Accept.ParseAdd("application/vnd.github+json");
-        request.Headers.TryAddWithoutValidation("X-GitHub-Api-Version", "2022-11-28");
-        request.Headers.UserAgent.ParseAdd("Edgepad");
-        return request;
+        for (var attempt = 0; ; attempt++)
+        {
+            var token = store.Get(GitHubApp.TokenName);
+            if (!GitHubApp.IsToken(token))
+            {
+                return (GitHubResult.NotSignedIn, null);
+            }
+
+            using var request = new HttpRequestMessage(method, uri);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Headers.Accept.ParseAdd("application/vnd.github+json");
+            request.Headers.TryAddWithoutValidation("X-GitHub-Api-Version", "2022-11-28");
+            request.Headers.UserAgent.ParseAdd("Edgepad");
+            if (body is not null)
+            {
+                request.Content = new ByteArrayContent(body) { Headers = { ContentType = new MediaTypeHeaderValue("application/json") } };
+            }
+
+            var reply = await CappedHttp.SendAsync(request, MaxBytes, Timeout, handler, what, ct).ConfigureAwait(false);
+            if (reply?.Status == HttpStatusCode.Unauthorized && attempt == 0 && renewal.CanRefresh && store.Get(GitHubApp.TokenName) == token)
+            {
+                var outcome = await renewal.RefreshAsync(ct).ConfigureAwait(false);
+                if (outcome == RefreshOutcome.Refreshed)
+                {
+                    continue;
+                }
+
+                if (outcome == RefreshOutcome.Unavailable)
+                {
+                    return (GitHubResult.Failed, reply);
+                }
+            }
+
+            return (Judge(reply, token), reply);
+        }
     }
 
     /// <summary>Success is Ok; 401 deletes the token; 403 or 429 with rate-limit headers starts a back-off; anything else is Failed.</summary>
-    private GitHubResult Judge(CappedReply? reply, HttpRequestMessage request)
+    private GitHubResult Judge(CappedReply? reply, string sent)
     {
         if (reply is null)
         {
@@ -323,17 +297,11 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
         // Only the token this request carried goes: one saved by a sign-in while it was out is a different one.
         if (reply.Status == HttpStatusCode.Unauthorized)
         {
-            if (store.Get(GitHubApp.TokenName) == request.Headers.Authorization?.Parameter)
+            var saved = store.Get(GitHubApp.TokenName);
+            if (saved is null || saved == sent)
             {
-                store.Delete(GitHubApp.TokenName);
-                lock (gate)
-                {
-                    snapshot = null;
-                    unread = null;
-                    etag = null;
-                }
-
-                book.Clear();
+                GitHubApp.Forget(store);
+                ClearScreen();
             }
 
             return GitHubResult.NoPermission;

@@ -12,7 +12,6 @@ public sealed class IntegrationSettingsTests : IDisposable
         IntegrationSettings.Claude,
         IntegrationSettings.Codex,
         IntegrationSettings.GitHub,
-        IntegrationSettings.GitHubPrivate,
         IntegrationSettings.CodexTrusted,
         IntegrationSettings.Developer,
     ];
@@ -100,7 +99,6 @@ public sealed class IntegrationSettingsTests : IDisposable
 
         Assert.True(settings.SetFlag(IntegrationSettings.Stats, true));
         Assert.True(settings.SetFlag(IntegrationSettings.GitHub, true));
-        Assert.True(settings.SetFlag(IntegrationSettings.GitHubPrivate, true));
         Assert.True(settings.SetFlag(IntegrationSettings.CodexTrusted, true));
         Assert.True(settings.SetFlag(IntegrationSettings.Weather, false));
         Assert.True(settings.Set(IntegrationSettings.City, "Lisbon"));
@@ -115,7 +113,6 @@ public sealed class IntegrationSettingsTests : IDisposable
 
         Assert.True(again.Flag(IntegrationSettings.Stats));
         Assert.True(again.Flag(IntegrationSettings.GitHub));
-        Assert.True(again.Flag(IntegrationSettings.GitHubPrivate));
         Assert.True(again.Flag(IntegrationSettings.CodexTrusted));
         Assert.False(again.Flag(IntegrationSettings.Weather));
         Assert.False(again.Flag(IntegrationSettings.Claude));

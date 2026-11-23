@@ -128,11 +128,26 @@ public sealed class GitTests
     }
 
     [Fact]
-    public void AnUnreadCountIsAnOlderStyleLineThatDoesNotTakeAnIndex()
+    public void NoNotificationCountLineIsSentAndAnExtraAddressComesLast()
     {
-        var page = GitBlob.Encode("github", Snapshot() with { Unread = 7 }, 1);
-        Assert.Equal("N\t\t7\t\t\tnone", page.Body.Split('\n')[1]);
-        Assert.Equal(3, page.Urls.Count);
+        var page = GitBlob.Encode("github", Snapshot(), 1, GitHubApp.InstallUri.AbsoluteUri);
+        Assert.DoesNotContain(page.Body.Split('\n'), r => r.StartsWith("N\t", StringComparison.Ordinal));
+        Assert.Equal(4, page.Urls.Count);
+        Assert.Equal("https://github.com/apps/edgepad-dashboard/installations/new", page.Urls[^1]);
+    }
+
+    [Fact]
+    public void OnlyTheInstallAddressIsOpenableBesidesTheListAndNothingPastIt()
+    {
+        var book = new GitBook("github", GitHubApp.InstallUri.AbsoluteUri);
+        var page = book.Update(Snapshot());
+        var hosts = Hosts(page);
+        var last = page.Urls.Count - 1;
+
+        Assert.True(GitOpenGate.TryResolve($"github/{page.Rev}/{last}", hosts, out var url));
+        Assert.Equal(GitHubApp.InstallUri, url);
+        Assert.False(GitOpenGate.TryResolve($"github/{page.Rev}/{last + 1}", hosts, out _));
+        Assert.False(GitOpenGate.TryResolve("github/1/https://evil.example", hosts, out _));
     }
 
     [Fact]

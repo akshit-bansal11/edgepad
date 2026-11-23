@@ -166,15 +166,6 @@ public sealed class GitHubParseTests
     [InlineData(null, CiToken.None)]
     public void RollupStatesMapToCiTokens(string? state, string expected) => Assert.Equal(expected, GitHubParse.Ci(state));
 
-    [Fact]
-    public void TheUnreadCountIsTheListLengthCappedAtFifty()
-    {
-        Assert.Equal(2, GitHubParse.Unread(Bytes("""[{"id":"1","unread":true},{"id":"2","unread":true}]""")));
-        Assert.Equal(0, GitHubParse.Unread(Bytes("[]")));
-        Assert.Equal(50, GitHubParse.Unread(Bytes("[" + string.Join(",", Enumerable.Repeat("{}", 60)) + "]")));
-        Assert.Null(GitHubParse.Unread(Bytes("""{"message":"x"}""")));
-    }
-
     [Theory]
     [InlineData("""{"login":"octo-cat"}""", "octo-cat")]
     [InlineData("""{"login":"evil name"}""", null)]
