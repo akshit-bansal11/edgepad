@@ -290,18 +290,33 @@ internal static class DashWire
     /// <summary>"agent:window:pct:resetAtMin:measuredAtMin" entries joined by "|". An entry with an unknown agent or a window outside the three forms is dropped.</summary>
     public static string EncodeLimits(IReadOnlyList<LimitEntry> limits)
     {
-        var parts = new List<string>();
+        var parts = new List<(int Rank, string Text)>();
         foreach (var l in limits)
         {
             if (IsAgent(l.Agent) && TryWindow(l.Window, out var window))
             {
                 var pct = double.IsNaN(l.Pct) ? 0 : (long)Math.Floor(Math.Clamp(l.Pct, 0, 100) + 0.5);
-                parts.Add($"{l.Agent}:{window}:{Num(pct)}:{Big(l.ResetAtMin, -1)}:{Big(l.MeasuredAtMin, -1)}");
+                parts.Add((LimitRank(window), $"{l.Agent}:{window}:{Num(pct)}:{Big(l.ResetAtMin, -1)}:{Big(l.MeasuredAtMin, -1)}"));
             }
         }
 
-        return Fit255(parts, '|');
+        // Only an overflow reorders: then every agent's 5 h and weekly window come first, so the cut loses the least important.
+        if (Encoding.UTF8.GetByteCount(string.Join('|', parts.Select(p => p.Text))) > MaxText)
+        {
+            parts = [.. parts.OrderBy(p => p.Rank)];
+        }
+
+        return Fit255([.. parts.Select(p => p.Text)], '|');
     }
+
+    // 0: the 5 h and weekly windows; 1: the context and any other duration; 2: a named window (a model's week); 3: credits.
+    private static int LimitRank(string window) => window switch
+    {
+        "300" or "10080" => 0,
+        "~spend_limit" => 3,
+        _ when window[0] == LimitWindow.NamedPrefix => 2,
+        _ => 1,
+    };
 
     public static IReadOnlyList<LimitEntry> ParseLimits(string? wire) =>
         Entries<LimitEntry>(wire, entry =>

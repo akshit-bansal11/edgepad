@@ -265,8 +265,9 @@ public enum HookProtocol {
         }
 
         // The session's folder lets the board attach the context fill to the right session; it never reaches the phone.
-        guard let folder = optStr(d, "cwd", maxCwdLength) else { return nil }
-        let cwd = folder ?? ""
+        // A cwd that is not a string, or is too long to trust, is treated as absent; the limits still count.
+        var cwd = ""
+        if let text = d["cwd"] as? String, text.utf16.count <= maxCwdLength { cwd = text }
 
         var context: Double?
         if let raw = d["context"], !(raw is NSNull) {

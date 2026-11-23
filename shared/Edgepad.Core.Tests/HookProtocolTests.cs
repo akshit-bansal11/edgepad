@@ -36,6 +36,20 @@ public sealed class HookProtocolTests
         Assert.True(count >= 40, $"only {count} SERVER vectors");
     }
 
+    [Theory]
+    [InlineData("\"cwd\":5")]
+    [InlineData("\"cwd\":\"LONG\"")]
+    public void AUsageReportWithAnUnusableFolderKeepsItsLimitsAndLosesOnlyTheFolder(string cwdField)
+    {
+        var field = cwdField.Replace("LONG", new string('x', HookProtocol.MaxCwdLength + 1), StringComparison.Ordinal);
+        var line = $$"""{"v":1,"token":"T","agent":"claude","kind":"usage","d":{"limits":[{"kind":"five_hour","percentUsed":12}],"context":{"percent":7},{{field}}}}""";
+
+        var usage = Assert.IsType<UsageRequest>(HookProtocol.TryParse(Encoding.UTF8.GetBytes(line)));
+
+        Assert.Single(usage.Windows);
+        Assert.Equal(string.Empty, usage.Cwd);
+    }
+
     [Fact]
     public void ALineOfExactly64KiBParsesAndOneByteMoreDoesNot()
     {

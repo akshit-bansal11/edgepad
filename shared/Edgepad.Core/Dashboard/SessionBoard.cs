@@ -131,7 +131,7 @@ internal sealed class SessionBoard(Func<DateTimeOffset> clock)
     /// <summary>
     /// Records how full a session's context window is (0..100; anything else reads as unknown). An agent that cannot name its session
     /// (Claude Code's usage mod knows only its folder) is matched by <paramref name="cwd"/>: the newest session of that agent in that
-    /// folder takes it. Touching a session is not a change of state, so its order is left alone.
+    /// folder takes it, and when two share the folder both read unknown. Touching a session is not a change of state, so its order is left alone.
     /// </summary>
     public void SetContext(string agent, string cwd, double pct) =>
         Run(() =>
@@ -142,14 +142,16 @@ internal sealed class SessionBoard(Func<DateTimeOffset> clock)
                 return;
             }
 
-            var match = sessions
+            var matches = sessions
                 .Where(s => s.Key.Agent == agent && string.Equals(s.Value.Cwd, folder, StringComparison.OrdinalIgnoreCase))
-                .OrderByDescending(s => s.Value.Order)
                 .Select(s => s.Value)
-                .FirstOrDefault();
-            if (match is not null)
+                .ToList();
+
+            // Two sessions of one agent in one folder cannot be told apart, so neither shows a number that may be the other's.
+            var value = matches.Count > 1 ? -1 : Percent(pct);
+            foreach (var match in matches)
             {
-                match.Context = Percent(pct);
+                match.Context = value;
             }
         });
 

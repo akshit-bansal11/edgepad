@@ -12,10 +12,17 @@ const send = async ($: EngineInterface, force: boolean) => {
     lastSent = now
     const u = await $.session.usage()
     // The folder tells the app which session the context fill belongs to; it stays on the laptop.
+    // Without it the limits still go: only the context loses its session.
+    let cwd: string | undefined
+    try {
+      cwd = await $.session.cwd()
+    } catch {
+      cwd = undefined
+    }
     const payload = JSON.stringify({
       limits: u.rateLimits.map(l => ({ kind: l.kind, percentUsed: l.percentUsed, resetsAt: l.resetsAt })),
       context: { percent: u.context.percent },
-      cwd: await $.session.cwd(),
+      cwd,
     })
     await $.process.run(
       ["__APP__", '--hook', 'claude', 'usage', payload],

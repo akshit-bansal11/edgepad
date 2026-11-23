@@ -40,15 +40,17 @@ final class SessionBoardTests: XCTestCase {
         XCTAssertTrue(board.snapshot().allSatisfy { $0.contextPct == -1 })
 
         board.setContext(agent: claude, cwd: "/work/app", pct: 41.6)
+        board.setContext(agent: claude, cwd: "/work/other", pct: 41.6)
         board.setContext(agent: claude, cwd: "/nowhere", pct: 90)
         board.setContext(agent: codex, cwd: "/work/other", pct: 90)
 
-        XCTAssertEqual(board.snapshot().map(\.contextPct).reversed(), [-1, 42, -1])
+        // a and b share a folder, so neither takes the number; c is alone there.
+        XCTAssertEqual(board.snapshot().map(\.contextPct).reversed(), [-1, -1, 42])
 
         board.setContext(agent: claude, cwd: "/work/other", pct: 250)
         board.setContextById(agent: claude, sessionId: "a", pct: .nan)
         board.setContextById(agent: claude, sessionId: "a", pct: 12)
-        XCTAssertEqual(board.snapshot().map(\.contextPct).reversed(), [12, 42, 100])
+        XCTAssertEqual(board.snapshot().map(\.contextPct).reversed(), [12, -1, 100])
     }
 
     func testAChangedContextRaisesChangedAndTheSameOneDoesNot() {

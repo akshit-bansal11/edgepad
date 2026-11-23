@@ -185,16 +185,17 @@ public final class SessionBoard {
 
     /// Records how full a session's context window is (0..100; anything else reads as unknown). An agent that cannot
     /// name its session (Claude Code's usage mod knows only its folder) is matched by `cwd`: the newest session of that
-    /// agent in that folder takes it. Touching a session is not a change of state, so its order is left alone.
+    /// agent in that folder takes it, and when two share the folder both read unknown. Touching a session is not a change of state, so its order is left alone.
     public func setContext(agent: String, cwd: String, pct: Double) {
         run {
             let folder = Self.trimmed(cwd)
             guard !folder.isEmpty else { return }
-            let match =
-                sessions
-                .filter { $0.key.agent == agent && $0.value.cwd.caseInsensitiveCompare(folder) == .orderedSame }
-                .max { $0.value.order < $1.value.order }
-            match?.value.context = Self.percent(pct)
+            let matches = sessions.filter {
+                $0.key.agent == agent && $0.value.cwd.caseInsensitiveCompare(folder) == .orderedSame
+            }
+            // Two sessions of one agent in one folder cannot be told apart, so neither shows a number that may be the other's.
+            let value = matches.count > 1 ? -1 : Self.percent(pct)
+            for match in matches.values { match.context = value }
         }
     }
 

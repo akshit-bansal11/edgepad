@@ -245,10 +245,10 @@ internal static class HookProtocol
         }
 
         // The session's folder lets the board attach the context fill to the right session; it never reaches the phone.
-        if (OptStr(d, "cwd", MaxCwdLength, out var folder) is false)
-        {
-            return null;
-        }
+        // A cwd that is not a string, or is too long to trust, is treated as absent; the limits still count.
+        var folder = d.TryGetProperty("cwd", out var cwdValue) && cwdValue.ValueKind == JsonValueKind.String && cwdValue.GetString()!.Length <= MaxCwdLength
+            ? cwdValue.GetString()
+            : null;
 
         double? context = null;
         if (d.TryGetProperty("context", out var ctx) && ctx.ValueKind != JsonValueKind.Null)

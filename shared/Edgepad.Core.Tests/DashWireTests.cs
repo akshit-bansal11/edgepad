@@ -73,6 +73,33 @@ public sealed class DashWireTests
     }
 
     [Fact]
+    public void AnOverflowingLimitsListLosesCreditsAndModelWeeksBeforeAnyAgentsFiveHourOrWeekly()
+    {
+        const long Big = 1_787_897_318L;
+        var all = new List<LimitEntry>
+        {
+            new("claude", "300", 10, Big, Big),
+            new("claude", "10080", 20, Big, Big),
+            new("claude", "~weekly_sonnet", 30, Big, Big),
+            new("claude", "~weekly_opus", 40, Big, Big),
+            new("claude", "~spend_limit", 50, Big, Big),
+            new("codex", "300", 60, Big, Big),
+            new("codex", "10080", 70, Big, Big),
+            new("codex", "43200", 80, Big, Big),
+        };
+
+        var wire = DashWire.EncodeLimits(all);
+        var kept = DashWire.ParseLimits(wire).Select(l => (l.Agent, l.Window)).ToList();
+
+        Assert.True(System.Text.Encoding.UTF8.GetByteCount(wire) <= 255);
+        Assert.Contains(("claude", "300"), kept);
+        Assert.Contains(("claude", "10080"), kept);
+        Assert.Contains(("codex", "300"), kept);
+        Assert.Contains(("codex", "10080"), kept);
+        Assert.DoesNotContain(("claude", "~spend_limit"), kept);
+    }
+
+    [Fact]
     public void EveryTextPayloadFitsTheFrame()
     {
         var wide = string.Concat(Enumerable.Repeat("😀", 60));

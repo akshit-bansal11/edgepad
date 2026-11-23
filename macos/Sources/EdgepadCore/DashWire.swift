@@ -358,13 +358,28 @@ public enum DashWire {
     /// "agent:window:pct:resetAtMin:measuredAtMin" entries joined by "|". An entry with an unknown agent or a window
     /// outside the three forms is dropped. The percent clamps to 0..100 and rounds half up.
     public static func encodeLimits(_ limits: [LimitEntry]) -> String {
-        var parts: [String] = []
+        var parts: [(rank: Int, text: String)] = []
         for l in limits where isAgent(l.agent) {
             guard let canonical = window(l.window) else { continue }
             let pct = l.pct.isNaN ? 0 : Int64((min(max(l.pct, 0), 100) + 0.5).rounded(.down))
-            parts.append("\(l.agent):\(canonical):\(num(pct)):\(big(l.resetAtMin, -1)):\(big(l.measuredAtMin, -1))")
+            let text = "\(l.agent):\(canonical):\(num(pct)):\(big(l.resetAtMin, -1)):\(big(l.measuredAtMin, -1))"
+            parts.append((limitRank(canonical), text))
         }
-        return fit255(parts, "|")
+        // Only an overflow reorders: then every agent's 5 h and weekly window come first, so the cut loses the least important.
+        if parts.map(\.text).joined(separator: "|").utf8.count > maxText {
+            parts = parts.enumerated().sorted { ($0.element.rank, $0.offset) < ($1.element.rank, $1.offset) }
+                .map(\.element)
+        }
+        return fit255(parts.map(\.text), "|")
+    }
+
+    // 0: the 5 h and weekly windows; 1: the context and any other duration; 2: a named window (a model's week); 3: credits.
+    private static func limitRank(_ window: String) -> Int {
+        switch window {
+        case "300", "10080": return 0
+        case "~spend_limit": return 3
+        default: return window.hasPrefix(LimitWindow.namedPrefix) ? 2 : 1
+        }
     }
 
     public static func parseLimits(_ wire: String) -> [LimitEntry] {

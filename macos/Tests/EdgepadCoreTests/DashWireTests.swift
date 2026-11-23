@@ -38,6 +38,26 @@ final class DashWireTests: XCTestCase {
         }
     }
 
+    func testAnOverflowingLimitsListLosesCreditsAndModelWeeksBeforeAnyAgentsFiveHourOrWeekly() {
+        let big: Int64 = 1_787_897_318
+        let all: [(String, String, Double)] = [
+            ("claude", "300", 10), ("claude", "10080", 20), ("claude", "~weekly_sonnet", 30),
+            ("claude", "~weekly_opus", 40), ("claude", "~spend_limit", 50), ("codex", "300", 60),
+            ("codex", "10080", 70), ("codex", "43200", 80),
+        ]
+        let entries = all.map {
+            LimitEntry(agent: $0.0, window: $0.1, pct: $0.2, resetAtMin: big, measuredAtMin: big)
+        }
+        let wire = DashWire.encodeLimits(entries)
+        let kept = DashWire.parseLimits(wire).map { "\($0.agent):\($0.window)" }
+
+        XCTAssertLessThanOrEqual(wire.utf8.count, 255)
+        for want in ["claude:300", "claude:10080", "codex:300", "codex:10080"] {
+            XCTAssertTrue(kept.contains(want), want)
+        }
+        XCTAssertFalse(kept.contains("claude:~spend_limit"))
+    }
+
     func testEveryTextPayloadFitsTheFrame() {
         let wide = String(repeating: "😀", count: 60)
         let big = Int64.max

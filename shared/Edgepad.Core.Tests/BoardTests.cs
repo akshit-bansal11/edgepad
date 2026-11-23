@@ -39,15 +39,17 @@ public sealed class SessionBoardTests
         Assert.All(board.Snapshot(), s => Assert.Equal(-1, s.ContextPct));
 
         board.SetContext(AgentToken.Claude, "/work/app", 41.6);
+        board.SetContext(AgentToken.Claude, "/work/other", 41.6);
         board.SetContext(AgentToken.Claude, "/nowhere", 90);
         board.SetContext(AgentToken.Codex, "/work/other", 90);
 
-        Assert.Equal([-1, 42, -1], board.Snapshot().Select(s => s.ContextPct).Reverse().ToArray());
+        // a and b share a folder, so neither takes the number; c is alone there.
+        Assert.Equal([-1, -1, 42], board.Snapshot().Select(s => s.ContextPct).Reverse().ToArray());
 
         board.SetContext(AgentToken.Claude, "/work/other", 250);
         board.SetContextById(AgentToken.Claude, "a", double.NaN);
         board.SetContextById(AgentToken.Claude, "a", 12);
-        Assert.Equal([12, 42, 100], board.Snapshot().Select(s => s.ContextPct).Reverse().ToArray());
+        Assert.Equal([12, -1, 100], board.Snapshot().Select(s => s.ContextPct).Reverse().ToArray());
     }
 
     [Fact]

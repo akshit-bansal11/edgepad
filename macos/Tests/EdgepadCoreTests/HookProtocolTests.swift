@@ -100,6 +100,21 @@ final class HookProtocolTests: XCTestCase {
         XCTAssertNil(HookProtocol.parse([]))
     }
 
+    func testAUsageReportWithAnUnusableFolderKeepsItsLimitsAndLosesOnlyTheFolder() {
+        let long = String(repeating: "x", count: HookProtocol.maxCwdLength + 1)
+        for field in ["\"cwd\":5", "\"cwd\":\"\(long)\""] {
+            let line =
+                "{\"v\":1,\"token\":\"T\",\"agent\":\"claude\",\"kind\":\"usage\",\"d\":{\"limits\":"
+                + "[{\"kind\":\"five_hour\",\"percentUsed\":12}],\"context\":{\"percent\":7},\(field)}}"
+            guard case .usage(let usage)? = HookProtocol.parse(Array(line.utf8)) else {
+                XCTFail("usage report was dropped")
+                continue
+            }
+            XCTAssertEqual(usage.windows.count, 1)
+            XCTAssertEqual(usage.cwd, "")
+        }
+    }
+
     func testCutNeverSplitsASurrogatePair() {
         XCTAssertEqual(HookProtocol.cut("ab\u{1F600}", 3), "ab")
         XCTAssertEqual(HookProtocol.cut("ab\u{1F600}", 4), "ab\u{1F600}")
