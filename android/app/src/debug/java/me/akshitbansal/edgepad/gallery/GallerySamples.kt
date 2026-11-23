@@ -87,10 +87,11 @@ class GallerySamples(
             }
 
             "stats-network-phone" -> {
-                NetworkScreen(ui, sysBar(onPhone = true), { sampleLaptop }, { SAMPLE_RTT_MS }, {}).apply {
-                    phoneChanged(samplePhone)
-                    showPhone(true)
-                }.view
+                NetworkScreen(ui, sysBar(onPhone = true), { sampleLaptop }, { SAMPLE_RTT_MS }, {})
+                    .apply {
+                        phoneChanged(samplePhone)
+                        showPhone(true)
+                    }.view
             }
 
             "ai-two", "ai-four" -> {
