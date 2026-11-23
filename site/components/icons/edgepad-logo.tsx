@@ -23,11 +23,7 @@ const LOGO = (() => {
   for (const [, id, kind, colour, d] of raw.matchAll(PATH_RE)) {
     if (!id || !d) continue;
     const role =
-      kind === "fill"
-        ? "bg"
-        : colour?.toUpperCase() === "#0068D6"
-          ? "accent"
-          : "ink";
+      kind === "fill" ? "bg" : colour?.toUpperCase() === "#0068D6" ? "accent" : "ink";
     parts.push({ id, d, role });
   }
   if (!strokeWidth || parts.length !== 7) {
