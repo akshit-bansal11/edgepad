@@ -307,6 +307,84 @@ public sealed class GitLabTests : IDisposable
         Assert.Null(host.Page);
     }
 
+    [Fact]
+    public async Task ARefusedRenewalLeavesAnExpiredStateAndRaisesTheNoticeOnce()
+    {
+        Expiring(clock.Now.AddMinutes(1));
+        var http = new FakeHttp(s => s.Uri.AbsolutePath == "/oauth/token" ? FakeHttp.Json("""{"error":"invalid_grant"}""", HttpStatusCode.BadRequest) : Serve(s));
+        var host = Host(http);
+        var notices = 0;
+        host.Expired += () => notices++;
+
+        Assert.False(host.SignInExpired);
+        var result = await host.RefreshAsync(Ct);
+
+        Assert.Equal(GitHubResult.NoPermission, result.Result);
+        Assert.True(host.SignInExpired);
+        Assert.Equal(1, notices);
+        Assert.Null(secrets.Get(GitLabApp.TokenName));
+    }
+
+    [Fact]
+    public async Task AnUnavailableRenewalIsNotAnExpiry()
+    {
+        Expiring(clock.Now.AddMinutes(1));
+        var http = new FakeHttp(s => s.Uri.AbsolutePath == "/oauth/token" ? FakeHttp.Json("""{"error":"server_error"}""", HttpStatusCode.InternalServerError) : Serve(s));
+        var host = Host(http);
+
+        await host.RefreshAsync(Ct);
+
+        Assert.False(host.SignInExpired);
+    }
+
+    [Fact]
+    public async Task ATokenSavedAfterAnExpiryClearsIt()
+    {
+        secrets.Set(GitLabApp.ExpiredName, "1");
+        var host = Host(new FakeHttp(Serve));
+        Assert.True(host.SignInExpired);
+
+        var saved = await host.SaveServerAsync(Pasted, GitLabApp.ComUrl, Ct);
+
+        Assert.Equal(GitSaveStatus.Saved, saved.Status);
+        Assert.False(host.SignInExpired);
+        Assert.Null(secrets.Get(GitLabApp.ExpiredName));
+    }
+
+    [Fact]
+    public async Task AGitLabComTokenIsCheckedAgainstGitLabComAndKeptWithTheFixedAddress()
+    {
+        var http = new FakeHttp(Serve);
+        var host = Host(http);
+
+        var saved = await host.SaveServerAsync(" " + Pasted + " ", GitLabApp.ComUrl, Ct);
+        clock.Advance(TimeSpan.FromMinutes(5));
+        var read = await host.RefreshAsync(Ct);
+
+        Assert.Equal(new GitSaveResult(GitSaveStatus.Saved, "ana"), saved);
+        Assert.Equal(GitHubResult.Ok, read.Result);
+        Assert.Equal("gitlab.com", host.Domain);
+        Assert.Equal(Pasted, secrets.Get(GitLabApp.TokenName));
+        Assert.Null(secrets.Get(GitLabApp.RefreshName));
+        Assert.All(http.Seen, s =>
+        {
+            Assert.Equal(HttpMethod.Get, s.Method);
+            Assert.Equal("gitlab.com", s.Uri.Host);
+            Assert.Equal("Bearer " + Pasted, s.Header("Authorization"));
+        });
+    }
+
+    [Fact]
+    public async Task AGitLabComTokenThatGitLabRefusesIsNotSaved()
+    {
+        var host = Host(new FakeHttp(_ => FakeHttp.Status(HttpStatusCode.Unauthorized)));
+
+        var saved = await host.SaveServerAsync(Pasted, GitLabApp.ComUrl, Ct);
+
+        Assert.Equal(GitSaveStatus.Unauthorized, saved.Status);
+        Assert.Null(secrets.Get(GitLabApp.TokenName));
+    }
+
     // ---- self-hosted
 
     [Theory]

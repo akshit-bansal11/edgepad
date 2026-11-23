@@ -26,11 +26,20 @@ internal static class GitLabApp
     /// <summary>The Application ID that issued the saved token.</summary>
     public const string ClientName = "gitlab.client";
 
+    /// <summary>Set to "1" when GitLab refused the refresh token: the tokens are gone and the person must sign in again. Cleared by any sign-in, token or sign-out.</summary>
+    public const string ExpiredName = "gitlab.expired";
+
     /// <summary>The page the person opens to type the code; always this constant, never an address a server sent.</summary>
     public static readonly Uri DevicePage = new("https://gitlab.com/oauth/device");
 
     public static readonly Uri DeviceCodeUri = new("https://gitlab.com/oauth/authorize_device");
     public static readonly Uri TokenUri = new("https://gitlab.com/oauth/token");
+
+    /// <summary>
+    /// The address a gitlab.com personal access token is saved with ("Use a token instead"): a token never expires every 2 hours, so it
+    /// is the reliable fallback. The windows pass this constant to <see cref="GitLabHost.SaveServerAsync"/>; the person never types it.
+    /// </summary>
+    public const string ComUrl = "https://gitlab.com";
 
     /// <summary>The API root of gitlab.com.</summary>
     public static readonly Uri Api = new("https://gitlab.com/api/v4/");
@@ -95,7 +104,10 @@ internal static class GitLabApp
         }
     }
 
-    /// <summary>Forgets everything saved, but only while nothing has moved since <paramref name="epoch"/> and the refresh token is still the one sent.</summary>
+    /// <summary>
+    /// Forgets everything saved and records that the sign-in expired (so the person is told, not silently signed out), but only while
+    /// nothing has moved since <paramref name="epoch"/> and the refresh token is still the one sent.
+    /// </summary>
     public static void ForgetIfCurrent(ISecretStore store, long epoch, string? sentRefresh)
     {
         var state = States.GetOrCreateValue(store);
@@ -104,9 +116,13 @@ internal static class GitLabApp
             if (state.Epoch == epoch && store.Get(RefreshName) == sentRefresh)
             {
                 Forget(store);
+                _ = store.Set(ExpiredName, "1");
             }
         }
     }
+
+    /// <summary>Whether the last gitlab.com sign-in was refused a renewal and no token has been saved since.</summary>
+    public static bool IsExpired(ISecretStore store) => store.Get(ExpiredName) == "1" && !GitTokens.IsToken(store.Get(TokenName));
 
     /// <summary>
     /// Saves a token with its record; false when it could not be saved (nothing half-saved stays). The order is refresh token, access
@@ -135,12 +151,14 @@ internal static class GitLabApp
             return false;
         }
 
+        store.Delete(ExpiredName);
         return true;
     }
 
-    /// <summary>Deletes the refresh token, the expiry and the record: what a pasted token must not sit beside.</summary>
+    /// <summary>Deletes the refresh token, the expiry, the record and the expired mark: what a pasted token must not sit beside.</summary>
     public static void ForgetRenewal(ISecretStore store)
     {
+        store.Delete(ExpiredName);
         store.Delete(RefreshName);
         store.Delete(ExpiresName);
         store.Delete(ClientName);

@@ -51,7 +51,25 @@ internal sealed class GitLabHost(ISecretStore store, IntegrationSettings setting
 
     protected override bool CanRenew => ConfiguredUrl.Length == 0 && renewal.CanRefresh;
 
-    protected override Task<RefreshOutcome> RenewAsync() => renewal.RefreshAsync();
+    /// <summary>
+    /// Whether GitLab refused the renewal of the gitlab.com sign-in and nothing has been signed in since: the person is told to sign
+    /// in again (or use a token) instead of the host quietly vanishing.
+    /// </summary>
+    public bool SignInExpired => ConfiguredUrl.Length == 0 && GitLabApp.IsExpired(secrets);
+
+    /// <summary>Raised once each time a renewal is refused, on whatever thread asked. The apps show a notice.</summary>
+    public event Action? Expired;
+
+    protected override async Task<RefreshOutcome> RenewAsync()
+    {
+        var outcome = await renewal.RefreshAsync().ConfigureAwait(false);
+        if (outcome == RefreshOutcome.Rejected && SignInExpired)
+        {
+            Expired?.Invoke();
+        }
+
+        return outcome;
+    }
 
     protected override Uri? ApiFor(string configuredUrl) => configuredUrl.Trim().Length == 0 ? GitLabApp.Api : GitTokens.GitLabApi(configuredUrl);
 

@@ -107,6 +107,7 @@ internal sealed class IntegrationHost : IDisposable
     // What this phone was last sent for each token host (by id), so an unchanged page is not sent again.
     private readonly Dictionary<string, string> gitSent = [];
     private bool githubRefused;
+    private bool gitlabExpired;
     private string? weatherSent;
     private int watch;
     private volatile bool disposed;
@@ -266,8 +267,16 @@ internal sealed class IntegrationHost : IDisposable
             reasons.Add($"{Feature.GitHub}:{UnavailableReason.NoPermission}");
         }
 
+        // A gitlab.com sign-in that GitLab stopped renewing: the phone says so instead of dropping the host.
+        if (GitLabExpired())
+        {
+            reasons.Add($"{Feature.GitLab}:{UnavailableReason.NoPermission}");
+        }
+
         return reasons;
     }
+
+    private bool GitLabExpired() => settings.Active("gitlab") && (parts.GitHosts ?? []).OfType<GitLabHost>().Any(host => host.SignInExpired);
 
     /// <summary>The phone's DASH_WATCH, 0..63 (the Dispatcher drops anything larger).</summary>
     public void OnWatch(int mask)
@@ -622,6 +631,20 @@ internal sealed class IntegrationHost : IDisposable
             {
                 return;
             }
+        }
+
+        // GitLab's renewal was refused (or a sign-in since fixed it): tell the phone now, the way GitHub's revoked token is told.
+        var expired = GitLabExpired();
+        bool resendUnavailable;
+        lock (gate)
+        {
+            resendUnavailable = !disposed && expired != gitlabExpired;
+            gitlabExpired = expired;
+        }
+
+        if (resendUnavailable)
+        {
+            Push(new Text((byte)TextKind.Unavailable, string.Join('/', Unavailable())));
         }
 
         if (Watching(GitHubBit))
