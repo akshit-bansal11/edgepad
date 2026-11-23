@@ -25,7 +25,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
     private static readonly string[] FlagKeys =
     [
         IntegrationSettings.Stats, IntegrationSettings.Weather, IntegrationSettings.Claude, IntegrationSettings.Codex, IntegrationSettings.GitHub,
-        AgentToken.Gemini, AgentToken.OpenCode, "gitea", "bitbucket", "gitee",
+        AgentToken.Gemini, AgentToken.OpenCode, "gitlab", "gitea", "bitbucket", "gitee",
     ];
 
     private readonly string folder;
@@ -34,7 +34,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
     // Gemini CLI and OpenCode have no plugin CLI: Edgepad writes its own entry into their config instead.
     private readonly HookConfigInstaller hookConfig;
 
-    // The token-pasting git hosts the For developers window adds a token to, by provider id. GitHub and GitLab sign in by device flow.
+    // The git hosts besides GitHub, by provider id: GitLab signs in by device flow (or takes a pasted token for a self-hosted server), the rest take a pasted token.
     private readonly Dictionary<string, TokenGitHost> gitHosts;
     private readonly Lock gate = new();
     private readonly WindowsNetInfo netInfo = new();
@@ -74,12 +74,14 @@ internal sealed partial class WindowsIntegrations : IDisposable
         Settings = new IntegrationSettings(Path.Combine(folder, IntegrationSettings.FileName));
         Secrets = new WindowsSecretStore();
         SignIn = new GitHubSignIn(Secrets);
+        GitLab = new GitLabSignIn(Secrets, Settings);
         SignIn.Migrate();
         var bundle = new ResourcePluginSource(typeof(WindowsIntegrations).Assembly);
         installer = new PluginInstaller(bundle, Settings, PluginInstaller.DefaultRoot(), version, shortPath: ShortPath);
         hookConfig = new HookConfigInstaller(bundle, Settings, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), version, Environment.ProcessPath ?? string.Empty);
         gitHosts = new Dictionary<string, TokenGitHost>
         {
+            ["gitlab"] = new GitLabHost(Secrets, Settings),
             ["gitea"] = new GiteaHost(Secrets, Settings),
             ["bitbucket"] = new BitbucketHost(Secrets, Settings),
             ["gitee"] = new GiteeHost(Secrets, Settings),
@@ -94,6 +96,8 @@ internal sealed partial class WindowsIntegrations : IDisposable
     public WindowsSecretStore Secrets { get; }
 
     public GitHubSignIn SignIn { get; }
+
+    public GitLabSignIn GitLab { get; }
 
     private bool AgentsOn => AgentTokens.Any(Settings.Active);
 
@@ -154,7 +158,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
         }
 
         // GitHub too: a host built before the sign-in holds no client, so it could not refresh for the phone.
-        var rebuild = key is IntegrationSettings.Developer or IntegrationSettings.GitHub or "gitea" or "bitbucket" or "gitee" || AgentTokens.Contains(key);
+        var rebuild = key is IntegrationSettings.Developer or IntegrationSettings.GitHub or "gitlab" or "gitea" or "bitbucket" or "gitee" || AgentTokens.Contains(key);
         foreach (var link in live)
         {
             if (rebuild)
@@ -310,7 +314,8 @@ internal sealed partial class WindowsIntegrations : IDisposable
             return new GitSaveResult(GitSaveStatus.Failed, string.Empty);
         }
 
-        var result = await host.SaveAsync(token, url, user, cancellationToken).ConfigureAwait(false);
+        // GitLab's form is for a self-hosted server only: gitlab.com signs in by the device flow.
+        var result = await (host is GitLabHost gitlab ? gitlab.SaveServerAsync(token, url, cancellationToken) : host.SaveAsync(token, url, user, cancellationToken)).ConfigureAwait(false);
         if (result.Status == GitSaveStatus.Saved)
         {
             _ = Settings.SetFlag(id, true);
@@ -331,6 +336,9 @@ internal sealed partial class WindowsIntegrations : IDisposable
         _ = Settings.SetFlag(id, false);
         _ = Settings.Set(id + "Login", string.Empty);
     }
+
+    /// <summary>The signed-in GitLab login (gitlab.com or the self-hosted server), for the window only.</summary>
+    public Task<string?> GitLabLoginAsync(CancellationToken cancellationToken) => gitHosts["gitlab"].LoginAsync(cancellationToken);
 
     /// <summary>The signed-in GitHub login, for the window only.</summary>
     public Task<string?> LoginAsync(CancellationToken cancellationToken) => new GitHubApi(Secrets).LoginAsync(cancellationToken);

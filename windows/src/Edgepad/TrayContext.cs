@@ -1626,7 +1626,9 @@ internal sealed class TrayContext : ApplicationContext
         integrations.SetDeveloper,
         integrations.GitSignedIn,
         integrations.SaveGitTokenAsync,
-        integrations.SignOutGit);
+        integrations.SignOutGit,
+        integrations.GitLab,
+        integrations.GitLabLoginAsync);
 
     // Developer mode moved (the window, the tray or the phone). UI thread. The developer window stays open: its switch is how it is turned back on.
     private void OnDeveloperChanged() => ReloadIntegrations();

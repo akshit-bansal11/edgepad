@@ -805,6 +805,15 @@
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>عنوان الخادم</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>إضافة خادم مستضاف ذاتيًا…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>فتح gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>على خادمك، أنشئ رمز وصول شخصيًا بنطاق read_api فقط، ثم الصقه أدناه.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>اسم المستخدم أو البريد الإلكتروني</value>
   </data>

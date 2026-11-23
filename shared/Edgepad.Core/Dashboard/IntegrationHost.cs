@@ -35,7 +35,7 @@ internal sealed class DashboardParts
     /// <summary>Whether a GitHub token is saved (<see cref="GitHubSignIn.IsSignedIn"/>).</summary>
     public Func<bool>? GitHubSignedIn { get; init; }
 
-    /// <summary>The token-pasting git hosts that are set up (Gitea, Bitbucket, Gitee); each one is used only while its settings switch is on.</summary>
+    /// <summary>The git hosts besides GitHub that are set up (GitLab, Gitea, Bitbucket, Gitee); each one is used only while its settings switch is on.</summary>
     public IReadOnlyList<IGitHost>? GitHosts { get; init; }
 
     /// <summary>Opens an address a git host's page named, in the default browser. Each laptop app supplies it (C26); without one, GIT_OPEN is dropped and counted.</summary>
@@ -172,7 +172,7 @@ internal sealed class IntegrationHost : IDisposable
 
     private static readonly string[] AgentTokens = [AgentToken.Claude, AgentToken.Codex, AgentToken.Gemini, AgentToken.OpenCode];
 
-    /// <summary>Whether any token-pasting git host (Gitea, Bitbucket, Gitee) is on and was handed to this host.</summary>
+    /// <summary>Whether any git host besides GitHub is on and was handed to this host.</summary>
     private bool TokenHostsOn => parts.GitHosts is { Count: > 0 } hosts && hosts.Any(host => settings.Active(host.Id));
 
     /// <summary>Call once the session has sent FEATURES: sends the current sessions and lets the Codex watcher see the new phone.</summary>
@@ -750,7 +750,7 @@ internal sealed class IntegrationHost : IDisposable
     // At most DashboardThrottle.MaxOpens opens per window for the whole process, however often a phone rebuilds its link.
     private bool OpenAllowed() => parts.Throttle.AllowOpen(clock());
 
-    // C22 adds GitLab here. A token host counts only while its own switch (the settings key named by its id) is on.
+    // GitLab is one of the token hosts (its tokens come from the device sign-in or a paste). A token host counts only while its own switch (the settings key named by its id) is on.
     private IGitHost? Git(string id) => parts.GitHub is { } github && GitHubOn && github.Id == id
         ? github
         : settings.Active(id) ? parts.GitHosts?.FirstOrDefault(host => host.Id == id) : null;

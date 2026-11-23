@@ -795,6 +795,15 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>Sunucu adresi</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Kendi barındırdığınız sunucuyu ekleyin…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>gitlab.com/oauth/device adresini aç</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>Sunucunuzda yalnızca read_api kapsamına sahip bir kişisel erişim belirteci oluşturun ve aşağıya yapıştırın.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Kullanıcı adı veya e-posta</value>
   </data>

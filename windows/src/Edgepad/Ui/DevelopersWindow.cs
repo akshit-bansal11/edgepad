@@ -47,6 +47,8 @@ internal sealed class DevelopersWindow : Form
     private readonly FlatButton openPage;
     private readonly FlatButton copyCode;
     private readonly LinkButton chooseRepos;
+    private readonly LinkButton selfHost;
+    private readonly Label hintLabel = new() { AutoSize = false, UseMnemonic = false };
 
     // The inline form a token host's Add opens (one at a time).
     private readonly Label urlLabel = new() { AutoSize = false, UseMnemonic = false, Text = Strings.Dev_FieldUrl };
@@ -79,6 +81,16 @@ internal sealed class DevelopersWindow : Form
     private bool signingIn;
     private int signInRun;
     private bool signedIn;
+
+    // GitLab sign-in, the same way: its code while one is shown, and a count that tells a stale flow it was replaced.
+    private string? gitlabCode;
+    private bool gitlabIn;
+    private int gitlabRun;
+
+    // What the Open page button opens now (GitHub's or GitLab's device page), and its name for the log.
+    private string openUrl = GitHubApp.DevicePage.AbsoluteUri;
+    private string openName = "the GitHub sign-in page";
+    private string? shownCode;
 
     // Set while the window writes its own controls, so their Changed events do not echo into the settings.
     private bool filling;
@@ -113,6 +125,7 @@ internal sealed class DevelopersWindow : Form
         openPage = new FlatButton(Strings.Integrations_OpenPage, ButtonKind.Primary, palette);
         copyCode = new FlatButton(Strings.Integrations_Copy, ButtonKind.Outline, palette);
         chooseRepos = new LinkButton(palette) { Text = Strings.Integrations_ChooseRepos, AccessibleName = Strings.Integrations_ChooseRepos };
+        selfHost = new LinkButton(palette) { Text = Strings.Dev_GitLabServer, AccessibleName = Strings.Dev_GitLabServer };
         saveButton = new FlatButton(Strings.Common_Save, ButtonKind.Primary, palette);
         cancelForm = new FlatButton(Strings.Common_Cancel, ButtonKind.Outline, palette);
         codeBackdrop = new Backdrop(palette);
@@ -137,10 +150,11 @@ internal sealed class DevelopersWindow : Form
                 actions.SetDeveloper(developerSwitch.Checked);
             }
         };
-        openPage.Click += (_, _) => actions.Open(GitHubApp.DevicePage.AbsoluteUri, "the GitHub sign-in page");
+        openPage.Click += (_, _) => actions.Open(openUrl, openName);
+        selfHost.Click += (_, _) => OpenForm(rows.First(r => r.Provider.Id == "gitlab"));
         copyCode.Click += (_, _) =>
         {
-            if (userCode is { } text)
+            if (shownCode is { } text)
             {
                 actions.Copy(text);
             }
@@ -185,7 +199,7 @@ internal sealed class DevelopersWindow : Form
             Controls.AddRange(row.Controls);
         }
 
-        Controls.AddRange([codeLabel, waiting, openPage, copyCode, chooseRepos, urlLabel, urlFrame, userLabel, userFrame, tokenLabel, tokenFrame, errorLabel, saveButton, cancelForm, close]);
+        Controls.AddRange([codeLabel, waiting, openPage, copyCode, chooseRepos, selfHost, hintLabel, urlLabel, urlFrame, userLabel, userFrame, tokenLabel, tokenFrame, errorLabel, saveButton, cancelForm, close]);
 
         // Last, so the panel sits behind the labels drawn on it (a control added later is further back).
         Controls.Add(codeBackdrop);
@@ -315,6 +329,11 @@ internal sealed class DevelopersWindow : Form
             actions.SignIn.Cancel();
         }
 
+        if (gitlabIn)
+        {
+            actions.GitLab?.Cancel();
+        }
+
         base.OnFormClosed(e);
     }
 
@@ -351,6 +370,9 @@ internal sealed class DevelopersWindow : Form
             case "github":
                 SignInFlow();
                 break;
+            case "gitlab":
+                GitLabFlow();
+                break;
             case "gitea" or "bitbucket" or "gitee":
                 OpenForm(row);
                 break;
@@ -379,7 +401,10 @@ internal sealed class DevelopersWindow : Form
                 }
 
                 break;
-            case "gitea" or "bitbucket" or "gitee":
+            case "gitlab" when gitlabIn:
+                actions.GitLab?.Cancel();
+                break;
+            case "gitlab" or "gitea" or "bitbucket" or "gitee":
                 actions.GitSignOut(row.Provider.Id);
                 actions.Changed(row.Provider.Id);
                 Relayout();
@@ -512,17 +537,88 @@ internal sealed class DevelopersWindow : Form
         Relayout();
     }
 
+    /// <summary>
+    /// GitLab's device flow, the same way as GitHub's: ask for a code, show it with Copy and the page to type it on, and wait. A newer
+    /// flow (or a sign-out) replaces an older one, whose continuation then does nothing. A saved server address is cleared by the flow.
+    /// </summary>
+    private async void GitLabFlow()
+    {
+        if (actions.GitLab is not { } signIn)
+        {
+            return;
+        }
+
+        var run = ++gitlabRun;
+        gitlabIn = true;
+        gitlabCode = null;
+        Relayout();
+
+        var state = SignInState.Failed;
+        try
+        {
+            var started = await signIn.StartAsync(closing.Token);
+            if (IsDisposed || run != gitlabRun)
+            {
+                return;
+            }
+
+            state = started.State;
+            if (state == SignInState.Started)
+            {
+                gitlabCode = started.UserCode;
+                Relayout();
+                state = await signIn.WaitAsync(closing.Token);
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Write($"GitLab sign-in failed: {e.GetType().Name}");
+        }
+
+        if (IsDisposed || run != gitlabRun)
+        {
+            return;
+        }
+
+        gitlabIn = false;
+        gitlabCode = null;
+        if (state == SignInState.SignedIn)
+        {
+            _ = actions.Settings.SetFlag("gitlab", true);
+            string? login = null;
+            try
+            {
+                login = actions.GitLabLogin is { } ask ? await ask(closing.Token) : null;
+            }
+            catch (Exception e)
+            {
+                Log.Write($"GitLab login name unavailable: {e.GetType().Name}");
+            }
+
+            if (IsDisposed || run != gitlabRun)
+            {
+                return;
+            }
+
+            _ = actions.Settings.Set("gitlabLogin", login ?? string.Empty);
+            actions.Changed("gitlab");
+        }
+
+        Relayout();
+    }
+
     private void OpenForm(DevRow row)
     {
         var id = row.Provider.Id;
         editing = row;
         saveError = string.Empty;
         tokenBox.Clear();
-        urlBox.Text = actions.Settings.Text(GitTokens.UrlKey(id)) is { Length: > 0 } url ? url : GiteaHost.DefaultUrl;
+        var saved = actions.Settings.Text(GitTokens.UrlKey(id));
+        urlBox.Text = saved.Length > 0 ? saved : id == "gitea" ? GiteaHost.DefaultUrl : string.Empty;
         userBox.Text = actions.Settings.Text(GitTokens.UserKey(id));
         expanded.Remove(id);
         Relayout();
-        (id == "gitea" ? urlBox : id == "bitbucket" ? userBox : tokenBox).Focus();
+        (id is "gitea" or "gitlab" ? urlBox : id == "bitbucket" ? userBox : tokenBox).Focus();
     }
 
     private void CloseForm()
@@ -621,8 +717,19 @@ internal sealed class DevelopersWindow : Form
 
         if (id == "gitlab")
         {
-            // Device sign-in for GitLab needs a registered client ID (C22); until then the row says so and does nothing.
-            return new RowView(Strings.Integrations_NotConnected, Dot: false, Calm: true, Go: Strings.Dev_ComingSoon, GoEnabled: false, Undo: null, UndoEnabled: false, CanHowTo: false);
+            var on = actions.GitSignedIn(id) && actions.Settings.Flag(id);
+            var who = actions.Settings.Text("gitlabLogin");
+            return new RowView(
+                on ? Strings.Integrations_SignedIn.Fill(who.Length > 0 ? who : provider.Name)
+                    : gitlabIn && gitlabCode is null ? Strings.Integrations_Working
+                    : Strings.Integrations_NotConnected,
+                Dot: on,
+                Calm: !on,
+                Go: on || gitlabIn ? null : Strings.Dev_SignIn,
+                GoEnabled: actions.GitLab is not null && !saving,
+                Undo: on ? Strings.Integrations_SignOut : gitlabIn ? Strings.Common_Cancel : null,
+                UndoEnabled: true,
+                CanHowTo: false);
         }
 
         var tokenSignedIn = actions.GitSignedIn(id);
@@ -874,7 +981,7 @@ internal sealed class DevelopersWindow : Form
         {
             if (signingIn && userCode is not null)
             {
-                PlaceCode(detailX, detailWidth);
+                PlaceCode(userCode, Strings.Integrations_OpenPage, GitHubApp.DevicePage.AbsoluteUri, "the GitHub sign-in page", detailX, detailWidth);
             }
 
             if (signedIn && !signingIn)
@@ -882,6 +989,22 @@ internal sealed class DevelopersWindow : Form
                 chooseRepos.Font = Theme.Font(Theme.Scale(13f, DeviceDpi), Weight.Regular);
                 Place(chooseRepos, detailX, top, Math.Min(chooseRepos.FitWidth(), detailWidth), S(24));
                 order.Add(chooseRepos);
+                top += S(30);
+            }
+        }
+
+        if (provider.Id == "gitlab")
+        {
+            if (gitlabIn && gitlabCode is not null)
+            {
+                PlaceCode(gitlabCode, Strings.Dev_GitLabOpenPage, GitLabApp.DevicePage.AbsoluteUri, "the GitLab sign-in page", detailX, detailWidth);
+            }
+            else if (!gitlabIn && editing != row && !(actions.GitSignedIn("gitlab") && actions.Settings.Flag("gitlab")))
+            {
+                selfHost.Font = Theme.Font(Theme.Scale(13f, DeviceDpi), Weight.Regular);
+                selfHost.Enabled = developerOn;
+                Place(selfHost, detailX, top, Math.Min(selfHost.FitWidth(), detailWidth), S(24));
+                order.Add(selfHost);
                 top += S(30);
             }
         }
@@ -898,9 +1021,14 @@ internal sealed class DevelopersWindow : Form
         }
     }
 
-    private void PlaceCode(int x, int wide)
+    private void PlaceCode(string code, string pageText, string pageUrl, string pageName, int x, int wide)
     {
-        codeLabel.Text = Strings.Integrations_Code.Fill(userCode);
+        shownCode = code;
+        openUrl = pageUrl;
+        openName = pageName;
+        openPage.Text = pageText;
+        openPage.AccessibleName = pageText;
+        codeLabel.Text = Strings.Integrations_Code.Fill(code);
         codeLabel.AccessibleName = codeLabel.Text;
         var font = new Font("Consolas", Theme.Scale(20f, DeviceDpi), FontStyle.Bold, GraphicsUnit.Pixel);
         codeLabel.Font = font;
@@ -935,9 +1063,15 @@ internal sealed class DevelopersWindow : Form
             top += S(FieldHeight + 10);
         }
 
-        if (row.Provider.Id == "gitea")
+        if (row.Provider.Id is "gitea" or "gitlab")
         {
             Field(urlLabel, urlFrame);
+        }
+
+        if (row.Provider.Id == "gitlab")
+        {
+            hintLabel.Text = Strings.Dev_GitLabTokenHint;
+            Put(hintLabel, x, wide, 12f, Weight.Regular, palette.Dim, palette.Card, S(8));
         }
 
         if (row.Provider.Id == "bitbucket")

@@ -386,6 +386,18 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
         return new GitSaveResult(GitSaveStatus.Saved, login);
     }
 
+    /// <summary>The signed-in account's login, for display only; null when there is no token or the host does not answer. Never deletes a token.</summary>
+    public async Task<string?> LoginAsync(CancellationToken ct)
+    {
+        if (store.Get(GitTokens.TokenName(id)) is not { } token || !GitTokens.IsToken(token) || Api is not { } api)
+        {
+            return null;
+        }
+
+        var reply = await Getter(token, settings.Text(GitTokens.UserKey(id)))(new Uri(api, UserPath), ct).ConfigureAwait(false);
+        return reply.Result == GitHubResult.Ok && ParseLogin(reply.Body) is { } login ? DashWire.Clean(login, MaxLogin) : null;
+    }
+
     /// <summary>Whether the saved token expires and is about to (or has); only a host that signs in by a refreshable sign-in says yes.</summary>
     protected virtual bool RenewDue => false;
 

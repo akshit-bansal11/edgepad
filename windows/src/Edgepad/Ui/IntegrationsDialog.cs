@@ -41,7 +41,9 @@ internal sealed record AgentStatus(AgentState State, string Commands = "", bool 
 /// <param name="SetDeveloper">Turns developer mode on or off (the one place it is kept is the settings; the tray reads it from there).</param>
 /// <param name="GitSignedIn">Whether a token is saved for a token-pasting git host (by provider id).</param>
 /// <param name="GitSave">Checks and saves a pasted token: provider id, token, server address, user name.</param>
-/// <param name="GitSignOut">Forgets a token-pasting git host's token.</param>
+/// <param name="GitSignOut">Forgets a git host's token (and, for GitLab, its refresh token).</param>
+/// <param name="GitLab">The gitlab.com device sign-in; null where there is none (the design gallery).</param>
+/// <param name="GitLabLogin">The signed-in GitLab account's login, for display only.</param>
 internal sealed record IntegrationActions(
     IntegrationSettings Settings,
     GitHubSignIn SignIn,
@@ -57,7 +59,9 @@ internal sealed record IntegrationActions(
     Action<bool> SetDeveloper,
     Func<string, bool> GitSignedIn,
     Func<string, string, string, string, CancellationToken, Task<GitSaveResult>> GitSave,
-    Action<string> GitSignOut);
+    Action<string> GitSignOut,
+    GitLabSignIn? GitLab = null,
+    Func<CancellationToken, Task<string?>>? GitLabLogin = null);
 
 /// <summary>
 /// The place the dashboard's stats, weather and city are turned on. Everything is off until the owner turns it on here. Not
