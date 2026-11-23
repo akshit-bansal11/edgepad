@@ -12,7 +12,7 @@ namespace Edgepad.Dashboard;
 /// a second caller waits for the first one's answer. Only an answer of <c>invalid_grant</c> (the refresh token is spent, revoked or
 /// unknown) deletes what is saved; any other failure keeps the tokens for the next try, so a busy server never signs anyone out.
 /// </summary>
-internal sealed class GitLabRenewal(ISecretStore store, HttpMessageHandler? handler, Func<DateTimeOffset> now)
+internal sealed class GitLabRenewal(ISecretStore store, IntegrationSettings settings, HttpMessageHandler? handler, Func<DateTimeOffset> now)
 {
     private const int MaxBytes = 16 * 1024;
     private const int MaxLifetimeSeconds = 31 * 24 * 3600;
@@ -63,10 +63,11 @@ internal sealed class GitLabRenewal(ISecretStore store, HttpMessageHandler? hand
 
     private async Task<RefreshOutcome> ExchangeAsync()
     {
+        var epoch = GitLabApp.EpochOf(store);
         var refresh = store.Get(GitLabApp.RefreshName);
         if (!GitTokens.IsToken(refresh))
         {
-            GitLabApp.Forget(store);
+            GitLabApp.ForgetIfCurrent(store, epoch, refresh);
             return RefreshOutcome.Rejected;
         }
 
@@ -100,7 +101,7 @@ internal sealed class GitLabRenewal(ISecretStore store, HttpMessageHandler? hand
                     return RefreshOutcome.Unavailable;
                 }
 
-                GitLabApp.Forget(store);
+                GitLabApp.ForgetIfCurrent(store, epoch, refresh);
                 return RefreshOutcome.Rejected;
             }
 
@@ -108,7 +109,7 @@ internal sealed class GitLabRenewal(ISecretStore store, HttpMessageHandler? hand
             var next = GitJson.Text(root, "refresh_token");
             var life = GitJson.Whole(root, "expires_in");
             return reply.IsSuccess && GitTokens.IsToken(access) && GitTokens.IsToken(next) && life is > 0 and <= MaxLifetimeSeconds
-                && GitLabApp.Save(store, GitLabApp.ClientId, access, next, now() + TimeSpan.FromSeconds(life))
+                && GitLabApp.SaveIfCurrent(store, settings, epoch, refresh, access, next, now() + TimeSpan.FromSeconds(life))
                     ? RefreshOutcome.Refreshed
                     : RefreshOutcome.Unavailable;
         }

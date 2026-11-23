@@ -186,6 +186,18 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
 
     // Held while the token is replaced or deleted, so a 401 for an old token cannot delete a token saved after it was sent.
     private readonly Lock tokenGate = new();
+
+    /// <summary>The lock every write or delete of this host's token holds. A host whose tokens are also written elsewhere (GitLab's sign-in and renewal) shares its own.</summary>
+    protected virtual Lock TokenLock => tokenGate;
+
+    /// <summary>Called under <see cref="TokenLock"/> just before a checked token and address are written, so a host can drop what a sign-in still in flight would store.</summary>
+    protected virtual void WillStore()
+    {
+    }
+
+    /// <summary>Whether this token may be sent to this address. A host whose token belongs to one server refuses any other.</summary>
+    protected virtual bool MayAttach(Uri uri, string token) => true;
+
     private readonly GitBook book = new(id);
     private DateTimeOffset backoffUntil;
     private DateTimeOffset? lastRefresh;
@@ -268,6 +280,12 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
                 return new GitHubRefreshResult(GitHubResult.NoPermission, book.Page?.Rev != before);
             }
 
+            // A sign-in or an address saved while the renewal was out moved the host: stop, never read a server with another one's token.
+            if (Api != api)
+            {
+                return new GitHubRefreshResult(GitHubResult.Failed, false);
+            }
+
             token = store.Get(GitTokens.TokenName(id)) ?? token;
             var read = await ReadAsync(Getter(token, user), api, ct).ConfigureAwait(false);
             if (read.Snapshot is null && read.Failure?.Status == HttpStatusCode.Unauthorized && CanRenew && store.Get(GitTokens.TokenName(id)) == token)
@@ -275,6 +293,11 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
                 switch (await RenewAsync().ConfigureAwait(false))
                 {
                     case RefreshOutcome.Refreshed when store.Get(GitTokens.TokenName(id)) is { } fresh && GitTokens.IsToken(fresh):
+                        if (Api != api)
+                        {
+                            return new GitHubRefreshResult(GitHubResult.Failed, false);
+                        }
+
                         token = fresh;
                         read = await ReadAsync(Getter(token, user), api, ct).ConfigureAwait(false);
                         break;
@@ -362,10 +385,11 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
         // The login is shown and kept in settings: a host's reply cannot make it long or carry control characters.
         var login = DashWire.Clean(parsed, MaxLogin);
         var keep = url.Trim().TrimEnd('/');
-        lock (tokenGate)
+        lock (TokenLock)
         {
             // The old token goes first and the new one is stored last: whichever step fails, no token is ever left beside an
             // address it was not checked against.
+            WillStore();
             store.Delete(GitTokens.TokenName(id));
             if (!settings.Set(GitTokens.UrlKey(id), ApiIsFixed ? string.Empty : keep)
                 || !settings.Set(GitTokens.UserKey(id), RequiresUser ? name : string.Empty)
@@ -410,7 +434,7 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
     /// <summary>Forgets the token and the page; the address and name stay for the next sign-in.</summary>
     public virtual void SignOut()
     {
-        lock (tokenGate)
+        lock (TokenLock)
         {
             store.Delete(GitTokens.TokenName(id));
         }
@@ -421,7 +445,7 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
     /// <summary>Deletes the saved token only while it is still <paramref name="sent"/>; true when it was deleted.</summary>
     private bool DeleteIfStill(string sent)
     {
-        lock (tokenGate)
+        lock (TokenLock)
         {
             if (store.Get(GitTokens.TokenName(id)) != sent)
             {
@@ -462,6 +486,11 @@ internal abstract class TokenGitHost(string id, ISecretStore store, IntegrationS
 
     private GitGet Getter(string token, string user) => async (uri, ct) =>
     {
+        if (!MayAttach(uri, token))
+        {
+            return GitReply.Unusable;
+        }
+
         using var request = new HttpRequestMessage(HttpMethod.Get, Sign(uri, token));
         request.Headers.Authorization = Auth(token, user);
         request.Headers.Accept.ParseAdd("application/json");

@@ -45,7 +45,14 @@ internal sealed class GitLabSignIn(
             return new DeviceCode(SignInState.Failed, string.Empty, GitLabApp.DevicePage, TimeSpan.Zero);
         }
 
-        var flow = new Flow(issued.DeviceCode, issued.Interval, now() + TimeSpan.FromSeconds(issued.ExpiresIn));
+        // Begin forgets every saved token and the server address, so the tokens this flow saves can never sit beside another server.
+        var epoch = GitLabApp.Begin(store, settings);
+        if (epoch < 0)
+        {
+            return new DeviceCode(SignInState.Failed, string.Empty, GitLabApp.DevicePage, TimeSpan.Zero);
+        }
+
+        var flow = new Flow(issued.DeviceCode, issued.Interval, now() + TimeSpan.FromSeconds(issued.ExpiresIn), epoch);
         lock (gate)
         {
             current?.Stop();
@@ -98,7 +105,7 @@ internal sealed class GitLabSignIn(
                 switch (ReadPoll(reply))
                 {
                     case Poll.Token token:
-                        return Save(token) ? SignInState.SignedIn : SignInState.Failed;
+                        return Save(token, flow.Epoch) ? SignInState.SignedIn : SignInState.Failed;
                     case Poll.Pending:
                         break;
                     case Poll.SlowDown:
@@ -185,10 +192,9 @@ internal sealed class GitLabSignIn(
         return fine ? new Poll.Token(token, refresh, life) : new Poll.End(SignInState.Failed);
     }
 
-    /// <summary>Saves the tokens for gitlab.com: the server address goes first, so a token is never saved beside a self-hosted address.</summary>
-    private bool Save(Poll.Token token) =>
-        settings.Set(GitTokens.UrlKey("gitlab"), string.Empty)
-        && GitLabApp.Save(store, GitLabApp.ClientId, token.Value, token.Refresh, token.Refresh is null ? null : now() + TimeSpan.FromSeconds(token.ExpiresIn));
+    /// <summary>Saves the tokens for gitlab.com, but only if no server address was saved and no other sign-in began since this flow started; otherwise they are dropped.</summary>
+    private bool Save(Poll.Token token, long epoch) =>
+        GitLabApp.SaveIfCurrent(store, settings, epoch, null, token.Value, token.Refresh, token.Refresh is null ? null : now() + TimeSpan.FromSeconds(token.ExpiresIn));
 
     private async Task SafeWait(TimeSpan span, CancellationToken ct)
     {
@@ -226,9 +232,11 @@ internal sealed class GitLabSignIn(
     }
 
     /// <summary>One sign-in: its device code, GitLab's interval and the moment the code runs out.</summary>
-    private sealed class Flow(string deviceCode, int interval, DateTimeOffset deadline)
+    private sealed class Flow(string deviceCode, int interval, DateTimeOffset deadline, long epoch)
     {
         public int Waiting;
+
+        public long Epoch { get; } = epoch;
 
         public string DeviceCode { get; } = deviceCode;
 

@@ -11,6 +11,7 @@ public sealed class GitLabTests : IDisposable
     private const string Token = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
     private const string Refresh = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210";
     private const string NewToken = "aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbccccccccccccccccdddddddddddddddd";
+    private const string Pasted = "glpat-SelfHostedPastedToken123";
     private const string NewRefresh = "eeeeeeeeeeeeeeeeffffffffffffffff0000000000000000ffffffffffffffff";
 
     private const string Code = """{"device_code":"1234567890abcdef","user_code":"0A44L90H","verification_uri":"https://gitlab.com/oauth/device","verification_uri_complete":"https://gitlab.com/oauth/device?user_code=0A44L90H","expires_in":300,"interval":5}""";
@@ -345,13 +346,13 @@ public sealed class GitLabTests : IDisposable
         var http = new FakeHttp(Serve);
         var host = Host(http);
 
-        var saved = await host.SaveServerAsync(" " + Token + " ", "https://git.example.org", Ct);
+        var saved = await host.SaveServerAsync(" " + Pasted + " ", "https://git.example.org", Ct);
 
         Assert.Equal(new GitSaveResult(GitSaveStatus.Saved, "ana"), saved);
         Assert.Equal("https://git.example.org", settings.Text(GitTokens.UrlKey("gitlab")));
         Assert.Null(secrets.Get(GitLabApp.RefreshName));
         Assert.Null(secrets.Get(GitLabApp.ExpiresName));
-        Assert.Equal(Token, secrets.Get(GitLabApp.TokenName));
+        Assert.Equal(Pasted, secrets.Get(GitLabApp.TokenName));
 
         clock.Advance(TimeSpan.FromMinutes(5));
         Assert.Equal(GitHubResult.Ok, (await host.RefreshAsync(Ct)).Result);
@@ -361,7 +362,7 @@ public sealed class GitLabTests : IDisposable
             Assert.Equal(HttpMethod.Get, s.Method);
             Assert.Equal("git.example.org", s.Uri.Host);
             Assert.StartsWith("/api/v4/", s.Uri.AbsolutePath, StringComparison.Ordinal);
-            Assert.Equal("Bearer " + Token, s.Header("Authorization"));
+            Assert.Equal("Bearer " + Pasted, s.Header("Authorization"));
         });
     }
 
@@ -390,6 +391,84 @@ public sealed class GitLabTests : IDisposable
         Assert.Null(secrets.Get(GitLabApp.ExpiresName));
         Assert.Null(secrets.Get(GitLabApp.ClientName));
         Assert.Equal("https://git.example.org", settings.Text(GitTokens.UrlKey("gitlab")));
+    }
+
+    // ---- a gitlab.com token never lands beside, or goes to, a server
+
+    [Fact]
+    public async Task ARenewalFinishingAfterAServerWasSavedStoresNothing()
+    {
+        Expiring(clock.Now.AddMinutes(1));
+        GitLabHost? host = null;
+        var http = new FakeHttp(s =>
+        {
+            if (s.Uri.AbsolutePath == "/oauth/token")
+            {
+                // The person saves a self-hosted server while the renewal is out.
+                var saved = host!.SaveServerAsync(Pasted, "https://git.example.org", Ct).GetAwaiter().GetResult();
+                Assert.Equal(GitSaveStatus.Saved, saved.Status);
+                return FakeHttp.Json(Renewed);
+            }
+
+            return Serve(s);
+        });
+        host = Host(http);
+
+        await host.RefreshAsync(Ct);
+
+        Assert.Equal(Pasted, secrets.Get(GitLabApp.TokenName));
+        Assert.Null(secrets.Get(GitLabApp.RefreshName));
+        Assert.Null(secrets.Get(GitLabApp.ExpiresName));
+        Assert.Null(secrets.Get(GitLabApp.ClientName));
+        Assert.Equal("https://git.example.org", settings.Text(GitTokens.UrlKey("gitlab")));
+        Assert.DoesNotContain(http.Seen, s => s.Header("Authorization") == "Bearer " + NewToken);
+        Assert.DoesNotContain(http.Seen, s => s.Uri.Host == "gitlab.com" && s.Header("Authorization") is not null);
+    }
+
+    [Fact]
+    public async Task ADeviceSignInFinishingAfterAServerWasSavedStoresNothing()
+    {
+        GitLabHost? host = null;
+        var http = new FakeHttp(s =>
+        {
+            if (s.Uri.AbsolutePath == "/oauth/authorize_device")
+            {
+                return FakeHttp.Json(Code);
+            }
+
+            if (s.Uri.AbsolutePath == "/oauth/token")
+            {
+                var saved = host!.SaveServerAsync(Pasted, "https://git.example.org", Ct).GetAwaiter().GetResult();
+                Assert.Equal(GitSaveStatus.Saved, saved.Status);
+                return FakeHttp.Json(Granted);
+            }
+
+            return Serve(s);
+        });
+        host = Host(http);
+        var flow = SignIn(http);
+
+        await flow.StartAsync(Ct);
+        var state = await flow.WaitAsync(Ct);
+
+        Assert.Equal(SignInState.Failed, state);
+        Assert.Equal(Pasted, secrets.Get(GitLabApp.TokenName));
+        Assert.Null(secrets.Get(GitLabApp.RefreshName));
+        Assert.Null(secrets.Get(GitLabApp.ClientName));
+        Assert.Equal("https://git.example.org", settings.Text(GitTokens.UrlKey("gitlab")));
+    }
+
+    [Fact]
+    public async Task AGitLabComTokenIsNeverSentToAnotherHost()
+    {
+        Expiring(clock.Now.AddHours(1));
+        settings.Set(GitTokens.UrlKey("gitlab"), "https://git.example.org");
+        var http = new FakeHttp(Serve);
+
+        var result = await Host(http).RefreshAsync(Ct);
+
+        Assert.Equal(GitHubResult.Failed, result.Result);
+        Assert.Empty(http.Seen);
     }
 
     // ---- the read-only gate

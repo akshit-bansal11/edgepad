@@ -22,12 +22,26 @@ internal sealed class GitLabHost(ISecretStore store, IntegrationSettings setting
     : TokenGitHost("gitlab", store, settings, handler, clock)
 {
     private readonly ISecretStore secrets = store;
-    private readonly GitLabRenewal renewal = new(store, handler, clock ?? (() => DateTimeOffset.UtcNow));
+    private readonly GitLabRenewal renewal = new(store, settings, handler, clock ?? (() => DateTimeOffset.UtcNow));
 
     public override string Domain => Api?.Host ?? string.Empty;
 
     /// <summary>The self-hosted server's address as saved; empty for gitlab.com.</summary>
     public string Server => ConfiguredUrl;
+
+    protected override Lock TokenLock => GitLabApp.LockFor(secrets);
+
+    // Under the lock, just before an address and its token are written: a gitlab.com sign-in or renewal still in flight is dropped, and its tokens go.
+    protected override void WillStore()
+    {
+        _ = GitLabApp.Bump(secrets);
+        GitLabApp.ForgetRenewal(secrets);
+    }
+
+    // A gitlab.com token (the one with a record of the application that issued it) goes to gitlab.com only, never to a server address.
+    protected override bool MayAttach(Uri uri, string token) =>
+        secrets.Get(GitLabApp.ClientName) is null || secrets.Get(GitLabApp.TokenName) != token
+        || (uri.Scheme == Uri.UriSchemeHttps && string.Equals(uri.Host, GitLabApp.Api.Host, StringComparison.OrdinalIgnoreCase));
 
     protected override string UserPath => "user";
 
@@ -57,21 +71,19 @@ internal sealed class GitLabHost(ISecretStore store, IntegrationSettings setting
             return new GitSaveResult(GitSaveStatus.BadUrl, string.Empty);
         }
 
-        var result = await SaveAsync(token, url, string.Empty, ct).ConfigureAwait(false);
-        if (result.Status == GitSaveStatus.Saved)
-        {
-            // A pasted token has no refresh token: nothing of a gitlab.com sign-in may stay beside it.
-            GitLabApp.ForgetRenewal(secrets);
-        }
-
-        return result;
+        // WillStore (under the same lock the sign-in and the renewal save under) drops a gitlab.com sign-in still in flight and its tokens.
+        return await SaveAsync(token, url, string.Empty, ct).ConfigureAwait(false);
     }
 
     /// <summary>Forgets the token, its refresh token and the page; the server address stays for the next sign-in.</summary>
     public override void SignOut()
     {
-        base.SignOut();
-        GitLabApp.ForgetRenewal(secrets);
+        lock (TokenLock)
+        {
+            base.SignOut();
+            _ = GitLabApp.Bump(secrets);
+            GitLabApp.ForgetRenewal(secrets);
+        }
     }
 
     protected override async Task<GitRead> ReadAsync(GitGet get, Uri api, CancellationToken ct)
