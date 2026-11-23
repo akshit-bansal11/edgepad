@@ -21,7 +21,7 @@ class XferFailureTest {
     private fun receiver(store: XferStore) =
         XferReceiver(store, { replies += it }, failed = { name, code -> failures += name to code }, runner = { it() })
 
-    private fun store(thrown: RuntimeException? = null) = ThrowingStore(folder.newFolder("parts"), thrown)
+    private fun store(thrown: RuntimeException? = null) = ThrowingStore(folder.newFolder(), thrown)
 
     private fun codes() = replies.map { it.status }
 
