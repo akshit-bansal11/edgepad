@@ -323,7 +323,7 @@
   <string name="update_available">アップデートあり</string>
   <string name="licences_title">ライセンス</string>
   <string name="licences_body">Lato（書体）：SIL Open Font License 1.1\nLucide（アイコン）：ISC License\nAndroidSVG（プレーヤーのロゴの描画）：Apache License 2.0</string>
-  <string name="about_sends">Edgepadがインターネットに送信するのは、github.comへのアップデート確認と、ユーザーが選んだアップデートのダウンロードだけです。それ以外はすべて、このスマホとノートPCの間でやり取りされます。</string>
+  <string name="about_sends">このスマホが送信するのは、github.comへのアップデート確認と、ユーザーが選んだアップデートのダウンロードだけです。ノートPCアプリが接続する先とタイミングは「Edgepadが使うもの」に記載されています。</string>
   <string name="updates_install_failed">アップデートをインストールできませんでした。リリースページからダウンロードして、手動でインストールしてください。</string>
   <string name="settings_version">Edgepad %1$s · プロトコル %2$d</string>
   <string name="corners_title">コーナー</string>

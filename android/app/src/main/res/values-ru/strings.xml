@@ -343,7 +343,7 @@
   <string name="update_available">Доступно обновление</string>
   <string name="licences_title">Лицензии</string>
   <string name="licences_body">Lato, шрифт: SIL Open Font License 1.1.\nLucide, значки: ISC License.\nAndroidSVG, рисует логотипы плееров: Apache License 2.0.</string>
-  <string name="about_sends">Edgepad отправляет в интернет только проверку обновлений на github.com и обновление, которое вы решили скачать. Всё остальное остаётся между этим телефоном и вашим ноутбуком.</string>
+  <string name="about_sends">Этот телефон отправляет только проверку обновлений на github.com и обновление, которое вы решите скачать. Куда и когда обращается приложение для ноутбука, перечислено в разделе «Что использует Edgepad».</string>
   <string name="updates_install_failed">Не удалось установить обновление. Скачайте его на странице выпуска и установите вручную.</string>
   <string name="settings_version">Edgepad %1$s · протокол %2$d</string>
   <string name="corners_title">Углы</string>

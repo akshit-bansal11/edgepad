@@ -336,7 +336,7 @@
   <string name="update_available">Aggiornamento disponibile</string>
   <string name="licences_title">Licenze</string>
   <string name="licences_body">Lato, il carattere: SIL Open Font License 1.1.\nLucide, le icone: ISC License.\nAndroidSVG, che disegna i loghi dei lettori: Apache License 2.0.</string>
-  <string name="about_sends">Le uniche cose che Edgepad invia a internet sono il controllo degli aggiornamenti verso github.com e un aggiornamento che scegli di scaricare. Tutto il resto resta tra questo telefono e il tuo portatile.</string>
+  <string name="about_sends">Questo telefono invia solo il controllo degli aggiornamenti a github.com e un aggiornamento che scegli di scaricare. A cosa si collega l\'app del portatile, e quando, è elencato in Cosa usa Edgepad.</string>
   <string name="updates_install_failed">Impossibile installare l’aggiornamento. Scaricalo dalla pagina di rilascio e installalo a mano.</string>
   <string name="settings_version">Edgepad %1$s · protocollo %2$d</string>
   <string name="corners_title">Angoli</string>

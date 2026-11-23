@@ -357,7 +357,7 @@
   <string name="update_available">يتوفر تحديث</string>
   <string name="licences_title">التراخيص</string>
   <string name="licences_body">الخط Lato: SIL Open Font License 1.1.\nالأيقونات Lucide: ISC License.\nمكتبة AndroidSVG التي ترسم شعارات المشغّلات: Apache License 2.0.</string>
-  <string name="about_sends">الأمران الوحيدان اللذان يرسلهما Edgepad إلى الإنترنت هما التحقق من التحديثات من github.com وتنزيل تحديث تختاره. وكل ما عدا ذلك يبقى بين هذا الهاتف واللابتوب.</string>
+  <string name="about_sends">يرسل هذا الهاتف فقط التحقق من التحديثات إلى github.com وتنزيل التحديث الذي تختاره. ما يتصل به تطبيق اللابتوب، ومتى، مدرج ضمن ما الذي يستخدمه Edgepad.</string>
   <string name="updates_install_failed">تعذّر تثبيت التحديث. نزّله من صفحة الإصدار وثبّته يدويًا.</string>
   <string name="settings_version">إصدار Edgepad %1$s · البروتوكول %2$d</string>
   <string name="corners_title">الزوايا</string>

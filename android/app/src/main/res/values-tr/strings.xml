@@ -325,7 +325,7 @@
   <string name="update_available">Güncelleme var</string>
   <string name="licences_title">Lisanslar</string>
   <string name="licences_body">Lato, yazı tipi: SIL Open Font License 1.1.\nLucide, simgeler: ISC License.\nAndroidSVG, oynatıcı logolarını çizer: Apache License 2.0.</string>
-  <string name="about_sends">Edgepad’in internete gönderdiği tek şeyler github.com’a yapılan güncelleme denetimi ve indirmeyi seçtiğiniz bir güncellemedir. Geri kalan her şey yalnızca telefonunuzla bilgisayarınız arasında kalır.</string>
+  <string name="about_sends">Bu telefon yalnızca github.com’a güncelleme denetimi ve indirmeyi seçtiğiniz bir güncellemeyi gönderir. Laptop uygulamasının nelere ve ne zaman eriştiği Edgepad’in kullandıkları bölümünde listelenir.</string>
   <string name="updates_install_failed">Güncelleme yüklenemedi. Sürüm sayfasından indirip elle yükleyin.</string>
   <string name="settings_version">Edgepad %1$s · protokol %2$d</string>
   <string name="corners_title">Köşeler</string>

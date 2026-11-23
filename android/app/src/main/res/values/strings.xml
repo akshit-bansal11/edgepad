@@ -335,7 +335,7 @@
   <string name="update_available">Update available</string>
   <string name="licences_title">Licences</string>
   <string name="licences_body">Lato, the typeface: SIL Open Font License 1.1.\nLucide, the icons: ISC License.\nAndroidSVG, which draws the player logos: Apache License 2.0.</string>
-  <string name="about_sends">The only things Edgepad sends to the internet are the update check to github.com and an update you choose to download. Everything else stays between this phone and your laptop.</string>
+  <string name="about_sends">This phone sends only the update check to github.com and an update you choose to download. What the laptop app reaches, and when, is listed under What Edgepad uses.</string>
   <string name="updates_install_failed">The update could not be installed. Download it from the release page and install it by hand.</string>
   <string name="settings_version">Edgepad %1$s · protocol %2$d</string>
   <string name="corners_title">Corners</string>

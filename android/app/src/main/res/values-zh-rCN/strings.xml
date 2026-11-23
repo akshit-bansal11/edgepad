@@ -322,7 +322,7 @@
   <string name="update_available">有可用更新</string>
   <string name="licences_title">许可</string>
   <string name="licences_body">Lato 字体：SIL Open Font License 1.1。\nLucide 图标：ISC License。\nAndroidSVG（用于绘制播放器标志）：Apache License 2.0。</string>
-  <string name="about_sends">Edgepad 发往互联网的内容只有两项：向 github.com 检查更新，以及你选择下载的更新。其余一切都只在这部手机和电脑之间传输。</string>
+  <string name="about_sends">这部手机只向 github.com 发送检查更新的请求，以及你选择下载的更新。笔记本应用会连接哪些服务、何时连接，列在“Edgepad 的用途”中。</string>
   <string name="updates_install_failed">无法安装更新。请到发布页面下载，然后手动安装。</string>
   <string name="settings_version">Edgepad %1$s · 协议 %2$d</string>
   <string name="corners_title">边角</string>

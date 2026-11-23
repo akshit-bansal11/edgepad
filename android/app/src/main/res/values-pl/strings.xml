@@ -343,7 +343,7 @@
   <string name="update_available">Dostępna aktualizacja</string>
   <string name="licences_title">Licencje</string>
   <string name="licences_body">Lato, krój pisma: SIL Open Font License 1.1.\nLucide, ikony: ISC License.\nAndroidSVG, rysujące logo odtwarzaczy: Apache License 2.0.</string>
-  <string name="about_sends">Edgepad wysyła do internetu tylko zapytanie o aktualizacje do github.com i aktualizację, którą zdecydujesz się pobrać. Wszystko inne zostaje między tym telefonem a laptopem.</string>
+  <string name="about_sends">Ten telefon wysyła tylko sprawdzenie aktualizacji do github.com oraz aktualizację, którą sam wybierzesz do pobrania. Z czym łączy się aplikacja na laptopa i kiedy, jest wymienione w sekcji Z czego korzysta Edgepad.</string>
   <string name="updates_install_failed">Nie udało się zainstalować aktualizacji. Pobierz ją ze strony wydania i zainstaluj ręcznie.</string>
   <string name="settings_version">Edgepad %1$s · protokół %2$d</string>
   <string name="corners_title">Rogi</string>

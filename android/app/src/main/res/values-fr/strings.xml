@@ -336,7 +336,7 @@
   <string name="update_available">Mise à jour disponible</string>
   <string name="licences_title">Licences</string>
   <string name="licences_body">Lato, la police : SIL Open Font License 1.1.\nLucide, les icônes : licence ISC.\nAndroidSVG, qui dessine les logos des lecteurs : licence Apache 2.0.</string>
-  <string name="about_sends">Edgepad n’envoie sur Internet que la recherche de mises à jour vers github.com et une mise à jour que vous choisissez de télécharger. Tout le reste demeure entre ce téléphone et votre ordinateur.</string>
+  <string name="about_sends">Ce téléphone n\'envoie que la recherche de mises à jour vers github.com et une mise à jour que vous choisissez de télécharger. Ce que l\'application pour ordinateur contacte, et quand, est indiqué dans Ce qu’utilise Edgepad.</string>
   <string name="updates_install_failed">La mise à jour n’a pas pu être installée. Téléchargez-la depuis la page de la version et installez-la manuellement.</string>
   <string name="settings_version">Edgepad %1$s · protocole %2$d</string>
   <string name="corners_title">Coins</string>

@@ -329,7 +329,7 @@
   <string name="update_available">Update beschikbaar</string>
   <string name="licences_title">Licenties</string>
   <string name="licences_body">Lato, het lettertype: SIL Open Font License 1.1.\nLucide, de pictogrammen: ISC License.\nAndroidSVG, dat de logo’s van de spelers tekent: Apache License 2.0.</string>
-  <string name="about_sends">Het enige wat Edgepad naar internet stuurt, is de updatecontrole naar github.com en een update die je zelf downloadt. Al het andere blijft tussen deze telefoon en je laptop.</string>
+  <string name="about_sends">Deze telefoon stuurt alleen de updatecontrole naar github.com en een update die je zelf kiest om te downloaden. Waar de laptopapp verbinding mee maakt, en wanneer, staat onder Wat Edgepad gebruikt.</string>
   <string name="updates_install_failed">De update kon niet worden geïnstalleerd. Download hem van de releasepagina en installeer hem handmatig.</string>
   <string name="settings_version">Edgepad %1$s · protocol %2$d</string>
   <string name="corners_title">Hoeken</string>

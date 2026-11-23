@@ -328,7 +328,7 @@
   <string name="update_available">अपडेट उपलब्ध है</string>
   <string name="licences_title">लाइसेंस</string>
   <string name="licences_body">Lato, टाइपफ़ेस: SIL Open Font License 1.1.\nLucide, आइकन: ISC License.\nAndroidSVG, जो प्लेयर के लोगो बनाता है: Apache License 2.0.</string>
-  <string name="about_sends">Edgepad इंटरनेट पर सिर्फ़ दो चीज़ें भेजता है: github.com पर अपडेट की जांच, और वह अपडेट जिसे आप डाउनलोड करना चुनें। बाकी सब कुछ सिर्फ़ इस फ़ोन और आपके लैपटॉप के बीच रहता है।</string>
+  <string name="about_sends">यह फ़ोन सिर्फ़ github.com पर अपडेट की जांच और वह अपडेट भेजता है जिसे आप डाउनलोड करना चुनें। लैपटॉप ऐप किन चीज़ों से जुड़ता है और कब, यह Edgepad क्या इस्तेमाल करता है में लिखा है।</string>
   <string name="updates_install_failed">अपडेट इंस्टॉल नहीं हो सका। उसे रिलीज़ पेज से डाउनलोड करके खुद इंस्टॉल करें।</string>
   <string name="settings_version">Edgepad %1$s · प्रोटोकॉल %2$d</string>
   <string name="corners_title">कोने</string>
