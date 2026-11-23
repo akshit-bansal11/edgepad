@@ -156,7 +156,11 @@ public final class HookServer {
                 sessions.apply(hook)
             }
         case .usage(let u):
-            limits.update(u.agent, u.windows, contextPct: u.contextPct, now: clock())
+            // The context fill belongs to one session, not to the agent: it goes to that session's row, not the limits.
+            limits.update(u.agent, u.windows, contextPct: nil, now: clock())
+            if let fill = u.contextPct {
+                sessions.setContext(agent: u.agent, cwd: u.cwd, pct: fill)
+            }
         case .spend(let s):
             spend.update(s.agent, s.totals, now: clock())
         }

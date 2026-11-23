@@ -121,6 +121,9 @@ public final class SessionBoard {
     private final class Session {
         var state = SessionStateToken.idle.rawValue
         var title = ""
+        /// The whole working folder, kept on the Mac only; it matches a usage report to its session.
+        var cwd = ""
+        var context = -1
         var waiting = false
         var touched = Date.distantPast
         var order: Int64 = 0
@@ -174,8 +177,31 @@ public final class SessionBoard {
             }
             if !hook.cwd.isEmpty {
                 session.title = Self.titleOf(hook.cwd)
+                session.cwd = Self.trimmed(hook.cwd)
             }
             touch(session, at: at)
+        }
+    }
+
+    /// Records how full a session's context window is (0..100; anything else reads as unknown). An agent that cannot
+    /// name its session (Claude Code's usage mod knows only its folder) is matched by `cwd`: the newest session of that
+    /// agent in that folder takes it. Touching a session is not a change of state, so its order is left alone.
+    public func setContext(agent: String, cwd: String, pct: Double) {
+        run {
+            let folder = Self.trimmed(cwd)
+            guard !folder.isEmpty else { return }
+            let match =
+                sessions
+                .filter { $0.key.agent == agent && $0.value.cwd.caseInsensitiveCompare(folder) == .orderedSame }
+                .max { $0.value.order < $1.value.order }
+            match?.value.context = Self.percent(pct)
+        }
+    }
+
+    /// Like `setContext(agent:cwd:pct:)` for an agent whose watcher knows the session id (Codex).
+    public func setContextById(agent: String, sessionId: String, pct: Double) {
+        run {
+            sessions[Key(agent: agent, id: sessionId)]?.context = Self.percent(pct)
         }
     }
 
@@ -198,6 +224,7 @@ public final class SessionBoard {
                 let session = Session()
                 session.state = item.state
                 session.title = item.cwd.isEmpty ? "" : Self.titleOf(item.cwd)
+                session.cwd = Self.trimmed(item.cwd)
                 touch(session, at: item.touched)
                 sessions[Key(agent: item.agent, id: item.sessionId)] = session
             }
@@ -225,6 +252,18 @@ public final class SessionBoard {
         gate.lock()
         defer { gate.unlock() }
         return project()
+    }
+
+    private static func percent(_ pct: Double) -> Int {
+        pct.isNaN || pct < 0 ? -1 : Int((min(pct, 100) + 0.5).rounded(.down))
+    }
+
+    private static func trimmed(_ cwd: String) -> String {
+        var scalars = Array(cwd.unicodeScalars)
+        while let last = scalars.last, last == "/" || last == "\\" {
+            scalars.removeLast()
+        }
+        return String(String.UnicodeScalarView(scalars))
     }
 
     static func titleOf(_ cwd: String) -> String {
@@ -276,7 +315,7 @@ public final class SessionBoard {
         sessions.sorted { $0.value.order > $1.value.order }.map { key, session in
             SessionEntry(
                 agent: key.agent, state: session.waiting ? SessionStateToken.wait.rawValue : session.state,
-                title: session.title)
+                title: session.title, contextPct: session.context)
         }
     }
 }

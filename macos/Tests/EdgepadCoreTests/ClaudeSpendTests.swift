@@ -57,18 +57,24 @@ final class ClaudeSpendTests: XCTestCase {
         return calendar
     }
 
-    func testPeriodsStartOnMondayAndTheFirstOfTheMonth() {
-        // Thursday 2026-11-19 and Wednesday 2026-12-02, noon UTC.
+    func testPeriodsAreTheLast7And30DaysCountingToday() {
+        // Thursday 2026-11-19, Monday 2026-11-16 and Wednesday 2026-12-02, noon UTC.
         let thursday = ClaudeSpend.periods(Date(timeIntervalSince1970: 1_795_089_600), utc())
         XCTAssertEqual(thursday.today, "2026-11-19")
-        XCTAssertEqual(thursday.weekStart, "2026-11-16")
-        XCTAssertEqual(thursday.monthStart, "2026-11-01")
-        XCTAssertEqual(thursday.from, "2026-11-01")
+        XCTAssertEqual(thursday.start7, "2026-11-13")
+        XCTAssertEqual(thursday.start30, "2026-10-21")
+        XCTAssertEqual(thursday.from, "2026-10-21")
+
+        let monday = ClaudeSpend.periods(Date(timeIntervalSince1970: 1_794_830_400), utc())
+        XCTAssertEqual(monday.today, "2026-11-16")
+        XCTAssertEqual(monday.start7, "2026-11-10")
+        XCTAssertEqual(monday.start30, "2026-10-18")
 
         let wednesday = ClaudeSpend.periods(Date(timeIntervalSince1970: 1_796_212_800), utc())
-        XCTAssertEqual(wednesday.weekStart, "2026-11-30")
-        XCTAssertEqual(wednesday.monthStart, "2026-12-01")
-        XCTAssertEqual(wednesday.from, "2026-11-30")
+        XCTAssertEqual(wednesday.today, "2026-12-02")
+        XCTAssertEqual(wednesday.start7, "2026-11-26")
+        XCTAssertEqual(wednesday.start30, "2026-11-03")
+        XCTAssertEqual(wednesday.from, "2026-11-03")
     }
 
     private func row(_ id: String, _ model: String, _ input: Int, _ output: Int, at: Date, type: String = "assistant")
@@ -90,12 +96,77 @@ final class ClaudeSpendTests: XCTestCase {
         XCTAssertTrue(FileManager.default.createFile(atPath: path, contents: Data(lines.joined(separator: "\n").utf8)))
     }
 
-    private func newSpend(linked: Bool = true, timers: ((@escaping () -> Void, TimeInterval) -> Stoppable)? = nil)
-        -> ClaudeSpend
-    {
+    private func newSpend(
+        linked: Bool = true, clock: @escaping () -> Date = Date.init,
+        timers: ((@escaping () -> Void, TimeInterval) -> Stoppable)? = nil
+    ) -> ClaudeSpend {
         ClaudeSpend(
-            settingsOn: { true }, phoneLinked: { linked }, spend: spend, root: root, cachePath: root + "/cache.json",
-            startTimer: timers ?? { _, _ in Stoppable {} })
+            settingsOn: { true }, phoneLinked: { linked }, spend: spend, clock: clock, root: root,
+            cachePath: root + "/cache.json", startTimer: timers ?? { _, _ in Stoppable {} })
+    }
+
+    private func stamp(_ name: String, _ date: Date) throws {
+        try FileManager.default.setAttributes(
+            [.modificationDate: date], ofItemAtPath: root + "/projects/app/" + name)
+    }
+
+    private var claudeEntry: SpendEntry? {
+        spend.snapshot().first { $0.agent == AgentToken.claude.rawValue }
+    }
+
+    func testAllTimeIsReadOnceAndAVanishedTranscriptKeepsItsTotals() throws {
+        let now = Date()
+        let old = now.addingTimeInterval(-150 * 86400)
+        let model = "claude-sonnet-4-5"
+        write(
+            "old.jsonl",
+            [row("m-old", model, 100_000, 10_000, at: old), row("m-old2", model, 100_000, 10_000, at: old)])
+        try stamp("old.jsonl", now.addingTimeInterval(-100 * 86400))
+        write("new.jsonl", [row("m-new", model, 100_000, 10_000, at: now)])
+
+        newSpend().poll()
+        let first = try XCTUnwrap(claudeEntry)
+        XCTAssertEqual(first.tokToday, 110_000)
+        XCTAssertEqual(first.tokAll, 330_000)
+        XCTAssertEqual(first.centsAll, 135)
+
+        // The old transcript was folded to day totals: its ids are not in the cache any more.
+        let cached = try String(contentsOfFile: root + "/cache.json", encoding: .utf8)
+        XCTAssertFalse(cached.contains("m-old"))
+
+        // A restart gives the same, and so does a transcript Claude Code deleted: its totals stay.
+        try FileManager.default.removeItem(atPath: root + "/projects/app/old.jsonl")
+        var current = now
+        let second = newSpend(clock: { current })
+        second.poll()
+        XCTAssertEqual(claudeEntry?.tokAll, 330_000)
+
+        // Only a new or changed file is read, and all time grows by it.
+        write("later.jsonl", [row("m-later", model, 100_000, 10_000, at: now)])
+        current = now.addingTimeInterval(120)
+        second.poll()
+        XCTAssertEqual(claudeEntry?.tokAll, 440_000)
+    }
+
+    func testAllTimeIsNotAnnouncedAsAPartialSumWhileOldHistoryIsStillBeingRead() throws {
+        let now = Date()
+        let old = now.addingTimeInterval(-150 * 86400)
+        let model = "claude-sonnet-4-5"
+        write("a.jsonl", [row("m-big", model, 1, 1, at: old), String(repeating: "x", count: 4000)])
+        try stamp("a.jsonl", now.addingTimeInterval(-100 * 86400))
+        write("b.jsonl", [row("m-b", model, 5, 5, at: old)])
+        try stamp("b.jsonl", now.addingTimeInterval(-101 * 86400))
+        write("new.jsonl", [row("m-new", model, 100_000, 10_000, at: now)])
+        let reader = newSpend()
+
+        // One tick's whole budget goes to the new file and the first old one; the second old one waits.
+        reader.poll(budget: 3000)
+        let partial = try XCTUnwrap(claudeEntry)
+        XCTAssertEqual(partial.tokToday, 110_000)
+        XCTAssertEqual(partial.tokAll, -1)
+
+        reader.poll(budget: 3000)
+        XCTAssertEqual(claudeEntry?.tokAll, 110_012)
     }
 
     func testAResponseCountsOnceByItsLastRowAndOnlyRealOnesCount() {

@@ -515,7 +515,8 @@ public final class IntegrationHost {
 
     private func sendLimits() {
         if let limits = parts.limits {
-            push(.text(kind: TextKind.limits.rawValue, value: DashWire.encodeLimits(limits.snapshot())))
+            let windows = limits.snapshot().filter { $0.window != LimitWindow.context }
+            push(.text(kind: TextKind.limits.rawValue, value: DashWire.encodeLimits(windows)))
         }
     }
 

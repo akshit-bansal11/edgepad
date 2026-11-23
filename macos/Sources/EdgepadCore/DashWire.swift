@@ -69,11 +69,14 @@ public struct SessionEntry: Equatable {
     public let agent: String
     public let state: String
     public let title: String
+    /// How full the session's context window is, 0..100, -1 unknown.
+    public let contextPct: Int
 
-    public init(agent: String, state: String, title: String) {
+    public init(agent: String, state: String, title: String, contextPct: Int = -1) {
         self.agent = agent
         self.state = state
         self.title = title
+        self.contextPct = contextPct
     }
 }
 
@@ -105,11 +108,15 @@ public struct SpendEntry: Equatable {
     public let tokMonth: Int64
     public let centsMonth: Int64
     public let unpriced: Bool
+    public let tokAll: Int64
+    public let centsAll: Int64
 
     public init(
         agent: String, measuredAtMin: Int64, tokToday: Int64, centsToday: Int64, tokWeek: Int64, centsWeek: Int64,
-        tokMonth: Int64, centsMonth: Int64, unpriced: Bool = false
+        tokMonth: Int64, centsMonth: Int64, unpriced: Bool = false, tokAll: Int64 = -1, centsAll: Int64 = -1
     ) {
+        self.tokAll = tokAll
+        self.centsAll = centsAll
         self.agent = agent
         self.measuredAtMin = measuredAtMin
         self.tokToday = tokToday
@@ -312,21 +319,23 @@ public enum DashWire {
 
     // ---- SESSIONS
 
-    /// "agent:state:title" entries joined by "|", newest first as given, at most 8; an unknown agent or state drops
-    /// the entry.
+    /// "agent:state:ctx:title" entries joined by "|", newest first as given, at most 8; ctx is 0..100 or -1; an unknown
+    /// agent or state drops the entry.
     public static func encodeSessions(_ sessions: [SessionEntry]) -> String {
         var parts: [String] = []
         for s in sessions where parts.count < maxSessions && isAgent(s.agent) && isState(s.state) {
-            parts.append("\(s.agent):\(s.state):\(clean(s.title, 24))")
+            let ctx = (0...100).contains(s.contextPct) ? s.contextPct : -1
+            parts.append("\(s.agent):\(s.state):\(ctx):\(clean(s.title, 24))")
         }
         return fit255(parts, "|")
     }
 
     public static func parseSessions(_ wire: String) -> [SessionEntry] {
         entries(wire) { entry in
-            let p = split(entry, ":", limit: 3)
-            guard p.count == 3, isAgent(p[0]), isState(p[1]) else { return nil }
-            return SessionEntry(agent: p[0], state: p[1], title: p[2])
+            let p = split(entry, ":", limit: 4)
+            guard p.count == 4, isAgent(p[0]), isState(p[1]), let ctx = long(p[2]) else { return nil }
+            return SessionEntry(
+                agent: p[0], state: p[1], title: p[3], contextPct: (0...100).contains(ctx) ? Int(ctx) : -1)
         }
     }
 
@@ -383,13 +392,14 @@ public enum DashWire {
     }
 
     // ---- SPEND
-    /// "agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth/unpriced" entries joined by "|";
-    /// unpriced is 1 or 0.
+    /// "agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/tokAll/centsAll/unpriced" entries joined by
+    /// "|"; unpriced is 1 or 0; the all-time pair is -1 when unknown, any other negative is 0.
     public static func encodeSpend(_ spend: [SpendEntry]) -> String {
         let parts = spend.filter { isAgent($0.agent) }.map { s -> String in
             let today = [big(s.tokToday, 0), big(s.centsToday, 0)]
             let later = [big(s.tokWeek, 0), big(s.centsWeek, 0), big(s.tokMonth, 0), big(s.centsMonth, 0)]
-            return ([s.agent, big(s.measuredAtMin, -1)] + today + later + [s.unpriced ? "1" : "0"])
+            let all = [big(s.tokAll, -1), big(s.centsAll, -1)]
+            return ([s.agent, big(s.measuredAtMin, -1)] + today + later + all + [s.unpriced ? "1" : "0"])
                 .joined(separator: "/")
         }
         return fit255(parts, "|")
@@ -398,15 +408,16 @@ public enum DashWire {
     public static func parseSpend(_ wire: String) -> [SpendEntry] {
         entries(wire) { entry in
             let p = split(entry, "/")
-            guard p.count == 9, isAgent(p[0]), p[8] == "0" || p[8] == "1" else { return nil }
+            guard p.count == 11, isAgent(p[0]), p[10] == "0" || p[10] == "1" else { return nil }
             var n: [Int64] = []
-            for part in p[1..<8] {
+            for part in p[1..<10] {
                 guard let value = long(part) else { return nil }
                 n.append(value)
             }
             return SpendEntry(
                 agent: p[0], measuredAtMin: n[0], tokToday: n[1], centsToday: n[2], tokWeek: n[3], centsWeek: n[4],
-                tokMonth: n[5], centsMonth: n[6], unpriced: p[8] == "1")
+                tokMonth: n[5], centsMonth: n[6], unpriced: p[10] == "1", tokAll: max(-1, n[7]),
+                centsAll: max(-1, n[8]))
         }
     }
 

@@ -17,6 +17,8 @@ public final class CodexWatcher {
     public static let cacheName = "dashboard-codex-cache.json"
 
     private static let usageEvery = 12
+    /// The most bytes of rollouts older than 30 days that one refresh reads; the rest wait for the next.
+    private static let spendBytesPerRefresh: Int64 = 32 * 1024 * 1024
     private static let recentWrite: TimeInterval = 30
     private static let maxFiles = SessionBoard.capacity
     private static let limitFiles = 5
@@ -220,6 +222,9 @@ public final class CodexWatcher {
             sessions.apply(
                 HookEvent(agent: AgentToken.codex.rawValue, sessionId: id, event: event, cwd: tail.cwd),
                 at: file.mtime)
+            if tail.contextPct >= 0 {
+                sessions.setContextById(agent: AgentToken.codex.rawValue, sessionId: id, pct: Double(tail.contextPct))
+            }
             tracked[file.path] = Tracked(size: file.size, stamp: file.stamp, state: known, id: id)
         }
         for (path, old) in tracked where !seen.contains(path) {
@@ -247,48 +252,58 @@ public final class CodexWatcher {
     // ---- spend
 
     private func refreshSpend() {
-        let calendar = Self.calendar
-        let today = calendar.startOfDay(for: clock())
-        let parts = calendar.dateComponents([.year, .month, .weekday], from: today)
-        let monthStart = calendar.date(from: DateComponents(year: parts.year, month: parts.month, day: 1)) ?? today
-        let weekStart = Self.addDays(today, -(((parts.weekday ?? 2) + 5) % 7))
+        let today = Self.calendar.startOfDay(for: clock())
+        let start7 = Self.addDays(today, -6)
+        let start30 = Self.addDays(today, -29)
         var tokDay: Int64 = 0
         var centsDay: Int64 = 0
         var tokWeek: Int64 = 0
         var centsWeek: Int64 = 0
         var tokMonth: Int64 = 0
         var centsMonth: Int64 = 0
+        var tokAll: Int64 = 0
+        var centsAll: Int64 = 0
         var anyUnpriced = false
+        var allDone = true
+        var budget = Self.spendBytesPerRefresh
         var live = Set<String>()
-        var day = min(weekStart, monthStart)
-        while day <= today {
-            for file in rollouts(dayDir(day)) {
-                let totals = totalsOf(file, &live)
-                if totals.input == 0 && totals.output == 0 { continue }
-                var cents: Int64 = 0
-                if let price = OpenAiPrices.price(totals.model) {
-                    cents = OpenAiPrices.cents(price, totals)
-                } else {
-                    anyUnpriced = true
-                }
-                if day >= monthStart {
-                    tokMonth += totals.tokens
-                    centsMonth += cents
-                }
-                if day >= weekStart {
-                    tokWeek += totals.tokens
-                    centsWeek += cents
-                }
-                if day == today {
-                    tokDay += totals.tokens
-                    centsDay += cents
-                }
+        for (day, file) in everyRollout() {
+            // The last 30 days are always read; older history is read within the budget, over as many refreshes as it takes.
+            guard let totals = totalsOf(file, &live, required: day >= start30, budget: &budget) else {
+                allDone = false
+                continue
             }
-            day = Self.addDays(day, 1)
+            if totals.input == 0 && totals.output == 0 { continue }
+            var cents: Int64 = 0
+            if let price = OpenAiPrices.price(totals.model) {
+                cents = OpenAiPrices.cents(price, totals)
+            } else {
+                anyUnpriced = true
+            }
+            tokAll += totals.tokens
+            centsAll += cents
+            if day >= start30 {
+                tokMonth += totals.tokens
+                centsMonth += cents
+            }
+            if day >= start7 {
+                tokWeek += totals.tokens
+                centsWeek += cents
+            }
+            if day == today {
+                tokDay += totals.tokens
+                centsDay += cents
+            }
         }
-        for key in cache.keys where !live.contains(key) {
-            cache[key] = nil
-            cacheDirty = true
+        if allDone {
+            for key in cache.keys where !live.contains(key) {
+                cache[key] = nil
+                cacheDirty = true
+            }
+        } else {
+            gate.lock()
+            usageDue = true  // more history to read: the next poll continues instead of waiting a minute
+            gate.unlock()
         }
         if cacheDirty {
             saveCache()
@@ -300,18 +315,27 @@ public final class CodexWatcher {
         if live.isEmpty && !spend.snapshot().contains(where: { $0.agent == codex }) {
             return  // no rollout was ever seen: nothing to show, rather than a row of zeros
         }
+        // All time is announced only once every rollout was in hand, never as a partial sum.
         let totals = SpendTotals(
             tokToday: tokDay, centsToday: centsDay, tokWeek: tokWeek, centsWeek: centsWeek, tokMonth: tokMonth,
-            centsMonth: centsMonth, unpriced: anyUnpriced)
+            centsMonth: centsMonth, unpriced: anyUnpriced, tokAll: allDone ? tokAll : -1,
+            centsAll: allDone ? centsAll : -1)
         spend.update(codex, totals, now: clock())
     }
 
-    private func totalsOf(_ file: Rollout, _ live: inout Set<String>) -> RolloutTotals {
+    // Nil when the file is uncached, is not required and the budget is spent: it is left for the next refresh.
+    private func totalsOf(_ file: Rollout, _ live: inout Set<String>, required: Bool, budget: inout Int64)
+        -> RolloutTotals?
+    {
         let key = String(file.path.dropFirst(root.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         live.insert(key)
         if let hit = cache[key], hit.size == file.size, hit.stamp == file.stamp {
             return hit.totals
         }
+        if !required && budget <= 0 {
+            return nil
+        }
+        budget -= file.size
         // The model of an earlier read is kept, so a grown file needs only its last 1 MiB.
         guard let source = try? open(file.path),
             let totals = try? CodexRollout.totals(source, knownModel: cache[key]?.totals.model)
@@ -321,6 +345,29 @@ public final class CodexWatcher {
         cache[key] = CacheEntry(size: file.size, stamp: file.stamp, totals: totals)
         cacheDirty = true
         return totals
+    }
+
+    /// Every rollout with the day of its folder (year/month/day), newest folder first; a folder whose name is no date
+    /// is left out.
+    private func everyRollout() -> [(day: Date, file: Rollout)] {
+        var found: [(day: Date, file: Rollout)] = []
+        for year in Self.numbered(sessionsDir, 4) {
+            for month in Self.numbered(year, 2) {
+                for folder in Self.numbered(month, 2) {
+                    guard let y = Int((year as NSString).lastPathComponent),
+                        let m = Int((month as NSString).lastPathComponent),
+                        let d = Int((folder as NSString).lastPathComponent),
+                        let day = Self.calendar.date(from: DateComponents(year: y, month: m, day: d)),
+                        Self.calendar.dateComponents([.year, .month, .day], from: day)
+                            == DateComponents(year: y, month: m, day: d)
+                    else { continue }
+                    for file in rollouts(folder) {
+                        found.append((day, file))
+                    }
+                }
+            }
+        }
+        return found
     }
 
     // ---- files

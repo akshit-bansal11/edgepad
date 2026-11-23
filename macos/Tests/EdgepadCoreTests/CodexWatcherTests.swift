@@ -297,15 +297,20 @@ final class CodexWatcherTests: XCTestCase {
         let fixture = try RolloutText.fixture()
         let calendar = Calendar.current
         let first = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 11, day: 1, hour: 12)))
-        let lastMonth = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 10, day: 31, hour: 12)))
+        let thirtieth = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 10, day: 21, hour: 12)))
+        let older = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 10, day: 20, hour: 12)))
+        let march = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 3, day: 2, hour: 12)))
         try today("rollout-today.jsonl", fixture, age: 3 * hours)
         try rollout(now.addingTimeInterval(-24 * hours), "rollout-yesterday.jsonl", fixture, age: 3 * hours)
         try rollout(first, "rollout-first.jsonl", fixture, age: 3 * hours)
-        try rollout(lastMonth, "rollout-lastmonth.jsonl", fixture, age: 3 * hours)
+        try rollout(thirtieth, "rollout-thirtieth.jsonl", fixture, age: 3 * hours)
+        try rollout(older, "rollout-older.jsonl", fixture, age: 3 * hours)
+        try rollout(march, "rollout-march.jsonl", fixture, age: 3 * hours)
         watcher.setWatch(CodexWatcher.aiBit)
 
         watcher.poll()
 
+        // Today, the last 7 days (13 November on), the last 30 (21 October on) and everything.
         let entry = try XCTUnwrap(spend.snapshot().first)
         XCTAssertEqual(spend.snapshot().count, 1)
         XCTAssertEqual(entry.agent, AgentToken.codex.rawValue)
@@ -313,9 +318,34 @@ final class CodexWatcherTests: XCTestCase {
         XCTAssertEqual(entry.centsToday, 3)
         XCTAssertEqual(entry.tokWeek, 2 * 47898)
         XCTAssertEqual(entry.centsWeek, 6)
-        XCTAssertEqual(entry.tokMonth, 3 * 47898)
-        XCTAssertEqual(entry.centsMonth, 9)
+        XCTAssertEqual(entry.tokMonth, 4 * 47898)
+        XCTAssertEqual(entry.centsMonth, 12)
+        XCTAssertEqual(entry.tokAll, 6 * 47898)
+        XCTAssertEqual(entry.centsAll, 18)
         XCTAssertFalse(watcher.hasUnpriced)
+    }
+
+    func testOldHistoryIsReadWithinABudgetAndAllTimeWaitsForTheRest() throws {
+        let fixture = try RolloutText.fixture()
+        let old = try XCTUnwrap(Calendar.current.date(from: DateComponents(year: 2026, month: 3, day: 2, hour: 12)))
+        try today("rollout-today.jsonl", fixture, age: 3 * hours)
+        let big = try rollout(old.addingTimeInterval(24 * hours), "rollout-big.jsonl", fixture, age: 3 * hours)
+        let handle = try FileHandle(forWritingTo: URL(fileURLWithPath: big))
+        try handle.truncate(atOffset: 33 * 1024 * 1024)  // more than one refresh may read of old history
+        try handle.close()
+        try stamp(big, now.addingTimeInterval(-3 * hours))
+        // The newer folder is read first and spends the budget, so this older one waits.
+        try rollout(old, "rollout-before.jsonl", fixture, age: 3 * hours)
+        watcher.setWatch(CodexWatcher.aiBit)
+
+        watcher.poll()
+        let partial = try XCTUnwrap(spend.snapshot().first)
+        XCTAssertEqual(partial.tokToday, 47898)
+        XCTAssertEqual(partial.tokAll, -1)
+
+        // The unchanged files come from the cache, so the next poll finishes what was left.
+        watcher.poll()
+        XCTAssertEqual(spend.snapshot().first?.tokAll, 3 * 47898)
     }
 
     func testAModelWithNoPriceCountsTokensNotCentsAndIsReported() throws {

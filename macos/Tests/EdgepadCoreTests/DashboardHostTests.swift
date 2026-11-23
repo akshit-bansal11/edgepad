@@ -347,7 +347,7 @@ final class DashboardHostTests: XCTestCase {
         XCTAssertEqual(sent, [.text(kind: TextKind.sessions.rawValue, value: "")])
         parts.sessions?.apply(
             HookEvent(agent: AgentToken.claude.rawValue, sessionId: "s", event: .prompt, cwd: "/w/app"))
-        XCTAssertEqual(sent.last, .text(kind: TextKind.sessions.rawValue, value: "claude:busy:app"))
+        XCTAssertEqual(sent.last, .text(kind: TextKind.sessions.rawValue, value: "claude:busy:-1:app"))
         host.dispose()
         parts.sessions?.apply(HookEvent(agent: AgentToken.claude.rawValue, sessionId: "s", event: .stop, cwd: ""))
         XCTAssertEqual(sent.count, 2)

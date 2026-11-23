@@ -49,13 +49,24 @@ public struct RolloutWindow: Equatable {
     }
 }
 
-/// What the end of a rollout says: working or idle, the newest limits, and what the first line says about the session.
+/// What the end of a rollout says: working or idle, the newest limits, what the first line says about the session, and
+/// how full its context window was at the last `token_count` (the last request's tokens over `model_context_window`,
+/// 0..100, -1 when either is missing).
 public struct RolloutTail: Equatable {
     /// "busy" or "idle", nil when the part read holds no start or end marker.
     public let state: String?
     public let limits: [RolloutWindow]
     public let cwd: String
     public let cliVersion: String
+    public let contextPct: Int
+
+    public init(state: String?, limits: [RolloutWindow], cwd: String, cliVersion: String, contextPct: Int = -1) {
+        self.state = state
+        self.limits = limits
+        self.cwd = cwd
+        self.cliVersion = cliVersion
+        self.contextPct = contextPct
+    }
 }
 
 /// The cumulative usage a rollout reports last, and the model it last ran. Input includes the cached part.
@@ -235,6 +246,7 @@ public enum CodexRollout {
         private var state: String?
         private var cwd = ""
         private var version = ""
+        private var context = -1
         private var preferred: [RolloutWindow]?
         private var other: [RolloutWindow]?
 
@@ -254,6 +266,7 @@ public enum CodexRollout {
                 version = payload["cli_version"] as? String ?? version
             case "token_count":
                 takeLimits(payload)
+                takeContext(payload)
             default:
                 break
             }
@@ -262,7 +275,17 @@ public enum CodexRollout {
         func result() -> RolloutTail {
             RolloutTail(
                 state: state, limits: preferred ?? other ?? [], cwd: cwd.utf16.count > 4096 ? "" : cwd,
-                cliVersion: version.utf16.count > 64 ? "" : version)
+                cliVersion: version.utf16.count > 64 ? "" : version, contextPct: context)
+        }
+
+        // A token_count with no info (Codex sends one right after the limits change) leaves the last fill as it was.
+        private func takeContext(_ payload: [String: Any]) {
+            guard let info = payload["info"] as? [String: Any], let last = info["last_token_usage"] as? [String: Any],
+                let size = JsonRead.int64(info["model_context_window"]), size > 0
+            else { return }
+            let used = CodexRollout.tokenCount(last, "total_tokens")
+            let (product, overflow) = used.multipliedReportingOverflow(by: 100)
+            context = overflow ? 100 : Int(min(100, product / size))
         }
 
         private func takeLimits(_ payload: [String: Any]) {

@@ -32,6 +32,37 @@ final class SessionBoardTests: XCTestCase {
         XCTAssertTrue(board.snapshot().isEmpty)
     }
 
+    func testAContextFillGoesToTheNewestSessionOfThatFolderAndIsRoundedAndClamped() {
+        let board = newBoard()
+        board.apply(hook("a", .start, cwd: "/work/app/"))
+        board.apply(hook("b", .start, cwd: "/work/app"))
+        board.apply(hook("c", .start, cwd: "/work/other"))
+        XCTAssertTrue(board.snapshot().allSatisfy { $0.contextPct == -1 })
+
+        board.setContext(agent: claude, cwd: "/work/app", pct: 41.6)
+        board.setContext(agent: claude, cwd: "/nowhere", pct: 90)
+        board.setContext(agent: codex, cwd: "/work/other", pct: 90)
+
+        XCTAssertEqual(board.snapshot().map(\.contextPct).reversed(), [-1, 42, -1])
+
+        board.setContext(agent: claude, cwd: "/work/other", pct: 250)
+        board.setContextById(agent: claude, sessionId: "a", pct: .nan)
+        board.setContextById(agent: claude, sessionId: "a", pct: 12)
+        XCTAssertEqual(board.snapshot().map(\.contextPct).reversed(), [12, 42, 100])
+    }
+
+    func testAChangedContextRaisesChangedAndTheSameOneDoesNot() {
+        let board = newBoard()
+        board.apply(hook("a", .start))
+        var raised = 0
+        board.changed = { raised += 1 }
+
+        board.setContext(agent: claude, cwd: "/work/app", pct: 30)
+        board.setContext(agent: claude, cwd: "/work/app", pct: 30)
+
+        XCTAssertEqual(raised, 1)
+    }
+
     func testClaudeHooksMapToEvents() {
         let cases: [(String, String?, SessionEvent)] = [
             ("SessionStart", nil, .start), ("UserPromptSubmit", nil, .prompt),
@@ -475,6 +506,30 @@ final class SpendBoardTests: XCTestCase {
 
         let again = SpendBoard(store: UsageStore(path: path, now: start))
         XCTAssertEqual(again.snapshot().map(\.unpriced), [true, false])
+    }
+
+    func testTheAllTimePairIsStoredReadBackAndClamped() {
+        let dir = (NSTemporaryDirectory() as NSString).appendingPathComponent("edgepad-spend-\(UUID().uuidString)")
+        addTeardownBlock { try? FileManager.default.removeItem(atPath: dir) }
+        let path = (dir as NSString).appendingPathComponent(UsageStore.fileName)
+        let board = SpendBoard(store: UsageStore(path: path, now: start))
+        board.update(
+            codex,
+            SpendTotals(
+                tokToday: 1, centsToday: 2, tokWeek: 3, centsWeek: 4, tokMonth: 5, centsMonth: 6, unpriced: true,
+                tokAll: 7, centsAll: 8),
+            now: start)
+        board.update(
+            claude,
+            SpendTotals(
+                tokToday: 1, centsToday: 1, tokWeek: 1, centsWeek: 1, tokMonth: 1, centsMonth: 1, tokAll: -9,
+                centsAll: .max),
+            now: start)
+
+        let again = SpendBoard(store: UsageStore(path: path, now: start))
+        XCTAssertEqual(again.snapshot().map(\.centsAll), [SpendBoard.maxCents, 8])
+        XCTAssertEqual(again.snapshot().map(\.tokAll), [-1, 7])
+        XCTAssertEqual(again.snapshot().last?.unpriced, true)
     }
 
     func testAnUnknownAgentIsIgnored() {

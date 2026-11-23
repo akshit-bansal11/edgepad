@@ -106,6 +106,25 @@ final class CodexRolloutTests: XCTestCase {
         XCTAssertEqual(OpenAiPrices.cents(price, sum), 3)
     }
 
+    func testTheContextFillIsTheLastRequestOverTheWindow() throws {
+        let cases: [(last: Int64, window: Int64, expected: Int)] = [
+            (48000, 200_000, 24), (300_000, 200_000, 100), (1000, 0, -1),
+        ]
+        for c in cases {
+            let line =
+                #"{"timestamp":"x","ordinal":6,"type":"event_msg","payload":{"type":"token_count","info":"#
+                + #"{"total_token_usage":{"input_tokens":1,"output_tokens":1},"#
+                + #""last_token_usage":{"total_tokens":\#(c.last)},"model_context_window":\#(c.window)},"#
+                + #""rate_limits":null}}"#
+            XCTAssertEqual(try tail(RolloutText.join(RolloutText.meta, line)).contextPct, c.expected)
+        }
+    }
+
+    func testATokenCountWithNoInfoLeavesTheContextUnknown() throws {
+        let text = RolloutText.join(RolloutText.meta, RolloutText.count("null"))
+        XCTAssertEqual(try tail(text).contextPct, -1)
+    }
+
     func testAnUnmatchedTaskStartedIsWorkingAndAbortedIsIdle() throws {
         XCTAssertEqual(try tail(RolloutText.join(RolloutText.meta, RolloutText.started)).state, busy)
         XCTAssertEqual(try tail(RolloutText.join(RolloutText.started, RolloutText.aborted)).state, idle)

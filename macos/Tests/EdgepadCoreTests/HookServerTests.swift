@@ -138,6 +138,34 @@ final class HookServerTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(usage.lastHeard("claude"), 0)
     }
 
+    func testUsageAndSpendReachTheirBoards() {
+        let server = newServer()
+        let usageD = "{\"limits\":[{\"kind\":\"five_hour\",\"percentUsed\":12,\"resetsAt\":null}],"
+        let spendD =
+            "\"today\":{\"tok\":1,\"cents\":2},\"week\":{\"tok\":3,\"cents\":4},\"month\":{\"tok\":5,\"cents\":6}"
+        let begin = "{\"hook_event_name\":\"SessionStart\",\"session_id\":\"s1\",\"cwd\":\"/work/app\"}"
+        XCTAssertNotNil(exchange(server, line("claude", "session", begin)))
+        XCTAssertNotNil(
+            exchange(server, line("claude", "usage", usageD + "\"context\":{\"percent\":40},\"cwd\":\"/work/app\"}")))
+        XCTAssertNotNil(exchange(server, line("claude", "spend", "{" + spendD + "}")))
+        XCTAssertNotNil(exchange(server, line("codex", "spend", "{" + spendD + ",\"all\":{\"tok\":7,\"cents\":8}}")))
+
+        usage.gate.lock()
+        XCTAssertEqual(usage.limits[LimitKey(agent: "claude", window: "300")]?.pct, 12)
+        // The context fill is no limit window: it belongs to the session that runs in that folder.
+        XCTAssertNil(usage.limits[LimitKey(agent: "claude", window: LimitWindow.context)])
+        XCTAssertEqual(
+            usage.spend["claude"]?.totals,
+            SpendTotals(tokToday: 1, centsToday: 2, tokWeek: 3, centsWeek: 4, tokMonth: 5, centsMonth: 6))
+        XCTAssertEqual(
+            usage.spend["codex"]?.totals,
+            SpendTotals(
+                tokToday: 1, centsToday: 2, tokWeek: 3, centsWeek: 4, tokMonth: 5, centsMonth: 6, tokAll: 7,
+                centsAll: 8))
+        usage.gate.unlock()
+        XCTAssertEqual(sessions.snapshot().map(\.contextPct), [40])
+    }
+
     func testAnAgentIsReadyOnceWhenFirstHeard() {
         let server = newServer()
         let ready = expectation(description: "ready")

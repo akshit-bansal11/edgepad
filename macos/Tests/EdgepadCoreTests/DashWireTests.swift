@@ -43,10 +43,10 @@ final class DashWireTests: XCTestCase {
         let big = Int64.max
         let spend = SpendEntry(
             agent: "codex", measuredAtMin: big, tokToday: big, centsToday: big, tokWeek: big, centsWeek: big,
-            tokMonth: big, centsMonth: big)
+            tokMonth: big, centsMonth: big, tokAll: big, centsAll: big)
         let most = Int(Int32.max)
         let info = StatsInfo(cpuName: wide, ramMiB: most, gpuName: wide, vramMiB: most, netName: wide)
-        let session = SessionEntry(agent: "codex", state: "wait", title: wide)
+        let session = SessionEntry(agent: "codex", state: "wait", title: wide, contextPct: 100)
         let disk = DiskEntry(label: wide, usedPct: 100, totalGiB: big, freeGiB: big)
         let limit = LimitEntry(agent: "codex", window: "~" + wide, pct: 100, resetAtMin: big, measuredAtMin: big)
         let payloads = [
@@ -117,8 +117,8 @@ final class DashWireTests: XCTestCase {
         case "DISKSPARSE":
             return DashWire.encodeDisks(DashWire.parseDisks(field(args)))
         case "SESSIONS":
-            let sessions = entries(args).map { fields($0, 3) }.map { f in
-                SessionEntry(agent: field(f[0]), state: field(f[1]), title: field(f[2]))
+            let sessions = entries(args).map { fields($0, 4) }.map { f in
+                SessionEntry(agent: field(f[0]), state: field(f[1]), title: field(f[3]), contextPct: int(f[2]))
             }
             return DashWire.encodeSessions(sessions)
         case "SESSIONSPARSE":
@@ -158,11 +158,11 @@ final class DashWireTests: XCTestCase {
         case "LIMITSPARSE":
             return DashWire.encodeLimits(DashWire.parseLimits(field(args)))
         case "SPEND":
-            let spend = entries(args).map { fields($0, 9) }.map { f in
+            let spend = entries(args).map { fields($0, 11) }.map { f in
                 SpendEntry(
                     agent: field(f[0]), measuredAtMin: long(f[1]), tokToday: long(f[2]), centsToday: long(f[3]),
                     tokWeek: long(f[4]), centsWeek: long(f[5]), tokMonth: long(f[6]), centsMonth: long(f[7]),
-                    unpriced: field(f[8]) == "1")
+                    unpriced: field(f[10]) == "1", tokAll: long(f[8]), centsAll: long(f[9]))
             }
             return DashWire.encodeSpend(spend)
         case "SPENDPARSE":

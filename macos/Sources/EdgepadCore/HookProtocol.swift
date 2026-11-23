@@ -59,6 +59,16 @@ public struct UsageRequest: Equatable {
     public let agent: String
     public let windows: [RawLimit]
     public let contextPct: Double?
+    /// The folder of the session that reports; it picks the session the context fill belongs to and never reaches a phone.
+    public let cwd: String
+
+    init(token: String, agent: String, windows: [RawLimit], contextPct: Double?, cwd: String = "") {
+        self.token = token
+        self.agent = agent
+        self.windows = windows
+        self.contextPct = contextPct
+        self.cwd = cwd
+    }
 }
 
 /// Token and cent totals from a spend scanner, for `SpendBoard`.
@@ -254,6 +264,10 @@ public enum HookProtocol {
             }
         }
 
+        // The session's folder lets the board attach the context fill to the right session; it never reaches the phone.
+        guard let folder = optStr(d, "cwd", maxCwdLength) else { return nil }
+        let cwd = folder ?? ""
+
         var context: Double?
         if let raw = d["context"], !(raw is NSNull) {
             // {"percent": n} or a bare n; an object without "percent" is no number.
@@ -262,12 +276,12 @@ public enum HookProtocol {
                 number = object["percent"] ?? object
             }
             if number is NSNull {
-                return UsageRequest(token: token, agent: agent, windows: windows, contextPct: nil)
+                return UsageRequest(token: token, agent: agent, windows: windows, contextPct: nil, cwd: cwd)
             }
             guard let value = JsonRead.double(number) else { return nil }
             context = value
         }
-        return UsageRequest(token: token, agent: agent, windows: windows, contextPct: context)
+        return UsageRequest(token: token, agent: agent, windows: windows, contextPct: context, cwd: cwd)
     }
 
     // resetsAt is an ISO date, epoch seconds or milliseconds (as a number or text), null or absent. Nil when it is
@@ -285,6 +299,12 @@ public enum HookProtocol {
         guard let today = period(d, "today"), let week = period(d, "week"), let month = period(d, "month") else {
             return nil
         }
+        // "all" is optional: an agent that cannot total its whole history leaves it out, and the phone shows a dash.
+        var all: (tok: Int64, cents: Int64) = (-1, -1)
+        if d["all"] != nil {
+            guard let parsed = period(d, "all") else { return nil }
+            all = parsed
+        }
         var unpriced = false
         if let raw = d["unpriced"] {
             guard let flag = raw as? NSNumber, CFGetTypeID(flag) == CFBooleanGetTypeID() else { return nil }
@@ -292,7 +312,7 @@ public enum HookProtocol {
         }
         let totals = SpendTotals(
             tokToday: today.tok, centsToday: today.cents, tokWeek: week.tok, centsWeek: week.cents,
-            tokMonth: month.tok, centsMonth: month.cents, unpriced: unpriced)
+            tokMonth: month.tok, centsMonth: month.cents, unpriced: unpriced, tokAll: all.tok, centsAll: all.cents)
         return SpendRequest(token: token, agent: agent, totals: totals)
     }
 
