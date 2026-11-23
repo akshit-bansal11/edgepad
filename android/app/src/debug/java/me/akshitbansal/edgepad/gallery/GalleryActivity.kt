@@ -1,9 +1,7 @@
 package me.akshitbansal.edgepad.gallery
 
 import android.app.Activity
-import android.content.Context
 import android.content.pm.ActivityInfo
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import me.akshitbansal.edgepad.Type
@@ -11,16 +9,11 @@ import me.akshitbansal.edgepad.screens.hideBars
 
 /**
  * Debug-only. Renders one named screen with sample state so CI can screenshot it:
- * `am start -n me.akshitbansal.edgepad/.gallery.GalleryActivity --es screen controls --ez night true --ez land true`.
+ * `am start -n me.akshitbansal.edgepad/.gallery.GalleryActivity --es screen controls --ez land true`.
+ * Day or night is the system's (`cmd uimode night yes|no`, set by scripts/gallery.sh): the intent is not yet
+ * attached when attachBaseContext runs, so an override read from it there always saw the default, night.
  */
 class GalleryActivity : Activity() {
-    override fun attachBaseContext(newBase: Context) {
-        val night = intentFlag(NIGHT)
-        val config = Configuration(newBase.resources.configuration)
-        val mode = if (night) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
-        config.uiMode = (config.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or mode
-        super.attachBaseContext(newBase.createConfigurationContext(config))
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,7 +45,6 @@ class GalleryActivity : Activity() {
 
     private companion object {
         const val SCREEN = "screen"
-        const val NIGHT = "night"
         const val LAND = "land"
     }
 }

@@ -28,9 +28,11 @@ for screen in $screens; do
       rotation=0
       [ "$land" = true ] && rotation=1
       adb shell settings put system user_rotation "$rotation"
+      # The system's own day/night: the activity follows it like the app does.
+      if [ "$night" = true ]; then adb shell cmd uimode night yes; else adb shell cmd uimode night no; fi
       adb shell am force-stop me.akshitbansal.edgepad
       adb shell am start -W -n me.akshitbansal.edgepad/.gallery.GalleryActivity \
-        --es screen "$screen" --ez night "$night" --ez land "$land" > /dev/null
+        --es screen "$screen" --ez land "$land" > /dev/null
       sleep 3
       adb exec-out screencap -p > "$file"
       if [ "$land" = true ]; then
