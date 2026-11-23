@@ -67,6 +67,9 @@ internal sealed class WindowsClipboard : IClipboardSurface, IDisposable
         });
     }
 
+    /// <summary>The phone's text, just written to this clipboard, for the history. Raised on the calling (sync) thread; never logged.</summary>
+    public event Action<string>? PhoneTextWritten;
+
     public ClipboardContent? Read()
     {
         ClipboardContent? content = null;
@@ -74,8 +77,40 @@ internal sealed class WindowsClipboard : IClipboardSurface, IDisposable
         return content;
     }
 
+    /// <summary>
+    /// The clipboard's text for the history, or null: switch off, a sensitive copy, no text (an image is never encoded
+    /// for this) or over the history's cap.
+    /// </summary>
+    public string? ReadText()
+    {
+        ClipboardContent? content = null;
+        OnUi(() => content = ReadHere(textOnly: true));
+        return content is null ? null : Encoding.UTF8.GetString(content.Data);
+    }
+
+    /// <summary>
+    /// Puts <paramref name="text"/> on the clipboard without announcing it to <see cref="Watch"/>: no echo to the phone, no
+    /// re-record. False when it is not there: sharing is off, or another app held the clipboard through every attempt.
+    /// </summary>
+    public bool SetTextQuietly(string text)
+    {
+        var done = false;
+        OnUi(() =>
+        {
+            if (enabled())
+            {
+                Clipboard.SetDataObject(DataFor(new ClipboardContent(BlobKind.ClipText, Encoding.UTF8.GetBytes(text)), null, Stream.Null), true, 0, 0);
+                written = NativeMethods.GetClipboardSequenceNumber();
+                done = true;
+            }
+        });
+
+        return done;
+    }
+
     public void Write(ClipboardContent content)
     {
+        var done = false;
         // PNG keeps the transparency for the apps that read it; the bitmap is for the many that only take that.
         // Decoded here, so a large image costs this thread and not the tray.
         using var stream = new MemoryStream(content.Data);
@@ -92,8 +127,14 @@ internal sealed class WindowsClipboard : IClipboardSurface, IDisposable
                 // No retries of its own: they would sleep on the UI thread.
                 Clipboard.SetDataObject(DataFor(content, image, png), true, 0, 0);
                 written = NativeMethods.GetClipboardSequenceNumber();
+                done = true;
             }
         });
+
+        if (done && content.Kind == BlobKind.ClipText)
+        {
+            PhoneTextWritten?.Invoke(Encoding.UTF8.GetString(content.Data));
+        }
     }
 
     /// <summary>What goes on the clipboard for <paramref name="content"/>: its text, or the PNG and the bitmap of it.</summary>
@@ -137,6 +178,13 @@ internal sealed class WindowsClipboard : IClipboardSurface, IDisposable
         var text = Encoding.Unicode.GetString(utf16);
         var end = text.IndexOf('\0', StringComparison.Ordinal);
         return Encoding.UTF8.GetBytes(end < 0 ? text : text[..end]);
+    }
+
+    /// <summary>The wire's UTF-8 of CF_UNICODETEXT, or null when it is empty or longer than <paramref name="capBytes"/> in UTF-8.</summary>
+    internal static byte[]? TextOf(byte[] utf16, long capBytes)
+    {
+        var utf8 = Utf8(utf16);
+        return utf8.Length == 0 || utf8.Length > capBytes ? null : utf8;
     }
 
     /// <summary>Without this window only laptop to phone stops: the phone's copies are still written.</summary>
@@ -199,7 +247,7 @@ internal sealed class WindowsClipboard : IClipboardSurface, IDisposable
     }
 
     /// <summary>What can be shared, on the UI thread. Text wins: a spreadsheet's cells also come as a picture of them.</summary>
-    private ClipboardContent? ReadHere()
+    private ClipboardContent? ReadHere(bool textOnly = false)
     {
         if (!enabled())
         {
@@ -221,7 +269,15 @@ internal sealed class WindowsClipboard : IClipboardSurface, IDisposable
 
             if (NativeMethods.IsClipboardFormatAvailable(UnicodeText))
             {
-                return Bytes(UnicodeText, MaxUtf16Bytes) is { } text ? new ClipboardContent(BlobKind.ClipText, Utf8(text)) : null;
+                return Bytes(UnicodeText, MaxUtf16Bytes) is { } text
+                    && (textOnly ? TextOf(text, ClipboardHistory.MaxBytes) : Utf8(text)) is { } utf8
+                    ? new ClipboardContent(BlobKind.ClipText, utf8)
+                    : null;
+            }
+
+            if (textOnly)
+            {
+                return null;
             }
 
             var png = NativeMethods.RegisterClipboardFormatW(PngFormat);

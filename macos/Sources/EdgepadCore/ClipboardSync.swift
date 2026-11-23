@@ -122,7 +122,7 @@ public final class ClipboardSync {
             return maxTextBytes
         case .clipImage:
             return maxImageBytes
-        case .appList, .appIcon:
+        case .appList, .appIcon, .mediaIcon, .notification, .permAsk, .git:
             return nil
         }
     }
@@ -134,7 +134,7 @@ public final class ClipboardSync {
             return String(bytes: data, encoding: .utf8) != nil
         case .clipImage:
             return isPng(data)
-        case .appList, .appIcon:
+        case .appList, .appIcon, .mediaIcon, .notification, .permAsk, .git:
             return false
         }
     }

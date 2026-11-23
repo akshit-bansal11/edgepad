@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="uses_title">O que o Edgepad usa</string>
+  <string name="uses_intro">Tudo o que o Edgepad pega ou precisa, grande ou pequeno, para você saber que acesso está concedendo. Nada disso é usado até um recurso precisar. Nomes de redes Wi-Fi, sua localização, seus contatos, suas fotos e seu microfone nunca são solicitados.</string>
+  <string name="uses_section_perms">Permissões neste celular</string>
+  <string name="uses_section_flow">O que passa entre celular e notebook</string>
+  <string name="uses_section_net">O que chega à internet</string>
+  <string name="uses_section_laptop">No seu notebook</string>
+  <string name="uses_flow_out">Deste celular para o notebook</string>
+  <string name="uses_flow_in">Do notebook para este celular</string>
+  <string name="uses_flow_local">Fica neste celular</string>
+  <string name="uses_laptop_ai">Ferramentas de IA e Git, em qualquer notebook</string>
+
+  <string name="uses_perm_bluetooth_title">Dispositivos por perto (Bluetooth)</string>
+  <string name="uses_perm_bluetooth_body">Permite que o Edgepad se conecte a um notebook que você já pareou nas configurações de Bluetooth do Android. Nunca procura nem lê outros dispositivos Bluetooth. O Android pergunta na primeira vez que você abre Dispositivos.</string>
+  <string name="uses_perm_localnet_title">Rede local</string>
+  <string name="uses_perm_localnet_body">Permite que este celular encontre notebooks na sua própria rede Wi-Fi e se comunique com eles. O Android pergunta antes da primeira busca por Wi-Fi.</string>
+  <string name="uses_perm_netstate_title">Estado da rede</string>
+  <string name="uses_perm_netstate_body">Informa ao Edgepad se você está no Wi-Fi, em tethering USB ou em dados móveis, para encontrar notebooks e mostrar sua conexão na página Rede. O Android não pergunta.</string>
+  <string name="uses_perm_wifistate_title">Estado do Wi-Fi</string>
+  <string name="uses_perm_wifistate_body">Lê a velocidade do link Wi-Fi, a banda e a força do sinal deste próprio celular para a página Rede. Nunca o nome da rede, que exigiria Localização. O Android não pergunta.</string>
+  <string name="uses_perm_multicast_title">Multicast Wi-Fi</string>
+  <string name="uses_perm_multicast_body">Necessário para encontrar notebooks no Wi-Fi. O Android também aceita isso como motivo para deixar o serviço de conexão rodar em segundo plano. O Android não pergunta.</string>
+  <string name="uses_perm_internet_title">Internet</string>
+  <string name="uses_perm_internet_body">Transporta a conexão com seu notebook por Wi-Fi ou USB. O próprio Edgepad usa a internet só para pedir ao github.com a versão mais nova e baixar uma atualização que você escolheu. O Android não pergunta.</string>
+  <string name="uses_perm_install_title">Instalar apps</string>
+  <string name="uses_perm_install_body">Permite que o Edgepad instale uma atualização do Edgepad que você escolheu baixar. O Android pergunta na primeira vez se você permite instalações pelo Edgepad.</string>
+  <string name="uses_perm_update_title">Atualizar sem perguntar de novo</string>
+  <string name="uses_perm_update_body">No Android 12 e posterior, permite que uma atualização do Edgepad seja instalada sem uma segunda pergunta, depois que você permitir. Atualiza somente o Edgepad. O Android não pergunta.</string>
+  <string name="uses_perm_service_title">Rodar em segundo plano</string>
+  <string name="uses_perm_service_body">Mantém a conexão com um notebook ativa enquanto o Edgepad está minimizado, com uma notificação enquanto roda. Controlado por Manter conectado em segundo plano nas Configurações. O Android não pergunta.</string>
+  <string name="uses_perm_servicetype_title">Tipo de conexão em segundo plano</string>
+  <string name="uses_perm_servicetype_body">Marca esse serviço em segundo plano como um que mantém uma conexão com um dispositivo, seu notebook. O Android não pergunta.</string>
+  <string name="uses_perm_notify_title">Notificações</string>
+  <string name="uses_perm_notify_body">Mostra o aviso de conexão, transferências de arquivos, pedidos de permissão de IA e, se você ativar, as notificações do seu notebook. O Android 13 e posteriores pergunta uma vez, depois da introdução.</string>
+  <string name="uses_perm_overlay_title">Exibir sobre outros apps</string>
+  <string name="uses_perm_overlay_body">Só para as réguas flutuantes que você mesmo ativa. O Android leva você à página de configurações dele; o Edgepad nunca pergunta de outra forma.</string>
+
+  <string-array name="uses_out_keys">
+    <item>Sua entrada</item>
+    <item>Área de transferência</item>
+    <item>Arquivos e compartilhamentos</item>
+    <item>Quais páginas estão abertas</item>
+    <item>Suas respostas</item>
+    <item>Seus interruptores</item>
+  </string-array>
+  <string-array name="uses_out_values">
+    <item>Toques, teclas, texto que você digita, traços do gamepad e da caneta, e botões como volume e brilho. Somente enquanto um notebook estiver conectado.</item>
+    <item>Texto ou imagem que você copia, somente se ativar Compartilhar área de transferência, e somente quando o Edgepad estiver na tela, como o Android permite.</item>
+    <item>Um arquivo, texto ou imagem que você envia de propósito, ou compartilha com o Edgepad. Enviado depois que você toca em Enviar.</item>
+    <item>Quais páginas do painel o celular está mostrando, para que o notebook leia dados de CPU, clima, IA ou Git somente enquanto uma delas estiver na tela.</item>
+    <item>O PIN que você digita, e Aprovar ou Negar para um pedido de permissão de uma ferramenta de IA.</item>
+    <item>Notificações, Modo desenvolvedor, onde as capturas são salvas, tamanho e cor da caneta, e se o app em primeiro plano deve ser informado.</item>
+  </string-array>
+  <string-array name="uses_in_keys">
+    <item>O que o notebook está fazendo</item>
+    <item>Macros e apps</item>
+    <item>Capturas e arquivos</item>
+    <item>Área de transferência e notificações</item>
+    <item>Painéis</item>
+    <item>Página Rede</item>
+  </string-array>
+  <string-array name="uses_in_values">
+    <item>O que está tocando e em qual app, volume, brilho, tamanho da tela e taxas de atualização, o nome e o sistema do notebook, a bateria do notebook e de seus dispositivos Bluetooth, e o nome da saída de áudio.</item>
+    <item>Nomes e ícones de macros, e uma lista de apps que você pode adicionar como macro. Nunca os caminhos nem os comandos por trás deles.</item>
+    <item>Uma captura de tela ou gravação somente se você escolheu Salvar no celular, e arquivos que você envia do notebook.</item>
+    <item>Texto ou imagem copiados, se o compartilhamento da área de transferência estiver ativo, e as notificações do notebook (app, título, texto curto) se as duas chaves de notificação estiverem ativas. Nunca registrado.</item>
+    <item>Enquanto uma página do painel está aberta: carga do computador e uso do disco, clima, nomes e estados de sessões de IA, uso e limites de IA, e os títulos de pull requests e issues do Git.</item>
+    <item>O tipo de conexão do notebook, a banda, a velocidade do link, o sinal, o endereço local e o gateway, e o resultado de um teste de velocidade. Nunca um nome de Wi-Fi.</item>
+  </string-array>
+  <string name="uses_local_key">Dados deste próprio celular</string>
+  <string name="uses_local_value">Os dados de bateria, memória, armazenamento e conexão na página Sistema são lidos neste celular, somente enquanto essa página estiver aberta, e nunca são enviados a lugar algum.</string>
+
+  <string-array name="uses_net_keys">
+    <item>Verificação de atualização</item>
+    <item>Teste de velocidade</item>
+    <item>Clima</item>
+    <item>Git e login</item>
+    <item>Links que você abre</item>
+    <item>Nada além disso</item>
+  </string-array>
+  <string-array name="uses_net_values">
+    <item>github.com, deste celular e dos apps do notebook: uma requisição que pede a versão mais nova e não envia nada sobre o seu aparelho. Uma atualização que você escolhe baixar também vem do github.com.</item>
+    <item>speed.cloudflare.com, a partir do notebook, somente quando você tocar em Testar velocidade. Movimenta dados de teste e não envia nada sobre você.</item>
+    <item>api.open-meteo.com e geocoding-api.open-meteo.com, a partir do notebook, somente se o widget de clima estiver ativo. O local escolhido é enviado para descobrir suas coordenadas, e depois a previsão é solicitada.</item>
+    <item>A partir do notebook, somente depois que você fizer login lá, e somente para leitura: github.com e api.github.com, gitlab.com ou o servidor GitLab que você informar, codeberg.org ou o servidor Gitea ou Forgejo que você informar, api.bitbucket.org e gitee.com. O Edgepad nunca escreve: um bloqueio embutido recusa toda requisição que não seja de leitura. O login no GitHub usa um app do GitHub somente leitura, o Edgepad Dashboard, que vê apenas os repositórios em que você o instalar.</item>
+    <item>getedgepad.com para a documentação, e a página de download do ViGEmBus no github.com. Seu navegador os abre somente quando você toca em um link.</item>
+    <item>Uma busca nos apps do celular, Windows, Mac e Linux por endereços web não encontrou outros hosts. Não há conta, análise de uso, relatório de falhas nem publicidade.</item>
+  </string-array>
+
+  <string-array name="uses_windows_keys">
+    <item>Reiniciar como administrador</item>
+    <item>Regra de firewall</item>
+    <item>Iniciar no login</item>
+    <item>Enviar para</item>
+    <item>Acesso a notificações</item>
+    <item>Controle virtual</item>
+  </string-array>
+  <string-array name="uses_windows_values">
+    <item>Uma linha opcional no menu da bandeja, atrás da própria pergunta do Windows. Permite que o Edgepad digite em janelas que rodam como administrador, o que o Windows bloqueia de outra forma.</item>
+    <item>Uma regra de entrada permitindo o Edgepad.exe, para que os celulares conectem por Wi-Fi ou USB, adicionada atrás da pergunta do Windows. Se você disser não, ela não será perguntada de novo na próxima inicialização.</item>
+    <item>Um registro por usuário que inicia o Edgepad quando você entra, se você ativar no menu da bandeja. Sem direitos de administrador.</item>
+    <item>Um atalho na sua própria pasta Enviar para, para que Enviar para, depois Edgepad, possa enviar arquivos ao celular.</item>
+    <item>Somente se você encaminha notificações: o Windows pede para permitir que o Edgepad as leia.</item>
+    <item>O gamepad do celular precisa do driver ViGEmBus, que você instala por conta própria. O Edgepad apenas abre a página de download dele.</item>
+  </string-array>
+  <string-array name="uses_mac_keys">
+    <item>Acessibilidade</item>
+    <item>Bluetooth</item>
+    <item>Rede local</item>
+    <item>Automação</item>
+    <item>Arquivos e pastas</item>
+    <item>Notificações e item de login</item>
+    <item>Não solicitado</item>
+  </string-array>
+  <string-array name="uses_mac_values">
+    <item>Necessário para digitar, clicar e pressionar teclas para o celular. O macOS pergunta, e o Edgepad avisa o celular quando ela estiver faltando.</item>
+    <item>Para escutar o celular que você pareou com este Mac.</item>
+    <item>Para o celular encontrar este Mac pelo Wi-Fi, quando você ativar as conexões Wi-Fi.</item>
+    <item>Para perguntar ao Música ou ao Spotify o que está tocando e controlar a reprodução, e para suspender ou desligar este Mac quando você definir isso no fim da mídia.</item>
+    <item>Mesa, Documentos e Downloads, para encontrar uma captura de tela ou gravação que você pediu para receber no celular.</item>
+    <item>Alertas para um celular que pede para parear e para uma nova versão; Iniciar no login é um item de login comum. Os tokens de login ficam no seu Keychain.</item>
+    <item>Monitoramento de Entrada e Gravação de Tela. As capturas usam os atalhos do próprio macOS.</item>
+  </string-array>
+  <string-array name="uses_linux_keys">
+    <item>Dispositivo de digitação</item>
+    <item>Bluetooth</item>
+    <item>Serviços da área de trabalho</item>
+    <item>Iniciar no login</item>
+  </string-array>
+  <string-array name="uses_linux_values">
+    <item>/dev/uinput, aberto para a pessoa que está no teclado por meio de uma regra udev e de uma configuração de módulo que o instalador adiciona uma vez, como administrador.</item>
+    <item>BlueZ, no barramento do sistema, para escutar o celular que você pareou.</item>
+    <item>No barramento da sessão: notificações, players de mídia (MPRIS), energia (UPower), suspensão e bloqueio (systemd-logind), NetworkManager para a página Rede, a configuração de modo escuro da área de trabalho, taxas de atualização da tela, a bandeja e o Secret Service para os tokens de login.</item>
+    <item>Uma entrada de inicialização automática na sua própria pasta de configuração, quando você ativar.</item>
+  </string-array>
+  <string-array name="uses_ai_keys">
+    <item>Ferramentas de IA</item>
+    <item>Tokens de login</item>
+  </string-array>
+  <string-array name="uses_ai_values">
+    <item>Somente com o Modo desenvolvedor ativado. O Edgepad lê os arquivos locais de sessão e de uso do Claude Code, Codex, Gemini CLI e OpenCode, e conectar uma delas adiciona um pequeno hook ou plug-in às configurações dessa própria ferramenta.</item>
+    <item>Os tokens do Git são guardados criptografados no notebook, no próprio armazenamento de credenciais dele, e nunca são enviados ao celular.</item>
+  </string-array>
+</resources>

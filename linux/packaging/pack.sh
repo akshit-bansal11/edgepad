@@ -1,11 +1,13 @@
 #!/bin/sh
-# Builds the release archive from a `dotnet publish` folder: pack.sh <version> <publish-dir> <out-file>
+# Builds the release archive from a `dotnet publish` folder: pack.sh <version> <publish-dir> <out-file> [rid]
+# rid (default linux-x64) picks the runtime whose notices are written.
 # CI and the release job both call this, so the two archives cannot differ.
 set -eu
 
 version=$1
 publish=$2
 out=$3
+rid=${4:-linux-x64}
 here=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$here/../.." && pwd)
 
@@ -16,7 +18,7 @@ mkdir "$dir"
 
 install -m 755 "$publish/Edgepad.Linux" "$dir/edgepad"
 install -m 755 "$here/install.sh" "$dir/install.sh"
-install -m 644 "$here/60-edgepad-uinput.rules" "$here/edgepad-modules.conf" "$here/edgepad.desktop" "$dir/"
+install -m 644 "$here/60-edgepad-uinput.rules" "$here/edgepad-modules.conf" "$here/edgepad.desktop" "$here/edgepad-send.desktop" "$dir/"
 install -m 644 "$root/assets/edgepad-light.svg" "$dir/edgepad.svg"
 
 # Licences travel with the binary: the packages it bundles (Avalonia, Tmds.DBus, Skia, HarfBuzz, ...), the .NET
@@ -27,7 +29,7 @@ lic="$dir/licenses"
 mkdir "$lic"
 install -m 644 "$root/LICENSE" "$lic/edgepad-LICENSE.txt"
 install -m 644 "$root/windows/src/Edgepad/Fonts/OFL.txt" "$lic/Lato-OFL.txt"
-sh "$root/scripts/notices.sh" "$root/linux/src/Edgepad.Linux/packages.lock.json" linux-x64 "$stage/notices.txt"
+sh "$root/scripts/notices.sh" "$root/linux/src/Edgepad.Linux/packages.lock.json" "$rid" "$stage/notices.txt"
 install -m 644 "$stage/notices.txt" "$lic/THIRD-PARTY-NOTICES.txt"
 
 # Owned by root in the archive, not by the CI runner's uid: `sudo tar x` would otherwise leave install.sh

@@ -357,6 +357,22 @@ final class BlobTests: XCTestCase {
         XCTAssertEqual(chunksAtEachTick[1], BlobSender.bluetoothChunksPerTick + BlobSender.busyChunksPerTick)
     }
 
+    func testAnUrgentBlobKeepsTheFullBudgetUnderInput() {
+        var chunksAtEachTick: [Int] = []
+        lastInput = now
+        let blobs = sender { _ in
+            chunksAtEachTick.append(self.wire.filter(\.isBlobChunk).count)
+            self.lastInput = self.now
+        }
+        var result: Bool?
+        blobs.send(
+            .permAsk, label: "", data: payload(40 * FrameCodec.maxChunkBytes), urgent: true, finished: { result = $0 })
+
+        XCTAssertEqual(result, true)
+        XCTAssertEqual(chunksAtEachTick[0], BlobSender.bluetoothChunksPerTick)
+        XCTAssertEqual(chunksAtEachTick[1], 2 * BlobSender.bluetoothChunksPerTick)
+    }
+
     func testInputThatHasGoneQuietRestoresTheBudget() {
         var chunksAtEachTick: [Int] = []
         lastInput = now

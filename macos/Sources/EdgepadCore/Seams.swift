@@ -1,3 +1,5 @@
+import Foundation
+
 /// The seams between the pure half of the Mac app and the half that touches macOS. Everything in this
 /// module decides; everything behind these protocols acts. That is what lets the dispatcher's drop paths
 /// and the handshake's refusals run as unit tests on a build machine with no Bluetooth radio, no
@@ -244,4 +246,98 @@ public struct AppFolderEntry: Equatable {
 public protocol AppFolders: AnyObject {
     /// What is directly inside `path`, or nil when it is not there or cannot be read.
     func entries(in path: String) -> [AppFolderEntry]?
+}
+
+/// What is playing on this Mac, as the player last said it. `identity` is empty when nothing is playing or paused; a
+/// duration of 0 or less means the player has no timeline.
+public struct MediaInfo: Equatable {
+    public static let none = MediaInfo(
+        title: "", artist: "", app: "", identity: "", playing: false, positionSeconds: 0, durationSeconds: 0)
+
+    public let title: String
+    public let artist: String
+    public let app: String
+    public let identity: String
+    public let playing: Bool
+    public let positionSeconds: Int
+    public let durationSeconds: Int
+
+    public init(
+        title: String, artist: String, app: String, identity: String, playing: Bool, positionSeconds: Int,
+        durationSeconds: Int
+    ) {
+        self.title = title
+        self.artist = artist
+        self.app = app
+        self.identity = identity
+        self.playing = playing
+        self.positionSeconds = positionSeconds
+        self.durationSeconds = durationSeconds
+    }
+}
+
+/// Where the session learns what is playing, for TEXT 0, 1, 2, 26 and the position STATE, and where a seek goes. A
+/// Mac without one (and a test that does not need it) leaves it nil, and then MEDIA_POSITION and the end actions are
+/// dropped and counted. Main thread only, like the session; nothing here blocks it.
+public protocol MediaSource: AnyObject {
+    /// Fast and free of I/O: the position is extrapolated while playing, never asked for.
+    func read() -> MediaInfo
+    /// Called when the player may have changed. Set by the session, cleared by `end()`.
+    var changed: (() -> Void)? { get set }
+    /// Seeks the current track to `percent`, 0 to 100. False when it would not act.
+    func seek(percent: Int) -> Bool
+    /// The picture of the app named `app`, as PNG bytes about 64 px square, or nil for none.
+    func icon(forApp app: String) -> [UInt8]?
+}
+
+/// Says which app is in front. Nothing runs until `watch`, and the app is never logged: the log says only that a watch
+/// started or stopped.
+public protocol ForegroundSource: AnyObject {
+    var available: Bool { get }
+
+    /// Calls `onChange` with the encoded TEXT 21 payload ("" when nothing is known) for the app in front now and then
+    /// on every change, never faster than every 200 ms. Cancelling the watch stops it and releases what it held.
+    func watch(_ onChange: @escaping (String) -> Void) -> ForegroundWatch
+}
+
+/// A subscription to the app in front. Cancelling is idempotent, and a session cancels in `end()`.
+public final class ForegroundWatch {
+    private var onCancel: (() -> Void)?
+
+    public init(_ onCancel: @escaping () -> Void) {
+        self.onCancel = onCancel
+    }
+
+    public func cancel() {
+        onCancel?()
+        onCancel = nil
+    }
+}
+
+/// The TEXT 21 payload, "token/name". The twin of the laptop core's `ForegroundApp`.
+public enum ForegroundApp {
+    public static let maxToken = 64
+    public static let maxNameCodePoints = 40
+
+    /// "" unless the token is 1 to 64 of A-Z a-z 0-9 . _ -. The name has control characters and "|" turned to a space,
+    /// is trimmed and cut to 40 code points, never inside a surrogate pair (a Swift scalar is a whole code point).
+    public static func encode(token: String, name: String?) -> String {
+        let bytes = Array(token.utf8)
+        let valid = bytes.allSatisfy { byte in
+            (UInt8(ascii: "0")...UInt8(ascii: "9")).contains(byte)
+                || (UInt8(ascii: "A")...UInt8(ascii: "Z")).contains(byte)
+                || (UInt8(ascii: "a")...UInt8(ascii: "z")).contains(byte)
+                || byte == UInt8(ascii: ".") || byte == UInt8(ascii: "_") || byte == UInt8(ascii: "-")
+        }
+        guard (1...maxToken).contains(bytes.count), valid else { return "" }
+
+        let trimmed = (name ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        var cleaned = String.UnicodeScalarView()
+        for scalar in trimmed.unicodeScalars.prefix(maxNameCodePoints) {
+            let blank = scalar.properties.generalCategory == .control || scalar == "|"
+            cleaned.append(blank ? " " : scalar)
+        }
+        let clean = String(cleaned).trimmingCharacters(in: .whitespaces)
+        return token + "/" + clean
+    }
 }

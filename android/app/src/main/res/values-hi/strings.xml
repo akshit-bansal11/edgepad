@@ -24,52 +24,53 @@
   <string name="devices_legend">सेव किए हुए लैपटॉप Edgepad खुलते ही कनेक्ट हो जाते हैं। डिस्कनेक्ट करने पर ऐसा तब तक नहीं होगा, जब तक आप लैपटॉप पर दोबारा टैप न करें।</string>
   <string name="devices_stay_note">ऐप से बाहर आने पर भी कनेक्शन बना रहता है। नोटिफ़िकेशन से डिस्कनेक्ट करें।</string>
   <string name="devices_legend_off">कनेक्ट करने के लिए लैपटॉप पर टैप करें।</string>
-  <string name="devices_multi_hint">एक साथ कई लैपटॉप कनेक्ट करें। कंट्रोल जिस लैपटॉप को चला रहे हैं, वह सक्रिय लैपटॉप है; बदलने के लिए \"सक्रिय करें\" पर टैप करें।</string>
+  <string name="devices_multi_hint">एक साथ कई लैपटॉप कनेक्ट करें। कंट्रोल जिस लैपटॉप को चला रहे हैं, वह सक्रिय लैपटॉप है; बदलने के लिए “सक्रिय करें” पर टैप करें।</string>
   <string name="add_by_address">पता डालकर जोड़ें</string>
   <string name="address_connect">कनेक्ट करें</string>
   <string name="address_looking">%1$s पर लैपटॉप ढूंढा जा रहा है…</string>
   <string name="address_invalid">यह पता सही नहीं है। होस्ट नाम या IP पता लिखें; पोर्ट 47321 न हो तो पोर्ट भी लिखें।</string>
+  <string name="address_bad_port">पोर्ट 1 से 65535 के बीच की संख्या होना चाहिए।</string>
   <string name="address_no_laptop">उस पते पर Edgepad वाले किसी लैपटॉप ने जवाब नहीं दिया।</string>
   <string name="usb_tethering">USB टेदरिंग</string>
-  <string name="local_network_needed">आपके वाई-फ़ाई और USB पर लैपटॉप ढूंढने के लिए Edgepad को \"आस-पास के डिवाइस\" की अनुमति चाहिए।</string>
-  <string name="allow_local_network">\"आस-पास के डिवाइस\" की अनुमति दें</string>
+  <string name="local_network_needed">आपके वाई-फ़ाई और USB पर लैपटॉप ढूंढने के लिए Edgepad को “आस-पास के डिवाइस” की अनुमति चाहिए।</string>
+  <string name="allow_local_network">“आस-पास के डिवाइस” की अनुमति दें</string>
   <string name="open_controls">कंट्रोल खोलें</string>
   <string name="open_controls_hint">कंट्रोल खोलने के लिए पहले लैपटॉप से कनेक्ट करें।</string>
   <string name="open_bluetooth_settings">ब्लूटूथ सेटिंग्स</string>
   <string name="bluetooth_tap_off">ब्लूटूथ बंद है। इस लैपटॉप से जुड़ने के लिए इसे चालू करें।</string>
   <string name="refresh">सूची रीफ़्रेश करें</string>
-  <string name="bluetooth_off">कोई लैपटॉप नहीं मिला। ब्लूटूथ चालू करें और अपना लैपटॉप पेयर करें। वाई-फ़ाई या USB के लिए लैपटॉप पर Edgepad खोलें और उसके मेन्यू में \"वाई-फ़ाई और USB कनेक्शन\" चालू करें; USB के लिए यहां USB टेदरिंग भी चालू करें।</string>
-  <string name="usb_cable_tether_off">केबल जुड़ी है। यहां USB टेदरिंग चालू करें, और लैपटॉप पर Edgepad के मेन्यू में \"वाई-फ़ाई और USB कनेक्शन\" चालू करें।</string>
+  <string name="bluetooth_off">कोई लैपटॉप नहीं मिला। ब्लूटूथ चालू करें और अपना लैपटॉप पेयर करें। वाई-फ़ाई या USB के लिए लैपटॉप पर Edgepad खोलें और उसके मेन्यू में “वाई-फ़ाई और USB कनेक्शन” चालू करें; USB के लिए यहां USB टेदरिंग भी चालू करें।</string>
+  <string name="usb_cable_tether_off">केबल जुड़ी है। यहां USB टेदरिंग चालू करें, और लैपटॉप पर Edgepad के मेन्यू में “वाई-फ़ाई और USB कनेक्शन” चालू करें।</string>
   <string name="status_no_wifi">वाई-फ़ाई से कनेक्ट नहीं है।</string>
   <string name="status_searched_wifi">आपके वाई-फ़ाई नेटवर्क में खोजा, पर किसी लैपटॉप ने जवाब नहीं दिया।</string>
   <string name="status_searched_usb">USB टेदरिंग में खोजा, पर किसी लैपटॉप ने जवाब नहीं दिया।</string>
-  <string name="permission_needed">आपके लैपटॉप तक पहुंचने के लिए Edgepad को \"आस-पास के डिवाइस\" की अनुमति चाहिए।</string>
-  <string name="permission_reason">आपका लैपटॉप ढूंढने के लिए Edgepad \"आस-पास के डिवाइस\" की अनुमति मांगता है।</string>
-  <string name="local_network_reason">आपके वाई-फ़ाई और USB पर लैपटॉप ढूंढने के लिए Edgepad \"आस-पास के डिवाइस\" की अनुमति मांगता है और आपके नेटवर्क के पते जांचता है। \"पता डालकर जोड़ें\" से इस खोज की ज़रूरत नहीं पड़ती।</string>
-  <string name="no_paired">कोई लैपटॉप नहीं मिला। अपने लैपटॉप पर Edgepad खोलें और उसे ब्लूटूथ सेटिंग्स में पेयर करें। वाई-फ़ाई या USB के लिए लैपटॉप पर Edgepad के मेन्यू में \"वाई-फ़ाई और USB कनेक्शन\" चालू करें; USB के लिए यहां USB टेदरिंग भी चालू करें।</string>
+  <string name="permission_needed">आपके लैपटॉप तक पहुंचने के लिए Edgepad को “आस-पास के डिवाइस” की अनुमति चाहिए।</string>
+  <string name="permission_reason">आपका लैपटॉप ढूंढने के लिए Edgepad “आस-पास के डिवाइस” की अनुमति मांगता है।</string>
+  <string name="local_network_reason">आपके वाई-फ़ाई और USB पर लैपटॉप ढूंढने के लिए Edgepad “आस-पास के डिवाइस” की अनुमति मांगता है और आपके नेटवर्क के पते जांचता है। “पता डालकर जोड़ें” से इस खोज की ज़रूरत नहीं पड़ती।</string>
+  <string name="no_paired">कोई लैपटॉप नहीं मिला। अपने लैपटॉप पर Edgepad खोलें और उसे ब्लूटूथ सेटिंग्स में पेयर करें। वाई-फ़ाई या USB के लिए लैपटॉप पर Edgepad के मेन्यू में “वाई-फ़ाई और USB कनेक्शन” चालू करें; USB के लिए यहां USB टेदरिंग भी चालू करें।</string>
   <string name="no_laptop_paired">इस फ़ोन से पेयर किए गए किसी भी डिवाइस ने खुद को कंप्यूटर नहीं बताया। अगर आपका लैपटॉप पेयर है, तो सभी डिवाइस दिखाएं।</string>
   <plurals name="show_all_paired">
     <item quantity="one">सभी पेयर किए डिवाइस दिखाएं (%1$d और)</item>
     <item quantity="other">सभी पेयर किए डिवाइस दिखाएं (%1$d और)</item>
   </plurals>
   <string name="show_laptops_only">सिर्फ़ कंप्यूटर दिखाएं</string>
-  <string name="allow_permission">\"आस-पास के डिवाइस\" की अनुमति दें</string>
+  <string name="allow_permission">“आस-पास के डिवाइस” की अनुमति दें</string>
   <string name="open_app_settings">Android की अनुमतियां खोलें</string>
   <string name="not_paired">वह लैपटॉप अब इस फ़ोन से पेयर नहीं है। उसे ब्लूटूथ सेटिंग्स में दोबारा पेयर करें।</string>
   <string name="status_closed">कनेक्ट नहीं है। %1$s</string>
   <string name="status_closed_named">%1$s कनेक्ट नहीं है। %2$s</string>
-  <string name="status_accept_on_laptop">लैपटॉप के जवाब का इंतज़ार है। वहां \"भरोसा करें\" चुनें; वह पिन भी मांग सकता है।</string>
+  <string name="status_accept_on_laptop">लैपटॉप के जवाब का इंतज़ार है। वहां “भरोसा करें” चुनें; वह पिन भी मांग सकता है।</string>
   <string name="link_lost">कनेक्शन टूट गया।</string>
-  <string name="link_refused">हैंडशेक से पहले ही लैपटॉप ने कनेक्शन बंद कर दिया। लैपटॉप देखें और अगर वह इस फ़ोन के बारे में पूछे, तो \"भरोसा करें\" चुनें। अगर लैपटॉप को किसी दूसरे फ़ोन ने ले लिया था, तो 30 सेकंड बाद फिर कोशिश करें। बार-बार फ़ेल हो, तो लैपटॉप पर Edgepad अपडेट करें।</string>
+  <string name="link_refused">हैंडशेक से पहले ही लैपटॉप ने कनेक्शन बंद कर दिया। लैपटॉप देखें और अगर वह इस फ़ोन के बारे में पूछे, तो “भरोसा करें” चुनें। अगर लैपटॉप को किसी दूसरे फ़ोन ने ले लिया था, तो 30 सेकंड बाद फिर कोशिश करें। बार-बार फ़ेल हो, तो लैपटॉप पर Edgepad अपडेट करें।</string>
   <string name="link_unreachable_bluetooth">लैपटॉप ने कनेक्शन नहीं लिया। देखें कि उस पर Edgepad चल रहा है और ब्लूटूथ चालू है। फिर भी न हो, तो इस फ़ोन और लैपटॉप, दोनों पर पेयरिंग हटाएं और फिर से पेयर करें।</string>
-  <string name="link_unreachable_network">लैपटॉप ने जवाब नहीं दिया। देखें कि उस पर Edgepad चल रहा है और उसके Edgepad मेन्यू में \"वाई-फ़ाई और USB कनेक्शन\" चालू है।</string>
+  <string name="link_unreachable_network">लैपटॉप ने जवाब नहीं दिया। देखें कि उस पर Edgepad चल रहा है और उसके Edgepad मेन्यू में “वाई-फ़ाई और USB कनेक्शन” चालू है।</string>
   <string name="link_mismatch">%1$s पर Edgepad और यह ऐप अलग-अलग रिलीज़ के हैं। दोनों एक ही रिलीज़ से इंस्टॉल करें।</string>
   <string name="link_mismatch_laptop_older">%1$s पर Edgepad इस ऐप से पुराना है। लैपटॉप पर Edgepad अपडेट करें। दोनों एक ही रिलीज़ के होने चाहिए।</string>
   <string name="link_mismatch_phone_older">यह ऐप %1$s पर Edgepad से पुराना है। इस ऐप को सिस्टम सेटिंग्स › अपडेट में अपडेट करें। दोनों एक ही रिलीज़ के होने चाहिए।</string>
   <string name="link_unexpected">लैपटॉप ने Edgepad के हैंडशेक की जगह कुछ और जवाब दिया।</string>
-  <string name="link_no_permission">\"आस-पास के डिवाइस\" की अनुमति बंद कर दी गई थी।</string>
+  <string name="link_no_permission">“आस-पास के डिवाइस” की अनुमति बंद कर दी गई थी।</string>
   <string name="link_no_answer">लैपटॉप ने कनेक्शन तो लिया, पर जवाब नहीं दिया। देखें कि वहां Edgepad चल रहा है, फिर दोबारा कोशिश करें।</string>
-  <string name="link_not_paired">लैपटॉप ने इस फ़ोन को नहीं पहचाना। नए कोड से पेयर करने के लिए उसकी पंक्ति में \"दोबारा पेयर करें\" पर टैप करें।</string>
+  <string name="link_not_paired">लैपटॉप ने इस फ़ोन को नहीं पहचाना। नए कोड से पेयर करने के लिए उसकी पंक्ति में “दोबारा पेयर करें” पर टैप करें।</string>
   <string name="link_not_this_laptop">किसी डिवाइस ने खुद को यह लैपटॉप बताया, पर साबित नहीं कर सका। देखें कि यह फ़ोन सही नेटवर्क पर है।</string>
   <string name="link_pairing_failed">पेयरिंग पूरी नहीं हुई: कोड लैपटॉप पर समय पर नहीं डाला गया, या गलत डाला गया। नए कोड के साथ फिर कोशिश करने के लिए लैपटॉप पर टैप करें।</string>
   <string name="link_pairing_locked">लैपटॉप किसी दूसरे फ़ोन को पेयर कर रहा है, या गलत कोड डालने के बाद उसने पेयरिंग रोक दी है। कुछ मिनट बाद फिर कोशिश करें।</string>
@@ -106,9 +107,9 @@
   <string name="pair_expires">%1$s में खत्म होगा</string>
   <string name="pair_expired">समय खत्म</string>
   <string name="pair_confirm_title">क्या %1$s ने कहा कि कोड मेल खाता है?</string>
-  <string name="pair_confirm_body">अगर उसने कोड गलत बताया, तो \"नहीं\" पर टैप करें: हो सकता है उसकी जगह कोई और डिवाइस जवाब दे रहा हो।</string>
-  <string name="pair_confirm_yes">हां, पेयर हो गया</string>
-  <string name="pair_confirm_no">नहीं</string>
+  <string name="pair_confirm_body">अगर उसने कोड गलत बताया, तो “मेल नहीं खाते” पर टैप करें: हो सकता है उसकी जगह कोई और डिवाइस जवाब दे रहा हो।</string>
+  <string name="pair_confirm_yes">कोड मेल खाते हैं</string>
+  <string name="pair_confirm_no">मेल नहीं खाते</string>
 
   <!-- Connection lost -->
   <string name="lost_title">लैपटॉप पहुंच से बाहर</string>
@@ -143,7 +144,6 @@
   <string name="link_notice_reconnecting_text">Edgepad कनेक्शन वापस लाने की कोशिश कर रहा है। खोलने के लिए टैप करें।</string>
   <string name="link_notice_text">Edgepad खोलने के लिए टैप करें।</string>
   <string name="link_notice_text_clipboard">Edgepad खोलने के लिए टैप करें। क्लिपबोर्ड शेयर चालू होने पर इससे आपका कॉपी किया हुआ भी भेज दिया जाता है।</string>
-  <string name="settings_clipboard">क्लिपबोर्ड</string>
   <string name="clipboard_share">क्लिपबोर्ड शेयर करें</string>
   <string name="clipboard_share_caption">एक पर कॉपी करें, दूसरे पर पेस्ट करें: टेक्स्ट और इमेज। इस फ़ोन से भेजने के लिए कॉपी करें, फिर Edgepad में लौटें।</string>
   <string name="sharing_title">शुरू करने से पहले</string>
@@ -163,12 +163,10 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 डायल, बंटे हुए</string>
   <string name="media_layout_title">मीडिया लेआउट</string>
-  <string name="media_layout_hint_upright">यह पोर्ट्रेट लेआउट है; लैंडस्केप वाला सेट करने के लिए फ़ोन घुमाएं। किसी हिस्से को खींचकर खिसकाएं। वह ग्रिड और बीच की रेखाओं से चिपकता है।</string>
-  <string name="media_layout_hint_sideways">यह लैंडस्केप लेआउट है; पोर्ट्रेट वाला सेट करने के लिए फ़ोन घुमाएं। किसी हिस्से को खींचकर खिसकाएं। वह ग्रिड और बीच की रेखाओं से चिपकता है।</string>
   <string name="piece_now_playing">अभी चल रहा है</string>
   <string name="piece_transport">पिछला · प्ले · अगला</string>
   <string name="media_layout_reset">जगह रीसेट करें</string>
-  <string name="media_layout_reset_confirm">जगह रीसेट करें? फिर टैप करें</string>
+  <string name="editor_reset_confirm">रीसेट करने के लिए फिर टैप करें</string>
   <string name="editor_options">विकल्प</string>
   <string name="editor_done">हो गया</string>
   <string name="media_scale">साइज़</string>
@@ -285,7 +283,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">बनाएं</string>
   <string name="shapes_target_title">यह क्या चलाएगी</string>
-  <string name="shapes_draw_hint">इसे एक ही बार में बनाएं, और पूरा होने पर उंगली उठा लें।</string>
   <string name="shapes_redraw">दोबारा बनाएं</string>
   <string name="shapes_save">सेव करें</string>
   <string name="shapes_delete">हटाएं</string>
@@ -331,7 +328,7 @@
   <string name="update_available">अपडेट उपलब्ध है</string>
   <string name="licences_title">लाइसेंस</string>
   <string name="licences_body">Lato, टाइपफ़ेस: SIL Open Font License 1.1.\nLucide, आइकन: ISC License.\nAndroidSVG, जो प्लेयर के लोगो बनाता है: Apache License 2.0.</string>
-  <string name="about_sends">Edgepad इंटरनेट पर सिर्फ़ दो चीज़ें भेजता है: github.com पर अपडेट की जांच, और वह अपडेट जिसे आप डाउनलोड करना चुनें। बाकी सब कुछ सिर्फ़ इस फ़ोन और आपके लैपटॉप के बीच रहता है।</string>
+  <string name="about_sends">यह फ़ोन सिर्फ़ github.com पर अपडेट की जांच और वह अपडेट भेजता है जिसे आप डाउनलोड करना चुनें। लैपटॉप ऐप किन चीज़ों से जुड़ता है और कब, यह Edgepad क्या इस्तेमाल करता है में लिखा है।</string>
   <string name="updates_install_failed">अपडेट इंस्टॉल नहीं हो सका। उसे रिलीज़ पेज से डाउनलोड करके खुद इंस्टॉल करें।</string>
   <string name="settings_version">Edgepad %1$s · प्रोटोकॉल %2$d</string>
   <string name="corners_title">कोने</string>
@@ -345,7 +342,7 @@
   <string name="gestures_footnote">किसी जेस्चर का काम बदलने के लिए उस पर टैप करें। एक और दो उंगलियों वाले जेस्चर तय हैं: एक उंगली से पॉइंटर हिलाएं, क्लिक के लिए टैप करें, ड्रैग के लिए उंगली को एक पल स्थिर रखकर हिलाएं; दो उंगलियों से स्क्रॉल के लिए खींचें, ज़ूम के लिए पिंच करें, राइट क्लिक के लिए टैप करें।</string>
   <string name="dial_feel_each">हर डायल</string>
   <string name="dial_feel_shared">साझा</string>
-  <string name="dial_feel_each_caption">सिर्फ़ कोनों में लगे डायल दिखते हैं। किसी की अपनी स्पीड रखने के लिए उसे \"साझा\" से हटाएं। \"साझा\" स्लाइड की संवेदनशीलता के हिसाब से चलता है।</string>
+  <string name="dial_feel_each_caption">सिर्फ़ कोनों में लगे डायल दिखते हैं। किसी की अपनी स्पीड रखने के लिए उसे “साझा” से हटाएं। “साझा” स्लाइड की संवेदनशीलता के हिसाब से चलता है।</string>
   <string name="appearance_title">रूप</string>
   <string name="appearance_preview">प्रीव्यू</string>
   <string name="background_preview_description">कंट्रोल स्क्रीन के बैकग्राउंड का प्रीव्यू</string>
@@ -402,19 +399,23 @@
   <string name="surface_previous">पिछला गाना</string>
   <string name="surface_open_settings">सेटिंग्स खोलें</string>
   <string name="surface_controls">कंट्रोल खोलें</string>
-  <string name="surface_back_again">\"डिवाइस\" खोलने के लिए फिर वापस जाएं</string>
+  <string name="surface_back_again">“डिवाइस” खोलने के लिए फिर वापस जाएं</string>
   <string name="surface_lock">टचपैड लॉक करें</string>
   <string name="surface_mode_normal">डायल, मीडिया और टचपैड, सब चालू</string>
   <string name="surface_mode_focus">सिर्फ़ टचपैड · डायल और मीडिया छिपे हैं</string>
   <string name="surface_mode_locked">सिर्फ़ डायल और मीडिया · टचपैड लॉक है</string>
   <string name="surface_mode_both">टचपैड लॉक है · डायल और मीडिया छिपे हैं</string>
-  <string name="surface_focus_caption">डायल और मीडिया छिपे हैं · \"कंट्रोल\" में जाकर दिखाएं</string>
+  <string name="surface_focus_caption">डायल और मीडिया छिपे हैं · “कंट्रोल” में जाकर दिखाएं</string>
   <string name="surface_locked_caption">टचपैड लॉक है · खोलने के लिए लॉक पर टैप करें</string>
 
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">कंट्रोल</string>
-  <string name="controls_move_hint">किसी टाइल को खिसकाने के लिए उसे दबाए रखें।</string>
+  <string name="controls_edit">संपादित करें</string>
+  <string name="controls_edit_hint">किसी टाइल को छिपाने या दिखाने के लिए उस पर टैप करें। खिसकाने के लिए उसे दबाए रखें और खींचें।</string>
+  <string name="controls_hidden">छिपी हुई</string>
+  <string name="controls_all_hidden">सभी टाइलें छिपी हैं। उन्हें फिर से दिखाने के लिए संपादित करें पर टैप करें।</string>
+  <string name="controls_toggle_tile">%1$s को छिपाएँ या दिखाएँ</string>
   <string name="controls_hide_dials">डायल और मीडिया छिपाएं</string>
   <string name="controls_blackout">इस्तेमाल न होने पर स्क्रीन काली करें</string>
   <string name="controls_open">%1$s खोलें</string>
@@ -431,12 +432,10 @@
   <string name="capture_screen">पूरी स्क्रीन</string>
   <string name="capture_record">रिकॉर्ड</string>
   <string name="capture_stop">रिकॉर्डिंग रोकें</string>
-  <string name="capture_recording">लैपटॉप पर रिकॉर्डिंग चल रही है। खत्म करने के लिए \"रिकॉर्डिंग रोकें\" पर टैप करें; \"यहां सेव करें\" में फ़ोन चुना हो तो फ़ाइल तभी आएगी।</string>
+  <string name="capture_recording">लैपटॉप पर रिकॉर्डिंग चल रही है। खत्म करने के लिए “रिकॉर्डिंग रोकें” पर टैप करें; “यहां सेव करें” में फ़ोन चुना हो तो फ़ाइल तभी आएगी।</string>
   <string name="capture_sent">लैपटॉप पर भेजा गया: %1$s</string>
-  <string name="capture_hint">किसी हिस्से के लिए \"हिस्सा\" पर टैप करें, फिर टचपैड पर उंगली को एक पल स्थिर रखें और हिलाकर हिस्सा चुनें।</string>
-  <string name="capture_save_to">यहां सेव करें</string>
+  <string name="capture_drag_caption">हिस्सा चुनने के लिए खींचें</string>
   <string name="capture_save_laptop">लैपटॉप</string>
-  <string name="capture_save_phone">फ़ोन</string>
   <string name="capture_receiving">%1$s आ रहा है, %2$d%%</string>
   <string name="capture_saved">%1$s में सेव हुआ</string>
   <string name="capture_bad_hash">कैप्चर खराब होकर पहुंचा। वह अब भी लैपटॉप पर है।</string>
@@ -447,8 +446,6 @@
   <string name="capture_send_failed">लैपटॉप कैप्चर नहीं भेज सका। वह अब भी लैपटॉप पर है।</string>
   <string name="controls_annotate">एनोटेट</string>
   <string name="annotate_description">पेन पैड: छूने पर लैपटॉप की स्क्रीन पर उसी जगह लिखाई होती है। यह सिर्फ़ टच से काम करता है।</string>
-  <string name="annotate_hint">यहां बनाएं। स्याही लैपटॉप पर उसी जगह दिखेगी।</string>
-  <string name="annotate_hint_named">यहां बनाएं। स्याही %1$s पर उसी जगह दिखेगी।</string>
   <string name="annotate_menu">ड्रॉइंग टूल</string>
   <string name="annotate_menu_expanded">खुला है</string>
   <string name="annotate_menu_collapsed">बंद है</string>
@@ -475,9 +472,9 @@
   <string name="annotate_clear">मिटाएं</string>
   <string name="annotate_clear_title">ड्रॉइंग मिटाएं?</string>
   <string name="annotate_clear_body">लैपटॉप की स्क्रीन से हर लकीर मिट जाएगी। इसे वापस नहीं लाया जा सकता।</string>
-  <string name="annotate_to_sign_title">\"हस्ताक्षर\" पर जाएं?</string>
+  <string name="annotate_to_sign_title">“हस्ताक्षर” पर जाएं?</string>
   <string name="annotate_to_sign_body">अब तक की ड्रॉइंग हट जाएगी और लैपटॉप पर नया पेज शुरू होगा।</string>
-  <string name="annotate_from_sign_title">\"हस्ताक्षर\" से बाहर जाएं?</string>
+  <string name="annotate_from_sign_title">“हस्ताक्षर” से बाहर जाएं?</string>
   <string name="annotate_from_sign_body">हस्ताक्षर सेव नहीं हुआ है और हट जाएगा।</string>
   <string name="annotate_continue">आगे बढ़ें</string>
   <string name="annotate_sign">हस्ताक्षर</string>
@@ -502,20 +499,20 @@
   <string name="macros_layout_auto">ऑटो</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">पंक्तियां: %1$d, कॉलम: %2$d</string>
-  <string name="macros_layout_caption">पहली संख्या पंक्तियों की है, दूसरी कॉलम की। \"ऑटो\" वह चुनता है जिसमें बटन सबसे बड़े हों।</string>
+  <string name="macros_layout_caption">पहली संख्या पंक्तियों की है, दूसरी कॉलम की। “ऑटो” वह चुनता है जिसमें बटन सबसे बड़े हों।</string>
   <string name="macros_per_page">स्क्रीन पर मैक्रो</string>
   <string name="macros_per_page_caption">एक पेज पर कितने मैक्रो दिखें। बाकी अगले पेजों पर जारी रहते हैं, जहां उंगली को बगल में सरकाकर पहुंचा जा सकता है। किसी मैक्रो को उसके पेज में खिसकाने के लिए उसे दबाए रखें, फिर खींचें। खुले हुए मैक्रो को दबाए रखें तो क्रॉस दिखेगा, फिर ऐप बंद करने के लिए क्रॉस पर टैप करें।</string>
   <string name="macros_page_of">%2$d में से पेज %1$d</string>
   <string name="macros_empty_title">अभी कोई मैक्रो नहीं</string>
-  <string name="macros_empty_body">इन्हें लैपटॉप पर टास्कबार के कोने में Edgepad के \"मैक्रो…\" मेन्यू से जोड़ें। लैपटॉप सूची भेजते ही ये यहां दिखने लगते हैं।</string>
-  <string name="macros_empty_body_mac">इन्हें Mac के मेन्यू बार में Edgepad के \"मैक्रो…\" मेन्यू से जोड़ें। Mac सूची भेजते ही ये यहां दिखने लगते हैं।</string>
+  <string name="macros_empty_body">इन्हें लैपटॉप पर टास्कबार के कोने में Edgepad के “मैक्रो…” मेन्यू से जोड़ें। लैपटॉप सूची भेजते ही ये यहां दिखने लगते हैं।</string>
+  <string name="macros_empty_body_mac">इन्हें Mac के मेन्यू बार में Edgepad के “मैक्रो…” मेन्यू से जोड़ें। Mac सूची भेजते ही ये यहां दिखने लगते हैं।</string>
   <string name="macros_loading">मैक्रो लोड हो रहे हैं…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
   <string name="apps_add_from_laptop">लैपटॉप से जोड़ें</string>
   <string name="apps_add_caption">लैपटॉप की सूची से कोई ऐप चुनें, और वह वहां मैक्रो बन जाता है। आपकी पसंद के अलावा कुछ नहीं भेजा जाता।</string>
   <string name="apps_title">मैक्रो जोड़ें</string>
-  <string name="apps_search_hint">ऐप खोजें</string>
+  <string name="apps_search_hint">ऐप खोजें, जैसे Chrome</string>
   <string name="apps_loading">%1$s पर ऐप ढूंढे जा रहे हैं…</string>
   <string name="apps_none">%1$s ने कोई ऐप नहीं बताया।</string>
   <string name="apps_no_match">इस खोज से कोई ऐप नहीं मिला।</string>
@@ -554,4 +551,62 @@
   <string name="battery_percent">%1$d%%</string>
   <string name="battery_more">+%1$d</string>
   <string name="battery_summary">बैटरी: %1$s</string>
+  <string name="updates_later">बाद में</string>
+  <string name="updates_skip">यह संस्करण छोड़ें</string>
+  <string name="updates_notify_text">Edgepad %1$s उपलब्ध है। अपडेट के लिए टैप करें।</string>
+  <string name="end_action_title">इसके खत्म होने पर स्लीप करें</string>
+  <string name="end_sleep">लैपटॉप को स्लीप करें</string>
+  <string name="end_shutdown">लैपटॉप बंद करें</string>
+  <string name="end_cancel">रद्द करें</string>
+  <string name="end_armed_sleep">खत्म होने पर स्लीप होगा</string>
+  <string name="end_armed_shutdown">खत्म होने पर बंद होगा</string>
+  <string name="end_no_timeline">इसका कोई अंत समय नहीं है, इसलिए इंतज़ार करने को कुछ नहीं।</string>
+  <string name="unavailable_unsupported">यह लैपटॉप यह नहीं कर सकता।</string>
+  <string name="unavailable_off">यह लैपटॉप पर बंद है।</string>
+  <string name="unavailable_no_tool">लैपटॉप में इसके लिए ज़रूरी प्रोग्राम नहीं है।</string>
+  <string name="unavailable_no_permission">लैपटॉप ने अभी इसकी अनुमति नहीं दी है।</string>
+  <string name="unavailable_github_resign">अपने लैपटॉप पर GitHub में फिर से साइन इन करें। Edgepad अब केवल-पढ़ने वाली पहुँच का उपयोग करता है।</string>
+  <string name="capture_recording_laptop">लैपटॉप पर रिकॉर्डिंग</string>
+  <string name="xfer_send">फ़ाइल भेजें</string>
+  <string name="xfer_sending">%1$s भेजी जा रही है · %2$d%%</string>
+  <string name="xfer_receiving">%1$s मिल रही है · %2$d%%</string>
+  <string name="xfer_done">%1$s सहेजी गई</string>
+  <string name="xfer_failed">%1$s भेजी नहीं जा सकी</string>
+  <plurals name="xfer_too_many">
+    <item quantity="one">केवल पहली %1$d फ़ाइलें कतार में जोड़ी गईं</item>
+    <item quantity="other">केवल पहली %1$d फ़ाइलें कतार में जोड़ी गईं</item>
+  </plurals>
+  <string name="xfer_sending_n">%1$s भेजी जा रही है (%3$d में से %2$d) · %4$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">%1$d फ़ाइल भेजी गई</item>
+    <item quantity="other">%1$d फ़ाइलें भेजी गईं</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">%1$d फ़ाइल मिली</item>
+    <item quantity="other">%1$d फ़ाइलें मिलीं</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">%2$d में से %1$d फ़ाइल भेजी गई</item>
+    <item quantity="other">%2$d में से %1$d फ़ाइलें भेजी गईं</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d फ़ाइल नहीं भेजी जा सकी</item>
+    <item quantity="other">%1$d फ़ाइलें नहीं भेजी जा सकीं</item>
+  </plurals>
+  <plurals name="xfer_card_more">
+    <item quantity="one">और %1$d</item>
+    <item quantity="other">और %1$d</item>
+  </plurals>
+  <plurals name="xfer_share_count">
+    <item quantity="one">%1$d फ़ाइल</item>
+    <item quantity="other">%1$d फ़ाइलें</item>
+  </plurals>
+  <string name="xfer_card_cancelling">रद्द किया जा रहा है…</string>
+  <string name="xfer_retry">फिर से कोशिश करें</string>
+  <string name="xfer_card_a11y">फ़ाइल ट्रांसफ़र</string>
+  <string name="xfer_no_laptop">पहले लैपटॉप से कनेक्ट करें</string>
+  <string name="xfer_channel">फ़ाइल ट्रांसफ़र</string>
+  <string name="notify_channel">लैपटॉप सूचनाएँ</string>
+  <string name="notify_setting">लैपटॉप सूचनाएँ दिखाएँ</string>
+  <string name="notify_setting_hint">लैपटॉप के Edgepad मेनू में यही स्विच चालू होना चाहिए।</string>
 </resources>

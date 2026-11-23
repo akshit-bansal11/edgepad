@@ -21,6 +21,10 @@ class BlobRoutes {
     ) {
         CLIPBOARD(setOf(BlobKind.CLIP_TEXT, BlobKind.CLIP_IMAGE)),
         APPS(setOf(BlobKind.APP_LIST, BlobKind.APP_ICON)),
+        MEDIA(setOf(BlobKind.MEDIA_ICON)),
+        NOTIFY(setOf(BlobKind.NOTIFICATION)),
+        GITHUB(setOf(BlobKind.GIT)),
+        PERM(setOf(BlobKind.PERM_ASK)),
         ;
 
         companion object {

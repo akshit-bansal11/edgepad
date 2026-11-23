@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -17,10 +18,10 @@ internal sealed record Look(IBrush Card, IBrush Line, IBrush Ink, IBrush Dim, IB
     public static readonly FontFamily Lato = new("avares://Edgepad.Linux/Fonts#Lato");
 
     private static readonly Look Dark = new(
-        Hex(0x1B1C20), Hex(0x2B2D33), Hex(0xF2F3F5), Hex(0x9A9CA3), Hex(0x4DA3FF), Hex(0x0B1A2E), Hex(0xFF6961));
+        Hex(0x1B1C20), Alpha(0xF2F3F5, 0x24), Hex(0xF2F3F5), Hex(0x9A9CA3), Hex(0x4DA3FF), Hex(0x0B1A2E), Hex(0xFF6961));
 
     private static readonly Look Light = new(
-        Hex(0xFFFFFF), Hex(0xE3E5EA), Hex(0x16171A), Hex(0x6B6E76), Hex(0x0068D6), Hex(0xFFFFFF), Hex(0xD70015));
+        Hex(0xFFFFFF), Alpha(0x16171A, 0x1F), Hex(0x16171A), Hex(0x6B6E76), Hex(0x0068D6), Hex(0xFFFFFF), Hex(0xD70015));
 
     /// <summary>The set for the desktop's light or dark mode right now. Call on the UI thread.</summary>
     public static Look Current => Application.Current?.ActualThemeVariant == ThemeVariant.Dark ? Dark : Light;
@@ -74,18 +75,34 @@ internal sealed record Look(IBrush Card, IBrush Line, IBrush Ink, IBrush Dim, IB
         return button;
     }
 
+    /// <summary>The reading direction of the language the app is shown in: right to left for Arabic.</summary>
+    public static FlowDirection Direction => DirectionOf(CultureInfo.CurrentUICulture);
+
+    /// <summary>
+    /// Right to left for a right-to-left culture. The app runs with invariant globalization, whose culture data says no
+    /// culture reads right to left, so Arabic, the one right-to-left language shipped, is named as well.
+    /// </summary>
+    internal static FlowDirection DirectionOf(CultureInfo culture) =>
+        culture.TextInfo.IsRightToLeft || culture.TwoLetterISOLanguageName == "ar" ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+
     /// <summary>A dialog window with this look: fixed size to its content, no resizing, centred on the screen.</summary>
-    public Window Dialog(string title, double width, Control content) => new()
+    public Window Dialog(string title, double width, Control content)
     {
-        Title = title,
-        Width = width,
-        SizeToContent = SizeToContent.Height,
-        CanResize = false,
-        Background = Card,
-        FontFamily = Lato,
-        WindowStartupLocation = WindowStartupLocation.CenterScreen,
-        Content = content,
-    };
+        var window = new Window
+        {
+            FlowDirection = Direction,
+            Title = title,
+            Width = width,
+            SizeToContent = SizeToContent.Height,
+            CanResize = false,
+            Background = Card,
+            FontFamily = Lato,
+            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+            Content = content,
+        };
+        Motion.RevealWindow(window);
+        return window;
+    }
 
     /// <summary>A row of buttons along the bottom edge.</summary>
     public static StackPanel Footer(params Control[] buttons)
@@ -96,4 +113,7 @@ internal sealed record Look(IBrush Card, IBrush Line, IBrush Ink, IBrush Dim, IB
     }
 
     private static SolidColorBrush Hex(uint rgb) => new(Color.FromRgb((byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb));
+
+    /// <summary>The ink at low alpha for hairlines, so a border keeps its contrast over any surface (DES-D22).</summary>
+    private static SolidColorBrush Alpha(uint rgb, byte alpha) => new(Color.FromArgb(alpha, (byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb));
 }

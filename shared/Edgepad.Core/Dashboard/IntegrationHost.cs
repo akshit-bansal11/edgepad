@@ -1,0 +1,795 @@
+using System.Text;
+using Edgepad.Blob;
+using Edgepad.Hooks;
+using Edgepad.Protocol;
+
+namespace Edgepad.Dashboard;
+
+/// <summary>
+/// The process-wide dashboard pieces a laptop app holds while the matching integration is on; each is null while it is off.
+/// One set is shared by every <see cref="IntegrationHost"/>.
+/// </summary>
+internal sealed class DashboardParts
+{
+    /// <summary>Claude or Codex on.</summary>
+    public SessionBoard? Sessions { get; init; }
+
+    public LimitsBoard? Limits { get; init; }
+
+    public SpendBoard? Spend { get; init; }
+
+    public PermissionBroker? Broker { get; init; }
+
+    /// <summary>Codex on.</summary>
+    public CodexWatcher? Codex { get; init; }
+
+    /// <summary>Claude on: reads Claude Code's spend from its transcripts.</summary>
+    public ClaudeSpendWatcher? Claude { get; init; }
+
+    /// <summary>Weather on.</summary>
+    public WeatherClient? Weather { get; init; }
+
+    /// <summary>GitHub on.</summary>
+    public GitHubApi? GitHub { get; init; }
+
+    /// <summary>Whether a GitHub token is saved (<see cref="GitHubSignIn.IsSignedIn"/>).</summary>
+    public Func<bool>? GitHubSignedIn { get; init; }
+
+    /// <summary>The git hosts besides GitHub that are set up (GitLab, Gitea, Bitbucket, Gitee); each one is used only while its settings switch is on.</summary>
+    public IReadOnlyList<IGitHost>? GitHosts { get; init; }
+
+    /// <summary>Opens an address a git host's page named, in the default browser. Each laptop app supplies it (C26); without one, GIT_OPEN is dropped and counted.</summary>
+    public IUrlOpener? UrlOpener { get; init; }
+
+    /// <summary>Whether the agent's hook was heard since it was connected (<see cref="UsageStore.LastHeard"/> at least 0). Null counts every agent as heard.</summary>
+    public Func<string, bool>? AgentHeard { get; init; }
+
+    /// <summary>The link-open limit and the per-host refresh times; a platform passes the one it holds so a rebuilt host does not reset them.</summary>
+    public DashboardThrottle Throttle { get; init; } = new();
+}
+
+/// <summary>
+/// One phone link's side of the dashboard; a platform session makes one per link and disposes it when the link ends. Nothing runs
+/// until the phone asks: <see cref="OnWatch"/> (DASH_WATCH) starts the stats reporter for bits 0 and 1, the weather for bit 2 (asked
+/// again every 30 min while it stays set, and once more 2 min after a failed fetch; the client caches), sends limit and spend snapshots for bit 3 and then their changes, and
+/// refreshes GitHub for bit 4 (at most once a minute) and sends BLOB GITHUB whenever it differs from what this phone was last sent,
+/// and TEXT UNAVAILABLE again when GitHub refuses the token or first accepts a new one. Sessions are sent on
+/// every change whatever the mask. Approvals go out as urgent BLOB PERM_ASK, their end as TEXT PERM_GONE. Blob sends and network
+/// calls never run on the caller's thread (the session's read thread calls <see cref="OnWatch"/>). A send that fails because the
+/// link died is dropped; the session notices the dead link itself.
+/// </summary>
+internal sealed class IntegrationHost : IDisposable
+{
+    public const int WidgetsBit = StatsReporter.WidgetsBit;
+    public const int ScreenBit = StatsReporter.ScreenBit;
+    public const int NetBit = StatsReporter.NetBit;
+    public const int WeatherBit = 4;
+    public const int AiBit = CodexWatcher.AiBit;
+    public const int GitHubBit = 16;
+    public static readonly TimeSpan WeatherEvery = WeatherClient.ForecastFor;
+
+    // The last MaxGone ask ids that ended, so a PERM_ASK blob still queued for one is never sent.
+    private const int MaxGone = 64;
+
+    // A refresh this recent already answers a sign-in, so SignedInChanged does not ask GitHub twice.
+    private static readonly TimeSpan JustRefreshed = TimeSpan.FromSeconds(5);
+
+    // What a phone that has been sent no git page holds.
+    private const string NothingSent = "";
+
+    // The key of GitHub's last refresh in the process-wide throttle.
+    private const string GitHubKey = "github";
+
+    private readonly Action<Frame> send;
+    private readonly BlobSender blobs;
+    private readonly IntegrationSettings settings;
+    private readonly DashboardParts parts;
+    private readonly IStatsSource? stats;
+    private readonly INetInfoSource? net;
+    private readonly SpeedTest speed;
+    private readonly Func<DateTimeOffset> clock;
+    private readonly Func<Action, TimeSpan, IDisposable> startTimer;
+    private readonly Func<Action, TimeSpan, IDisposable> startOnce;
+    private readonly Action<Action> run;
+    private readonly Lock gate = new();
+    private readonly CancellationTokenSource ended = new();
+
+    // The last MaxGone ask ids that ended, so a PERM_ASK blob still queued for one is never sent.
+    private readonly HashSet<string> gone = [];
+    private readonly Queue<string> goneOrder = new();
+
+    private StatsReporter? reporter;
+    private IDisposable? weatherTimer;
+    private IDisposable? weatherRetry;
+    private IDisposable? githubTimer;
+    private string githubSent = NothingSent;
+
+    // What this phone was last sent for each token host (by id), so an unchanged page is not sent again.
+    private readonly Dictionary<string, string> gitSent = [];
+    private bool githubRefused;
+    private bool gitlabExpired;
+    private string? weatherSent;
+    private int watch;
+    private volatile bool disposed;
+
+    /// <param name="send">Writes one frame to this phone. May throw once the link is dead.</param>
+    /// <param name="blobs">This session's blob sender.</param>
+    /// <param name="stats">The laptop's numbers, when this platform has a source.</param>
+    /// <param name="startTimer">Runs the action now and then every interval on another thread until disposed. Tests pass their own.</param>
+    /// <param name="run">Runs blocking work (a blob, a network call) off the caller's thread. Tests run it inline.</param>
+    /// <param name="startOnce">Runs the action once after the delay on another thread, unless disposed first. Tests pass their own.</param>
+    /// <param name="net">The laptop's connection facts, when this platform has them; with it the phone gets NET_INFO and may run a speed test.</param>
+    /// <param name="speedTest">The speed test runner; tests pass one with a fake transport.</param>
+    public IntegrationHost(
+        Action<Frame> send,
+        BlobSender blobs,
+        IntegrationSettings settings,
+        DashboardParts parts,
+        IStatsSource? stats = null,
+        Func<DateTimeOffset>? clock = null,
+        Func<Action, TimeSpan, IDisposable>? startTimer = null,
+        Action<Action>? run = null,
+        Func<Action, TimeSpan, IDisposable>? startOnce = null,
+        INetInfoSource? net = null,
+        SpeedTest? speedTest = null)
+    {
+        this.send = send;
+        this.blobs = blobs;
+        this.settings = settings;
+        this.parts = parts;
+        this.stats = stats;
+        this.net = net;
+        speed = speedTest ?? new SpeedTest();
+        this.clock = clock ?? (() => DateTimeOffset.UtcNow);
+        this.startTimer = startTimer ?? ((action, every) => new Timer(_ => action(), null, TimeSpan.Zero, every));
+        this.startOnce = startOnce ?? ((action, due) => new Timer(_ => action(), null, due, Timeout.InfiniteTimeSpan));
+        this.run = run ?? (work => Task.Run(work));
+
+        if (parts.Sessions is { } sessions)
+        {
+            sessions.Changed += SendSessions;
+        }
+
+        if (parts.Limits is { } limits)
+        {
+            limits.Changed += LimitsChanged;
+        }
+
+        if (parts.Spend is { } spend)
+        {
+            spend.Changed += SpendChanged;
+        }
+
+        if (parts.Broker is { } broker)
+        {
+            broker.Asked += Ask;
+            broker.Gone += Gone;
+        }
+    }
+
+    private bool Heard(string agent) => parts.AgentHeard?.Invoke(agent) ?? true;
+
+    private bool AgentsOn => AgentTokens.Any(settings.Active);
+
+    private static readonly string[] AgentTokens = [AgentToken.Claude, AgentToken.Codex, AgentToken.Gemini, AgentToken.OpenCode];
+
+    /// <summary>Whether any git host besides GitHub is on and was handed to this host.</summary>
+    private bool TokenHostsOn => parts.GitHosts is { Count: > 0 } hosts && hosts.Any(host => settings.Active(host.Id));
+
+    /// <summary>Call once the session has sent FEATURES: sends the current sessions and lets the Codex watcher see the new phone.</summary>
+    public void Start()
+    {
+        parts.Codex?.Evaluate();
+        parts.Claude?.Evaluate();
+        if (settings.Active(IntegrationSettings.Claude) && parts.Sessions is { } board && parts.Claude is { } claude)
+        {
+            run(() => board.Seed(claude.ListSessions()));
+        }
+
+        if (AgentsOn && parts.Sessions is not null)
+        {
+            SendSessions();
+        }
+    }
+
+    /// <summary>The FEATURES tokens of the switches that are on and usable now.</summary>
+    public IReadOnlyList<string> Features()
+    {
+        var features = new List<string>();
+        if (settings.Flag(IntegrationSettings.Developer))
+        {
+            features.Add(Feature.Developer);
+        }
+
+        if (settings.Flag(IntegrationSettings.Stats) && stats is not null)
+        {
+            features.Add(Feature.Stats);
+            if (net is not null)
+            {
+                features.Add(Feature.NetInfo);
+            }
+        }
+
+        if (settings.Flag(IntegrationSettings.Weather) && parts.Weather is not null && WeatherClient.CityFrom(settings.Text(IntegrationSettings.City)) is not null)
+        {
+            features.Add(Feature.Weather);
+        }
+
+        // An agent counts once it actually works with Edgepad (heard from, Codex trusted), not as soon as its switch is on.
+        if (settings.Active(IntegrationSettings.Claude) && parts.Sessions is not null && Heard(AgentToken.Claude))
+        {
+            features.Add(Feature.Claude);
+        }
+
+        if (settings.Active(IntegrationSettings.Codex) && parts.Sessions is not null && Heard(AgentToken.Codex) && settings.Flag(IntegrationSettings.CodexTrusted))
+        {
+            features.Add(Feature.Codex);
+        }
+
+        if (settings.Active(AgentToken.Gemini) && parts.Sessions is not null && Heard(AgentToken.Gemini))
+        {
+            features.Add(Feature.Gemini);
+        }
+
+        if (settings.Active(AgentToken.OpenCode) && parts.Sessions is not null && Heard(AgentToken.OpenCode))
+        {
+            features.Add(Feature.OpenCode);
+        }
+
+        if (settings.Active(IntegrationSettings.GitHub) && parts.GitHub is not null && parts.GitHubSignedIn?.Invoke() == true)
+        {
+            features.Add(Feature.GitHub);
+        }
+
+        // A token host counts once its token is saved and its switch is on.
+        foreach (var host in parts.GitHosts ?? [])
+        {
+            if (settings.Active(host.Id) && host is TokenGitHost { IsSignedIn: true } && DevProviders.Find(host.Id) is { } provider)
+            {
+                features.Add(provider.FeatureToken);
+            }
+        }
+
+        return features;
+    }
+
+    /// <summary>The TEXT UNAVAILABLE entries (<c>feature:reason</c>) for switches that are on but cannot work here.</summary>
+    public IReadOnlyList<string> Unavailable()
+    {
+        var reasons = new List<string>();
+        if (settings.Flag(IntegrationSettings.Stats) && stats is null)
+        {
+            reasons.Add($"{Feature.Stats}:{UnavailableReason.Unsupported}");
+        }
+
+        if (settings.Active(IntegrationSettings.GitHub) && parts.GitHubSignedIn?.Invoke() != true)
+        {
+            reasons.Add($"{Feature.GitHub}:{UnavailableReason.NoPermission}");
+        }
+
+        // A gitlab.com sign-in that GitLab stopped renewing: the phone says so instead of dropping the host.
+        if (GitLabExpired())
+        {
+            reasons.Add($"{Feature.GitLab}:{UnavailableReason.NoPermission}");
+        }
+
+        return reasons;
+    }
+
+    private bool GitLabExpired() => settings.Active("gitlab") && (parts.GitHosts ?? []).OfType<GitLabHost>().Any(host => host.SignInExpired);
+
+    /// <summary>The phone's DASH_WATCH, 0..63 (the Dispatcher drops anything larger).</summary>
+    public void OnWatch(int mask)
+    {
+        bool aiGained;
+        bool githubGained;
+        bool netGained;
+        lock (gate)
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            var before = watch;
+            watch = mask;
+            aiGained = (before & AiBit) == 0 && (mask & AiBit) != 0;
+            githubGained = (before & GitHubBit) == 0 && (mask & GitHubBit) != 0;
+            netGained = (before & NetBit) == 0 && (mask & NetBit) != 0;
+
+            if ((mask & (WidgetsBit | ScreenBit | NetBit)) != 0 && reporter is null && stats is not null && settings.Flag(IntegrationSettings.Stats))
+            {
+                reporter = new StatsReporter(stats, Push, action => startTimer(action, TimeSpan.FromSeconds(1)), net: net);
+            }
+
+            reporter?.SetWatch(mask);
+
+            if ((mask & WeatherBit) != 0 && weatherTimer is null && WeatherOn)
+            {
+                weatherTimer = startTimer(() => run(RefreshWeather), WeatherEvery);
+            }
+            else if ((mask & WeatherBit) == 0)
+            {
+                Stop(ref weatherTimer);
+                Stop(ref weatherRetry);
+                weatherSent = null;
+            }
+
+            if ((mask & GitHubBit) != 0 && githubTimer is null && (GitHubOn || TokenHostsOn))
+            {
+                githubTimer = startTimer(() => run(RefreshGit), GitHubRefresh.Every);
+            }
+            else if ((mask & GitHubBit) == 0)
+            {
+                Stop(ref githubTimer);
+                githubSent = NothingSent;
+                gitSent.Clear();
+            }
+        }
+
+        parts.Codex?.SetWatch(mask);
+        parts.Claude?.SetWatch(mask);
+        if (aiGained && AgentsOn)
+        {
+            SendLimits();
+            SendSpend();
+        }
+
+        if (githubGained && GitHubOn && parts.GitHub!.Page is not null)
+        {
+            run(SendGitHub);
+        }
+
+        if (githubGained && TokenHostsOn)
+        {
+            run(SendGitHosts);
+        }
+
+        if (netGained && speed.Last is { } last)
+        {
+            Push(new Text((byte)TextKind.SpeedResult, SpeedWire.Encode(last)));
+        }
+    }
+
+    /// <summary>
+    /// The phone's SPEED_TEST: true starts one speed test (ignored while one runs, and when this laptop does not name
+    /// <see cref="Feature.NetInfo"/>), false cancels the running one. The result is pushed as TEXT SPEED_RESULT. Never blocks the caller.
+    /// </summary>
+    public void OnSpeedTest(bool start)
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        if (!start)
+        {
+            speed.Cancel();
+        }
+        else if (net is not null && stats is not null && settings.Flag(IntegrationSettings.Stats))
+        {
+            speed.Start(result => Push(new Text((byte)TextKind.SpeedResult, SpeedWire.Encode(result))));
+        }
+    }
+
+    /// <summary>
+    /// The app's GitHub sign-in finished or its token went (call it after FEATURES has been sent again). While the phone watches
+    /// bit 4 and GitHub is on: signed in refreshes at once, bypassing the 60 s interval one time (the timer is started when
+    /// the host has none), then sends the blob; signed out says UNAVAILABLE no-permission. Does nothing when the phone is not
+    /// watching, and never starts a timer then.
+    /// </summary>
+    public void SignedInChanged()
+    {
+        var refresh = false;
+        var refused = false;
+        lock (gate)
+        {
+            if (disposed || (watch & GitHubBit) == 0 || !GitHubOn)
+            {
+                return;
+            }
+
+            if (parts.GitHubSignedIn?.Invoke() != true)
+            {
+                refused = !githubRefused;
+                githubRefused = true;
+            }
+            else if (githubTimer is null)
+            {
+                // The new timer runs the first refresh now.
+                githubTimer = startTimer(() => run(RefreshGit), GitHubRefresh.Every);
+            }
+            else if (parts.Throttle.LastRefresh(GitHubKey) is not { } last || clock() - last >= JustRefreshed)
+            {
+                parts.Throttle.ForgetRefresh(GitHubKey);
+                refresh = true;
+            }
+        }
+
+        if (refused)
+        {
+            Push(new Text((byte)TextKind.Unavailable, string.Join('/', Unavailable())));
+        }
+
+        if (refresh)
+        {
+            run(RefreshGitHub);
+        }
+    }
+
+    public void Dispose()
+    {
+        lock (gate)
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            disposed = true;
+            reporter?.Dispose();
+            reporter = null;
+            speed.Dispose();
+            Stop(ref weatherTimer);
+            Stop(ref weatherRetry);
+            Stop(ref githubTimer);
+        }
+
+        ended.Cancel();
+        if (parts.Sessions is { } sessions)
+        {
+            sessions.Changed -= SendSessions;
+        }
+
+        if (parts.Limits is { } limits)
+        {
+            limits.Changed -= LimitsChanged;
+        }
+
+        if (parts.Spend is { } spend)
+        {
+            spend.Changed -= SpendChanged;
+        }
+
+        if (parts.Broker is { } broker)
+        {
+            broker.Asked -= Ask;
+            broker.Gone -= Gone;
+
+            // The platform no longer counts this phone, so with no phone left every waiting ask goes back to the agent's own prompt.
+            broker.PhonesChanged();
+        }
+
+        parts.Codex?.Evaluate();
+        parts.Claude?.Evaluate();
+        ended.Dispose();
+    }
+
+    private bool WeatherOn => settings.Flag(IntegrationSettings.Weather) && parts.Weather is not null;
+
+    private bool GitHubOn => settings.Active(IntegrationSettings.GitHub) && parts.GitHub is not null;
+
+    private bool Watching(int bit)
+    {
+        lock (gate)
+        {
+            return !disposed && (watch & bit) != 0;
+        }
+    }
+
+    private static void Stop(ref IDisposable? timer)
+    {
+        timer?.Dispose();
+        timer = null;
+    }
+
+    private void SendSessions()
+    {
+        if (parts.Sessions is { } sessions && !disposed)
+        {
+            Push(new Text((byte)TextKind.Sessions, DashWire.EncodeSessions(sessions.Snapshot())));
+        }
+    }
+
+    private void LimitsChanged()
+    {
+        if (Watching(AiBit))
+        {
+            SendLimits();
+        }
+    }
+
+    private void SpendChanged()
+    {
+        if (Watching(AiBit))
+        {
+            SendSpend();
+        }
+    }
+
+    private void SendLimits()
+    {
+        if (parts.Limits is { } limits)
+        {
+            Push(new Text((byte)TextKind.Limits, DashWire.EncodeLimits([.. limits.Snapshot().Where(l => l.Window != LimitWindow.Context)])));
+        }
+    }
+
+    private void SendSpend()
+    {
+        if (parts.Spend is { } spend)
+        {
+            Push(new Text((byte)TextKind.Spend, DashWire.EncodeSpend(spend.Snapshot())));
+        }
+    }
+
+    private void Ask(PermPrompt prompt)
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        var body = Encoding.UTF8.GetBytes(prompt.Body);
+        var label = DashWire.PermLabel(prompt.Id, prompt.Complete);
+        var id = prompt.Id;
+
+        // An ask that ended before (or while) its blob went out is never completed: the phone would show a sheet nobody waits on.
+        run(() => Guard(() =>
+        {
+            if (!Ended(id))
+            {
+                blobs.Send(BlobKind.PermAsk, label, body, abandoned: () => Ended(id), urgent: true);
+            }
+        }));
+    }
+
+    private void Gone(string id)
+    {
+        lock (gate)
+        {
+            if (gone.Add(id))
+            {
+                goneOrder.Enqueue(id);
+                while (goneOrder.Count > MaxGone)
+                {
+                    gone.Remove(goneOrder.Dequeue());
+                }
+            }
+        }
+
+        Push(new Text((byte)TextKind.PermGone, id));
+    }
+
+    private bool Ended(string id)
+    {
+        lock (gate)
+        {
+            return gone.Contains(id);
+        }
+    }
+
+    private void RefreshWeather()
+    {
+        if (parts.Weather is not { } weather || !Watching(WeatherBit))
+        {
+            return;
+        }
+
+        WeatherInfo? info;
+        try
+        {
+            info = weather.GetAsync(settings.Text(IntegrationSettings.City), ended.Token).GetAwaiter().GetResult();
+        }
+        catch (Exception e) when (e is OperationCanceledException or ObjectDisposedException)
+        {
+            return;
+        }
+
+        var text = DashWire.EncodeWeather(info);
+        lock (gate)
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            // A failed fetch is asked once more when the client allows it again, not only at the next 30 min tick.
+            Stop(ref weatherRetry);
+            if (info is null && (watch & WeatherBit) != 0 && WeatherClient.CityFrom(settings.Text(IntegrationSettings.City)) is not null)
+            {
+                weatherRetry = startOnce(() => run(RefreshWeather), WeatherClient.RetryAfter);
+            }
+
+            if (text == weatherSent)
+            {
+                return;
+            }
+
+            weatherSent = text;
+        }
+
+        Push(new Text((byte)TextKind.Weather, text));
+    }
+
+    // One tick of the git timer: GitHub, then every token host that is on.
+    private void RefreshGit()
+    {
+        RefreshGitHub();
+        RefreshGitHosts();
+    }
+
+    private void RefreshGitHosts()
+    {
+        foreach (var host in (parts.GitHosts ?? []).Where(host => settings.Active(host.Id)))
+        {
+            try
+            {
+                _ = host.RefreshAsync(ended.Token).GetAwaiter().GetResult();
+            }
+            catch (Exception e) when (e is OperationCanceledException or ObjectDisposedException)
+            {
+                return;
+            }
+        }
+
+        // GitLab's renewal was refused (or a sign-in since fixed it): tell the phone now, the way GitHub's revoked token is told.
+        var expired = GitLabExpired();
+        bool resendUnavailable;
+        lock (gate)
+        {
+            resendUnavailable = !disposed && expired != gitlabExpired;
+            gitlabExpired = expired;
+        }
+
+        if (resendUnavailable)
+        {
+            Push(new Text((byte)TextKind.Unavailable, string.Join('/', Unavailable())));
+        }
+
+        if (Watching(GitHubBit))
+        {
+            SendGitHosts();
+        }
+    }
+
+    // Each token host that is on gets its page sent when it differs from what this phone holds; a host that went off or signed out sends nothing.
+    private void SendGitHosts()
+    {
+        foreach (var host in (parts.GitHosts ?? []).Where(host => settings.Active(host.Id)))
+        {
+            var text = host.Page?.Body ?? NothingSent;
+            lock (gate)
+            {
+                if (disposed || text == gitSent.GetValueOrDefault(host.Id, NothingSent))
+                {
+                    continue;
+                }
+
+                gitSent[host.Id] = text;
+            }
+
+            var body = Encoding.UTF8.GetBytes(text);
+            Guard(() => blobs.Send(BlobKind.Git, "git", body));
+        }
+    }
+
+    private void RefreshGitHub()
+    {
+        if (parts.GitHub is not { } github)
+        {
+            return;
+        }
+
+        bool due;
+        lock (gate)
+        {
+            due = GitHubRefresh.ShouldRun(parts.Throttle.LastRefresh(GitHubKey), clock(), !disposed && (watch & GitHubBit) != 0);
+            if (due)
+            {
+                parts.Throttle.Refreshed(GitHubKey, clock());
+            }
+        }
+
+        if (!due)
+        {
+            // Only the fetch is throttled: a phone that watches now still gets the page another refresh already fetched.
+            if (Watching(GitHubBit))
+            {
+                SendGitHub();
+            }
+
+            return;
+        }
+
+        GitHubRefreshResult result;
+        try
+        {
+            result = github.RefreshAsync(ended.Token).GetAwaiter().GetResult();
+        }
+        catch (Exception e) when (e is OperationCanceledException or ObjectDisposedException)
+        {
+            return;
+        }
+
+        // A revoked token says so at once (the phone shows its sign-in note); the first good refresh after it takes the note away.
+        bool resendUnavailable;
+        lock (gate)
+        {
+            var refused = result.Result == GitHubResult.NoPermission;
+            resendUnavailable = !disposed && (refused ? !githubRefused : githubRefused && result.Result == GitHubResult.Ok);
+            githubRefused = refused || (githubRefused && result.Result != GitHubResult.Ok);
+        }
+
+        if (resendUnavailable)
+        {
+            Push(new Text((byte)TextKind.Unavailable, string.Join('/', Unavailable())));
+        }
+
+        // Compared with what this phone was sent, not with the shared client's last refresh: another phone's refresh may have
+        // fetched the change, leaving Changed false here.
+        if (Watching(GitHubBit))
+        {
+            SendGitHub();
+        }
+    }
+
+    private void SendGitHub()
+    {
+        if (parts.GitHub is { } github)
+        {
+            var text = github.Page?.Body ?? NothingSent;
+            lock (gate)
+            {
+                if (text == githubSent || disposed)
+                {
+                    return;
+                }
+
+                githubSent = text;
+            }
+
+            var body = Encoding.UTF8.GetBytes(text);
+            Guard(() => blobs.Send(BlobKind.Git, "git", body));
+        }
+    }
+
+    /// <summary>
+    /// The phone's TEXT GIT_OPEN (<c>host/listRevision/index</c>). Opens the address this laptop fetched for that revision and index in the
+    /// default browser, off the caller's thread, and says whether it was accepted; anything else is refused and the caller drops and
+    /// counts it (see <see cref="GitOpenGate"/>).
+    /// </summary>
+    public bool OpenGit(string wire)
+    {
+        if (disposed || parts.UrlOpener is not { } opener || !GitOpenGate.TryResolve(wire, Git, out var url) || !OpenAllowed())
+        {
+            return false;
+        }
+
+        run(() => opener.Open(url));
+        return true;
+    }
+
+    // At most DashboardThrottle.MaxOpens opens per window for the whole process, however often a phone rebuilds its link.
+    private bool OpenAllowed() => parts.Throttle.AllowOpen(clock());
+
+    // GitLab is one of the token hosts (its tokens come from the device sign-in or a paste). A token host counts only while its own switch (the settings key named by its id) is on.
+    private IGitHost? Git(string id) => parts.GitHub is { } github && GitHubOn && github.Id == id
+        ? github
+        : settings.Active(id) ? parts.GitHosts?.FirstOrDefault(host => host.Id == id) : null;
+
+    private void Push(Text text) => Guard(() => send(text));
+
+    // The link died under a send: the session sees that on its own read and ends; nothing to do here.
+    private static void Guard(Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception e) when (e is IOException or ObjectDisposedException or InvalidOperationException)
+        {
+            // Dropped with the link.
+        }
+    }
+}

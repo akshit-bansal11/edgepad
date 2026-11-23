@@ -82,7 +82,10 @@ public sealed class UiTests
     [Fact]
     public void EveryIconStaysOnItsTwentyFourUnitGrid()
     {
-        var icons = typeof(Icons).GetFields().Where(field => field.IsLiteral).Select(field => (string)field.GetRawConstantValue()!);
+        // The GitHub mark is a filled brand mark on its own 16-unit grid; the next test checks it.
+        var icons = typeof(Icons).GetFields()
+            .Where(field => field.IsLiteral && field.Name != nameof(Icons.GitHubMark))
+            .Select(field => (string)field.GetRawConstantValue()!);
         foreach (var data in icons)
         {
             using var path = Icons.Parse(data);
@@ -94,6 +97,19 @@ public sealed class UiTests
             Assert.InRange(bounds.Right, 0f, 23.5f);
             Assert.InRange(bounds.Bottom, 0f, 23.5f);
         }
+    }
+
+    [Fact]
+    public void TheGitHubMarkFillsItsSixteenUnitGrid()
+    {
+        using var path = Icons.Parse(Icons.GitHubMark);
+        path.Flatten();
+        var bounds = path.GetBounds();
+
+        Assert.InRange(bounds.Left, -0.01f, 0.5f);
+        Assert.InRange(bounds.Top, -0.01f, 0.5f);
+        Assert.InRange(bounds.Right, 15.5f, 16.01f);
+        Assert.InRange(bounds.Bottom, 15f, 16.01f);
     }
 
     /// <summary>

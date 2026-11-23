@@ -79,7 +79,7 @@
     <value>配对未完成。</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>配对码一致。请在 {0} 上点“是，已配对”完成配对。</value>
+    <value>配对码一致。请在 {0} 上点“配对码一致”完成配对。</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>已与 {0} 配对。</value>

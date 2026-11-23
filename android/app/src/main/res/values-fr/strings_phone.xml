@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="xfer_pause">Pause</string>
+  <string name="xfer_resume">Reprendre</string>
+  <string name="xfer_stop">Arrêter</string>
+  <string name="xfer_close">Fermer</string>
+  <string name="xfer_detail">%1$s sur %2$s · %3$s/s</string>
+  <string name="xfer_detail_paused">En pause · %1$s sur %2$s</string>
+  <string name="xfer_detail_count">%1$d sur %2$d · %3$s</string>
+</resources>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_layout_media">Перетащите элемент, чтобы переместить его. Он прилипает к сетке и средним линиям.</string>
+</resources>

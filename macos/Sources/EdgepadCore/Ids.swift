@@ -25,6 +25,10 @@ public enum ActionId: UInt8, CaseIterable {
     /// action costs no protocol version: a build too old to know them drops them and counts them.
     case padAttach = 35
     case padDetach = 36
+    /// The laser tool: the next `pen` stroke is a dot that follows the finger and leaves nothing behind.
+    case toolLaser = 37
+    /// The trailing laser: `toolLaser` plus a short red trail behind the dot. Both lasers take their size from the pen width.
+    case toolLaserTrail = 38
     /// Annotating the screen and signing, which the laptop draws and the phone only steers: begin and end
     /// show and remove the overlay, undo and clear edit the strokes, and the tools pick what the next `pen`
     /// stroke draws. `signBegin` opens a surface that shows nothing and takes only the pen tool, and `signSave`
@@ -56,6 +60,11 @@ public enum ActionId: UInt8, CaseIterable {
     /// which reports `TextKind.macroOpen` on change only, and `macrosUnwatch` stops it. Forgotten when the session ends.
     case macrosWatch = 58
     case macrosUnwatch = 59
+    /// Arm this computer to sleep or shut down when the current media ends (`endSleep`, `endShutdown`), or disarm it
+    /// (`endCancel`). It reports the armed state as `TextKind.endAction`. Offered only for a computer that sent `Feature.endAction`.
+    case endSleep = 60
+    case endShutdown = 61
+    case endCancel = 62
     /// The first of 32 macro slots, 64 to 95; slot n is `macroBase + n`. The phone sends the index and never
     /// what it launches: this computer's own list decides that, which is the whole security model.
     case macroBase = 64
@@ -87,6 +96,21 @@ public enum ControlId: UInt8, CaseIterable {
     case penWidth = 8
     /// The opacity of the next strokes in percent, 10...100, phone to computer. Anything else is dropped and counted.
     case penOpacity = 9
+    /// Whether this link forwards the computer's notifications, 1 or 0, phone to computer. Forgotten when the session ends.
+    case notify = 10
+    /// Whether this link hears the app in front (`TextKind.foregroundApp`), 1 or 0, phone to computer. Anything above 1 is
+    /// dropped and counted. Forgotten when the session ends.
+    case foregroundWatch = 11
+    /// Phone to computer: a bitmask of what the phone draws right now: bit 0 (1) system-number widgets, bit 1 (2) the System
+    /// screen, bit 2 (4) the weather widget, bit 3 (8) an AI widget or screen, bit 4 (16) the GitHub screen, bit 5 (32) the
+    /// Network page. 0 to 63; more is
+    /// dropped and counted. Forgotten when the session ends.
+    case dashWatch = 12
+    /// Whether developer mode is on, 1 or 0, phone to computer. Anything above 1 is dropped and counted. Unlike `notify`,
+    /// the computer keeps it across sessions.
+    case developer = 13
+    /// Phone to computer: 1 starts one speed test, 0 cancels the running one. Anything above 1 is dropped and counted.
+    case speedTest = 14
 }
 
 /// What a TEXT frame carries. Only `type` goes phone to computer; the rest go the other way.
@@ -136,6 +160,43 @@ public enum TextKind: UInt8, CaseIterable {
     case batteries = 19
     /// Computer to phone: the audio output, "kind/name" split on the first "/", kind an `OutputKind` token. Empty means none known.
     case output = 20
+    /// Computer to phone: the app in front, "token/name" split on the first "/". Sent only after `ControlId.foregroundWatch` is 1,
+    /// on change, and never logged. Empty means nothing known.
+    case foregroundApp = 21
+    /// Computer to phone: how many macro slots it keeps, in decimal such as "15".
+    case macroCap = 22
+    /// Computer to phone: a `CaptureStateToken`, `idle` or `recording`. Best effort.
+    case captureState = 23
+    /// Computer to phone: "feature:reason" entries joined by "/", reason an `UnavailableReason` token. Empty means none.
+    case unavailable = 24
+    /// Computer to phone: what `endSleep` armed, as one `EndActionToken`. Sent on change.
+    case endAction = 25
+    /// Computer to phone: the title line before it is cleaned for `nowPlaying`, sent only when it differs from that text.
+    case nowPlayingFull = 26
+    /// Computer to phone: "cpu/ram/gpu/vram/down/up/ping/loss/ctemp/gtemp/gpower", -1 unknown. Once a second while `ControlId.dashWatch` has bit 0 or 1.
+    case stats = 27
+    /// Computer to phone: "cpuName|ramMiB|gpuName|vramMiB|netName". Sent when a watch starts and when it changes.
+    case statsInfo = 28
+    /// Computer to phone: "label:usedPct:totalGiB:freeGiB" entries joined by "|", at most 6.
+    case disks = 29
+    /// Computer to phone: "agent:state:title" entries joined by "|", newest first, at most 8. Empty means none.
+    case sessions = 30
+    /// Phone to computer: exactly "id/a" or "id/d", the id 12 lowercase hex digits.
+    case permAnswer = 31
+    /// Computer to phone: "id" of an approval answered elsewhere, timed out or dead.
+    case permGone = 32
+    /// Computer to phone: "agent:window:pct:resetAtMin:measuredAtMin" entries joined by "|"; the window is minutes, `LimitWindow.context` or "~name".
+    case limits = 33
+    /// Computer to phone: "agent/measuredAtMin/tokToday/centsToday/tokWeek/centsWeek/tokMonth/centsMonth" entries joined by "|".
+    case spend = 34
+    /// Computer to phone: "tempTenthsC/wmoCode/city". Empty means none.
+    case weather = 35
+    /// Computer to phone: "kind|band|linkMbps|signalPct|localIp|gateway", -1 unknown, no network name.
+    case netInfo = 36
+    /// Computer to phone: "state|downKbps|upKbps|latencyMs|jitterMs|atUnixMin|bytes", -1 unknown.
+    case speedResult = 37
+    /// Phone to computer: exactly "host/listRevision/index", a place in the `BlobKind.git` page the phone shows. Never an address.
+    case gitOpen = 38
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
@@ -146,6 +207,42 @@ public enum Feature: String, CaseIterable {
     case clipboard = "clipboard"
     case apps = "apps"
     case running = "running"
+    case endAction = "endaction"
+    case notify = "notify"
+    case foreground = "foreground"
+    case stats = "stats"
+    case weather = "weather"
+    case claude = "claude"
+    case codex = "codex"
+    case github = "github"
+    case developer = "developer"
+    case netinfo = "netinfo"
+    case gemini = "gemini"
+    case opencode = "opencode"
+    case gitlab = "gitlab"
+    case gitea = "gitea"
+    case bitbucket = "bitbucket"
+    case gitee = "gitee"
+}
+
+/// The first field of a `TextKind.netInfo`: a token the phone matches on, never prose. The raw value is literally the
+/// bytes that cross the wire.
+public enum NetKind: String, CaseIterable {
+    case wifi = "wifi"
+    case ethernet = "ethernet"
+    case cellular = "cellular"
+    case other = "other"
+    case none = "none"
+}
+
+/// The first field of a `TextKind.speedResult`: a token the phone matches on, never prose. The raw value is literally
+/// the bytes that cross the wire.
+public enum SpeedState: String, CaseIterable {
+    case running = "running"
+    case done = "done"
+    case failed = "failed"
+    case cancelled = "cancelled"
+    case capped = "capped"
 }
 
 /// The whole vocabulary of `TextKind.padStatus`: a token the phone matches on, never prose, so the wording
@@ -302,4 +399,63 @@ public enum BlobKind: UInt8, CaseIterable {
     case clipImage = 1
     case appList = 2
     case appIcon = 3
+    case mediaIcon = 4
+    case notification = 5
+    /// Computer to phone: an approval request. The label is "id/f"; the body is UTF-8 agent, tool and text joined by line feeds.
+    case permAsk = 6
+    /// Computer to phone: one git host's account, repositories, pull requests and issues. The label is "git"; the body is tab-separated lines.
+    case git = 7
+}
+
+/// The reason token of `TextKind.unavailable`: a token the phone matches on, never prose. The raw value is literally
+/// the bytes that cross the wire.
+public enum UnavailableReason: String, CaseIterable {
+    case unsupported = "unsupported"
+    case off = "off"
+    case noTool = "no-tool"
+    case noPermission = "no-permission"
+}
+
+/// The whole vocabulary of `TextKind.endAction`. The raw value is literally the bytes that cross the wire.
+public enum EndActionToken: String, CaseIterable {
+    case none = "none"
+    case sleep = "sleep"
+    case shutdown = "shutdown"
+}
+
+/// The whole vocabulary of `TextKind.captureState`. The raw value is literally the bytes that cross the wire.
+public enum CaptureStateToken: String, CaseIterable {
+    case idle = "idle"
+    case recording = "recording"
+}
+
+/// The agent of a sessions, limits, spend or approval entry. The raw value is literally the bytes that cross the wire.
+public enum AgentToken: String, CaseIterable {
+    case claude = "claude"
+    case codex = "codex"
+    case gemini = "gemini"
+    case opencode = "opencode"
+}
+
+/// The state in a `TextKind.sessions` entry. The raw value is literally the bytes that cross the wire.
+public enum SessionStateToken: String, CaseIterable {
+    case busy = "busy"
+    case wait = "wait"
+    case idle = "idle"
+}
+
+/// The CI field of a `BlobKind.git` item line. The raw value is literally the bytes that cross the wire.
+public enum CiToken: String, CaseIterable {
+    case ok = "ok"
+    case fail = "fail"
+    case pending = "pending"
+    case none = "none"
+}
+
+/// The non-minute forms of a `TextKind.limits` window. Mirrors the LIMIT_WINDOW rows of `protocol/actions.txt`.
+public enum LimitWindow {
+    /// The context window of a session, not a time window.
+    public static let context = "ctx"
+    /// A limit with no duration is this character and a name, such as "~spend_limit".
+    public static let namedPrefix = "~"
 }

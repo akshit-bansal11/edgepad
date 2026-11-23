@@ -1,0 +1,2 @@
+Keeps this resources folder non-empty in a plain checkout, so Swift always generates Bundle.module.
+The *.lproj folders beside it come from scripts/resx-to-lproj.ps1 at build time and are never committed.

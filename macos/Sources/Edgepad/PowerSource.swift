@@ -60,9 +60,26 @@ final class MacPowerSource: PowerSource {
             else { continue }
             let charging = description[kIOPSIsChargingKey] as? Bool ?? false
             let name = description[kIOPSNameKey] as? String ?? ""
-            return BatteryEntry(kind: .laptop, level: current * 100 / full, charging: charging, name: name)
+            let smart = smartBattery()
+            return BatteryEntry(
+                kind: .laptop, level: current * 100 / full, charging: charging, name: name,
+                health: smart.health, temperature: smart.temperature)
         }
         return nil
+    }
+
+    /// Health (percent of design capacity) and temperature (whole degrees C) from the `AppleSmartBattery` registry
+    /// entry; nil for either one the registry does not give. `AppleRawMaxCapacity` is mAh on Apple silicon, where
+    /// `MaxCapacity` is already a percent; on Intel `MaxCapacity` is mAh. `Temperature` is hundredths of a degree.
+    private func smartBattery() -> (health: Int?, temperature: Int?) {
+        let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("AppleSmartBattery"))
+        guard service != 0 else { return (nil, nil) }
+        defer { IOObjectRelease(service) }
+        let design = property(service, "DesignCapacity") as? Int ?? 0
+        let raw = property(service, "AppleRawMaxCapacity") as? Int ?? property(service, "MaxCapacity") as? Int ?? 0
+        let health = design > 0 && raw > 100 ? min(raw * 100 / design, 100) : nil
+        let hundredths = property(service, "Temperature") as? Int ?? 0
+        return (health, hundredths > 0 ? Int((Double(hundredths) / 100).rounded()) : nil)
     }
 
     /// Bluetooth peripherals that publish `BatteryPercent`, in registry order. One with no level is left out.

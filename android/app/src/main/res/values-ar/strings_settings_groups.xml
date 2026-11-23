@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_dials">المقاييس</string>
+  <string name="settings_capture">الالتقاط والرسم</string>
+  <string name="settings_clipboard_files">الحافظة والملفات</string>
+  <string name="settings_developer">المطوّر</string>
+  <string name="settings_devices">الأجهزة والاتصال</string>
+  <string name="settings_language">اللغة</string>
+  <string name="language_system">افتراضي النظام</string>
+  <string name="language_follows_phone">يستخدم Edgepad لغة هاتفك. غيّرها من إعدادات الهاتف.</string>
+  <string name="settings_pen_colour">لون القلم</string>
+</resources>

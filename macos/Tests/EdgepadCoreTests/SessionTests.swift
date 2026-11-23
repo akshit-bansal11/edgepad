@@ -67,7 +67,9 @@ final class SessionTests: XCTestCase {
         address: String? = nil,
         ask: @escaping (String) -> Bool = { _ in true },
         inputBlocked: (() -> Bool)? = nil,
-        power: PowerSource? = nil
+        power: PowerSource? = nil,
+        makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)? = nil,
+        setDeveloper: ((Bool) -> Void)? = nil
     ) -> Session {
         Session(
             address: address ?? phone,
@@ -95,7 +97,9 @@ final class SessionTests: XCTestCase {
                 guard let self, self.holdsIcons else { return turn() }
                 self.iconTurns.append(turn)
             },
-            scheduleAfter: { [weak self] seconds, tick in self?.watchTicks.append((seconds, tick)) }
+            scheduleAfter: { [weak self] seconds, tick in self?.watchTicks.append((seconds, tick)) },
+            makeDashboard: makeDashboard,
+            setDeveloper: setDeveloper
         )
     }
 
@@ -207,6 +211,8 @@ final class SessionTests: XCTestCase {
                 .state(control: ControlId.refreshRate.rawValue, value: 1, flags: 0),
                 .text(kind: TextKind.padStatus.rawValue, value: "no-driver"),
                 .text(kind: TextKind.features.rawValue, value: Feature.capture.rawValue),
+                .text(kind: TextKind.macroCap.rawValue, value: "15"),
+                .text(kind: TextKind.captureState.rawValue, value: "idle"),
                 .text(kind: TextKind.macros.rawValue, value: ""),
             ]
         )
@@ -363,6 +369,58 @@ final class SessionTests: XCTestCase {
         XCTAssertFalse(session.isLive)
     }
 
+    func testASessionThatEndsWhileGoingLiveMakesNoDashboardSoNoPhoneStaysCounted() {
+        let phones = LinkedPhones()
+        var made = 0
+        let session = makeSession(makeDashboard: { _ in
+            made += 1
+            return DashboardLink(
+                phones: phones,
+                makeHost: {
+                    IntegrationHost(
+                        send: { _ in }, blobs: nil, settings: IntegrationSettings(path: "/dev/null/none"),
+                        parts: DashboardParts(), onMain: { $0() })
+                })
+        })
+        display.onRefresh = { [transport] in transport.alive = false }
+
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+
+        XCTAssertTrue(session.isEnded)
+        XCTAssertEqual(made, 0)
+        XCTAssertFalse(phones.any)
+    }
+
+    func testDeveloperModeIsNamedInFeaturesAndThePhoneCanSetIt() {
+        let settings = IntegrationSettings(path: directory.path + "/developer.txt")
+        settings.setFlag(IntegrationSettings.developer, true)
+        var asked: [Bool] = []
+        let session = makeSession(
+            makeDashboard: { _ in
+                DashboardLink(
+                    phones: LinkedPhones(),
+                    makeHost: {
+                        IntegrationHost(
+                            send: { _ in }, blobs: nil, settings: settings, parts: DashboardParts(), onMain: { $0() })
+                    })
+            },
+            setDeveloper: { asked.append($0) })
+
+        session.receive(FrameCodec.encode(.hello(version: ProtocolConstants.version)))
+        session.receive(FrameCodec.encode(.setValue(control: ControlId.developer.rawValue, value: 1)))
+        session.receive(FrameCodec.encode(.setValue(control: ControlId.developer.rawValue, value: 0)))
+        session.receive(FrameCodec.encode(.setValue(control: ControlId.developer.rawValue, value: 2)))
+
+        let named = transport.frames().contains { frame in
+            if case .text(let kind, let value) = frame, kind == TextKind.features.rawValue {
+                return value.split(separator: "/").contains(Substring(Feature.developer.rawValue))
+            }
+            return false
+        }
+        XCTAssertTrue(named)
+        XCTAssertEqual(asked, [true, false])
+    }
+
     func testInputStateIsSentAfterTheDeviceTextAndOnlyOnAChange() {
         var blocked = true
         let session = makeSession(inputBlocked: { blocked })
@@ -394,6 +452,62 @@ final class SessionTests: XCTestCase {
         XCTAssertFalse(session.isEnded)
     }
 
+    func testATransferSocketAttachesOnlyToTheLiveSessionOfItsAddressAndOnlyOnce() {
+        let early = makeSession()
+        let socket = FakeTransport()
+        XCTAssertNil(early.attachBulk(address: phone, version: ProtocolConstants.version, transport: socket))
+        XCTAssertTrue(socket.sent.isEmpty)
+
+        let session = connectedSession()
+        let wrongPhone = FakeTransport()
+        let version = ProtocolConstants.version
+        XCTAssertNil(session.attachBulk(address: "11:22:33:44:55:66", version: version, transport: wrongPhone))
+        XCTAssertNil(session.attachBulk(address: phone, version: version &+ 1, transport: wrongPhone))
+        XCTAssertTrue(wrongPhone.sent.isEmpty)
+
+        let first = FakeTransport()
+        XCTAssertNotNil(session.attachBulk(address: phone, version: ProtocolConstants.version, transport: first))
+        XCTAssertEqual(first.sent, [FrameCodec.encode(.helloAck(version: ProtocolConstants.version))])
+        let second = FakeTransport()
+        XCTAssertNil(session.attachBulk(address: phone, version: ProtocolConstants.version, transport: second))
+        XCTAssertTrue(second.sent.isEmpty)
+        // Nothing here asked the owner, admitted anything or ended anyone.
+        XCTAssertEqual(admissions.count, 1)
+        XCTAssertFalse(session.isEnded)
+    }
+
+    func testATransferSocketThatSendsAnythingButTransferFramesClosesAloneAndLeavesTheSession() {
+        let session = connectedSession()
+        let socket = FakeTransport()
+        let link = session.attachBulk(address: phone, version: ProtocolConstants.version, transport: socket)
+        link?.receive(FrameCodec.encode(.ping(time: 1)))
+        XCTAssertTrue(socket.closed)
+        XCTAssertFalse(session.isEnded)
+        XCTAssertFalse(transport.closed)
+        // A closed socket leaves room for the next one.
+        XCTAssertNotNil(
+            session.attachBulk(address: phone, version: ProtocolConstants.version, transport: FakeTransport()))
+    }
+
+    func testTheSessionEndingClosesItsTransferSocket() {
+        let session = connectedSession()
+        let socket = FakeTransport()
+        _ = session.attachBulk(address: phone, version: ProtocolConstants.version, transport: socket)
+        session.end()
+        XCTAssertTrue(socket.closed)
+    }
+
+    func testATransferSocketGoesOnTheSixtiethPollWithNoFrameButNotTheSession() {
+        let session = connectedSession()
+        let socket = FakeTransport()
+        _ = session.attachBulk(address: phone, version: ProtocolConstants.version, transport: socket)
+        pollAlive(session, 59)
+        XCTAssertFalse(socket.closed)
+        pollAlive(session, 2)
+        XCTAssertTrue(socket.closed)
+        XCTAssertFalse(session.isEnded)
+    }
+
     /// Polls `count` times with a ping now and then, so the silence limit never ends the session.
     private func pollAlive(_ session: Session, _ count: Int) {
         for i in 0..<count {
@@ -420,7 +534,7 @@ final class SessionTests: XCTestCase {
         XCTAssertEqual(
             powerTexts(),
             [
-                .text(kind: TextKind.batteries.rawValue, value: "laptop:80:0:Mac"),
+                .text(kind: TextKind.batteries.rawValue, value: "laptop:80:0:-:-:Mac"),
                 .text(kind: TextKind.output.rawValue, value: "speaker/Speakers"),
             ])
 
@@ -430,7 +544,7 @@ final class SessionTests: XCTestCase {
         power.list = [BatteryEntry(kind: .laptop, level: 79, charging: false, name: "Mac")]
         power.changed?()
         XCTAssertEqual(powerTexts().count, 3)
-        XCTAssertEqual(powerTexts().last, .text(kind: TextKind.batteries.rawValue, value: "laptop:79:0:Mac"))
+        XCTAssertEqual(powerTexts().last, .text(kind: TextKind.batteries.rawValue, value: "laptop:79:0:-:-:Mac"))
 
         pollAlive(session, 120)
         XCTAssertEqual(powerTexts().count, 3)
@@ -445,7 +559,7 @@ final class SessionTests: XCTestCase {
         pollAlive(session, 119)
         XCTAssertEqual(powerTexts().count, 2)
         session.poll()
-        XCTAssertEqual(powerTexts().last, .text(kind: TextKind.batteries.rawValue, value: "mouse:10:1:Mouse"))
+        XCTAssertEqual(powerTexts().last, .text(kind: TextKind.batteries.rawValue, value: "mouse:10:1:-:-:Mouse"))
     }
 
     func testNoPowerSourceSendsNeitherTextAndEndLetsGo() {
@@ -643,6 +757,62 @@ final class SessionTests: XCTestCase {
 
     private func watchFrame(_ action: ActionId) -> [UInt8] {
         FrameCodec.encode(.runAction(id: action.rawValue))
+    }
+
+    private func foregroundTexts() -> [String] {
+        transport.frames().compactMap { frame -> String? in
+            guard case .text(let kind, let value) = frame, kind == TextKind.foregroundApp.rawValue else { return nil }
+            return value
+        }
+    }
+
+    private func setForeground(_ session: Session, _ value: UInt8) {
+        session.receive(FrameCodec.encode(.setValue(control: ControlId.foregroundWatch.rawValue, value: value)))
+    }
+
+    func testForegroundIsListedOnlyWithASourceAndNothingIsWatchedUntilAskedFor() {
+        let source = FakeForeground()
+        dispatcher.foreground = source
+        _ = connectedSession()
+
+        XCTAssertTrue(
+            transport.frames().contains(.text(kind: TextKind.features.rawValue, value: "capture/foreground")))
+        XCTAssertEqual(source.watches, 0)
+        XCTAssertEqual(foregroundTexts(), [])
+    }
+
+    func testForegroundIsNotListedWithNoSource() {
+        _ = connectedSession()
+
+        XCTAssertTrue(transport.frames().contains(.text(kind: TextKind.features.rawValue, value: "capture")))
+    }
+
+    func testAWatchSendsTheAppAtOnceAndEachChangeAndStopsOnOff() {
+        let source = FakeForeground()
+        dispatcher.foreground = source
+        let session = connectedSession()
+
+        setForeground(session, 1)
+        source.change(to: "other.app/Other")
+        XCTAssertEqual(foregroundTexts(), ["fake.app/Fake", "other.app/Other"])
+
+        setForeground(session, 0)
+        source.change(to: "late.app/Late")
+        XCTAssertEqual(foregroundTexts().count, 2)
+        XCTAssertEqual(source.cancels, 1)
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testTheSessionsEndCancelsTheForegroundWatch() {
+        let source = FakeForeground()
+        dispatcher.foreground = source
+        let session = connectedSession()
+        setForeground(session, 1)
+
+        session.end()
+
+        XCTAssertEqual(source.cancels, 1)
+        XCTAssertNil(dispatcher.foregroundWatch)
     }
 
     func testRunningIsNamedOnlyWhereThisMacCanSeeApps() {
@@ -1293,6 +1463,85 @@ final class SessionTests: XCTestCase {
         }
 
         XCTAssertEqual(transport.sent.count, sent)
+    }
+
+    private func mediaTexts() -> [Frame] {
+        transport.frames().filter {
+            if case .text(let kind, _) = $0 {
+                let media: [TextKind] = [.nowPlaying, .nowPlayingFull, .app, .timeline, .endAction]
+                return media.map(\.rawValue).contains(kind)
+            }
+            return false
+        }
+    }
+
+    func testWhatIsPlayingIsSentCleanedWithTheOriginalOnlyWhenItDiffersAndOnlyOnAChange() {
+        let media = FakeMedia()
+        dispatcher.media = media
+        dispatcher.mediaBlobs = BlobSender(link: .bluetooth, lastInput: { 0 })
+        media.info = MediaInfo(
+            title: "Song (Live)", artist: "Artist", app: "Music", identity: "Music|Song (Live) - Artist", playing: true,
+            positionSeconds: 30, durationSeconds: 120)
+        let session = connectedSession()
+
+        XCTAssertEqual(
+            mediaTexts(),
+            [
+                .text(kind: TextKind.nowPlaying.rawValue, value: "Song - Artist"),
+                .text(kind: TextKind.nowPlayingFull.rawValue, value: "Song (Live) - Artist"),
+                .text(kind: TextKind.app.rawValue, value: "Music"),
+                .text(kind: TextKind.timeline.rawValue, value: "30/120"),
+            ])
+        XCTAssertTrue(
+            transport.frames().contains(.state(control: ControlId.mediaPosition.rawValue, value: 25, flags: 1)))
+        XCTAssertEqual(media.iconApps, ["Music"])
+
+        session.poll()
+        XCTAssertEqual(mediaTexts().count, 4)
+
+        media.info = MediaInfo(
+            title: "Plain", artist: "", app: "Music", identity: "Music|Plain", playing: true, positionSeconds: 31,
+            durationSeconds: 120)
+        media.changed?()
+        XCTAssertEqual(
+            mediaTexts().suffix(3),
+            [
+                .text(kind: TextKind.nowPlaying.rawValue, value: "Plain"),
+                .text(kind: TextKind.nowPlayingFull.rawValue, value: ""),
+                .text(kind: TextKind.timeline.rawValue, value: "31/120"),
+            ])
+        XCTAssertEqual(media.iconApps, ["Music"])
+    }
+
+    func testTheEndActionIsOfferedArmedAndReportedWhenThereIsAMediaSourceAndAnEndPerformer() {
+        let media = FakeMedia()
+        media.info = MediaInfo(
+            title: "Song", artist: "", app: "Music", identity: "Music|Song", playing: true, positionSeconds: 10,
+            durationSeconds: 120)
+        dispatcher.media = media
+        dispatcher.endPerform = { _ in true }
+        let session = connectedSession()
+
+        XCTAssertTrue(
+            transport.frames().contains(
+                .text(kind: TextKind.features.rawValue, value: "capture/endaction")))
+        dispatcher.handle(.runAction(id: ActionId.endSleep.rawValue))
+        XCTAssertEqual(transport.frames().last, .text(kind: TextKind.endAction.rawValue, value: "sleep"))
+        dispatcher.handle(.runAction(id: ActionId.endCancel.rawValue))
+        XCTAssertEqual(transport.frames().last, .text(kind: TextKind.endAction.rawValue, value: "none"))
+        XCTAssertEqual(dispatcher.dropped, 0)
+
+        session.end()
+        XCTAssertNil(media.changed)
+    }
+
+    func testTheEndActionsAndSeekAreDroppedWithNoMediaSource() {
+        _ = connectedSession()
+
+        dispatcher.handle(.runAction(id: ActionId.endShutdown.rawValue))
+        dispatcher.handle(.setValue(control: ControlId.mediaPosition.rawValue, value: 50))
+
+        XCTAssertEqual(dispatcher.dropped, 2)
     }
 
     func testNoLogLineHoldsTheDigits() {

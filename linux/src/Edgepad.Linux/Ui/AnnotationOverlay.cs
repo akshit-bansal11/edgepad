@@ -1,6 +1,8 @@
+using System.Numerics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Edgepad.Annotation;
 using Edgepad.Native;
 
@@ -20,7 +22,7 @@ internal sealed class AnnotationOverlay : Window
 
     public AnnotationOverlay()
     {
-        Title = "Edgepad annotation";
+        Title = LinuxStrings.Annotate_OverlayTitle;
         WindowDecorations = WindowDecorations.None;
         WindowStartupLocation = WindowStartupLocation.Manual;
         Topmost = true;
@@ -46,12 +48,13 @@ internal sealed class AnnotationOverlay : Window
     }
 
     /// <summary>
-    /// Draws <paramref name="strokes"/> over <paramref name="bounds"/> (the primary screen, in physical pixels) and
-    /// shows the window if it is not up yet. Bounds are set every time, so a resolution change is followed.
+    /// Draws <paramref name="strokes"/> and the <paramref name="laser"/> over <paramref name="bounds"/> (the primary
+    /// screen, in physical pixels) and shows the window if it is not up yet. Bounds are set every time, so a
+    /// resolution change is followed.
     /// </summary>
-    public void Present(IReadOnlyList<Stroke> strokes, PixelRect bounds)
+    public void Present(IReadOnlyList<Stroke> strokes, LaserFrame? laser, PixelRect bounds)
     {
-        layer.Paint(strokes, bounds.Size);
+        layer.Paint(strokes, laser, bounds.Size);
         if (Position != bounds.Position)
         {
             Position = bounds.Position;
@@ -69,19 +72,76 @@ internal sealed class AnnotationOverlay : Window
     /// <summary>Hides the window and lets go of its strokes.</summary>
     public void Withdraw()
     {
-        layer.Paint([], default);
+        layer.Paint([], null, default);
         Hide();
     }
 
     /// <summary>Draws the strokes in screen pixels, scaled back to the window's units.</summary>
     private sealed class Layer : Control
     {
+        private static readonly ImmutableSolidColorBrush LaserBrush = new(Color.FromRgb(0xFF, 0x1A, 0x1A));
+        private static readonly ImmutableSolidColorBrush LaserHotBrush = new(Color.FromRgb(0xFF, 0xF4, 0xF0));
+
+        private static readonly RadialGradientBrush LaserGlowBrush = new()
+        {
+            GradientStops =
+            [
+                new GradientStop(Color.FromArgb(140, 0xFF, 0x1A, 0x1A), 0),
+                new GradientStop(Color.FromArgb(0, 0xFF, 0x1A, 0x1A), 1),
+            ],
+        };
+
         private IReadOnlyList<Stroke> strokes = [];
+        private LaserFrame? laser;
         private PixelSize screen;
 
-        public void Paint(IReadOnlyList<Stroke> next, PixelSize size)
+        /// <summary>
+        /// The laser: a solid red core with a white-hot centre inside a soft glow, always red whatever the pen's
+        /// colour. The trail is one filled outline, alpha fading from tail to head; it is never stroked as segments.
+        /// </summary>
+        private static void DrawLaser(DrawingContext context, LaserFrame frame)
+        {
+            using var faded = context.PushOpacity(frame.Visibility);
+            var dot = new Point(frame.Dot.X, frame.Dot.Y);
+            var radius = frame.Radius;
+
+            if (frame.Outline.Length >= 3)
+            {
+                var geometry = new StreamGeometry();
+                using (var ctx = geometry.Open())
+                {
+                    ctx.BeginFigure(new Point(frame.Outline[0].X, frame.Outline[0].Y), true);
+                    for (var i = 1; i < frame.Outline.Length; i++)
+                    {
+                        ctx.LineTo(new Point(frame.Outline[i].X, frame.Outline[i].Y));
+                    }
+
+                    ctx.EndFigure(true);
+                }
+
+                var fade = new LinearGradientBrush
+                {
+                    StartPoint = new RelativePoint(frame.Tail.X, frame.Tail.Y, RelativeUnit.Absolute),
+                    EndPoint = new RelativePoint(dot, RelativeUnit.Absolute),
+                    GradientStops =
+                    [
+                        new GradientStop(Color.FromArgb(frame.TailAlpha, 0xFF, 0x1A, 0x1A), 0),
+                        new GradientStop(Color.FromArgb(frame.HeadAlpha, 0xFF, 0x1A, 0x1A), 1),
+                    ],
+                };
+                context.DrawGeometry(fade, null, geometry);
+            }
+
+            var glow = radius * Stroke.LaserGlow;
+            context.DrawEllipse(LaserGlowBrush, null, dot, glow, glow);
+            context.DrawEllipse(LaserBrush, null, dot, radius, radius);
+            context.DrawEllipse(LaserHotBrush, null, dot, radius * 0.35, radius * 0.35);
+        }
+
+        public void Paint(IReadOnlyList<Stroke> next, LaserFrame? nextLaser, PixelSize size)
         {
             strokes = next;
+            laser = nextLaser;
             screen = size;
             InvalidateVisual();
         }
@@ -95,7 +155,15 @@ internal sealed class AnnotationOverlay : Window
                 {
                     SignatureExport.Draw(context, stroke, screen.Width, screen.Height);
                 }
+
+                if (laser is { } frame)
+                {
+                    DrawLaser(context, frame);
+                }
             }
         }
     }
 }
+
+/// <summary>One laser's picture for one frame, taken under the board's lock: dot, size, fade, and the trail's outline.</summary>
+internal sealed record LaserFrame(Vector2 Dot, float Radius, float Visibility, Vector2[] Outline, Vector2 Tail, byte TailAlpha, byte HeadAlpha);

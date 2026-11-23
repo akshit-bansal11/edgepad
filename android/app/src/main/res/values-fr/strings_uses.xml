@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="uses_title">Ce qu’utilise Edgepad</string>
+  <string name="uses_intro">Tout ce qu’Edgepad prend ou demande, petit ou grand, pour que vous sachiez à quel accès vous donnez. Rien ici n’est utilisé tant qu’une fonction n’en a pas besoin. Les noms de réseaux Wi-Fi, votre position, vos contacts, vos photos et votre micro ne sont jamais demandés.</string>
+  <string name="uses_section_perms">Autorisations sur ce téléphone</string>
+  <string name="uses_section_flow">Ce qui circule entre le téléphone et l’ordinateur</string>
+  <string name="uses_section_net">Ce qui atteint internet</string>
+  <string name="uses_section_laptop">Sur votre ordinateur</string>
+  <string name="uses_flow_out">De ce téléphone vers l’ordinateur</string>
+  <string name="uses_flow_in">De l’ordinateur vers ce téléphone</string>
+  <string name="uses_flow_local">Reste sur ce téléphone</string>
+  <string name="uses_laptop_ai">Outils d’IA et Git, sur tout ordinateur</string>
+
+  <string name="uses_perm_bluetooth_title">Appareils à proximité (Bluetooth)</string>
+  <string name="uses_perm_bluetooth_body">Permet à Edgepad de se connecter à un ordinateur que vous avez déjà associé dans les paramètres Bluetooth d’Android. Il ne recherche ni ne lit jamais d’autres appareils Bluetooth. Android le demande la première fois que vous ouvrez Appareils.</string>
+  <string name="uses_perm_localnet_title">Réseau local</string>
+  <string name="uses_perm_localnet_body">Permet à ce téléphone de trouver des ordinateurs sur votre propre Wi-Fi et de communiquer avec eux. Android le demande avant la première recherche Wi-Fi.</string>
+  <string name="uses_perm_netstate_title">État du réseau</string>
+  <string name="uses_perm_netstate_body">Indique à Edgepad si vous êtes en Wi-Fi, en partage de connexion USB ou en données mobiles, pour trouver les ordinateurs et afficher votre connexion sur la page Réseau. Android ne le demande pas.</string>
+  <string name="uses_perm_wifistate_title">État du Wi-Fi</string>
+  <string name="uses_perm_wifistate_body">Lit la vitesse de liaison, la bande et la force du signal Wi-Fi de ce téléphone, pour la page Réseau. Jamais le nom du réseau, qui nécessiterait la position. Android ne le demande pas.</string>
+  <string name="uses_perm_multicast_title">Multidiffusion Wi-Fi</string>
+  <string name="uses_perm_multicast_body">Nécessaire pour trouver les ordinateurs sur le Wi-Fi. Android l’accepte aussi comme raison de laisser le service de connexion tourner en arrière-plan. Android ne le demande pas.</string>
+  <string name="uses_perm_internet_title">Internet</string>
+  <string name="uses_perm_internet_body">Transporte la liaison avec votre ordinateur en Wi-Fi ou par USB. Edgepad n’utilise internet que pour demander à github.com la version la plus récente et pour télécharger une mise à jour que vous avez choisie. Android ne le demande pas.</string>
+  <string name="uses_perm_install_title">Installer des applications</string>
+  <string name="uses_perm_install_body">Permet à Edgepad d’installer une mise à jour d’Edgepad que vous avez choisi de télécharger. Android vous demande d’autoriser les installations depuis Edgepad la première fois.</string>
+  <string name="uses_perm_update_title">Mettre à jour sans redemander</string>
+  <string name="uses_perm_update_body">Sur Android 12 et versions ultérieures, permet à une mise à jour d’Edgepad de s’installer sans seconde question une fois que vous l’avez autorisée. Elle ne met à jour qu’Edgepad. Android ne le demande pas.</string>
+  <string name="uses_perm_service_title">Fonctionner en arrière-plan</string>
+  <string name="uses_perm_service_body">Garde la liaison avec un ordinateur active pendant qu’Edgepad est réduit, avec une notification pendant son fonctionnement. Se règle avec Rester connecté en arrière-plan dans Paramètres. Android ne le demande pas.</string>
+  <string name="uses_perm_servicetype_title">Type de liaison en arrière-plan</string>
+  <string name="uses_perm_servicetype_body">Indique que ce service en arrière-plan maintient une connexion avec un appareil, votre ordinateur. Android ne le demande pas.</string>
+  <string name="uses_perm_notify_title">Notifications</string>
+  <string name="uses_perm_notify_body">Affiche l’avis de connexion, les transferts de fichiers, les demandes d’autorisation des outils d’IA et, si vous l’activez, les notifications de votre ordinateur. Android 13 et versions ultérieures le demande une fois, après la présentation.</string>
+  <string name="uses_perm_overlay_title">Affichage par-dessus d’autres applications</string>
+  <string name="uses_perm_overlay_body">Seulement pour les cadrans flottants que vous activez vous-même. Android vous envoie vers sa propre page de paramètres ; Edgepad ne le demande jamais autrement.</string>
+
+  <string-array name="uses_out_keys">
+    <item>Votre saisie</item>
+    <item>Presse-papiers</item>
+    <item>Fichiers et envois</item>
+    <item>Pages ouvertes</item>
+    <item>Vos réponses</item>
+    <item>Vos interrupteurs</item>
+  </string-array>
+  <string-array name="uses_out_values">
+    <item>Touchers, touches, texte saisi, tracés de la manette et du stylet, et boutons comme le volume et la luminosité. Seulement lorsqu’un ordinateur est connecté.</item>
+    <item>Texte ou image que vous copiez, seulement si vous activez Partager le presse-papiers, et seulement lorsqu’Edgepad est à l’écran, comme Android le permet.</item>
+    <item>Un fichier, un texte ou une image que vous envoyez volontairement, ou partagez avec Edgepad. Envoyé après que vous avez appuyé sur Envoyer.</item>
+    <item>Les pages du tableau de bord que le téléphone affiche, pour que l’ordinateur ne lise les données de charge processeur, météo, IA ou Git que lorsqu’une de ces pages est à l’écran.</item>
+    <item>Le code PIN que vous saisissez, et Approuver ou Refuser pour une demande d’autorisation d’un outil d’IA.</item>
+    <item>Notifications, mode développeur, emplacement d’enregistrement des captures, taille et couleur du stylet, et s’il faut signaler l’application au premier plan.</item>
+  </string-array>
+  <string-array name="uses_in_keys">
+    <item>Ce que fait l’ordinateur</item>
+    <item>Macros et applications</item>
+    <item>Captures et fichiers</item>
+    <item>Presse-papiers et notifications</item>
+    <item>Tableaux de bord</item>
+    <item>Page Réseau</item>
+  </string-array>
+  <string-array name="uses_in_values">
+    <item>Ce qui est en lecture et dans quelle application, le volume, la luminosité, la taille d’affichage et les fréquences d’actualisation, le nom et le système de l’ordinateur, la batterie de l’ordinateur et de ses appareils Bluetooth, et le nom de la sortie audio.</item>
+    <item>Noms et icônes des macros, et liste des applications que vous pouvez ajouter comme macro. Jamais les chemins ni les commandes qui se cachent derrière.</item>
+    <item>Une capture ou un enregistrement seulement si vous avez choisi Vers le téléphone, et les fichiers que vous envoyez depuis l’ordinateur.</item>
+    <item>Texte ou image copiés si le partage du presse-papiers est activé, et notifications de l’ordinateur (application, titre, texte court) si les deux interrupteurs de notifications sont activés. Jamais enregistrées.</item>
+    <item>Pendant qu’une page de tableau de bord est ouverte : charge de l’ordinateur et utilisation du disque, météo, noms et états des sessions d’IA, utilisation et limites de l’IA, et titres des pull requests et tickets Git.</item>
+    <item>Le type de connexion de l’ordinateur, la bande, la vitesse de liaison, le signal, l’adresse locale et la passerelle, et le résultat d’un test de débit. Jamais un nom de Wi-Fi.</item>
+  </string-array>
+  <string name="uses_local_key">Les chiffres de ce téléphone</string>
+  <string name="uses_local_value">La batterie, la mémoire, le stockage et les données de connexion de la page Système sont lus sur ce téléphone, uniquement pendant que cette page est ouverte, et ne sont jamais envoyés nulle part.</string>
+
+  <string-array name="uses_net_keys">
+    <item>Recherche de mises à jour</item>
+    <item>Test de débit</item>
+    <item>Météo</item>
+    <item>Git et connexion</item>
+    <item>Liens que vous ouvrez</item>
+    <item>Rien d’autre</item>
+  </string-array>
+  <string-array name="uses_net_values">
+    <item>github.com, depuis ce téléphone et depuis les applications de l’ordinateur : une seule requête qui demande la version la plus récente et n’envoie rien sur votre appareil. Une mise à jour que vous choisissez de télécharger vient aussi de github.com.</item>
+    <item>speed.cloudflare.com, depuis l’ordinateur, seulement lorsque vous appuyez sur Tester le débit. Il transfère des données de test et n’envoie rien sur vous.</item>
+    <item>api.open-meteo.com et geocoding-api.open-meteo.com, depuis l’ordinateur, seulement si le widget météo est activé. Le lieu choisi est envoyé pour trouver ses coordonnées, puis les prévisions sont demandées.</item>
+    <item>Depuis l’ordinateur, seulement après que vous vous êtes connecté là-bas, et seulement en lecture : github.com et api.github.com, gitlab.com ou le serveur GitLab que vous saisissez, codeberg.org ou le serveur Gitea ou Forgejo que vous saisissez, api.bitbucket.org et gitee.com. Edgepad n’écrit jamais : un filtre intégré refuse toute requête qui n’est pas une lecture. La connexion à GitHub utilise une application GitHub en lecture seule, Edgepad Dashboard, qui ne voit que les dépôts sur lesquels vous l’installez.</item>
+    <item>getedgepad.com pour la documentation, et la page de téléchargement de ViGEmBus sur github.com. Votre navigateur ne les ouvre que lorsque vous appuyez sur un lien.</item>
+    <item>Une recherche d’adresses web dans les applications du téléphone, de Windows, de Mac et de Linux n’a trouvé aucun autre hôte. Pas de compte, pas d’analyse d’usage, pas de rapport de plantage et pas de publicité.</item>
+  </string-array>
+
+  <string-array name="uses_windows_keys">
+    <item>Redémarrer en tant qu’administrateur</item>
+    <item>Règle de pare-feu</item>
+    <item>Démarrer à la connexion</item>
+    <item>Envoyer vers</item>
+    <item>Accès aux notifications</item>
+    <item>Manette virtuelle</item>
+  </string-array>
+  <string-array name="uses_windows_values">
+    <item>Une ligne facultative dans le menu de la zone de notification, derrière l’invite de Windows. Elle permet à Edgepad de saisir du texte dans les fenêtres lancées en administrateur, que Windows bloque sinon.</item>
+    <item>Une règle d’autorisation entrante pour Edgepad.exe, pour que les téléphones puissent se connecter en Wi-Fi ou par USB, ajoutée derrière l’invite de Windows. Si vous refusez, elle n’est pas redemandée au démarrage suivant.</item>
+    <item>Une entrée propre à l’utilisateur qui lance Edgepad lorsque vous vous connectez, si vous l’activez dans le menu de la zone de notification. Sans droits d’administrateur.</item>
+    <item>Un raccourci dans votre propre dossier Envoyer vers, pour qu’Envoyer vers, puis Edgepad, puisse envoyer des fichiers au téléphone.</item>
+    <item>Seulement si vous transférez les notifications : Windows vous demande d’autoriser Edgepad à les lire.</item>
+    <item>La manette du téléphone a besoin du pilote ViGEmBus, que vous installez vous-même. Edgepad ouvre seulement sa page de téléchargement.</item>
+  </string-array>
+  <string-array name="uses_mac_keys">
+    <item>Accessibilité</item>
+    <item>Bluetooth</item>
+    <item>Réseau local</item>
+    <item>Automatisation</item>
+    <item>Fichiers et dossiers</item>
+    <item>Notifications et élément de connexion</item>
+    <item>Non demandé</item>
+  </string-array>
+  <string-array name="uses_mac_values">
+    <item>Nécessaire pour saisir, cliquer et appuyer sur des touches pour le téléphone. macOS le demande, et Edgepad prévient le téléphone lorsqu’il manque.</item>
+    <item>Pour écouter le téléphone que vous avez associé à ce Mac.</item>
+    <item>Pour que le téléphone trouve ce Mac en Wi-Fi, lorsque vous activez les connexions Wi-Fi.</item>
+    <item>Pour demander à Music ou Spotify ce qui est en lecture et pour le contrôler, et pour mettre en veille ou éteindre ce Mac lorsque vous le réglez à la fin du média.</item>
+    <item>Bureau, Documents et Téléchargements, pour trouver une capture ou un enregistrement que vous avez demandé de recevoir sur le téléphone.</item>
+    <item>Alertes pour un téléphone qui demande l’association et pour une nouvelle version ; Démarrer à la connexion est un élément de connexion ordinaire. Les jetons de connexion vont dans votre Keychain.</item>
+    <item>Surveillance de la saisie et Enregistrement de l’écran. Les captures utilisent les raccourcis propres à macOS.</item>
+  </string-array>
+  <string-array name="uses_linux_keys">
+    <item>Périphérique de saisie</item>
+    <item>Bluetooth</item>
+    <item>Services de bureau</item>
+    <item>Démarrage à la connexion</item>
+  </string-array>
+  <string-array name="uses_linux_values">
+    <item>/dev/uinput, ouvert pour la personne devant le clavier grâce à une règle udev et à un réglage de module que l’installateur ajoute une fois, en administrateur.</item>
+    <item>BlueZ, sur le bus système, pour écouter le téléphone que vous avez associé.</item>
+    <item>Sur le bus de session : notifications, lecteurs multimédias (MPRIS), alimentation (UPower), veille et verrouillage (systemd-logind), NetworkManager pour la page Réseau, le réglage du mode sombre du bureau, les fréquences d’actualisation de l’écran, la zone de notification et le Secret Service pour les jetons de connexion.</item>
+    <item>Une entrée de démarrage automatique dans votre propre dossier de configuration, lorsque vous l’activez.</item>
+  </string-array>
+  <string-array name="uses_ai_keys">
+    <item>Outils d’IA</item>
+    <item>Jetons de connexion</item>
+  </string-array>
+  <string-array name="uses_ai_values">
+    <item>Seulement avec le mode développeur activé. Edgepad lit les fichiers locaux de session et d’utilisation de Claude Code, Codex, Gemini CLI et OpenCode, et connecter l’un d’eux ajoute un petit module d’extension aux paramètres de cet outil.</item>
+    <item>Les jetons Git sont conservés chiffrés sur l’ordinateur, dans son propre gestionnaire d’identifiants, et ne sont jamais envoyés au téléphone.</item>
+  </string-array>
+</resources>

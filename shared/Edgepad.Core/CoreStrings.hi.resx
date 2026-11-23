@@ -79,7 +79,7 @@
     <value>पेयरिंग पूरी नहीं हुई।</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>पेयरिंग कोड मेल खा गया। पूरा करने के लिए {0} पर "हां, पेयर हो गया" पर टैप करें।</value>
+    <value>पेयरिंग कोड मेल खा गया। पूरा करने के लिए {0} पर "कोड मेल खाते हैं" पर टैप करें।</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>{0} से पेयर हो गया।</value>

@@ -5,7 +5,16 @@ using Tmds.DBus.Protocol;
 namespace Edgepad.Platform;
 
 /// <summary>The UPower device properties a battery entry is built from, read off org.freedesktop.UPower.Device.</summary>
-internal readonly record struct UPowerDevice(uint Type, double Percentage, uint State, string Model, bool IsPresent, bool PowerSupply);
+/// <remarks>Capacity is percent of design capacity and Temperature degrees Celsius; UPower reports 0 for either it does not know.</remarks>
+internal readonly record struct UPowerDevice(
+    uint Type,
+    double Percentage,
+    uint State,
+    string Model,
+    bool IsPresent,
+    bool PowerSupply,
+    double Capacity = 0,
+    double Temperature = 0);
 
 /// <summary>
 /// What the phone's battery strip and volume dial show for this laptop: the batteries UPower knows (the laptop's own,
@@ -77,13 +86,19 @@ internal sealed class PowerSource(Bus system) : IDisposable
                 kind,
                 (int)Math.Round(Math.Clamp(d.Percentage, 0, 100), MidpointRounding.AwayFromZero),
                 d.State is StateCharging or StateFull,
-                d.Model);
+                d.Model,
+                Known(d.Capacity, 100),
+                Known(d.Temperature, 150));
             (kind == BatteryKind.Laptop ? laptops : others).Add(entry);
         }
 
         laptops.AddRange(others);
         return laptops;
     }
+
+    /// <summary>A whole number for the wire, or null (unknown) for what UPower reports as 0, a negative, or not a number.</summary>
+    private static int? Known(double value, int max) =>
+        double.IsFinite(value) && value > 0 ? (int)Math.Round(Math.Min(value, max), MidpointRounding.AwayFromZero) : null;
 
     /// <summary>
     /// The <c>key = "value"</c> property lines of <c>wpctl inspect</c> (each may start with <c>*</c>) or of a
@@ -269,6 +284,8 @@ internal sealed class PowerSource(Bus system) : IDisposable
             p.TryGetValue("State", out var s) && s.Type == VariantValueType.UInt32 ? s.GetUInt32() : 0,
             p.TryGetValue("Model", out var m) && m.Type == VariantValueType.String ? m.GetString() : string.Empty,
             p.TryGetValue("IsPresent", out var ip) && ip.Type == VariantValueType.Bool && ip.GetBool(),
-            p.TryGetValue("PowerSupply", out var ps) && ps.Type == VariantValueType.Bool && ps.GetBool());
+            p.TryGetValue("PowerSupply", out var ps) && ps.Type == VariantValueType.Bool && ps.GetBool(),
+            p.TryGetValue("Capacity", out var cap) && cap.Type == VariantValueType.Double ? cap.GetDouble() : 0,
+            p.TryGetValue("Temperature", out var temp) && temp.Type == VariantValueType.Double ? temp.GetDouble() : 0);
     }
 }

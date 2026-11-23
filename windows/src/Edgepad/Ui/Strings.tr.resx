@@ -13,13 +13,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Network_Notice" xml:space="preserve">
-    <value>Aynı Wi-Fi ağındaki veya USB ile internet paylaşımıyla bağlı telefonlar bu bilgisayarı bulup eşleştirme isteyebilecek. Burada yazılan eşleştirme kodu olmadan hiçbir şey bağlanmaz. Windows, Edgepad güvenlik duvarı kuralını eklemek için Komut İstemi'ni bir kez çalıştırmak isteyecek.</value>
+    <value>Aynı Wi-Fi ağındaki veya USB ile internet paylaşımıyla bağlı telefonlar bu bilgisayarı bulup eşleştirme isteyebilecek. Burada yazılan eşleştirme kodu olmadan hiçbir şey bağlanmaz. Windows, Edgepad güvenlik duvarı kuralını eklemek için Komut İstemi’ni bir kez çalıştırmak isteyecek.</value>
   </data>
   <data name="Network_ClipboardNotice" xml:space="preserve">
     <value>Panoyu paylaş: birinde kopyalayın, ötekine yapıştırın; metin ve resimler. İşaretleyene kadar kapalı kalır.</value>
   </data>
   <data name="Network_WhereItLives" xml:space="preserve">
-    <value>Edgepad görev çubuğunun bildirim alanında çalışır. Simgesini görmüyorsanız ^ düğmesine tıklayıp dışarı sürükleyin. Bluetooth kullanmak için önce telefonu Windows Bluetooth ayarlarında eşleştirin, sonra telefonda Edgepad'i açın.</value>
+    <value>Edgepad görev çubuğunun bildirim alanında çalışır. Simgesini görmüyorsanız ^ düğmesine tıklayıp dışarı sürükleyin. Bluetooth kullanmak için önce telefonu Windows Bluetooth ayarlarında eşleştirin, sonra telefonda Edgepad’i açın.</value>
   </data>
   <data name="Menu_StartWithWindows" xml:space="preserve">
     <value>Windows ile ba&amp;şlat</value>
@@ -64,7 +64,7 @@
     <value>B&amp;elgeler</value>
   </data>
   <data name="Menu_Quit" xml:space="preserve">
-    <value>Edgepad'den &amp;çık</value>
+    <value>Edgepad’den &amp;çık</value>
   </data>
   <data name="Menu_MacrosCount" xml:space="preserve">
     <value>{0} / {1}</value>
@@ -156,12 +156,12 @@
   <data name="Error_ForgetAllTrust" xml:space="preserve">
     <value>Güvenilen telefonların dosyasını tutan şeyi kapatın, sonra “Tümünü unut” seçeneğini yeniden seçin ya da dosyayı kendiniz silin:
 {0}
-Güvenilen telefonlar unutulamadı: dosyaları kaldırılamadı veya boşaltılamadı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad'in bir sonraki başlayışında yine güvenilir olur.</value>
+Güvenilen telefonlar unutulamadı: dosyaları kaldırılamadı veya boşaltılamadı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad’in bir sonraki başlayışında yine güvenilir olur.</value>
   </data>
   <data name="Error_ForgetAllPin" xml:space="preserve">
     <value>“Tümünü unut” seçeneğini yeniden seçin ya da pin-verified.txt dosyasını şu klasörden kendiniz silin:
 {0}
-PIN'i giren telefonlar unutulamadı: listeleri kaldırılamadı. Edgepad çalıştığı sürece her telefondan her bağlantıda PIN istenir, ancak bu telefonlar Edgepad'in bir sonraki başlayışında 2. düzeyde yine PIN girmeden bağlanır.</value>
+PIN’i giren telefonlar unutulamadı: listeleri kaldırılamadı. Edgepad çalıştığı sürece her telefondan her bağlantıda PIN istenir, ancak bu telefonlar Edgepad’in bir sonraki başlayışında 2. düzeyde yine PIN girmeden bağlanır.</value>
   </data>
   <data name="Error_ForgetLinks" xml:space="preserve">
     <value>“Tümünü unut” seçeneğini yeniden seçin ya da paired-links.txt dosyasını şu klasörden kendiniz silin:
@@ -202,7 +202,7 @@ Wi-Fi ve USB eşleşmeleri unutulamadı: dosyaları kaldırılamadı veya boşal
     <value>Her telefonun önce burada sizin onayınızı alması gerekir. 2. ve 3. düzeyler ayrıca telefonun ekranında yazılan altı basamaklı bir PIN ister. Bu pencere açıkken telefonların bağlantısı kesilir.</value>
   </data>
   <data name="Security_PinNote" xml:space="preserve">
-    <value>Yeni bir PIN veya düzeyi kaydetmek, PIN'i bir kez girmiş telefonlardan onu yeniden girmelerini ister.</value>
+    <value>Yeni bir PIN veya düzeyi kaydetmek, PIN’i bir kez girmiş telefonlardan onu yeniden girmelerini ister.</value>
   </data>
   <data name="Security_TrustedPhones" xml:space="preserve">
     <value>Güvenilen telefonlar</value>
@@ -220,7 +220,7 @@ Wi-Fi ve USB eşleşmeleri unutulamadı: dosyaları kaldırılamadı veya boşal
     <value>Tümünü &amp;unut…</value>
   </data>
   <data name="Security_Reset" xml:space="preserve">
-    <value>PIN'i &amp;sıfırla ve telefonları unut…</value>
+    <value>PIN’i &amp;sıfırla ve telefonları unut…</value>
   </data>
   <data name="Common_Save" xml:space="preserve">
     <value>Kay&amp;det</value>
@@ -232,7 +232,7 @@ Wi-Fi ve USB eşleşmeleri unutulamadı: dosyaları kaldırılamadı veya boşal
     <value>Unut: {0}</value>
   </data>
   <data name="Security_ChangePin" xml:space="preserve">
-    <value>PIN'i değiştir…</value>
+    <value>PIN’i değiştir…</value>
   </data>
   <data name="Security_SetPin" xml:space="preserve">
     <value>PIN belirle…</value>
@@ -271,12 +271,12 @@ Wi-Fi ve USB eşleşmeleri unutulamadı: dosyaları kaldırılamadı veya boşal
     <value>PIN sıfırlansın ve her telefon unutulsun mu?</value>
   </data>
   <data name="Security_ResetText" xml:space="preserve">
-    <value>PIN silinir, düzey 1'e döner ve güvenilen her telefon unutulur. Bağlı olan telefon dahil her telefona burada yeniden güvenmeniz gerekir. Unutulan bir PIN geri alınamaz, yalnızca sıfırlanabilir.</value>
+    <value>PIN silinir, düzey 1’e döner ve güvenilen her telefon unutulur. Bağlı olan telefon dahil her telefona burada yeniden güvenmeniz gerekir. Unutulan bir PIN geri alınamaz, yalnızca sıfırlanabilir.</value>
   </data>
   <data name="Error_ResetTrust" xml:space="preserve">
     <value>Dosyayı tutan şeyi kapatın, sonra “PIN’i sıfırla ve telefonları unut” seçeneğini yeniden seçin ya da dosyayı kendiniz silin:
 {0}
-Hiçbir şey sıfırlanmadı: güvenilen telefonlar unutulamadı, bu yüzden PIN ve düzey olduğu gibi bırakıldı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad'in bir sonraki başlayışında aynı PIN'le yine güvenilir olur.</value>
+Hiçbir şey sıfırlanmadı: güvenilen telefonlar unutulamadı, bu yüzden PIN ve düzey olduğu gibi bırakıldı. Edgepad çalıştığı sürece hiçbir telefon bağlanamaz, ancak bu telefonlar Edgepad’in bir sonraki başlayışında aynı PIN’le yine güvenilir olur.</value>
   </data>
   <data name="Error_ResetPin" xml:space="preserve">
     <value>Dosyayı tutan şeyi kapatın, sonra “PIN’i sıfırla ve telefonları unut” seçeneğini yeniden seçin ya da security.txt ve pin-verified.txt dosyalarını şu klasörden kendiniz silin:
@@ -287,7 +287,7 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
     <value>Yeni PIN</value>
   </data>
   <data name="Pin_AgainName" xml:space="preserve">
-    <value>Yeni PIN'i yeniden girin</value>
+    <value>Yeni PIN’i yeniden girin</value>
   </data>
   <data name="Pin_Digits" xml:space="preserve">
     <value>Altı basamak</value>
@@ -296,7 +296,7 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
     <value>Yeniden</value>
   </data>
   <data name="Pin_Use" xml:space="preserve">
-    <value>&amp;Bu PIN'i kullan</value>
+    <value>&amp;Bu PIN’i kullan</value>
   </data>
   <data name="Pin_NotSix" xml:space="preserve">
     <value>PIN tam olarak altı basamaklı olmalıdır.</value>
@@ -471,5 +471,437 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
   </data>
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi ve USB: telefonlar bu bilgisayarı bulamayabilir.</value>
+  </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Yönetici olarak yeniden başlat</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Edgepad’in Görev Yöneticisi gibi yükseltilmiş pencerelere yazmasını sağlar. Kilit ekranı ve UAC istemleri erişilemez kalır.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} sürümünü yükle</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Sonra</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Bu sürümü atla</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} kullanıma hazır. Yüklemek için tıklayın.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} doğrulanamadı, bu yüzden yüklenmedi.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0} yüklenemedi. Sürüm sayfasını açmak için tıklayın.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>Bu büyük bir sürüm. Edgepad’i telefonda da güncelleyin, yoksa birbirlerini reddederler. Şimdi yüklensin mi?</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Kapatılıyor</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>Medya bitti. Bu dizüstü bilgisayar {0} saniye içinde kapanacak.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>İptal</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Telefona dosya gönder…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} telefondan geldi.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0} alınamadı.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Bildirimleri telefonda göster</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Yükle</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Şimdi değil</value>
+  </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>Pano &amp;tarihçesi</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Bu dizüstü bilgisayardan ve telefondan son kopyalar. Yalnızca bellekte tutulur.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Pano</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Henüz bir şey kopyalanmadı</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Bu dizüstü bilgisayardan ve telefondan kopyalar burada görünür.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Kopyalarınızı burada görmek için tepsi menüsünde Panoyu paylaş seçeneğini açın.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Tümünü temizle</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Bu dizüstü bilgisayar</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Telefon</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Az önce</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} dk önce</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} sa önce</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} g önce</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Telefona gönder</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Kaldır</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Telefona gönderildi</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>Gönderilemedi. Bağlantıyı denetleyin.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Kopyalandı. Yapıştırmak için Ctrl+V’ye basın.</value>
+  </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Pano kullanılamadı. Yeniden deneyin.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V başka bir uygulama tarafından kullanılıyor, bu yüzden kısayol kapalı.</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} gönderildi</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Gönderilen dosyalar: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Gönderilen dosyalar: {0} / {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Alınan dosyalar: {0}</value>
+  </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Alınan dosyalar: {0} / {1}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} gönderilemedi</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Gönderilemeyen dosyalar: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>İptal ediliyor…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Yeniden dene</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Kapat</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>Bağlı telefon yok.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} atlandı: boş, eksik veya 2 GB’tan büyük.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>Telefon reddetti. Yeri kalmamış olabilir.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Hasarlı ulaştı. Yeniden deneyin.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>Telefon kaydedemedi.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>Telefon başka bir dosyayla meşguldü.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>Telefon yanıt vermeyi bıraktı.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>Bağlantı kesildi.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Bu dizüstü bilgisayar dosyayı okuyamadı.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>İptal edildi.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>Gönderilmedi.</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>İsta&amp;tistik ve hava durumu…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Geliştirici modu</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>&amp;Geliştiriciler için…</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>&amp;Pano</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>Bağ&amp;lantılar</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>Entegrasyo&amp;nlar</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Entegrasyonlar</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Buradaki her şey siz açana kadar kapalıdır.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Sistem istatistiklerini telefonda göster</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Hava durumunu telefonda göster</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Şehir</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>open-meteo.com adresine yalnızca şehir adı gönderilir.</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Bağlan</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Bağlantıyı kes</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Bağlı · son sinyal {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Bağlı değil</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} bu bilgisayarda bulunamadı</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad bunu sizin için çalıştıramadı. Bu komutları bir terminalde çalıştırın:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Kopyala</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Codex’te /hooks’u açın ve Edgepad’e güvenin.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Codex’in eklentiye güvenmesi bekleniyor…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Codex’i 0.159 veya daha yeni bir sürüme güncelleyin.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Açık oturumları yeniden başlatın ya da Claude Code’da /reload-plugins komutunu çalıştırın.</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Geliştiriciler için</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Oturumu kapat</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Kodunuz: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device adresini aç</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Tarayıcıda onaylamanız bekleniyor…</value>
+  </data>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>GitHub’da depoları seç</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Yeniden oturum açın. Edgepad artık GitHub’a salt okunur erişim kullanıyor. Eski Edgepad’in erişimini https://github.com/settings/applications adresinden iptal edin.</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>{0} olarak oturum açıldı</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Bu sürümde oturum açma ayarlanmamış.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>hiç</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Çalışıyor…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Henüz kurmadıysanız Claude Code’u bu bilgisayara kurun: claude.com/claude-code
+2. Bağlan’a tıklayın. Edgepad, eklentisini Claude Code’a ekler.
+3. Açık Claude Code oturumlarını yeniden başlatın ya da bu oturumlarda /reload-plugins yazın.
+4. Telefonunuzda Controls > AI’ı açın.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Henüz kurmadıysanız Codex’i bu bilgisayara kurun: developers.openai.com/codex
+2. Bağlan’a tıklayın. Edgepad, eklentisini Codex’e ekler.
+3. Codex’te /hooks yazın ve Edgepad’e güvenin. Codex uygulamasında: Settings > Hooks > Review hooks.
+4. Telefonunuzda Controls > AI’ı açın. Codex ilk olayını gönderdiğinde görünür.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Oturum aç’a tıklayın. Bir github.com sayfası açılır.
+2. Burada gösterilen kodu girin ve Authorize’a tıklayın.
+3. Telefonunuzda Controls > GitHub’ı açın.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Yapay zekâ araçlarınızı ve Git sunucularınızı bağlayın, telefonunuzda görün.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>Yapay zekâ araçları</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Git sunucuları</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>Nasıl bağlanır</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Oturum aç</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Ekle…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Yakında</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Sunucu adresi</value>
+  </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Kendi barındırdığınız sunucuyu ekleyin…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>gitlab.com/oauth/device adresini aç</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>Sunucunuzda yalnızca read_api kapsamına sahip bir kişisel erişim belirteci oluşturun ve aşağıya yapıştırın.</value>
+  </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>GitLab oturumunun süresi doldu — yeniden oturum açın</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Bunun yerine belirteç kullan</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>gitlab.com’da yalnızca read_api kapsamlı bir kişisel erişim belirteci oluşturun ve aşağıya yapıştırın. Oturum açmanın aksine 2 saat sonra sona ermez.</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Kullanıcı adı veya e-posta</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Erişim belirteci</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Sunucu adresini, adı ve belirteci kontrol edip yeniden deneyin.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>Sunucu bu belirteci kabul etmedi.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>Bu belirtecin okuma izni yok. Okuma erişimli bir belirteç oluşturun.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>Bu adreste sunucu bulunamadı.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>Belirteç kaydedilemedi. Yeniden deneyin.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Henüz yapmadıysanız bu bilgisayara Gemini CLI’yi kurun.
+2. Bağlan’a tıklayın. Edgepad kancalarını Gemini CLI ayarlarına ekler.
+3. Açık Gemini CLI oturumlarını yeniden başlatın.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Henüz yapmadıysanız bu bilgisayara OpenCode’u kurun.
+2. Bağlan’a tıklayın. Edgepad eklentisini OpenCode’un eklenti klasörüne ekler.
+3. Açık OpenCode oturumlarını yeniden başlatın.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. Sunucunuzda Ayarlar &gt; Uygulamalar’ı açın ve okuma erişimli bir erişim belirteci oluşturun.
+2. Ekle’ye tıklayın, sunucu adresini kontrol edin (varsayılan Codeberg) ve belirteci yapıştırın.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. Atlassian hesabınızda Bitbucket için okuma erişimli bir API belirteci oluşturun.
+2. Ekle’ye tıklayın, Bitbucket e-postanızı girin ve belirteci yapıştırın.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. gitee.com’da Ayarlar &gt; Kişisel erişim belirteçleri’ni açın ve okuma erişimli bir belirteç oluşturun.
+2. Ekle’ye tıklayın ve belirteci yapıştırın.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Bunları kullanmak için Geliştirici modunu açın.</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex yeniden onayınızı istiyor</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad güncellendi. Codex’te /hooks yazın ve Edgepad’e güvenin; aksi halde onaylar telefon yerine terminalde kalır.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>&amp;Aktarımlar</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>{0} telefona gönderiliyor</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>{0} telefondan alınıyor</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {2} içinden {1} · {3}/sn</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {2} içinden {1}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/sn</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · Duraklatıldı</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Duraklat</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Devam et</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Durdur</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Alınamadı: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>Gönderilemedi: {0}</value>
   </data>
 </root>

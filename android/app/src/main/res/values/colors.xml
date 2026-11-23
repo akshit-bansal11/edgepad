@@ -2,13 +2,14 @@
 <resources>
   <color name="ic_launcher_background">#FFFFFF</color>
   <!-- Edgepad 2.0, the light set; values-night/colors.xml holds the dark one. iOS-style grouped surfaces:
-       [panel] is the ground, [card] the grouped cell on it. One accent, used for what is selected, on,
+       [line] is ink at 12% (dark 8%) so a hairline reads on any surface (DES-D22). [panel] is the ground, [card] the grouped cell on it, a step off pure white (DES-D21); [popover] is a dialog or popup, level with card here. One accent, used for what is selected, on,
        live or the main action. Every text pair was computed at 4.5:1 or better: ink on panel 16.2:1, dim
        on panel 4.6:1 and on card 5.1:1, accent on card 5.3:1 and on panel 4.8:1, white on accent 5.3:1,
        danger on faint 4.6:1. Off track #878A92 (L 0.254) on card 3.45:1, on panel about 3.1:1. -->
   <color name="panel">#F2F3F7</color>
-  <color name="card">#FFFFFF</color>
-  <color name="line">#E3E5EA</color>
+  <color name="card">#FBFBFD</color>
+  <color name="popover">#FBFBFD</color>
+  <color name="line">#1F16171A</color>
   <color name="faint">#EBEDF2</color>
   <color name="ink">#16171A</color>
   <color name="dim">#6B6E76</color>
@@ -18,4 +19,9 @@
   <color name="off">#E3E5EA</color>
   <color name="track">#878A92</color>
   <color name="danger">#D70015</color>
+  <!-- Usage-ring levels, contrast on card #FBFBFD: green 4.9:1, yellow 4.71:1, orange 4.86:1, red 5.21:1. -->
+  <color name="level_green">#1F7F37</color> <!-- 4.9:1 -->
+  <color name="level_yellow">#9A6700</color> <!-- 4.71:1 -->
+  <color name="level_orange">#B35400</color> <!-- 4.86:1 -->
+  <color name="level_red">#D70015</color> <!-- 5.21:1 -->
 </resources>

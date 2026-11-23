@@ -105,7 +105,7 @@ internal static class LinuxMacroIcons
     /// <paramref name="path"/> as a PNG of <paramref name="size"/>, or of the next tier down while that is too heavy for
     /// the wire, or null when it cannot be read or is too heavy even at the smallest.
     /// </summary>
-    internal static byte[]? Render(string path, int size = MacroIconChunks.DefaultSize)
+    internal static byte[]? Render(string path, int size = MacroIconChunks.DefaultSize, int floor = MacroIconChunks.DefaultSize)
     {
         // Unfiltered on purpose, as LinuxSession.Run's last catch is: a third-party SVG parser can throw anything, and
         // an exception escaping onto the session's read thread would drop the phone's connection over one bad icon.
@@ -162,9 +162,9 @@ internal static class LinuxMacroIcons
                 return Undecodable(path);
             }
 
-            // A small raster is not blown up past the default to the asked tier: that adds bytes and no detail. An SVG has
+            // A small raster is not blown up past <paramref name="floor"/> (the default tier; 64 for the media icon) to the asked tier: that adds bytes and no detail. An SVG has
             // no such limit.
-            var capped = Math.Max(MacroIconChunks.DefaultSize, Math.Min(size, Math.Max(image.Width, image.Height)));
+            var capped = Math.Max(floor, Math.Min(size, Math.Max(image.Width, image.Height)));
             return Fit(path, capped, image.Width, image.Height, (canvas, dest) => canvas.DrawImage(image, dest, Sampling));
         }
         catch (Exception e)

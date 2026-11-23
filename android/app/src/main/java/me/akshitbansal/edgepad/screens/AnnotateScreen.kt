@@ -15,7 +15,6 @@ import android.widget.ScrollView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
-import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.protocol.ActionId
 import me.akshitbansal.edgepad.protocol.ControlId
@@ -49,19 +48,7 @@ class AnnotateScreen(
 ) {
     private val strokes = Strokes(settings.penRgb, settings.penWidth, settings.penOpacity)
 
-    // AND-A-20: one dim line over the empty pad until the first touch draws something.
-    private var armed = false
-    private val hint = ui.text(hintFor(state), Type.BODY, ui.palette.dim)
-    private val canvas =
-        AnnotateCanvas(
-            ui.context,
-            strokes,
-            { state.screenSize },
-            { frame ->
-                if (armed) hint.visibility = View.GONE
-                send(frame)
-            },
-        )
+    private val canvas = AnnotateCanvas(ui.context, strokes, { state.screenSize }, send)
     private val tools = ArrayList<Pair<PenTool, ImageView>>()
     private val swatches = ArrayList<View>()
     private lateinit var customSwatch: View
@@ -81,7 +68,6 @@ class AnnotateScreen(
             setBackgroundColor(ui.palette.background)
             canvas.contentDescription = ui.string(R.string.annotate_description)
             addView(canvas, FrameLayout.LayoutParams(MATCH, MATCH))
-            addView(hint, FrameLayout.LayoutParams(WRAP, WRAP, Gravity.CENTER))
             EditorFrame.addBack(this, ui, onBack)
             addView(
                 LinearLayout(ui.context).apply {
@@ -95,20 +81,17 @@ class AnnotateScreen(
                     .apply { setMargins(ui.dp(Space.M), ui.dp(Space.M), ui.dp(Space.M), ui.dp(Space.M)) },
             )
             ui.padToBars(this)
+            // Clear of the menu and its handle, which sit in the bottom corner.
+            val kind = StencilIcon.Kind.ANNOTATE
+            TipCard.show(this, settings, "annotate", kind, R.string.tip_annotate, Space.M, endDp = MENU_CLEAR_DP)
         }
 
     init {
-        hint.gravity = Gravity.CENTER
-        hint.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         // A new session starts on the laptop's own pen, so say which one the preview starts on.
         sendStyle()
         paint()
         open(false)
-        armed = true
     }
-
-    private fun hintFor(state: LaptopState): String =
-        state.laptopName?.let { ui.string(R.string.annotate_hint_named, it) } ?: ui.string(R.string.annotate_hint)
 
     /** Redraws the pad, for a laptop display that changed shape under it. */
     fun refresh() = canvas.refresh()
@@ -128,6 +111,7 @@ class AnnotateScreen(
                         val label = ui.string(R.string.annotate_tool_desc, ui.string(TOOL_LABELS.getValue(tool)))
                         val button =
                             glyph(TOOL_ICONS.getValue(tool), label) {
+                                canvas.heartbeat = false
                                 if (strokes.select(tool)) {
                                     send(tool.action.frame())
                                     paint()
@@ -137,6 +121,15 @@ class AnnotateScreen(
                         tools.add(tool to button)
                         addView(button)
                     }
+                    // The laser is the laptop's own tool and never a stroke the phone keeps, so it is not a PenTool.
+                    val laser = ui.string(R.string.annotate_tool_desc, ui.string(R.string.tool_laser))
+                    addView(
+                        glyph(R.drawable.ic_tool_ellipse, laser) {
+                            canvas.heartbeat = true
+                            send(ActionId.TOOL_LASER.frame())
+                            open(false)
+                        },
+                    )
                 },
             )
             customSwatch = customSwatch()
@@ -286,7 +279,7 @@ class AnnotateScreen(
         AlertDialog
             .Builder(ui.context)
             .setView(body)
-            .setPositiveButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.editor_done, null)
             .showOver(view)
     }
 
@@ -300,11 +293,11 @@ class AnnotateScreen(
     private fun widthSlider(): View =
         ui.slider(
             ui.string(R.string.annotate_width),
-            WIDTH_STEPS,
-            (strokes.width / Strokes.WIDTH_PER_SIZE - 1).coerceIn(0, WIDTH_STEPS),
+            Strokes.WIDTH_STEPS,
+            Strokes.widthStep(strokes.width),
             { step -> ui.string(R.string.annotate_width_value, step + 1) },
         ) { step ->
-            if (strokes.selectWidth((step + 1) * Strokes.WIDTH_PER_SIZE)) {
+            if (strokes.selectWidth(Strokes.widthAt(step))) {
                 settings.penWidth = strokes.width
                 send(ControlId.PEN_WIDTH.set(strokes.width))
             }
@@ -313,11 +306,11 @@ class AnnotateScreen(
     private fun opacitySlider(): View =
         ui.slider(
             ui.string(R.string.annotate_opacity),
-            OPACITY_STEPS,
-            ((strokes.opacity - Strokes.MIN_OPACITY) / Strokes.OPACITY_STEP).coerceIn(0, OPACITY_STEPS),
-            { step -> ui.string(R.string.percent_value, Strokes.MIN_OPACITY + step * Strokes.OPACITY_STEP) },
+            Strokes.OPACITY_STEPS,
+            Strokes.opacityStep(strokes.opacity),
+            { step -> ui.string(R.string.percent_value, Strokes.opacityAt(step)) },
         ) { step ->
-            if (strokes.selectOpacity(Strokes.MIN_OPACITY + step * Strokes.OPACITY_STEP)) {
+            if (strokes.selectOpacity(Strokes.opacityAt(step))) {
                 settings.penOpacity = strokes.opacity
                 send(ControlId.PEN_OPACITY.set(strokes.opacity))
             }
@@ -449,16 +442,13 @@ class AnnotateScreen(
     private companion object {
         const val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
         const val WRAP = ViewGroup.LayoutParams.WRAP_CONTENT
+        const val MENU_CLEAR_DP = 72f
         const val SWATCH_DP = 32f
         const val RING_DP = 3f
         const val HAIR_DP = 1f
         const val SWATCHES_PER_ROW = 5
         const val OPAQUE = 0xFF000000.toInt()
         const val RGB_MASK = 0xFFFFFF
-
-        // One slider position per size of WIDTH_PER_SIZE steps from size 1, and per OPACITY_STEP percent from the lowest.
-        const val WIDTH_STEPS = Strokes.MAX_WIDTH / Strokes.WIDTH_PER_SIZE - 1
-        const val OPACITY_STEPS = (Strokes.MAX_OPACITY - Strokes.MIN_OPACITY) / Strokes.OPACITY_STEP
 
         /** The menu may take this much of the screen's height before it scrolls. */
         const val MENU_SCREEN_SHARE = 0.65f

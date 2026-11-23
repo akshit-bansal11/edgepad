@@ -23,6 +23,12 @@ internal enum StrokeTool
     Arrow,
     Rectangle,
     Ellipse,
+
+    /// <summary>A dot that follows the finger: it keeps only its latest point, is never stored in the board's strokes, and is gone at pen up.</summary>
+    Laser,
+
+    /// <summary>The laser plus a short fading trail: it keeps the points of the last <see cref="Stroke.TrailWindowMs"/> ms, is never stored, and is gone at pen up.</summary>
+    LaserTrail,
 }
 
 /// <summary>A point as the phone sent it: 0 is the left/top edge of the laptop screen, 65535 the right/bottom.</summary>
@@ -89,7 +95,7 @@ internal readonly record struct PenStyle(int Rgb, int Width, int Opacity)
 
 /// <summary>
 /// One finger-down to finger-up. Freehand tools keep every point; the shape tools keep the down point and the
-/// latest one, because a shape is only ever its two corners.
+/// latest one, because a shape is only ever its two corners; the laser keeps only the latest point, the trailing laser its latest few.
 /// </summary>
 internal sealed class Stroke(StrokeTool tool, PenStyle style)
 {
@@ -117,6 +123,24 @@ internal sealed class Stroke(StrokeTool tool, PenStyle style)
         (byte)Math.Round(255f * (Tool == StrokeTool.Highlighter ? HighlighterAlpha : 1f) * Style.Opacity / 100f);
 
     public List<NormPoint> Points { get; } = [];
+
+    /// <summary>How long a point stays in the trailing laser's trail, in milliseconds.</summary>
+    public const int TrailWindowMs = 250;
+
+    /// <summary>The glow's radius as a multiple of the dot's.</summary>
+    public const float LaserGlow = 1.8f;
+
+    /// <summary>When each of <see cref="Points"/> arrived (laser strokes only), same order and length.</summary>
+    public List<long> PointMs { get; } = [];
+
+    /// <summary>When the last PEN event of this stroke arrived; the laser's watchdog runs from it.</summary>
+    public long LastEventMs { get; private set; }
+
+    /// <summary>Either laser: sized from the pen width, never stored.</summary>
+    public bool IsLaser => Tool is StrokeTool.Laser or StrokeTool.LaserTrail;
+
+    /// <summary>The laser dot's radius in pixels: 0.05% of the screen's height per width step (10, 15, 20 are 0.5, 0.75, 1.0%), at least 2.</summary>
+    public float LaserRadiusPx(int height) => Math.Max(2f, Style.Width * 0.0005f * height);
 
     private bool IsShape => Tool is StrokeTool.Line or StrokeTool.Arrow or StrokeTool.Rectangle or StrokeTool.Ellipse;
 
@@ -158,9 +182,27 @@ internal sealed class Stroke(StrokeTool tool, PenStyle style)
     }
 
     /// <summary>A shape keeps two points: the down point, then wherever the finger is now.</summary>
-    internal void Extend(NormPoint point)
+    internal void Extend(NormPoint point, long nowMs = 0)
     {
-        if (IsShape && Points.Count > 1)
+        if (IsLaser)
+        {
+            LastEventMs = nowMs;
+        }
+
+        if (Tool == StrokeTool.Laser)
+        {
+            Points.Clear();
+            PointMs.Clear();
+            Points.Add(point);
+            PointMs.Add(nowMs);
+        }
+        else if (Tool == StrokeTool.LaserTrail)
+        {
+            Points.Add(point);
+            PointMs.Add(nowMs);
+            TrimTrail(nowMs);
+        }
+        else if (IsShape && Points.Count > 1)
         {
             Points[1] = point;
         }
@@ -168,6 +210,39 @@ internal sealed class Stroke(StrokeTool tool, PenStyle style)
         {
             Points.Add(point);
         }
+    }
+
+    /// <summary>Drops the trail's points older than <see cref="TrailWindowMs"/>, always keeping the newest (the dot).</summary>
+    internal void TrimTrail(long nowMs)
+    {
+        if (Tool != StrokeTool.LaserTrail)
+        {
+            return;
+        }
+
+        var drop = 0;
+        while (drop < Points.Count - 1 && nowMs - PointMs[drop] > TrailWindowMs)
+        {
+            drop++;
+        }
+
+        Points.RemoveRange(0, drop);
+        PointMs.RemoveRange(0, drop);
+    }
+
+    /// <summary>
+    /// The trail as pixels with each point's age in ms, oldest first, trimmed to the window. Empty when the finger
+    /// has rested for the whole window: only the dot is left then.
+    /// </summary>
+    public (Vector2[] Points, float[] Ages) Trail(int width, int height, long nowMs)
+    {
+        TrimTrail(nowMs);
+        if (Tool != StrokeTool.LaserTrail || Points.Count < 2)
+        {
+            return ([], []);
+        }
+
+        return (Path(width, height), [.. PointMs.Select(t => (float)(nowMs - t))]);
     }
 
     private static Vector2 Rotate(Vector2 v, float radians)
@@ -197,11 +272,22 @@ internal sealed class StrokeBoard
     internal const int MaxPointsPerBoard = 200_000;
 
     private readonly List<Stroke> strokes = [];
+    private readonly Func<long> nowMs;
 
     // The points held in strokes, so the board ceiling is checked without walking every stroke per frame.
     private int committedPoints;
 
+    /// <param name="clock">Milliseconds, monotonic; tests pass a fake. Defaults to <see cref="Environment.TickCount64"/>.</param>
+    public StrokeBoard(Func<long>? clock = null) => nowMs = clock ?? (() => Environment.TickCount64);
+
     public BoardMode Mode { get; private set; }
+
+    /// <summary>Now on the board's clock, for the overlay's redraws.</summary>
+    public long NowMs => nowMs();
+
+    /// <summary>True while a laser still shows anything: the overlay's redraw timer runs exactly this long.</summary>
+    public bool LaserVisible(long now) =>
+        Active is { IsLaser: true } laser && !LaserGeometry.IsFinished(now, laser.LastEventMs);
 
     public StrokeTool Tool { get; private set; } = StrokeTool.Pen;
 
@@ -337,7 +423,15 @@ internal sealed class StrokeBoard
                 }
 
                 Active = new Stroke(Tool, Style);
-                Active.Points.Add(point);
+                if (Active.IsLaser)
+                {
+                    Active.Extend(point, nowMs());
+                }
+                else
+                {
+                    Active.Points.Add(point);
+                }
+
                 return true;
             case 2 when Active is not null:
                 if (Active.Points.Count >= MaxPointsPerStroke
@@ -346,10 +440,10 @@ internal sealed class StrokeBoard
                     return false;
                 }
 
-                Active.Extend(point);
+                Active.Extend(point, nowMs());
                 return true;
             case 0 when Active is not null:
-                Active.Extend(point);
+                Active.Extend(point, nowMs());
                 Commit();
                 return true;
             default:
@@ -359,7 +453,11 @@ internal sealed class StrokeBoard
 
     private void Commit()
     {
-        if (Active is not null)
+        if (Active is { IsLaser: true })
+        {
+            Active = null;
+        }
+        else if (Active is not null)
         {
             strokes.Add(Active);
             committedPoints += Active.Points.Count;

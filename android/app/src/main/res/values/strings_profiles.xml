@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_profiles">App profiles</string>
+  <string name="profiles_title">App profiles</string>
+  <string name="profiles_toggle">Switch dials and gestures by app</string>
+  <string name="profiles_caption">The laptop tells this phone which app is in front, only while this is on. Nothing is kept on the laptop.</string>
+  <string name="profiles_empty">No profiles yet. Bring an app to the front on the laptop, then add it here.</string>
+  <string name="profiles_add_current">Add the app in front</string>
+  <string name="profiles_none_in_front">No app in front yet</string>
+  <string name="profiles_unsupported">This laptop cannot say which app is in front.</string>
+  <string name="profiles_delete">Delete profile</string>
+  <string name="profiles_delete_confirm">Delete the profile for %1$s?</string>
+  <string name="profile_default">Same as default</string>
+  <string name="profile_custom">Customised</string>
+</resources>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">연결 안 됨</string>
+  <string name="notice_play_pause">재생 또는 일시정지</string>
+  <string name="notice_volume_down">볼륨 낮추기</string>
+  <string name="notice_volume_up">볼륨 높이기</string>
+  <string name="controls_clipboard">클립보드</string>
+  <string name="controls_presenter">프레젠터</string>
+  <string name="clip_history_title">클립보드</string>
+  <string name="clip_history_empty">아직 복사한 것이 없습니다</string>
+  <string name="clip_history_empty_hint">클립보드 공유가 켜져 있으면 노트북과 이 휴대전화에서 복사한 내용이 여기에 표시됩니다.</string>
+  <string name="clip_history_from_laptop">노트북에서</string>
+  <string name="clip_history_from_phone">이 휴대전화에서</string>
+  <string name="clip_history_just_now">방금</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
+  <string name="clip_history_sent">%1$s(으)로 보냄</string>
+  <string name="clip_history_failed">보내지 못했습니다. 연결을 확인하세요.</string>
+  <string name="clip_history_send_hint">다시 보내기</string>
+  <string name="presenter_title">프레젠터</string>
+  <string name="presenter_next">다음 슬라이드</string>
+  <string name="presenter_previous">이전 슬라이드</string>
+  <string name="presenter_settings">프레젠터 설정</string>
+  <string name="presenter_laser_title">레이저</string>
+  <string name="presenter_size_label">크기</string>
+  <string name="presenter_size_small">작게</string>
+  <string name="presenter_size_medium">보통</string>
+  <string name="presenter_size_large">크게</string>
+  <string name="presenter_laser_zoomed">미리보기(확대)</string>
+  <string name="presenter_preview_sample">분기 실적</string>
+  <string name="presenter_laser_trail">궤적 표시</string>
+  <string name="presenter_point_here">여기를 가리키세요</string>
+  <string name="tool_laser">레이저</string>
+</resources>

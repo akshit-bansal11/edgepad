@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">Bağlı değil</string>
+  <string name="notice_play_pause">Oynat veya duraklat</string>
+  <string name="notice_volume_down">Sesi kıs</string>
+  <string name="notice_volume_up">Sesi aç</string>
+  <string name="controls_clipboard">Pano</string>
+  <string name="controls_presenter">Sunucu</string>
+  <string name="clip_history_title">Pano</string>
+  <string name="clip_history_empty">Henüz bir şey kopyalanmadı</string>
+  <string name="clip_history_empty_hint">Panoyu paylaş açıkken dizüstünden ve bu telefondan kopyalananlar burada görünür.</string>
+  <string name="clip_history_from_laptop">Dizüstünden</string>
+  <string name="clip_history_from_phone">Bu telefondan</string>
+  <string name="clip_history_just_now">Az önce</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
+  <string name="clip_history_sent">%1$s cihazına gönderildi</string>
+  <string name="clip_history_failed">Gönderilemedi. Bağlantıyı kontrol edin.</string>
+  <string name="clip_history_send_hint">Yeniden gönder</string>
+  <string name="presenter_title">Sunucu</string>
+  <string name="presenter_next">Sonraki slayt</string>
+  <string name="presenter_previous">Önceki slayt</string>
+  <string name="presenter_settings">Sunucu ayarları</string>
+  <string name="presenter_laser_title">Lazer</string>
+  <string name="presenter_size_label">Boyut</string>
+  <string name="presenter_size_small">Küçük</string>
+  <string name="presenter_size_medium">Orta</string>
+  <string name="presenter_size_large">Büyük</string>
+  <string name="presenter_laser_zoomed">Önizleme, yakınlaştırılmış</string>
+  <string name="presenter_preview_sample">Üç aylık sonuçlar</string>
+  <string name="presenter_laser_trail">İzi göster</string>
+  <string name="presenter_point_here">Buraya işaret edin</string>
+  <string name="tool_laser">Lazer</string>
+</resources>

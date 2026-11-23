@@ -41,6 +41,20 @@ internal static class FrameCodec
     private const byte BlobBeginType = 0x54;
     private const byte BlobChunkType = 0x55;
     private const byte BlobEndType = 0x56;
+    private const byte BulkHelloType = 0x05;
+    private const byte XferBeginType = 0x57;
+    private const byte XferChunkType = 0x58;
+    private const byte XferEndType = 0x59;
+    private const byte XferStatusType = 0x5A;
+
+    /// <summary>XFER_BEGIN's size and XFER_CHUNK's offset: a u64, ahead of the name or the data in the length-prefixed part.</summary>
+    private const int XferNumberBytes = 8;
+
+    /// <summary>The most of a name one XFER_BEGIN carries: what is left of the 255 bytes after the size.</summary>
+    public const int MaxXferNameBytes = MaxTextBytes - XferNumberBytes;
+
+    /// <summary>The most one XFER_CHUNK carries: what is left of the 255 bytes after the offset.</summary>
+    public const int MaxXferChunkBytes = MaxTextBytes - XferNumberBytes;
 
     /// <summary>FILE_BEGIN's size field, ahead of the name in the length-prefixed part.</summary>
     private const int FileSizeBytes = 4;
@@ -65,8 +79,10 @@ internal static class FrameCodec
     /// </summary>
     public static int PayloadLength(byte type) => type switch
     {
-        HelloType => 5,
+        HelloType or BulkHelloType => 5,
         HelloAckType or RunActionType or FileResultType => 1,
+        XferEndType => 1 + Sha256Bytes,
+        XferStatusType => 2 + XferNumberBytes,
         PinAnswerType => Pin.Length,
         PointerButtonType or ZoomType or SetValueType => 2,
         StateType or KeyType or PinRequestType => 3,
@@ -75,7 +91,7 @@ internal static class FrameCodec
         PadStateType => 12,
         PenType => 5,
         FileEndType or BlobEndType => Sha256Bytes,
-        TextType or FileBeginType or FileChunkType or BlobBeginType or BlobChunkType => LengthPrefixed,
+        TextType or FileBeginType or FileChunkType or BlobBeginType or BlobChunkType or XferBeginType or XferChunkType => LengthPrefixed,
         _ => -1,
     };
 
@@ -220,6 +236,51 @@ internal static class FrameCodec
                 return 1 + Sha256Bytes;
             case FileResult f:
                 return WriteByte(dest, FileResultType, f.Status);
+            case BulkHello f:
+                dest[0] = BulkHelloType;
+                ProtocolConstants.Magic.CopyTo(dest[1..]);
+                dest[5] = f.Version;
+                return 6;
+            // TEXT's header again: the id, then one length byte counting the u64 and the name together.
+            case XferBegin f:
+                RequireXferId(f.Id);
+                var xferNameBytes = Encoding.UTF8.GetBytes(Truncate(f.Name, MaxXferNameBytes), dest[(1 + TextHeaderLength + XferNumberBytes)..]);
+                dest[0] = XferBeginType;
+                dest[1] = f.Id;
+                dest[2] = (byte)(XferNumberBytes + xferNameBytes);
+                BinaryPrimitives.WriteUInt64LittleEndian(dest[(1 + TextHeaderLength)..], f.Size);
+                return 1 + TextHeaderLength + XferNumberBytes + xferNameBytes;
+            case XferChunk f:
+                RequireXferId(f.Id);
+                if (f.Data.Length is < 1 or > MaxXferChunkBytes)
+                {
+                    throw new ArgumentException($"A transfer chunk is 1 to {MaxXferChunkBytes} bytes", nameof(frame));
+                }
+
+                dest[0] = XferChunkType;
+                dest[1] = f.Id;
+                dest[2] = (byte)(XferNumberBytes + f.Data.Length);
+                BinaryPrimitives.WriteUInt64LittleEndian(dest[(1 + TextHeaderLength)..], f.Offset);
+                f.Data.CopyTo(dest[(1 + TextHeaderLength + XferNumberBytes)..]);
+                return 1 + TextHeaderLength + XferNumberBytes + f.Data.Length;
+            case XferEnd f:
+                RequireXferId(f.Id);
+                if (f.Sha256.Length != Sha256Bytes)
+                {
+                    throw new ArgumentException($"A SHA-256 is {Sha256Bytes} bytes", nameof(frame));
+                }
+
+                dest[0] = XferEndType;
+                dest[1] = f.Id;
+                f.Sha256.CopyTo(dest[2..]);
+                return 2 + Sha256Bytes;
+            case XferStatus f:
+                RequireXferId(f.Id);
+                dest[0] = XferStatusType;
+                dest[1] = f.Id;
+                dest[2] = f.Status;
+                BinaryPrimitives.WriteUInt64LittleEndian(dest[3..], f.Offset);
+                return 3 + XferNumberBytes;
             // Each digit goes out as its value 0..9, not its ASCII code, so these bytes can never be read as text.
             case PinAnswer f:
                 dest[0] = PinAnswerType;
@@ -255,7 +316,11 @@ internal static class FrameCodec
 
         return type switch
         {
-            HelloType => DecodeHello(payload),
+            HelloType => new Hello(DecodeMagicAndVersion(payload)),
+            BulkHelloType => new BulkHello(DecodeMagicAndVersion(payload)),
+            XferEndType => new XferEnd(RequireXferId(payload[0]), payload[1..].ToArray()),
+            XferStatusType => new XferStatus(
+                RequireXferId(payload[0]), payload[1], BinaryPrimitives.ReadUInt64LittleEndian(payload[2..])),
             HelloAckType => new HelloAck(payload[0]),
             MoveType => new Move(ReadInt16(payload), ReadInt16(payload[2..])),
             PointerButtonType => new PointerButton(payload[0], ReadFlag(payload[1])),
@@ -324,9 +389,38 @@ internal static class FrameCodec
             BlobBeginType => DecodeBlobBegin(payload[0], body),
             FileChunkType => new FileChunk(payload[0], body.ToArray()),
             BlobChunkType => new BlobChunk(payload[0], body.ToArray()),
+            XferBeginType => DecodeXferBegin(payload[0], body),
+            XferChunkType => DecodeXferChunk(payload[0], body),
             _ => new Text(payload[0], Encoding.UTF8.GetString(body)),
         };
     }
+
+    /// <summary>The u64 size, then the name. Shorter than the size, or id 0, is malformed.</summary>
+    private static XferBegin DecodeXferBegin(byte id, ReadOnlySpan<byte> body)
+    {
+        if (body.Length < XferNumberBytes)
+        {
+            throw new InvalidDataException("XFER_BEGIN is too short to hold a size");
+        }
+
+        return new XferBegin(
+            RequireXferId(id), BinaryPrimitives.ReadUInt64LittleEndian(body), Encoding.UTF8.GetString(body[XferNumberBytes..]));
+    }
+
+    /// <summary>The u64 offset, then at least one byte of data. Id 0 is malformed.</summary>
+    private static XferChunk DecodeXferChunk(byte id, ReadOnlySpan<byte> body)
+    {
+        if (body.Length <= XferNumberBytes)
+        {
+            throw new InvalidDataException("XFER_CHUNK is too short to hold an offset and a byte");
+        }
+
+        return new XferChunk(RequireXferId(id), BinaryPrimitives.ReadUInt64LittleEndian(body), body[XferNumberBytes..].ToArray());
+    }
+
+    /// <summary>Id 0 is a protocol error on every transfer frame: it closes the link, as a bad length does.</summary>
+    private static byte RequireXferId(byte id) =>
+        id == 0 ? throw new InvalidDataException("A transfer id is 1 to 255, never 0") : id;
 
     /// <summary>The size, then the label, as FILE_BEGIN. Shorter than the size field is malformed; the kind is not checked here.</summary>
     private static BlobBegin DecodeBlobBegin(byte kind, ReadOnlySpan<byte> body)
@@ -397,14 +491,15 @@ internal static class FrameCodec
         return new PinAnswer(new Pin(new string(digits)));
     }
 
-    private static Hello DecodeHello(ReadOnlySpan<byte> payload)
+    /// <summary>HELLO's and BULK_HELLO's shared body: the magic, then the version it carries.</summary>
+    private static byte DecodeMagicAndVersion(ReadOnlySpan<byte> payload)
     {
         if (!payload[..4].SequenceEqual(ProtocolConstants.Magic))
         {
             throw new InvalidDataException("HELLO without the Edgepad magic");
         }
 
-        return new Hello(payload[4]);
+        return payload[4];
     }
 
     private static bool ReadFlag(byte value) => value switch

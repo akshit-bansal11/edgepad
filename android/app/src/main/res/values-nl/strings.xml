@@ -29,6 +29,7 @@
   <string name="address_connect">Verbinden</string>
   <string name="address_looking">Zoeken naar een laptop op %1$s…</string>
   <string name="address_invalid">Dat is geen adres. Typ een hostnaam of IP-adres, met een poort als die niet 47321 is.</string>
+  <string name="address_bad_port">De poort moet een getal van 1 tot 65535 zijn.</string>
   <string name="address_no_laptop">Niets op dat adres reageerde als een laptop met Edgepad.</string>
   <string name="usb_tethering">USB-tethering</string>
   <string name="local_network_needed">Edgepad heeft de toestemming Apparaten in de buurt nodig om laptops via je Wi-Fi en via USB te vinden.</string>
@@ -107,9 +108,9 @@
   <string name="pair_expires">Verloopt over %1$s</string>
   <string name="pair_expired">Verlopen</string>
   <string name="pair_confirm_title">Zei %1$s dat de code klopte?</string>
-  <string name="pair_confirm_body">Als er stond dat de code fout was, tik dan op Nee: mogelijk antwoordt een ander apparaat in zijn plaats.</string>
-  <string name="pair_confirm_yes">Ja, gekoppeld</string>
-  <string name="pair_confirm_no">Nee</string>
+  <string name="pair_confirm_body">Als er stond dat de code fout was, tik dan op “Komen niet overeen”: mogelijk antwoordt een ander apparaat in zijn plaats.</string>
+  <string name="pair_confirm_yes">Codes komen overeen</string>
+  <string name="pair_confirm_no">Komen niet overeen</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Laptop buiten bereik</string>
@@ -144,7 +145,6 @@
   <string name="link_notice_reconnecting_text">Edgepad probeert de verbinding te herstellen. Tik om te openen.</string>
   <string name="link_notice_text">Tik om Edgepad te openen.</string>
   <string name="link_notice_text_clipboard">Tik om Edgepad te openen. Als klembord delen aanstaat, wordt daarbij ook verstuurd wat je kopieerde.</string>
-  <string name="settings_clipboard">Klembord</string>
   <string name="clipboard_share">Klembord delen</string>
   <string name="clipboard_share_caption">Kopieer op het ene apparaat, plak op het andere: tekst en afbeeldingen. Om vanaf deze telefoon te versturen kopieer je en ga je terug naar Edgepad.</string>
   <string name="sharing_title">Voor je begint</string>
@@ -164,12 +164,10 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 regelaars, gesplitst</string>
   <string name="media_layout_title">Media-indeling</string>
-  <string name="media_layout_hint_upright">Dit is de staande indeling; draai de telefoon om de liggende in te delen. Sleep een onderdeel om het te verplaatsen. Het springt vast op het raster en de middenlijnen.</string>
-  <string name="media_layout_hint_sideways">Dit is de liggende indeling; draai de telefoon om de staande in te delen. Sleep een onderdeel om het te verplaatsen. Het springt vast op het raster en de middenlijnen.</string>
   <string name="piece_now_playing">Nu aan het spelen</string>
   <string name="piece_transport">Vorige · afspelen · volgende</string>
   <string name="media_layout_reset">Posities herstellen</string>
-  <string name="media_layout_reset_confirm">Posities herstellen? Tik nogmaals</string>
+  <string name="editor_reset_confirm">Tik nogmaals om te herstellen</string>
   <string name="editor_options">Opties</string>
   <string name="editor_done">Klaar</string>
   <string name="media_scale">Grootte</string>
@@ -286,7 +284,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Tekenen</string>
   <string name="shapes_target_title">Wat hij uitvoert</string>
-  <string name="shapes_draw_hint">Teken hem in één streek en til je vinger op als je klaar bent.</string>
   <string name="shapes_redraw">Opnieuw tekenen</string>
   <string name="shapes_save">Opslaan</string>
   <string name="shapes_delete">Verwijderen</string>
@@ -331,8 +328,8 @@
   <string name="updates_release_notes">Releaseopmerkingen</string>
   <string name="update_available">Update beschikbaar</string>
   <string name="licences_title">Licenties</string>
-  <string name="licences_body">Lato, het lettertype: SIL Open Font License 1.1.\nLucide, de pictogrammen: ISC License.\nAndroidSVG, dat de logo\'s van de spelers tekent: Apache License 2.0.</string>
-  <string name="about_sends">Het enige wat Edgepad naar internet stuurt, is de updatecontrole naar github.com en een update die je zelf downloadt. Al het andere blijft tussen deze telefoon en je laptop.</string>
+  <string name="licences_body">Lato, het lettertype: SIL Open Font License 1.1.\nLucide, de pictogrammen: ISC License.\nAndroidSVG, dat de logo’s van de spelers tekent: Apache License 2.0.</string>
+  <string name="about_sends">Deze telefoon stuurt alleen de updatecontrole naar github.com en een update die je zelf kiest om te downloaden. Waar de laptopapp verbinding mee maakt, en wanneer, staat onder Wat Edgepad gebruikt.</string>
   <string name="updates_install_failed">De update kon niet worden geïnstalleerd. Download hem van de releasepagina en installeer hem handmatig.</string>
   <string name="settings_version">Edgepad %1$s · protocol %2$d</string>
   <string name="corners_title">Hoeken</string>
@@ -414,7 +411,11 @@
 
   <!-- Macros -->
   <string name="controls_title">Bediening</string>
-  <string name="controls_move_hint">Houd een tegel ingedrukt om hem te verplaatsen.</string>
+  <string name="controls_edit">Bewerken</string>
+  <string name="controls_edit_hint">Tik op een tegel om hem te verbergen of te tonen. Houd hem ingedrukt en sleep om hem te verplaatsen.</string>
+  <string name="controls_hidden">Verborgen</string>
+  <string name="controls_all_hidden">Alle tegels zijn verborgen. Tik op Bewerken om ze weer te tonen.</string>
+  <string name="controls_toggle_tile">%1$s verbergen of tonen</string>
   <string name="controls_hide_dials">Regelaars en media verbergen</string>
   <string name="controls_blackout">Scherm zwart bij inactiviteit</string>
   <string name="controls_open">%1$s openen</string>
@@ -425,7 +426,7 @@
   <string name="node_move_down">Omlaag verplaatsen</string>
   <string name="controls_keyboard">Toetsenbord</string>
   <string name="controls_gamepad">Gamepad</string>
-  <string name="controls_macros">Macro\'s</string>
+  <string name="controls_macros">Macro’s</string>
   <string name="controls_capture">Vastleggen</string>
   <string name="capture_region">Gebied</string>
   <string name="capture_screen">Volledig scherm</string>
@@ -433,10 +434,8 @@
   <string name="capture_stop">Opname stoppen</string>
   <string name="capture_recording">Opname loopt op de laptop. Tik op Opname stoppen om af te ronden; met Opslaan op Telefoon komt het bestand dan binnen.</string>
   <string name="capture_sent">Naar de laptop gestuurd: %1$s</string>
-  <string name="capture_hint">Tik voor een gebied op Gebied, houd dan een vinger even stil op het touchpad en beweeg hem om het gebied te slepen.</string>
-  <string name="capture_save_to">Opslaan op</string>
+  <string name="capture_drag_caption">Sleep om het gebied te kiezen</string>
   <string name="capture_save_laptop">Laptop</string>
-  <string name="capture_save_phone">Telefoon</string>
   <string name="capture_receiving">%1$s ontvangen, %2$d%%</string>
   <string name="capture_saved">Opgeslagen in %1$s</string>
   <string name="capture_bad_hash">De opname is beschadigd aangekomen. Hij staat nog op de laptop.</string>
@@ -447,8 +446,6 @@
   <string name="capture_send_failed">De laptop kon de opname niet versturen. Hij staat nog op de laptop.</string>
   <string name="controls_annotate">Annoteren</string>
   <string name="annotate_description">Tekenpad: een aanraking tekent op dezelfde plek op het laptopscherm. Werkt alleen met aanraking.</string>
-  <string name="annotate_hint">Teken hier. De inkt verschijnt op de laptop op dezelfde plek.</string>
-  <string name="annotate_hint_named">Teken hier. De inkt verschijnt op %1$s op dezelfde plek.</string>
   <string name="annotate_menu">Tekengereedschap</string>
   <string name="annotate_menu_expanded">Uitgevouwen</string>
   <string name="annotate_menu_collapsed">Samengevouwen</string>
@@ -497,25 +494,25 @@
   <string name="macros_move_earlier">Eerder zetten</string>
   <string name="macros_move_later">Later zetten</string>
   <string name="macros_moved">Verplaatst naar plek %1$d van %2$d</string>
-  <string name="macros_pages_title">Pagina\'s</string>
+  <string name="macros_pages_title">Pagina’s</string>
   <string name="macros_layout">Indeling</string>
   <string name="macros_layout_auto">Automatisch</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">Rijen: %1$d, kolommen: %2$d</string>
   <string name="macros_layout_caption">Het eerste getal is het aantal rijen, het tweede het aantal kolommen. Automatisch kiest wat de knoppen het grootst maakt.</string>
-  <string name="macros_per_page">Macro\'s op het scherm</string>
-  <string name="macros_per_page_caption">Hoeveel macro\'s één pagina toont. De rest staat op meer pagina\'s, die je bereikt door zijwaarts te vegen. Houd een macro ingedrukt en sleep hem om hem binnen zijn pagina te verplaatsen. Houd een geopende macro ingedrukt om een kruisje te tonen en tik dan op het kruisje om de app te sluiten.</string>
+  <string name="macros_per_page">Macro’s op het scherm</string>
+  <string name="macros_per_page_caption">Hoeveel macro’s één pagina toont. De rest staat op meer pagina’s, die je bereikt door zijwaarts te vegen. Houd een macro ingedrukt en sleep hem om hem binnen zijn pagina te verplaatsen. Houd een geopende macro ingedrukt om een kruisje te tonen en tik dan op het kruisje om de app te sluiten.</string>
   <string name="macros_page_of">Pagina %1$d van %2$d</string>
-  <string name="macros_empty_title">Nog geen macro\'s</string>
-  <string name="macros_empty_body">Voeg ze toe via het menu Macro\'s… van Edgepad in het meldingsgebied op de laptop. Ze verschijnen hier zodra de lijst is verstuurd.</string>
-  <string name="macros_empty_body_mac">Voeg ze toe via het menu Macro\'s… van Edgepad in de menubalk op de Mac. Ze verschijnen hier zodra de lijst is verstuurd.</string>
-  <string name="macros_loading">Macro\'s laden…</string>
+  <string name="macros_empty_title">Nog geen macro’s</string>
+  <string name="macros_empty_body">Voeg ze toe via het menu Macro’s… van Edgepad in het meldingsgebied op de laptop. Ze verschijnen hier zodra de lijst is verstuurd.</string>
+  <string name="macros_empty_body_mac">Voeg ze toe via het menu Macro’s… van Edgepad in de menubalk op de Mac. Ze verschijnen hier zodra de lijst is verstuurd.</string>
+  <string name="macros_loading">Macro’s laden…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
   <string name="apps_add_from_laptop">Toevoegen vanaf laptop</string>
   <string name="apps_add_caption">Kies een app uit de lijst van de laptop en hij wordt daar een macro. Alleen je keuze wordt verstuurd.</string>
   <string name="apps_title">Macro toevoegen</string>
-  <string name="apps_search_hint">Apps zoeken</string>
+  <string name="apps_search_hint">Apps zoeken, bijv. Chrome</string>
   <string name="apps_loading">Zoeken naar apps op %1$s…</string>
   <string name="apps_none">%1$s gaf geen apps door.</string>
   <string name="apps_no_match">Geen app past bij die zoekopdracht.</string>
@@ -528,18 +525,18 @@
   <string name="pair_confirming">Koppelen…</string>
   <string name="apps_row_added">Toegevoegd</string>
   <string name="apps_row_added_description">%1$s, al toegevoegd</string>
-  <string name="apps_row_full">Macro\'s vol</string>
+  <string name="apps_row_full">Macro’s vol</string>
   <plurals name="apps_full_note">
     <item quantity="one">Deze laptop heeft ruimte voor maximaal %1$d macro en die is bereikt. Verwijder er een om een andere toe te voegen.</item>
-    <item quantity="other">Deze laptop heeft ruimte voor maximaal %1$d macro\'s en die is bereikt. Verwijder er een om een andere toe te voegen.</item>
+    <item quantity="other">Deze laptop heeft ruimte voor maximaal %1$d macro’s en die is bereikt. Verwijder er een om een andere toe te voegen.</item>
   </plurals>
-  <string name="apps_added">Toegevoegd. Hij staat nu bij de macro\'s.</string>
-  <string name="apps_full">De laptop heeft geen ruimte voor meer macro\'s. Verwijder er eerst een.</string>
+  <string name="apps_added">Toegevoegd. Hij staat nu bij de macro’s.</string>
+  <string name="apps_full">De laptop heeft geen ruimte voor meer macro’s. Verwijder er eerst een.</string>
   <string name="apps_duplicate">Die app is al een macro.</string>
   <string name="apps_stale">Die lijst is verouderd. Vernieuw hem en kies opnieuw.</string>
   <string name="apps_failed">De laptop kon hem niet toevoegen.</string>
   <string name="input_blocked">%1$s kan nog geen invoer ontvangen. Sta Edgepad toe op de laptop; het werkt zodra je dat doet.</string>
-  <string name="battery_title">Accu\'s</string>
+  <string name="battery_title">Accu’s</string>
   <string name="battery_in_use">In gebruik</string>
   <string name="battery_this_phone">Deze telefoon</string>
   <string name="battery_charging">laadt op</string>
@@ -553,5 +550,63 @@
   <string name="sentences_joined">%1$s %2$s</string>
   <string name="battery_percent">%1$d%%</string>
   <string name="battery_more">+%1$d</string>
-  <string name="battery_summary">Accu\'s: %1$s</string>
+  <string name="battery_summary">Accu’s: %1$s</string>
+  <string name="updates_later">Later</string>
+  <string name="updates_skip">Deze versie overslaan</string>
+  <string name="updates_notify_text">Edgepad %1$s is beschikbaar. Tik om bij te werken.</string>
+  <string name="end_action_title">Slaapstand als dit eindigt</string>
+  <string name="end_sleep">Laptop in slaapstand zetten</string>
+  <string name="end_shutdown">Laptop afsluiten</string>
+  <string name="end_cancel">Annuleren</string>
+  <string name="end_armed_sleep">Slaapstand als dit eindigt</string>
+  <string name="end_armed_shutdown">Afsluiten als dit eindigt</string>
+  <string name="end_no_timeline">Dit heeft geen eindtijd, dus er is niets om op te wachten.</string>
+  <string name="unavailable_unsupported">Deze laptop kan dit niet.</string>
+  <string name="unavailable_off">Dit staat uit op de laptop.</string>
+  <string name="unavailable_no_tool">De laptop mist een programma dat hiervoor nodig is.</string>
+  <string name="unavailable_no_permission">De laptop heeft dit nog niet toegestaan.</string>
+  <string name="unavailable_github_resign">Log op je laptop opnieuw in bij GitHub. Edgepad gebruikt nu alleen-lezen toegang.</string>
+  <string name="capture_recording_laptop">Opnemen op de laptop</string>
+  <string name="xfer_send">Bestand verzenden</string>
+  <string name="xfer_sending">%1$s wordt verzonden · %2$d%%</string>
+  <string name="xfer_receiving">%1$s wordt ontvangen · %2$d%%</string>
+  <string name="xfer_done">%1$s opgeslagen</string>
+  <string name="xfer_failed">%1$s kon niet worden verzonden</string>
+  <plurals name="xfer_too_many">
+    <item quantity="one">Alleen de eerste %1$d bestanden zijn in de wachtrij gezet</item>
+    <item quantity="other">Alleen de eerste %1$d bestanden zijn in de wachtrij gezet</item>
+  </plurals>
+  <string name="xfer_sending_n">%1$s wordt verzonden (%2$d van %3$d) · %4$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">%1$d bestand verzonden</item>
+    <item quantity="other">%1$d bestanden verzonden</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">%1$d bestand ontvangen</item>
+    <item quantity="other">%1$d bestanden ontvangen</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">%1$d van %2$d bestand verzonden</item>
+    <item quantity="other">%1$d van %2$d bestanden verzonden</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d bestand is niet verzonden</item>
+    <item quantity="other">%1$d bestanden zijn niet verzonden</item>
+  </plurals>
+  <plurals name="xfer_card_more">
+    <item quantity="one">en nog %1$d</item>
+    <item quantity="other">en nog %1$d</item>
+  </plurals>
+  <plurals name="xfer_share_count">
+    <item quantity="one">%1$d bestand</item>
+    <item quantity="other">%1$d bestanden</item>
+  </plurals>
+  <string name="xfer_card_cancelling">Annuleren…</string>
+  <string name="xfer_retry">Opnieuw proberen</string>
+  <string name="xfer_card_a11y">Bestandsoverdracht</string>
+  <string name="xfer_no_laptop">Verbind eerst met een laptop</string>
+  <string name="xfer_channel">Bestandsoverdrachten</string>
+  <string name="notify_channel">Laptopmeldingen</string>
+  <string name="notify_setting">Laptopmeldingen tonen</string>
+  <string name="notify_setting_hint">Dezelfde schakelaar moet aan staan in het Edgepad-menu van de laptop.</string>
 </resources>

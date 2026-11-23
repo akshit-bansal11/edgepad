@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">Non connesso</string>
+  <string name="notice_play_pause">Riproduci o pausa</string>
+  <string name="notice_volume_down">Volume giù</string>
+  <string name="notice_volume_up">Volume su</string>
+  <string name="controls_clipboard">Appunti</string>
+  <string name="controls_presenter">Presentatore</string>
+  <string name="clip_history_title">Appunti</string>
+  <string name="clip_history_empty">Ancora nulla di copiato</string>
+  <string name="clip_history_empty_hint">Le copie dal portatile e da questo telefono compaiono qui finché Condividi appunti è attivo.</string>
+  <string name="clip_history_from_laptop">Dal portatile</string>
+  <string name="clip_history_from_phone">Da questo telefono</string>
+  <string name="clip_history_just_now">Adesso</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
+  <string name="clip_history_sent">Inviato a %1$s</string>
+  <string name="clip_history_failed">Invio non riuscito. Controlla la connessione.</string>
+  <string name="clip_history_send_hint">Invia di nuovo</string>
+  <string name="presenter_title">Presentatore</string>
+  <string name="presenter_next">Diapositiva successiva</string>
+  <string name="presenter_previous">Diapositiva precedente</string>
+  <string name="presenter_settings">Impostazioni presentatore</string>
+  <string name="presenter_laser_title">Laser</string>
+  <string name="presenter_size_label">Dimensione</string>
+  <string name="presenter_size_small">Piccolo</string>
+  <string name="presenter_size_medium">Medio</string>
+  <string name="presenter_size_large">Grande</string>
+  <string name="presenter_laser_zoomed">Anteprima ingrandita</string>
+  <string name="presenter_preview_sample">Risultati trimestrali</string>
+  <string name="presenter_laser_trail">Mostra scia</string>
+  <string name="presenter_point_here">Punta qui</string>
+  <string name="tool_laser">Laser</string>
+</resources>

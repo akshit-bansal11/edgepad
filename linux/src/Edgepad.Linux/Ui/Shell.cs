@@ -1,12 +1,15 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Edgepad.Bluetooth;
+using Edgepad.Dashboard;
 using Edgepad.Macros;
 using Edgepad.Net;
 using Edgepad.Network;
 using Edgepad.Platform;
+using Edgepad.Transfer;
 using Edgepad.Trust;
 using Edgepad.Updates;
 
@@ -27,10 +30,13 @@ internal sealed class Shell : IDisposable
     /// </summary>
     private static readonly TimeSpan QuietAfterForget = TimeSpan.FromSeconds(30);
 
+    /// <summary>The most files one "Send a file" pick sends, as on Windows and Android.</summary>
+    private const int MaxSendFiles = 100;
+
     /// <summary>How long a desktop with no tray host at start gets for one to appear before the window is shown.</summary>
     private static readonly TimeSpan TrayHostGrace = TimeSpan.FromSeconds(10);
 
-    private static readonly string NetworkNotice = $"{FirstRunWindow.NetworkBody} {FirstRunWindow.Firewall}";
+    private static string NetworkNotice => $"{FirstRunWindow.NetworkBody} {FirstRunWindow.Firewall}";
 
     private readonly TrustStore trust;
     private readonly PinStore pin;
@@ -44,6 +50,7 @@ internal sealed class Shell : IDisposable
     private LinuxServer? server;
     private NetworkServer? network;
     private Tray? tray;
+    private TransferCard? card;
     private FallbackWindow? fallback;
     private Timer? updateTimer;
     private volatile IClassicDesktopStyleApplicationLifetime? lifetime;
@@ -61,7 +68,14 @@ internal sealed class Shell : IDisposable
     // 1 while /dev/uinput cannot be opened: input would do nothing while the phone shows connected. Set from any
     // thread, by Interlocked.
     private int inputBlocked;
-    private bool updateNotified;
+    private readonly UpdateChoice updateChoice = new(Path.Combine(Xdg.ConfigFolder, "update-choice.txt"));
+
+    // The release on offer, and whether it can be installed (a key is embedded); null when none. Written on the timer
+    // thread, read on the UI thread.
+    private volatile Version? offered;
+    private volatile bool offeredInstallable;
+    private volatile bool offeredNeedsConfirm;
+    private bool installing;
 
     // The tray menu stays clickable under a dialog, and a second one would lift the hold while the first was still
     // open. All of this runs on the UI thread, so plain bools are enough.
@@ -70,7 +84,10 @@ internal sealed class Shell : IDisposable
     private bool editingMacros;
 
     // The Wi-Fi and USB row's hint: off, the port listened on, or why not. Only the UI thread touches it.
-    private string networkHint = "Off";
+    private string networkHint = LinuxStrings.Hint_Off;
+
+    // Whether the listener could not start; the hint is words, so the problem row reads this instead of the text.
+    private bool networkFailed;
 
     public Shell(TrustStore trust, PinStore pin, NetworkSettings networkSettings, PairedLinks paired, LinkIdentity identity, string version)
     {
@@ -80,12 +97,13 @@ internal sealed class Shell : IDisposable
         this.paired = paired;
         this.identity = identity;
         this.version = version;
+        LinuxPower.ShutdownRequested += ShutdownCountdown.Show;
         // However the question ends, the status line stops asking for the code.
         pairing = PairingPrompt.OnUiThread(
             phone =>
             {
                 SetStatus(LaptopStatus.Pairing(phone));
-                Notifier.Send($"{phone} wants to pair", "Type the pairing code it shows.");
+                Notifier.Send(LinuxStrings.App_Name, Say.Format(LinuxStrings.Balloon_WantsToPair, phone));
             },
             () => server?.PostStatus());
         prompt = new TrustPrompt(
@@ -124,6 +142,7 @@ internal sealed class Shell : IDisposable
     /// <summary>Stops the network server if <see cref="StopNetwork"/> has not already; Program calls that earlier, before the server goes.</summary>
     public void Dispose()
     {
+        LinuxPower.ShutdownRequested -= ShutdownCountdown.Show;
         updateTimer?.Dispose();
         network?.Dispose();
     }
@@ -157,7 +176,7 @@ internal sealed class Shell : IDisposable
             Log.Write($"The tray could not be set up, so Edgepad is quitting: {e}");
             var failing = app.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
             Dispatcher.UIThread.Post(() => failing?.Shutdown(1));
-            Notifier.SendNow("Edgepad could not start", "Its tray could not be set up. The log has the reason.");
+            Notifier.SendNow(LinuxStrings.Notice_TrayFailedTitle, LinuxStrings.Notice_TrayFailed);
         }
     }
 
@@ -188,7 +207,7 @@ internal sealed class Shell : IDisposable
 
         if (announce)
         {
-            Notifier.Send("Edgepad", update.Text);
+            Notifier.Send(LinuxStrings.App_Name, update.Text);
         }
 
         var text = shown.Text;
@@ -231,14 +250,14 @@ internal sealed class Shell : IDisposable
         if (problem is not null && !was)
         {
             Log.Write($"Input is blocked: {problem}");
-            Notifier.Send("Edgepad cannot control this laptop", UinputAccess.BlockedDetail);
+            Notifier.Send(LinuxStrings.Notice_CannotControl, UinputAccess.BlockedDetail);
         }
     }
 
     /// <summary>The problem row, on the UI thread: input blocked first, then a Wi-Fi listener that would not start.</summary>
     private void ShowProblem()
     {
-        var text = InputBlocked ? UinputAccess.Blocked : networkHint.StartsWith("Could not", StringComparison.Ordinal) ? "Wi-Fi and USB connections could not start; see the log" : null;
+        var text = InputBlocked ? UinputAccess.Blocked : networkFailed ? LinuxStrings.Network_CouldNotListen : null;
         tray?.SetProblem(text);
         fallback?.SetProblem(text);
     }
@@ -268,7 +287,7 @@ internal sealed class Shell : IDisposable
         SetStatus(LaptopStatus.Asking(name));
 
         // The question is a window that may open behind the one in use (Wayland), and the tray menu may not exist.
-        Notifier.Send($"{name} wants to connect", "A window is asking whether to trust it. Look for it on your screen.");
+        Notifier.Send(LinuxStrings.App_Name, Say.Format(LinuxStrings.Notice_WantsToConnect, name));
         var trusted = prompt.Ask(address, ended);
         Log.Write(trusted ? $"The owner trusted {address}" : $"The owner did not trust {address}");
         return trusted;
@@ -285,22 +304,44 @@ internal sealed class Shell : IDisposable
         };
         lifetime = app.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
         var hooks = new TrayHooks(
-            () => SecurityWindow.LevelNames[Math.Clamp(pin.Level, 1, SecurityWindow.LevelNames.Length) - 1],
-            () => $"{LinuxPlatform.Shared.Macros.Count} of {MacroStore.MaxMacros}",
+            () => SecurityWindow.LevelName(pin.Level),
+            () => Say.Format(LinuxStrings.Menu_MacrosCount, LinuxPlatform.Shared.Macros.Count, MacroStore.MaxMacros),
             () => networkSettings.Load().Enabled,
             () => networkHint,
             () => ClipboardSetting.Enabled,
+            () => NotifySetting.Enabled,
+            () => LinuxDashboard.Shared?.Settings.Flag(IntegrationSettings.Developer) == true,
             () => autostart.Enabled,
             () => updateSetting.Enabled,
             () => _ = Guard(ShowSecurityAsync),
             () => _ = Guard(ShowMacrosAsync),
+            () => _ = Guard(PickAndSendAsync),
             () => _ = Guard(ToggleNetworkAsync),
             () => _ = Guard(ToggleClipboardAsync),
+            () => _ = Guard(ToggleNotifyAsync),
+            () => _ = Guard(ToggleDeveloperAsync),
+            () => LinuxDashboard.Shared?.ShowWindow(developer: true),
             () => _ = Guard(ToggleAutostartAsync),
             () => _ = Guard(ToggleUpdatesAsync),
+            () => _ = Guard(InstallUpdateAsync),
+            LaterUpdate,
+            SkipUpdate,
+            () => card?.ShowAgain(),
             RequestQuit);
+        if (LinuxDashboard.Shared is { } shared)
+        {
+            shared.DeveloperChanged += () => Dispatcher.UIThread.Post(OnDeveloperChanged);
+        }
+
         var menu = new Tray(hooks);
         tray = menu;
+        card = new TransferCard(
+            LinuxTransfers.Feed,
+            () => server?.ConnectedPhone ?? "",
+            sending => server?.PauseTransfer(sending) == true,
+            sending => server?.ResumeTransfer(sending) == true,
+            sending => server?.StopTransfer(sending));
+        LinuxTransfers.Feed.Changed += view => Dispatcher.UIThread.Post(() => tray?.SetTransfers(view.Phase == TransferPhase.Running));
         menu.SetStatus(status);
         menu.Attach(app);
         if (lifetime is not null)
@@ -373,12 +414,7 @@ internal sealed class Shell : IDisposable
             return;
         }
 
-        await Dialogs.Inform(
-            owner,
-            "The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. "
-                + "Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will "
-                + "be able to again the next time it starts. Choose Forget all… in Security… again, or delete "
-                + $"paired-links.txt yourself from:\n\n{pin.Folder}");
+        await Dialogs.Inform(owner, $"{LinuxStrings.Error_ForgetLinks}\n\n{pin.Folder}");
     }
 
     /// <summary>
@@ -402,10 +438,9 @@ internal sealed class Shell : IDisposable
             var phones = string.Join(", ", trust.TrustedPhones);
             var yes = await Dialogs.Confirm(
                 owner,
-                (phones.Length > 0 ? $"Forget every trusted phone ({phones})?" : "Forget the trusted phones?")
-                    + " Each phone, this one included, will have to be trusted here again before it can use this laptop.",
-                "Forget",
-                "Cancel",
+                phones.Length > 0 ? Say.Format(LinuxStrings.Forget_AllNamed, phones) : LinuxStrings.Forget_All,
+                LinuxStrings.Common_Forget,
+                LinuxStrings.Common_Cancel,
                 dangerous: true);
             if (!yes)
             {
@@ -426,12 +461,7 @@ internal sealed class Shell : IDisposable
 
             if (!forgotten)
             {
-                await Dialogs.Inform(
-                    owner,
-                    "The trusted phones could not be forgotten: their file could not be removed or emptied. No phone can "
-                        + "connect while Edgepad stays running, but those phones will be trusted again the next time "
-                        + "Edgepad starts. Close whatever is holding the file and choose Forget all… in Security… again, "
-                        + $"or delete it yourself:\n\n{trust.FilePath}");
+                await Dialogs.Inform(owner, $"{LinuxStrings.Error_ForgetTrust}\n\n{trust.FilePath}");
             }
 
             // The Wi-Fi and USB pairings too, or a forgotten phone would resume its link and only meet the trust
@@ -440,12 +470,7 @@ internal sealed class Shell : IDisposable
 
             if (!verifiedForgotten)
             {
-                await Dialogs.Inform(
-                    owner,
-                    "The phones that entered the PIN could not be forgotten: their list could not be removed. While "
-                        + "Edgepad stays running every phone is asked for the PIN on every connection, but those phones "
-                        + "will skip it at level 2 again the next time Edgepad starts. Choose Forget all… in Security… "
-                        + $"again, or delete pin-verified.txt yourself from:\n\n{pin.Folder}");
+                await Dialogs.Inform(owner, $"{LinuxStrings.Error_ForgetPin}\n\n{pin.Folder}");
             }
         }
         finally
@@ -462,7 +487,7 @@ internal sealed class Shell : IDisposable
     private async Task ToggleNetworkAsync()
     {
         var on = !networkSettings.Load().Enabled;
-        if (on && !await Dialogs.Confirm(null, NetworkNotice, "Turn on", "Cancel"))
+        if (on && !await Dialogs.Confirm(null, NetworkNotice, LinuxStrings.Dialog_TurnOn, LinuxStrings.Common_Cancel))
         {
             // The check box changed on the click; put it back.
             RefreshViews();
@@ -484,7 +509,39 @@ internal sealed class Shell : IDisposable
         Annotator.FeaturesChanged();
         if (!saved)
         {
-            await Dialogs.Inform(null, "This applies now, but it could not be saved, so it will go back after a restart. The log has the reason.");
+            await Dialogs.Inform(null, LinuxStrings.Error_NotSavedAfterRestart);
+        }
+
+        RefreshViews();
+    }
+
+    /// <summary>The Developer mode switch. The dashboard applies it off the UI thread and tells every phone.</summary>
+    private async Task ToggleDeveloperAsync()
+    {
+        if (LinuxDashboard.Shared is not { } shared)
+        {
+            return;
+        }
+
+        var on = !shared.Settings.Flag(IntegrationSettings.Developer);
+        await Task.Run(() => shared.SetDeveloper(on));
+    }
+
+    /// <summary>Developer mode moved, from the tray or the phone (UI thread): the rows follow and an open developer window reads its rows again.</summary>
+    private void OnDeveloperChanged()
+    {
+        LinuxDashboard.Shared?.RefreshDeveloperWindow();
+        RefreshViews();
+    }
+
+    /// <summary>The Forward notifications switch. Default off; phones are told again, since the feature token follows it.</summary>
+    private async Task ToggleNotifyAsync()
+    {
+        var saved = NotifySetting.Set(!NotifySetting.Enabled);
+        Annotator.FeaturesChanged();
+        if (!saved)
+        {
+            await Dialogs.Inform(null, LinuxStrings.Error_NotSavedAfterRestart);
         }
 
         RefreshViews();
@@ -497,7 +554,7 @@ internal sealed class Shell : IDisposable
     {
         if (!autostart.Set(on))
         {
-            await Dialogs.Inform(null, "Start at login could not be changed. The log has the reason.");
+            await Dialogs.Inform(null, LinuxStrings.Error_AutostartFailed);
         }
 
         RefreshViews();
@@ -511,7 +568,7 @@ internal sealed class Shell : IDisposable
     {
         if (!updateSetting.Set(!updateSetting.Enabled))
         {
-            await Dialogs.Inform(null, "This applies now, but it could not be saved, so it will go back after a restart. The log has the reason.");
+            await Dialogs.Inform(null, LinuxStrings.Error_NotSavedAfterRestart);
         }
 
         ApplyUpdateTimer();
@@ -602,21 +659,105 @@ internal sealed class Shell : IDisposable
     private async Task CheckForUpdateAsync()
     {
         var latest = await UpdateCheck.LatestAsync();
-        if (latest is null || !UpdateCheck.IsNewer(latest, version))
+        if (latest is null)
+        {
+            return;
+        }
+
+        // Skipped, or Later said within a day: no rows and no notice. With no embedded key the rows are only
+        // Later and Skip and the notice opens the release page (fail closed).
+        var decision = UpdatePolicy.Decide(latest, version, null, UpdateKey.IsSet && UpdateCheck.LinuxName(latest) is not null);
+        if (decision is UpdateDecision.NotNewer || !updateChoice.ShouldShow(latest, DateTimeOffset.UtcNow))
         {
             return;
         }
 
         var number = latest.ToString(3);
+        var installable = decision is UpdateDecision.Install or UpdateDecision.InstallNeedsMajorConfirm;
+        offered = latest;
+        offeredInstallable = installable;
+        offeredNeedsConfirm = decision is UpdateDecision.InstallNeedsMajorConfirm;
         Dispatcher.UIThread.Post(() =>
         {
-            tray?.SetUpdate(number);
-            fallback?.SetUpdate(number);
+            tray?.SetUpdate(number, installable);
+            fallback?.SetUpdate(number, installable);
         });
-        if (!updateNotified)
+        if (!updateChoice.WasNotified(latest))
         {
-            updateNotified = true;
-            Notifier.SendClickable("Edgepad update available", $"Edgepad {number} is available. Click to open the release page.", () => Tray.OpenWithDesktop(UpdateCheck.LatestUrl, "the release page"));
+            updateChoice.MarkNotified(latest);
+            Notifier.SendClickable(LinuxStrings.Menu_Update, Say.Format(LinuxStrings.Notice_UpdateAvailable, number), () => Tray.OpenWithDesktop(UpdateCheck.LatestUrl, LinuxStrings.What_ReleasePage));
+        }
+    }
+
+    private void HideUpdate()
+    {
+        offered = null;
+        tray?.ClearUpdate();
+        fallback?.ClearUpdate();
+    }
+
+    /// <summary>Later: the update stays out of sight until the next daily check after a day has passed.</summary>
+    private void LaterUpdate()
+    {
+        if (!updateChoice.Later(DateTimeOffset.UtcNow))
+        {
+            Log.Write("Later could not be saved, so the update will show again after a restart.");
+        }
+
+        HideUpdate();
+    }
+
+    /// <summary>Skip: this version is never offered again; a newer one is.</summary>
+    private void SkipUpdate()
+    {
+        if (offered is { } skipped && !updateChoice.Skip(skipped))
+        {
+            Log.Write("Skip could not be saved, so the update will show again after a restart.");
+        }
+
+        HideUpdate();
+    }
+
+    /// <summary>
+    /// Install: verify, download and replace (see <see cref="LinuxUpdater"/>). A different first number asks first, because
+    /// the phone must be updated too. Failure installs nothing and says so.
+    /// </summary>
+    private async Task InstallUpdateAsync()
+    {
+        if (installing || offered is not { } target || !offeredInstallable)
+        {
+            return;
+        }
+
+        if (offeredNeedsConfirm
+            && !await Dialogs.Confirm(null, Say.Format(LinuxStrings.Update_MajorConfirm, target.ToString(3)), LinuxStrings.Common_Install, LinuxStrings.Common_NotNow))
+        {
+            return;
+        }
+
+        installing = true;
+        try
+        {
+            var outcome = await LinuxUpdater.InstallAsync(target, Path.Combine(Xdg.CacheFolder, "update"), Environment.ProcessPath, null, CancellationToken.None);
+            switch (outcome)
+            {
+                case UpdateOutcome.Started:
+                    HideUpdate();
+                    break;
+                case UpdateOutcome.NeedsRoot:
+                    HideUpdate();
+                    await Dialogs.Inform(null, $"{Say.Format(LinuxStrings.Update_NeedsRoot, target.ToString(3))}\n\n{LinuxUpdater.RootCommand(Path.Combine(Xdg.CacheFolder, "update", UpdateCheck.LinuxName(target) ?? string.Empty), target)}");
+                    break;
+                case UpdateOutcome.Failed:
+                    await Dialogs.Inform(null, LinuxStrings.Update_InstallFailed);
+                    break;
+                default:
+                    break;
+            }
+        }
+        finally
+        {
+            installing = false;
         }
     }
 
@@ -625,7 +766,7 @@ internal sealed class Shell : IDisposable
     {
         if (!networkSettings.SetEnabled(on))
         {
-            await Dialogs.Inform(null, "The setting could not be saved, so nothing was changed. The log has the reason.");
+            await Dialogs.Inform(null, LinuxStrings.Error_SettingNotSaved);
             return;
         }
 
@@ -640,13 +781,14 @@ internal sealed class Shell : IDisposable
         if (!config.Enabled)
         {
             net.Stop();
-            networkHint = "Off";
+            networkHint = LinuxStrings.Hint_Off;
+            networkFailed = false;
         }
         else
         {
-            networkHint = !net.Start(config.Port) ? "Could not listen; see the log"
-                : net.Port == config.Port ? $"Listening on {config.Port}"
-                : $"Port in use, using {net.Port}";
+            networkFailed = !net.Start(config.Port);
+            networkHint = networkFailed ? LinuxStrings.Hint_CouldNotListen
+                : Say.Format(net.Port == config.Port ? LinuxStrings.Hint_Listening : LinuxStrings.Hint_PortInUse, net.Port);
         }
 
         RefreshViews();
@@ -667,6 +809,61 @@ internal sealed class Shell : IDisposable
     }
 
     /// <summary>Nothing may throw out of a menu handler: an exception on the UI thread ends the whole app.</summary>
+    /// <summary>The tray's "Send a file…": the desktop's file picker, on a window of no size, then the file goes to the phone.</summary>
+    private async Task PickAndSendAsync()
+    {
+        List<string> paths = [];
+        var owner = new Window { Width = 1, Height = 1, ShowInTaskbar = false, WindowDecorations = WindowDecorations.None, Opacity = 0 };
+        try
+        {
+            owner.Show();
+            var picked = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = LinuxStrings.Send_PickerTitle, AllowMultiple = true });
+            paths.AddRange(picked.Select(item => item.TryGetLocalPath()).OfType<string>());
+        }
+        finally
+        {
+            owner.Close();
+        }
+
+        if (paths.Count > MaxSendFiles)
+        {
+            Log.Write($"{paths.Count - MaxSendFiles} picked files were left out: at most {MaxSendFiles} go in one send.");
+        }
+
+        Send(paths.Take(MaxSendFiles).ToList());
+    }
+
+    /// <summary>
+    /// Sends <paramref name="path"/> to the connected phone; the transfer card shows how it goes. From the send socket; any
+    /// thread. Never throws.
+    /// </summary>
+    public Task SendFileAsync(string path)
+    {
+        Send([path]);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Queues files for the phone. With none connected a notification says so, since no card would.</summary>
+    private void Send(List<string> paths)
+    {
+        if (paths.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            if (!Server.Enqueue(paths))
+            {
+                Notifier.Send(LinuxStrings.App_Name, LinuxStrings.Send_NoPhone);
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Write($"Files could not be queued: {e.Message}");
+        }
+    }
+
     private static async Task Guard(Func<Task> work)
     {
         try

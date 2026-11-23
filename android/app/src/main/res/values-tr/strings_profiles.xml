@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_profiles">Uygulama profilleri</string>
+  <string name="profiles_title">Uygulama profilleri</string>
+  <string name="profiles_toggle">Kadranları ve hareketleri uygulamaya göre değiştir</string>
+  <string name="profiles_caption">Dizüstü, yalnızca bu açıkken önde hangi uygulamanın olduğunu bu telefona bildirir. Dizüstünde hiçbir şey saklanmaz.</string>
+  <string name="profiles_empty">Henüz profil yok. Dizüstünde bir uygulamayı öne getirin, sonra buraya ekleyin.</string>
+  <string name="profiles_add_current">Öndeki uygulamayı ekle</string>
+  <string name="profiles_none_in_front">Henüz öndeki uygulama yok</string>
+  <string name="profiles_unsupported">Bu dizüstü, önde hangi uygulamanın olduğunu bildiremiyor.</string>
+  <string name="profiles_delete">Profili sil</string>
+  <string name="profiles_delete_confirm">%1$s profili silinsin mi?</string>
+  <string name="profile_default">Varsayılanla aynı</string>
+  <string name="profile_custom">Özelleştirilmiş</string>
+</resources>

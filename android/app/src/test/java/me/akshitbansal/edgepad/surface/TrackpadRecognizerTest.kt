@@ -76,6 +76,65 @@ class TrackpadRecognizerTest {
     }
 
     @Test
+    fun holdProgressFillsWhileStillAndStopsOnceItMovesOrGrips() {
+        assertNull("no finger, no ring", pad.holdProgress(0))
+        touch(Action.DOWN, 0, 100f to 100f)
+        assertEquals(0.5f, pad.holdProgress(TrackpadRecognizer.HOLD_MS / 2)!!, 0.001f)
+        pad.tick(TrackpadRecognizer.HOLD_MS)
+        assertNull("gripped: the surface draws the drag instead", pad.holdProgress(TrackpadRecognizer.HOLD_MS))
+        touch(Action.UP, TrackpadRecognizer.HOLD_MS + 10)
+        touch(Action.DOWN, 1_000, 100f to 100f)
+        touch(Action.MOVE, 1_050, 150f to 100f)
+        assertNull("a moving finger is aiming, not holding", pad.holdProgress(1_100))
+    }
+
+    @Test
+    fun selectingPressesOnTheFirstMoveAndEndsOnLift() {
+        var ended = false
+        pad.selecting = true
+        pad.onSelected = { ended = true }
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.MOVE, 20, 150f to 100f)
+        assertEquals("pressed where the touch began, then moved", Frame.PointerButton(0, true), out.first())
+        assertTrue(out[1] is Frame.Move)
+        touch(Action.UP, 100)
+        assertEquals(Frame.PointerButton(0, false), out.last())
+        assertTrue(ended)
+        assertFalse(pad.selecting)
+    }
+
+    @Test
+    fun aSelectingDragUsesTheLargerSelectGain() {
+        pad.selecting = true
+        pad.selectGain = 10f
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.MOVE, 20, 120f to 100f)
+        touch(Action.MOVE, 30, 130f to 100f)
+        assertEquals("10 px of finger at gain 10", 100, (out.last() as Frame.Move).dx)
+    }
+
+    @Test
+    fun selectingSwallowsTapsAndHoldsUntilTheDrag() {
+        pad.selecting = true
+        pad.swallowTaps = true
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.UP, 100)
+        touch(Action.DOWN, 200, 100f to 100f)
+        pad.tick(200 + TrackpadRecognizer.HOLD_MS)
+        touch(Action.UP, 200 + TrackpadRecognizer.HOLD_MS + 50)
+        assertTrue("a tap or an unmoved hold would end the selection as a click", out.isEmpty())
+        assertTrue(pad.selecting)
+    }
+
+    @Test
+    fun selectingLeavesTapsOnWhenTheyAreNotSwallowed() {
+        pad.selecting = true
+        touch(Action.DOWN, 0, 100f to 100f)
+        touch(Action.UP, 100)
+        assertEquals(listOf(Frame.PointerButton(0, true), Frame.PointerButton(0, false)), out)
+    }
+
+    @Test
     fun theTimerGripsAFingerThatSendsNoSamples() {
         touch(Action.DOWN, 0, 100f to 100f)
         pad.tick(TrackpadRecognizer.HOLD_MS - 1)

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">Cerrar consejo</string>
+  <string name="tip_presenter">Las teclas de volumen cambian de diapositiva con esta pantalla abierta.</string>
+  <string name="tip_capture">Región: tócala y arrastra en el panel a la esquina opuesta.</string>
+  <string name="tip_annotate">Dibuja aquí. La tinta aparece en el portátil en el mismo sitio.</string>
+  <string name="tip_shapes">Dibújala de un solo trazo y levanta el dedo.</string>
+  <string name="capture_to_phone">Al móvil</string>
+</resources>

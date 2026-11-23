@@ -1,0 +1,832 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>Edgepad 使用蓝牙监听与这台 Mac 配对的手机。</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad 在此查找你要求手机接收的截图或录制内容。</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad 在此查找你要求手机接收的截图或录制内容。</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad 在此查找你要求手机接收的截图或录制内容。</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>开启 Wi-Fi 连接后，Edgepad 会让手机找到这台 Mac 并通过 Wi-Fi 连接。</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>Edgepad 会询问“音乐”或 Spotify 当前播放的歌曲，并在你于手机上拖动进度时跳转；媒体结束时，如果你在手机上要求，它会让这台 Mac 睡眠或关机。</value>
+  </data>
+  <data name="Core_ConnectedOver" xml:space="preserve">
+    <value>已连接到 {0} · {1}</value>
+  </data>
+  <data name="Core_BluetoothNotAllowed" xml:space="preserve">
+    <value>Edgepad 不被允许使用蓝牙。请在“系统设置 › 隐私与安全性 › 蓝牙”中允许。</value>
+  </data>
+  <data name="Core_BluetoothOffMenu" xml:space="preserve">
+    <value>蓝牙已关闭。请在菜单栏中打开。</value>
+  </data>
+  <data name="Core_RefusedUnreadable" xml:space="preserve">
+    <value>已拒绝一部手机：无法读取受信任的手机</value>
+  </data>
+  <data name="Core_RefusedForgotten" xml:space="preserve">
+    <value>已拒绝一部在此被忘记的手机</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Welcome_SetUp" xml:space="preserve">
+    <value>开始设置</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Common_Send" xml:space="preserve">
+    <value>发送</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>安装</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>忘记</value>
+  </data>
+  <data name="Common_Trust" xml:space="preserve">
+    <value>信任</value>
+  </data>
+  <data name="Common_DontTrust" xml:space="preserve">
+    <value>不信任</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>重置</value>
+  </data>
+  <data name="Common_Pair" xml:space="preserve">
+    <value>配对</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad 已在运行。</value>
+  </data>
+  <data name="App_AlreadyRunningBody" xml:space="preserve">
+    <value>它在菜单栏右侧。按住 Command 并拖动即可重新排列图标。</value>
+  </data>
+  <data name="App_Welcome" xml:space="preserve">
+    <value>Edgepad 位于菜单栏中</value>
+  </data>
+  <data name="App_WelcomeBody" xml:space="preserve">
+    <value>macOS 接下来会询问 Edgepad 所需的权限。蓝牙，用于连接你的手机。设备控制，用于移动指针和按键。通知，用于在手机请求连接时提醒你。桌面、文稿或下载文件夹，仅在手机请求截图或录屏时使用。</value>
+  </data>
+  <data name="App_UpdatedAllow" xml:space="preserve">
+    <value>已更新：请在“设备控制”中再次允许 Edgepad</value>
+  </data>
+  <data name="App_TipBlocked" xml:space="preserve">
+    <value>Edgepad 暂时还无法控制这台 Mac</value>
+  </data>
+  <data name="App_TipStatus" xml:space="preserve">
+    <value>Edgepad：{0}</value>
+  </data>
+  <data name="App_PermissionSteps" xml:space="preserve">
+    <value>系统设置 › 隐私与安全性 › 设备控制和数据访问 › + › Edgepad</value>
+  </data>
+  <data name="Menu_Installing" xml:space="preserve">
+    <value>正在安装 Edgepad {0}…</value>
+  </data>
+  <data name="Menu_Install" xml:space="preserve">
+    <value>安装 Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateAvailable" xml:space="preserve">
+    <value>有可用更新：{0}</value>
+  </data>
+  <data name="Menu_Later" xml:space="preserve">
+    <value>稍后</value>
+  </data>
+  <data name="Menu_Skip" xml:space="preserve">
+    <value>跳过此版本</value>
+  </data>
+  <data name="Menu_AllowControl" xml:space="preserve">
+    <value>允许 Edgepad 控制这台 Mac…</value>
+  </data>
+  <data name="Menu_Wifi" xml:space="preserve">
+    <value>Wi-Fi 连接</value>
+  </data>
+  <data name="Menu_WifiHint" xml:space="preserve">
+    <value>Wi-Fi 连接 ({0})</value>
+  </data>
+  <data name="Menu_WifiTip" xml:space="preserve">
+    <value>Mac 上仅支持 Wi-Fi：USB 网络共享需要 macOS 未包含的驱动程序。</value>
+  </data>
+  <data name="Menu_Clipboard" xml:space="preserve">
+    <value>共享剪贴板</value>
+  </data>
+  <data name="Menu_ClipboardTip" xml:space="preserve">
+    <value>在一台设备上复制，在另一台上粘贴：文字和图片。</value>
+  </data>
+  <data name="Menu_Login" xml:space="preserve">
+    <value>登录时启动</value>
+  </data>
+  <data name="Menu_DailyUpdates" xml:space="preserve">
+    <value>每天检查更新</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>发送文件…</value>
+  </data>
+  <data name="Menu_SendFileNoPhone" xml:space="preserve">
+    <value>发送文件…（没有已连接的手机）</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>宏…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>安全… ({0})</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>文档</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>打开日志</value>
+  </data>
+  <data name="Menu_About" xml:space="preserve">
+    <value>关于 Edgepad</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>退出 Edgepad</value>
+  </data>
+  <data name="Net_PortInUse" xml:space="preserve">
+    <value>端口已占用，改用 {0}</value>
+  </data>
+  <data name="Net_WaitingForNetwork" xml:space="preserve">
+    <value>正在等待网络</value>
+  </data>
+  <data name="Net_CouldNotListen" xml:space="preserve">
+    <value>无法监听；请查看日志</value>
+  </data>
+  <data name="Net_Phone" xml:space="preserve">
+    <value>一部手机</value>
+  </data>
+  <data name="Note_UpdateTitle" xml:space="preserve">
+    <value>Edgepad {0} 现已可用</value>
+  </data>
+  <data name="Note_UpdateBody" xml:space="preserve">
+    <value>点击以打开下载页面。</value>
+  </data>
+  <data name="Note_PairTitle" xml:space="preserve">
+    <value>配对 {0}？</value>
+  </data>
+  <data name="Note_PairBody" xml:space="preserve">
+    <value>输入手机上显示的配对码。</value>
+  </data>
+  <data name="Note_TrustTitle" xml:space="preserve">
+    <value>信任 {0}？</value>
+  </data>
+  <data name="Note_TrustBody" xml:space="preserve">
+    <value>{0} 想要连接。请选择“信任”或“不信任”。</value>
+  </data>
+  <data name="Note_NotUpdated" xml:space="preserve">
+    <value>Edgepad 未更新</value>
+  </data>
+  <data name="Status_Received" xml:space="preserve">
+    <value>已在 Downloads/Edgepad 中收到 {0}</value>
+  </data>
+  <data name="Status_OnlyFiles" xml:space="preserve">
+    <value>只能发送文件，不能发送文件夹</value>
+  </data>
+  <data name="Status_Forgot" xml:space="preserve">
+    <value>已忘记受信任的手机；{0} 秒后可连接新手机</value>
+  </data>
+  <data name="Xfer_Sent" xml:space="preserve">
+    <value>已将 {0} 发送到手机</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>正在发送 {0}</value>
+  </data>
+  <data name="Xfer_BadHash" xml:space="preserve">
+    <value>{0} 到达手机时已损坏；请重新发送</value>
+  </data>
+  <data name="Xfer_Rejected" xml:space="preserve">
+    <value>手机未接收 {0}</value>
+  </data>
+  <data name="Xfer_WriteFailed" xml:space="preserve">
+    <value>无法读取或保存 {0}</value>
+  </data>
+  <data name="Xfer_Cancelled" xml:space="preserve">
+    <value>已取消发送 {0}</value>
+  </data>
+  <data name="Xfer_Busy" xml:space="preserve">
+    <value>手机正在接收另一个文件；请在其完成后再次发送 {0}</value>
+  </data>
+  <data name="Xfer_TimedOut" xml:space="preserve">
+    <value>发送 {0} 时手机没有响应</value>
+  </data>
+  <data name="Xfer_SessionEnded" xml:space="preserve">
+    <value>在发送 {0} 之前手机已断开连接</value>
+  </data>
+  <data name="Alert_MajorTitle" xml:space="preserve">
+    <value>Edgepad {0} 还需要同时更新手机应用。</value>
+  </data>
+  <data name="Alert_MajorBody" xml:space="preserve">
+    <value>请同时安装两者，否则手机和这台 Mac 将无法连接。</value>
+  </data>
+  <data name="Alert_LoginFailed" xml:space="preserve">
+    <value>无法更改“登录时启动”</value>
+  </data>
+  <data name="Alert_LoginApproval" xml:space="preserve">
+    <value>允许 Edgepad 在登录时启动</value>
+  </data>
+  <data name="Alert_LoginApprovalBody" xml:space="preserve">
+    <value>请在“系统设置 › 通用 › 登录项”中允许 Edgepad。</value>
+  </data>
+  <data name="Alert_ForgetAll" xml:space="preserve">
+    <value>忘记所有受信任的手机？</value>
+  </data>
+  <data name="Alert_ForgetAllBody" xml:space="preserve">
+    <value>要忘记{0}吗？包括这部在内的每部手机，都需要在此重新信任后才能使用这台 Mac。</value>
+  </data>
+  <data name="Alert_TheTrustedPhones" xml:space="preserve">
+    <value>受信任的手机</value>
+  </data>
+  <data name="Alert_EveryTrustedPhone" xml:space="preserve">
+    <value>所有受信任的手机（{0}）</value>
+  </data>
+  <data name="Alert_ForgetFailed" xml:space="preserve">
+    <value>无法忘记受信任的手机</value>
+  </data>
+  <data name="Alert_ForgetFailedBody" xml:space="preserve">
+    <value>无法删除或清空其文件。Edgepad 运行期间任何手机都无法连接，但 Edgepad 下次启动时这些手机会再次被信任。请再次选择“忘记所有受信任的手机”，或自行删除该文件：
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetPinFailed" xml:space="preserve">
+    <value>无法忘记已输入 PIN 的手机</value>
+  </data>
+  <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
+    <value>无法删除其列表。Edgepad 运行期间每部手机每次连接都会被要求输入 PIN，但 Edgepad 下次启动时，这些手机在“每部手机输入一次 PIN”下又会跳过它。请再次选择“忘记所有受信任的手机”，或自行从以下位置删除 pin-verified.txt：
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetOne" xml:space="preserve">
+    <value>忘记 {0}？</value>
+  </data>
+  <data name="Alert_ForgetOneBody" xml:space="preserve">
+    <value>需要在此重新信任后才能使用这台 Mac。</value>
+  </data>
+  <data name="Alert_ForgetOneFailed" xml:space="preserve">
+    <value>无法忘记 {0}</value>
+  </data>
+  <data name="Alert_ForgetOneFailedBody" xml:space="preserve">
+    <value>无法重写某个文件，因此它可能仍受信任。原因见日志。</value>
+  </data>
+  <data name="Alert_PairingsFailed" xml:space="preserve">
+    <value>无法忘记 Wi-Fi 配对</value>
+  </data>
+  <data name="Alert_PairingsFailedBody" xml:space="preserve">
+    <value>无法删除或清空其文件。Edgepad 运行期间已配对的手机无法通过 Wi-Fi 重新连接，但下次启动后即可连接。请再次选择“忘记所有受信任的手机”，或自行从以下位置删除 paired-links.txt：
+
+{0}</value>
+  </data>
+  <data name="Alert_NoPhone" xml:space="preserve">
+    <value>没有已连接的手机</value>
+  </data>
+  <data name="Alert_NoPhoneBody" xml:space="preserve">
+    <value>请先将手机连接到 Edgepad，然后再次发送文件。</value>
+  </data>
+  <data name="Alert_ChooseFiles" xml:space="preserve">
+    <value>选择要发送到手机的文件</value>
+  </data>
+  <data name="Alert_TurnOn" xml:space="preserve">
+    <value>开启</value>
+  </data>
+  <data name="Alert_Allow" xml:space="preserve">
+    <value>允许</value>
+  </data>
+  <data name="Alert_NotNow" xml:space="preserve">
+    <value>暂不</value>
+  </data>
+  <data name="Alert_Network" xml:space="preserve">
+    <value>允许手机找到这台电脑？</value>
+  </data>
+  <data name="Alert_NetworkBody" xml:space="preserve">
+    <value>Mac 上仅支持 Wi-Fi：USB 网络共享需要 macOS 未包含的驱动程序。同一 Wi-Fi 上的手机将能找到这台 Mac 并请求配对。没有在此输入的配对码，任何设备都无法连接。macOS 可能会询问 Edgepad 能否发现本地网络上的设备，防火墙也可能询问是否允许接受传入连接：请全部允许。</value>
+  </data>
+  <data name="Alert_SaveFailed" xml:space="preserve">
+    <value>无法保存设置</value>
+  </data>
+  <data name="Alert_SaveFailedBody" xml:space="preserve">
+    <value>未做任何更改。原因见日志。</value>
+  </data>
+  <data name="Alert_Trust" xml:space="preserve">
+    <value>信任 {0}？</value>
+  </data>
+  <data name="Alert_TrustQuoted" xml:space="preserve">
+    <value>引号中的名称只是手机的自称；被信任的是地址。</value>
+  </data>
+  <data name="Alert_TrustAddress" xml:space="preserve">
+    <value>被信任的是地址。</value>
+  </data>
+  <data name="Alert_TrustBody" xml:space="preserve">
+    <value>{0} 请求控制这台 Mac 的指针和键盘。{1} 仅当它是你的手机时才信任。若在 {2} 秒内没有回应，则不会被信任。</value>
+  </data>
+  <data name="Alert_Credits" xml:space="preserve">
+    <value>字体和图标：Lato、Lucide。</value>
+  </data>
+  <data name="Alert_ShutdownTitle" xml:space="preserve">
+    <value>这台 Mac 将在 60 秒后关机。</value>
+  </data>
+  <data name="Alert_ShutdownBody" xml:space="preserve">
+    <value>手机上的媒体已播放完毕，而你要求此时关机。</value>
+  </data>
+  <data name="Sec_Title" xml:space="preserve">
+    <value>安全</value>
+  </data>
+  <data name="Sec_Intro" xml:space="preserve">
+    <value>每部手机都会先征求你的同意。两个 PIN 级别还会要求输入六位 PIN。</value>
+  </data>
+  <data name="Sec_LevelTrust" xml:space="preserve">
+    <value>仅信任</value>
+  </data>
+  <data name="Sec_LevelPinOnce" xml:space="preserve">
+    <value>每部手机输入一次 PIN</value>
+  </data>
+  <data name="Sec_LevelPinEvery" xml:space="preserve">
+    <value>每次连接都输入 PIN</value>
+  </data>
+  <data name="Sec_ResetButton" xml:space="preserve">
+    <value>重置 PIN 并忘记手机…</value>
+  </data>
+  <data name="Sec_ForgetAllButton" xml:space="preserve">
+    <value>忘记所有受信任的手机…</value>
+  </data>
+  <data name="Sec_Warning" xml:space="preserve">
+    <value>保存新的 PIN 或级别后，已输入过一次 PIN 的手机需要重新输入。</value>
+  </data>
+  <data name="Sec_ChangePin" xml:space="preserve">
+    <value>更改 PIN…</value>
+  </data>
+  <data name="Sec_SetPin" xml:space="preserve">
+    <value>设置 PIN…</value>
+  </data>
+  <data name="Sec_PinNew" xml:space="preserve">
+    <value>将保存新的 PIN。</value>
+  </data>
+  <data name="Sec_PinSet" xml:space="preserve">
+    <value>已设置 PIN。</value>
+  </data>
+  <data name="Sec_PinNone" xml:space="preserve">
+    <value>未设置 PIN。</value>
+  </data>
+  <data name="Sec_SixDigits" xml:space="preserve">
+    <value>六位数字</value>
+  </data>
+  <data name="Sec_Again" xml:space="preserve">
+    <value>再次输入</value>
+  </data>
+  <data name="Sec_NewPin" xml:space="preserve">
+    <value>新 PIN</value>
+  </data>
+  <data name="Sec_NewPinAgain" xml:space="preserve">
+    <value>再次输入新 PIN</value>
+  </data>
+  <data name="Sec_NewPinBody" xml:space="preserve">
+    <value>六位数字，输入两次。</value>
+  </data>
+  <data name="Sec_UsePin" xml:space="preserve">
+    <value>使用此 PIN</value>
+  </data>
+  <data name="Sec_Mismatch" xml:space="preserve">
+    <value>两次输入的 PIN 不一致。</value>
+  </data>
+  <data name="Sec_Exactly" xml:space="preserve">
+    <value>请使用恰好六位数字。</value>
+  </data>
+  <data name="Sec_PinNotSaved" xml:space="preserve">
+    <value>无法保存 PIN，所以没有做任何更改。原因见日志。</value>
+  </data>
+  <data name="Sec_LevelNotSaved" xml:space="preserve">
+    <value>无法保存级别，所以仍沿用之前的级别。原因见日志。</value>
+  </data>
+  <data name="Sec_ResetTitle" xml:space="preserve">
+    <value>要重置 PIN 并忘记所有手机吗？</value>
+  </data>
+  <data name="Sec_ResetBody" xml:space="preserve">
+    <value>PIN 将被删除，级别恢复为“仅信任”，所有受信任的手机都会被忘记。每部手机都需要在此重新信任。忘记的 PIN 无法找回，只能重置。</value>
+  </data>
+  <data name="Sec_ResetFailedTrust" xml:space="preserve">
+    <value>未重置任何内容：无法忘记受信任的手机，因此 PIN 和级别保持原样。Edgepad 运行期间任何手机都无法连接，但下次启动时这些手机会在相同 PIN 下再次被信任。请关闭占用该文件的程序后再次选择“重置”，或自行删除该文件：
+
+{0}</value>
+  </data>
+  <data name="Sec_ResetFailedPin" xml:space="preserve">
+    <value>受信任的手机已被忘记，但 PIN 未能重置：某个设置文件无法删除，旧的 PIN 和级别可能仍然有效。每部手机都需要在此重新信任。请关闭占用该文件的程序后再次选择“重置”，或自行从以下位置删除 security.txt 和 pin-verified.txt：
+
+{0}</value>
+  </data>
+  <data name="Sec_TrustedPhones" xml:space="preserve">
+    <value>受信任的手机</value>
+  </data>
+  <data name="Sec_ForgetLabel" xml:space="preserve">
+    <value>忘记 {0}</value>
+  </data>
+  <data name="Sec_FailTitle" xml:space="preserve">
+    <value>无法保存安全设置</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>配对 {0}？</value>
+  </data>
+  <data name="Pair_ThisPhone" xml:space="preserve">
+    <value>这部手机</value>
+  </data>
+  <data name="Pair_Window" xml:space="preserve">
+    <value>配对手机</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>请输入手机上显示的配对码：</value>
+  </data>
+  <data name="Pair_CodeLabel" xml:space="preserve">
+    <value>手机上显示的代码</value>
+  </data>
+  <data name="Pair_Announce" xml:space="preserve">
+    <value>要配对 {0} 吗？{1} 秒后关闭。</value>
+  </data>
+  <data name="Pair_Matched" xml:space="preserve">
+    <value>代码匹配。请在 {0} 上点按“配对码一致”以完成。</value>
+  </data>
+  <data name="Pair_Mismatched" xml:space="preserve">
+    <value>代码不匹配。未进行配对。</value>
+  </data>
+  <data name="Pair_Paired" xml:space="preserve">
+    <value>已与 {0} 配对。</value>
+  </data>
+  <data name="Pair_NotFinished" xml:space="preserve">
+    <value>配对未完成。</value>
+  </data>
+  <data name="Pair_Warning" xml:space="preserve">
+    <value>只与属于你自己的手机配对。如果你刚才没有主动开始配对，请选择“取消”。</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>{0} 秒后关闭</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>正在检查代码</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>宏</value>
+  </data>
+  <data name="Macro_Body" xml:space="preserve">
+    <value>手机宏屏幕上的按钮，最多 {0} 个。手机只发送按钮编号，从不发送程序，因此只能运行你在此添加的内容。</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>{0} 没有要打开的内容。请浏览选择应用或文件，或输入网址。</value>
+  </data>
+  <data name="Macro_AMacro" xml:space="preserve">
+    <value>一个宏</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>无法将宏保存到 {0}：{1}。</value>
+  </data>
+  <data name="Macro_SaveFailedTitle" xml:space="preserve">
+    <value>无法保存宏</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>打开内容</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>参数</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>图标</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>添加宏</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="Macro_MoveUp" xml:space="preserve">
+    <value>向上移动</value>
+  </data>
+  <data name="Macro_MoveDown" xml:space="preserve">
+    <value>向下移动</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>浏览…</value>
+  </data>
+  <data name="Macro_Choose" xml:space="preserve">
+    <value>选择…</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>使用程序自带的图标</value>
+  </data>
+  <data name="Macro_ArgsHint" xml:space="preserve">
+    <value>无，以空格分隔（仅限应用）</value>
+  </data>
+  <data name="Macro_IconHint" xml:space="preserve">
+    <value>程序自带的图标</value>
+  </data>
+  <data name="Macro_OpensHint" xml:space="preserve">
+    <value>应用、文件、文件夹或网址</value>
+  </data>
+  <data name="Macro_Empty" xml:space="preserve">
+    <value>还没有宏。添加应用、文档、文件夹或网址，每一项都会成为手机上的一个按钮。</value>
+  </data>
+  <data name="Macro_Count" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Macro_NameLeft" xml:space="preserve">
+    <value>名称 · 剩余 {0}</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>新宏</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>开发者模式</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>剪贴板</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>连接</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>集成</value>
+  </data>
+  <data name="Menu_Group_Settings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>统计与天气…</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>开发者…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>集成</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>这里的所有功能在你打开前都处于关闭状态。</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>在手机上显示系统状态</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>在手机上显示天气</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>城市</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>只向 open-meteo.com 发送城市名称。</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>连接</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>断开连接</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>已连接 · 最后收到 {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>未连接</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>在这台电脑上找不到 {0}</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>需要 Node.js 20.1 或更高版本。请从 nodejs.org 获取</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad 无法替你运行。请在终端中运行以下命令：</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>在 Codex 中打开 /hooks 并信任 Edgepad。</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>正在等待 Codex 信任该插件…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>请将 Codex 更新到 0.159 或更高版本。</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>请重启已打开的会话，或在 Claude Code 中运行 /reload-plugins。</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>开发者</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>退出登录</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>你的代码：{0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>打开 github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>正在等待你在浏览器中批准…</value>
+  </data>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>在 GitHub 上选择仓库</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>请重新登录。Edgepad 现在使用只读的 GitHub 访问权限。 请在 https://github.com/settings/applications 撤销旧的 Edgepad 授权。</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>已登录为 {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>此版本未设置登录。</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>从未</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>登录未完成。请重试。</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>正在处理…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. 如果还没有安装，请在这台电脑上安装 Claude Code：claude.com/claude-code
+2. 点击“连接”。Edgepad 会把它的插件添加到 Claude Code。
+3. 重启已打开的 Claude Code 会话，或在其中输入 /reload-plugins。
+4. 在手机上打开 Controls > AI。</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. 如果还没有安装，请在这台电脑上安装 Codex：developers.openai.com/codex
+2. 点击“连接”。Edgepad 会把它的插件添加到 Codex。
+3. 在 Codex 中输入 /hooks 并信任 Edgepad。在 Codex 应用中：Settings > Hooks > Review hooks。
+4. 在手机上打开 Controls > AI。Codex 发送第一个事件后就会出现。</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. 点击“登录”。会打开一个 github.com 页面。
+2. 输入这里显示的代码，然后点击 Authorize。
+3. 在手机上打开 Controls > GitHub。</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>连接你的 AI 工具和 Git 托管服务，即可在手机上查看。</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>AI 工具</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Git 托管服务</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>如何连接</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>登录</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>添加…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>即将推出</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>服务器地址</value>
+  </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>添加自托管服务器…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>打开 gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>在你的服务器上创建一个仅有 read_api 范围的个人访问令牌，然后粘贴到下方。</value>
+  </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>GitLab 登录已过期 — 请重新登录</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>改用令牌</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>在 gitlab.com 上创建仅含 read_api 范围的个人访问令牌，然后粘贴到下方。与登录不同，它不会在 2 小时后失效。</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>用户名或邮箱</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>访问令牌</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>请检查服务器地址、名称和令牌，然后重试。</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>服务器不接受此令牌。</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>此令牌没有读取权限。请创建具有读取权限的令牌。</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>在该地址找不到服务器。</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>无法连接到服务器。请检查网络连接。</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>无法保存令牌。请重试。</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. 如果尚未安装，请在这台电脑上安装 Gemini CLI。
+2. 点击“连接”。Edgepad 会把它的钩子添加到 Gemini CLI 的设置中。
+3. 重启已打开的 Gemini CLI 会话。</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. 如果尚未安装，请在这台电脑上安装 OpenCode。
+2. 点击“连接”。Edgepad 会把它的插件添加到 OpenCode 的插件文件夹。
+3. 重启已打开的 OpenCode 会话。</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. 在你的服务器上打开“设置 &gt; 应用”，创建具有读取权限的访问令牌。
+2. 点击“添加”，检查服务器地址（默认是 Codeberg），然后粘贴令牌。</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. 在你的 Atlassian 账户中创建具有 Bitbucket 读取权限的 API 令牌。
+2. 点击“添加”，输入你的 Bitbucket 邮箱，然后粘贴令牌。</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. 在 gitee.com 打开“设置 &gt; 私人令牌”，创建具有读取权限的令牌。
+2. 点击“添加”，然后粘贴令牌。</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>请打开开发者模式以使用这些功能。</value>
+  </data>
+  <data name="Note_CodexTrustTitle" xml:space="preserve">
+    <value>Codex 需要你再次同意</value>
+  </data>
+  <data name="Note_CodexTrustBody" xml:space="preserve">
+    <value>Edgepad 已更新。请在 Codex 中输入 /hooks 并信任 Edgepad，否则审批会留在终端里，而不会到达手机。</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>传输</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>正在发送到 {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>正在从 {0} 接收</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} / {2} · {3}/秒</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} / {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/秒</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · 已暂停</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>暂停</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>继续</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>未收到：{0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>文件到达时已损坏</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>无法保存</value>
+  </data>
+  <data name="Xfer_ReasonRejected" xml:space="preserve">
+    <value>这台 Mac 无法接收</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>手机停止响应</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>手机已断开连接</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+</root>

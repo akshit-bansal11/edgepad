@@ -301,6 +301,30 @@ final class FrameFixtureTests: XCTestCase {
                 throw FixtureError.malformed(line)
             }
             return (.blobEnd(sha256: try hex(fields[1], line)), bytes)
+        case "BULK_HELLO":
+            return (.bulkHello(version: UInt8(truncatingIfNeeded: try field(1))), bytes)
+        case "XFER_BEGIN":
+            guard fields.count == 4, let size = UInt64(fields[2]) else {
+                throw FixtureError.malformed(line)
+            }
+            return (.xferBegin(id: UInt8(truncatingIfNeeded: try field(1)), size: size, name: fields[3]), bytes)
+        case "XFER_CHUNK":
+            guard fields.count == 4, let offset = UInt64(fields[2]) else {
+                throw FixtureError.malformed(line)
+            }
+            let id = UInt8(truncatingIfNeeded: try field(1))
+            return (.xferChunk(id: id, offset: offset, data: try hex(fields[3], line)), bytes)
+        case "XFER_END":
+            guard fields.count == 3 else {
+                throw FixtureError.malformed(line)
+            }
+            return (.xferEnd(id: UInt8(truncatingIfNeeded: try field(1)), sha256: try hex(fields[2], line)), bytes)
+        case "XFER_STATUS":
+            guard fields.count == 4, let offset = UInt64(fields[3]) else {
+                throw FixtureError.malformed(line)
+            }
+            let id = UInt8(truncatingIfNeeded: try field(1))
+            return (.xferStatus(id: id, status: UInt8(truncatingIfNeeded: try field(2)), offset: offset), bytes)
         default:
             throw FixtureError.malformed(line)
         }

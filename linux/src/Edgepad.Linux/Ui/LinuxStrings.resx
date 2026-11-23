@@ -1,0 +1,702 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    The words the Linux app shows, in English. LinuxStrings.<culture>.resx next to this file holds the 14 translations;
+    every key here needs one in each of them, with the same {0} placeholders (LinuxStringsTests enforces both). Where
+    the Windows Strings.resx or the shared CoreStrings.resx already has the same English, the key keeps its name and
+    its translations are copied from there, without the access-key ampersands, which Linux does not use. Log text and
+    protocol names stay English and are not here.
+  -->
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Wi-Fi and USB connections</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>Share clipboard</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Copy on one, paste on the other: text and images.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Check for updates daily</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Macros…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Security…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Documentation</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Open log</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Quit Edgepad</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>Update available</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>Update available: {0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Install Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Skip this version</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Send a file to the phone…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Show notifications on the phone</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Let phones find this laptop?</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Allow</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Turn on</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Not now</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Forget</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>The setting could not be saved, so nothing was changed. The log has the reason.</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} wants to pair. Type the pairing code it shows.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Shutting down</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>The media ended. This laptop shuts down in {0} seconds.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi and USB: could not listen. See the log.</value>
+  </data>
+  <data name="App_Name" xml:space="preserve">
+    <value>Edgepad</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Install</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>Start at login</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>Listening on {0}</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>Port in use, using {0}</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>Could not listen; see the log</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>Could not open {0}: there is nothing at {1} yet.</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>Could not open {0}: install xdg-utils.</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>the release page</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>the documentation</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>the log</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepad is running</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>Your desktop shows no tray icons. On GNOME, install the ‘AppIndicator and KStatusNotifierItem Support’ extension to get one.</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>Phones on the same Wi-Fi, or connected by USB tethering, will be able to find this laptop and ask to pair. Nothing connects without the pairing code typed here.</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>A firewall may block them. Allow {0}/tcp and 5353/udp, for example:</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>Share clipboard?</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} wants to connect. A window is asking whether to trust it. Look for it on your screen.</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Edgepad {0} is available. Click to open the release page.</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepad cannot control this laptop</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Edgepad could not start</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>Its tray could not be set up. The log has the reason.</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0} changes how the laptop and the phone talk. Install the matching phone app too, or they will not connect. Install the laptop update now?</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} is downloaded and checked, but this copy is installed where only an administrator can change it. Open a terminal and run:</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>The update could not be installed and nothing was changed. The log has the reason.</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>This applies now, but it could not be saved, so it will go back after a restart. The log has the reason.</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>Start at login could not be changed. The log has the reason.</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>Forget every trusted phone ({0})? Each phone, this one included, will have to be trusted here again before it can use this laptop.</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>Forget the trusted phones? Each phone, this one included, will have to be trusted here again before it can use this laptop.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>The Wi-Fi and USB pairings could not be forgotten: their file could not be removed or emptied. Paired phones cannot reconnect over Wi-Fi or USB while Edgepad stays running, but they will be able to again the next time it starts. Choose Forget all… in Security… again, or delete paired-links.txt yourself from:</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>The trusted phones could not be forgotten: their file could not be removed or emptied. No phone can connect while Edgepad stays running, but those phones will be trusted again the next time Edgepad starts. Close whatever is holding the file and choose Forget all… in Security… again, or delete it yourself:</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>The phones that entered the PIN could not be forgotten: their list could not be removed. While Edgepad stays running every phone is asked for the PIN on every connection, but those phones will skip it at level 2 again the next time Edgepad starts. Choose Forget all… in Security… again, or delete pin-verified.txt yourself from:</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>Send a file to the phone</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>No phone is connected. Connect it, then send the file again.</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>Sent {0} to the phone.</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Every phone needs your yes here first. Levels 2 and 3 also ask for a six-digit PIN, typed on the phone’s screen. Phones are disconnected while this window is open.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Trust only</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>PIN once per phone</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>PIN on every connection</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Set PIN…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Change PIN…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>A new PIN will be saved.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>A PIN is set.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>No PIN is set.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>Saving a new PIN or level makes phones that entered the PIN once enter it again.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Trusted phones</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>Forget all…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>Reset PIN and forget phones…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>No phone is trusted yet. A phone is asked about the first time it connects.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>{0} ({1}) will have to be trusted here again before it can use this laptop. Phones stay disconnected while you decide.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Try Forget again once nothing else is using Edgepad’s files in {0}. {1} could not be fully forgotten: a file could not be rewritten. It stays trusted on disk, but Edgepad refuses it until Edgepad is restarted, and it will be trusted again from then on unless you forget it again.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>The PIN could not be saved, so nothing was changed. The log has the reason.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>The level could not be saved, so the previous level still applies. The log has the reason.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>The PIN is deleted, the level goes back to 1 and every trusted phone is forgotten. Each phone, the one connected included, will have to be trusted here again. A forgotten PIN cannot be recovered, only reset.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Close whatever is holding the file, then choose “Reset PIN and forget phones” again, or delete it yourself:
+
+{0}
+
+Nothing was reset: the trusted phones could not be forgotten, so the PIN and the level were left as they were. No phone can connect while Edgepad stays running, but those phones will be trusted again, behind the same PIN, the next time it starts.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Close whatever is holding the file, then choose “Reset PIN and forget phones” again, or delete security.txt and pin-verified.txt yourself from:
+
+{0}
+
+The trusted phones were forgotten, but the PIN could not be reset: a settings file could not be removed, so the old PIN and level may still apply. Each phone has to be trusted here again.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Trust</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Don’t trust</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>Trust {0}?</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>A paired phone is asking to control this laptop’s pointer and keyboard. Trust it only if it is yours. If you do not answer in {0} s, it is not trusted.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>New PIN</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>New PIN again</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Six digits</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Again</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>Use this PIN</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>A PIN is exactly six digits.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>The two PINs are not the same.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Macros</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>No macros yet</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Arguments</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>optional</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Browse…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Add macro</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>New macro</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>“{0}” has nothing to open. Choose what it opens, or remove it.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>The macros could not be saved to {0}: {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Choose what this button opens</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Type the pairing code shown on the phone:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Pairing code shown on the phone</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Pair a phone</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>Pair {0}?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Pair</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Checking the pairing code</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Closes in {0} s</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} arrived from the phone.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} of {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>Request {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>Each macro is a button on the phone. Up to {0}.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>Program, file, folder or link</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>Add an app</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>No apps were found on this laptop.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Edgepad annotation</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Developer mode</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>Clipboard</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>Connections</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>Integrations</value>
+  </data>
+  <data name="Menu_Group_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>Stats and weather…</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>For developers…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integrations</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Everything here is off until you turn it on.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Show system stats on the phone</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Show weather on the phone</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>City</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Sends only the city name to open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Disconnect</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Connected · last heard {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Not connected</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} was not found on this computer</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad could not run this for you. Run these commands in a terminal:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>In Codex, open /hooks and trust Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Waiting for Codex to trust the plugin…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Update Codex to version 0.159 or newer.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Restart open sessions, or run /reload-plugins in Claude Code.</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>For developers</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Sign out</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Your code: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Open github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Waiting for you to approve in the browser…</value>
+  </data>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>Choose repos on GitHub</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Sign in again. Edgepad now uses read-only GitHub access. Revoke the old Edgepad at https://github.com/settings/applications.</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Signed in as {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Sign-in is not set up in this build.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>never</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>Sign-in did not finish. Try again.</value>
+  </data>
+  <data name="Integrations_NotEncrypted" xml:space="preserve">
+    <value>No keyring was available, so your GitHub sign-in is kept in a private file that is not encrypted.</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Install Claude Code on this computer if you have not: claude.com/claude-code
+2. Click Connect. Edgepad adds its plugin to Claude Code.
+3. Restart open Claude Code sessions, or type /reload-plugins in them.
+4. On your phone, open Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Install Codex on this computer if you have not: developers.openai.com/codex
+2. Click Connect. Edgepad adds its plugin to Codex.
+3. In Codex, type /hooks and trust Edgepad. In the Codex app: Settings > Hooks > Review hooks.
+4. On your phone, open Controls > AI. It appears once Codex sends its first event.</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Working…</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Click Sign in. A github.com page opens.
+2. Enter the code shown here and click Authorize.
+3. On your phone, open Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Connect your AI tools and git hosts to see them on your phone.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>AI tools</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Git hosts</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>How to connect</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Add…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Coming soon</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Server address</value>
+  </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Add a self-hosted server…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>Open gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>On your server, create a personal access token with only the read_api scope, then paste it below.</value>
+  </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>GitLab sign-in expired — sign in again</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Use a token instead</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>On gitlab.com, create a personal access token with only the read_api scope, then paste it below. Unlike the sign-in, it does not run out after 2 hours.</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Username or email</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Access token</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Check the server address, the name and the token, then try again.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>The server did not accept this token.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>This token has no permission to read. Create one with read access.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>No server found at that address.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>Could not reach the server. Check your connection.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>Could not save the token. Try again.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Install Gemini CLI on this computer if you have not.
+2. Click Connect. Edgepad adds its hooks to your Gemini CLI settings.
+3. Restart open Gemini CLI sessions.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Install OpenCode on this computer if you have not.
+2. Click Connect. Edgepad adds its plugin to the OpenCode plugins folder.
+3. Restart open OpenCode sessions.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. On your server, open Settings &gt; Applications and create an access token with read access.
+2. Click Add, check the server address (Codeberg is the default) and paste the token.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. In your Atlassian account, create an API token with read access to Bitbucket.
+2. Click Add, enter your Bitbucket email and paste the token.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. On gitee.com, open Settings &gt; Personal access tokens and create a token with read access.
+2. Click Add and paste the token.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Turn on Developer mode to use these.</value>
+  </data>
+  <data name="Notice_CodexTrustTitle" xml:space="preserve">
+    <value>Codex needs your OK again</value>
+  </data>
+  <data name="Notice_CodexTrust" xml:space="preserve">
+    <value>Edgepad was updated. In Codex, type /hooks and trust Edgepad, or phone approvals stay in the terminal.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>Transfers</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Sending to {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Receiving from {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} of {2} · {3}/s</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} of {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/s</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · Paused</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Resume</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Not received: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>Not sent: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>it arrived damaged</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>it could not be saved</value>
+  </data>
+  <data name="Xfer_ReasonRejectedHere" xml:space="preserve">
+    <value>this laptop could not take it</value>
+  </data>
+  <data name="Xfer_ReasonRejectedPhone" xml:space="preserve">
+    <value>the phone could not take it</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>it was cancelled</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>the phone stopped answering</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>the phone disconnected</value>
+  </data>
+  <data name="Xfer_ReasonBusy" xml:space="preserve">
+    <value>the phone was busy with another file</value>
+  </data>
+  <data name="Xfer_ReasonUnreadable" xml:space="preserve">
+    <value>this laptop could not read it</value>
+  </data>
+  <data name="Xfer_ReasonNotSent" xml:space="preserve">
+    <value>it was not sent</value>
+  </data>
+</root>

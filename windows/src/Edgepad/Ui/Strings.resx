@@ -106,7 +106,7 @@
     <value>The controller needs the ViGEmBus driver. Click to open the download page.</value>
   </data>
   <data name="Balloon_WantsToConnect" xml:space="preserve">
-    <value>{0} wants to connect. Choose Trust or Don't trust.</value>
+    <value>{0} wants to connect. Choose Trust or Don’t trust.</value>
   </data>
   <data name="Phone_Connected" xml:space="preserve">
     <value>Phone connected</value>
@@ -157,10 +157,10 @@
     <value>Security</value>
   </data>
   <data name="Error_ForgetOne" xml:space="preserve">
-    <value>Try Forget again once nothing else is using Edgepad's files in {0}. {1} could not be fully forgotten: a file could not be rewritten. It stays trusted on disk, but Edgepad refuses it until Edgepad is restarted, and it will be trusted again from then on unless you forget it again.</value>
+    <value>Try Forget again once nothing else is using Edgepad’s files in {0}. {1} could not be fully forgotten: a file could not be rewritten. It stays trusted on disk, but Edgepad refuses it until Edgepad is restarted, and it will be trusted again from then on unless you forget it again.</value>
   </data>
   <data name="Error_ForgetAllTrust" xml:space="preserve">
-    <value>Close whatever is holding the trusted phones' file, then choose Forget all again, or delete it yourself:
+    <value>Close whatever is holding the trusted phones’ file, then choose Forget all again, or delete it yourself:
 
 {0}
 
@@ -184,10 +184,10 @@ The Wi-Fi and USB pairings could not be forgotten: their file could not be remov
     <value>Trust</value>
   </data>
   <data name="Dialog_DontTrust" xml:space="preserve">
-    <value>Don't trust</value>
+    <value>Don’t trust</value>
   </data>
   <data name="Dialog_TrustText" xml:space="preserve">
-    <value>A paired phone is asking to control this laptop's pointer and keyboard. Trust it only if it is yours. If you do not answer in {0} s, it is not trusted.</value>
+    <value>A paired phone is asking to control this laptop’s pointer and keyboard. Trust it only if it is yours. If you do not answer in {0} s, it is not trusted.</value>
   </data>
   <data name="Dialog_TrustHeading" xml:space="preserve">
     <value>Trust {0}?</value>
@@ -211,7 +211,7 @@ The Wi-Fi and USB pairings could not be forgotten: their file could not be remov
     <value>The phone types the PIN every time it connects.</value>
   </data>
   <data name="Security_Intro" xml:space="preserve">
-    <value>Every phone needs your yes here first. Levels 2 and 3 also ask for a six-digit PIN, typed on the phone's screen. Phones are disconnected while this window is open.</value>
+    <value>Every phone needs your yes here first. Levels 2 and 3 also ask for a six-digit PIN, typed on the phone’s screen. Phones are disconnected while this window is open.</value>
   </data>
   <data name="Security_PinNote" xml:space="preserve">
     <value>Saving a new PIN or level makes phones that entered the PIN once enter it again.</value>
@@ -321,7 +321,7 @@ The trusted phones were forgotten, but the PIN could not be reset: a settings fi
     <value>The two PINs are not the same.</value>
   </data>
   <data name="Macro_Description" xml:space="preserve">
-    <value>Buttons on your phone's macro screen, up to 15. The phone sends a button's number, never a program, so it can only run what you add here. Alt+Up and Alt+Down reorder the buttons.</value>
+    <value>Buttons on your phone’s macro screen, up to 15. The phone sends a button’s number, never a program, so it can only run what you add here. Alt+Up and Alt+Down reorder the buttons.</value>
   </data>
   <data name="Macro_EmptyHeadline" xml:space="preserve">
     <value>No macros yet</value>
@@ -372,7 +372,7 @@ The trusted phones were forgotten, but the PIN could not be reset: a settings fi
     <value>Choose icon</value>
   </data>
   <data name="Macro_OwnIcon" xml:space="preserve">
-    <value>&amp;Use the program's own</value>
+    <value>&amp;Use the program’s own</value>
   </data>
   <data name="Macro_Remove" xml:space="preserve">
     <value>&amp;Remove</value>
@@ -402,7 +402,7 @@ The trusted phones were forgotten, but the PIN could not be reset: a settings fi
     <value>Save</value>
   </data>
   <data name="Macro_DontSave" xml:space="preserve">
-    <value>Don't save</value>
+    <value>Don’t save</value>
   </data>
   <data name="Macro_SaveHeading" xml:space="preserve">
     <value>Save changes to macros?</value>
@@ -487,5 +487,437 @@ The trusted phones were forgotten, but the PIN could not be reset: a settings fi
   </data>
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi and USB: phones may not find this laptop.</value>
+  </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Restart as administrator</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Lets Edgepad type into elevated windows such as Task Manager. The lock screen and UAC prompts stay out of reach.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Install Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Skip this version</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} is available. Click to install.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} could not be checked, so it was not installed.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0} could not be installed. Click to open the release page.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>This is a major release. Update Edgepad on the phone too, or they will refuse each other. Install now?</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Shutting down</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>The media ended. This laptop shuts down in {0} seconds.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Send a file to the phone…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} arrived from the phone.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0} could not be received.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Show notifications on the phone</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Install</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Not now</value>
+  </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>Clipboard &amp;history</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Recent copies from this laptop and the phone. Kept in memory only.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Clipboard</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Nothing copied yet</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Copies from this laptop and the phone show up here.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Turn on Share clipboard in the tray menu to see your copies here.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Clear all</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>This laptop</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Just now</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>{0} min ago</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>{0} h ago</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>{0} d ago</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Send to phone</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Sent to phone</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>Could not send. Check the connection.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Copied. Press Ctrl+V to paste.</value>
+  </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Could not use the clipboard. Try again.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V is used by another app, so the shortcut is off.</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>Sent {0}</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Files sent: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Files sent: {0} of {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Files received: {0}</value>
+  </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Files received: {0} of {1}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} was not sent</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Files not sent: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Cancelling…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>No phone is connected.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>Skipped {0}: empty, missing or over 2 GB.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>The phone refused it. It may be out of space.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>It arrived damaged. Try again.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>The phone could not save it.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>The phone was busy with another file.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>The phone stopped answering.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>The connection was lost.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>This laptop could not read the file.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Cancelled.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>Not sent.</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>&amp;Stats and weather…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Developer mode</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>&amp;For developers…</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>&amp;Clipboard</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>Connec&amp;tions</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>&amp;Integrations</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integrations</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Everything here is off until you turn it on.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Show system stats on the phone</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Show weather on the phone</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>City</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Sends only the city name to open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Disconnect</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Connected · last heard {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Not connected</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} was not found on this computer</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad could not run this for you. Run these commands in a terminal:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>In Codex, open /hooks and trust Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Waiting for Codex to trust the plugin…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Update Codex to version 0.159 or newer.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Restart open sessions, or run /reload-plugins in Claude Code.</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>For developers</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Sign out</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Your code: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Open github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Waiting for you to approve in the browser…</value>
+  </data>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>Choose repos on GitHub</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Sign in again. Edgepad now uses read-only GitHub access. Revoke the old Edgepad at https://github.com/settings/applications.</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Signed in as {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Sign-in is not set up in this build.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>never</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Working…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Install Claude Code on this computer if you have not: claude.com/claude-code
+2. Click Connect. Edgepad adds its plugin to Claude Code.
+3. Restart open Claude Code sessions, or type /reload-plugins in them.
+4. On your phone, open Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Install Codex on this computer if you have not: developers.openai.com/codex
+2. Click Connect. Edgepad adds its plugin to Codex.
+3. In Codex, type /hooks and trust Edgepad. In the Codex app: Settings > Hooks > Review hooks.
+4. On your phone, open Controls > AI. It appears once Codex sends its first event.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Click Sign in. A github.com page opens.
+2. Enter the code shown here and click Authorize.
+3. On your phone, open Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Connect your AI tools and git hosts to see them on your phone.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>AI tools</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Git hosts</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>How to connect</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Add…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Coming soon</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Server address</value>
+  </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Add a self-hosted server…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>Open gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>On your server, create a personal access token with only the read_api scope, then paste it below.</value>
+  </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>GitLab sign-in expired — sign in again</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Use a token instead</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>On gitlab.com, create a personal access token with only the read_api scope, then paste it below. Unlike the sign-in, it does not run out after 2 hours.</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Username or email</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Access token</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Check the server address, the name and the token, then try again.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>The server did not accept this token.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>This token has no permission to read. Create one with read access.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>No server found at that address.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>Could not reach the server. Check your connection.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>Could not save the token. Try again.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Install Gemini CLI on this computer if you have not.
+2. Click Connect. Edgepad adds its hooks to your Gemini CLI settings.
+3. Restart open Gemini CLI sessions.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Install OpenCode on this computer if you have not.
+2. Click Connect. Edgepad adds its plugin to the OpenCode plugins folder.
+3. Restart open OpenCode sessions.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. On your server, open Settings &gt; Applications and create an access token with read access.
+2. Click Add, check the server address (Codeberg is the default) and paste the token.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. In your Atlassian account, create an API token with read access to Bitbucket.
+2. Click Add, enter your Bitbucket email and paste the token.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. On gitee.com, open Settings &gt; Personal access tokens and create a token with read access.
+2. Click Add and paste the token.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Turn on Developer mode to use these.</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex needs your OK again</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad was updated. In Codex, type /hooks and trust Edgepad, or phone approvals stay in the terminal.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>T&amp;ransfers</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Sending to {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Receiving from {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} of {2} · {3}/s</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} of {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/s</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · Paused</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Resume</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Not received: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>Not sent: {0}</value>
   </data>
 </root>

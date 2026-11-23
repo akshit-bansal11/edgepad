@@ -137,6 +137,30 @@ public sealed class WindowsPlatformTests : IDisposable
     }
 
     [Fact]
+    public void TheLaserIsTakenWhileAnnotatingAndDroppedWhileSigning()
+    {
+        dispatcher.Handle(new RunAction((byte)ActionId.AnnotateBegin));
+        dispatcher.Handle(new RunAction((byte)ActionId.ToolLaser));
+        Assert.Equal(0, dispatcher.Dropped);
+
+        dispatcher.Handle(new RunAction((byte)ActionId.SignBegin));
+        dispatcher.Handle(new RunAction((byte)ActionId.ToolLaser));
+        Assert.Equal(1, dispatcher.Dropped);
+    }
+
+    [Fact]
+    public void TheTrailingLaserIsTakenWhileAnnotatingAndDroppedWhileSigning()
+    {
+        dispatcher.Handle(new RunAction((byte)ActionId.AnnotateBegin));
+        dispatcher.Handle(new RunAction((byte)ActionId.ToolLaserTrail));
+        Assert.Equal(0, dispatcher.Dropped);
+
+        dispatcher.Handle(new RunAction((byte)ActionId.SignBegin));
+        dispatcher.Handle(new RunAction((byte)ActionId.ToolLaserTrail));
+        Assert.Equal(1, dispatcher.Dropped);
+    }
+
+    [Fact]
     public void OnlySixHexDigitsSetThePenRgb()
     {
         dispatcher.Handle(new Text((byte)TextKind.PenRgb, "12abEF"));

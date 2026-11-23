@@ -1,3 +1,4 @@
+import AppKit
 import CoreServices
 import EdgepadCore
 import Foundation
@@ -12,6 +13,23 @@ final class MacCaptureFolders: CaptureFolders {
         let desktop = (NSHomeDirectory() as NSString).appendingPathComponent("Desktop")
         let folder = chosen.map { ($0 as NSString).expandingTildeInPath } ?? desktop
         return [CaptureFolder(path: folder, shared: true)]
+    }
+
+    private let surface = PasteboardSurface()
+
+    /// The pasteboard's change count, only while the owner shares the clipboard: with sharing off the pasteboard is
+    /// never touched on a capture's account.
+    func clipboardStamp() -> Int? {
+        ClipboardSetting.enabled ? NSPasteboard.general.changeCount : nil
+    }
+
+    /// The picture on the pasteboard as PNG, read through the clipboard sync's own rules so a password manager's
+    /// sensitive flag still keeps it out. Nil when sharing is off or there is no picture.
+    func clipboardPNG() -> Data? {
+        guard ClipboardSetting.enabled, let content = surface.read(), content.kind == .clipImage,
+            let png = surface.encode(content)
+        else { return nil }
+        return Data(png.data)
     }
 
     /// Spotlight's kMDItemIsScreenCapture, which macOS sets on its screenshots and recordings whatever the language

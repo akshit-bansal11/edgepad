@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">Niet verbonden</string>
+  <string name="notice_play_pause">Afspelen of pauzeren</string>
+  <string name="notice_volume_down">Zachter</string>
+  <string name="notice_volume_up">Luider</string>
+  <string name="controls_clipboard">Klembord</string>
+  <string name="controls_presenter">Presentator</string>
+  <string name="clip_history_title">Klembord</string>
+  <string name="clip_history_empty">Nog niets gekopieerd</string>
+  <string name="clip_history_empty_hint">Kopieën van de laptop en van deze telefoon verschijnen hier zolang Klembord delen aan staat.</string>
+  <string name="clip_history_from_laptop">Van de laptop</string>
+  <string name="clip_history_from_phone">Van deze telefoon</string>
+  <string name="clip_history_just_now">Zojuist</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
+  <string name="clip_history_sent">Verstuurd naar %1$s</string>
+  <string name="clip_history_failed">Versturen mislukt. Controleer de verbinding.</string>
+  <string name="clip_history_send_hint">Opnieuw versturen</string>
+  <string name="presenter_title">Presentator</string>
+  <string name="presenter_next">Volgende dia</string>
+  <string name="presenter_previous">Vorige dia</string>
+  <string name="presenter_settings">Presentatorinstellingen</string>
+  <string name="presenter_laser_title">Laser</string>
+  <string name="presenter_size_label">Grootte</string>
+  <string name="presenter_size_small">Klein</string>
+  <string name="presenter_size_medium">Gemiddeld</string>
+  <string name="presenter_size_large">Groot</string>
+  <string name="presenter_laser_zoomed">Voorbeeld, ingezoomd</string>
+  <string name="presenter_preview_sample">Kwartaalresultaten</string>
+  <string name="presenter_laser_trail">Spoor tonen</string>
+  <string name="presenter_point_here">Wijs hier</string>
+  <string name="tool_laser">Laser</string>
+</resources>

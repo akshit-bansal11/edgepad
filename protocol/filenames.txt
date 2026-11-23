@@ -1,0 +1,53 @@
+# The file-name sanitiser every app holds a received name to: one pair per line, "input | expected".
+# Split each line at its LAST " | ". Lines starting with # and blank lines are skipped. The expected text (rejected) means
+# the name is refused. Rules, in order: keep the last segment after / or \; drop control characters and invisible format characters (Unicode Cf: bidi marks and overrides, zero-width, BOM); replace < > : " / \ | ? *
+# with _; trim trailing dots and spaces; cut to 120 UTF-8 bytes keeping an extension of at most 20 bytes; refuse an empty
+# result and a Windows device name (CON PRN AUX NUL COM1-9 LPT1-9), with or without an extension. A clash is renamed
+# "name (1).ext" by the receiver, never overwritten. Pairs hold no control characters, which the tests cover separately.
+report.pdf | report.pdf
+photo 1.jpeg | photo 1.jpeg
+archive.tar.gz | archive.tar.gz
+.hidden | .hidden
+C:\Users\me\report.pdf | report.pdf
+/home/me/notes.txt | notes.txt
+../../etc/passwd | passwd
+..\..\boot.ini | boot.ini
+a/b/c.txt | c.txt
+my<file>.txt | my_file_.txt
+what?.txt | what_.txt
+a:b|c*d.txt | a_b_c_d.txt
+"quoted".txt | _quoted_.txt
+name.txt. | name.txt
+name.txt . . | name.txt
+trailing space  | trailing space
+dir/ | (rejected)
+. | (rejected)
+.. | (rejected)
+... | (rejected)
+ | (rejected)
+CON | (rejected)
+con.txt | (rejected)
+NUL.tar.gz | (rejected)
+Aux. | (rejected)
+COM1 | (rejected)
+lpt9.log | (rejected)
+COM0.txt | COM0.txt
+CONSOLE.txt | CONSOLE.txt
+xCON.txt | xCON.txt
+Δοκιμή αρχείο.txt | Δοκιμή αρχείο.txt
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.txt | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.txt
+invoice؜fdp.exe | invoicefdp.exe
+invoice​fdp.exe | invoicefdp.exe
+invoice‎fdp.exe | invoicefdp.exe
+invoice‏fdp.exe | invoicefdp.exe
+invoice‪fdp.exe | invoicefdp.exe
+invoice‫fdp.exe | invoicefdp.exe
+invoice‬fdp.exe | invoicefdp.exe
+invoice‭fdp.exe | invoicefdp.exe
+invoice‮fdp.exe | invoicefdp.exe
+invoice⁠fdp.exe | invoicefdp.exe
+invoice⁦fdp.exe | invoicefdp.exe
+invoice⁩fdp.exe | invoicefdp.exe
+invoice﻿fdp.exe | invoicefdp.exe
+‮‪ | (rejected)
+invoice󠀁fdp.exe | invoicefdp.exe

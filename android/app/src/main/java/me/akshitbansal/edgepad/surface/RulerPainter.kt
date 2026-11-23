@@ -363,6 +363,19 @@ object RulerGeometry {
     /** The share of the bend's radius a mark in the bend may reach, short of the centre where normals meet. */
     private const val BEND_REACH = 0.85f
 
+    /** Floor for the bend of a display with little or no rounding of its own. */
+    private const val MIN_BEND_DP = 24f
+
+    /**
+     * The bend of the ruler path: the display's own corner radius, floored at [MIN_BEND_DP]. The path runs on
+     * the screen edge and each mark starts [INSET_DP] in along its normal, so the marks' first arc is concentric
+     * with the screen's corner, at [bend] less the inset, whatever the rounding.
+     */
+    fun bend(
+        cornerPx: Float,
+        density: Float,
+    ): Float = maxOf(cornerPx, MIN_BEND_DP * density)
+
     private fun grow(armed: Boolean): Float = if (armed) ARMED_GROWTH else 1f
 
     /** Where every fifth notch, the pill, ends. */

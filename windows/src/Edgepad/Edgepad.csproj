@@ -54,11 +54,18 @@
     <!-- The tray icon in both tiles, picked by the taskbar theme (TrayContext); made by scripts/icons.sh. -->
     <EmbeddedResource Include="Assets\tray-dark.ico" LogicalName="Edgepad.Assets.tray-dark.ico" />
     <EmbeddedResource Include="Assets\tray-light.ico" LogicalName="Edgepad.Assets.tray-light.ico" />
+    <!-- The GitLab and OpenCode marks the For developers window shows, rendered from assets/brand/logos by scripts/icons.sh. Until
+         the icons job's PNGs are copied in, the glob matches nothing and those rows draw a brand-colour letter tile instead. -->
+    <EmbeddedResource Include="Assets\logos\*.png" LogicalName="Edgepad.Assets.logo-%(Filename)%(Extension)" />
     <!-- Ui/Icons draws Lucide's paths, and Lucide's ISC licence asks the same of them. -->
     <EmbeddedResource Include="Ui\Lucide-LICENSE.txt" LogicalName="Edgepad.Ui.Lucide-LICENSE.txt" />
     <!-- The notices of every package and of the .NET runtime that the self-contained exe bundles, written by
          scripts/notices.sh in the release job just before the publish. Not committed: it follows the lock file. -->
     <EmbeddedResource Include="THIRD-PARTY-NOTICES.txt" LogicalName="Edgepad.THIRD-PARTY-NOTICES.txt" Condition="Exists('THIRD-PARTY-NOTICES.txt')" />
+    <!-- The Claude Code and Codex plugin (plugins/edgepad), each file named plugins/edgepad/<path>, which ResourcePluginSource
+         reads back when Connect stamps a copy: Connect needs no download, and a release cannot ship without it. WithCulture
+         off, so no file name is ever read as a culture. -->
+    <EmbeddedResource Include="..\..\..\plugins\edgepad\**\*" LogicalName="plugins/edgepad/%(RecursiveDir)%(Filename)%(Extension)" WithCulture="false" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>

@@ -18,7 +18,11 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.view.WindowInsets
+import android.view.WindowInsetsController
+import android.view.WindowManager
+import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -33,6 +37,10 @@ import me.akshitbansal.edgepad.Type
 
 private const val SECTION_TOP_DP = 24f
 private const val FOCUS_RING_DP = 2f
+
+/** How far a scrolling page fades out at its top and bottom edge. */
+const val FADE_EDGE_DP = 24f
+
 private const val KNOB_DP = 26f
 private const val KNOB_GAP_DP = 2f
 private const val TRACK_DP = 4f
@@ -47,8 +55,11 @@ private const val SEGMENT_HEIGHT_DP = 28f
 private const val SEGMENT_TEXT_PAD_DP = 6f
 private const val SEGMENT_INSET_DP = 2f
 private const val SEGMENT_PAD_DP = 14f
+
+/** What the page margins and the card's padding take off the screen's width, at the narrowest, in dp. */
+private const val SEGMENT_MARGIN_DP = 72f
 private const val SEGMENT_TRACK_RADIUS_DP = 9f
-private const val SEGMENT_THUMB_RADIUS_DP = 7f
+private val SEGMENT_THUMB_RADIUS_DP = Space.inner(SEGMENT_TRACK_RADIUS_DP, SEGMENT_INSET_DP)
 
 private const val CHIP_DP = 32f
 private const val BACK_ICON_DP = 26f
@@ -73,6 +84,9 @@ private const val LAPTOP_TILE_LARGE_DP = 44f
 class Ui(
     val context: Context,
 ) {
+    /** Names the page back leads to on every bar built, in place of the one a page gives; null leaves them as given. */
+    var backOverride: CharSequence? = null
+
     enum class Style {
         /** The one main action on a page: an accent fill. */
         FILLED,
@@ -121,12 +135,16 @@ class Ui(
                     Column(this@Ui, this).build()
                 }
             }
+        // The padding is the column's, not the scroll view's: a scroll view draws its fades inside its own padding,
+        // so padding there put the bottom fade well above the screen's edge as a band with a hard line under it.
+        column.setPadding(side, top, side, end)
         val scroll =
             ScrollView(context).apply {
                 isFillViewport = true
                 isVerticalScrollBarEnabled = false
-                setPadding(side, top, side, end)
-                clipToPadding = false
+                // DES-D26: content fades at an edge it scrolls under; the platform draws nothing when it fits.
+                isVerticalFadingEdgeEnabled = true
+                setFadingEdgeLength(dp(FADE_EDGE_DP))
                 addView(
                     column,
                     ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
@@ -148,7 +166,7 @@ class Ui(
             val bottom = maxOf(bars.bottom, insets.getInsets(WindowInsets.Type.ime()).bottom)
             page.setPadding(bars.left, bars.top, bars.right, 0)
             if (pinned == null) {
-                scroll.setPadding(side, top, side, end + bottom)
+                column.setPadding(side, top, side, end + bottom)
             } else {
                 pinned.setPadding(side, 0, side, dp(Space.S) + bottom)
             }
@@ -188,7 +206,8 @@ class Ui(
                 LinearLayout(context).apply {
                     gravity = Gravity.CENTER_VERTICAL
                     if (onBack != null) {
-                        addView(back(backLabel ?: string(R.string.back), backLabel != null, onBack))
+                        val label = backOverride ?: backLabel
+                        addView(back(label ?: string(R.string.back), label != null, onBack))
                     } else if (lead != null) {
                         addView(
                             lead,
@@ -351,6 +370,41 @@ class Ui(
         }
 
     /**
+     * An on/off [chip]: a CheckBox, so a screen reader says whether it is on, drawn as a pill that fills with the
+     * accent and gains a tick when on, so the state is not told by colour alone. [onChange] gets the box, so a refusal
+     * can turn it back off.
+     */
+    fun toggleChip(
+        label: CharSequence,
+        checked: Boolean,
+        onChange: (box: CheckBox, on: Boolean) -> Unit,
+    ): CheckBox =
+        CheckBox(context).apply {
+            buttonDrawable = null
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, Type.VALUE)
+            typeface = Type.bold
+            gravity = Gravity.CENTER
+            minHeight = dp(Space.TOUCH)
+            // The tick is drawn, not spoken: the checked state already says it.
+            contentDescription = label
+            val inset = (dp(Space.TOUCH) - dp(CHIP_DP)) / 2
+            val dress = { on: Boolean ->
+                text = if (on) context.getString(R.string.chip_on, label) else label
+                setTextColor(if (on) palette.accent else palette.ink)
+                val fill = if (on) palette.accentSoft else palette.faint
+                background = InsetDrawable(rounded(fill, CHIP_DP / 2), 0, inset, 0, inset)
+                // After the background, which resets the padding to its insets.
+                setPadding(dp(Space.L), 0, dp(Space.L), 0)
+            }
+            isChecked = checked
+            dress(checked)
+            setOnCheckedChangeListener { _, on ->
+                dress(on)
+                onChange(this, on)
+            }
+        }
+
+    /**
      * Turns [view] on or off: off, it stops answering taps and fades back. Screen readers still reach it and
      * say it is unavailable, so the reason beside it can be found.
      */
@@ -430,7 +484,10 @@ class Ui(
                     },
                 )
             }
-        view.setOnClickListener { onClick() }
+        view.setOnClickListener {
+            Carry.mark(view)
+            onClick()
+        }
     }
 
     /**
@@ -485,12 +542,17 @@ class Ui(
                         context.resources.displayMetrics,
                     )
             }
-        val width = options.maxOf { paint.measureText(it.toString()) }.toInt() + 2 * dp(SEGMENT_PAD_DP)
+        val natural = options.maxOf { paint.measureText(it.toString()) }.toInt() + 2 * dp(SEGMENT_PAD_DP)
+        // Never wider than the screen less the page and card margins: past that the labels share the room and
+        // wrap onto a second line, rather than the control running off the card's edge.
+        val room = context.resources.displayMetrics.widthPixels - dp(SEGMENT_MARGIN_DP) - 2 * inset
+        val width = Squeeze.segmentWidth(natural, options.size, room)
         // The height is worked out the same way, from the text, so a large font size grows the thumb instead
         // of clipping its labels. The whole control is then at least a touch target tall: the room above and
         // below the drawn track is clear, and every option's label reaches through it to take the tap.
         val lines = paint.fontMetricsInt
-        val height = maxOf(dp(SEGMENT_HEIGHT_DP), lines.bottom - lines.top + 2 * dp(SEGMENT_TEXT_PAD_DP))
+        val rows = if (width < natural) 2 else 1
+        val height = maxOf(dp(SEGMENT_HEIGHT_DP), rows * (lines.bottom - lines.top) + 2 * dp(SEGMENT_TEXT_PAD_DP))
         val touch = maxOf(dp(Space.TOUCH), height + 2 * inset)
         val slack = (touch - height) / 2 - inset
         val labels =
@@ -534,7 +596,7 @@ class Ui(
                 fill
                     .animate()
                     .translationX(x)
-                    .setDuration(Motion.BASE)
+                    .setDuration(Motion.PRESS)
                     .start()
             } else {
                 fill.animate().cancel()
@@ -874,7 +936,7 @@ class Ui(
         return layers
     }
 
-    private companion object {
+    internal companion object {
         /** Switch knobs and slider thumbs are white in both themes, as on iOS. */
         const val KNOB_COLOR = 0xFFFFFFFF.toInt()
 
@@ -981,6 +1043,32 @@ private class NavBar(
 }
 
 /**
+ * Hides the status and navigation bars on this window; an edge swipe shows them for a moment. A dialog is a window
+ * of its own and brings the bars back unless it hides them too, so every dialog goes through [openOver].
+ */
+fun Window.hideBars() {
+    // Through decorView, which builds the decor first: a dialog before show() has none yet, and
+    // Window.insetsController then throws instead of returning null. The decor's controller holds
+    // the request until the window is attached.
+    decorView.windowInsetsController?.let {
+        it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        it.hide(WindowInsets.Type.systemBars())
+    }
+}
+
+/**
+ * Lets this window draw under the camera cutout on every edge: with the bars hidden, the default letterboxes a
+ * landscape cutout side with a black strip. Pages and editors pad themselves clear of it ([Ui.page], [Ui.padToBars]);
+ * the control surface draws under it. Activities only; a dialog stays inside the safe area.
+ */
+fun Window.fillCutout() {
+    attributes =
+        attributes.apply {
+            layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+        }
+}
+
+/**
  * Shows the dialog, and closes it if [owner] leaves the window first. Left to itself a dialog outlives the
  * page that opened it: a rotation or a theme change rebuilds the activity underneath, and the window the
  * dialog still holds leaks. Nothing it asked about is on screen any more by then, so closing it loses nothing.
@@ -991,7 +1079,12 @@ fun AlertDialog.Builder.showOver(owner: View) {
 
 /** As [showOver], for a caller that shapes the dialog's window once it is up. */
 fun AlertDialog.Builder.openOver(owner: View): AlertDialog {
-    val dialog = show()
+    val dialog = create()
+    // The platform's own entrance is swapped for the carry from the tapped control (UX-32).
+    dialog.window?.setWindowAnimations(0)
+    dialog.window?.hideBars()
+    dialog.show()
+    dialog.window?.let { Carry.reveal(it, owner) }
     val closer =
         object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) = Unit

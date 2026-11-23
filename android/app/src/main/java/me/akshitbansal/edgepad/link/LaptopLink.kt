@@ -15,6 +15,7 @@ import java.io.EOFException
 import java.io.IOException
 import java.io.OutputStream
 import java.io.StreamCorruptedException
+import java.net.InetAddress
 import java.net.SocketTimeoutException
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -169,6 +170,14 @@ class LaptopLink(
      */
     @Volatile var blobs: ((Frame) -> Unit)? = null
 
+    /**
+     * Takes this link's XFER frames on the reading thread, as [blobs] takes blob frames. With none set they are dropped.
+     */
+    @Volatile var xfer: ((Frame) -> Unit)? = null
+
+    /** The laptop's address on a network link, for the transfer's second socket; null on Bluetooth. */
+    val peer: InetAddress? get() = transport.peer
+
     /** The frames [send] has queued and the writer has not taken yet. */
     val queued: Int get() = outbox.size
 
@@ -216,7 +225,9 @@ class LaptopLink(
      */
     fun send(frame: Frame) {
         if (!connected) return
-        if (frame !is Frame.Ping && !isBlob(frame)) lastInputMs = System.nanoTime() / NANOS_PER_MS_LONG
+        if (frame !is Frame.Ping && !isBlob(frame) && !isXfer(frame)) {
+            lastInputMs = System.nanoTime() / NANOS_PER_MS_LONG
+        }
         if (!outbox.offer(frame)) close(Closure(Cause.LOST))
     }
 
@@ -279,6 +290,8 @@ class LaptopLink(
                     deliver { it.onRoundTrip(ms) }
                 } else if (isBlob(frame)) {
                     blobs?.invoke(frame)
+                } else if (isXfer(frame)) {
+                    xfer?.invoke(frame)
                 } else if (!CaptureInbox.take(frame, id, ::send)) {
                     // Asked for here, ahead of the main thread, so the pictures are on their way before any
                     // screen wants them and are cached by the time the macro screen opens.
@@ -516,3 +529,7 @@ private val ICON_TIERS = intArrayOf(128, 256, 384, 512)
 
 /** The smallest icon size the laptop offers that is at least [px], or the largest when none is. */
 internal fun snapUp(px: Int): Int = ICON_TIERS.firstOrNull { it >= px } ?: ICON_TIERS.last()
+
+/** A frame of a file transfer, which [LaptopLink.xfer] takes. */
+private fun isXfer(frame: Frame): Boolean =
+    frame is Frame.XferBegin || frame is Frame.XferChunk || frame is Frame.XferEnd || frame is Frame.XferStatus

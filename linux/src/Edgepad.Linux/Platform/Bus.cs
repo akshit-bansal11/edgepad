@@ -32,7 +32,11 @@ internal sealed class Bus(Func<string?> address, string name) : IDisposable
         Attempt(c => c.CallMethodAsync(build(c)), out refusal);
 
     /// <summary>Makes the call and reads its reply with <paramref name="reader"/>. False when it failed.</summary>
-    public bool Call<T>(Func<DBusConnection, MessageBuffer> build, MessageValueReader<T> reader, out T? value)
+    public bool Call<T>(Func<DBusConnection, MessageBuffer> build, MessageValueReader<T> reader, out T? value) =>
+        Call(build, reader, out value, out _);
+
+    /// <summary>The same, with the error name the service answered with in <paramref name="refusal"/> (null for any other failure).</summary>
+    public bool Call<T>(Func<DBusConnection, MessageBuffer> build, MessageValueReader<T> reader, out T? value, out string? refusal)
     {
         T? result = default;
         var ok = Attempt(
@@ -40,7 +44,7 @@ internal sealed class Bus(Func<string?> address, string name) : IDisposable
             {
                 result = await c.CallMethodAsync(build(c), reader);
             },
-            out _);
+            out refusal);
         value = ok ? result : default;
         return ok;
     }

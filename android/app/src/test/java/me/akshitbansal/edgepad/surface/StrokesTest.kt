@@ -242,4 +242,21 @@ class StrokesTest {
     fun anArrowWithNoLengthHasNoHead() {
         assertNull(Strokes.arrowWings(5f, 5f, 5f, 5f, 2f))
     }
+
+    @Test
+    fun sliderStepsRoundTripAcrossTheWholePenRange() {
+        for (step in 0..Strokes.WIDTH_STEPS) assertEquals(step, Strokes.widthStep(Strokes.widthAt(step)))
+        for (step in 0..Strokes.OPACITY_STEPS) assertEquals(step, Strokes.opacityStep(Strokes.opacityAt(step)))
+        assertEquals(Strokes.MAX_WIDTH, Strokes.widthAt(Strokes.WIDTH_STEPS))
+        assertEquals(Strokes.MAX_OPACITY, Strokes.opacityAt(Strokes.OPACITY_STEPS))
+        assertEquals(Strokes.MIN_OPACITY, Strokes.opacityAt(0))
+    }
+
+    @Test
+    fun sliderStepsStayInsideTheirRangeForStrayValues() {
+        assertEquals(0, Strokes.widthStep(0))
+        assertEquals(Strokes.WIDTH_STEPS, Strokes.widthStep(500))
+        assertEquals(0, Strokes.opacityStep(0))
+        assertEquals(Strokes.OPACITY_STEPS, Strokes.opacityStep(500))
+    }
 }

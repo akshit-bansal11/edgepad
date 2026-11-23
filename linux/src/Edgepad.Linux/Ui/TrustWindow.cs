@@ -28,27 +28,26 @@ internal static class TrustWindow
         }
 
         var look = Look.Current;
-        var trust = look.Button("Trust", primary: true);
+        var trust = look.Button(LinuxStrings.Dialog_Trust, primary: true);
         trust.IsEnabled = false;
-        var dont = look.Button("Don't trust");
+        var dont = look.Button(LinuxStrings.Dialog_DontTrust);
         dont.IsDefault = true;
 
         var body = new StackPanel { Margin = new Thickness(24), Spacing = 14 };
         // The name comes from the cache the session filled before asking; this runs on the UI thread, which must not wait on D-Bus.
         var name = PhoneName.Cached(address);
-        body.Children.Add(look.Text($"Trust {name ?? address}?", 18, FontWeight.Bold));
+        body.Children.Add(look.Text(Say.Format(LinuxStrings.Dialog_TrustHeading, name ?? address), 18, FontWeight.Bold));
         if (name is not null)
         {
             body.Children.Add(look.Text(address, 14, dim: true));
         }
 
         body.Children.Add(look.Text(
-            "A paired phone is asking to control this laptop's pointer and keyboard. Trust it only if it is "
-                + $"yours. With no answer in {(int)TrustPrompt.DefaultTimeout.TotalSeconds} seconds, it is not trusted.",
+            Say.Format(LinuxStrings.Dialog_TrustText, (int)TrustPrompt.DefaultTimeout.TotalSeconds),
             14,
             dim: true));
         body.Children.Add(Look.Footer(dont, trust));
-        var window = look.Dialog("Edgepad", 440, body);
+        var window = look.Dialog(LinuxStrings.App_Name, 440, body);
         window.Topmost = true;
 
         var enable = new DispatcherTimer { Interval = TrustPrompt.TrustDelay };

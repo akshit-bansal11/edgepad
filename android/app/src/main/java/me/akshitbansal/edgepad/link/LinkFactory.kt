@@ -3,6 +3,7 @@ package me.akshitbansal.edgepad.link
 import me.akshitbansal.edgepad.link.net.Sas
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.Pin
+import java.net.InetAddress
 import kotlin.concurrent.thread
 
 /**
@@ -42,6 +43,14 @@ interface ManagedLink {
 
     /** [LaptopLink.blobs]. */
     var blobs: ((Frame) -> Unit)?
+
+    /** [LaptopLink.xfer]. A link without transfers ignores it. */
+    var xfer: ((Frame) -> Unit)?
+        get() = null
+        set(_) {}
+
+    /** [LaptopLink.peer]. */
+    val peer: InetAddress? get() = null
 
     /** [LaptopLink.queued]. */
     val queued: Int
@@ -99,6 +108,12 @@ private class TransportLink(
         set(value) {
             laptopLink.blobs = value
         }
+    override var xfer: ((Frame) -> Unit)?
+        get() = laptopLink.xfer
+        set(value) {
+            laptopLink.xfer = value
+        }
+    override val peer: InetAddress? get() = laptopLink.peer
     override val queued: Int get() = laptopLink.queued
     override val lastInputMs: Long get() = laptopLink.lastInputMs
     override val silentMs: Long get() = laptopLink.silentMs

@@ -40,22 +40,36 @@
 }
 
 /*
-  The one set of motion durations (UX-27: nothing over 300 ms). CSS reads them as
-  var(--duration-*) or through Tailwind's duration-(--duration-*); JS reads the same
-  values from lib/motion.ts, so there is no second copy. Under reduced motion all three
-  are 0, which switches every transition and every Motion tween off in one place.
+  The one set of motion durations (UX-27, DES-D07): press 160 ms, reveal 300 ms, scene
+  400 ms. CSS reads them as var(--duration-*) or through Tailwind's
+  duration-(--duration-*); JS reads the same values from lib/motion.ts, so there is no
+  second copy. Under reduced motion all three are 0, which switches every transition and
+  every Motion tween off in one place (DES-D08). The one exception is --duration-fade:
+  a plain cross-fade for the menu and the page change, which UX-31 allows under reduce.
 */
 :root {
-  --duration-fast: 120ms;
-  --duration-base: 200ms;
-  --duration-slow: 300ms;
+  --duration-press: 160ms;
+  --duration-reveal: 300ms;
+  --duration-scene: 400ms;
+  --duration-fade: 160ms;
+}
+
+/*
+  DES-D30: every move eases in and out. An entering element decelerates (--ease-out), a
+  leaving one accelerates (--ease-in), a move within the screen does both (--ease-move).
+  Linear is for progress and loops only.
+*/
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.64, 0, 0.78, 0);
+  --ease-move: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --duration-fast: 0ms;
-    --duration-base: 0ms;
-    --duration-slow: 0ms;
+    --duration-press: 0ms;
+    --duration-reveal: 0ms;
+    --duration-scene: 0ms;
   }
 }
 
@@ -73,6 +87,49 @@
   --elev-card: 0 1px 2px rgb(0 0 0 / 0.3);
   --elev-lift: 0 12px 40px rgb(0 0 0 / 0.45);
   color-scheme: dark;
+}
+
+/*
+  DES-D24: the same palette in OKLCH where the browser has it. The hex values above are
+  the sRGB fallback and the source of the contrast figures; each oklch() below is that
+  hex converted, so the colours and every ratio are unchanged, and equal steps now read
+  as equal. DES-D22: --line is the ink at low alpha, not a fixed grey, so a hairline
+  keeps its contrast over any surface it sits on.
+*/
+:root {
+  --line: rgb(22 23 26 / 0.1);
+}
+
+.dark {
+  --line: rgb(242 243 245 / 0.12);
+}
+
+@supports (color: oklch(0 0 0)) {
+  :root {
+    --ground: oklch(0.9645 0.0054 275);
+    --card: oklch(1 0 0);
+    --line: oklch(0.2048 0.0061 271.1 / 0.1);
+    --faint: oklch(0.946 0.007 268.5);
+    --ink: oklch(0.2048 0.0061 271.1);
+    --dim: oklch(0.5383 0.013 269.4);
+    --blue: oklch(0.5339 0.1875 256.7);
+    --on-blue: oklch(1 0 0);
+    --blue-soft: oklch(0.9512 0.0194 252.9);
+    --danger: oklch(0.5529 0.2255 27.3);
+  }
+
+  .dark {
+    --ground: oklch(0.1687 0.0065 271);
+    --card: oklch(0.2271 0.0079 274.6);
+    --line: oklch(0.964 0.0029 264.5 / 0.12);
+    --faint: oklch(0.2686 0.0097 268.3);
+    --ink: oklch(0.964 0.0029 264.5);
+    --dim: oklch(0.6933 0.0104 273.3);
+    --blue: oklch(0.7047 0.1587 252.4);
+    --on-blue: oklch(0.2163 0.0447 256.2);
+    --blue-soft: oklch(0.2811 0.0408 254.8);
+    --danger: oklch(0.7073 0.1847 25.9);
+  }
 }
 
 :root,
@@ -132,8 +189,9 @@
   --shadow-card: var(--elev-card);
   --shadow-lift: var(--elev-lift);
 
-  /* Every bare `transition-*` utility takes the fast duration. */
-  --default-transition-duration: var(--duration-fast);
+  /* Every bare `transition-*` utility takes the press duration. */
+  --default-transition-duration: var(--duration-press);
+  --default-transition-timing-function: var(--ease-move);
 }
 
 @layer base {
@@ -155,6 +213,31 @@
     text-rendering: optimizeLegibility;
     /* Figures are tabular everywhere, so ids, byte columns and chapter times line up. */
     font-variant-numeric: tabular-nums;
+  }
+
+  /* DES-D29 micro-rules. Prose hyphenates in narrow columns (<html lang="en">); links
+     sit 0.2em off their underline; a superscript never opens a line gap; buttons and
+     tabs trim the text box so the label is optically centred (ignored where unsupported). */
+  p,
+  li,
+  dd {
+    hyphens: auto;
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+  }
+
+  sup {
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+    top: -0.5em;
+  }
+
+  button,
+  [role="tab"] {
+    text-box: trim-both cap alphabetic;
   }
 
   ::selection {
@@ -185,4 +268,116 @@
     line-height: 1.3;
     color: var(--dim);
   }
+}
+
+/*
+  Header menu (components/header-menu.tsx): grows from the button's corner and shrinks
+  back into it (UX-32). The script sets data-closing and waits one reveal before it
+  closes the <details>. Under reduced motion it is an opacity-only fade (UX-31).
+*/
+.menu-panel {
+  transform-origin: top right;
+  animation: menu-in var(--duration-reveal) var(--ease-out);
+}
+
+details[data-closing] > .menu-panel {
+  animation: menu-out var(--duration-reveal) var(--ease-in) forwards;
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+@keyframes menu-out {
+  to {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-panel {
+    animation: menu-fade var(--duration-fade) var(--ease-out);
+  }
+
+  @keyframes menu-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+/*
+  Route change: a cross-fade of the page at the scene duration. A progressive
+  enhancement (cross-document view transitions, Chromium and Safari; Firefox navigates
+  instantly). Soft navigations through next/link do not start one. Under reduced motion
+  it is the plain 160 ms fade, the one non-zero duration left (UX-31, OD3).
+*/
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-group(root) {
+  animation-duration: var(--duration-scene);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root) {
+    animation-duration: var(--duration-fade);
+  }
+}
+
+/*
+  DES-D26: a horizontal scroller fades the edge where content continues, and only that
+  edge. A scroll-driven animation moves the two fade widths with the scroll position,
+  so the left edge is sharp at the start and the right edge is sharp at the end. Where
+  scroll timelines are not supported, or nothing overflows, there is no mask at all.
+*/
+@property --fade-l {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --fade-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-fade-x {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--fade-l),
+      #000 calc(100% - var(--fade-r)),
+      transparent
+    );
+    animation: scroll-fade linear both;
+    animation-timeline: scroll(self inline);
+  }
+}
+
+@keyframes scroll-fade {
+  0% {
+    --fade-l: 0px;
+    --fade-r: 2rem;
+  }
+  2%,
+  98% {
+    --fade-l: 2rem;
+    --fade-r: 2rem;
+  }
+  100% {
+    --fade-l: 2rem;
+    --fade-r: 0px;
+  }
+}
+
+::view-transition-group(root) {
+  animation-timing-function: var(--ease-move);
 }

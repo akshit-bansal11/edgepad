@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_profiles">App-Profile</string>
+  <string name="profiles_title">App-Profile</string>
+  <string name="profiles_toggle">Regler und Gesten je nach App wechseln</string>
+  <string name="profiles_caption">Der Laptop meldet diesem Handy die vorderste App, nur solange dies an ist. Auf dem Laptop wird nichts gespeichert.</string>
+  <string name="profiles_empty">Noch keine Profile. Hole auf dem Laptop eine App nach vorn und füge sie hier hinzu.</string>
+  <string name="profiles_add_current">Vorderste App hinzufügen</string>
+  <string name="profiles_none_in_front">Noch keine App im Vordergrund</string>
+  <string name="profiles_unsupported">Dieser Laptop kann die vorderste App nicht melden.</string>
+  <string name="profiles_delete">Profil löschen</string>
+  <string name="profiles_delete_confirm">Profil für %1$s löschen?</string>
+  <string name="profile_default">Wie Standard</string>
+  <string name="profile_custom">Angepasst</string>
+</resources>

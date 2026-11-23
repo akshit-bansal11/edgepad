@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="xfer_pause">रोकें</string>
+  <string name="xfer_resume">फिर शुरू करें</string>
+  <string name="xfer_stop">बंद करें</string>
+  <string name="xfer_close">छिपाएँ</string>
+  <string name="xfer_detail">%2$s में से %1$s · %3$s/से</string>
+  <string name="xfer_detail_paused">रुका हुआ · %2$s में से %1$s</string>
+  <string name="xfer_detail_count">%2$d में से %1$d · %3$s</string>
+</resources>

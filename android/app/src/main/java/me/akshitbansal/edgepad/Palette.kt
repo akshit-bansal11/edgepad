@@ -17,6 +17,7 @@ import android.util.TypedValue
 class Palette(
     val background: Int,
     val card: Int,
+    val popover: Int,
     val line: Int,
     val faint: Int,
     val ink: Int,
@@ -27,6 +28,10 @@ class Palette(
     val off: Int,
     val track: Int,
     val danger: Int,
+    val levelGreen: Int,
+    val levelYellow: Int,
+    val levelOrange: Int,
+    val levelRed: Int,
     val dark: Boolean,
 ) {
     companion object {
@@ -34,6 +39,7 @@ class Palette(
             Palette(
                 context.getColor(R.color.panel),
                 context.getColor(R.color.card),
+                context.getColor(R.color.popover),
                 context.getColor(R.color.line),
                 context.getColor(R.color.faint),
                 context.getColor(R.color.ink),
@@ -44,6 +50,10 @@ class Palette(
                 context.getColor(R.color.off),
                 context.getColor(R.color.track),
                 context.getColor(R.color.danger),
+                context.getColor(R.color.level_green),
+                context.getColor(R.color.level_yellow),
+                context.getColor(R.color.level_orange),
+                context.getColor(R.color.level_red),
                 dark =
                     (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                         Configuration.UI_MODE_NIGHT_YES,
@@ -123,13 +133,14 @@ object Type {
 }
 
 /**
- * The motion durations, in ms, none over 300. Every animator that is not an ambient loop takes one of these;
- * the platform animator duration scale already zeroes them when the user turns animations off.
+ * The motion durations, in ms, none over 400: press, reveal, scene (UX-27, DES-D07). Every animator that is not an
+ * ambient loop takes one of these; the platform animator duration scale already zeroes them when the user turns
+ * animations off.
  */
 object Motion {
-    const val FAST = 150L
-    const val BASE = 200L
-    const val SLOW = 300L
+    const val PRESS = 160L
+    const val REVEAL = 300L
+    const val SCENE = 400L
 }
 
 /** The spacing scale, in dp. */
@@ -170,4 +181,10 @@ object Space {
 
     /** A panel that stands on its own over the ground: an options sheet, a preview, a drawing. */
     const val PANEL_RADIUS = 16f
+
+    /** A shape nested [gap] dp inside one rounded [outer]: concentric with it, so the two corners run parallel. */
+    fun inner(
+        outer: Float,
+        gap: Float,
+    ): Float = maxOf(outer - gap, 0f)
 }

@@ -40,6 +40,7 @@ internal sealed class VirtualPad(Func<ViGEmClient>? openClient = null) : IDispos
     private ViGEmClient? client;
     private IXbox360Controller? pad;
     private bool asked;
+    private bool logged;
 
     /// <summary>
     /// Whether a controller could be offered at all, as the token the phone branches on. This is what goes
@@ -56,7 +57,9 @@ internal sealed class VirtualPad(Func<ViGEmClient>? openClient = null) : IDispos
     /// <summary>Plugs the pad in, and says how that went as one <see cref="PadStatus"/> token.</summary>
     public string Attach()
     {
-        if (Client() is not { } bus)
+        // Looked for again on every attach: the phone sends one each time its gamepad screen opens, so a ViGEmBus
+        // installed while connected is found the next time the screen opens, not after a reconnect (owner, 2026-11-18).
+        if (Client(lookAgain: true) is not { } bus)
         {
             DriverMissing?.Invoke();
             return PadStatus.NoDriver;
@@ -176,15 +179,13 @@ internal sealed class VirtualPad(Func<ViGEmClient>? openClient = null) : IDispos
         || e.GetType().Namespace?.StartsWith(VigemNamespace, StringComparison.Ordinal) == true;
 
     /// <summary>
-    /// The one driver handle this session gets, opened the first time anything needs it and not asked for
-    /// again. Not asked for again because a phone can press attach as often as it likes, and retrying a
-    /// driver that is not installed would be a probe and a log line per press. The cost is that a ViGEmBus
-    /// installed while the phone is connected is not seen until it reconnects, which is one reconnect after
-    /// an install the user has just done and is already watching.
+    /// The session's driver handle, kept once opened. A missing driver is looked for again only when
+    /// <paramref name="lookAgain"/> says so (an attach, which is one per gamepad screen opened, not one per
+    /// press), and logged once per session, so a laptop without ViGEmBus writes one line, not one per visit.
     /// </summary>
-    private ViGEmClient? Client()
+    private ViGEmClient? Client(bool lookAgain = false)
     {
-        if (asked)
+        if (client is not null || (asked && !lookAgain))
         {
             return client;
         }
@@ -199,7 +200,11 @@ internal sealed class VirtualPad(Func<ViGEmClient>? openClient = null) : IDispos
             // Not installed, a version this client cannot talk to, or a handle it was refused. All three
             // are no-driver to the phone: it falls back to the keyboard either way, and the log is where
             // the difference between them is kept.
-            Log.Write($"Virtual controller: ViGEmBus is not usable on this laptop: {e.Message}");
+            if (!logged)
+            {
+                logged = true;
+                Log.Write($"Virtual controller: ViGEmBus is not usable on this laptop: {e.GetType().Name}: {e.Message}");
+            }
         }
 
         return client;

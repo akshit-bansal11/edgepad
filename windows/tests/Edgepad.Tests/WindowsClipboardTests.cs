@@ -23,6 +23,19 @@ public sealed class WindowsClipboardTests : IDisposable
     public void NoFlagsIsShareable() => Assert.False(Sensitive());
 
     [Fact]
+    public void TextOfTrimsTheTerminator() =>
+        Assert.Equal("hi", Encoding.UTF8.GetString(WindowsClipboard.TextOf(Encoding.Unicode.GetBytes("hi\0junk"), 100)!));
+
+    [Fact]
+    public void TextOfRefusesEmptyAndOverCap()
+    {
+        Assert.Null(WindowsClipboard.TextOf(Encoding.Unicode.GetBytes("\0"), 100));
+        Assert.Null(WindowsClipboard.TextOf([], 100));
+        Assert.Null(WindowsClipboard.TextOf(Encoding.Unicode.GetBytes("abcd"), 3));
+        Assert.NotNull(WindowsClipboard.TextOf(Encoding.Unicode.GetBytes("abc"), 3));
+    }
+
+    [Fact]
     public void AnOrdinaryCopyAllowedInHistoryIsShareable() =>
         Assert.False(Sensitive((ClipboardFlags.History, 1u), (ClipboardFlags.Cloud, 1u)));
 

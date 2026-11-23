@@ -482,4 +482,436 @@ Die vertrauten Handys wurden vergessen, aber die PIN konnte nicht zurückgesetzt
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>WLAN und USB: Handys finden diesen Laptop evtl. nicht.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Als Administrator neu starten</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Erlaubt Edgepad, in Fenster mit erhöhten Rechten zu tippen, etwa den Task-Manager. Sperrbildschirm und UAC-Abfragen bleiben unerreichbar.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Edgepad {0} installieren</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Später</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Diese Version überspringen</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} ist verfügbar. Zum Installieren klicken.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>Edgepad {0} konnte nicht geprüft werden und wurde deshalb nicht installiert.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>Edgepad {0} konnte nicht installiert werden. Klicken, um die Release-Seite zu öffnen.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>Dies ist ein Hauptrelease. Aktualisiere Edgepad auch auf dem Handy, sonst lehnen sich beide gegenseitig ab. Jetzt installieren?</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Herunterfahren</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>Die Wiedergabe ist zu Ende. Dieser Laptop fährt in {0} Sekunden herunter.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Datei an das Handy senden…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} ist vom Handy angekommen.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>{0} konnte nicht empfangen werden.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Benachrichtigungen auf dem Handy anzeigen</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Installieren</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Nicht jetzt</value>
+  </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>Zwischenablage-&amp;Historie</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Letzte Kopien von diesem Laptop und vom Handy. Nur im Arbeitsspeicher gehalten.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Zwischenablage</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Noch nichts kopiert</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Kopien von diesem Laptop und vom Handy erscheinen hier.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Aktiviere im Tray-Menü „Zwischenablage teilen“, um deine Kopien hier zu sehen.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Alle löschen</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Dieser Laptop</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Handy</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Gerade eben</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>vor {0} Min.</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>vor {0} Std.</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>vor {0} T.</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>An Handy senden</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>An Handy gesendet</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>Senden fehlgeschlagen. Prüfe die Verbindung.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Kopiert. Mit Strg+V einfügen.</value>
+  </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>Die Zwischenablage war nicht verfügbar. Versuche es erneut.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V wird von einer anderen App verwendet, daher ist das Tastenkürzel aus.</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} gesendet</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Gesendete Dateien: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Gesendete Dateien: {0} von {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Empfangene Dateien: {0}</value>
+  </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Empfangene Dateien: {0} von {1}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} wurde nicht gesendet</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Nicht gesendete Dateien: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Wird abgebrochen…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Erneut versuchen</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>Es ist kein Handy verbunden.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} übersprungen: leer, fehlt oder größer als 2 GB.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>Das Handy hat die Datei abgelehnt. Eventuell ist der Speicher voll.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Sie kam beschädigt an. Versuche es erneut.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>Das Handy konnte sie nicht speichern.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>Das Handy war mit einer anderen Datei beschäftigt.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>Das Handy antwortet nicht mehr.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>Die Verbindung wurde unterbrochen.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Dieser Laptop konnte die Datei nicht lesen.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Abgebrochen.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>Nicht gesendet.</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>&amp;Statistik und Wetter…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Entwicklermodus</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>&amp;Für Entwickler…</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>&amp;Zwischenablage</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>&amp;Verbindungen</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>&amp;Integrationen</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integrationen</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Alles hier bleibt aus, bis du es einschaltest.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Systemwerte auf dem Handy zeigen</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Wetter auf dem Handy zeigen</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Stadt</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Sendet nur den Namen der Stadt an open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Verbinden</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Trennen</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Verbunden · zuletzt gemeldet {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Nicht verbunden</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} wurde auf diesem Computer nicht gefunden</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad konnte das nicht für dich ausführen. Führe diese Befehle in einem Terminal aus:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Öffne in Codex /hooks und vertraue Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Warte darauf, dass Codex dem Plugin vertraut…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Aktualisiere Codex auf Version 0.159 oder neuer.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Starte offene Sitzungen neu oder führe in Claude Code /reload-plugins aus.</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Für Entwickler</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Abmelden</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Dein Code: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>github.com/login/device öffnen</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Warte auf deine Bestätigung im Browser…</value>
+  </data>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>Repos auf GitHub auswählen</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Erneut anmelden. Edgepad nutzt jetzt nur lesenden GitHub-Zugriff. Widerrufe das alte Edgepad unter https://github.com/settings/applications.</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Angemeldet als {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Die Anmeldung ist in diesem Build nicht eingerichtet.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>nie</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Wird ausgeführt…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Installiere Claude Code auf diesem Computer, falls noch nicht geschehen: claude.com/claude-code
+2. Klicke auf „Verbinden“. Edgepad fügt sein Plugin zu Claude Code hinzu.
+3. Starte offene Claude-Code-Sitzungen neu oder gib dort /reload-plugins ein.
+4. Öffne auf deinem Handy Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Installiere Codex auf diesem Computer, falls noch nicht geschehen: developers.openai.com/codex
+2. Klicke auf „Verbinden“. Edgepad fügt sein Plugin zu Codex hinzu.
+3. Gib in Codex /hooks ein und vertraue Edgepad. In der Codex-App: Settings > Hooks > Review hooks.
+4. Öffne auf deinem Handy Controls > AI. Es erscheint, sobald Codex sein erstes Ereignis sendet.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Klicke auf „Anmelden“. Eine Seite auf github.com öffnet sich.
+2. Gib den hier angezeigten Code ein und klicke auf Authorize.
+3. Öffne auf deinem Handy Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Verbinde deine KI-Tools und Git-Hosts, um sie auf dem Handy zu sehen.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>KI-Tools</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Git-Hosts</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>So verbindest du</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Anmelden</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Hinzufügen…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Bald verfügbar</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Serveradresse</value>
+  </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Selbst gehosteten Server hinzufügen…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>gitlab.com/oauth/device öffnen</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>Erstelle auf deinem Server ein persönliches Zugriffstoken nur mit dem Scope read_api und füge es unten ein.</value>
+  </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>GitLab-Anmeldung abgelaufen — melde dich erneut an</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Stattdessen ein Token verwenden</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>Erstelle auf gitlab.com ein persönliches Zugriffstoken nur mit dem Scope read_api und füge es unten ein. Anders als die Anmeldung läuft es nicht nach 2 Stunden ab.</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Benutzername oder E-Mail</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Zugriffstoken</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Prüfe Serveradresse, Name und Token und versuche es erneut.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>Der Server hat dieses Token nicht akzeptiert.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>Dieses Token darf nicht lesen. Erstelle eines mit Lesezugriff.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>Unter dieser Adresse wurde kein Server gefunden.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>Der Server ist nicht erreichbar. Prüfe deine Verbindung.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>Das Token konnte nicht gespeichert werden. Versuche es erneut.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Installiere Gemini CLI auf diesem Computer, falls noch nicht geschehen.
+2. Klicke auf Verbinden. Edgepad trägt seine Hooks in die Gemini-CLI-Einstellungen ein.
+3. Starte geöffnete Gemini-CLI-Sitzungen neu.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Installiere OpenCode auf diesem Computer, falls noch nicht geschehen.
+2. Klicke auf Verbinden. Edgepad legt sein Plugin im OpenCode-Plugin-Ordner ab.
+3. Starte geöffnete OpenCode-Sitzungen neu.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. Öffne auf deinem Server Einstellungen &gt; Anwendungen und erstelle ein Zugriffstoken mit Lesezugriff.
+2. Klicke auf Hinzufügen, prüfe die Serveradresse (Standard ist Codeberg) und füge das Token ein.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. Erstelle in deinem Atlassian-Konto ein API-Token mit Lesezugriff auf Bitbucket.
+2. Klicke auf Hinzufügen, gib deine Bitbucket-E-Mail ein und füge das Token ein.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. Öffne auf gitee.com Einstellungen &gt; Persönliche Zugriffstoken und erstelle ein Token mit Lesezugriff.
+2. Klicke auf Hinzufügen und füge das Token ein.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Schalte den Entwicklermodus ein, um diese zu nutzen.</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex braucht noch einmal dein OK</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad wurde aktualisiert. Gib in Codex /hooks ein und vertraue Edgepad, sonst bleiben Freigaben im Terminal statt auf dem Handy.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>Über&amp;tragungen</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Wird an {0} gesendet</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Wird von {0} empfangen</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} von {2} · {3}/s</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} von {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/s</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · Pausiert</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Pausieren</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Fortsetzen</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Stopp</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Nicht empfangen: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>Nicht gesendet: {0}</value>
+  </data>
 </root>

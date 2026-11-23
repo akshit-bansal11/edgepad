@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace Edgepad.Updates;
 
 /// <summary>
@@ -61,4 +63,28 @@ internal static class UpdateCheck
     /// </summary>
     public static bool IsNewer(Version candidate, string running) =>
         Version.TryParse(running.Split('-')[0], out var ours) && candidate > ours;
+
+    /// <summary>The signed list of file hashes a release carries.</summary>
+    public static Uri SumsUrl(Version version) => AssetUrl(version, "SHA256SUMS.txt");
+
+    /// <summary>The DER ECDSA signature over the bytes of <see cref="SumsUrl"/>.</summary>
+    public static Uri SigUrl(Version version) => AssetUrl(version, "SHA256SUMS.txt.sig");
+
+    /// <summary>A file of release <paramref name="version"/>, by the exact name the release gives it.</summary>
+    public static Uri AssetUrl(Version version, string name) => new($"{Releases}/download/v{version}/{name}");
+
+    public static string ExeName(Version version) => $"Edgepad-{version}.exe";
+
+    /// <summary>The Linux archive for this machine's CPU; null when it is neither x64 nor arm64, so nothing is installed.</summary>
+    public static string? LinuxName(Version version) => LinuxName(version, RuntimeInformation.OSArchitecture);
+
+    /// <summary>The Linux archive for <paramref name="arch"/>; null for any other CPU (fail closed: no self-update).</summary>
+    public static string? LinuxName(Version version, Architecture arch) => arch switch
+    {
+        Architecture.X64 => $"Edgepad-{version}-linux-x64.tar.gz",
+        Architecture.Arm64 => $"Edgepad-{version}-linux-arm64.tar.gz",
+        _ => null,
+    };
+
+    public static string MacName(Version version) => $"Edgepad-{version}-mac.zip";
 }

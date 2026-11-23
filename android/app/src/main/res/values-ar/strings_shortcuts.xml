@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">غير متصل</string>
+  <string name="notice_play_pause">تشغيل أو إيقاف مؤقت</string>
+  <string name="notice_volume_down">خفض الصوت</string>
+  <string name="notice_volume_up">رفع الصوت</string>
+  <string name="controls_clipboard">الحافظة</string>
+  <string name="controls_presenter">العرض التقديمي</string>
+  <string name="clip_history_title">الحافظة</string>
+  <string name="clip_history_empty">لم يُنسخ شيء بعد</string>
+  <string name="clip_history_empty_hint">تظهر هنا النسخات من الحاسوب ومن هذا الهاتف عند تفعيل مشاركة الحافظة.</string>
+  <string name="clip_history_from_laptop">من الحاسوب</string>
+  <string name="clip_history_from_phone">من هذا الهاتف</string>
+  <string name="clip_history_just_now">الآن</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
+  <string name="clip_history_sent">أُرسل إلى %1$s</string>
+  <string name="clip_history_failed">تعذر الإرسال. تحقق من الاتصال.</string>
+  <string name="clip_history_send_hint">أرسل مرة أخرى</string>
+  <string name="presenter_title">العرض التقديمي</string>
+  <string name="presenter_next">الشريحة التالية</string>
+  <string name="presenter_previous">الشريحة السابقة</string>
+  <string name="presenter_settings">إعدادات العرض التقديمي</string>
+  <string name="presenter_laser_title">ليزر</string>
+  <string name="presenter_size_label">الحجم</string>
+  <string name="presenter_size_small">صغير</string>
+  <string name="presenter_size_medium">متوسط</string>
+  <string name="presenter_size_large">كبير</string>
+  <string name="presenter_laser_zoomed">معاينة مكبّرة</string>
+  <string name="presenter_preview_sample">النتائج الفصلية</string>
+  <string name="presenter_laser_trail">إظهار الأثر</string>
+  <string name="presenter_point_here">وجّه هنا</string>
+  <string name="tool_laser">ليزر</string>
+</resources>

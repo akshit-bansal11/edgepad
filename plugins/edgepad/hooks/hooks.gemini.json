@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "name": "edgepad", "type": "command", "command": "\"__APP__\" --hook gemini session", "timeout": 5000 } ] }
+    ],
+    "BeforeAgent": [
+      { "hooks": [ { "name": "edgepad", "type": "command", "command": "\"__APP__\" --hook gemini session", "timeout": 5000 } ] }
+    ],
+    "AfterAgent": [
+      { "hooks": [ { "name": "edgepad", "type": "command", "command": "\"__APP__\" --hook gemini session", "timeout": 5000 } ] }
+    ],
+    "Notification": [
+      { "hooks": [ { "name": "edgepad", "type": "command", "command": "\"__APP__\" --hook gemini session", "timeout": 5000 } ] }
+    ],
+    "SessionEnd": [
+      { "hooks": [ { "name": "edgepad", "type": "command", "command": "\"__APP__\" --hook gemini session", "timeout": 5000 } ] }
+    ]
+  }
+}

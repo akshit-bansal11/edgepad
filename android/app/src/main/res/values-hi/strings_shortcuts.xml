@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">कनेक्ट नहीं है</string>
+  <string name="notice_play_pause">चलाएँ या रोकें</string>
+  <string name="notice_volume_down">आवाज़ कम</string>
+  <string name="notice_volume_up">आवाज़ ज़्यादा</string>
+  <string name="controls_clipboard">क्लिपबोर्ड</string>
+  <string name="controls_presenter">प्रेज़ेंटर</string>
+  <string name="clip_history_title">क्लिपबोर्ड</string>
+  <string name="clip_history_empty">अभी कुछ कॉपी नहीं हुआ</string>
+  <string name="clip_history_empty_hint">क्लिपबोर्ड साझा करें चालू होने पर लैपटॉप और इस फ़ोन की कॉपी यहाँ दिखती हैं।</string>
+  <string name="clip_history_from_laptop">लैपटॉप से</string>
+  <string name="clip_history_from_phone">इस फ़ोन से</string>
+  <string name="clip_history_just_now">अभी-अभी</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
+  <string name="clip_history_sent">%1$s को भेजा गया</string>
+  <string name="clip_history_failed">भेजा नहीं जा सका। कनेक्शन जाँचें।</string>
+  <string name="clip_history_send_hint">फिर भेजें</string>
+  <string name="presenter_title">प्रेज़ेंटर</string>
+  <string name="presenter_next">अगली स्लाइड</string>
+  <string name="presenter_previous">पिछली स्लाइड</string>
+  <string name="presenter_settings">प्रेज़ेंटर सेटिंग्स</string>
+  <string name="presenter_laser_title">लेज़र</string>
+  <string name="presenter_size_label">आकार</string>
+  <string name="presenter_size_small">छोटा</string>
+  <string name="presenter_size_medium">मध्यम</string>
+  <string name="presenter_size_large">बड़ा</string>
+  <string name="presenter_laser_zoomed">पूर्वावलोकन, ज़ूम किया हुआ</string>
+  <string name="presenter_preview_sample">तिमाही परिणाम</string>
+  <string name="presenter_laser_trail">ट्रेल दिखाएँ</string>
+  <string name="presenter_point_here">यहाँ इंगित करें</string>
+  <string name="tool_laser">लेज़र</string>
+</resources>

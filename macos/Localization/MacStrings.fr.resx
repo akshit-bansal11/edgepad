@@ -1,0 +1,832 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>Edgepad utilise le Bluetooth pour attendre le téléphone associé à ce Mac.</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad cherche ici la capture ou l’enregistrement que vous avez demandé de recevoir sur le téléphone.</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad cherche ici la capture ou l’enregistrement que vous avez demandé de recevoir sur le téléphone.</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>Edgepad cherche ici la capture ou l’enregistrement que vous avez demandé de recevoir sur le téléphone.</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>Edgepad permet à votre téléphone de trouver ce Mac et de s’y connecter en Wi-Fi, quand vous activez les connexions Wi-Fi.</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>Edgepad demande à Musique ou Spotify quel morceau est en cours et s’y déplace quand vous avancez sur le téléphone ; il met ce Mac en veille ou l’éteint à la fin du média si vous le demandez depuis le téléphone.</value>
+  </data>
+  <data name="Core_ConnectedOver" xml:space="preserve">
+    <value>Connecté à {0} · {1}</value>
+  </data>
+  <data name="Core_BluetoothNotAllowed" xml:space="preserve">
+    <value>Edgepad n’est pas autorisé à utiliser le Bluetooth. Autorisez-le dans Réglages Système › Confidentialité et sécurité › Bluetooth.</value>
+  </data>
+  <data name="Core_BluetoothOffMenu" xml:space="preserve">
+    <value>Le Bluetooth est désactivé. Activez-le dans la barre des menus.</value>
+  </data>
+  <data name="Core_RefusedUnreadable" xml:space="preserve">
+    <value>Téléphone refusé : la liste des téléphones approuvés est illisible</value>
+  </data>
+  <data name="Core_RefusedForgotten" xml:space="preserve">
+    <value>Téléphone refusé : il a été oublié ici</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="Welcome_SetUp" xml:space="preserve">
+    <value>Configurer</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="Common_Send" xml:space="preserve">
+    <value>Envoyer</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Installer</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Oublier</value>
+  </data>
+  <data name="Common_Trust" xml:space="preserve">
+    <value>Approuver</value>
+  </data>
+  <data name="Common_DontTrust" xml:space="preserve">
+    <value>Refuser</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Réinitialiser</value>
+  </data>
+  <data name="Common_Pair" xml:space="preserve">
+    <value>Associer</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad est déjà en cours d’exécution.</value>
+  </data>
+  <data name="App_AlreadyRunningBody" xml:space="preserve">
+    <value>Il se trouve dans la barre des menus, à droite. Maintenez Commande et faites glisser pour réorganiser les icônes.</value>
+  </data>
+  <data name="App_Welcome" xml:space="preserve">
+    <value>Edgepad vit dans la barre des menus</value>
+  </data>
+  <data name="App_WelcomeBody" xml:space="preserve">
+    <value>macOS va maintenant demander ce dont Edgepad a besoin. Bluetooth, pour entendre votre téléphone. Contrôle de l’appareil, pour déplacer le pointeur et appuyer sur des touches. Notifications, pour vous prévenir quand un téléphone demande à se connecter. Votre dossier Bureau, Documents ou Téléchargements, seulement quand le téléphone demande une capture ou un enregistrement.</value>
+  </data>
+  <data name="App_UpdatedAllow" xml:space="preserve">
+    <value>Mis à jour : autorisez de nouveau Edgepad dans Contrôle de l’appareil</value>
+  </data>
+  <data name="App_TipBlocked" xml:space="preserve">
+    <value>Edgepad ne peut pas encore contrôler ce Mac</value>
+  </data>
+  <data name="App_TipStatus" xml:space="preserve">
+    <value>Edgepad : {0}</value>
+  </data>
+  <data name="App_PermissionSteps" xml:space="preserve">
+    <value>Réglages Système › Confidentialité et sécurité › Contrôle de l’appareil et accès aux données › + › Edgepad</value>
+  </data>
+  <data name="Menu_Installing" xml:space="preserve">
+    <value>Installation d’Edgepad {0}…</value>
+  </data>
+  <data name="Menu_Install" xml:space="preserve">
+    <value>Installer Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateAvailable" xml:space="preserve">
+    <value>Mise à jour disponible : {0}</value>
+  </data>
+  <data name="Menu_Later" xml:space="preserve">
+    <value>Plus tard</value>
+  </data>
+  <data name="Menu_Skip" xml:space="preserve">
+    <value>Ignorer cette version</value>
+  </data>
+  <data name="Menu_AllowControl" xml:space="preserve">
+    <value>Autoriser Edgepad à contrôler ce Mac…</value>
+  </data>
+  <data name="Menu_Wifi" xml:space="preserve">
+    <value>Connexions Wi-Fi</value>
+  </data>
+  <data name="Menu_WifiHint" xml:space="preserve">
+    <value>Connexions Wi-Fi ({0})</value>
+  </data>
+  <data name="Menu_WifiTip" xml:space="preserve">
+    <value>Wi-Fi uniquement sur un Mac : le partage de connexion USB demande un pilote que macOS n’inclut pas.</value>
+  </data>
+  <data name="Menu_Clipboard" xml:space="preserve">
+    <value>Partager le presse-papiers</value>
+  </data>
+  <data name="Menu_ClipboardTip" xml:space="preserve">
+    <value>Copiez sur l’un, collez sur l’autre : texte et images.</value>
+  </data>
+  <data name="Menu_Login" xml:space="preserve">
+    <value>Lancer à l’ouverture de session</value>
+  </data>
+  <data name="Menu_DailyUpdates" xml:space="preserve">
+    <value>Rechercher les mises à jour chaque jour</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Envoyer un fichier…</value>
+  </data>
+  <data name="Menu_SendFileNoPhone" xml:space="preserve">
+    <value>Envoyer un fichier… (aucun téléphone connecté)</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Macros…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Sécurité… ({0})</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Documentation</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Ouvrir le journal</value>
+  </data>
+  <data name="Menu_About" xml:space="preserve">
+    <value>À propos d’Edgepad</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Quitter Edgepad</value>
+  </data>
+  <data name="Net_PortInUse" xml:space="preserve">
+    <value>Port occupé, utilisation de {0}</value>
+  </data>
+  <data name="Net_WaitingForNetwork" xml:space="preserve">
+    <value>En attente d’un réseau</value>
+  </data>
+  <data name="Net_CouldNotListen" xml:space="preserve">
+    <value>Écoute impossible ; voir le journal</value>
+  </data>
+  <data name="Net_Phone" xml:space="preserve">
+    <value>Un téléphone</value>
+  </data>
+  <data name="Note_UpdateTitle" xml:space="preserve">
+    <value>Edgepad {0} est disponible</value>
+  </data>
+  <data name="Note_UpdateBody" xml:space="preserve">
+    <value>Cliquez pour ouvrir la page de téléchargement.</value>
+  </data>
+  <data name="Note_PairTitle" xml:space="preserve">
+    <value>Associer {0} ?</value>
+  </data>
+  <data name="Note_PairBody" xml:space="preserve">
+    <value>Saisissez le code d’appairage affiché sur le téléphone.</value>
+  </data>
+  <data name="Note_TrustTitle" xml:space="preserve">
+    <value>Approuver {0} ?</value>
+  </data>
+  <data name="Note_TrustBody" xml:space="preserve">
+    <value>{0} veut se connecter. Choisissez Approuver ou Refuser.</value>
+  </data>
+  <data name="Note_NotUpdated" xml:space="preserve">
+    <value>Edgepad n’a pas été mis à jour</value>
+  </data>
+  <data name="Status_Received" xml:space="preserve">
+    <value>{0} reçu dans Downloads/Edgepad</value>
+  </data>
+  <data name="Status_OnlyFiles" xml:space="preserve">
+    <value>Seuls les fichiers peuvent être envoyés, pas les dossiers</value>
+  </data>
+  <data name="Status_Forgot" xml:space="preserve">
+    <value>Téléphones approuvés oubliés ; prêt pour un nouveau dans {0} secondes</value>
+  </data>
+  <data name="Xfer_Sent" xml:space="preserve">
+    <value>{0} envoyé au téléphone</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>Envoi de {0}</value>
+  </data>
+  <data name="Xfer_BadHash" xml:space="preserve">
+    <value>{0} est arrivé endommagé sur le téléphone ; renvoyez-le</value>
+  </data>
+  <data name="Xfer_Rejected" xml:space="preserve">
+    <value>Le téléphone n’a pas accepté {0}</value>
+  </data>
+  <data name="Xfer_WriteFailed" xml:space="preserve">
+    <value>{0} n’a pas pu être lu ou enregistré</value>
+  </data>
+  <data name="Xfer_Cancelled" xml:space="preserve">
+    <value>Envoi de {0} annulé</value>
+  </data>
+  <data name="Xfer_Busy" xml:space="preserve">
+    <value>Le téléphone reçoit déjà un fichier ; renvoyez {0} ensuite</value>
+  </data>
+  <data name="Xfer_TimedOut" xml:space="preserve">
+    <value>Le téléphone n’a pas répondu pendant l’envoi de {0}</value>
+  </data>
+  <data name="Xfer_SessionEnded" xml:space="preserve">
+    <value>Le téléphone s’est déconnecté avant l’envoi de {0}</value>
+  </data>
+  <data name="Alert_MajorTitle" xml:space="preserve">
+    <value>Edgepad {0} nécessite aussi la mise à jour de l’app du téléphone.</value>
+  </data>
+  <data name="Alert_MajorBody" xml:space="preserve">
+    <value>Installez les deux ensemble, sinon le téléphone et ce Mac ne se connecteront pas.</value>
+  </data>
+  <data name="Alert_LoginFailed" xml:space="preserve">
+    <value>Impossible de modifier « Lancer à l’ouverture de session »</value>
+  </data>
+  <data name="Alert_LoginApproval" xml:space="preserve">
+    <value>Autorisez Edgepad à se lancer à l’ouverture de session</value>
+  </data>
+  <data name="Alert_LoginApprovalBody" xml:space="preserve">
+    <value>Autorisez Edgepad dans Réglages Système › Général › Ouverture.</value>
+  </data>
+  <data name="Alert_ForgetAll" xml:space="preserve">
+    <value>Oublier tous les téléphones approuvés ?</value>
+  </data>
+  <data name="Alert_ForgetAllBody" xml:space="preserve">
+    <value>Oublier {0} ? Chaque téléphone, celui-ci compris, devra être de nouveau approuvé ici avant de pouvoir utiliser ce Mac.</value>
+  </data>
+  <data name="Alert_TheTrustedPhones" xml:space="preserve">
+    <value>les téléphones approuvés</value>
+  </data>
+  <data name="Alert_EveryTrustedPhone" xml:space="preserve">
+    <value>tous les téléphones approuvés ({0})</value>
+  </data>
+  <data name="Alert_ForgetFailed" xml:space="preserve">
+    <value>Impossible d’oublier les téléphones approuvés</value>
+  </data>
+  <data name="Alert_ForgetFailedBody" xml:space="preserve">
+    <value>Son fichier n’a pas pu être supprimé ou vidé. Aucun téléphone ne peut se connecter tant qu’Edgepad reste ouvert, mais ces téléphones seront de nouveau approuvés au prochain démarrage d’Edgepad. Choisissez de nouveau « Oublier tous les téléphones approuvés » ou supprimez le fichier vous-même :
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetPinFailed" xml:space="preserve">
+    <value>Impossible d’oublier les téléphones qui ont saisi le code PIN</value>
+  </data>
+  <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
+    <value>Leur liste n’a pas pu être supprimée. Tant qu’Edgepad reste ouvert, chaque téléphone doit saisir le code PIN à chaque connexion, mais ces téléphones l’éviteront de nouveau avec « Code PIN une fois par téléphone » au prochain démarrage d’Edgepad. Choisissez de nouveau « Oublier tous les téléphones approuvés » ou supprimez pin-verified.txt vous-même depuis :
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetOne" xml:space="preserve">
+    <value>Oublier {0} ?</value>
+  </data>
+  <data name="Alert_ForgetOneBody" xml:space="preserve">
+    <value>Il devra être de nouveau approuvé ici avant de pouvoir utiliser ce Mac.</value>
+  </data>
+  <data name="Alert_ForgetOneFailed" xml:space="preserve">
+    <value>Impossible d’oublier {0}</value>
+  </data>
+  <data name="Alert_ForgetOneFailedBody" xml:space="preserve">
+    <value>Un fichier n’a pas pu être réécrit ; il est donc peut-être encore approuvé. Le journal en donne la raison.</value>
+  </data>
+  <data name="Alert_PairingsFailed" xml:space="preserve">
+    <value>Impossible d’oublier les appairages Wi-Fi</value>
+  </data>
+  <data name="Alert_PairingsFailedBody" xml:space="preserve">
+    <value>Son fichier n’a pas pu être supprimé ou vidé. Les téléphones appairés ne peuvent pas se reconnecter en Wi-Fi tant qu’Edgepad reste ouvert, mais le pourront à son prochain démarrage. Choisissez de nouveau « Oublier tous les téléphones approuvés » ou supprimez paired-links.txt vous-même depuis :
+
+{0}</value>
+  </data>
+  <data name="Alert_NoPhone" xml:space="preserve">
+    <value>Aucun téléphone connecté</value>
+  </data>
+  <data name="Alert_NoPhoneBody" xml:space="preserve">
+    <value>Connectez un téléphone à Edgepad, puis renvoyez le fichier.</value>
+  </data>
+  <data name="Alert_ChooseFiles" xml:space="preserve">
+    <value>Choisissez les fichiers à envoyer au téléphone</value>
+  </data>
+  <data name="Alert_TurnOn" xml:space="preserve">
+    <value>Activer</value>
+  </data>
+  <data name="Alert_Allow" xml:space="preserve">
+    <value>Autoriser</value>
+  </data>
+  <data name="Alert_NotNow" xml:space="preserve">
+    <value>Plus tard</value>
+  </data>
+  <data name="Alert_Network" xml:space="preserve">
+    <value>Laisser les téléphones trouver cet ordinateur ?</value>
+  </data>
+  <data name="Alert_NetworkBody" xml:space="preserve">
+    <value>Wi-Fi uniquement sur un Mac : le partage de connexion USB demande un pilote que macOS n’inclut pas. Les téléphones sur le même Wi-Fi pourront trouver ce Mac et demander l’appairage. Rien ne se connecte sans le code d’appairage saisi ici. macOS peut demander si Edgepad peut trouver des appareils sur votre réseau local, et le pare-feu s’il peut accepter les connexions entrantes : autorisez les deux.</value>
+  </data>
+  <data name="Alert_SaveFailed" xml:space="preserve">
+    <value>Impossible d’enregistrer le réglage</value>
+  </data>
+  <data name="Alert_SaveFailedBody" xml:space="preserve">
+    <value>Rien n’a été modifié. Le journal en donne la raison.</value>
+  </data>
+  <data name="Alert_Trust" xml:space="preserve">
+    <value>Approuver {0} ?</value>
+  </data>
+  <data name="Alert_TrustQuoted" xml:space="preserve">
+    <value>Le nom entre guillemets n’est que ce que le téléphone dit de lui-même ; c’est l’adresse qui sera approuvée.</value>
+  </data>
+  <data name="Alert_TrustAddress" xml:space="preserve">
+    <value>C’est l’adresse qui sera approuvée.</value>
+  </data>
+  <data name="Alert_TrustBody" xml:space="preserve">
+    <value>{0} demande à contrôler le pointeur et le clavier de ce Mac. {1} Ne l’approuvez que s’il est à vous. Sans réponse en {2} secondes, il n’est pas approuvé.</value>
+  </data>
+  <data name="Alert_Credits" xml:space="preserve">
+    <value>Polices et icônes : Lato, Lucide.</value>
+  </data>
+  <data name="Alert_ShutdownTitle" xml:space="preserve">
+    <value>Ce Mac va s’éteindre dans 60 secondes.</value>
+  </data>
+  <data name="Alert_ShutdownBody" xml:space="preserve">
+    <value>Le média du téléphone est terminé et vous avez demandé un arrêt à ce moment-là.</value>
+  </data>
+  <data name="Sec_Title" xml:space="preserve">
+    <value>Sécurité</value>
+  </data>
+  <data name="Sec_Intro" xml:space="preserve">
+    <value>Chaque téléphone doit d’abord obtenir votre accord. Les deux niveaux avec code PIN demandent aussi un code à six chiffres.</value>
+  </data>
+  <data name="Sec_LevelTrust" xml:space="preserve">
+    <value>Approbation seule</value>
+  </data>
+  <data name="Sec_LevelPinOnce" xml:space="preserve">
+    <value>Code PIN une fois par téléphone</value>
+  </data>
+  <data name="Sec_LevelPinEvery" xml:space="preserve">
+    <value>Code PIN à chaque connexion</value>
+  </data>
+  <data name="Sec_ResetButton" xml:space="preserve">
+    <value>Réinitialiser le PIN et oublier les téléphones…</value>
+  </data>
+  <data name="Sec_ForgetAllButton" xml:space="preserve">
+    <value>Oublier tous les téléphones approuvés…</value>
+  </data>
+  <data name="Sec_Warning" xml:space="preserve">
+    <value>Enregistrer un nouveau code PIN ou un nouveau niveau oblige les téléphones qui avaient saisi le code PIN à le saisir à nouveau.</value>
+  </data>
+  <data name="Sec_ChangePin" xml:space="preserve">
+    <value>Changer le PIN…</value>
+  </data>
+  <data name="Sec_SetPin" xml:space="preserve">
+    <value>Définir le PIN…</value>
+  </data>
+  <data name="Sec_PinNew" xml:space="preserve">
+    <value>Un nouveau code PIN sera enregistré.</value>
+  </data>
+  <data name="Sec_PinSet" xml:space="preserve">
+    <value>Un code PIN est défini.</value>
+  </data>
+  <data name="Sec_PinNone" xml:space="preserve">
+    <value>Aucun code PIN n’est défini.</value>
+  </data>
+  <data name="Sec_SixDigits" xml:space="preserve">
+    <value>Six chiffres</value>
+  </data>
+  <data name="Sec_Again" xml:space="preserve">
+    <value>Confirmer</value>
+  </data>
+  <data name="Sec_NewPin" xml:space="preserve">
+    <value>Nouveau PIN</value>
+  </data>
+  <data name="Sec_NewPinAgain" xml:space="preserve">
+    <value>Nouveau PIN, confirmation</value>
+  </data>
+  <data name="Sec_NewPinBody" xml:space="preserve">
+    <value>Six chiffres, saisis deux fois.</value>
+  </data>
+  <data name="Sec_UsePin" xml:space="preserve">
+    <value>Utiliser ce PIN</value>
+  </data>
+  <data name="Sec_Mismatch" xml:space="preserve">
+    <value>Les deux codes PIN ne correspondent pas.</value>
+  </data>
+  <data name="Sec_Exactly" xml:space="preserve">
+    <value>Utilisez exactement six chiffres.</value>
+  </data>
+  <data name="Sec_PinNotSaved" xml:space="preserve">
+    <value>Le code PIN n’a pas pu être enregistré, donc rien n’a été modifié. Le journal en donne la raison.</value>
+  </data>
+  <data name="Sec_LevelNotSaved" xml:space="preserve">
+    <value>Le niveau n’a pas pu être enregistré, donc le niveau précédent s’applique toujours. Le journal en donne la raison.</value>
+  </data>
+  <data name="Sec_ResetTitle" xml:space="preserve">
+    <value>Réinitialiser le code PIN et oublier tous les téléphones ?</value>
+  </data>
+  <data name="Sec_ResetBody" xml:space="preserve">
+    <value>Le code PIN est supprimé, le niveau revient à « Approbation seule » et tous les téléphones approuvés sont oubliés. Chaque téléphone devra être de nouveau approuvé ici. Un code PIN oublié ne peut pas être récupéré, seulement réinitialisé.</value>
+  </data>
+  <data name="Sec_ResetFailedTrust" xml:space="preserve">
+    <value>Rien n’a été réinitialisé : les téléphones approuvés n’ont pas pu être oubliés, le code PIN et le niveau sont donc restés inchangés. Aucun téléphone ne peut se connecter tant qu’Edgepad reste ouvert, mais ces téléphones seront de nouveau approuvés, derrière le même code PIN, à son prochain démarrage. Fermez ce qui retient le fichier et choisissez de nouveau « Réinitialiser », ou supprimez-le vous-même :
+
+{0}</value>
+  </data>
+  <data name="Sec_ResetFailedPin" xml:space="preserve">
+    <value>Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu être réinitialisé : un fichier de réglages n’a pas pu être supprimé, l’ancien code PIN et l’ancien niveau peuvent donc s’appliquer encore. Chaque téléphone doit être de nouveau approuvé ici. Fermez ce qui retient le fichier et choisissez de nouveau « Réinitialiser », ou supprimez security.txt et pin-verified.txt vous-même depuis :
+
+{0}</value>
+  </data>
+  <data name="Sec_TrustedPhones" xml:space="preserve">
+    <value>Téléphones approuvés</value>
+  </data>
+  <data name="Sec_ForgetLabel" xml:space="preserve">
+    <value>Oublier {0}</value>
+  </data>
+  <data name="Sec_FailTitle" xml:space="preserve">
+    <value>Impossible d’enregistrer les réglages de sécurité</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Associer {0} ?</value>
+  </data>
+  <data name="Pair_ThisPhone" xml:space="preserve">
+    <value>Ce téléphone</value>
+  </data>
+  <data name="Pair_Window" xml:space="preserve">
+    <value>Associer un téléphone</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Saisissez le code d’association affiché sur le téléphone :</value>
+  </data>
+  <data name="Pair_CodeLabel" xml:space="preserve">
+    <value>Code affiché sur le téléphone</value>
+  </data>
+  <data name="Pair_Announce" xml:space="preserve">
+    <value>Appairer {0} ? Se ferme dans {1} s.</value>
+  </data>
+  <data name="Pair_Matched" xml:space="preserve">
+    <value>Le code correspond. Touchez « Les codes correspondent » sur {0} pour terminer.</value>
+  </data>
+  <data name="Pair_Mismatched" xml:space="preserve">
+    <value>Le code ne correspond pas. Rien n’a été appairé.</value>
+  </data>
+  <data name="Pair_Paired" xml:space="preserve">
+    <value>Associé à {0}.</value>
+  </data>
+  <data name="Pair_NotFinished" xml:space="preserve">
+    <value>L’association n’a pas abouti.</value>
+  </data>
+  <data name="Pair_Warning" xml:space="preserve">
+    <value>N’associez qu’un téléphone qui vous appartient. Si vous n’avez pas vous-même lancé l’association à l’instant, choisissez Annuler.</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Fermeture dans {0} s</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Vérification du code</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Macros</value>
+  </data>
+  <data name="Macro_Body" xml:space="preserve">
+    <value>Boutons de l’écran des macros de votre téléphone, jusqu’à {0}. Le téléphone envoie le numéro d’un bouton, jamais un programme, et ne peut donc lancer que ce que vous ajoutez ici.</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>{0} n’a rien à ouvrir. Parcourez pour choisir une app ou un fichier, ou saisissez une adresse web.</value>
+  </data>
+  <data name="Macro_AMacro" xml:space="preserve">
+    <value>Une macro</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Les macros n’ont pas pu être enregistrées dans {0} : {1}.</value>
+  </data>
+  <data name="Macro_SaveFailedTitle" xml:space="preserve">
+    <value>Impossible d’enregistrer les macros</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>Ouvre</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Arguments</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>Icône</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>Ajouter une macro</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="Macro_MoveUp" xml:space="preserve">
+    <value>Déplacer vers le haut</value>
+  </data>
+  <data name="Macro_MoveDown" xml:space="preserve">
+    <value>Déplacer vers le bas</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Parcourir…</value>
+  </data>
+  <data name="Macro_Choose" xml:space="preserve">
+    <value>Choisir…</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>Utiliser celle du programme</value>
+  </data>
+  <data name="Macro_ArgsHint" xml:space="preserve">
+    <value>Aucun, séparés par des espaces (apps uniquement)</value>
+  </data>
+  <data name="Macro_IconHint" xml:space="preserve">
+    <value>Celle du programme</value>
+  </data>
+  <data name="Macro_OpensHint" xml:space="preserve">
+    <value>Une app, un fichier, un dossier ou une adresse web</value>
+  </data>
+  <data name="Macro_Empty" xml:space="preserve">
+    <value>Pas encore de macros. Ajoutez une app, un document, un dossier ou une adresse web. Chacun devient un bouton sur le téléphone.</value>
+  </data>
+  <data name="Macro_Count" xml:space="preserve">
+    <value>{0} sur {1}</value>
+  </data>
+  <data name="Macro_NameLeft" xml:space="preserve">
+    <value>Nom · {0} restants</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Nouvelle macro</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Mode développeur</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>Presse-papiers</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>Connexions</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>Intégrations</value>
+  </data>
+  <data name="Menu_Group_Settings" xml:space="preserve">
+    <value>Paramètres</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>Statistiques et météo…</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>Pour les développeurs…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Intégrations</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Tout est désactivé ici tant que vous ne l’activez pas.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Afficher les statistiques système sur le téléphone</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Afficher la météo sur le téléphone</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Ville</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>N’envoie que le nom de la ville à open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Connecter</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Déconnecter</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Connecté · dernier signal {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Non connecté</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} est introuvable sur cet ordinateur</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>Node.js 20.1 ou une version plus récente est nécessaire. Téléchargez-le sur nodejs.org</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad n’a pas pu l’exécuter pour vous. Exécutez ces commandes dans un terminal :</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Copier</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>Dans Codex, ouvrez /hooks et faites confiance à Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>En attente de la confiance de Codex envers le plug-in…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Mettez Codex à jour vers la version 0.159 ou plus récente.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Redémarrez les sessions ouvertes ou exécutez /reload-plugins dans Claude Code.</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Pour les développeurs</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Se déconnecter</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Votre code : {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Ouvrir github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>En attente de votre accord dans le navigateur…</value>
+  </data>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>Choisir les dépôts sur GitHub</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Reconnectez-vous. Edgepad utilise désormais un accès GitHub en lecture seule. Révoquez l’ancien Edgepad sur https://github.com/settings/applications.</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Connecté en tant que {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>La connexion n’est pas configurée dans cette version.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>jamais</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>La connexion n’a pas abouti. Réessayez.</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>En cours…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Installez Claude Code sur cet ordinateur si ce n’est pas déjà fait : claude.com/claude-code
+2. Cliquez sur Connecter. Edgepad ajoute son plugin à Claude Code.
+3. Redémarrez les sessions Claude Code ouvertes, ou tapez /reload-plugins dans chacune.
+4. Sur votre téléphone, ouvrez Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Installez Codex sur cet ordinateur si ce n’est pas déjà fait : developers.openai.com/codex
+2. Cliquez sur Connecter. Edgepad ajoute son plugin à Codex.
+3. Dans Codex, tapez /hooks et faites confiance à Edgepad. Dans l’app Codex : Settings > Hooks > Review hooks.
+4. Sur votre téléphone, ouvrez Controls > AI. Il apparaît dès que Codex envoie son premier événement.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Cliquez sur Se connecter. Une page github.com s’ouvre.
+2. Saisissez le code affiché ici et cliquez sur Authorize.
+3. Sur votre téléphone, ouvrez Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Connectez vos outils d’IA et vos hébergeurs Git pour les voir sur votre téléphone.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>Outils d’IA</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Hébergeurs Git</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>Comment connecter</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Se connecter</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Ajouter…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Bientôt disponible</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Adresse du serveur</value>
+  </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Ajouter un serveur auto-hébergé…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>Ouvrir gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>Sur votre serveur, créez un jeton d’accès personnel avec le seul périmètre read_api, puis collez-le ci-dessous.</value>
+  </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>La connexion à GitLab a expiré — reconnectez-vous</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Utiliser plutôt un jeton</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>Sur gitlab.com, créez un jeton d’accès personnel avec le seul périmètre read_api, puis collez-le ci-dessous. Contrairement à la connexion, il n’expire pas au bout de 2 heures.</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Nom d’utilisateur ou e-mail</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Jeton d’accès</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Vérifiez l’adresse du serveur, le nom et le jeton, puis réessayez.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>Le serveur n’a pas accepté ce jeton.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>Ce jeton n’a pas le droit de lecture. Créez-en un avec un accès en lecture.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>Aucun serveur à cette adresse.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>Impossible de joindre le serveur. Vérifiez votre connexion.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>Impossible d’enregistrer le jeton. Réessayez.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Installez Gemini CLI sur cet ordinateur si ce n’est pas fait.
+2. Cliquez sur Connecter. Edgepad ajoute ses hooks aux paramètres de Gemini CLI.
+3. Redémarrez les sessions Gemini CLI ouvertes.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Installez OpenCode sur cet ordinateur si ce n’est pas fait.
+2. Cliquez sur Connecter. Edgepad ajoute son plugin au dossier des plugins d’OpenCode.
+3. Redémarrez les sessions OpenCode ouvertes.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. Sur votre serveur, ouvrez Paramètres &gt; Applications et créez un jeton d’accès en lecture.
+2. Cliquez sur Ajouter, vérifiez l’adresse du serveur (Codeberg par défaut) et collez le jeton.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. Dans votre compte Atlassian, créez un jeton d’API avec accès en lecture à Bitbucket.
+2. Cliquez sur Ajouter, saisissez votre e-mail Bitbucket et collez le jeton.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. Sur gitee.com, ouvrez Paramètres &gt; Jetons d’accès personnels et créez un jeton en lecture.
+2. Cliquez sur Ajouter et collez le jeton.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Activez le mode développeur pour les utiliser.</value>
+  </data>
+  <data name="Note_CodexTrustTitle" xml:space="preserve">
+    <value>Codex a de nouveau besoin de votre accord</value>
+  </data>
+  <data name="Note_CodexTrustBody" xml:space="preserve">
+    <value>Edgepad a été mis à jour. Dans Codex, tapez /hooks et faites confiance à Edgepad, sinon les validations restent dans le terminal au lieu du téléphone.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>Transferts</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Envoi vers {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Réception depuis {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} sur {2} · {3}/s</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} sur {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/s</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · En pause</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Reprendre</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Non reçu : {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>il est arrivé endommagé</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>il n’a pas pu être enregistré</value>
+  </data>
+  <data name="Xfer_ReasonRejected" xml:space="preserve">
+    <value>ce Mac n’a pas pu le recevoir</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>il a été annulé</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>le téléphone ne répond plus</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>le téléphone s’est déconnecté</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Arrêter</value>
+  </data>
+</root>

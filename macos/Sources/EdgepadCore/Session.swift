@@ -110,8 +110,24 @@ public final class Session {
     private var lastBrightness: Int?
     /// The label list's subscription, kept so `end()` can let go of it and a dead session is not written to.
     private var macroWatch: MacroWatch?
+    /// The app-in-front subscription, alive only while the phone asks to hear it; `end()` lets go of it.
+    private var foregroundWatch: ForegroundWatch?
+    /// The media texts and state last sent, so the phone hears only a change. The icon is sent once per app.
+    private var lastMedia: (nowPlaying: String, full: String, app: String, timeline: String)?
+    private var lastMediaState: [UInt8]?
+    private var lastIconApp = ""
+    /// The phone's transfer socket, while it has one. It is this session's and nobody else's: see `attachBulk`.
+    private var bulk: BulkLink?
     /// Cancelled by `end()`, so the owner's question about this phone is never put, or is withdrawn if it is open.
     private let ended = Cancellation()
+    /// Makes this phone's side of the dashboard once it is live, handed the session's own way to send; nil where the app
+    /// has no dashboard, and then nothing about it is sent.
+    private let makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)?
+    /// Turns developer mode on or off when the phone asks (CONTROL 13); nil where the app has no dashboard.
+    private let setDeveloper: ((Bool) -> Void)?
+    private var dashboard: DashboardLink?
+    /// The FEATURES tokens of this build, without the dashboard's, so a switch that moves can send the list again.
+    private var baseFeatures: [String] = []
 
     public init(
         address: String,
@@ -136,7 +152,9 @@ public final class Session {
         schedule: @escaping (@escaping () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) },
         scheduleAfter: @escaping (TimeInterval, @escaping () -> Void) -> Void = { seconds, work in
             DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: work)
-        }
+        },
+        makeDashboard: ((@escaping (Frame) -> Void) -> DashboardLink)? = nil,
+        setDeveloper: ((Bool) -> Void)? = nil
     ) {
         self.address = address
         self.link = link
@@ -159,6 +177,8 @@ public final class Session {
         self.onEnded = onEnded
         self.schedule = schedule
         self.scheduleAfter = scheduleAfter
+        self.makeDashboard = makeDashboard
+        self.setDeveloper = setDeveloper
     }
 
     /// Bytes from the phone, in arrival order.
@@ -189,6 +209,7 @@ public final class Session {
     /// The app calls this twice a second. A change made on the Mac itself reaches the phone's dials here.
     public func poll() {
         guard isLive, !isEnded else { return }
+        bulk?.tick()
         pollsSinceFrame += 1
         if pollsSinceFrame >= Session.pollsBeforeSilence {
             Log.write("Session with \(address) ended: no frame for 30 s")
@@ -209,6 +230,7 @@ public final class Session {
         }
         pollsSincePower += 1
         if pollsSincePower >= Session.pollsPerBatteryRead { sendPower() }
+        sendMedia()
     }
 
     /// TEXT 19 and TEXT 20: rereads both and sends whichever differs from what the phone was last told.
@@ -228,6 +250,48 @@ public final class Session {
         }
     }
 
+    /// TEXT 0, 1, 2 and 26 and the position STATE, each only on a change, then the icon once per app. The player's
+    /// own notifications call this, and so does `poll()` for the extrapolated position: no timer of its own.
+    private func sendMedia() {
+        guard let source = dispatcher.media, !isEnded, stage == .live else { return }
+        let info = source.read()
+        let nowPlaying = info.identity.isEmpty ? "" : TitleCleaner.nowPlaying(title: info.title, artist: info.artist)
+        let artist = info.artist.trimmingCharacters(in: .whitespacesAndNewlines)
+        let line = artist.isEmpty ? info.title : info.title + " - " + info.artist
+        let full = line != nowPlaying ? line : ""
+        let timeline = info.durationSeconds > 0 ? "\(info.positionSeconds)/\(info.durationSeconds)" : ""
+        let was = lastMedia
+        lastMedia = (nowPlaying, full, info.app, timeline)
+        if nowPlaying != was?.nowPlaying { send(.text(kind: TextKind.nowPlaying.rawValue, value: nowPlaying)) }
+        guard !isEnded else { return }
+        if full != was?.full && !(was == nil && full.isEmpty) {
+            send(.text(kind: TextKind.nowPlayingFull.rawValue, value: full))
+        }
+        guard !isEnded else { return }
+        if info.app != was?.app { send(.text(kind: TextKind.app.rawValue, value: info.app)) }
+        guard !isEnded else { return }
+        if timeline != was?.timeline { send(.text(kind: TextKind.timeline.rawValue, value: timeline)) }
+        guard !isEnded else { return }
+        let percent = info.durationSeconds > 0 ? Percent.clamp(info.positionSeconds * 100 / info.durationSeconds) : 0
+        let state = [UInt8(percent), info.playing ? 1 : 0]
+        if state != lastMediaState {
+            lastMediaState = state
+            send(.state(control: ControlId.mediaPosition.rawValue, value: state[0], flags: state[1]))
+        }
+        dispatcher.endAction?.observe(
+            MediaSnapshot(
+                identity: info.identity, playing: info.playing, positionSeconds: info.positionSeconds,
+                durationSeconds: info.durationSeconds))
+        sendMediaIcon(info, from: source)
+    }
+
+    private func sendMediaIcon(_ info: MediaInfo, from source: MediaSource) {
+        guard !info.identity.isEmpty, info.app != lastIconApp, let blobs = dispatcher.mediaBlobs else { return }
+        lastIconApp = info.app
+        guard let png = source.icon(forApp: info.app) else { return }
+        blobs.send(.mediaIcon, label: info.app, data: png)
+    }
+
     /// Idempotent. Anything still held down is lifted first: a link dropped mid-gesture must never leave
     /// Command or a mouse button stuck with nothing left alive to release it.
     public func end() {
@@ -237,15 +301,30 @@ public final class Session {
         input.releaseAll()
         dispatcher.padStatusReply = nil
         dispatcher.macroWatch = nil
+        dispatcher.foregroundWatch = nil
+        foregroundWatch?.cancel()
+        foregroundWatch = nil
         macroWatch?.cancel()
         macroWatch = nil
         power?.changed = nil
+        dispatcher.media?.changed = nil
+        dispatcher.endAction = nil
         // The overlay goes with the session: a phone that vanishes mid-drawing must leave no layer on the screen.
         dispatcher.annotation?.end()
         dispatcher.capture?.end()
         dispatcher.clipboard?.end()
+        dispatcher.transfers?.end()
+        dispatcher.sending?.end()
+        bulk?.close()
         dispatcher.apps?.end()
         dispatcher.appAddReply = nil
+        dispatcher.dashWatch = nil
+        dispatcher.speedTest = nil
+        dispatcher.permAnswer = nil
+        dispatcher.gitOpen = nil
+        // Stops counting this phone before its host goes, so an approval waiting on it goes back to the agent.
+        dashboard?.dispose()
+        dashboard = nil
         if dispatcher.dropped > 0 {
             Log.write("Session with \(address): \(dispatcher.dropped) frames dropped")
         }
@@ -304,7 +383,7 @@ public final class Session {
         // A phone locked out by wrong PINs is told so and closed before the owner is asked anything, so
         // guessing cannot also be a way to keep the trust question on the owner's screen.
         if lockedOut() {
-            onStatus("Refused a phone locked out after wrong PINs")
+            onStatus(tr("Status_RefusedLockedOut", "Refused a phone locked out after wrong PINs"))
             end()
             return
         }
@@ -347,7 +426,7 @@ public final class Session {
         // Checked again here, not only before the trust question: another connection from the same address may
         // have used up the tries while the owner was answering.
         if lockedOut() {
-            onStatus("Refused a phone that did not give the right PIN")
+            onStatus(tr("Status_RefusedPin", "Refused a phone that did not give the right PIN"))
             end()
             return
         }
@@ -362,15 +441,15 @@ public final class Session {
             // A count, not the list: the log is plain text anyone with the user's files can read, and the trusted
             // phones' identities are the one thing it must not hand out. The menu shows the list to the owner.
             Log.write("Refused \(address): not trusted; this Mac trusts \(trust.trustedPhones.count) phone(s)")
-            onStatus("Refused a phone it does not trust")
+            onStatus(tr("Status_RefusedUntrusted", "Refused a phone it does not trust"))
         case .otherQuestionOpen:
             Log.write("Refused \(address): the owner is being asked about another phone")
         case .unreadable:
             Log.write("Refused \(address): the trusted phones cannot be read")
-            onStatus("Refused a phone: the trusted phones cannot be read")
+            onStatus(tr("Core_RefusedUnreadable", "Refused a phone: the trusted phones cannot be read"))
         case .notForgotten:
             Log.write("Refused \(address): it was forgotten, but could not be removed from the trusted phones")
-            onStatus("Refused a phone that was forgotten here")
+            onStatus(tr("Core_RefusedForgotten", "Refused a phone that was forgotten here"))
         }
     }
 
@@ -394,14 +473,14 @@ public final class Session {
         case .locked(let seconds):
             send(.pinRequest(attemptsLeft: 0, lockedSeconds: UInt16(clamping: seconds)))
             Log.write("PIN rejected for \(address): locked out for \(seconds) s")
-            onStatus("Refused a phone that did not give the right PIN")
+            onStatus(tr("Status_RefusedPin", "Refused a phone that did not give the right PIN"))
             end()
         case .unavailable:
             // Unreadable settings, no PIN, or the PIN or level changed while this answer was being hashed. Not the
             // phone's fault, so not counted against it; but nothing proved it may come in either, and it is closed
             // without HELLO_ACK to connect again under whatever is now in force.
             Log.write("Refused \(address): its PIN could not be checked against the current security settings")
-            onStatus("Refused a phone that did not give the right PIN")
+            onStatus(tr("Status_RefusedPin", "Refused a phone that did not give the right PIN"))
             end()
         }
     }
@@ -515,6 +594,11 @@ public final class Session {
         dispatcher.clipboard?.sender.backlog = backlog
         dispatcher.apps?.sender.output = write
         dispatcher.apps?.sender.backlog = backlog
+        dispatcher.mediaBlobs?.output = write
+        dispatcher.mediaBlobs?.backlog = backlog
+        dispatcher.transfers?.reply = { [weak self] frame in _ = self?.sendTransfer(frame) }
+        dispatcher.sending?.output = { [weak self] frame in self?.sendTransfer(frame) ?? false }
+        dispatcher.sending?.backlog = { [weak self] in self?.bulk?.backlog ?? self?.transport.backlog ?? 0 }
         dispatcher.padStatusReply = { [weak self] status in
             self?.send(.text(kind: TextKind.padStatus.rawValue, value: status))
         }
@@ -542,13 +626,51 @@ public final class Session {
             features.append(Feature.running.rawValue)
             dispatcher.macroWatch = { [weak self] open in self?.watchMacroApps(open) }
         }
+        if dispatcher.foreground?.available == true {
+            features.append(Feature.foreground.rawValue)
+            dispatcher.foregroundWatch = { [weak self] on in self?.watchForeground(on) }
+        }
         if dispatcher.clipboard?.isAllowed == true {
             features.append(Feature.clipboard.rawValue)
         }
+        if dispatcher.media != nil, let perform = dispatcher.endPerform {
+            features.append(Feature.endAction.rawValue)
+            dispatcher.endAction = EndAction(
+                perform: perform,
+                stateChanged: { [weak self] token in
+                    self?.send(.text(kind: TextKind.endAction.rawValue, value: token))
+                })
+        }
+        // Every media source reports its changes, with or without the end action.
+        dispatcher.media?.changed = { [weak self] in self?.sendMedia() }
+        baseFeatures = features
+        // Only for a session still live: one that already ended never disposes a link made now, and the phone would
+        // stay counted with approvals waiting on it.
+        if let makeDashboard, !isEnded {
+            let link = makeDashboard { [weak self] frame in self?.send(frame) }
+            dashboard = link
+            features += link.features()
+            dispatcher.dashWatch = { [weak link] mask in link?.onWatch(mask) }
+            dispatcher.speedTest = { [weak link] start in link?.onSpeedTest(start) }
+            dispatcher.developer = setDeveloper
+            dispatcher.permAnswer = { [weak link] wire in link?.answer(wire) ?? false }
+            dispatcher.gitOpen = { [weak link] wire in link?.openGit(wire) ?? false }
+        }
         send(.text(kind: TextKind.features.rawValue, value: features.joined(separator: "/")))
+        if let link = dashboard, !isEnded {
+            let unavailable = link.unavailable()
+            if !unavailable.isEmpty {
+                send(.text(kind: TextKind.unavailable.rawValue, value: unavailable.joined(separator: "/")))
+            }
+            link.start()
+        }
+        send(.text(kind: TextKind.macroCap.rawValue, value: String(MacroStore.maxMacros)))
+        // Best effort, and this Mac does not record on its own: it is idle until it does.
+        send(.text(kind: TextKind.captureState.rawValue, value: CaptureStateToken.idle.rawValue))
         sendScreenSize()
         power?.changed = { [weak self] in self?.sendPower() }
         sendPower()
+        sendMedia()
 
         // Watched rather than sent once, so a macro the owner adds while the phone is connected reaches it. With
         // no store the list is empty, and the phone then says to add some on the Mac instead of drawing a broken
@@ -559,6 +681,28 @@ public final class Session {
             }
         } else {
             send(.text(kind: TextKind.macros.rawValue, value: ""))
+        }
+    }
+
+    /// An Integrations switch moved: the dashboard is made again on what is on now, and the phone is sent FEATURES and
+    /// UNAVAILABLE afresh, so a tile appears or goes without a reconnect.
+    public func dashboardChanged() {
+        guard isLive, !isEnded, let link = dashboard else { return }
+        link.rebuild()
+        send(.text(kind: TextKind.features.rawValue, value: (baseFeatures + link.features()).joined(separator: "/")))
+        guard !isEnded else { return }
+        send(.text(kind: TextKind.unavailable.rawValue, value: link.unavailable().joined(separator: "/")))
+    }
+
+    /// The phone started or stopped hearing the app in front. The source is asked only now, so a Mac nobody watches runs
+    /// no observer. A repeated start replaces the watch, which sends the current app afresh.
+    private func watchForeground(_ on: Bool) {
+        foregroundWatch?.cancel()
+        foregroundWatch = nil
+        guard on, !isEnded, let source = dispatcher.foreground else { return }
+        foregroundWatch = source.watch { [weak self] app in
+            guard let self, !self.isEnded else { return }
+            self.send(.text(kind: TextKind.foregroundApp.rawValue, value: app))
         }
     }
 
@@ -648,6 +792,41 @@ public final class Session {
 
     private func percentByte(_ percent: Int) -> UInt8 {
         UInt8(clamping: Percent.clamp(percent))
+    }
+
+    /// Takes the phone's second socket for file transfers, answering HELLO_ACK on it. It attaches to nothing but this
+    /// live session, for exactly this address, while it holds no transfer socket yet, and never asks trust, takes a
+    /// PIN, admits, replaces or ends anything. Nil, with the socket left for the caller to close, in every other case.
+    public func attachBulk(address from: String, version: UInt8, transport socket: Transport) -> BulkLink? {
+        guard isLive, !isEnded, bulk == nil, version == ProtocolConstants.version,
+            from.caseInsensitiveCompare(address) == .orderedSame
+        else { return nil }
+        let link = BulkLink(
+            address: address, transport: socket,
+            onFrame: { [weak self] frame in self?.dispatcher.handle(frame) },
+            onClosed: { [weak self] in self?.bulk = nil })
+        bulk = link
+        guard link.start() else { return nil }
+        return link
+    }
+
+    /// Sends the file at `path` to the phone, one at a time, and says how it ended.
+    public func sendFile(_ path: String, finished: @escaping (XferCode) -> Void) {
+        guard isLive, !isEnded, let sending = dispatcher.sending else {
+            finished(.sessionEnded)
+            return
+        }
+        sending.send(path: path, finished: finished)
+    }
+
+    /// Everything this Mac says about a file goes down the transfer socket while one is attached, else the control one.
+    private func sendTransfer(_ frame: Frame) -> Bool {
+        if let bulk {
+            return bulk.send(frame)
+        }
+        guard !isEnded else { return false }
+        send(frame)
+        return !isEnded
     }
 
     /// A send that finds the link dead ends the session, so nothing after it writes to a closed link.

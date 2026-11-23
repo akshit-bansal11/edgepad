@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="uses_title">Wat Edgepad gebruikt</string>
+  <string name="uses_intro">Alles wat Edgepad vraagt of nodig heeft, groot of klein, zodat je weet welke toegang je geeft. Niets hiervan wordt gebruikt tot een functie het nodig heeft. Namen van Wi-Fi-netwerken, je locatie, je contacten, je foto’s en je microfoon worden nooit gevraagd.</string>
+  <string name="uses_section_perms">Rechten op deze telefoon</string>
+  <string name="uses_section_flow">Wat tussen telefoon en laptop gaat</string>
+  <string name="uses_section_net">Wat het internet bereikt</string>
+  <string name="uses_section_laptop">Op je laptop</string>
+  <string name="uses_flow_out">Van deze telefoon naar de laptop</string>
+  <string name="uses_flow_in">Van de laptop naar deze telefoon</string>
+  <string name="uses_flow_local">Blijft op deze telefoon</string>
+  <string name="uses_laptop_ai">AI-tools en Git, op elke laptop</string>
+
+  <string name="uses_perm_bluetooth_title">Apparaten in de buurt (Bluetooth)</string>
+  <string name="uses_perm_bluetooth_body">Laat Edgepad verbinding maken met een laptop die je al hebt gekoppeld in de Bluetooth-instellingen van Android. Het zoekt nooit naar andere Bluetooth-apparaten en leest die ook niet uit. Android vraagt het de eerste keer dat je Apparaten opent.</string>
+  <string name="uses_perm_localnet_title">Lokaal netwerk</string>
+  <string name="uses_perm_localnet_body">Laat deze telefoon laptops op je eigen Wi-Fi vinden en ermee praten. Android vraagt het vóór de eerste Wi-Fi-zoekactie.</string>
+  <string name="uses_perm_netstate_title">Netwerkstatus</string>
+  <string name="uses_perm_netstate_body">Vertelt Edgepad of je op Wi-Fi, USB-tethering of mobiele data zit, om laptops te vinden en je verbinding op de pagina Netwerk te tonen. Android vraagt niet.</string>
+  <string name="uses_perm_wifistate_title">Wi-Fi-status</string>
+  <string name="uses_perm_wifistate_body">Leest de linksnelheid, band en signaalsterkte van de Wi-Fi van deze telefoon zelf, voor de pagina Netwerk. Nooit de naam van het netwerk, want die zou Locatie vereisen. Android vraagt niet.</string>
+  <string name="uses_perm_multicast_title">Wi-Fi-multicast</string>
+  <string name="uses_perm_multicast_body">Nodig om laptops op het Wi-Fi-netwerk te vinden. Android accepteert het ook als reden om de verbindingsdienst op de achtergrond te laten draaien. Android vraagt niet.</string>
+  <string name="uses_perm_internet_title">Internet</string>
+  <string name="uses_perm_internet_body">Draagt de verbinding met je laptop over Wi-Fi of USB. Edgepad zelf gebruikt het internet alleen om github.com naar de nieuwste versie te vragen en om een update te downloaden die je hebt gekozen. Android vraagt niet.</string>
+  <string name="uses_perm_install_title">Apps installeren</string>
+  <string name="uses_perm_install_body">Laat Edgepad een Edgepad-update installeren die je hebt gekozen om te downloaden. Android vraagt je de eerste keer of je installaties vanuit Edgepad toestaat.</string>
+  <string name="uses_perm_update_title">Bijwerken zonder opnieuw te vragen</string>
+  <string name="uses_perm_update_body">Laat op Android 12 en later een Edgepad-update installeren zonder tweede vraag, zodra je dat hebt toegestaan. Het werkt alleen Edgepad bij. Android vraagt niet.</string>
+  <string name="uses_perm_service_title">Draaien op de achtergrond</string>
+  <string name="uses_perm_service_body">Houdt de verbinding met een laptop in stand terwijl Edgepad geminimaliseerd is, met een melding zolang het draait. Wordt geregeld via Op de achtergrond verbonden blijven in Instellingen. Android vraagt niet.</string>
+  <string name="uses_perm_servicetype_title">Type verbinding op de achtergrond</string>
+  <string name="uses_perm_servicetype_body">Markeert die achtergrondservice als een service die een verbinding met een apparaat houdt, je laptop. Android vraagt niet.</string>
+  <string name="uses_perm_notify_title">Meldingen</string>
+  <string name="uses_perm_notify_body">Toont de verbindingsmelding, bestandsoverdrachten, verzoeken om AI-rechten en, als je dat aanzet, de meldingen van je laptop. Android 13 en later vraagt het één keer, na de introductie.</string>
+  <string name="uses_perm_overlay_title">Weergeven over andere apps</string>
+  <string name="uses_perm_overlay_body">Alleen voor de zwevende regelaars die je zelf aanzet. Android stuurt je naar de eigen instellingenpagina; Edgepad vraagt het anders nooit.</string>
+
+  <string-array name="uses_out_keys">
+    <item>Jouw invoer</item>
+    <item>Klembord</item>
+    <item>Bestanden en delen</item>
+    <item>Welke pagina’s openstaan</item>
+    <item>Jouw antwoorden</item>
+    <item>Jouw schakelaars</item>
+  </string-array>
+  <string-array name="uses_out_values">
+    <item>Aanrakingen, toetsen, getypte tekst, gamepad- en penstreken, en knoppen zoals volume en helderheid. Alleen als er een laptop is verbonden.</item>
+    <item>Tekst of een afbeelding die je kopieert, alleen als je Klembord delen aanzet, en alleen als Edgepad in beeld is, zoals Android toestaat.</item>
+    <item>Een bestand, tekst of afbeelding die je bewust verstuurt of naar Edgepad deelt. Wordt verzonden nadat je op Verzenden tikt.</item>
+    <item>Welke dashboardpagina’s de telefoon toont, zodat de laptop cpu-, weer-, AI- of Git-gegevens alleen leest zolang een daarvan in beeld is.</item>
+    <item>De pincode die je typt, en Goedkeuren of Weigeren voor het verzoek om rechten van een AI-tool.</item>
+    <item>Meldingen, Ontwikkelaarsmodus, waar opnames worden opgeslagen, penformaat en -kleur, en of de app op de voorgrond wordt gemeld.</item>
+  </string-array>
+  <string-array name="uses_in_keys">
+    <item>Wat de laptop doet</item>
+    <item>Macro’s en apps</item>
+    <item>Opnames en bestanden</item>
+    <item>Klembord en meldingen</item>
+    <item>Dashboards</item>
+    <item>Pagina Netwerk</item>
+  </string-array>
+  <string-array name="uses_in_values">
+    <item>Wat er speelt en in welke app, volume, helderheid, schermgrootte en verversingsfrequenties, de naam en het systeem van de laptop, de batterij van de laptop en van zijn Bluetooth-apparaten, en de naam van de audio-uitvoer.</item>
+    <item>Macronamen en -pictogrammen, en een lijst met apps die je als macro kunt toevoegen. Nooit de paden of opdrachten erachter.</item>
+    <item>Een schermafbeelding of opname alleen als je Opslaan op telefoon hebt gekozen, en bestanden die je vanaf de laptop stuurt.</item>
+    <item>Gekopieerde tekst of een afbeelding als Klembord delen aanstaat, en de meldingen van de laptop (app, titel, korte tekst) als beide meldingsschakelaars aanstaan. Nooit gelogd.</item>
+    <item>Zolang een dashboardpagina openstaat: rekenbelasting en schijfgebruik, weer, namen en statussen van AI-sessies, AI-gebruik en -limieten, en de titels van Git-pulverzoeken en -issues.</item>
+    <item>Het verbindingstype, de band, linksnelheid, signaal, lokaal adres en gateway van de laptop, en het resultaat van een snelheidstest. Nooit een Wi-Fi-naam.</item>
+  </string-array>
+  <string name="uses_local_key">Eigen gegevens van deze telefoon</string>
+  <string name="uses_local_value">De batterij-, geheugen-, opslag- en verbindingsgegevens op de pagina Systeem worden op deze telefoon gelezen, alleen zolang die pagina openstaat, en nooit ergens naartoe gestuurd.</string>
+
+  <string-array name="uses_net_keys">
+    <item>Updatecontrole</item>
+    <item>Snelheidstest</item>
+    <item>Weer</item>
+    <item>Git en inloggen</item>
+    <item>Links die je opent</item>
+    <item>Niets anders</item>
+  </string-array>
+  <string-array name="uses_net_values">
+    <item>github.com, vanaf deze telefoon en vanuit de laptop-apps: één verzoek om de nieuwste versie, zonder iets over je apparaat te sturen. Een update die je kiest te downloaden komt ook van github.com.</item>
+    <item>speed.cloudflare.com, vanaf de laptop, alleen als je op Snelheid testen tikt. Het verplaatst testdata en stuurt niets over jou.</item>
+    <item>api.open-meteo.com en geocoding-api.open-meteo.com, vanaf de laptop, alleen als de weerwidget aanstaat. De plaats die je kiest wordt gestuurd om de coördinaten te vinden, daarna wordt de verwachting opgevraagd.</item>
+    <item>Vanaf de laptop, alleen nadat je daar bent ingelogd, en alleen om te lezen: github.com en api.github.com, gitlab.com of de GitLab-server die je invoert, codeberg.org of de Gitea- of Forgejo-server die je invoert, api.bitbucket.org en gitee.com. Edgepad schrijft nooit: een ingebouwde blokkade weigert elk verzoek dat niet alleen leest. De GitHub-aanmelding gebruikt een alleen-lezen GitHub-app, Edgepad Dashboard, die alleen de repository’s ziet waarop je hem installeert.</item>
+    <item>getedgepad.com voor de documentatie, en de downloadpagina van ViGEmBus op github.com. Je browser opent ze alleen als je op een link tikt.</item>
+    <item>Een zoektocht naar webadressen in de apps voor telefoon, Windows, Mac en Linux vond geen andere host. Er is geen account, geen analyse, geen crashrapportage en geen advertenties.</item>
+  </string-array>
+
+  <string-array name="uses_windows_keys">
+    <item>Opnieuw starten als beheerder</item>
+    <item>Firewallregel</item>
+    <item>Starten bij inloggen</item>
+    <item>Verzenden naar</item>
+    <item>Toegang tot meldingen</item>
+    <item>Virtuele controller</item>
+  </string-array>
+  <string-array name="uses_windows_values">
+    <item>Een optionele rij in het systeemvakmenu, achter de eigen vraag van Windows. Hiermee kan Edgepad typen in vensters die als beheerder draaien, wat Windows anders blokkeert.</item>
+    <item>Eén inkomende toestaanregel voor Edgepad.exe, zodat telefoons via Wi-Fi of USB kunnen verbinden, toegevoegd achter de vraag van Windows. Zeg je nee, dan wordt bij de volgende start niet opnieuw gevraagd.</item>
+    <item>Een invoer per gebruiker die Edgepad start als je inlogt, als je dat aanzet in het systeemvakmenu. Geen beheerdersrechten nodig.</item>
+    <item>Een snelkoppeling in je eigen map Verzenden naar, zodat Verzenden naar, dan Edgepad, bestanden naar de telefoon kan sturen.</item>
+    <item>Alleen als je meldingen doorstuurt: Windows vraagt of je Edgepad toestaat ze te lezen.</item>
+    <item>De gamepad van de telefoon heeft het stuurprogramma ViGEmBus nodig, dat je zelf installeert. Edgepad opent alleen de downloadpagina.</item>
+  </string-array>
+  <string-array name="uses_mac_keys">
+    <item>Toegankelijkheid</item>
+    <item>Bluetooth</item>
+    <item>Lokaal netwerk</item>
+    <item>Automatisering</item>
+    <item>Bestanden en mappen</item>
+    <item>Meldingen en inlogitem</item>
+    <item>Niet gevraagd</item>
+  </string-array>
+  <string-array name="uses_mac_values">
+    <item>Nodig om voor de telefoon te typen, te klikken en toetsen in te drukken. macOS vraagt het, en Edgepad meldt het aan de telefoon als het ontbreekt.</item>
+    <item>Om te luisteren naar de telefoon die je met deze Mac hebt gekoppeld.</item>
+    <item>Zodat de telefoon deze Mac via Wi-Fi kan vinden, als je Wi-Fi-verbindingen aanzet.</item>
+    <item>Om Muziek of Spotify te vragen wat er speelt en om het te bedienen, en om deze Mac te laten slapen of uitschakelen als je dat instelt aan het einde van de media.</item>
+    <item>Bureaublad, Documenten en Downloads, om een schermafbeelding of opname te vinden die je op de telefoon wilde ontvangen.</item>
+    <item>Meldingen voor een telefoon die om koppelen vraagt en voor een nieuwe versie; Starten bij inloggen is een gewoon inlogitem. Aanmeldtokens staan in je Keychain.</item>
+    <item>Invoerbewaking en Schermopname. Opnames gebruiken de eigen sneltoetsen van macOS.</item>
+  </string-array>
+  <string-array name="uses_linux_keys">
+    <item>Invoerapparaat</item>
+    <item>Bluetooth</item>
+    <item>Bureaubladdiensten</item>
+    <item>Starten bij inloggen</item>
+  </string-array>
+  <string-array name="uses_linux_values">
+    <item>/dev/uinput, geopend voor de persoon achter het toetsenbord via een udev-regel en een moduleinstelling die het installatieprogramma één keer toevoegt, als beheerder.</item>
+    <item>BlueZ, op de systeembus, om te luisteren naar de telefoon die je hebt gekoppeld.</item>
+    <item>Op de sessiebus: meldingen, mediaspelers (MPRIS), energie (UPower), slapen en vergrendelen (systemd-logind), NetworkManager voor de pagina Netwerk, de donkere-modusinstelling van het bureaublad, schermverversingsfrequenties, het systeemvak en de Secret Service voor aanmeldtokens.</item>
+    <item>Een autostartinvoer in je eigen configuratiemap, als je dat aanzet.</item>
+  </string-array>
+  <string-array name="uses_ai_keys">
+    <item>AI-tools</item>
+    <item>Aanmeldtokens</item>
+  </string-array>
+  <string-array name="uses_ai_values">
+    <item>Alleen met Ontwikkelaarsmodus aan. Edgepad leest de lokale sessie- en gebruiksbestanden van Claude Code, Codex, Gemini CLI en OpenCode, en het koppelen van een tool voegt een kleine hook of plug-in toe aan de eigen instellingen van die tool.</item>
+    <item>Git-tokens worden versleuteld op de laptop bewaard, in zijn eigen opslag voor inloggegevens, en nooit naar de telefoon gestuurd.</item>
+  </string-array>
+</resources>

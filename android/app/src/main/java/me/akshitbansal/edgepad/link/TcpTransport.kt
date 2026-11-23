@@ -46,6 +46,10 @@ class TcpTransport(
 
     @Volatile private var closed = false
 
+    @Volatile private var connectedHost: InetAddress? = null
+
+    override val peer: InetAddress? get() = connectedHost
+
     override fun open(
         showCode: (Sas) -> Unit,
         confirmed: () -> Boolean,
@@ -61,7 +65,9 @@ class TcpTransport(
                     continue
                 }
             try {
-                return handshake(s, showCode, confirmed)
+                val streams = handshake(s, showCode, confirmed)
+                connectedHost = host
+                return streams
             } catch (e: LinkFailure) {
                 // Something else on the network may answer at one of the laptop's addresses: one that cannot
                 // prove it is the laptop ends the try at that address only, never the attempt.

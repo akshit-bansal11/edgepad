@@ -15,16 +15,32 @@
     <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
     <!-- LibraryImport generates unsafe marshalling code for the libc P/Invokes. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- The release publishes for linux-x64. Naming it here puts that runtime's packages in packages.lock.json,
-         which the locked-mode restore of `dotnet publish -r linux-x64` needs. -->
-    <RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
+    <!-- The release publishes for linux-x64 and linux-arm64. Naming them here puts those runtimes' packages in packages.lock.json,
+         which the locked-mode restore of `dotnet publish -r <rid>` needs. -->
+    <RuntimeIdentifiers>linux-x64;linux-arm64</RuntimeIdentifiers>
     <!-- As in the Windows project: the analyzer's ILLink package then sits in every restore, so one lock file
          serves build, test and publish, and single-file hazards show at build time. -->
     <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+    <!-- English plus the 14 translations, so a release carries exactly those satellite assemblies (the shared CoreStrings
+         ones included) and not the dozen the .NET libraries ship. The single-file publish bundles them into the binary. -->
+    <NeutralLanguage>en</NeutralLanguage>
+    <SatelliteResourceLanguages>en;zh-Hans;es;hi;de;fr;pt-BR;ja;ar;ru;ko;it;nl;tr;pl</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Edgepad.Linux.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Every visible string of the Linux app, in English; LinuxStrings.<culture>.resx beside it holds the translations. MSBuild
+         writes the typed accessor (Edgepad.Ui.LinuxStrings) into obj/ at build, so a key used in code that the file lacks does not compile. -->
+    <EmbeddedResource Update="Ui\LinuxStrings.resx">
+      <Generator>MSBuild:Compile</Generator>
+      <StronglyTypedFileName>$(IntermediateOutputPath)LinuxStrings.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedNamespace>Edgepad.Ui</StronglyTypedNamespace>
+      <StronglyTypedClassName>LinuxStrings</StronglyTypedClassName>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -51,6 +67,13 @@
     <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\Lato-Black.ttf" Link="Fonts\Lato-Black.ttf" />
     <AvaloniaResource Include="..\..\..\windows\src\Edgepad\Fonts\OFL.txt" Link="Fonts\OFL.txt" />
     <AvaloniaResource Include="Assets\*.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The Claude Code and Codex plugin, carried inside the app (the single file included) so Connect needs no download:
+         PluginInstaller stamps a copy per agent from these resources (ResourcePluginSource, names "plugins/edgepad/<path>").
+         WithCulture=false, so hooks.claude.json is never read as a satellite for a culture named "claude". -->
+    <EmbeddedResource Include="..\..\..\plugins\edgepad\**\*" LogicalName="plugins/edgepad/%(RecursiveDir)%(Filename)%(Extension)" WithCulture="false" />
   </ItemGroup>
 
   <ItemGroup>

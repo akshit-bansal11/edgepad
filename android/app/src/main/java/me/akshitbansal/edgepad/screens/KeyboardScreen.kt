@@ -62,25 +62,21 @@ object KeyboardScreen {
         send: (Frame) -> Unit,
         onBack: () -> Unit,
     ): View {
-        val header =
-            ui.bar(
-                ui.string(R.string.keyboard_title),
-                onBack,
-                ui.icon(Glyph.Shape.GEAR, ui.string(R.string.keyboard_settings_title), onSettings),
-                backLabel = ui.string(R.string.back_to_surface),
-            )
         val keyboard = KeyboardView(ui.context, textScale, layoutFor(size), mode, os, onKey, onAction)
         return LinearLayout(ui.context).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(ui.palette.background)
             ui.padToBars(this)
-            addView(header)
-            val wide = ViewGroup.LayoutParams.MATCH_PARENT
-            val typeRow = LinearLayout.LayoutParams(wide, ViewGroup.LayoutParams.WRAP_CONTENT)
-            typeRow.setMargins(ui.dp(Space.PAGE), ui.dp(Space.S), ui.dp(Space.PAGE), ui.dp(Space.S))
             val typeText = ui.string(R.string.keyboard_type_text)
-            val typeButton = ui.button(typeText, Ui.Style.OUTLINED) { askText(ui.context, this, send) }
-            addView(typeButton, typeRow)
+            addView(
+                ui.bar(
+                    ui.string(R.string.keyboard_title),
+                    onBack,
+                    ui.icon(Glyph.Shape.KEYBOARD, typeText) { askText(ui.context, this, send) },
+                    ui.icon(Glyph.Shape.GEAR, ui.string(R.string.keyboard_settings_title), onSettings),
+                    backLabel = ui.string(R.string.back_to_surface),
+                ),
+            )
             addView(keyboard, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         }
     }
@@ -162,6 +158,10 @@ object KeyboardScreen {
         /** The size asked for; [fitLabels] may draw smaller, never larger. */
         private val wantedTextSize =
             TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, LABEL_SP, resources.displayMetrics) * textScale
+
+        /** The board's label size after the height fit, and each key's width share of it; set in [fitLabels]. */
+        private var baseTextSize = wantedTextSize
+        private val keyFit = FloatArray(caps.size) { 1f }
 
         private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
         private val shadowPaint =
@@ -267,10 +267,16 @@ object KeyboardScreen {
                 val availableHeight = maxOf(0f, rects[i].height() - 2 * labelInset)
                 val fnWidth = caps[i].fnLabel?.let { labelOn.measureText(it) } ?: 0f
                 val width = maxOf(labelOn.measureText(legends[i]), fnWidth)
-                if (width > 0f) fit = minOf(fit, availableWidth / width)
+                // Only the key's own width shrinks its label: one long legend on a narrow key must not shrink the board.
+                keyFit[i] = if (width > 0f) minOf(1f, availableWidth / width) else 1f
                 if (lineHeight > 0f) fit = minOf(fit, availableHeight / lineHeight)
             }
-            labelOn.textSize = wantedTextSize * fit
+            baseTextSize = wantedTextSize * fit
+        }
+
+        /** Sizes the label paints for key [i]: the board's size, shrunk only as far as that key's own width needs. */
+        private fun sizeFor(i: Int) {
+            labelOn.textSize = baseTextSize * keyFit[i]
             labelOff.textSize = labelOn.textSize
             labelDim.textSize = labelOn.textSize
             secondaryOn.textSize = labelOn.textSize * SECONDARY_SHARE
@@ -306,6 +312,7 @@ object KeyboardScreen {
                 val fnSide = out === cap.fn
                 val primary = if (fnSide) cap.fnLabel ?: legends[i] else legends[i]
                 val other = if (fnSide) legends[i] else cap.fnLabel
+                sizeFor(i)
                 val label =
                     when {
                         held -> labelOn

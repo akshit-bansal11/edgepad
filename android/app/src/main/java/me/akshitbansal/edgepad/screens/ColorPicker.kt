@@ -35,8 +35,8 @@ object ColorPicker {
     private const val HEX_DIGITS = 6
     private const val SHORT_HEX_DIGITS = 3
     private const val HEX_BASE = 16
-    private const val RGB = 0xFFFFFF
-    private const val OPAQUE = 0xFF shl 24
+    internal const val RGB = 0xFFFFFF
+    internal const val OPAQUE = 0xFF shl 24
 
     /** Greys first, then round the wheel; a colour not in the strip stays chosen until one is tapped. */
     private val choices =

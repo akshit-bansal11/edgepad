@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The AI screen: a Usage block and a Spend block per tool, and each session's context fill. Plain placeholders, no plurals. -->
+  <string name="ai_usage">Usage</string>
+  <string name="ai_spend">Spend</string>
+  <string name="ai_win_credits">Credits</string>
+  <string name="ai_spend_7d">7 days</string>
+  <string name="ai_spend_30d">30 days</string>
+  <string name="ai_ctx_full">Context %1$d%% full</string>
+  <string name="ai_ctx_unknown">Context unknown</string>
+</resources>

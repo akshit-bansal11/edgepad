@@ -24,12 +24,12 @@ public sealed class PinEntryTests
     [InlineData("12345a")]
     public void ANonPinIsRefusedWhateverTheSecondBoxSays(string? first)
     {
-        Assert.Equal("A PIN is exactly six digits.", PinEntry.Problem(first, first));
+        Assert.Equal(LinuxStrings.Pin_NotSix, PinEntry.Problem(first, first));
     }
 
     [Fact]
     public void TwoDifferentPinsAreRefused() =>
-        Assert.Equal("The two PINs are not the same.", PinEntry.Problem("123456", "123457"));
+        Assert.Equal(LinuxStrings.Pin_Mismatch, PinEntry.Problem("123456", "123457"));
 
     [Fact]
     public void TwoEqualPinsPass() =>

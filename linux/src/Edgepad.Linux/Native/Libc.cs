@@ -11,7 +11,8 @@ internal static partial class Libc
 {
     private const string Library = "libc.so.6";
 
-    // x86_64 Linux values, from fcntl.h and sys/socket.h; the release is linux-x64 only.
+    // Linux values, from fcntl.h and sys/socket.h. These are the asm-generic values that x86_64 and arm64 share, but
+    // they have only been checked against x86_64: UNVERIFIED on an arm64 device.
     private const int GetFlags = 3;
     private const int SetFlags = 4;
     private const int NonBlocking = 0x800;
@@ -25,8 +26,9 @@ internal static partial class Libc
     public static void MakeBlocking(SafeHandle socket) => With(socket, fd =>
     {
         // ponytail: fcntl is variadic and is called here as if it took three ints. That is the same call on the
-        // x86_64 SysV ABI for integer arguments, which is the only ABI this ships for; an arm64 build would need
-        // a C shim or .NET's own System.Native.
+        // x86_64 SysV ABI for integer arguments. The arm64 Linux calling convention is believed to treat a variadic
+        // call the same way for integer and pointer arguments, so the same declaration should hold there, but that is
+        // UNVERIFIED on an arm64 device; if it fails there, a C shim or .NET's own System.Native is the way out.
         var flags = Fcntl(fd, GetFlags, 0);
         if (flags < 0 || ((flags & NonBlocking) != 0 && Fcntl(fd, SetFlags, flags & ~NonBlocking) < 0))
         {

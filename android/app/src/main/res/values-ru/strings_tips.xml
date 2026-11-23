@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">Закрыть подсказку</string>
+  <string name="tip_presenter">Пока открыт этот экран, клавиши громкости переключают слайды.</string>
+  <string name="tip_capture">Область: нажмите, затем проведите по панели к противоположному углу.</string>
+  <string name="tip_annotate">Рисуйте здесь. Чернила появятся на ноутбуке в том же месте.</string>
+  <string name="tip_shapes">Нарисуйте одним штрихом и отпустите палец.</string>
+  <string name="capture_to_phone">На телефон</string>
+</resources>

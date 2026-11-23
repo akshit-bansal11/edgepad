@@ -21,6 +21,7 @@ import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.fitText
 
 /** The smallest side a picture is drawn at: under this a cell is too small to be showing a picture at all. */
 private const val ICON_MIN_DP = 16f
@@ -71,6 +72,18 @@ data class DeckTile(
 )
 
 /**
+ * Opt-in sizing for a grid of tiles that are the same size whatever the room: [columns] across, each [height] tall
+ * with a [icon]-pixel picture, [gap] pixels above the label, which is [labelSp] big, on a filled rounded tile.
+ */
+class FixedCell(
+    val columns: Int,
+    val height: Int,
+    val icon: Int,
+    val labelSp: Float,
+    val gap: Int,
+)
+
+/**
  * A grid of tiles spread over the whole room it is given: three tiles are drawn as large as the room
  * allows and fifteen as small as they have to be, because a grid of three huddled at the top of an empty
  * page wastes the one thing a wall-mounted phone has plenty of. The tiles sit on the page's ground with
@@ -93,6 +106,8 @@ class Deck(
         val labelSp: Float,
         val line: Int,
         val icon: Int,
+        /** The width of one cell, which a label has to fit in. */
+        val cell: Int,
         /** No label row anywhere: the labels are off and every tile has its picture. */
         val bare: Boolean,
     )
@@ -102,6 +117,8 @@ class Deck(
     private var planFor = 0
     private var wantedRows: Int? = null
     private var iconZoom = 1f
+    private var opens = true
+    private var fixed: FixedCell? = null
 
     /** The side, in pixels, a picture is planned at once the grid is drawn; 0 before that. */
     val iconSide: Int get() = grid?.icon ?: 0
@@ -169,7 +186,9 @@ class Deck(
      * positions through [onMove]. [slots] is how many cells the grid is planned for when that is more than
      * the tiles it holds, so that a short last page of a pager keeps the tile size of the full ones. [rows] asks
      * for that many rows; null, a count the grid cannot be split into, or one that does not fit in [down], leaves
-     * the choice to [plan]. A tap on the Close of a held, closable tile goes to [onClose], never to [onTap].
+     * the choice to [plan]. A tap on the Close of a held, closable tile goes to [onClose], never to [onTap]. [opens]
+     * off is for a tap that changes the tile rather than opening something: no "Opening" state and no wait before
+     * the same tile can be tapped again.
      */
     fun render(
         across: Int,
@@ -182,8 +201,12 @@ class Deck(
         rows: Int? = null,
         onClose: (DeckTile) -> Unit = {},
         iconZoom: Float = 1f,
+        opens: Boolean = true,
+        fixed: FixedCell? = null,
     ) {
+        this.fixed = fixed
         this.iconZoom = iconZoom
+        this.opens = opens
         this.planFor = slots
         this.wantedRows = rows
         this.across = across
@@ -231,7 +254,20 @@ class Deck(
         // The last picture arriving with the labels off takes the label row away from every tile, and
         // that is a new grid rather than one new picture.
         if (bare() != current.bare) {
-            render(across, down, tiles, labels, onMove, onTap, planFor, wantedRows, onClose, iconZoom = iconZoom)
+            render(
+                across,
+                down,
+                tiles,
+                labels,
+                onMove,
+                onTap,
+                planFor,
+                wantedRows,
+                onClose,
+                iconZoom = iconZoom,
+                opens = opens,
+                fixed = fixed,
+            )
             return
         }
         val button = buttons[tag] ?: return
@@ -267,6 +303,10 @@ class Deck(
         val metrics = ui.context.resources.displayMetrics
         val count = maxOf(planFor, tiles.size)
         val gap = ui.dp(Space.S)
+        fixed?.let {
+            val cell = ((across - (it.columns - 1) * gap) / it.columns).coerceAtLeast(1)
+            return Grid(it.columns, it.height, it.labelSp, lineHeight(metrics, it.labelSp), it.icon, cell, bare)
+        }
         val pad = 2 * ui.dp(Space.S)
         // The column count that leaves the cell's shorter side longest, which is the largest a button can be
         // drawn without one of its sides being wasted on the other. Counted up to the number of tiles rather
@@ -303,7 +343,7 @@ class Deck(
         // empty rather than the thing keeping it honest.
         val box = minOf(width - pad, height - pad - line - ui.dp(Space.XS))
         val icon = DeckLayout.iconSide(box, iconZoom, ui.dp(ICON_MIN_DP))
-        return Grid(chosen, height, labelSp, line, icon, bare)
+        return Grid(chosen, height, labelSp, line, icon, width, bare)
     }
 
     /** How tall one line of label stands at [sp], measured in the face and size the button draws it in. */
@@ -405,6 +445,11 @@ class Deck(
         tile: DeckTile,
         view: View,
     ) {
+        if (!opens) {
+            view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            onTap(tile)
+            return
+        }
         if (!launching.add(tile.tag)) return
         view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
         view.alpha = LAUNCH_ALPHA
@@ -435,7 +480,8 @@ class Deck(
         ui.text("", grid.labelSp, ui.palette.ink, face = Type.bold).apply {
             gravity = Gravity.CENTER
             minHeight = ui.dp(Space.BUTTON)
-            ui.tappable(this, Space.PANEL_RADIUS) { launch(tile, this) }
+            if (fixed != null) background = ui.rounded(ui.palette.faint, Space.CARD_RADIUS)
+            ui.tappable(this, if (fixed != null) Space.CARD_RADIUS else Space.PANEL_RADIUS) { launch(tile, this) }
             reorderable(this, tile, position)
             // A long name is cut rather than wrapped, so every button in the grid stays one row tall.
             maxLines = 1
@@ -567,7 +613,7 @@ class Deck(
             .scaleX(LIFT_SCALE)
             .scaleY(LIFT_SCALE)
             .translationZ(raised)
-            .setDuration(Motion.FAST)
+            .setDuration(Motion.PRESS)
             .setInterpolator(easeOut)
         // The page scrolls; a held tile dragged up or down must move the tile, not the page.
         holder.parent?.requestDisallowInterceptTouchEvent(true)
@@ -581,13 +627,14 @@ class Deck(
     ) {
         lift = null
         val name = ui.string(R.string.macros_close, tile.label)
+        val barRadius = Space.inner(Space.PANEL_RADIUS, Space.XS)
         val bar =
             ui.text(name, Type.BODY, ui.palette.onAccent, face = Type.bold).apply {
                 gravity = Gravity.CENTER
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
-                background = ui.rounded(ui.palette.accent, Space.PANEL_RADIUS)
-                ui.tappable(this, Space.PANEL_RADIUS) {
+                background = ui.rounded(ui.palette.accent, barRadius)
+                ui.tappable(this, barRadius) {
                     armed?.let { release(it) }
                     close(tile)
                 }
@@ -624,7 +671,7 @@ class Deck(
             .scaleX(1f)
             .scaleY(1f)
             .translationZ(0f)
-            .setDuration(Motion.BASE)
+            .setDuration(Motion.PRESS)
             .setInterpolator(easeOut)
             .withEndAction {
                 view.background = null
@@ -667,7 +714,7 @@ class Deck(
                 .animate()
                 .translationX((held.lefts[places[at]] - held.lefts[at]).toFloat())
                 .translationY((held.tops[places[at]] - held.tops[at]).toFloat())
-                .setDuration(Motion.BASE)
+                .setDuration(Motion.PRESS)
                 .setInterpolator(easeOut)
         }
     }
@@ -692,7 +739,7 @@ class Deck(
             .scaleX(1f)
             .scaleY(1f)
             .translationZ(0f)
-            .setDuration(Motion.BASE)
+            .setDuration(Motion.PRESS)
             .setInterpolator(easeOut)
             .withEndAction {
                 view.background = null
@@ -716,9 +763,20 @@ class Deck(
         val side = ui.dp(Space.S)
         // A button with nothing to read reserves neither the gap under the picture nor the line under that,
         // whether it is alone in a grid of pictures or the one tile in a named grid whose picture arrived.
-        val gap = if (shown.isEmpty()) 0 else ui.dp(Space.XS)
+        val gap = if (shown.isEmpty()) 0 else fixed?.gap ?: ui.dp(Space.XS)
         val reserved = if (shown.isEmpty()) 0 else grid.line
         button.text = shown
+        // A long name in a narrow cell shrinks toward a floor before the end of it is cut with an ellipsis.
+        val paint = TextPaint().apply { typeface = Type.bold }
+        val metrics = ui.context.resources.displayMetrics
+        val labelPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, grid.labelSp, metrics)
+        val floor = DeckLayout.labelFloor(grid.labelSp)
+        val fitted =
+            fitText(shown, (grid.cell - 2 * side).toFloat(), labelPx, floor) { s, size ->
+                paint.textSize = size
+                paint.measureText(s)
+            }
+        button.setTextSize(TypedValue.COMPLEX_UNIT_PX, fitted.size)
         // A vector is drawn at the cell's full size and stays sharp at any of them. A laptop's picture is a
         // bitmap of a fixed size, and stretched past a little over that it reads as a blur rather than as
         // an icon, so on a big tile it is never drawn larger than its own pixels, centred.

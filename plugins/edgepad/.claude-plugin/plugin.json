@@ -1,0 +1,7 @@
+{
+  "name": "edgepad",
+  "version": "__VERSION__",
+  "description": "Lets the Edgepad phone app approve agent permission prompts and show session, limit and spend state",
+  "author": { "name": "Akshit Bansal" },
+  "license": "MIT"
+}

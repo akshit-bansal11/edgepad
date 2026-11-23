@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Edgepad.Dashboard;
 using Edgepad.Protocol;
 using Xunit;
 
@@ -63,9 +64,95 @@ public sealed partial class IdsFixtureTests
             ["CLIPBOARD"] = Feature.Clipboard,
             ["APPS"] = Feature.Apps,
             ["RUNNING"] = Feature.Running,
+            ["END_ACTION"] = Feature.EndAction,
+            ["NOTIFY"] = Feature.Notify,
+            ["FOREGROUND"] = Feature.Foreground,
+            ["STATS"] = Feature.Stats,
+            ["WEATHER"] = Feature.Weather,
+            ["CLAUDE"] = Feature.Claude,
+            ["CODEX"] = Feature.Codex,
+            ["GITHUB"] = Feature.GitHub,
+            ["DEVELOPER"] = Feature.Developer,
+            ["NETINFO"] = Feature.NetInfo,
+            ["GEMINI"] = Feature.Gemini,
+            ["OPENCODE"] = Feature.OpenCode,
+            ["GITLAB"] = Feature.GitLab,
+            ["GITEA"] = Feature.Gitea,
+            ["BITBUCKET"] = Feature.Bitbucket,
+            ["GITEE"] = Feature.Gitee,
         };
 
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void DevProvidersMatchTheSharedTable()
+    {
+        // Same ids, kinds, feature tokens, limits and flows, in the same order, as the PROVIDER rows.
+        var expected = Rows("PROVIDER")
+            .Select(p => (p[1], p[2], p[3], p[4] == "1", p[5]))
+            .ToList();
+        var actual = DevProviders.All
+            .Select(p => (p.Id, p.Kind.ToString().ToLowerInvariant(), p.FeatureToken, p.HasLimits, p.Flow.ToString().ToLowerInvariant()))
+            .ToList();
+        Assert.Equal(expected, actual);
+
+        // An AI id is an agent token and the other way round; every feature token is a FEATURE token.
+        var agents = Tokens("AGENT").Values.ToList();
+        Assert.Equal(agents, DevProviders.Of(DevKind.Ai).Select(p => p.Id).ToList());
+        var features = Tokens("FEATURE").Values.ToHashSet();
+        Assert.All(DevProviders.All, p => Assert.Contains(p.FeatureToken, features));
+        Assert.All(agents, a => Assert.True(DashWire.IsAgent(a)));
+        Assert.False(DashWire.IsAgent("github"));
+    }
+
+    [Fact]
+    public void DashboardTokenClassesMatchTheSharedTable()
+    {
+        Assert.Equal(
+            new SortedDictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["CLAUDE"] = AgentToken.Claude,
+                ["CODEX"] = AgentToken.Codex,
+                ["GEMINI"] = AgentToken.Gemini,
+                ["OPENCODE"] = AgentToken.OpenCode,
+            },
+            Tokens("AGENT"));
+        Assert.Equal(
+            new SortedDictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["BUSY"] = SessionStateToken.Busy,
+                ["WAIT"] = SessionStateToken.Wait,
+                ["IDLE"] = SessionStateToken.Idle,
+            },
+            Tokens("SESSION_STATE"));
+        Assert.Equal(
+            new SortedDictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["OK"] = CiToken.Ok,
+                ["FAIL"] = CiToken.Fail,
+                ["PENDING"] = CiToken.Pending,
+                ["NONE"] = CiToken.None,
+            },
+            Tokens("CI"));
+        Assert.Equal(
+            new SortedDictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["CONTEXT"] = LimitWindow.Context,
+                ["NAMED_PREFIX"] = LimitWindow.NamedPrefix.ToString(),
+            },
+            Tokens("LIMIT_WINDOW"));
+    }
+
+    private static SortedDictionary<string, string> Tokens(string kind)
+    {
+        var table = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var parts in Rows(kind))
+        {
+            table.Add(parts[2], parts[1]);
+        }
+
+        return table;
     }
 
     [Fact]

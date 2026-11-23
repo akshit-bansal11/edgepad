@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="uses_title">Edgepad’in kullandıkları</string>
+  <string name="uses_intro">Edgepad’in aldığı ya da ihtiyaç duyduğu her şey, büyük ya da küçük, böylece hangi erişimi verdiğinizi bilirsiniz. Bir özellik ihtiyaç duyana kadar hiçbiri kullanılmaz. Wi-Fi ağ adları, konumunuz, kişileriniz, fotoğraflarınız ve mikrofonunuz hiçbir zaman istenmez.</string>
+  <string name="uses_section_perms">Bu telefondaki izinler</string>
+  <string name="uses_section_flow">Telefon ile bilgisayar arasında gidenler</string>
+  <string name="uses_section_net">İnternete ulaşanlar</string>
+  <string name="uses_section_laptop">Bilgisayarınızda</string>
+  <string name="uses_flow_out">Bu telefondan bilgisayara</string>
+  <string name="uses_flow_in">Bilgisayardan bu telefona</string>
+  <string name="uses_flow_local">Bu telefonda kalır</string>
+  <string name="uses_laptop_ai">Herhangi bir bilgisayardaki yapay zeka araçları ve Git</string>
+
+  <string name="uses_perm_bluetooth_title">Yakındaki cihazlar (Bluetooth)</string>
+  <string name="uses_perm_bluetooth_body">Edgepad’in, Android’in Bluetooth ayarlarında daha önce eşleştirdiğiniz bir bilgisayara bağlanmasını sağlar. Başka Bluetooth cihazlarını hiçbir zaman aramaz ve okumaz. Cihazlar’ı ilk açtığınızda Android sorar.</string>
+  <string name="uses_perm_localnet_title">Yerel ağ</string>
+  <string name="uses_perm_localnet_body">Bu telefonun kendi Wi-Fi ağınızdaki bilgisayarları bulup onlarla konuşmasını sağlar. İlk Wi-Fi taramasından önce Android sorar.</string>
+  <string name="uses_perm_netstate_title">Ağ durumu</string>
+  <string name="uses_perm_netstate_body">Bilgisayarları bulmak ve Ağ sayfasında bağlantınızı göstermek için Edgepad’in Wi-Fi, USB ile internet paylaşımı ya da mobil veri kullanıp kullanmadığınızı bilmesini sağlar. Android sormaz.</string>
+  <string name="uses_perm_wifistate_title">Wi-Fi durumu</string>
+  <string name="uses_perm_wifistate_body">Ağ sayfası için bu telefonun kendi Wi-Fi bağlantı hızını, bandını ve sinyal gücünü okur. Ağın adı hiçbir zaman okunmaz; bunun için Konum gerekir. Android sormaz.</string>
+  <string name="uses_perm_multicast_title">Wi-Fi çoklu yayını</string>
+  <string name="uses_perm_multicast_body">Wi-Fi üzerinde bilgisayarları bulmak için gerekir. Android bunu, bağlantı hizmetinin arka planda çalışması için de bir neden olarak kabul eder. Android sormaz.</string>
+  <string name="uses_perm_internet_title">İnternet</string>
+  <string name="uses_perm_internet_body">Wi-Fi ya da USB üzerinden bilgisayara giden bağlantıyı taşır. Edgepad’in kendisi interneti yalnızca github.com’a en yeni sürümü sormak ve seçtiğiniz bir güncellemeyi indirmek için kullanır. Android sormaz.</string>
+  <string name="uses_perm_install_title">Uygulama yükleme</string>
+  <string name="uses_perm_install_body">Seçtiğiniz bir Edgepad güncellemesinin yüklenmesini sağlar. İlk seferde Android, Edgepad’den yüklemelere izin vermenizi ister.</string>
+  <string name="uses_perm_update_title">Tekrar sormadan güncelle</string>
+  <string name="uses_perm_update_body">Android 12 ve sonrasında, izin verdiğinizde bir Edgepad güncellemesinin ikinci bir soru sorulmadan yüklenmesini sağlar. Yalnızca Edgepad’i günceller. Android sormaz.</string>
+  <string name="uses_perm_service_title">Arka planda çalış</string>
+  <string name="uses_perm_service_body">Edgepad küçültülmüşken bilgisayara giden bağlantıyı canlı tutar; çalışırken bir bildirim gösterilir. Ayarlar’daki “Arka planda bağlı kal” ile denetlenir. Android sormaz.</string>
+  <string name="uses_perm_servicetype_title">Arka plan bağlantı türü</string>
+  <string name="uses_perm_servicetype_body">Bu arka plan hizmetini, bilgisayarınız gibi bir cihaza bağlantıyı sürdüren bir hizmet olarak işaretler. Android sormaz.</string>
+  <string name="uses_perm_notify_title">Bildirimler</string>
+  <string name="uses_perm_notify_body">Bağlantı bildirimini, dosya aktarımlarını, yapay zeka izin isteklerini ve açarsanız bilgisayarınızın bildirimlerini gösterir. Android 13 ve sonrası, tanıtımdan sonra bir kez sorar.</string>
+  <string name="uses_perm_overlay_title">Diğer uygulamaların üzerinde göster</string>
+  <string name="uses_perm_overlay_body">Yalnızca kendiniz açtığınız yüzen kadranlar için. Android sizi kendi ayarlar sayfasına yönlendirir; Edgepad bunu başka bir durumda hiçbir zaman sormaz.</string>
+
+  <string-array name="uses_out_keys">
+    <item>Girişleriniz</item>
+    <item>Pano</item>
+    <item>Dosyalar ve paylaşımlar</item>
+    <item>Açık sayfalar</item>
+    <item>Yanıtlarınız</item>
+    <item>Anahtarlarınız</item>
+  </string-array>
+  <string-array name="uses_out_values">
+    <item>Dokunuşlar, tuşlar, yazdığınız metin, oyun kumandası ve kalem hareketleri ile ses ve parlaklık gibi düğmeler. Yalnızca bir bilgisayar bağlıyken.</item>
+    <item>Kopyaladığınız metin ya da resim, yalnızca Panoyu paylaş açıksa ve Edgepad ekranda göründüğünde, Android’in izin verdiği biçimde.</item>
+    <item>Kendi isteğinizle gönderdiğiniz ya da Edgepad’le paylaştığınız bir dosya, metin ya da resim. Gönder’e dokunduktan sonra gönderilir.</item>
+    <item>Telefonun hangi kontrol paneli sayfalarını gösterdiği; bilgisayar, biri ekranda olduğunda yalnızca CPU, hava durumu, yapay zeka ya da Git verilerini okur.</item>
+    <item>Yazdığınız PIN ve bir yapay zeka aracının izin isteği için İzin ver ya da Reddet.</item>
+    <item>Bildirimler, Geliştirici modu, yakalamaların kaydedildiği yer, kalem boyutu ve rengi ve ön plandaki uygulamanın bildirilip bildirilmeyeceği.</item>
+  </string-array>
+  <string-array name="uses_in_keys">
+    <item>Bilgisayarın yaptıkları</item>
+    <item>Makrolar ve uygulamalar</item>
+    <item>Yakalamalar ve dosyalar</item>
+    <item>Pano ve bildirimler</item>
+    <item>Kontrol panelleri</item>
+    <item>Ağ sayfası</item>
+  </string-array>
+  <string-array name="uses_in_values">
+    <item>Şu an çalan şey ve hangi uygulamada olduğu, ses, parlaklık, ekran boyutu ve yenileme hızları, bilgisayarın adı ve sistemi, bilgisayarın ve Bluetooth cihazlarının pili ve ses çıkışının adı.</item>
+    <item>Makro adları ve simgeleri ile makro olarak eklenebilecek uygulamaların listesi. Arkasındaki yollar ya da komutlar hiçbir zaman gösterilmez.</item>
+    <item>Yalnızca Telefona kaydet’i seçtiyseniz bir ekran görüntüsü ya da kayıt ve bilgisayardan gönderdiğiniz dosyalar.</item>
+    <item>Pano paylaşımı açıksa kopyalanan metin ya da resim; iki bildirim anahtarı da açıksa bilgisayarın bildirimleri (uygulama, başlık, kısa metin). Hiçbir zaman kaydedilmez.</item>
+    <item>Bir kontrol paneli sayfası açıkken: bilgisayarın yük ve disk kullanımı, hava durumu, yapay zeka oturum adları ve durumları, yapay zeka kullanımı ve sınırları ile Git çekme isteklerinin ve sorunlarının başlıkları.</item>
+    <item>Bilgisayarın bağlantı türü, bandı, bağlantı hızı, sinyali, yerel adresi ve ağ geçidi ile bir hız testinin sonucu. Hiçbir zaman Wi-Fi adı.</item>
+  </string-array>
+  <string name="uses_local_key">Bu telefonun kendi verileri</string>
+  <string name="uses_local_value">Sistem sayfasındaki pil, bellek, depolama ve bağlantı verileri yalnızca o sayfa açıkken bu telefonda okunur ve hiçbir yere gönderilmez.</string>
+
+  <string-array name="uses_net_keys">
+    <item>Güncelleme denetimi</item>
+    <item>Hız testi</item>
+    <item>Hava durumu</item>
+    <item>Git ve oturum açma</item>
+    <item>Açtığınız bağlantılar</item>
+    <item>Başka hiçbir şey</item>
+  </string-array>
+  <string-array name="uses_net_values">
+    <item>github.com, bu telefondan ve bilgisayar uygulamalarından: en yeni sürümü soran ve cihazınız hakkında hiçbir şey göndermeyen tek bir istek. Seçtiğiniz bir güncelleme indirilirse o da github.com’dan gelir.</item>
+    <item>speed.cloudflare.com, bilgisayardan, yalnızca Hızı test et’e dokunduğunuzda. Test verisi taşır, sizinle ilgili hiçbir şey göndermez.</item>
+    <item>api.open-meteo.com ve geocoding-api.open-meteo.com, bilgisayardan, yalnızca hava durumu bileşeni açıksa. Seçtiğiniz yer koordinatlarını bulmak için gönderilir, ardından tahmin istenir.</item>
+    <item>Yalnızca bilgisayarda oturum açtıktan sonra ve yalnızca okumak için bilgisayardan: github.com ve api.github.com, gitlab.com ya da girdiğiniz GitLab sunucusu, codeberg.org ya da girdiğiniz Gitea ya da Forgejo sunucusu, api.bitbucket.org ve gitee.com. Edgepad hiçbir zaman yazmaz: yerleşik bir kapı okuma olmayan her isteği reddeder. GitHub girişi salt okunur bir GitHub uygulaması olan Edgepad Dashboard’u kullanır; yalnızca onu yüklediğiniz depoları görür.</item>
+    <item>Belgeler için getedgepad.com ve github.com üzerindeki ViGEmBus indirme sayfası. Tarayıcınız bunları yalnızca bir bağlantıya dokunduğunuzda açar.</item>
+    <item>Telefon, Windows, Mac ve Linux uygulamalarında yapılan web adresi aramasında başka hiçbir sunucu bulunmadı. Hesap, analiz, çökme raporu ve reklam yok.</item>
+  </string-array>
+
+  <string-array name="uses_windows_keys">
+    <item>Yönetici olarak yeniden başlat</item>
+    <item>Güvenlik duvarı kuralı</item>
+    <item>Oturum açılınca başlat</item>
+    <item>Gönderme konumu</item>
+    <item>Bildirim erişimi</item>
+    <item>Sanal denetleyici</item>
+  </string-array>
+  <string-array name="uses_windows_values">
+    <item>Tepsi menüsünde isteğe bağlı bir satır; Windows’un kendi istemi arkasında. Edgepad’in, Windows’un engellediği yönetici olarak çalışan pencerelere yazmasını sağlar.</item>
+    <item>Telefonların Wi-Fi ya da USB üzerinden bağlanabilmesi için Edgepad.exe için tek bir gelen izin kuralı; Windows’un istemi arkasında eklenir. Hayır derseniz bir sonraki başlatmada tekrar sorulmaz.</item>
+    <item>Tepsi menüsünde açtığınızda, oturum açtığınızda Edgepad’i başlatan kullanıcıya özel bir kayıt. Yönetici hakkı gerekmez.</item>
+    <item>Kendi Gönderme konumunuzda bir kısayol; Gönder, sonra Edgepad seçilerek dosyalar telefona gönderilebilir.</item>
+    <item>Yalnızca bildirimleri iletiyorsanız: Windows, Edgepad’in bunları okumasına izin vermenizi ister.</item>
+    <item>Telefonun oyun kumandası, ViGEmBus sürücüsünü gerektirir; bunu kendiniz yüklersiniz. Edgepad yalnızca indirme sayfasını açar.</item>
+  </string-array>
+  <string-array name="uses_mac_keys">
+    <item>Erişilebilirlik</item>
+    <item>Bluetooth</item>
+    <item>Yerel Ağ</item>
+    <item>Otomasyon</item>
+    <item>Dosyalar ve klasörler</item>
+    <item>Bildirimler ve oturum açma öğesi</item>
+    <item>İstenmiyor</item>
+  </string-array>
+  <string-array name="uses_mac_values">
+    <item>Telefon için yazmak, tıklamak ve tuşlara basmak için gerekir. macOS sorar; eksikse Edgepad bunu telefona bildirir.</item>
+    <item>Bu Mac ile eşleştirdiğiniz telefonu dinlemek için.</item>
+    <item>Wi-Fi bağlantılarını açtığınızda telefonun bu Mac’i Wi-Fi üzerinden bulabilmesi için.</item>
+    <item>Müzik ya da Spotify’a neyin çaldığını sormak ve değiştirmek için; medyanın sonunda bunu ayarladığınızda bu Mac’i uykuya almak ya da kapatmak için.</item>
+    <item>Telefonda almak istediğiniz bir ekran görüntüsünü ya da kaydı bulmak için Masaüstü, Belgeler ve İndirilenler.</item>
+    <item>Telefon eşleşme istediğinde ve yeni bir sürüm çıktığında uyarılar; Oturum açılınca başlat normal bir oturum açma öğesidir. Oturum açma belirteçleri Anahtar Zinciri’nde (Keychain) tutulur.</item>
+    <item>Giriş İzleme ve Ekran Kaydı. Yakalamalar macOS’un kendi kısayollarını kullanır.</item>
+  </string-array>
+  <string-array name="uses_linux_keys">
+    <item>Yazma aygıtı</item>
+    <item>Bluetooth</item>
+    <item>Masaüstü hizmetleri</item>
+    <item>Oturum açılınca başlat</item>
+  </string-array>
+  <string-array name="uses_linux_values">
+    <item>/dev/uinput, klavyenin başındaki kişi için, yükleyicinin bir kez ve yönetici olarak eklediği bir udev kuralı ve modül ayarı üzerinden açılır.</item>
+    <item>Eşleştirdiğiniz telefonu dinlemek için sistem veri yolunda BlueZ.</item>
+    <item>Oturum veri yolunda: bildirimler, medya oynatıcıları (MPRIS), güç (UPower), uyku ve kilit (systemd-logind), Ağ sayfası için NetworkManager, masaüstünün koyu mod ayarı, ekran yenileme hızları, tepsi ve oturum belirteçleri için Secret Service.</item>
+    <item>Açtığınızda, kendi yapılandırma klasörünüzde bir otomatik başlatma girdisi.</item>
+  </string-array>
+  <string-array name="uses_ai_keys">
+    <item>Yapay zeka araçları</item>
+    <item>Oturum açma belirteçleri</item>
+  </string-array>
+  <string-array name="uses_ai_values">
+    <item>Yalnızca Geliştirici modu açıkken. Edgepad, Claude Code, Codex, Gemini CLI ve OpenCode’un yerel oturum ve kullanım dosyalarını okur; birini bağlamak, o aracın kendi ayarlarına küçük bir kanca ya da eklenti ekler.</item>
+    <item>Git belirteçleri bilgisayarda kendi kimlik bilgisi deposunda şifreli tutulur ve hiçbir zaman telefona gönderilmez.</item>
+  </string-array>
+</resources>

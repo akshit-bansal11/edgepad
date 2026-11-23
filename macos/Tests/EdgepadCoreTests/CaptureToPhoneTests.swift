@@ -8,6 +8,8 @@ import XCTest
 final class CaptureToPhoneTests: XCTestCase {
     private final class Folder: CaptureFolders {
         let path: String
+        var stamp: Int?
+        var png: Data?
 
         init(_ path: String) {
             self.path = path
@@ -16,11 +18,21 @@ final class CaptureToPhoneTests: XCTestCase {
         func folders(for capture: ActionId) -> [CaptureFolder] {
             [CaptureFolder(path: path, shared: false)]
         }
+
+        func clipboardStamp() -> Int? {
+            stamp
+        }
+
+        func clipboardPNG() -> Data? {
+            png
+        }
     }
 
     private var directory = ""
     private var scheduled: [() -> Void] = []
     private var sent: [Frame] = []
+    /// The capture's clock, moved by hand.
+    private var now: TimeInterval = 0
 
     override func setUpWithError() throws {
         directory = (NSTemporaryDirectory() as NSString).appendingPathComponent(UUID().uuidString)
@@ -31,12 +43,13 @@ final class CaptureToPhoneTests: XCTestCase {
         try? FileManager.default.removeItem(atPath: directory)
     }
 
-    private func capture() -> CaptureToPhone {
+    private func capture(_ folder: Folder? = nil) -> CaptureToPhone {
         let later: (TimeInterval, @escaping () -> Void) -> Void = { [unowned self] _, work in
             self.scheduled.append(work)
         }
         let capture = CaptureToPhone(
-            folders: Folder(directory), schedule: later, lastInput: { -.infinity },
+            folders: folder ?? Folder(directory), clock: { [unowned self] in self.now }, schedule: later,
+            lastInput: { -.infinity },
             offMain: { work, done in done(work()) })
         capture.send = { [unowned self] frame in
             self.sent.append(frame)
@@ -118,6 +131,85 @@ final class CaptureToPhoneTests: XCTestCase {
         held = 0
         fire()
         XCTAssertTrue(endSent)
+    }
+
+    private func clipboardFolder() -> Folder {
+        let folder = Folder(directory)
+        folder.stamp = 1
+        folder.png = Data([1, 2, 3])
+        return folder
+    }
+
+    private func beginNames() -> [String] {
+        sent.compactMap { frame -> String? in
+            guard case .fileBegin(_, _, let name) = frame else { return nil }
+            return name
+        }
+    }
+
+    func testTheClipboardPictureIsSentAfterTheGraceAndNotBefore() {
+        let folder = clipboardFolder()
+        let capture = capture(folder)
+        XCTAssertTrue(capture.run(.captureScreen) { true })
+        folder.stamp = 2
+
+        fire()
+        now = CaptureToPhone.clipboardGrace - 0.1
+        fire()
+        XCTAssertTrue(sent.isEmpty)
+
+        now = CaptureToPhone.clipboardGrace
+        fire()
+        let names = beginNames()
+        XCTAssertEqual(names.count, 1)
+        XCTAssertTrue(names[0].hasPrefix("Screenshot "))
+        XCTAssertTrue(names[0].hasSuffix(".png"))
+        capture.end()
+    }
+
+    func testAFileThatArrivesFirstWinsOverTheClipboard() {
+        let folder = clipboardFolder()
+        let capture = capture(folder)
+        XCTAssertTrue(capture.run(.captureScreen) { true })
+        folder.stamp = 2
+        fire()
+        let path = (directory as NSString).appendingPathComponent("Screenshot 1.png")
+        FileManager.default.createFile(atPath: path, contents: Data(repeating: 7, count: 600))
+
+        now = CaptureToPhone.clipboardGrace
+        fire(4)
+
+        XCTAssertEqual(beginNames(), ["Screenshot 1.png"])
+        capture.end()
+    }
+
+    func testNothingIsSentFromAClipboardThatDidNotChangeOrCannotBeRead() {
+        let folder = clipboardFolder()
+        let capture = capture(folder)
+        XCTAssertTrue(capture.run(.captureScreen) { true })
+
+        now = 10
+        fire(3)
+        XCTAssertTrue(sent.isEmpty)
+
+        folder.stamp = nil
+        XCTAssertTrue(capture.run(.captureScreen) { true })
+        now = 20
+        fire(4)
+        XCTAssertTrue(sent.isEmpty)
+        capture.end()
+    }
+
+    func testARecordingNeverFallsBackToTheClipboard() {
+        let folder = clipboardFolder()
+        let capture = capture(folder)
+        XCTAssertTrue(capture.run(.captureRecord) { true })
+        folder.stamp = 2
+
+        now = 10
+        fire(4)
+
+        XCTAssertTrue(sent.isEmpty)
     }
 
     func testAnAnswerWithNothingOnItsWayIsNotTaken() {

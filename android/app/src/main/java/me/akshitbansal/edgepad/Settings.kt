@@ -11,7 +11,9 @@ import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
 import me.akshitbansal.edgepad.surface.MediaPiece
 import me.akshitbansal.edgepad.surface.NO_DIAL
+import me.akshitbansal.edgepad.surface.Profile
 import me.akshitbansal.edgepad.surface.Strokes
+import me.akshitbansal.edgepad.surface.SurfaceWidget
 import me.akshitbansal.edgepad.surface.resolveStoredDial
 import java.io.File
 import kotlin.properties.ReadWriteProperty
@@ -84,6 +86,20 @@ class Settings(
         get() = prefs.getString(KEY_SHAPES, "").orEmpty()
         set(value) = prefs.edit().putString(KEY_SHAPES, value).apply()
 
+    /** Whether the laptop is asked which app is in front, so the dials and gestures can follow it. */
+    var profilesOn by flag("profilesOn", false)
+
+    /** The per-app profiles in the text [me.akshitbansal.edgepad.surface.Profiles] encodes, as [shapes] is. */
+    var profiles: String
+        get() = prefs.getString(KEY_PROFILES, "").orEmpty()
+        set(value) = prefs.edit().putString(KEY_PROFILES, value).apply()
+
+    /**
+     * The profile of the app in front, while the surface is showing and [profilesOn]; never stored. Set, it wins over
+     * the stored corners and gestures below. Null everywhere else, so the settings pages always edit the defaults.
+     */
+    var activeProfile: Profile? = null
+
     var onboarded by flag("onboarded", false)
 
     /** Not now was said to the Devices notice about Nearby devices, so a Bluetooth-only user is not shown it again. */
@@ -112,22 +128,40 @@ class Settings(
     /** Share the clipboard with the selected laptop, when it offers to. Each laptop's own switch must be on too. */
     var clipboardSync by flag("clipboardSync", false)
 
+    /** Forward the laptop's notifications to this phone, when the laptop offers to. */
+    var notifyForward by flag("notifyForward", false)
+
     /** Round volume, brightness and mic to a multiple of 5 when the finger lifts. */
     var snap by flag("snap", false)
 
     /** Content follows the fingers, as on Windows' own touchpads; off scrolls the other way. */
     var naturalScroll by flag("naturalScroll", true)
 
-    var hints by flag("hints", true)
+    /** Gesture hints on the trackpad. Off by default (owner, 2026-11-18); Settings turns them on. */
+    var hints by flag("hints", false)
 
     /** Issue #56: the surface goes black and dims the window when left idle, so nothing static burns into an OLED. */
     var blackout by flag("blackout", false)
 
+    /** Tilting the phone moves the pointer while a finger rests on the trackpad. Read only then, and only if on. */
+    var airMouse by flag("airMouse", false)
+
+    /** Pointer travel per turn of the phone, as a multiple of the base rate. */
+    var airSensitivity by bounded(
+        KEY_AIR_SENSITIVITY,
+        DEFAULT_AIR_SENSITIVITY,
+        MIN_AIR_SENSITIVITY,
+        MAX_AIR_SENSITIVITY,
+    )
+
+    /** The turn rate, in radians a second, under which the phone counts as still. */
+    var airDeadZone by bounded(KEY_AIR_DEAD_ZONE, DEFAULT_AIR_DEAD_ZONE, MIN_AIR_DEAD_ZONE, MAX_AIR_DEAD_ZONE)
+
+    /** The corner dials drawn over other apps while this one is away. Needs the draw-over-apps permission. */
+    var floatingDials by flag("floatingDials", false)
+
     /** Bit per trackpad hint already earned by using the gesture (see HintFade); switching hints on again clears it. */
     var hintsSeen by pref({ prefs.getInt("hintsSeen", 0) }) { putInt("hintsSeen", it) }
-
-    /** How many times the Controls popup has said that its tiles can be moved; it stops after a few. */
-    var controlsHintShown by pref({ prefs.getInt("controlsHintShown", 0) }) { putInt("controlsHintShown", it) }
 
     /**
      * Macro buttons carry their name under the picture. Off shows the picture alone, which is roomier and
@@ -154,6 +188,20 @@ class Settings(
     var penWidth by pref({ prefs.getInt(KEY_PEN_WIDTH, Strokes.DEFAULT_WIDTH).coerceIn(PEN_WIDTHS) }) {
         putInt(KEY_PEN_WIDTH, it.coerceIn(PEN_WIDTHS))
     }
+
+    /** The Presenter laser's size on the wire's PEN_WIDTH scale: one of [LaserSizes.ALL], older saves mapped over. */
+    var laserSize by pref({ LaserSizes.nearest(prefs.getInt(KEY_LASER_SIZE, LaserSizes.DEFAULT)) }) {
+        putInt(KEY_LASER_SIZE, LaserSizes.nearest(it))
+    }
+
+    /** The Presenter laser leaves a short red trail behind the dot. */
+    var laserTrail by flag("laserTrail", false)
+
+    /** Whether the one-time tip [key] has been shown; see [TipCard][me.akshitbansal.edgepad.screens.TipCard]. */
+    fun tipSeen(key: String): Boolean = prefs.getBoolean(TIP_PREFIX + key, false)
+
+    /** Marks the tip [key] seen, for good. */
+    fun setTipSeen(key: String) = prefs.edit().putBoolean(TIP_PREFIX + key, true).apply()
 
     /** The pen's opacity in percent, as [me.akshitbansal.edgepad.protocol.ControlId.PEN_OPACITY] sends it. */
     var penOpacity by pref({ prefs.getInt(KEY_PEN_OPACITY, Strokes.DEFAULT_OPACITY).coerceIn(PEN_OPACITIES) }) {
@@ -205,6 +253,12 @@ class Settings(
 
     /** The guide as one scrolling page rather than steps. */
     var guideScroll by flag("guideScroll", false)
+
+    /**
+     * The last Developer-mode state a laptop reported (its FEATURES); a cache for when no laptop is connected, never
+     * written from a tap.
+     */
+    var developerMode by flag("developerMode", false)
 
     /** Half a corner ruler's length along the edge, in dp. */
     var dialLength by bounded(KEY_DIAL_LENGTH, DEFAULT_DIAL_LENGTH, MIN_DIAL_LENGTH, MAX_DIAL_LENGTH)
@@ -274,10 +328,15 @@ class Settings(
     var patternOpacity by bounded(KEY_PATTERN_OPACITY, DEFAULT_PATTERN_OPACITY, 0f, 1f)
 
     /** The dial in [corner] (0 top-left, clockwise), or null for none. */
-    fun corner(corner: Int): DialKind? =
-        resolveStoredDial(prefs.getString("corner.$corner", null)) {
-            DialKind.entries.firstOrNull { it.defaultCorner == corner }
-        }
+    fun corner(corner: Int): DialKind? {
+        val stored =
+            resolveStoredDial(prefs.getString("corner.$corner", null)) {
+                DialKind.entries.firstOrNull { it.defaultCorner == corner }
+            }
+        // A profile that sets no dial in this corner says so with null, so null must not fall through to the default.
+        val profile = activeProfile ?: return stored
+        return profile.corner(corner, stored)
+    }
 
     fun setCorner(
         corner: Int,
@@ -315,6 +374,19 @@ class Settings(
         keys: List<String>,
     ) {
         prefs.edit().putString("deck.$deck.order", keys.joinToString("\n")).apply()
+    }
+
+    /** The keys of the tiles the person hid from a deck, stored the same way as [deckOrder]. */
+    fun deckHidden(deck: String): Set<String> {
+        val stored = prefs.getString("deck.$deck.hidden", null) ?: return emptySet()
+        return stored.split('\n').filter { it.isNotEmpty() }.toSet()
+    }
+
+    fun setDeckHidden(
+        deck: String,
+        keys: Set<String>,
+    ) {
+        prefs.edit().putString("deck.$deck.hidden", keys.joinToString("\n")).apply()
     }
 
     /** How many macros one page of the macro screen shows; the rest of the laptop's continue on the next page. */
@@ -361,8 +433,9 @@ class Settings(
     private fun sensitivityKey(kind: DialKind): String = "sensitivity.${kind.name}"
 
     fun gesture(gesture: Gesture): GestureAction {
-        val name = prefs.getString("gesture.${gesture.name}", null) ?: return gesture.default
-        return GestureAction.entries.firstOrNull { it.name == name } ?: gesture.default
+        val name = prefs.getString("gesture.${gesture.name}", null)
+        val stored = GestureAction.entries.firstOrNull { it.name == name } ?: gesture.default
+        return activeProfile?.gesture(gesture, stored) ?: stored
     }
 
     fun setGesture(
@@ -376,9 +449,11 @@ class Settings(
      * Where a media piece sits, as fractions of the surface's width and height. Portrait and landscape each
      * keep their own layout, chosen by [landscape], because a spot that suits one rarely suits the other.
      */
-    fun piece(piece: MediaPiece): Pair<Float, Float> =
-        prefs.getFloat(layoutKey(pieceKey(piece, "x")), piece.defaultX).coerceIn(0f, 1f) to
-            prefs.getFloat(layoutKey(pieceKey(piece, "y")), piece.defaultY).coerceIn(0f, 1f)
+    fun piece(piece: MediaPiece): Pair<Float, Float> {
+        val defaultY = if (landscape) piece.landscapeY else piece.defaultY
+        return prefs.getFloat(layoutKey(pieceKey(piece, "x")), piece.defaultX).coerceIn(0f, 1f) to
+            prefs.getFloat(layoutKey(pieceKey(piece, "y")), defaultY).coerceIn(0f, 1f)
+    }
 
     /** Moves [piece] in the current orientation's layout only. */
     fun setPiece(
@@ -402,6 +477,72 @@ class Settings(
         }
         edit.apply()
     }
+
+    /** Whether [widget] is drawn behind the trackpad. Off until switched on. */
+    fun widgetOn(widget: SurfaceWidget): Boolean = prefs.getBoolean(widgetKey(widget, "on"), false)
+
+    fun setWidgetOn(
+        widget: SurfaceWidget,
+        on: Boolean,
+    ) {
+        prefs.edit().putBoolean(widgetKey(widget, "on"), on).apply()
+    }
+
+    /**
+     * Where a widget sits, as fractions of the surface's width and height, in the current orientation's layout. An
+     * orientation that was never edited starts from that orientation's own default.
+     */
+    fun widget(widget: SurfaceWidget): Pair<Float, Float> {
+        val x = if (landscape) widget.landscapeX else widget.portraitX
+        val y = if (landscape) widget.landscapeY else widget.portraitY
+        return prefs.getFloat(layoutKey(widgetKey(widget, "x")), x).coerceIn(0f, 1f) to
+            prefs.getFloat(layoutKey(widgetKey(widget, "y")), y).coerceIn(0f, 1f)
+    }
+
+    /** Moves [widget] in the current orientation's layout only. */
+    fun setWidget(
+        widget: SurfaceWidget,
+        x: Float,
+        y: Float,
+    ) {
+        prefs
+            .edit()
+            .putFloat(layoutKey(widgetKey(widget, "x")), x.coerceIn(0f, 1f))
+            .putFloat(layoutKey(widgetKey(widget, "y")), y.coerceIn(0f, 1f))
+            .apply()
+    }
+
+    /** How large [widget] is drawn, as a multiple of its base box, in the current orientation's layout. */
+    fun widgetScale(widget: SurfaceWidget): Float =
+        prefs.getFloat(layoutKey(widgetKey(widget, "scale")), 1f).coerceIn(MIN_WIDGET_SCALE, MAX_WIDGET_SCALE)
+
+    /** Sizes [widget] in the current orientation's layout only. */
+    fun setWidgetScale(
+        widget: SurfaceWidget,
+        scale: Float,
+    ) {
+        prefs
+            .edit()
+            .putFloat(layoutKey(widgetKey(widget, "scale")), scale.coerceIn(MIN_WIDGET_SCALE, MAX_WIDGET_SCALE))
+            .apply()
+    }
+
+    /** Puts every widget back where it started and at its base size, in the current orientation's layout only. */
+    fun resetWidgets() {
+        val edit = prefs.edit()
+        for (widget in SurfaceWidget.entries) {
+            edit.remove(layoutKey(widgetKey(widget, "x")))
+            edit.remove(layoutKey(widgetKey(widget, "y")))
+            edit.remove(layoutKey(widgetKey(widget, "scale")))
+        }
+        edit.apply()
+    }
+
+    /** A widget's portrait key; the landscape layout adds its prefix through [layoutKey]. */
+    private fun widgetKey(
+        widget: SurfaceWidget,
+        part: String,
+    ): String = "widget.${widget.name}.$part"
 
     /** A media piece's portrait key; portrait keeps the keys from before the orientations were split. */
     private fun pieceKey(
@@ -467,6 +608,12 @@ class Settings(
         const val MIN_SPEED = 0.4f
         const val MAX_SPEED = 3f
         const val DEFAULT_SPEED = 1f
+        const val MIN_AIR_SENSITIVITY = 0.5f
+        const val MAX_AIR_SENSITIVITY = 3f
+        const val DEFAULT_AIR_SENSITIVITY = 1f
+        const val MIN_AIR_DEAD_ZONE = 0f
+        const val MAX_AIR_DEAD_ZONE = 0.2f
+        const val DEFAULT_AIR_DEAD_ZONE = 0.04f
         const val MIN_SENSITIVITY = 0.5f
         const val MAX_SENSITIVITY = 2.5f
         const val DEFAULT_SENSITIVITY = 1.4f
@@ -479,6 +626,11 @@ class Settings(
         const val MIN_MEDIA_SCALE = 0.5f
         const val MAX_MEDIA_SCALE = 1.5f
         const val DEFAULT_MEDIA_SCALE = 1f
+        const val MIN_WIDGET_SCALE = 0.75f
+        const val MAX_WIDGET_SCALE = 1.5f
+
+        /** The sizes a widget's long press offers. */
+        val WIDGET_SCALES = floatArrayOf(0.75f, 1f, 1.25f, 1.5f)
         const val MIN_KEY_TEXT_SCALE = 0.6f
         const val MAX_KEY_TEXT_SCALE = 2f
         const val DEFAULT_KEY_TEXT_SCALE = 1f
@@ -511,10 +663,13 @@ class Settings(
         private const val KEY_UPDATE_FAILURE = "updateFailure"
         private const val KEY_SAVED_LAPTOPS = "savedLaptops"
         private const val KEY_SHAPES = "shapes"
+        private const val KEY_PROFILES = "profiles"
         private const val KEY_LAST_UPDATE_CHECK = "lastUpdateCheck"
         private const val KEY_LATEST_VERSION = "latestVersion"
         private const val KEY_SEEN_VERSION = "seenVersion"
         private const val KEY_SENSITIVITY = "sensitivity"
+        private const val KEY_AIR_SENSITIVITY = "airSensitivity"
+        private const val KEY_AIR_DEAD_ZONE = "airDeadZone"
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"
         private const val KEY_MACROS_PER_PAGE = "macrosPerPage"
@@ -539,6 +694,8 @@ class Settings(
         private const val KEY_PATTERN_OPACITY = "patternOpacity"
         private const val KEY_PEN_RGB = "penRgb"
         private const val KEY_PEN_WIDTH = "penWidth"
+        private const val KEY_LASER_SIZE = "laserSize"
+        private const val TIP_PREFIX = "tip."
         private const val KEY_PEN_OPACITY = "penOpacity"
 
         /** Prefixes a media layout key to make its landscape twin. */

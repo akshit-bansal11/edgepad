@@ -83,9 +83,22 @@ public protocol CaptureFolders: AnyObject {
     func folders(for capture: ActionId) -> [CaptureFolder]
     /// Whether the system marks the file at `path` as a screen capture. Asked only of a new file in a shared folder.
     func isScreenCapture(_ path: String) -> Bool
+    /// A number that changes whenever the clipboard does, or nil where the clipboard may not be read. Asked once when a
+    /// screenshot watch starts and on each poll of it, so it must cost an integer read and nothing more.
+    func clipboardStamp() -> Int?
+    /// The clipboard as PNG bytes, or nil when it holds no image or may not be read. Asked only once the stamp changed.
+    func clipboardPNG() -> Data?
 }
 
 extension CaptureFolders {
+    public func clipboardStamp() -> Int? {
+        nil
+    }
+
+    public func clipboardPNG() -> Data? {
+        nil
+    }
+
     public func isScreenCapture(_ path: String) -> Bool {
         false
     }
@@ -113,6 +126,9 @@ public final class CaptureToPhone {
     public static let maxBacklog = 32 * 1024
     public static let answerTimeout: TimeInterval = 30
     static let screenshotSettledPolls = 2
+    /// With no file after the clipboard changed, how long to wait for one before sending the clipboard's picture: the
+    /// tool may be saving it still.
+    public static let clipboardGrace: TimeInterval = 3
     /// Ten seconds of a recording's file not changing at all: macOS writes it whole when the recording stops.
     static let recordingSettledPolls = 20
     /// While no new file has appeared a poll only looks at the folders' own modification times, which change when a
@@ -158,6 +174,8 @@ public final class CaptureToPhone {
     private var transfers = 0
     /// Files found while another was on its way; sent after it.
     private var queue: [String] = []
+    /// Clipboard pictures written here to be sent, which are ours to delete whatever the phone answers.
+    private var clipboardFiles: Set<String> = []
 
     public init(
         folders: CaptureFolders,
@@ -200,13 +218,17 @@ public final class CaptureToPhone {
         let watched = folders.folders(for: capture)
         let seen = Self.stamps(watched)
         let before = CapturePick.before(list(watched))
+        // Not for a recording, which leaves nothing on the clipboard.
+        let clipboard = capture == .captureRecord ? nil : folders.clipboardStamp()
         guard press() else { return false }
         let recording = capture == .captureRecord
         generation += 1
         startedAt = clock()
         deadline = startedAt + (recording ? Self.recordingWindow : Self.screenshotWindow)
         let settled = recording ? Self.recordingSettledPolls : Self.screenshotSettledPolls
-        watch(generation, Watch(folders: watched, before: before, settled: settled, seen: seen, listedAt: startedAt))
+        let state = Watch(
+            folders: watched, before: before, settled: settled, seen: seen, listedAt: startedAt, clipboard: clipboard)
+        watch(generation, state)
         return true
     }
 
@@ -229,8 +251,12 @@ public final class CaptureToPhone {
             let sent = (path: current.path, length: current.length, written: current.written, digest: current.digest)
             offMain(
                 { Self.unchanged(path: sent.path, length: sent.length, written: sent.written, digest: sent.digest) },
-                { same in
-                    guard same else { return }
+                { [weak self] same in
+                    guard same else {
+                        self?.forget(sent.path)
+                        return
+                    }
+                    defer { self?.forget(sent.path) }
                     do {
                         try FileManager.default.removeItem(atPath: sent.path)
                         Log.write("Capture: saved on the phone, and deleted here")
@@ -242,6 +268,7 @@ public final class CaptureToPhone {
                 })
         } else {
             Log.write("Capture: the phone answered \(status), so the file stays here")
+            forget(current.path)
         }
         next()
         return true
@@ -254,6 +281,9 @@ public final class CaptureToPhone {
         try? transfer?.handle.close()
         transfer = nil
         queue.removeAll()
+        for path in clipboardFiles {
+            forget(path)
+        }
         send = nil
     }
 
@@ -267,13 +297,20 @@ public final class CaptureToPhone {
         var still = 0
         var seen: [Date?]
         var listedAt: TimeInterval
+        /// The clipboard's stamp when the watch began, nil for none; and when a poll first saw it differ.
+        var clipboard: Int?
+        var clipboardSince: TimeInterval?
 
-        init(folders: [CaptureFolder], before: Set<String>, settled: Int, seen: [Date?], listedAt: TimeInterval) {
+        init(
+            folders: [CaptureFolder], before: Set<String>, settled: Int, seen: [Date?], listedAt: TimeInterval,
+            clipboard: Int?
+        ) {
             self.folders = folders
             self.before = before
             self.settled = settled
             self.seen = seen
             self.listedAt = listedAt
+            self.clipboard = clipboard
         }
     }
 
@@ -287,7 +324,10 @@ public final class CaptureToPhone {
             var state = state
             // Nothing new yet: a stat of each folder, not a listing of everything on the Desktop twice a second.
             let stamps = Self.stamps(state.folders)
-            if state.last == nil, stamps == state.seen, self.clock() - state.listedAt < Self.relistSeconds {
+            let clipboardChanged = state.clipboard.map { self.folders.clipboardStamp() != $0 } ?? false
+            if state.last == nil, !clipboardChanged, stamps == state.seen,
+                self.clock() - state.listedAt < Self.relistSeconds
+            {
                 self.watch(id, state)
                 return
             }
@@ -304,6 +344,13 @@ public final class CaptureToPhone {
                 if state.last != nil {
                     Log.write("Capture: the new file went away before it settled, so none was sent")
                     self.status(.notFound)
+                } else if clipboardChanged, self.waitedForClipboard(&state) {
+                    // The tool saved nothing, so the picture is on the clipboard only.
+                    if let png = self.folders.clipboardPNG(), self.sendClipboard(png) {
+                        return
+                    }
+                    state.clipboard = nil
+                    self.watch(id, state)
                 } else {
                     self.watch(id, state)
                 }
@@ -319,6 +366,43 @@ public final class CaptureToPhone {
                 self.watch(id, state)
             }
         }
+    }
+
+    /// True once the clipboard has differed for `clipboardGrace`, counted from the first poll that saw it.
+    private func waitedForClipboard(_ state: inout Watch) -> Bool {
+        guard let since = state.clipboardSince else {
+            state.clipboardSince = clock()
+            return false
+        }
+        return clock() - since >= Self.clipboardGrace
+    }
+
+    /// Sends the clipboard's picture as a file named like the system's own, from a private folder emptied once the
+    /// phone has answered. False when it could not be written, and then nothing is sent.
+    private func sendClipboard(_ png: Data) -> Bool {
+        let stamp = DateFormatter()
+        stamp.locale = Locale(identifier: "en_US_POSIX")
+        stamp.dateFormat = "yyyy-MM-dd HHmmss"
+        let folder = (NSTemporaryDirectory() as NSString).appendingPathComponent("edgepad-" + UUID().uuidString)
+        let path = (folder as NSString).appendingPathComponent("Screenshot \(stamp.string(from: Date())).png")
+        do {
+            try FileManager.default.createDirectory(
+                atPath: folder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+            try png.write(to: URL(fileURLWithPath: path), options: .atomic)
+        } catch {
+            try? FileManager.default.removeItem(atPath: folder)
+            return false
+        }
+        clipboardFiles.insert(path)
+        queue.append(path)
+        next()
+        return true
+    }
+
+    /// Removes a clipboard picture and its folder; any other path is the owner's file and is left alone.
+    private func forget(_ path: String) {
+        guard clipboardFiles.remove(path) != nil else { return }
+        try? FileManager.default.removeItem(atPath: (path as NSString).deletingLastPathComponent)
     }
 
     /// Each folder's own modification time, nil for one that cannot be read.

@@ -73,6 +73,7 @@ internal sealed class FlatButton : Button
         var pressed = Enabled && (keyDown || (mouseDown && hovered));
         Color? fill = kind switch
         {
+            ButtonKind.Primary when !Enabled => palette.Faint,
             ButtonKind.Primary when pressed => Theme.Mix(palette.Accent, palette.Ink, 0.2f),
             ButtonKind.Primary => hovered ? Theme.Mix(palette.Accent, palette.Card, 0.12f) : palette.Accent,
             _ when pressed => Theme.Mix(palette.Faint, palette.Ink, 0.12f),
@@ -98,14 +99,15 @@ internal sealed class FlatButton : Button
             if (Focused && ShowFocusCues)
             {
                 using var ring = new Pen(kind == ButtonKind.Primary ? palette.Ink : palette.Accent, Theme.Scale(2f, dpi));
-                using var inner = Theme.Rounded(RectangleF.Inflate(shape, -1, -1), radius);
+                using var inner = Theme.Rounded(RectangleF.Inflate(shape, -1, -1), Theme.Inner(radius, 1f));
                 graphics.DrawPath(ring, inner);
             }
         }
 
         if (!Enabled)
         {
-            ink = Theme.Mix(ink, fill ?? palette.Card, 0.55f);
+            // A disabled filled button is a muted tile with dim words, not a faded accent that still looks pressable.
+            ink = kind == ButtonKind.Primary ? palette.Dim : Theme.Mix(ink, fill ?? palette.Card, 0.55f);
         }
 
         var font = Theme.Font(Theme.Scale(14f, dpi), Weight.Bold);

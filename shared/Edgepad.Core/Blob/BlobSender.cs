@@ -35,8 +35,12 @@ internal sealed class BlobSender(
     /// <summary>
     /// Sends one blob. False when the session ended or <paramref name="abandoned"/> said so part way: no BLOB_END goes,
     /// and the next BLOB_BEGIN clears what the far end was holding. A write that fails throws, as any send does.
+    /// <para>
+    /// <paramref name="urgent"/> (an approval a person is waiting on) does not slow down for the phone's input: it keeps the full
+    /// budget per tick however fresh the last input is. It still waits its turn behind a blob already in flight.
+    /// </para>
     /// </summary>
-    public bool Send(BlobKind kind, string label, ReadOnlyMemory<byte> data, Func<bool>? abandoned = null)
+    public bool Send(BlobKind kind, string label, ReadOnlyMemory<byte> data, Func<bool>? abandoned = null, bool urgent = false)
     {
         lock (lane)
         {
@@ -51,7 +55,7 @@ internal sealed class BlobSender(
                 }
 
                 send(new BlobChunk(seq++, data.Slice(at, Math.Min(FrameCodec.MaxChunkBytes, data.Length - at)).ToArray()));
-                if (++sent >= Budget() && at + FrameCodec.MaxChunkBytes < data.Length)
+                if (++sent >= Budget(urgent) && at + FrameCodec.MaxChunkBytes < data.Length)
                 {
                     sent = 0;
                     if (!wait(TickMs))
@@ -66,9 +70,9 @@ internal sealed class BlobSender(
         }
     }
 
-    private int Budget()
+    private int Budget(bool urgent)
     {
-        if (now() - lastInputMs() < InputQuietMs)
+        if (!urgent && now() - lastInputMs() < InputQuietMs)
         {
             return BusyChunksPerTick;
         }

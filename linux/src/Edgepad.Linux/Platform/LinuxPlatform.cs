@@ -46,6 +46,8 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
     private readonly Backlight backlight = new();
     private readonly Mpris mpris = new();
     private readonly Annotator annotator = new();
+    private readonly LinuxDisplayModes displayModes = new(
+        Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"), Environment.GetEnvironmentVariable("DISPLAY"));
     private static readonly MacroStore macros = new(
         Path.Combine(Xdg.ConfigFolder, "macros.txt"), new LinuxLauncher(), windows: new LinuxMacroWindows());
     private readonly Worker worker;
@@ -172,6 +174,8 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
             case ActionId.ToolArrow:
             case ActionId.ToolRectangle:
             case ActionId.ToolEllipse:
+            case ActionId.ToolLaser:
+            case ActionId.ToolLaserTrail:
             case ActionId.SignBegin:
             case ActionId.SignSave:
                 // The annotator decides which of these the current mode allows; a tool while signing is dropped.
@@ -181,6 +185,9 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
                 return false;
         }
     }
+
+    /// <summary>The phone's SET NOTIFY, true for 1. Set by the host before the session starts.</summary>
+    public Action<bool>? NotifyRequested { get; set; }
 
     public bool Set(ControlId control, byte percent)
     {
@@ -207,8 +214,25 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
                 return annotator.SetWidth(percent);
             case ControlId.PenOpacity:
                 return annotator.SetOpacity(percent);
+            case ControlId.Notify:
+                // 1 or 0; the session that owns this platform decides what it means. Anything else is dropped.
+                if (percent > 1)
+                {
+                    return false;
+                }
+
+                NotifyRequested?.Invoke(percent == 1);
+                return true;
+            case ControlId.RefreshRate:
+                // An index into the list sent as TEXT 4; one past its end is refused, as on Windows.
+                if (percent >= displayModes.Rates.Count)
+                {
+                    return false;
+                }
+
+                worker.Set(control, percent);
+                return true;
             default:
-                // Refresh rate: Linux has no shared way to switch modes.
                 return false;
         }
     }
@@ -248,7 +272,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
         annotator.Start(send, open is not null);
         lock (reporting)
         {
-            reporter ??= new StateReporter(speakers, microphone, backlight, mpris, macros, send, lastInputMs);
+            reporter ??= new StateReporter(speakers, microphone, backlight, mpris, macros, displayModes, send, lastInputMs);
             openApps = open;
         }
 
@@ -296,6 +320,7 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
         }
 
         worker.Dispose();
+        displayModes.Dispose();
         backlight.Dispose();
         mpris.Dispose();
     }
@@ -316,6 +341,9 @@ internal sealed class LinuxPlatform : IPlatform, IMacroRunner, IDisposable
                 break;
             case ControlId.MediaPosition:
                 mpris.Seek(percent);
+                break;
+            case ControlId.RefreshRate:
+                displayModes.Apply(percent);
                 break;
             default:
                 break;

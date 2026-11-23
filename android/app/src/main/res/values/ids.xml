@@ -23,6 +23,8 @@
   <item name="action_move_right" type="id" />
   <item name="action_move_up" type="id" />
   <item name="action_move_down" type="id" />
+  <!-- The widget layout editor: a widget's size picker, for those who cannot long press. -->
+  <item name="action_resize" type="id" />
   <!-- The Guide's frame: saved view state is keyed by id, and the Guide keeps its step there. -->
   <item name="guide" type="id" />
 </resources>

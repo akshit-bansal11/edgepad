@@ -9,7 +9,12 @@ import EdgepadCore
 /// exception on purpose: it is its own confirmed action, not a setting waiting for Save. No digit is ever logged.
 final class SecurityPanel: NSObject, NSTextFieldDelegate {
     private static let width: CGFloat = 380
-    static let levelNames = ["Trust only", "PIN once per phone", "PIN on every connection"]
+    static var levelNames: [String] {
+        [
+            tr("Sec_LevelTrust", "Trust only"), tr("Sec_LevelPinOnce", "PIN once per phone"),
+            tr("Sec_LevelPinEvery", "PIN on every connection"),
+        ]
+    }
 
     private let pin: PinStore
     private let trust: TrustStore
@@ -56,13 +61,13 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     func run() {
         let alert = NSAlert()
         self.alert = alert
-        alert.messageText = "Security"
-        alert.informativeText =
-            "Every phone is asked for your yes first. The two PIN levels also ask for a six-digit PIN."
+        alert.messageText = tr("Sec_Title", "Security")
+        alert.informativeText = tr(
+            "Sec_Intro", "Every phone is asked for your yes first. The two PIN levels also ask for a six-digit PIN.")
         alert.accessoryView = makeBody()
         // Cancel is first, so it is the default: a stray Return changes nothing.
-        alert.addButton(withTitle: "Cancel")
-        alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: tr("Common_Cancel", "Cancel"))
+        alert.addButton(withTitle: tr("Common_Save", "Save"))
         NSApp.activate(ignoringOtherApps: true)
         // A failed save runs the same alert again, so what was chosen is not lost; Reset ends it with `.abort`.
         while true {
@@ -83,11 +88,15 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
         }
         setPinButton.target = self
         setPinButton.action = #selector(setPinPressed)
-        let reset = NSButton(title: "Reset PIN and forget phones…", target: self, action: #selector(confirmReset))
+        let reset = NSButton(
+            title: tr("Sec_ResetButton", "Reset PIN and forget phones…"), target: self,
+            action: #selector(confirmReset))
         let forgetEvery = NSButton(
-            title: "Forget all trusted phones…", target: self, action: #selector(forgetEveryPhone))
+            title: tr("Sec_ForgetAllButton", "Forget all trusted phones…"), target: self,
+            action: #selector(forgetEveryPhone))
         let warning = NSTextField(
-            wrappingLabelWithString: "Saving a new PIN or level makes phones that entered the PIN once enter it again.")
+            wrappingLabelWithString: tr(
+                "Sec_Warning", "Saving a new PIN or level makes phones that entered the PIN once enter it again."))
         warning.preferredMaxLayoutWidth = Self.width
         let pinRow = NSStackView(views: [setPinButton, pinState])
         pinRow.spacing = 12
@@ -106,9 +115,11 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     }
 
     private func refresh() {
-        setPinButton.title = havePin ? "Change PIN…" : "Set PIN…"
+        setPinButton.title = havePin ? tr("Sec_ChangePin", "Change PIN…") : tr("Sec_SetPin", "Set PIN…")
         pinState.stringValue =
-            staged != nil ? "A new PIN will be saved." : pin.hasPin ? "A PIN is set." : "No PIN is set."
+            staged != nil
+            ? tr("Sec_PinNew", "A new PIN will be saved.")
+            : pin.hasPin ? tr("Sec_PinSet", "A PIN is set.") : tr("Sec_PinNone", "No PIN is set.")
         for radio in radios {
             radio.state = radio.tag == level ? .on : .off
         }
@@ -138,8 +149,8 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     }
 
     private func askNewPin() -> Pin? {
-        let first = secureField("Six digits", label: "New PIN")
-        let again = secureField("Again", label: "New PIN again")
+        let first = secureField(tr("Sec_SixDigits", "Six digits"), label: tr("Sec_NewPin", "New PIN"))
+        let again = secureField(tr("Sec_Again", "Again"), label: tr("Sec_NewPinAgain", "New PIN again"))
         let problem = NSTextField(labelWithString: "")
         problem.textColor = .systemRed
         let stack = NSStackView(views: [first, again, problem])
@@ -149,11 +160,11 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
         stack.setFrameSize(NSSize(width: 220, height: stack.fittingSize.height))
 
         let alert = NSAlert()
-        alert.messageText = "New PIN"
-        alert.informativeText = "Six digits, typed twice."
+        alert.messageText = tr("Sec_NewPin", "New PIN")
+        alert.informativeText = tr("Sec_NewPinBody", "Six digits, typed twice.")
         alert.accessoryView = stack
-        alert.addButton(withTitle: "Cancel")
-        alert.addButton(withTitle: "Use this PIN")
+        alert.addButton(withTitle: tr("Common_Cancel", "Cancel"))
+        alert.addButton(withTitle: tr("Sec_UsePin", "Use this PIN"))
         alert.window.initialFirstResponder = first
         NSApp.activate(ignoringOtherApps: true)
         while true {
@@ -162,12 +173,12 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
             guard answer == .alertSecondButtonReturn else { return nil }
             let typed = first.stringValue
             if typed != again.stringValue {
-                problem.stringValue = "The two PINs do not match."
+                problem.stringValue = tr("Sec_Mismatch", "The two PINs do not match.")
                 Announce.say(problem.stringValue)
             } else if let chosen = Self.pin(from: typed) {
                 return chosen
             } else {
-                problem.stringValue = "Use exactly six digits."
+                problem.stringValue = tr("Sec_Exactly", "Use exactly six digits.")
                 Announce.say(problem.stringValue)
             }
             first.stringValue = ""
@@ -208,14 +219,20 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
         // level needs its own write only when it changed.
         if let staged {
             guard pin.setPin(staged) else {
-                fail("The PIN could not be saved, so nothing was changed. The log has the reason.")
+                fail(
+                    tr(
+                        "Sec_PinNotSaved",
+                        "The PIN could not be saved, so nothing was changed. The log has the reason."))
                 return false
             }
             self.staged = nil
         }
         if level != pin.level && !pin.setLevel(level) {
             refresh()
-            fail("The level could not be saved, so the previous level still applies. The log has the reason.")
+            fail(
+                tr(
+                    "Sec_LevelNotSaved",
+                    "The level could not be saved, so the previous level still applies. The log has the reason."))
             return false
         }
         return true
@@ -224,13 +241,14 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     @objc private func confirmReset() {
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = "Reset the PIN and forget all phones?"
-        alert.informativeText =
+        alert.messageText = tr("Sec_ResetTitle", "Reset the PIN and forget all phones?")
+        alert.informativeText = tr(
+            "Sec_ResetBody",
             "The PIN is deleted, the level goes back to Trust only, and every trusted phone is forgotten. Each phone "
-            + "will have to be trusted here again. A forgotten PIN cannot be recovered, only reset."
+                + "will have to be trusted here again. A forgotten PIN cannot be recovered, only reset.")
         // Cancel is first, so it is the default: a stray Return resets nothing.
-        alert.addButton(withTitle: "Cancel")
-        alert.addButton(withTitle: "Reset").hasDestructiveAction = true
+        alert.addButton(withTitle: tr("Common_Cancel", "Cancel"))
+        alert.addButton(withTitle: tr("Common_Reset", "Reset")).hasDestructiveAction = true
         let answer = alert.runModal()
         alert.window.orderOut(nil)
         guard answer == .alertSecondButtonReturn else { return }
@@ -245,16 +263,22 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
         hangUp()
         if !forgotten {
             fail(
-                "Nothing was reset: the trusted phones could not be forgotten, so the PIN and the level were left as "
-                    + "they were. No phone can connect while Edgepad stays running, but those phones will be trusted "
-                    + "again, behind the same PIN, the next time it starts. Close whatever is holding the file and "
-                    + "choose Reset again, or delete it yourself:\n\n\(trust.filePath)")
+                tr(
+                    "Sec_ResetFailedTrust",
+                    "Nothing was reset: the trusted phones could not be forgotten, so the PIN and the level were "
+                        + "left as they were. No phone can connect while Edgepad stays running, but those phones "
+                        + "will be trusted again, behind the same PIN, the next time it starts. Close whatever is "
+                        + "holding the file and choose Reset again, or delete it yourself:\n\n%1$@",
+                    trust.filePath))
         } else if !pinGone {
             fail(
-                "The trusted phones were forgotten, but the PIN could not be reset: a settings file could not be "
-                    + "removed, so the old PIN and level may still apply. Each phone has to be trusted here again. "
-                    + "Close whatever is holding the file and choose Reset again, or delete security.txt and "
-                    + "pin-verified.txt yourself from:\n\n\(pin.folder)")
+                tr(
+                    "Sec_ResetFailedPin",
+                    "The trusted phones were forgotten, but the PIN could not be reset: a settings file could not "
+                        + "be removed, so the old PIN and level may still apply. Each phone has to be trusted here "
+                        + "again. Close whatever is holding the file and choose Reset again, or delete security.txt "
+                        + "and pin-verified.txt yourself from:\n\n%1$@",
+                    pin.folder))
         }
         NSApp.stopModal(withCode: .abort)
     }
@@ -267,16 +291,17 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
         }
         listed = phones()
         guard !listed.isEmpty else { return }
-        let heading = NSTextField(labelWithString: "Trusted phones")
+        let heading = NSTextField(labelWithString: tr("Sec_TrustedPhones", "Trusted phones"))
         heading.font = .boldSystemFont(ofSize: NSFont.systemFontSize)
         listStack.addArrangedSubview(heading)
         for (index, phone) in listed.enumerated() {
             let name = NSTextField(labelWithString: phone.shown)
             name.lineBreakMode = .byTruncatingMiddle
             name.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-            let forget = NSButton(title: "Forget", target: self, action: #selector(forgetOnePhone(_:)))
+            let forget = NSButton(
+                title: tr("Common_Forget", "Forget"), target: self, action: #selector(forgetOnePhone(_:)))
             forget.tag = index
-            forget.setAccessibilityLabel("Forget \(phone.name)")
+            forget.setAccessibilityLabel(tr("Sec_ForgetLabel", "Forget %1$@", phone.name))
             let row = NSStackView(views: [name, forget])
             row.spacing = 12
             listStack.addArrangedSubview(row)
@@ -304,9 +329,9 @@ final class SecurityPanel: NSObject, NSTextFieldDelegate {
     private func fail(_ message: String) {
         let alert = NSAlert()
         alert.alertStyle = .critical
-        alert.messageText = "Could not save the security settings"
+        alert.messageText = tr("Sec_FailTitle", "Could not save the security settings")
         alert.informativeText = message
-        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: tr("Common_Close", "Close"))
         _ = alert.runModal()
         alert.window.orderOut(nil)
     }

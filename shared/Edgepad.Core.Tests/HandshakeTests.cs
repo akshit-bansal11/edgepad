@@ -130,6 +130,166 @@ public sealed class HandshakeTests : IDisposable
     }
 
     [Fact]
+    public void ABulkHelloDecodesWithItsVersion()
+    {
+        var bytes = FrameCodec.Encode(new BulkHello(ProtocolConstants.Version));
+        Assert.Equal(new BulkHello(ProtocolConstants.Version), FrameCodec.Decode(bytes[0], bytes.AsSpan(1)));
+        Assert.Throws<InvalidDataException>(() => FrameCodec.Decode(0x05, [0, 0, 0, 0, 1]));
+    }
+
+    // The transfer socket's side of the handshake: the same call, with the host's word on whether a phone is connected.
+    private HandshakeOutcome Attach(PinStore pin, Func<bool> hasLiveSession, params Frame[] phone) =>
+        Attach(pin, hasLiveSession, LinkKind.Network, phone);
+
+    private HandshakeOutcome Attach(PinStore pin, Func<bool> hasLiveSession, LinkKind kind, params Frame[] phone)
+    {
+        output.SetLength(0);
+        using var said = new MemoryStream();
+        foreach (var frame in phone)
+        {
+            said.Write(FrameCodec.Encode(frame));
+        }
+
+        said.Position = 0;
+        var outcome = Handshake.Open(
+            new FrameStream(said, output),
+            Phone,
+            trust,
+            pin,
+            (_, _) =>
+            {
+                asked++;
+                return true;
+            },
+            () =>
+            {
+                admitted++;
+                return true;
+            },
+            statuses.Add,
+            logs.Add,
+            () => { },
+            ended.Token,
+            hasLiveSession: hasLiveSession,
+            linkKind: kind);
+        Assert.Equal(said.Length, said.Position);
+        return outcome;
+    }
+
+    private void AssertNothingWasDecidedAboutTheOwner()
+    {
+        Assert.Equal(0, asked);
+        Assert.Equal(0, admitted);
+        Assert.Empty(statuses);
+        Assert.Empty(trust.TrustedPhones);
+    }
+
+    [Fact]
+    public void ABulkHelloOverBluetoothIsRefusedWithoutAskingTheHost()
+    {
+        var outcome = Attach(
+            PinAtLevel(1),
+            () => throw new InvalidOperationException("asked"),
+            LinkKind.Bluetooth,
+            new BulkHello(ProtocolConstants.Version));
+
+        Assert.Equal(HandshakeOutcome.Refused, outcome);
+        Assert.Empty(Sent());
+        AssertNothingWasDecidedAboutTheOwner();
+    }
+
+    [Fact]
+    public void ABulkHelloWithNoConnectedPhoneIsRefusedAndSentNothing()
+    {
+        var consulted = 0;
+        var outcome = Attach(
+            PinAtLevel(1),
+            () =>
+            {
+                consulted++;
+                return false;
+            },
+            new BulkHello(ProtocolConstants.Version));
+
+        Assert.Equal(HandshakeOutcome.Refused, outcome);
+        Assert.Equal(1, consulted);
+        Assert.Empty(Sent());
+        AssertNothingWasDecidedAboutTheOwner();
+    }
+
+    [Fact]
+    public void ABulkHelloAttachesWithoutTrustPinOrAdmissionAtTheStrictestLevel()
+    {
+        // Not trusted, PIN level 3, and still no question, no PIN frame, no take-over and no status line.
+        var outcome = Attach(PinAtLevel(3), () => true, new BulkHello(ProtocolConstants.Version));
+
+        Assert.Equal(HandshakeOutcome.Bulk, outcome);
+        Assert.Equal([Ack], Sent());
+        AssertNothingWasDecidedAboutTheOwner();
+    }
+
+    [Fact]
+    public void ABulkHelloOfAnotherVersionIsRefusedWithoutAskingTheHost()
+    {
+        var outcome = Attach(PinAtLevel(1), () => throw new InvalidOperationException("asked"), new BulkHello((byte)(ProtocolConstants.Version + 1)));
+
+        Assert.Equal(HandshakeOutcome.Refused, outcome);
+        Assert.Empty(Sent());
+        AssertNothingWasDecidedAboutTheOwner();
+    }
+
+    [Fact]
+    public void AHostThatSaysNoLiveSessionRefusesEachBulkItIsAsked()
+    {
+        // The host answers false for the second socket of a session that already holds one.
+        var answers = new Queue<bool>([true, false]);
+        Assert.Equal(HandshakeOutcome.Bulk, Attach(PinAtLevel(1), answers.Dequeue, new BulkHello(ProtocolConstants.Version)));
+        Assert.Equal(HandshakeOutcome.Refused, Attach(PinAtLevel(1), answers.Dequeue, new BulkHello(ProtocolConstants.Version)));
+        Assert.Empty(Sent());
+        AssertNothingWasDecidedAboutTheOwner();
+    }
+
+    [Fact]
+    public void ARunThatKnowsNoTransferSocketRefusesABulkHello()
+    {
+        TrustThePhone();
+        Assert.False(Connect(PinAtLevel(1), new BulkHello(ProtocolConstants.Version)));
+        Assert.Empty(Sent());
+        Assert.Equal(0, asked);
+        Assert.Equal(0, admitted);
+    }
+
+    [Fact]
+    public void ABulkSocketThatFailsBeforeAnyFrameDecidesNothing()
+    {
+        Assert.Throws<EndOfStreamException>(() => Attach(PinAtLevel(1), () => true));
+        AssertNothingWasDecidedAboutTheOwner();
+    }
+
+    [Theory]
+    [InlineData(true, (byte)0x57)]
+    [InlineData(true, (byte)0x58)]
+    [InlineData(true, (byte)0x59)]
+    [InlineData(true, (byte)0x5A)]
+    [InlineData(false, (byte)0x00)]
+    [InlineData(false, (byte)0x05)]
+    [InlineData(false, (byte)0x01)]
+    public void OnlyTransferFramesAreLegalOnABulkSocket(bool legal, byte kind)
+    {
+        Frame frame = kind switch
+        {
+            0x57 => new XferBegin(1, 10, "a"),
+            0x58 => new XferChunk(1, 0, new byte[1]),
+            0x59 => new XferEnd(1, new byte[32]),
+            0x5A => new XferStatus(1, 0, 0),
+            0x00 => new Hello(ProtocolConstants.Version),
+            0x05 => new BulkHello(ProtocolConstants.Version),
+            _ => new Ping(1),
+        };
+        Assert.Equal(legal, Handshake.IsLegalOnBulk(frame));
+    }
+
+    [Fact]
     public void AnotherVersionIsToldThisOneAndClosedBeforeTheOwnerIsAsked()
     {
         Assert.False(Connect(PinAtLevel(1), new Hello(ProtocolConstants.Version - 1)));

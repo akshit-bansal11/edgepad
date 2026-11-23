@@ -482,4 +482,436 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
   <data name="Network_PhonesMayNotFind" xml:space="preserve">
     <value>Wi-Fi y USB: puede que los teléfonos no encuentren esta laptop.</value>
   </data>
+  <data name="Menu_RestartAdmin" xml:space="preserve">
+    <value>Reiniciar como administrador</value>
+  </data>
+  <data name="Menu_RestartAdminTip" xml:space="preserve">
+    <value>Permite que Edgepad escriba en ventanas con permisos elevados, como el Administrador de tareas. La pantalla de bloqueo y los avisos de UAC siguen fuera de alcance.</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Instalar Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Más tarde</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Omitir esta versión</value>
+  </data>
+  <data name="Balloon_UpdateReady" xml:space="preserve">
+    <value>Edgepad {0} está disponible. Haz clic para instalarlo.</value>
+  </data>
+  <data name="Balloon_UpdateUnverified" xml:space="preserve">
+    <value>No se pudo comprobar Edgepad {0}, así que no se instaló.</value>
+  </data>
+  <data name="Balloon_UpdateFailed" xml:space="preserve">
+    <value>No se pudo instalar Edgepad {0}. Haz clic para abrir la página de la versión.</value>
+  </data>
+  <data name="Update_MajorWarning" xml:space="preserve">
+    <value>Es una versión mayor. Actualiza también Edgepad en el teléfono, o se rechazarán entre sí. ¿Instalar ahora?</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Apagando</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>El contenido terminó. Este portátil se apaga en {0} segundos.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Enviar un archivo al teléfono…</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>{0} llegó desde el teléfono.</value>
+  </data>
+  <data name="Balloon_FileFailed" xml:space="preserve">
+    <value>No se pudo recibir {0}.</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Mostrar notificaciones en el teléfono</value>
+  </data>
+  <data name="Update_Install" xml:space="preserve">
+    <value>Instalar</value>
+  </data>
+  <data name="Update_NotNow" xml:space="preserve">
+    <value>Ahora no</value>
+  </data>
+  <data name="Menu_ClipboardHistory" xml:space="preserve">
+    <value>&amp;Historial del portapapeles</value>
+  </data>
+  <data name="Menu_ClipboardHistoryTip" xml:space="preserve">
+    <value>Copias recientes de este portátil y del teléfono. Solo se guardan en memoria.</value>
+  </data>
+  <data name="Clip_Title" xml:space="preserve">
+    <value>Portapapeles</value>
+  </data>
+  <data name="Clip_Empty" xml:space="preserve">
+    <value>Aún no se ha copiado nada</value>
+  </data>
+  <data name="Clip_EmptyHint" xml:space="preserve">
+    <value>Las copias de este portátil y del teléfono aparecen aquí.</value>
+  </data>
+  <data name="Clip_EmptyOff" xml:space="preserve">
+    <value>Activa Compartir portapapeles en el menú de la bandeja para ver aquí tus copias.</value>
+  </data>
+  <data name="Clip_ClearAll" xml:space="preserve">
+    <value>Borrar todo</value>
+  </data>
+  <data name="Clip_FromLaptop" xml:space="preserve">
+    <value>Este portátil</value>
+  </data>
+  <data name="Clip_FromPhone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Clip_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Clip_JustNow" xml:space="preserve">
+    <value>Ahora mismo</value>
+  </data>
+  <data name="Clip_MinutesAgo" xml:space="preserve">
+    <value>hace {0} min</value>
+  </data>
+  <data name="Clip_HoursAgo" xml:space="preserve">
+    <value>hace {0} h</value>
+  </data>
+  <data name="Clip_DaysAgo" xml:space="preserve">
+    <value>hace {0} d</value>
+  </data>
+  <data name="Clip_SendToPhone" xml:space="preserve">
+    <value>Enviar al teléfono</value>
+  </data>
+  <data name="Clip_Remove" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="Clip_Sent" xml:space="preserve">
+    <value>Enviado al teléfono</value>
+  </data>
+  <data name="Clip_SendFailed" xml:space="preserve">
+    <value>No se pudo enviar. Revisa la conexión.</value>
+  </data>
+  <data name="Clip_CopiedOnly" xml:space="preserve">
+    <value>Copiado. Pulsa Ctrl+V para pegar.</value>
+  </data>
+  <data name="Clip_NotCopied" xml:space="preserve">
+    <value>No se pudo usar el portapapeles. Inténtalo de nuevo.</value>
+  </data>
+  <data name="Clip_HotkeyTaken" xml:space="preserve">
+    <value>Win+Alt+V lo usa otra aplicación, así que el atajo está desactivado.</value>
+  </data>
+  <data name="Xfer_SentOne" xml:space="preserve">
+    <value>{0} enviado</value>
+  </data>
+  <data name="Xfer_SentMany" xml:space="preserve">
+    <value>Archivos enviados: {0}</value>
+  </data>
+  <data name="Xfer_SentSome" xml:space="preserve">
+    <value>Archivos enviados: {0} de {1}</value>
+  </data>
+  <data name="Xfer_ReceivedMany" xml:space="preserve">
+    <value>Archivos recibidos: {0}</value>
+  </data>
+  <data name="Xfer_ReceivedSome" xml:space="preserve">
+    <value>Archivos recibidos: {0} de {1}</value>
+  </data>
+  <data name="Xfer_FailedOne" xml:space="preserve">
+    <value>{0} no se envió</value>
+  </data>
+  <data name="Xfer_FailedMany" xml:space="preserve">
+    <value>Archivos no enviados: {0}</value>
+  </data>
+  <data name="Xfer_Cancelling" xml:space="preserve">
+    <value>Cancelando…</value>
+  </data>
+  <data name="Xfer_Retry" xml:space="preserve">
+    <value>Reintentar</value>
+  </data>
+  <data name="Xfer_Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Xfer_NoPhone" xml:space="preserve">
+    <value>No hay ningún teléfono conectado.</value>
+  </data>
+  <data name="Xfer_SkippedNote" xml:space="preserve">
+    <value>{0} omitido: vacío, inexistente o de más de 2 GB.</value>
+  </data>
+  <data name="Xfer_WhyRefused" xml:space="preserve">
+    <value>El teléfono lo rechazó. Puede que no tenga espacio.</value>
+  </data>
+  <data name="Xfer_WhyDamaged" xml:space="preserve">
+    <value>Llegó dañado. Inténtalo de nuevo.</value>
+  </data>
+  <data name="Xfer_WhyWrite" xml:space="preserve">
+    <value>El teléfono no pudo guardarlo.</value>
+  </data>
+  <data name="Xfer_WhyBusy" xml:space="preserve">
+    <value>El teléfono estaba ocupado con otro archivo.</value>
+  </data>
+  <data name="Xfer_WhyTimeout" xml:space="preserve">
+    <value>El teléfono dejó de responder.</value>
+  </data>
+  <data name="Xfer_WhyLost" xml:space="preserve">
+    <value>Se perdió la conexión.</value>
+  </data>
+  <data name="Xfer_WhyUnreadable" xml:space="preserve">
+    <value>Este portátil no pudo leer el archivo.</value>
+  </data>
+  <data name="Xfer_WhyCancelled" xml:space="preserve">
+    <value>Cancelado.</value>
+  </data>
+  <data name="Xfer_WhySkipped" xml:space="preserve">
+    <value>No enviado.</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>&amp;Estadísticas y clima…</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Modo desarrollador</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>Para &amp;desarrolladores…</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>&amp;Portapapeles</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>Cone&amp;xiones</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>&amp;Integraciones</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Integraciones</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Todo aquí está desactivado hasta que lo actives.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Mostrar estadísticas del sistema en el teléfono</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Mostrar el tiempo en el teléfono</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Ciudad</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Solo envía el nombre de la ciudad a open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Conectar</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Desconectar</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Conectado · última señal {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>No conectado</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>No se encontró {0} en este equipo</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad no pudo ejecutar esto por ti. Ejecuta estos comandos en un terminal:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>En Codex, abre /hooks y confía en Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Esperando a que Codex confíe en el complemento…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Actualiza Codex a la versión 0.159 o posterior.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Reinicia las sesiones abiertas o ejecuta /reload-plugins en Claude Code.</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Para desarrolladores</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Cerrar sesión</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Tu código: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Abrir github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Esperando a que lo apruebes en el navegador…</value>
+  </data>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>Elegir repos en GitHub</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Inicia sesión de nuevo. Edgepad ahora usa acceso de solo lectura a GitHub. Revoca el Edgepad anterior en https://github.com/settings/applications.</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Sesión iniciada como {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>El inicio de sesión no está configurado en esta versión.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>nunca</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Trabajando…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Instala Claude Code en este equipo si aún no lo tienes: claude.com/claude-code
+2. Haz clic en Conectar. Edgepad añade su plugin a Claude Code.
+3. Reinicia las sesiones abiertas de Claude Code o escribe /reload-plugins en ellas.
+4. En tu teléfono, abre Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Instala Codex en este equipo si aún no lo tienes: developers.openai.com/codex
+2. Haz clic en Conectar. Edgepad añade su plugin a Codex.
+3. En Codex, escribe /hooks y confía en Edgepad. En la app de Codex: Settings > Hooks > Review hooks.
+4. En tu teléfono, abre Controls > AI. Aparece en cuanto Codex envía su primer evento.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Haz clic en Iniciar sesión. Se abre una página de github.com.
+2. Introduce el código que se muestra aquí y haz clic en Authorize.
+3. En tu teléfono, abre Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Conecta tus herramientas de IA y tus hosts de Git para verlos en el móvil.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>Herramientas de IA</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Hosts de Git</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>Cómo conectar</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Iniciar sesión</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Añadir…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Próximamente</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Dirección del servidor</value>
+  </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Añadir un servidor autoalojado…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>Abrir gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>En tu servidor, crea un token de acceso personal solo con el alcance read_api y pégalo abajo.</value>
+  </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>El inicio de sesión de GitLab caducó — vuelve a iniciar sesión</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Usar un token en su lugar</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>En gitlab.com, crea un token de acceso personal solo con el alcance read_api y pégalo abajo. A diferencia del inicio de sesión, no caduca a las 2 horas.</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Usuario o correo</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Token de acceso</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Revisa la dirección del servidor, el nombre y el token, e inténtalo de nuevo.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>El servidor no aceptó este token.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>Este token no tiene permiso de lectura. Crea uno con acceso de lectura.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>No se encontró ningún servidor en esa dirección.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>No se pudo llegar al servidor. Revisa tu conexión.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>No se pudo guardar el token. Inténtalo de nuevo.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Instala Gemini CLI en este equipo si aún no lo has hecho.
+2. Haz clic en Conectar. Edgepad añade sus hooks a la configuración de Gemini CLI.
+3. Reinicia las sesiones abiertas de Gemini CLI.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Instala OpenCode en este equipo si aún no lo has hecho.
+2. Haz clic en Conectar. Edgepad añade su plugin a la carpeta de plugins de OpenCode.
+3. Reinicia las sesiones abiertas de OpenCode.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. En tu servidor, abre Ajustes &gt; Aplicaciones y crea un token de acceso con permiso de lectura.
+2. Haz clic en Añadir, revisa la dirección del servidor (por defecto, Codeberg) y pega el token.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. En tu cuenta de Atlassian, crea un token de API con acceso de lectura a Bitbucket.
+2. Haz clic en Añadir, escribe tu correo de Bitbucket y pega el token.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. En gitee.com, abre Configuración &gt; Tokens de acceso personal y crea un token con permiso de lectura.
+2. Haz clic en Añadir y pega el token.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Activa el modo desarrollador para usarlas.</value>
+  </data>
+  <data name="Balloon_CodexTrustTitle" xml:space="preserve">
+    <value>Codex necesita tu aprobación otra vez</value>
+  </data>
+  <data name="Balloon_CodexTrust" xml:space="preserve">
+    <value>Edgepad se actualizó. En Codex, escribe /hooks y confía en Edgepad, o las aprobaciones seguirán en la terminal en lugar del teléfono.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>T&amp;ransferencias</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Enviando a {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Recibiendo de {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} de {2} · {3}/s</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} de {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/s</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · En pausa</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Pausar</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Reanudar</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Detener</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>No recibido: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>No enviado: {0}</value>
+  </data>
 </root>

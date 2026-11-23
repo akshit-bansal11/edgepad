@@ -1,0 +1,832 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Info_NSBluetoothAlwaysUsageDescription" xml:space="preserve">
+    <value>يستخدم Edgepad البلوتوث للاستماع إلى الهاتف المقترن بهذا الـ Mac.</value>
+  </data>
+  <data name="Info_NSDesktopFolderUsageDescription" xml:space="preserve">
+    <value>يبحث Edgepad هنا عن لقطة الشاشة أو التسجيل الذي طلبت من الهاتف استلامه.</value>
+  </data>
+  <data name="Info_NSDocumentsFolderUsageDescription" xml:space="preserve">
+    <value>يبحث Edgepad هنا عن لقطة الشاشة أو التسجيل الذي طلبت من الهاتف استلامه.</value>
+  </data>
+  <data name="Info_NSDownloadsFolderUsageDescription" xml:space="preserve">
+    <value>يبحث Edgepad هنا عن لقطة الشاشة أو التسجيل الذي طلبت من الهاتف استلامه.</value>
+  </data>
+  <data name="Info_NSLocalNetworkUsageDescription" xml:space="preserve">
+    <value>يتيح Edgepad لهاتفك العثور على هذا الـ Mac والاتصال به عبر Wi-Fi عند تشغيل اتصالات Wi-Fi.</value>
+  </data>
+  <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
+    <value>يسأل Edgepad تطبيق الموسيقى أو Spotify عن الأغنية الحالية ويتنقل داخلها عند التمرير على الهاتف، ويضع هذا الـ Mac في وضع السكون أو يوقف تشغيله عند نهاية الوسائط إذا طلبت ذلك من الهاتف.</value>
+  </data>
+  <data name="Core_ConnectedOver" xml:space="preserve">
+    <value>متصل بـ {0} · {1}</value>
+  </data>
+  <data name="Core_BluetoothNotAllowed" xml:space="preserve">
+    <value>لا يُسمح لـ Edgepad باستخدام Bluetooth. اسمح به في إعدادات النظام › الخصوصية والأمان › Bluetooth.</value>
+  </data>
+  <data name="Core_BluetoothOffMenu" xml:space="preserve">
+    <value>Bluetooth متوقف. شغّله من شريط القوائم.</value>
+  </data>
+  <data name="Core_RefusedUnreadable" xml:space="preserve">
+    <value>تم رفض هاتف: تعذّرت قراءة الهواتف الموثوقة</value>
+  </data>
+  <data name="Core_RefusedForgotten" xml:space="preserve">
+    <value>تم رفض هاتف سبق أن نُسي هنا</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="Welcome_SetUp" xml:space="preserve">
+    <value>إعداد</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>حفظ</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>إغلاق</value>
+  </data>
+  <data name="Common_Send" xml:space="preserve">
+    <value>إرسال</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>تثبيت</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>نسيان</value>
+  </data>
+  <data name="Common_Trust" xml:space="preserve">
+    <value>الوثوق</value>
+  </data>
+  <data name="Common_DontTrust" xml:space="preserve">
+    <value>عدم الوثوق</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>إعادة تعيين</value>
+  </data>
+  <data name="Common_Pair" xml:space="preserve">
+    <value>إقران</value>
+  </data>
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Edgepad يعمل بالفعل.</value>
+  </data>
+  <data name="App_AlreadyRunningBody" xml:space="preserve">
+    <value>ستجده في شريط القوائم على اليمين. اضغط على Command واسحب لإعادة ترتيب الأيقونات.</value>
+  </data>
+  <data name="App_Welcome" xml:space="preserve">
+    <value>Edgepad يعمل من شريط القوائم</value>
+  </data>
+  <data name="App_WelcomeBody" xml:space="preserve">
+    <value>سيطلب macOS الآن ما يحتاجه Edgepad. Bluetooth، للاستماع إلى هاتفك. التحكم بالجهاز، لتحريك المؤشر والضغط على المفاتيح. الإشعارات، لإبلاغك عندما يطلب هاتف الاتصال. مجلد سطح المكتب أو المستندات أو التنزيلات، فقط عندما يطلب الهاتف لقطة شاشة أو تسجيلًا.</value>
+  </data>
+  <data name="App_UpdatedAllow" xml:space="preserve">
+    <value>تم التحديث: اسمح لـ Edgepad مرة أخرى في التحكم بالجهاز</value>
+  </data>
+  <data name="App_TipBlocked" xml:space="preserve">
+    <value>لا يستطيع Edgepad التحكم بهذا Mac بعد</value>
+  </data>
+  <data name="App_TipStatus" xml:space="preserve">
+    <value>Edgepad: {0}</value>
+  </data>
+  <data name="App_PermissionSteps" xml:space="preserve">
+    <value>إعدادات النظام › الخصوصية والأمان › التحكم بالجهاز والوصول إلى البيانات › + › Edgepad</value>
+  </data>
+  <data name="Menu_Installing" xml:space="preserve">
+    <value>جارٍ تثبيت Edgepad {0}…</value>
+  </data>
+  <data name="Menu_Install" xml:space="preserve">
+    <value>تثبيت Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateAvailable" xml:space="preserve">
+    <value>يتوفر تحديث: {0} </value>
+  </data>
+  <data name="Menu_Later" xml:space="preserve">
+    <value>لاحقًا</value>
+  </data>
+  <data name="Menu_Skip" xml:space="preserve">
+    <value>تخطي هذا الإصدار</value>
+  </data>
+  <data name="Menu_AllowControl" xml:space="preserve">
+    <value>اسمح لـ Edgepad بالتحكم بهذا Mac…</value>
+  </data>
+  <data name="Menu_Wifi" xml:space="preserve">
+    <value>اتصالات Wi-Fi</value>
+  </data>
+  <data name="Menu_WifiHint" xml:space="preserve">
+    <value>اتصالات Wi-Fi ({0})</value>
+  </data>
+  <data name="Menu_WifiTip" xml:space="preserve">
+    <value>Wi-Fi فقط على جهاز Mac: يحتاج مشاركة الإنترنت عبر USB إلى برنامج تشغيل لا يتضمنه macOS.</value>
+  </data>
+  <data name="Menu_Clipboard" xml:space="preserve">
+    <value>مشاركة الحافظة</value>
+  </data>
+  <data name="Menu_ClipboardTip" xml:space="preserve">
+    <value>انسخ على أحد الجهازين والصق على الآخر: نصوصًا وصورًا.</value>
+  </data>
+  <data name="Menu_Login" xml:space="preserve">
+    <value>البدء عند تسجيل الدخول</value>
+  </data>
+  <data name="Menu_DailyUpdates" xml:space="preserve">
+    <value>التحقق من التحديثات يوميًا</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>إرسال ملف…</value>
+  </data>
+  <data name="Menu_SendFileNoPhone" xml:space="preserve">
+    <value>إرسال ملف… (لا يوجد هاتف متصل)</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>الماكرو… </value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>الأمان… ({0})</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>الوثائق</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>فتح السجل </value>
+  </data>
+  <data name="Menu_About" xml:space="preserve">
+    <value>حول Edgepad</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>إنهاء Edgepad </value>
+  </data>
+  <data name="Net_PortInUse" xml:space="preserve">
+    <value>المنفذ مستخدم، يُستخدم {0}</value>
+  </data>
+  <data name="Net_WaitingForNetwork" xml:space="preserve">
+    <value>في انتظار شبكة</value>
+  </data>
+  <data name="Net_CouldNotListen" xml:space="preserve">
+    <value>تعذّر الاستماع؛ راجع السجل</value>
+  </data>
+  <data name="Net_Phone" xml:space="preserve">
+    <value>هاتف</value>
+  </data>
+  <data name="Note_UpdateTitle" xml:space="preserve">
+    <value>Edgepad {0} متاح</value>
+  </data>
+  <data name="Note_UpdateBody" xml:space="preserve">
+    <value>انقر لفتح صفحة التنزيل.</value>
+  </data>
+  <data name="Note_PairTitle" xml:space="preserve">
+    <value>إقران {0}؟</value>
+  </data>
+  <data name="Note_PairBody" xml:space="preserve">
+    <value>اكتب رمز الاقتران الظاهر على الهاتف.</value>
+  </data>
+  <data name="Note_TrustTitle" xml:space="preserve">
+    <value>الوثوق بـ {0}؟</value>
+  </data>
+  <data name="Note_TrustBody" xml:space="preserve">
+    <value>يريد {0} الاتصال. اختر «الوثوق» أو «عدم الوثوق».</value>
+  </data>
+  <data name="Note_NotUpdated" xml:space="preserve">
+    <value>لم يتم تحديث Edgepad</value>
+  </data>
+  <data name="Status_Received" xml:space="preserve">
+    <value>تم استلام {0} في Downloads/Edgepad</value>
+  </data>
+  <data name="Status_OnlyFiles" xml:space="preserve">
+    <value>يمكن إرسال الملفات فقط، وليس المجلدات</value>
+  </data>
+  <data name="Status_Forgot" xml:space="preserve">
+    <value>تم نسيان الهواتف الموثوقة؛ جاهز لهاتف جديد خلال {0} ثانية</value>
+  </data>
+  <data name="Xfer_Sent" xml:space="preserve">
+    <value>تم إرسال {0} إلى الهاتف</value>
+  </data>
+  <data name="Xfer_Sending" xml:space="preserve">
+    <value>جارٍ إرسال {0}</value>
+  </data>
+  <data name="Xfer_BadHash" xml:space="preserve">
+    <value>وصل {0} تالفًا إلى الهاتف؛ أرسله مرة أخرى</value>
+  </data>
+  <data name="Xfer_Rejected" xml:space="preserve">
+    <value>لم يقبل الهاتف {0}</value>
+  </data>
+  <data name="Xfer_WriteFailed" xml:space="preserve">
+    <value>تعذّرت قراءة {0} أو حفظه</value>
+  </data>
+  <data name="Xfer_Cancelled" xml:space="preserve">
+    <value>تم إلغاء إرسال {0}</value>
+  </data>
+  <data name="Xfer_Busy" xml:space="preserve">
+    <value>الهاتف يستقبل ملفًا بالفعل؛ أعد إرسال {0} بعد انتهائه</value>
+  </data>
+  <data name="Xfer_TimedOut" xml:space="preserve">
+    <value>لم يستجب الهاتف أثناء إرسال {0}</value>
+  </data>
+  <data name="Xfer_SessionEnded" xml:space="preserve">
+    <value>انقطع اتصال الهاتف قبل إرسال {0}</value>
+  </data>
+  <data name="Alert_MajorTitle" xml:space="preserve">
+    <value>يحتاج Edgepad {0} إلى تحديث تطبيق الهاتف أيضًا.</value>
+  </data>
+  <data name="Alert_MajorBody" xml:space="preserve">
+    <value>ثبّت الاثنين معًا، وإلا فلن يتصل الهاتف بهذا Mac.</value>
+  </data>
+  <data name="Alert_LoginFailed" xml:space="preserve">
+    <value>تعذّر تغيير “البدء عند تسجيل الدخول”</value>
+  </data>
+  <data name="Alert_LoginApproval" xml:space="preserve">
+    <value>اسمح لـ Edgepad بالبدء عند تسجيل الدخول</value>
+  </data>
+  <data name="Alert_LoginApprovalBody" xml:space="preserve">
+    <value>اسمح لـ Edgepad في إعدادات النظام › عام › عناصر تسجيل الدخول.</value>
+  </data>
+  <data name="Alert_ForgetAll" xml:space="preserve">
+    <value>نسيان كل الهواتف الموثوقة؟</value>
+  </data>
+  <data name="Alert_ForgetAllBody" xml:space="preserve">
+    <value>هل تريد نسيان {0}؟ سيتعيّن الوثوق بكل هاتف، بما فيه هذا، مرة أخرى هنا قبل أن يستخدم هذا Mac.</value>
+  </data>
+  <data name="Alert_TheTrustedPhones" xml:space="preserve">
+    <value>الهواتف الموثوقة</value>
+  </data>
+  <data name="Alert_EveryTrustedPhone" xml:space="preserve">
+    <value>كل هاتف موثوق ({0})</value>
+  </data>
+  <data name="Alert_ForgetFailed" xml:space="preserve">
+    <value>تعذّر نسيان الهواتف الموثوقة</value>
+  </data>
+  <data name="Alert_ForgetFailedBody" xml:space="preserve">
+    <value>تعذّر حذف ملفها أو تفريغه. لن يتصل أي هاتف ما دام Edgepad يعمل، لكن هذه الهواتف ستصبح موثوقة مرة أخرى عند بدء Edgepad. اختر «نسيان كل الهواتف الموثوقة» مرة أخرى، أو احذف الملف بنفسك:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetPinFailed" xml:space="preserve">
+    <value>تعذّر نسيان الهواتف التي أدخلت رقم PIN</value>
+  </data>
+  <data name="Alert_ForgetPinFailedBody" xml:space="preserve">
+    <value>تعذّر حذف قائمتها. ما دام Edgepad يعمل يُطلب رقم PIN من كل هاتف عند كل اتصال، لكن هذه الهواتف ستتخطاه من جديد في وضع “رقم PIN مرة لكل هاتف” عند بدء Edgepad. اختر «نسيان كل الهواتف الموثوقة» مرة أخرى، أو احذف pin-verified.txt بنفسك من:
+
+{0}</value>
+  </data>
+  <data name="Alert_ForgetOne" xml:space="preserve">
+    <value>نسيان {0}؟</value>
+  </data>
+  <data name="Alert_ForgetOneBody" xml:space="preserve">
+    <value>سيتعيّن الوثوق به مرة أخرى هنا قبل أن يستخدم هذا Mac.</value>
+  </data>
+  <data name="Alert_ForgetOneFailed" xml:space="preserve">
+    <value>تعذّر نسيان {0}</value>
+  </data>
+  <data name="Alert_ForgetOneFailedBody" xml:space="preserve">
+    <value>تعذّر إعادة كتابة ملف، لذا قد يظل موثوقًا. السبب في السجل.</value>
+  </data>
+  <data name="Alert_PairingsFailed" xml:space="preserve">
+    <value>تعذّر نسيان اقترانات Wi-Fi</value>
+  </data>
+  <data name="Alert_PairingsFailedBody" xml:space="preserve">
+    <value>تعذّر حذف ملفها أو تفريغه. لا تستطيع الهواتف المقترنة إعادة الاتصال عبر Wi-Fi ما دام Edgepad يعمل، لكنها ستتمكن من ذلك عند بدئه في المرة القادمة. اختر «نسيان كل الهواتف الموثوقة» مرة أخرى، أو احذف paired-links.txt بنفسك من:
+
+{0}</value>
+  </data>
+  <data name="Alert_NoPhone" xml:space="preserve">
+    <value>لا يوجد هاتف متصل</value>
+  </data>
+  <data name="Alert_NoPhoneBody" xml:space="preserve">
+    <value>صِل هاتفًا بـ Edgepad، ثم أرسل الملف مرة أخرى.</value>
+  </data>
+  <data name="Alert_ChooseFiles" xml:space="preserve">
+    <value>اختر الملفات لإرسالها إلى الهاتف</value>
+  </data>
+  <data name="Alert_TurnOn" xml:space="preserve">
+    <value>تشغيل</value>
+  </data>
+  <data name="Alert_Allow" xml:space="preserve">
+    <value>السماح</value>
+  </data>
+  <data name="Alert_NotNow" xml:space="preserve">
+    <value>ليس الآن</value>
+  </data>
+  <data name="Alert_Network" xml:space="preserve">
+    <value>السماح للهواتف بالعثور على هذا اللابتوب؟</value>
+  </data>
+  <data name="Alert_NetworkBody" xml:space="preserve">
+    <value>Wi-Fi فقط على جهاز Mac: يحتاج مشاركة الإنترنت عبر USB إلى برنامج تشغيل لا يتضمنه macOS. ستتمكن الهواتف على شبكة Wi-Fi نفسها من العثور على هذا Mac وطلب الاقتران. لن يتصل شيء دون رمز الاقتران المكتوب هنا. قد يسأل macOS هل يمكن لـ Edgepad العثور على الأجهزة في شبكتك المحلية، ويسأل جدار الحماية هل يمكنه قبول الاتصالات الواردة: اسمح بكليهما.</value>
+  </data>
+  <data name="Alert_SaveFailed" xml:space="preserve">
+    <value>تعذّر حفظ الإعداد</value>
+  </data>
+  <data name="Alert_SaveFailedBody" xml:space="preserve">
+    <value>لم يتغير شيء. السبب في السجل.</value>
+  </data>
+  <data name="Alert_Trust" xml:space="preserve">
+    <value>الوثوق بـ {0}؟</value>
+  </data>
+  <data name="Alert_TrustQuoted" xml:space="preserve">
+    <value>الاسم بين علامتي الاقتباس هو ما يسمّي به الهاتف نفسه فقط؛ العنوان هو ما سيتم الوثوق به.</value>
+  </data>
+  <data name="Alert_TrustAddress" xml:space="preserve">
+    <value>العنوان هو ما سيتم الوثوق به.</value>
+  </data>
+  <data name="Alert_TrustBody" xml:space="preserve">
+    <value>{0} يطلب التحكم بمؤشر هذا Mac ولوحة مفاتيحه. {1} ثق به فقط إذا كان هاتفك. إذا لم تجب خلال {2} ثانية فلن يتم الوثوق به.</value>
+  </data>
+  <data name="Alert_Credits" xml:space="preserve">
+    <value>الخطوط والأيقونات: Lato وLucide.</value>
+  </data>
+  <data name="Alert_ShutdownTitle" xml:space="preserve">
+    <value>سيتم إيقاف تشغيل هذا Mac خلال 60 ثانية.</value>
+  </data>
+  <data name="Alert_ShutdownBody" xml:space="preserve">
+    <value>انتهت الوسائط على الهاتف وطلبتَ إيقاف التشغيل عندها.</value>
+  </data>
+  <data name="Sec_Title" xml:space="preserve">
+    <value>الأمان</value>
+  </data>
+  <data name="Sec_Intro" xml:space="preserve">
+    <value>يُطلب من كل هاتف موافقتك أولًا. ويطلب مستويا PIN أيضًا رقم PIN من ستة أرقام.</value>
+  </data>
+  <data name="Sec_LevelTrust" xml:space="preserve">
+    <value>الوثوق فقط</value>
+  </data>
+  <data name="Sec_LevelPinOnce" xml:space="preserve">
+    <value>رقم PIN مرة لكل هاتف</value>
+  </data>
+  <data name="Sec_LevelPinEvery" xml:space="preserve">
+    <value>رقم PIN عند كل اتصال</value>
+  </data>
+  <data name="Sec_ResetButton" xml:space="preserve">
+    <value>إعادة تعيين PIN ونسيان الهواتف… </value>
+  </data>
+  <data name="Sec_ForgetAllButton" xml:space="preserve">
+    <value>نسيان كل الهواتف الموثوقة…</value>
+  </data>
+  <data name="Sec_Warning" xml:space="preserve">
+    <value>حفظ رقم PIN جديد أو مستوى جديد يجعل الهواتف التي أدخلت رقم PIN مرة واحدة تُدخله من جديد.</value>
+  </data>
+  <data name="Sec_ChangePin" xml:space="preserve">
+    <value>تغيير رقم PIN…</value>
+  </data>
+  <data name="Sec_SetPin" xml:space="preserve">
+    <value>تعيين رقم PIN…</value>
+  </data>
+  <data name="Sec_PinNew" xml:space="preserve">
+    <value>سيتم حفظ رقم PIN جديد.</value>
+  </data>
+  <data name="Sec_PinSet" xml:space="preserve">
+    <value>تم تعيين رقم PIN.</value>
+  </data>
+  <data name="Sec_PinNone" xml:space="preserve">
+    <value>لم يتم تعيين رقم PIN.</value>
+  </data>
+  <data name="Sec_SixDigits" xml:space="preserve">
+    <value>ستة أرقام</value>
+  </data>
+  <data name="Sec_Again" xml:space="preserve">
+    <value>مرة أخرى</value>
+  </data>
+  <data name="Sec_NewPin" xml:space="preserve">
+    <value>رقم PIN جديد</value>
+  </data>
+  <data name="Sec_NewPinAgain" xml:space="preserve">
+    <value>رقم PIN جديد مرة أخرى</value>
+  </data>
+  <data name="Sec_NewPinBody" xml:space="preserve">
+    <value>ستة أرقام، تُكتب مرتين.</value>
+  </data>
+  <data name="Sec_UsePin" xml:space="preserve">
+    <value>استخدام رقم PIN هذا </value>
+  </data>
+  <data name="Sec_Mismatch" xml:space="preserve">
+    <value>رقما PIN غير متطابقين.</value>
+  </data>
+  <data name="Sec_Exactly" xml:space="preserve">
+    <value>استخدم ستة أرقام بالضبط.</value>
+  </data>
+  <data name="Sec_PinNotSaved" xml:space="preserve">
+    <value>تعذّر حفظ رقم PIN، لذا لم يتغير شيء. السبب في السجل.</value>
+  </data>
+  <data name="Sec_LevelNotSaved" xml:space="preserve">
+    <value>تعذّر حفظ المستوى، لذا يبقى المستوى السابق ساريًا. السبب في السجل.</value>
+  </data>
+  <data name="Sec_ResetTitle" xml:space="preserve">
+    <value>هل تريد إعادة تعيين رقم PIN ونسيان كل الهواتف؟</value>
+  </data>
+  <data name="Sec_ResetBody" xml:space="preserve">
+    <value>يُحذف رقم PIN ويعود المستوى إلى «الثقة فقط» وتُنسى كل الهواتف الموثوقة. سيتعيّن الوثوق بكل هاتف مرة أخرى هنا. لا يمكن استرداد رقم PIN المنسي، بل إعادة تعيينه فقط.</value>
+  </data>
+  <data name="Sec_ResetFailedTrust" xml:space="preserve">
+    <value>لم يتم إعادة تعيين شيء: تعذّر نسيان الهواتف الموثوقة، لذا بقي رقم PIN والمستوى كما كانا. لن يتصل أي هاتف ما دام Edgepad يعمل، لكن هذه الهواتف ستصبح موثوقة مرة أخرى، خلف رقم PIN نفسه، عند بدئه في المرة القادمة. أغلق ما يحتفظ بالملف ثم اختر «إعادة تعيين» مرة أخرى، أو احذفه بنفسك:
+
+{0}</value>
+  </data>
+  <data name="Sec_ResetFailedPin" xml:space="preserve">
+    <value>تم نسيان الهواتف الموثوقة، لكن تعذّرت إعادة تعيين رقم PIN: تعذّر حذف ملف إعدادات، لذا قد يظل رقم PIN والمستوى القديمان ساريين. يجب الوثوق بكل هاتف مرة أخرى هنا. أغلق ما يحتفظ بالملف ثم اختر «إعادة تعيين» مرة أخرى، أو احذف security.txt وpin-verified.txt بنفسك من:
+
+{0}</value>
+  </data>
+  <data name="Sec_TrustedPhones" xml:space="preserve">
+    <value>الهواتف الموثوقة</value>
+  </data>
+  <data name="Sec_ForgetLabel" xml:space="preserve">
+    <value>نسيان {0}</value>
+  </data>
+  <data name="Sec_FailTitle" xml:space="preserve">
+    <value>تعذّر حفظ إعدادات الأمان</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>إقران {0}؟</value>
+  </data>
+  <data name="Pair_ThisPhone" xml:space="preserve">
+    <value>هذا الهاتف</value>
+  </data>
+  <data name="Pair_Window" xml:space="preserve">
+    <value>إقران هاتف</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>اكتب رمز الإقران الظاهر على الهاتف:</value>
+  </data>
+  <data name="Pair_CodeLabel" xml:space="preserve">
+    <value>الرمز الظاهر على الهاتف</value>
+  </data>
+  <data name="Pair_Announce" xml:space="preserve">
+    <value>إقران {0}؟ يُغلق خلال {1} ث.</value>
+  </data>
+  <data name="Pair_Matched" xml:space="preserve">
+    <value>تطابق الرمز. اضغط «الرموز متطابقة» على {0} للإنهاء.</value>
+  </data>
+  <data name="Pair_Mismatched" xml:space="preserve">
+    <value>لم يتطابق الرمز. لم يتم الاقتران.</value>
+  </data>
+  <data name="Pair_Paired" xml:space="preserve">
+    <value>تم الإقران مع {0}.</value>
+  </data>
+  <data name="Pair_NotFinished" xml:space="preserve">
+    <value>لم يكتمل الإقران.</value>
+  </data>
+  <data name="Pair_Warning" xml:space="preserve">
+    <value>لا تقرن إلا هاتفًا يخصّك. إذا لم تكن قد بدأت الإقران للتو، فاختر «إلغاء».</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>الإغلاق خلال {0} s</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>جارٍ التحقق من الرمز</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>الماكرو</value>
+  </data>
+  <data name="Macro_Body" xml:space="preserve">
+    <value>أزرار على شاشة الماكرو في هاتفك، بحد أقصى {0}. يرسل الهاتف رقم الزر ولا يرسل برنامجًا أبدًا، لذا لا يستطيع تشغيل سوى ما تضيفه هنا.</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>{0} لا يحتوي على ما يفتحه. تصفّح لاختيار تطبيق أو ملف، أو اكتب عنوان ويب.</value>
+  </data>
+  <data name="Macro_AMacro" xml:space="preserve">
+    <value>ماكرو</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>تعذّر حفظ الماكرو في {0}: {1}.</value>
+  </data>
+  <data name="Macro_SaveFailedTitle" xml:space="preserve">
+    <value>تعذّر حفظ الماكرو</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="Macro_Opens" xml:space="preserve">
+    <value>يفتح</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>المعاملات</value>
+  </data>
+  <data name="Macro_Icon" xml:space="preserve">
+    <value>الأيقونة</value>
+  </data>
+  <data name="Macro_Add" xml:space="preserve">
+    <value>إضافة ماكرو</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>إزالة </value>
+  </data>
+  <data name="Macro_MoveUp" xml:space="preserve">
+    <value>تحريك للأعلى</value>
+  </data>
+  <data name="Macro_MoveDown" xml:space="preserve">
+    <value>تحريك للأسفل</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>استعراض… </value>
+  </data>
+  <data name="Macro_Choose" xml:space="preserve">
+    <value>اختيار…</value>
+  </data>
+  <data name="Macro_OwnIcon" xml:space="preserve">
+    <value>استخدام أيقونة البرنامج نفسه </value>
+  </data>
+  <data name="Macro_ArgsHint" xml:space="preserve">
+    <value>بلا شيء، تُقسَّم عند المسافات (للتطبيقات فقط)</value>
+  </data>
+  <data name="Macro_IconHint" xml:space="preserve">
+    <value>أيقونة البرنامج نفسه</value>
+  </data>
+  <data name="Macro_OpensHint" xml:space="preserve">
+    <value>تطبيق أو ملف أو مجلد أو عنوان ويب</value>
+  </data>
+  <data name="Macro_Empty" xml:space="preserve">
+    <value>لا توجد ماكرو بعد. أضف تطبيقًا أو مستندًا أو مجلدًا أو عنوان ويب. يصبح كل منها زرًا على الهاتف.</value>
+  </data>
+  <data name="Macro_Count" xml:space="preserve">
+    <value>{0} من {1}</value>
+  </data>
+  <data name="Macro_NameLeft" xml:space="preserve">
+    <value>الاسم · متبقٍ {0}</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>ماكرو جديد</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>وضع المطوّر</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>الحافظة</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>الاتصالات</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>التكاملات</value>
+  </data>
+  <data name="Menu_Group_Settings" xml:space="preserve">
+    <value>الإعدادات</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>الإحصاءات والطقس…</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>للمطوّرين…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>عمليات الدمج</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>كل شيء هنا متوقف حتى تشغّله.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>عرض إحصاءات النظام على الهاتف</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>عرض الطقس على الهاتف</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>المدينة</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>يرسل اسم المدينة فقط إلى open-meteo.com.</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>اتصال</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>قطع الاتصال</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>متصل · آخر إشارة {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>غير متصل</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>لم يُعثر على {0} في هذا الكمبيوتر</value>
+  </data>
+  <data name="Integrations_NodeMissing" xml:space="preserve">
+    <value>يلزم Node.js 20.1 أو أحدث. نزّله من nodejs.org</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>تعذّر على Edgepad تشغيل هذا نيابةً عنك. شغّل هذه الأوامر في الطرفية:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>نسخ</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>في Codex، افتح /hooks وامنح Edgepad الثقة.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>في انتظار أن يثق Codex بالمكوّن الإضافي…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>حدّث Codex إلى الإصدار 0.159 أو أحدث.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>أعد تشغيل الجلسات المفتوحة، أو شغّل /reload-plugins في Claude Code.</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>للمطورين</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>تسجيل الخروج</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>رمزك: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>فتح github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>في انتظار موافقتك في المتصفح…</value>
+  </data>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>اختر المستودعات على GitHub</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>سجّل الدخول مجددًا. يستخدم Edgepad الآن وصولًا للقراءة فقط إلى GitHub. ألغِ وصول Edgepad القديم من https://github.com/settings/applications.</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>تم تسجيل الدخول باسم {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>تسجيل الدخول غير مُعدّ في هذا الإصدار.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>أبدًا</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>لم يكتمل تسجيل الدخول. حاول مرة أخرى.</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>جارٍ العمل…</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. ثبّت Claude Code على هذا الكمبيوتر إن لم تكن قد فعلت: claude.com/claude-code
+2. انقر «اتصال». يضيف Edgepad إضافته إلى Claude Code.
+3. أعد تشغيل جلسات Claude Code المفتوحة، أو اكتب /reload-plugins فيها.
+4. على هاتفك، افتح Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. ثبّت Codex على هذا الكمبيوتر إن لم تكن قد فعلت: developers.openai.com/codex
+2. انقر «اتصال». يضيف Edgepad إضافته إلى Codex.
+3. في Codex، اكتب /hooks وامنح Edgepad الثقة. في تطبيق Codex: Settings > Hooks > Review hooks.
+4. على هاتفك، افتح Controls > AI. يظهر بعد أن يرسل Codex أول حدث له.</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. انقر «تسجيل الدخول». تُفتح صفحة على github.com.
+2. أدخل الرمز المعروض هنا وانقر Authorize.
+3. على هاتفك، افتح Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>اربط أدوات الذكاء الاصطناعي ومضيفي Git لتراها على هاتفك.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>أدوات الذكاء الاصطناعي</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>مضيفو Git</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>كيفية الاتصال</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>تسجيل الدخول</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>إضافة…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>قريبًا</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>عنوان الخادم</value>
+  </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>إضافة خادم مستضاف ذاتيًا…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>فتح gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>على خادمك، أنشئ رمز وصول شخصيًا بنطاق read_api فقط، ثم الصقه أدناه.</value>
+  </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>انتهت صلاحية تسجيل الدخول إلى GitLab — سجّل الدخول مرة أخرى</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>استخدم رمزًا بدلًا من ذلك</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>على gitlab.com، أنشئ رمز وصول شخصيًا بنطاق read_api فقط، ثم الصقه أدناه. بخلاف تسجيل الدخول، لا تنتهي صلاحيته بعد ساعتين.</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>اسم المستخدم أو البريد الإلكتروني</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>رمز الوصول</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>تحقق من عنوان الخادم والاسم والرمز ثم حاول مرة أخرى.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>لم يقبل الخادم هذا الرمز.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>ليس لهذا الرمز إذن بالقراءة. أنشئ رمزًا بصلاحية القراءة.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>لم يُعثر على خادم في هذا العنوان.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>تعذّر الوصول إلى الخادم. تحقق من اتصالك.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>تعذّر حفظ الرمز. حاول مرة أخرى.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. ثبّت Gemini CLI على هذا الكمبيوتر إن لم تفعل بعد.
+2. انقر «اتصال». يضيف Edgepad خطافاته إلى إعدادات Gemini CLI.
+3. أعد تشغيل جلسات Gemini CLI المفتوحة.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. ثبّت OpenCode على هذا الكمبيوتر إن لم تفعل بعد.
+2. انقر «اتصال». يضيف Edgepad إضافته إلى مجلد إضافات OpenCode.
+3. أعد تشغيل جلسات OpenCode المفتوحة.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. على خادمك، افتح الإعدادات &gt; التطبيقات وأنشئ رمز وصول بصلاحية القراءة.
+2. انقر «إضافة»، وتحقق من عنوان الخادم (Codeberg هو الافتراضي) والصق الرمز.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. في حساب Atlassian، أنشئ رمز API بصلاحية القراءة إلى Bitbucket.
+2. انقر «إضافة» وأدخل بريد Bitbucket الإلكتروني والصق الرمز.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. في gitee.com، افتح الإعدادات &gt; رموز الوصول الشخصية وأنشئ رمزًا بصلاحية القراءة.
+2. انقر «إضافة» والصق الرمز.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>شغّل وضع المطوّر لاستخدام هذه الأدوات.</value>
+  </data>
+  <data name="Note_CodexTrustTitle" xml:space="preserve">
+    <value>يحتاج Codex إلى موافقتك مرة أخرى</value>
+  </data>
+  <data name="Note_CodexTrustBody" xml:space="preserve">
+    <value>تم تحديث Edgepad. في Codex، اكتب /hooks وامنح Edgepad الثقة، وإلا ستبقى الموافقات في الطرفية بدل الهاتف.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>عمليات النقل</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>جارٍ الإرسال إلى {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>جارٍ الاستلام من {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} من {2} · {3}/ث</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} من {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/ث</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · متوقف مؤقتاً</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>إيقاف مؤقت</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>متابعة</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>لم يُستلم: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>وصل تالفاً</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>تعذّر حفظه</value>
+  </data>
+  <data name="Xfer_ReasonRejected" xml:space="preserve">
+    <value>لم يتمكن هذا الـMac من استقباله</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>أُلغي</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>توقف الهاتف عن الرد</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>انقطع اتصال الهاتف</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>إنهاء</value>
+  </data>
+</root>

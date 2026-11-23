@@ -2,6 +2,30 @@ import EdgepadCore
 import Foundation
 import Network
 
+/// What the Wi-Fi row knows about the listener. Only the last three are worth the owner's eye.
+enum NetworkHint: Equatable {
+    case off
+    case starting
+    case listening
+    case portInUse(Int)
+    case waiting
+    case failed
+
+    /// The row's hint, or nil when there is nothing to say.
+    var problem: String? {
+        switch self {
+        case .off, .starting, .listening:
+            return nil
+        case .portInUse(let port):
+            return tr("Net_PortInUse", "Port in use, using %1$@", "\(port)")
+        case .waiting:
+            return tr("Net_WaitingForNetwork", "Waiting for a network")
+        case .failed:
+            return tr("Net_CouldNotListen", "Could not listen; see the log")
+        }
+    }
+}
+
 /// Takes Wi-Fi and USB phones, the twin of the Windows and Linux `NetworkServer`: an `NWListener` for their
 /// connections, announced over Bonjour as `_edgepad._tcp` so they can find this Mac. Every connection runs a
 /// `LinkResponder`, and only a link it lets through, a phone paired here or pairing now with the owner typing its code,
@@ -39,6 +63,10 @@ final class NetworkServer {
     private var listener: NWListener?
     /// Connections still in EDGL1, each with the responder its bytes go to.
     private var unproved: [ObjectIdentifier: (link: NetworkTransport, responder: LinkResponder, host: String)] = [:]
+    /// Links that proved themselves and have not yet sent a first frame, which says whether they are a phone (HELLO) or
+    /// its transfer socket (BULK_HELLO). Counted with `unproved` in the caps, and closed after the HELLO timeout if
+    /// silent.
+    private var awaiting: [ObjectIdentifier: (link: NetworkTransport, host: String)] = [:]
     /// A flood of refused connections logs one line per address per minute, not one per connection.
     private var refusals = RefusalThrottle()
     /// Links handed on, so stopping closes them too: the owner turning Wi-Fi and USB off means those phones as well.
@@ -64,7 +92,7 @@ final class NetworkServer {
 
     /// Listens on `port`, or on a free one when that is taken, and announces this Mac; whatever ran before is stopped
     /// first. `report` is told, once listening is settled, what the menu's hint should say.
-    func start(port: Int, report: @escaping (String) -> Void) {
+    func start(port: Int, report: @escaping (NetworkHint) -> Void) {
         stop()
         listen(on: NWEndpoint.Port(rawValue: UInt16(clamping: port)), preferred: port, report: report)
     }
@@ -94,9 +122,14 @@ final class NetworkServer {
             entry.responder.cancel(byPeer: false)
             entry.link.close()
         }
+        let waiting = awaiting
+        awaiting = [:]
+        for entry in waiting.values {
+            entry.link.close()
+        }
     }
 
-    private func listen(on port: NWEndpoint.Port?, preferred: Int, report: @escaping (String) -> Void) {
+    private func listen(on port: NWEndpoint.Port?, preferred: Int, report: @escaping (NetworkHint) -> Void) {
         let opened: NWListener
         do {
             if let port {
@@ -106,7 +139,7 @@ final class NetworkServer {
             }
         } catch {
             Log.write("Could not listen for Wi-Fi and USB phones: \(error)")
-            report("Could not listen; see the log")
+            report(.failed)
             return
         }
         // A TXT record is length-prefixed strings; NetService's encoder is deprecated, and this is all it would do. The
@@ -132,15 +165,15 @@ final class NetworkServer {
                     Log.write(
                         "Listening for Wi-Fi and USB phones on port \(got), not \(preferred): a phone looking over "
                             + "USB tethering will not find this Mac")
-                    report("Port in use, using \(got)")
+                    report(.portInUse(got))
                 } else {
                     Log.write("Listening for Wi-Fi and USB phones on port \(got)")
-                    report("Listening on \(got)")
+                    report(.listening)
                 }
             case .waiting(let error):
                 // No network yet: said, rather than left at Starting. It moves to ready by itself when one comes.
                 Log.write("Waiting for a network to listen on: \(error)")
-                report("Waiting for a network")
+                report(.waiting)
             case .failed(let error):
                 self.listener = nil
                 opened.cancel()
@@ -148,7 +181,7 @@ final class NetworkServer {
                     self.listen(on: nil, preferred: preferred, report: report)
                 } else {
                     Log.write("Stopped listening for Wi-Fi and USB phones: \(error)")
-                    report("Could not listen; see the log")
+                    report(.failed)
                 }
             default:
                 break
@@ -163,7 +196,7 @@ final class NetworkServer {
     static func sourceLine(_ endpoint: NWEndpoint) -> String {
         guard case .hostPort = endpoint else { return "" }
         let address = Self.address(endpoint)
-        return address.isEmpty ? "on your network" : "from \(address), on your network"
+        return StatusText.networkSource(address)
     }
 
     /// The address a connection came from, without a `%scope` suffix or an IPv4-mapped `::ffff:` prefix, so one
@@ -190,12 +223,14 @@ final class NetworkServer {
             return
         }
         let address = Self.address(connection.endpoint)
-        guard unproved.count < Self.maxUnproved else {
+        guard unproved.count + awaiting.count < Self.maxUnproved else {
             refuse(connection, from: address, because: "\(Self.maxUnproved) others are still proving themselves")
             return
         }
         // Counted from the table itself, so nothing can drift when a connection ends.
-        guard unproved.values.filter({ $0.host == address }).count < Self.maxUnprovedPerHost else {
+        let fromHost =
+            unproved.values.filter({ $0.host == address }).count + awaiting.values.filter({ $0.host == address }).count
+        guard fromHost < Self.maxUnprovedPerHost else {
             refuse(
                 connection, from: address,
                 because: "\(Self.maxUnprovedPerHost) others from it are still proving themselves")
@@ -220,8 +255,10 @@ final class NetworkServer {
             },
             onDone: { [weak self, weak link] result in
                 guard let self, let link else { return }
+                // The IP it came from; `result.address` is the phone's link id, which the per-host caps cannot count.
+                let peer = self.unproved[key]?.host ?? ""
                 self.unproved[key] = nil
-                self.proved(link, result)
+                self.proved(link, result, peer: peer)
             })
         unproved[key] = (link: link, responder: responder, host: address)
         link.onBytes = { [weak responder] bytes in responder?.receive(bytes) }
@@ -231,7 +268,7 @@ final class NetworkServer {
 
     /// The responder is done with `link`: on a result the phone is handed to the session host over the encrypted
     /// link, with whatever it sent after its last cleartext message; on nil the link is closed.
-    private func proved(_ link: NetworkTransport, _ result: LinkResult?) {
+    private func proved(_ link: NetworkTransport, _ result: LinkResult?, peer: String) {
         guard let result else {
             link.close()
             return
@@ -250,8 +287,71 @@ final class NetworkServer {
             return
         }
         let name = PhoneLabel.clean(result.phoneName)
-        let shownAs = name.isEmpty ? "A phone" : name
+        let shownAs = name.isEmpty ? tr("Net_Phone", "A phone") : name
         let secure = SecureTransport(inner: link, prk: result.prk)
+        live.removeAll { $0.isClosed }
+        live.append(link)
+        awaitFirstFrame(link, secure, address: address, peer: peer, shownAs: shownAs, leftover: result.leftover)
+    }
+
+    /// The link has proved itself, but what it is for is not known until its first frame: a HELLO makes a session, a
+    /// BULK_HELLO attaches a transfer socket to the phone in use. Until then it counts among the connections still
+    /// proving themselves (D-BULK), and one that says nothing is closed after the HELLO timeout.
+    private func awaitFirstFrame(
+        _ link: NetworkTransport, _ secure: SecureTransport, address: String, peer: String, shownAs: String,
+        leftover: [UInt8]
+    ) {
+        let key = ObjectIdentifier(link)
+        awaiting[key] = (link: link, host: peer)
+        let timeout = Timer(timeInterval: Session.helloTimeoutSeconds, repeats: false) { [weak self, weak link] _ in
+            guard let self, let link, self.awaiting.removeValue(forKey: key) != nil else { return }
+            Log.write("Refused \(address): nothing came within \(Int(Session.helloTimeoutSeconds)) s of its handshake")
+            link.close()
+        }
+        // .common, as every timeout here: a default-mode timer does not fire while a menu or a modal is up.
+        RunLoop.main.add(timeout, forMode: .common)
+        link.onClosed = { [weak self] in
+            self?.awaiting[key] = nil
+            timeout.invalidate()
+        }
+        var first: [UInt8] = []
+        link.onBytes = { [weak self, weak link, weak secure] bytes in
+            guard let self, let link, let secure, self.awaiting[key] != nil else { return }
+            guard let plain = secure.open(bytes) else {
+                Log.write("Refused \(address): a record failed its check, or was too long")
+                self.awaiting[key] = nil
+                timeout.invalidate()
+                link.close()
+                return
+            }
+            first += plain
+            let kind = FirstFrame.classify(first)
+            if kind == .needMore {
+                return
+            }
+            self.awaiting[key] = nil
+            timeout.invalidate()
+            switch kind {
+            case .needMore:
+                break
+            case .invalid:
+                Log.write("Refused \(address): its first frame is not a HELLO or a BULK_HELLO")
+                link.close()
+            case .other:
+                self.startSession(link, secure, address: address, shownAs: shownAs, first: first)
+            case .bulk(let version, let rest):
+                self.attachTransferSocket(link, secure, address: address, version: version, rest: rest)
+            }
+        }
+        if !leftover.isEmpty {
+            link.onBytes?(leftover)
+        }
+    }
+
+    /// A HELLO's connection becomes a session, which is given the bytes already read.
+    private func startSession(
+        _ link: NetworkTransport, _ secure: SecureTransport, address: String, shownAs: String, first: [UInt8]
+    ) {
         let session = host.accept(
             address: address, phone: shownAs, shownAs: shownAs, link: "Wi-Fi", transport: secure)
         link.onBytes = { [weak session, weak secure] bytes in
@@ -266,10 +366,33 @@ final class NetworkServer {
             }
         }
         link.onClosed = { [weak session] in session?.end() }
-        live.removeAll { $0.isClosed }
-        live.append(link)
-        if !result.leftover.isEmpty {
-            link.onBytes?(result.leftover)
+        session.receive(first)
+    }
+
+    /// A BULK_HELLO's connection is handed to the phone in use, never made a session: the host attaches it only to the
+    /// live session of this address that has no transfer socket yet, and it is closed here when none will take it.
+    private func attachTransferSocket(
+        _ link: NetworkTransport, _ secure: SecureTransport, address: String, version: UInt8, rest: [UInt8]
+    ) {
+        guard let bulk = host.attachBulk(address: address, version: version, transport: secure) else {
+            Log.write("Refused \(address): a transfer socket with no connected phone of this address to attach to")
+            link.close()
+            return
+        }
+        link.onBytes = { [weak bulk, weak secure] bytes in
+            guard let bulk, let secure else { return }
+            guard let plain = secure.open(bytes) else {
+                Log.write("Transfer socket of \(address) closed: a record failed its check, or was too long")
+                bulk.close()
+                return
+            }
+            if !plain.isEmpty {
+                bulk.receive(plain)
+            }
+        }
+        link.onClosed = { [weak bulk] in bulk?.close() }
+        if !rest.isEmpty {
+            bulk.receive(rest)
         }
     }
 }

@@ -2,13 +2,14 @@ package me.akshitbansal.edgepad.screens
 
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.PopupWindow
-import android.widget.TextView
+import android.widget.ScrollView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -30,9 +31,11 @@ object EditorFrame {
     private const val EDGE_DP = 8f
     private const val TOP_DP = 6f
     private const val TITLE_TOP_DP = 15f
-    private const val POPUP_WIDTH_DP = 260f
+    private const val POPUP_WIDTH_DP = 220f
+    private const val POPUP_LEFT_DP = 14f
+    private const val POPUP_TOP_PAD_DP = 10f
+    private const val POPUP_RIGHT_DP = 12f
     private const val POPUP_GAP_DP = 8f
-    private const val POPUP_TOP_DP = 4f
     private const val POPUP_ELEVATION_DP = 16f
 
     /** The round buttons' soft shadow on the light theme; on the dark one a shadow would not show. */
@@ -53,7 +56,7 @@ object EditorFrame {
         /** Handed a function that changes the title drawn between the round buttons, for a title that follows what is edited. */
         onRetitle: (((CharSequence) -> Unit) -> Unit)? = null,
         options: (close: () -> Unit) -> View,
-    ): View {
+    ): FrameLayout {
         val root = FrameLayout(ui.context).apply { setBackgroundColor(ui.palette.background) }
         root.addView(canvas, fill())
 
@@ -68,12 +71,24 @@ object EditorFrame {
                     val panel =
                         LinearLayout(ui.context).apply {
                             orientation = LinearLayout.VERTICAL
-                            setPadding(ui.dp(Space.L), ui.dp(POPUP_TOP_DP), ui.dp(Space.L), ui.dp(Space.M))
+                            setPadding(
+                                ui.dp(POPUP_LEFT_DP),
+                                ui.dp(POPUP_TOP_PAD_DP),
+                                ui.dp(POPUP_RIGHT_DP),
+                                ui.dp(Space.M),
+                            )
                             addView(content)
                         }
-                    window.contentView = panel
+                    window.contentView = ScrollView(ui.context).apply { addView(panel) }
                     window.width = ui.dp(POPUP_WIDTH_DP)
-                    window.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                    // Sideways the room under the button can be shorter than the options; the sheet then stops
+                    // at the screen's edge and scrolls, so Reset and Done are never cut off.
+                    val offset = ui.dp(POPUP_GAP_DP) - slack(ui)
+                    panel.measure(
+                        View.MeasureSpec.makeMeasureSpec(window.width, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                    )
+                    window.height = minOf(panel.measuredHeight, window.getMaxAvailableHeight(open.view, offset))
                     window.isFocusable = true
                     window.isOutsideTouchable = true
                     window.setBackgroundDrawable(ui.rounded(ui.palette.card, Space.PANEL_RADIUS))
@@ -88,7 +103,7 @@ object EditorFrame {
                     root.addView(scrim, root.indexOfChild(open.holder), fill())
                     open.paint(true)
                     // Measured from the drawn button, not from the taller target round it.
-                    window.showAsDropDown(open.view, 0, ui.dp(POPUP_GAP_DP) - slack(ui), Gravity.END)
+                    window.showAsDropDown(open.view, 0, offset, Gravity.END)
                 }
             }
         onOpener?.invoke { open.view.performClick() }
@@ -251,50 +266,166 @@ object EditorFrame {
         marginEnd = ui.dp(EDGE_DP) - slack(ui)
     }
 
+    /** A slider for [sizePanel]: [valueOf] words each step beside the heading as it moves. */
+    class Slider(
+        val steps: Int,
+        val progress: Int,
+        val valueOf: (Int) -> CharSequence,
+        val onChange: (Int) -> Unit,
+    )
+
     /**
-     * A reset and Done, side by side at the foot of a popup: the reset in [resetStyle], Done the filled one.
-     * The reset names what it does ([label]) and asks again ([confirmLabel]) before it acts, since it cannot be undone.
+     * The options panel's content: a header of [title] and its value, then a round reset icon at the far end;
+     * the [slider] under it; one filled Done at the foot. The first tap on the icon turns it red and shows the
+     * hint, a second within [CONFIRM_MS] calls [onReset], otherwise it goes back. Without a [slider] there is
+     * no heading, only the icon.
      */
-    fun resetAndDone(
+    fun sizePanel(
         ui: Ui,
-        label: String,
-        confirmLabel: String,
+        title: CharSequence?,
+        slider: Slider?,
         onReset: () -> Unit,
         onDone: () -> Unit,
-        resetStyle: Ui.Style = Ui.Style.QUIET,
     ): View =
         LinearLayout(ui.context).apply {
-            setPadding(0, ui.dp(Space.S), 0, 0)
-            addView(
-                resetButton(ui, label, confirmLabel, resetStyle, onReset),
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
-            )
-            addView(
-                ui.button(ui.string(R.string.editor_done), Ui.Style.FILLED, onDone),
-                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    marginStart =
-                        ui.dp(Space.S)
-                },
-            )
+            orientation = LinearLayout.VERTICAL
+            addView(resetRow(ui, title, slider, onReset))
+            addView(doneButton(ui, onDone))
         }
 
-    private fun resetButton(
+    /** The Done at the foot of an options panel: filled, 36 dp tall. */
+    fun doneButton(
         ui: Ui,
+        onDone: () -> Unit,
+    ): View =
+        ui.text(ui.string(R.string.editor_done), Type.VALUE, ui.palette.onAccent, face = Type.bold).apply {
+            gravity = Gravity.CENTER
+            background = ui.rounded(ui.palette.accent, Space.TILE_RADIUS)
+            ui.tappable(this, Space.TILE_RADIUS, onDone)
+            layoutParams =
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(DONE_DP)).apply {
+                    topMargin = ui.dp(Space.S)
+                }
+        }
+
+    /**
+     * The top of an options panel: [title] and its value, the reset icon at the far end and its hint under it,
+     * then the [slider]. [label] names the icon and [confirm] is the hint, for a reset that is not positions.
+     */
+    fun resetRow(
+        ui: Ui,
+        title: CharSequence?,
+        slider: Slider?,
+        onReset: () -> Unit,
+        label: String = ui.string(R.string.media_layout_reset),
+        confirm: String = ui.string(R.string.editor_reset_confirm),
+    ): View {
+        val value = ui.text(slider?.let { it.valueOf(it.progress) } ?: "", Type.SMALL, ui.palette.dim)
+        val room = ui.dp(Space.TOUCH) - ui.dp(RESET_DP)
+        val hint =
+            ui.text(confirm, Type.MICRO, ui.palette.danger).apply {
+                maxLines = 1
+                gravity = Gravity.END
+                visibility = View.INVISIBLE
+                setAutoSizeTextTypeUniformWithConfiguration(
+                    HINT_MIN_SP,
+                    Type.MICRO.toInt(),
+                    1,
+                    TypedValue.COMPLEX_UNIT_SP,
+                )
+            }
+        val reset = resetIcon(ui, hint, label, onReset)
+        // The 48 dp target overlaps the panel's padding by half of what it has over the circle, so the
+        // circle stays where the design puts it and the row grows no taller than the target.
+        val edge = -room / 2
+        val header =
+            LinearLayout(ui.context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                if (title != null) {
+                    addView(ui.text(title, Type.VALUE, ui.palette.ink, face = Type.bold))
+                    addView(value, LinearLayout.LayoutParams(WRAP, WRAP).apply { marginStart = ui.dp(Space.S) })
+                }
+                addView(View(ui.context), LinearLayout.LayoutParams(0, 0, 1f))
+                addView(reset, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
+            }
+        return LinearLayout(ui.context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(
+                header,
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, WRAP).apply {
+                    topMargin = edge
+                    marginEnd = edge
+                },
+            )
+            // Full width, so the hint shrinks to fit rather than wrapping.
+            addView(
+                hint,
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, WRAP).apply { topMargin = edge },
+            )
+            if (slider != null) {
+                val track =
+                    ui.ruler(slider.steps, slider.progress) { step ->
+                        value.text = slider.valueOf(step)
+                        slider.onChange(step)
+                    }
+                addView(track)
+            }
+        }
+    }
+
+    /**
+     * The round reset button: a 36 dp circle centred in a 48 dp touch target; [hint] is shown while it waits
+     * for its second tap.
+     */
+    private fun resetIcon(
+        ui: Ui,
+        hint: View,
         label: String,
-        confirmLabel: String,
-        style: Ui.Style,
         onReset: () -> Unit,
     ): View {
+        val idle = Glyph(ui.context, Glyph.Shape.REFRESH, ui.palette.accent)
+        val armed = Glyph(ui.context, Glyph.Shape.REFRESH, ui.palette.danger).apply { visibility = View.GONE }
         val guard = ConfirmTap()
-        var button: TextView? = null
-        button =
-            ui.button(label, style) {
+        val button = FrameLayout(ui.context)
+        val revert =
+            Runnable {
+                if (guard.armed) guard.tap()
+                idle.visibility = View.VISIBLE
+                armed.visibility = View.GONE
+                hint.visibility = View.INVISIBLE
+            }
+        val icon = ui.dp(RESET_ICON_DP)
+        val centre = FrameLayout.LayoutParams(icon, icon, Gravity.CENTER)
+        return button.apply {
+            val gap = (ui.dp(Space.TOUCH) - ui.dp(RESET_DP)) / 2
+            background = InsetDrawable(ui.rounded(ui.palette.accentSoft, RESET_DP / 2), gap, gap, gap, gap)
+            contentDescription = label
+            tooltipText = label
+            addView(idle, centre)
+            addView(armed, FrameLayout.LayoutParams(icon, icon, Gravity.CENTER))
+            ui.tappable(this, RESET_DP / 2) {
+                removeCallbacks(revert)
                 if (guard.tap()) {
+                    revert.run()
                     onReset()
                 } else {
-                    button?.text = confirmLabel
+                    idle.visibility = View.GONE
+                    armed.visibility = View.VISIBLE
+                    hint.visibility = View.VISIBLE
+                    postDelayed(revert, CONFIRM_MS)
                 }
             }
-        return button
+            // The press and the focus ring land on the drawn circle, not the whole target.
+            foreground = InsetDrawable(foreground, gap, gap, gap, gap)
+        }
     }
+
+    private const val WRAP = ViewGroup.LayoutParams.WRAP_CONTENT
+    private const val RESET_DP = 36f
+    private const val RESET_ICON_DP = 18f
+    private const val DONE_DP = 36f
+    private const val HINT_MIN_SP = 9
+
+    /** How long the reset icon waits, red, for its second tap. */
+    private const val CONFIRM_MS = 3000L
 }

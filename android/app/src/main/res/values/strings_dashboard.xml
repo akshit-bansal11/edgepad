@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). Counts go through %1$d, except the Git page (plurals). -->
+  <string name="controls_dash_off">Turn it on in the Edgepad menu on your laptop.</string>
+  <string name="widgets_title">Widgets</string>
+  <string name="widgets_hint">Drawn behind the trackpad. Touches pass through.</string>
+  <string name="developer_mode_title">Developer mode</string>
+  <string name="developer_mode_hint">Shows Claude Code, Codex and GitHub on this phone and the laptop. Turning it off keeps your connections.</string>
+  <string name="developer_mode_offline">Connect to a laptop to change this. The laptop keeps it.</string>
+  <string name="widgets_layout_title">Widget layout</string>
+  <string name="widgets_layout_hint">Drag a widget to move it. Hold it to change its size.</string>
+  <string name="widget_clock">Clock</string>
+  <string name="widget_weather">Weather</string>
+  <string name="widget_system">System</string>
+  <string name="widget_network">Network</string>
+  <string name="widget_ai">AI usage</string>
+  <string name="sys_title">Stats</string>
+  <string name="sys_cpu">CPU</string>
+  <string name="sys_gpu">GPU</string>
+  <string name="sys_ram">Memory</string>
+  <string name="sys_vram">VRAM</string>
+  <string name="sys_disks">Disks</string>
+  <string name="sys_down">Download</string>
+  <string name="sys_up">Upload</string>
+  <string name="sys_free">%1$s free</string>
+  <string name="sys_off">Turn on System stats in the Edgepad menu on your laptop.</string>
+  <!-- Not translated: a dash in every locale. -->
+  <string name="sys_none" translatable="false">—</string>
+  <string name="wx_clear">Clear</string>
+  <string name="wx_cloudy">Cloudy</string>
+  <string name="wx_fog">Fog</string>
+  <string name="wx_drizzle">Drizzle</string>
+  <string name="wx_rain">Rain</string>
+  <string name="wx_snow">Snow</string>
+  <string name="wx_showers">Showers</string>
+  <string name="wx_storm">Thunderstorm</string>
+  <string name="wx_credit">Weather data by Open-Meteo.com</string>
+  <string name="ai_win_week">Week</string>
+  <string name="ai_win_month">Month</string>
+  <string name="ai_ctx">Context</string>
+  <string name="ai_resets">Resets in %1$s</string>
+  <string name="ai_updated">Updated %1$s ago</string>
+  <string name="ai_today">Today</string>
+  <string name="ai_tokens">%1$s tokens</string>
+  <string name="ai_estimate">Estimated at API prices</string>
+  <string name="ai_unpriced">Some models have no price yet</string>
+  <string name="ai_sessions">Sessions</string>
+  <string name="ai_none">Nothing to show yet.</string>
+  <string name="ai_limits_na">Limits not available</string>
+  <string name="ai_setup">Connect Claude Code or Codex in the Edgepad menu on your laptop.</string>
+  <string name="ai_need_mods">Claude limits need Claude Code with plugin mods.</string>
+  <string name="state_busy">Working</string>
+  <string name="state_wait">Waiting for you</string>
+  <string name="state_idle">Idle</string>
+  <string name="dur_min">%1$d min</string>
+  <string name="dur_hr">%1$d h</string>
+  <string name="dur_day">%1$d d</string>
+  <!-- Not translated: product names. -->
+  <string name="agent_claude" translatable="false">Claude</string>
+  <string name="agent_codex" translatable="false">Codex</string>
+  <string name="agent_gemini" translatable="false">Gemini CLI</string>
+  <string name="agent_opencode" translatable="false">OpenCode</string>
+  <!-- Developer, Git page. Product names (GitHub, GitLab, Gitea, Bitbucket, Gitee) are not translated. -->
+  <string name="git_repos_label">Repositories</string>
+  <plurals name="git_repos_n">
+    <item quantity="one">%1$d repo</item>
+    <item quantity="other">%1$d repos</item>
+  </plurals>
+  <plurals name="git_followers_n">
+    <item quantity="one">%1$d follower</item>
+    <item quantity="other">%1$d followers</item>
+  </plurals>
+  <plurals name="git_issues_n">
+    <item quantity="one">%1$d issue</item>
+    <item quantity="other">%1$d issues</item>
+  </plurals>
+  <plurals name="git_prs_n">
+    <item quantity="one">%1$d PR</item>
+    <item quantity="other">%1$d PRs</item>
+  </plurals>
+  <string name="git_lists_title">Pull requests and issues</string>
+  <string name="git_mine">Mine</string>
+  <string name="git_review">Review</string>
+  <string name="git_assigned">Assigned</string>
+  <string name="git_empty_mine">None of your pull requests or issues are open.</string>
+  <string name="git_empty_review">Nothing is waiting for your review.</string>
+  <string name="git_empty_assigned">Nothing is assigned to you.</string>
+  <string name="git_empty_repos">No repositories to show.</string>
+  <string name="git_loading">Loading from your laptop.</string>
+  <string name="git_signin">Sign in to a git host in the Edgepad menu on your laptop.</string>
+  <string name="unavailable_gitlab_expired">GitLab sign-in expired. Sign in again on your laptop.</string>
+  <string name="git_install_row">Private repos missing? Install Edgepad Dashboard on your account</string>
+  <string name="git_opening">Opening on your laptop</string>
+  <string name="git_item_meta">#%1$s · updated %2$s</string>
+  <string name="git_ci_ok">Checks passed</string>
+  <string name="git_ci_fail">Checks failed</string>
+  <string name="git_ci_pending">Checks running</string>
+  <string name="git_draft">Draft</string>
+  <string name="git_state_open">Open</string>
+  <string name="git_state_closed">Closed</string>
+  <string name="git_state_merged">Merged</string>
+  <string name="git_item_meta_undated" translatable="false">#%1$s</string>
+  <string name="perm_title">%1$s asks</string>
+  <string name="perm_allow">Allow</string>
+  <string name="perm_deny">Deny</string>
+  <string name="perm_terminal">Too long to check here. Answer on your laptop.</string>
+  <string name="perm_scroll">Scroll to the end to allow.</string>
+  <string name="perm_channel">Approvals</string>
+  <string name="perm_notif">An AI agent needs approval.</string>
+  <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
+  <string name="dev_title">Developer</string>
+  <string name="dev_ai">AI</string>
+  <string name="dev_git">Git</string>
+  <string name="hub_switch_laptop">%1$s, switch device</string>
+  <string name="phone_battery">Battery</string>
+  <string name="phone_charging">Charging</string>
+  <string name="phone_temperature">Temperature</string>
+  <string name="phone_health">Health</string>
+  <string name="phone_health_good">Good</string>
+  <string name="phone_health_hot">Overheated</string>
+  <string name="phone_health_worn">Worn out</string>
+  <string name="phone_health_voltage">Over voltage</string>
+  <string name="phone_health_fault">Fault</string>
+  <string name="phone_health_cold">Too cold</string>
+  <string name="phone_storage">Storage</string>
+  <string name="stats_hardware">Hardware</string>
+  <string name="phone_used_of">%1$s of %2$s</string>
+  <string name="phone_thermal">Thermal state</string>
+  <string name="phone_thermal_none">Normal</string>
+  <string name="phone_thermal_light">Warm</string>
+  <string name="phone_thermal_moderate">Hot</string>
+  <string name="phone_thermal_severe">Very hot</string>
+  <string name="phone_thermal_critical">Critical</string>
+  <!-- Not translated: units and joiners read the same in every locale. -->
+  <string name="phone_celsius" translatable="false">%1$s°C</string>
+  <string name="net_join" translatable="false">%1$s · %2$s</string>
+  <string name="net_ms" translatable="false">%1$d ms</string>
+  <string name="net_ghz" translatable="false">%1$s GHz</string>
+  <string name="net_mbps" translatable="false">%1$s Mbps</string>
+  <string name="net_gbps" translatable="false">%1$s Gbps</string>
+  <string name="net_wifi">Wi-Fi</string>
+  <string name="net_ethernet">Ethernet</string>
+  <string name="net_cellular">Mobile data</string>
+  <string name="net_other">Other</string>
+  <string name="net_none">Not connected</string>
+  <string name="net_signal_strong">Strong</string>
+  <string name="net_signal_good">Good</string>
+  <string name="net_signal_fair">Fair</string>
+  <string name="net_signal_weak">Weak</string>
+  <string name="net_connection">Connection</string>
+  <string name="net_link_speed">Link speed</string>
+  <string name="net_signal">Signal</string>
+  <string name="net_local_ip">Local IP</string>
+  <string name="net_router">Router ping</string>
+  <string name="net_loss">%1$d%% loss</string>
+  <string name="net_link_laptop">Link to laptop</string>
+  <string name="net_card_laptop">Laptop · %1$s</string>
+  <string name="net_card_phone">Phone · %1$s</string>
+  <string name="net_speed_title">Speed test · laptop</string>
+  <string name="net_speed_start">Test speed</string>
+  <string name="net_speed_stop">Stop</string>
+  <string name="net_speed_none">No test yet</string>
+  <string name="net_speed_running">Testing…</string>
+  <string name="net_speed_failed">The test did not finish</string>
+  <string name="net_speed_stopped">Stopped</string>
+  <string name="net_unit_down">Mbps down</string>
+  <string name="net_unit_up">Mbps up</string>
+  <string name="net_jitter">%1$d ms jitter</string>
+  <string name="net_speed_used">%1$s used</string>
+  <string name="net_speed_note">Moves up to %1$s per test, from speed.cloudflare.com. Only when you tap.</string>
+</resources>

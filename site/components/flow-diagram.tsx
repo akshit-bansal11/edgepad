@@ -28,7 +28,7 @@ const PHONE: Column = {
     },
     {
       name: "LaptopState",
-      detail: "The laptop's last report, kept across rotation and theme changes",
+      detail: "The laptop’s last report, kept across rotation and theme changes",
     },
   ],
 };
@@ -43,7 +43,7 @@ const LAPTOP: Column = {
     },
     {
       name: "RfcommServer",
-      detail: "Advertises the service, accepts on WinRT's thread",
+      detail: "Advertises the service, accepts on WinRT’s thread",
     },
     {
       name: "Session",

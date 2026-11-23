@@ -104,9 +104,15 @@ object GuideScreen {
         settings: Settings,
         intro: Boolean,
         onFinish: () -> Unit,
+        onUses: () -> Unit = {},
         onBack: () -> Unit,
     ): View {
         val root = Steps(ui.context)
+        // A quiet link to the full list of what Edgepad takes and needs: on the first run's first page, and at the end
+        // of the all-on-one-page view. The Guide opened from Settings has Settings' own row for it.
+        val uses: Column.() -> Unit = {
+            if (intro) add(ui.button(ui.string(R.string.uses_title), Ui.Style.QUIET, onUses), Space.M)
+        }
 
         fun show(direction: Int) {
             val step = root.step
@@ -139,7 +145,10 @@ object GuideScreen {
                         } else {
                             null
                         }
-                    ui.page(bar, footer = find) { everything(ui) }
+                    ui.page(bar, footer = find) {
+                        everything(ui)
+                        uses()
+                    }
                 } else {
                     val last = step == pages.lastIndex
                     val dots =
@@ -210,7 +219,10 @@ object GuideScreen {
                             if (ui.landscape) 0f else Space.M,
                         )
                     }
-                    ui.page(bar, footer = pinned) { one(ui, pages[step]) }
+                    ui.page(bar, footer = pinned) {
+                        one(ui, pages[step])
+                        if (step == 0) uses()
+                    }
                 }
             root.addView(page)
             if (direction != 0) enter(ui, page.getChildAt(1), direction)
@@ -387,7 +399,7 @@ object GuideScreen {
             .animate()
             .alpha(1f)
             .translationX(0f)
-            .setDuration(Motion.SLOW)
+            .setDuration(Motion.REVEAL)
             .setInterpolator(PathInterpolator(EASE_X1, EASE_Y1, EASE_X2, EASE_Y2))
             .start()
     }

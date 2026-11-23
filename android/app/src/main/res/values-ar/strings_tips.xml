@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">إغلاق النصيحة</string>
+  <string name="tip_presenter">مفاتيح الصوت تغيّر الشرائح أثناء فتح هذه الشاشة.</string>
+  <string name="tip_capture">المنطقة: اضغط عليها ثم اسحب على اللوحة إلى الزاوية المقابلة.</string>
+  <string name="tip_annotate">ارسم هنا. يظهر الحبر على الحاسوب في المكان نفسه.</string>
+  <string name="tip_shapes">ارسمه بخط واحد ثم ارفع إصبعك.</string>
+  <string name="capture_to_phone">إلى الهاتف</string>
+</resources>

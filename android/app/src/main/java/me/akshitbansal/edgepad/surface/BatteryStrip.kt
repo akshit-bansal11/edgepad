@@ -9,27 +9,30 @@ import android.graphics.drawable.Drawable
 import android.text.TextPaint
 import android.util.TypedValue
 import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.drawFitted
 import kotlin.math.roundToInt
 
 /**
- * The row of battery chips above the top buttons: the laptop in use, this phone, and +N for everything else,
- * each one left out when it has nothing to show. A chip is a pill whose track fills to the level; low is red,
- * charging fills in the accent and wears a bolt.
+ * The row of batteries above the top buttons: the laptop in use, this phone, and +N for everything else, each one
+ * left out when it has nothing to show. A device is its icon, a battery outline filled to the level, the percent
+ * and, when charging, a bolt. Low is red, charging fills in the accent. No underline and no scrim: the shapes sit
+ * straight on the surface.
  *
  * [refresh] is the only place that allocates: it remakes the labels, fits the text and writes [summary].
  * [layout] and [refresh] place every rect and every drawable's bounds, so [draw] only paints.
  *
- * The strip is [WIDTH_DP] wide however many chips it holds, and centred on the top edge, so the buttons'
- * keep-out in [ControlSurface.onSizeChanged] is sized off that constant: the corner dials' rulers and a split
- * corner's text stop short of it in both orientations.
+ * The strip is never wider than the button row under it ([roomDp]) and is centred on the top edge, so the
+ * buttons' keep-out in [ControlSurface.onSizeChanged] covers it: the corner dials' rulers and a split corner's
+ * text stop short of it in both orientations. Past that width the text shrinks, then the icons go, then the
+ * text is cut with an ellipsis.
  */
 class BatteryStrip(
     private val context: Context,
     private val ink: Int,
-    accent: Int,
-    faint: Int,
+    private val accent: Int,
+    private val dim: Int,
     // The theme's red, never the user's control colour: low has to read as low on any backdrop.
     private val danger: Int,
 ) {
@@ -46,25 +49,40 @@ class BatteryStrip(
         var level = -1
         var charging = false
         var low = false
-        val box = RectF()
+        val body = RectF()
+        val lit = RectF()
+        val nub = RectF()
         var textX = 0f
+        var textWidth = 0f
+        var width = 0f
     }
 
     private val chips = Array(MAX_CHIPS) { Chip(icon(R.drawable.ic_battery_bolt, accent)) }
     private var count = 0
+
+    /** False when the text would otherwise shrink under [FLOOR_SP]: the device icons are then left out. */
+    private var iconsShown = true
     private var centreX = 0f
+
+    /** The most width the strip may take, in px. */
+    private var roomPx = 0f
 
     /** How far below its own place a display cutout pushed the strip, in px; see [layout]. */
     private var shift = 0f
     private var baseline = 0f
-    private val laptopIcon = icon(R.drawable.ic_battery_laptop, ink)
-    private val phoneIcon = icon(R.drawable.ic_battery_phone, ink)
+    private val laptopIcon = icon(R.drawable.ic_battery_laptop, dim)
+    private val phoneIcon = icon(R.drawable.ic_battery_phone, dim)
+    private val widths = FloatArray(MAX_CHIPS)
 
-    private val track = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = faint }
+    private val outline =
+        Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = dp(BatteryShape.STROKE_DP)
+            color = dim
+        }
+    private val fillRadius = dp(BatteryShape.FILL_CORNER_DP)
+    private val nubPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = dim }
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val normalFill = withAlpha(ink, FILL_ALPHA)
-    private val chargeFill = withAlpha(accent, FILL_ALPHA)
-    private val lowFill = withAlpha(danger, FILL_ALPHA)
     private val baseTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, TEXT_SP, metrics)
     private val text =
         TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -86,9 +104,12 @@ class BatteryStrip(
     fun layout(
         width: Int,
         shift: Float,
+        room: Float,
     ) {
         centreX = width / 2f
         this.shift = shift
+        roomPx = room
+        if (count > 0) fitText()
         place()
     }
 
@@ -101,8 +122,9 @@ class BatteryStrip(
         width: Int,
         rects: List<Rect>,
         gap: Float,
+        room: Float,
     ): Float {
-        val half = dp(WIDTH_DP) / 2
+        val half = room / 2
         val top = dp(CENTRE_DP - HEIGHT_DP / 2)
         val bottom = dp(HIT_BOTTOM_DP)
         var shift = 0f
@@ -141,25 +163,23 @@ class BatteryStrip(
     fun draw(canvas: Canvas) {
         for (i in 0 until count) {
             val chip = chips[i]
-            val box = chip.box
-            val radius = box.height() / 2
-            canvas.drawRoundRect(box, radius, radius, track)
-            if (chip.level > 0) {
-                fill.color =
-                    when {
-                        chip.low -> lowFill
-                        chip.charging -> chargeFill
-                        else -> normalFill
-                    }
-                canvas.save()
-                canvas.clipRect(box.left, box.top, box.left + box.width() * chip.level / FULL, box.bottom)
-                canvas.drawRoundRect(box, radius, radius, fill)
-                canvas.restore()
+            if (chip.level >= 0) {
+                canvas.drawRoundRect(chip.body, dp(BODY_RADIUS_DP), dp(BODY_RADIUS_DP), outline)
+                canvas.drawRoundRect(chip.nub, dp(NUB_RADIUS_DP), dp(NUB_RADIUS_DP), nubPaint)
+                if (chip.level > 0) {
+                    fill.color = BatteryShape.fillColor(chip.low, chip.charging, danger, accent, ink)
+                    canvas.drawRoundRect(chip.lit, fillRadius, fillRadius, fill)
+                }
             }
-            chip.icon?.draw(canvas)
+            if (iconsShown) chip.icon?.draw(canvas)
             if (chip.charging) chip.bolt.draw(canvas)
-            text.color = if (chip.low) danger else ink
-            text.drawFitted(canvas, chip.label, chip.textX, baseline, room(chip))
+            text.color =
+                when {
+                    chip.low -> danger
+                    chip.icon == null -> dim
+                    else -> ink
+                }
+            text.drawFitted(canvas, chip.label, chip.textX, baseline, chip.textWidth + HAIR_PX, 1f)
         }
     }
 
@@ -171,7 +191,7 @@ class BatteryStrip(
     ): String {
         chip.label = context.getString(R.string.battery_percent, row.level)
         chip.icon = icon
-        chip.level = row.level.coerceIn(0, FULL.toInt())
+        chip.level = row.level.coerceIn(0, FULL)
         chip.charging = row.charging
         chip.low = row.low
         // One string per state, so a language can order the name, the level and the state its own way.
@@ -184,23 +204,29 @@ class BatteryStrip(
         return context.getString(spoken, row.name, chip.label)
     }
 
-    /** The text room a chip leaves once its padding, icon and bolt are taken. */
-    private fun room(chip: Chip): Float {
-        var room = dp(CHIP_DP - 2 * PAD_DP)
-        if (chip.icon != null) room -= dp(ICON_DP + GAP_IN_DP)
-        if (chip.charging) room -= dp(BOLT_DP + GAP_IN_DP)
-        return room
-    }
+    private fun fixedOf(chip: Chip): Float =
+        BatteryShape.fixedWidth(chip.icon != null, chip.icon != null && iconsShown, chip.charging)
 
-    /** A large font scale shrinks the labels to fit their fixed chips rather than spilling out of them. */
+    /** A large font scale shrinks the labels to fit the strip rather than spilling out of it. */
     private fun fitText() {
         text.textSize = baseTextSize
-        var scale = 1f
+        val floor = minOf(1f, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, FLOOR_SP, metrics) / baseTextSize)
+        // Not under the floor: the device icons go first, and what room that frees is what the text then gets.
+        iconsShown = true
+        if (StripFit.dropsIcons(neededScale(), floor)) iconsShown = false
+        text.textSize = baseTextSize * StripFit.scale(neededScale(), floor)
+    }
+
+    /** The scale at which the whole strip fits its room, from 1 down to whatever is needed, measured at base size. */
+    private fun neededScale(): Float {
+        text.textSize = baseTextSize
+        var fixed = (count - 1).coerceAtLeast(0) * BatteryShape.SPACING_DP
+        var labels = 0f
         for (i in 0 until count) {
-            val width = text.measureText(chips[i].label)
-            if (width > 0f) scale = minOf(scale, room(chips[i]) / width)
+            fixed += fixedOf(chips[i])
+            labels += text.measureText(chips[i].label) / density
         }
-        text.textSize = baseTextSize * scale
+        return BatteryShape.neededScale(fixed, labels, roomPx / density)
     }
 
     private fun place() {
@@ -208,36 +234,57 @@ class BatteryStrip(
             hit.setEmpty()
             return
         }
-        val chipWidth = dp(CHIP_DP)
-        val gap = dp(GAP_DP)
-        val span = count * chipWidth + (count - 1) * gap
+        // Past the floor the text cannot shrink any more, so each label gets its share of what is left and is cut.
+        var fixed = dp((count - 1) * BatteryShape.SPACING_DP)
+        var labels = 0f
+        for (i in 0 until count) {
+            chips[i].textWidth = text.measureText(chips[i].label)
+            fixed += dp(fixedOf(chips[i]))
+            labels += chips[i].textWidth
+        }
+        val squeeze = if (labels > 0f) ((roomPx - fixed) / labels).coerceIn(0f, 1f) else 1f
+        for (i in 0 until count) {
+            val chip = chips[i]
+            chip.textWidth *= squeeze
+            chip.width = dp(fixedOf(chip)) + chip.textWidth
+            widths[i] = chip.width / density
+        }
+        val span = dp(BatteryShape.span(widths, count))
         val cy = dp(CENTRE_DP) + shift
-        val half = dp(HEIGHT_DP) / 2
         baseline = cy + text.textSize * Type.CAP_CENTRE
         var left = centreX - span / 2
         for (i in 0 until count) {
             val chip = chips[i]
-            chip.box.set(left, cy - half, left + chipWidth, cy + half)
-            val labelWidth = text.measureText(chip.label)
-            val icon = chip.icon
-            var x =
-                if (icon == null) {
-                    // The +N chip: its label alone, centred.
-                    chip.box.centerX() - labelWidth / 2
-                } else {
-                    var content = dp(ICON_DP + GAP_IN_DP) + labelWidth
-                    if (chip.charging) content += dp(GAP_IN_DP + BOLT_DP)
-                    chip.box.centerX() - content / 2
-                }
+            var x = left
+            val icon = chip.icon?.takeIf { iconsShown }
             if (icon != null) {
-                bounds(icon, x, cy, dp(ICON_DP))
-                x += dp(ICON_DP + GAP_IN_DP)
+                bounds(icon, x, cy, dp(BatteryShape.ICON_DP))
+                x += dp(BatteryShape.ICON_DP + BatteryShape.GAP_DP)
+            }
+            if (chip.level >= 0) {
+                val half = dp(BatteryShape.BODY_H_DP) / 2
+                val stroke = dp(BatteryShape.STROKE_DP) / 2
+                // The stroke is centred on its path, so the path is inset by half of it to keep the outer 22 x 11.
+                val right = x + dp(BatteryShape.BODY_W_DP) - stroke
+                chip.body.set(x + stroke, cy - half + stroke, right, cy + half - stroke)
+                val inset = dp(BatteryShape.STROKE_DP + BatteryShape.INNER_PAD_DP)
+                val fillHalf = dp(BatteryShape.fillHeight()) / 2
+                val litRight = x + inset + dp(BatteryShape.fillWidth(chip.level))
+                chip.lit.set(x + inset, cy - fillHalf, litRight, cy + fillHalf)
+                val nubLeft = x + dp(BatteryShape.BODY_W_DP + BatteryShape.NUB_GAP_DP)
+                val nubHalf = dp(BatteryShape.NUB_H_DP) / 2
+                chip.nub.set(nubLeft, cy - nubHalf, nubLeft + dp(BatteryShape.NUB_W_DP), cy + nubHalf)
+                x = nubLeft + dp(BatteryShape.NUB_W_DP + BatteryShape.GAP_DP)
             }
             chip.textX = x
-            if (chip.charging) bounds(chip.bolt, x + labelWidth + dp(GAP_IN_DP), cy, dp(BOLT_DP))
-            left += chipWidth + gap
+            if (chip.charging) {
+                val boltLeft = x + chip.textWidth + dp(BatteryShape.GAP_DP)
+                bounds(chip.bolt, boltLeft, cy, dp(BatteryShape.BOLT_DP))
+            }
+            left += chip.width + dp(BatteryShape.SPACING_DP)
         }
-        hit.set(centreX - span / 2, dp(HIT_TOP_DP) + shift, centreX + span / 2, dp(HIT_BOTTOM_DP) + shift)
+        val pad = dp(Space.S)
+        hit.set(centreX - span / 2 - pad, dp(HIT_TOP_DP) + shift, centreX + span / 2 + pad, dp(HIT_BOTTOM_DP) + shift)
     }
 
     private fun bounds(
@@ -258,37 +305,37 @@ class BatteryStrip(
 
     private fun dp(value: Float): Float = value * density
 
-    private fun withAlpha(
-        color: Int,
-        fraction: Float,
-    ): Int = color and RGB_MASK or ((fraction * MAX_ALPHA).roundToInt() shl ALPHA_SHIFT)
-
     companion object {
         /** Laptop, phone, +N. */
         private const val MAX_CHIPS = 3
-        const val CHIP_DP = 44f
-        const val GAP_DP = 6f
-
-        /** The strip's width whatever it holds: three chips and the two gaps between them. */
-        const val WIDTH_DP = MAX_CHIPS * CHIP_DP + (MAX_CHIPS - 1) * GAP_DP
 
         /**
-         * The chips' centre and height, and the strip's tap rect. The rect ends at 36dp, where the top buttons'
-         * own rects begin ([ControlSurface.TOP_DP] less half of [me.akshitbansal.edgepad.Space.TOUCH]).
+         * The strip's room, in dp, for a button row reaching [reachDp] either side of the centre: the row's own width,
+         * so the row's keep-out zone covers the strip. Never under [MIN_ROOM_DP].
          */
-        const val CENTRE_DP = 22f
-        const val HEIGHT_DP = 24f
-        const val HIT_TOP_DP = 6f
-        const val HIT_BOTTOM_DP = 36f
-        private const val PAD_DP = 4f
-        private const val ICON_DP = 12f
-        private const val BOLT_DP = 9f
-        private const val GAP_IN_DP = 2f
-        private const val TEXT_SP = 10f
-        private const val FILL_ALPHA = 0.28f
-        private const val FULL = 100f
-        private const val RGB_MASK = 0x00FFFFFF
-        private const val MAX_ALPHA = 255
-        private const val ALPHA_SHIFT = 24
+        fun roomDp(reachDp: Float): Float = maxOf(MIN_ROOM_DP, 2 * (reachDp + Space.TOUCH / 2))
+
+        /** The upright row's width, 1.5 steps of 48dp and half a touch target either side. */
+        const val MIN_ROOM_DP = 192f
+
+        /**
+         * The strip's centre, its height and its tap rect. The shapes end at 32dp, above where the top buttons'
+         * own rects begin ([ControlSurface.TOP_DP] less half of [me.akshitbansal.edgepad.Space.TOUCH]); the rect is
+         * [me.akshitbansal.edgepad.Space.TOUCH] tall, runs into the buttons' top and loses those taps to them.
+         */
+        const val CENTRE_DP = 19f
+        const val HEIGHT_DP = 26f
+        const val HIT_TOP_DP = 0f
+        const val HIT_BOTTOM_DP = 48f
+        private const val HAIR_PX = 0.5f
+        private const val TEXT_SP = 13f
+
+        /** The smallest the text is drawn at, however large the system font. */
+        private const val FLOOR_SP = 9f
+        private const val FULL = 100
+
+        /** The outline is stroked on a path inset by half the stroke, so its radii shrink by the same. */
+        private const val BODY_RADIUS_DP = BatteryShape.CORNER_DP - BatteryShape.STROKE_DP / 2
+        private const val NUB_RADIUS_DP = 1f
     }
 }

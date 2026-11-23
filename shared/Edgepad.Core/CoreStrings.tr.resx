@@ -79,7 +79,7 @@
     <value>Eşleştirme tamamlanmadı.</value>
   </data>
   <data name="Pairing_Matched" xml:space="preserve">
-    <value>Eşleştirme kodu eşleşti. Bitirmek için {0} üzerinde “Evet, eşleşti” seçeneğine dokunun.</value>
+    <value>Eşleştirme kodu eşleşti. Bitirmek için {0} üzerinde “Kodlar eşleşiyor” seçeneğine dokunun.</value>
   </data>
   <data name="Pairing_Paired" xml:space="preserve">
     <value>Eşleşti: {0}.</value>

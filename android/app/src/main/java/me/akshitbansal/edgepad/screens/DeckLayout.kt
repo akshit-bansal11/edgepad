@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.screens
 
+import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.LaptopState
 
 /**
@@ -8,6 +9,53 @@ import me.akshitbansal.edgepad.link.LaptopState
  * came from.
  */
 object DeckLayout {
+    /** The Controls popup's columns: five sideways, three upright. */
+    const val POPUP_COLUMNS_SIDEWAYS = 5
+    const val POPUP_COLUMNS_UPRIGHT = 3
+
+    /**
+     * The Controls popup worked out from fixed-size tiles: [columns] across and [rows] down, the popup [width] by
+     * [height], the [grid] part of that height, and the width one [tile] gets. [scrolls] when the rows do not fit.
+     */
+    class FixedPlan(
+        val columns: Int,
+        val rows: Int,
+        val width: Int,
+        val height: Int,
+        val grid: Int,
+        val tile: Int,
+        val scrolls: Boolean,
+    )
+
+    /**
+     * The popup for [count] tiles of [tileWidth] by [tileHeight], [gap] apart, inside [padSide], [padTop] and
+     * [padBottom], on a screen [screenWidth] by [screenHeight] that leaves [margin] on every side. One unit
+     * throughout (dp or pixels). Never wider or taller than the screen less the margins: a narrow screen makes the
+     * tiles narrower, a short one makes the grid scroll.
+     */
+    fun fixedPlan(
+        count: Int,
+        sideways: Boolean,
+        screenWidth: Int,
+        screenHeight: Int,
+        margin: Int,
+        tileWidth: Int,
+        tileHeight: Int,
+        gap: Int,
+        padSide: Int,
+        padTop: Int,
+        padBottom: Int,
+    ): FixedPlan {
+        val columns = if (sideways) POPUP_COLUMNS_SIDEWAYS else POPUP_COLUMNS_UPRIGHT
+        val rows = if (count <= 0) 0 else (count + columns - 1) / columns
+        val width = minOf(columns * tileWidth + (columns - 1) * gap + 2 * padSide, screenWidth - 2 * margin)
+        val tile = ((width - 2 * padSide - (columns - 1) * gap) / columns).coerceAtLeast(1)
+        val grid = if (rows == 0) 0 else rows * tileHeight + (rows - 1) * gap
+        val wanted = padTop + grid + padBottom
+        val room = screenHeight - 2 * margin
+        return FixedPlan(columns, rows, width, minOf(wanted, room), grid, tile, wanted > room)
+    }
+
     /**
      * The (rows, columns) grids that fit [count] tiles. A row count is offered only if every row has a
      * tile in it: 15 tiles in 6 rows of 3 would leave the sixth empty, and that is the same grid as 5 rows.
@@ -41,6 +89,12 @@ object DeckLayout {
         touch: Int,
         gap: Int,
     ): Boolean = rows * touch + (rows - 1) * gap <= down
+
+    /**
+     * How far a label drawn at [sp] may shrink to fit its cell, as a fraction of [sp]: down to [Type.MICRO], and
+     * not at all when it is already that small. Past that the end of the name is cut with an ellipsis.
+     */
+    fun labelFloor(sp: Float): Float = minOf(1f, Type.MICRO / sp)
 
     /** The side a picture is drawn at: [zoom] of the [box] it has room for, never under [minPx]. */
     fun iconSide(
@@ -95,6 +149,20 @@ object DeckLayout {
     ): List<Int> {
         if (from !in order.indices || to !in order.indices) return order
         return order.toMutableList().apply { add(to, removeAt(from)) }
+    }
+
+    /**
+     * [move] made on the [shown] part of [order], the tiles drawn while some are hidden: [from] and [to] are places
+     * among [shown], and the hidden tiles keep their places in [order] around the move.
+     */
+    fun moveShown(
+        order: List<Int>,
+        shown: List<Int>,
+        from: Int,
+        to: Int,
+    ): List<Int> {
+        if (from !in shown.indices || to !in shown.indices) return order
+        return move(order, order.indexOf(shown[from]), order.indexOf(shown[to]))
     }
 
     /**

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="controls_air_mouse">에어 마우스</string>
+  <string name="air_how">트랙패드에 엄지를 올린 채 휴대폰을 좌우로 돌리고 위아래로 기울이세요. 켜져 있는 동안에는 손가락을 누르고 있어도 드래그되지 않습니다.</string>
+  <string name="air_caption">트랙패드에 손가락을 올린 동안 휴대전화를 기울이면 포인터가 움직입니다. 모션 센서는 그때만 읽습니다.</string>
+  <string name="air_sensitivity">감도</string>
+  <string name="air_dead_zone">데드 존</string>
+  <string name="air_no_sensor">이 휴대전화에는 자이로스코프가 없습니다.</string>
+  <string name="controls_floating">플로팅 다이얼</string>
+  <string name="floating_caption">다른 앱 위에 다이얼을 표시합니다. 다른 앱 위에 표시할 권한이 필요합니다.</string>
+  <string name="floating_permission">설정에서 허용</string>
+  <string name="floating_needs_link">먼저 노트북에 연결하세요.</string>
+  <string name="floating_needs_stay">다이얼을 다른 앱 위에 유지하려면 연결 유지를 켜세요.</string>
+</resources>

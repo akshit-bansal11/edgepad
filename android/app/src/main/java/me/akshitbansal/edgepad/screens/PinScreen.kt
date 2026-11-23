@@ -113,7 +113,7 @@ class PinScreen(
         val reach = ui.dp(SHAKE_DP).toFloat()
         ObjectAnimator
             .ofFloat(row, View.TRANSLATION_X, 0f, -reach, reach, -reach, reach, 0f)
-            .setDuration(Motion.BASE)
+            .setDuration(Motion.PRESS)
             .start()
     }
 

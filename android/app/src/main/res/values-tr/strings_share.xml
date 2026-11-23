@@ -7,7 +7,7 @@
   <string name="share_send_failed">%1$s bilgisayarına gönderilemedi. Bağlantıyı kontrol edip tekrar deneyin.</string>
   <string name="share_no_laptop">Edgepad bir bilgisayara bağlı değil. Birine bağlanın, sonra tekrar paylaşın.</string>
   <string name="share_clipboard_off">%1$s üzerinde “Panoyu paylaş” ayarını açın</string>
-  <string name="share_nothing">Burada Edgepad\'in gönderebileceği bir şey yok.</string>
+  <string name="share_nothing">Burada Edgepad’in gönderebileceği bir şey yok.</string>
   <string name="share_text_too_long">Bu metin göndermek için çok uzun. Sınır 1 MB.</string>
   <string name="share_image_failed">Bu resim okunamıyor ya da göndermek için çok büyük.</string>
   <plurals name="share_lines">

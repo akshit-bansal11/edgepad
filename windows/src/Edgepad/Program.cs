@@ -1,6 +1,10 @@
+using Edgepad.Hooks;
+using Edgepad.Notifications;
 using Edgepad.Startup;
+using Edgepad.Transfer;
 using Edgepad.Trust;
 using Edgepad.Ui;
+using Edgepad.Updates;
 
 // Every native library this app imports is a Windows system DLL. Searching System32 only means a look-alike
 // dropped beside the exe, in Downloads say, is never loaded in its place.
@@ -20,9 +24,38 @@ internal static class Program
     public static string Version => Application.ProductVersion.Split('+')[0];
 
     [STAThread]
-    private static void Main()
+    private static int Main(string[] args)
     {
+        // A hook command of an agent's plugin: answers on the inherited stdout and leaves, before the mutex, logging or any UI.
+        if (HookClient.IsHook(args))
+        {
+            return HookClient.RunConsole(args);
+        }
+
         AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Write($"Unhandled: {e.ExceptionObject}");
+
+        var launch = SingleInstance.Parse(args);
+        if (launch.ProbeNotifications)
+        {
+            // The 4.9.0 spike: writes the listener's access status to the log and exits, touching nothing else.
+            NotificationProbe.Run();
+            return 0;
+        }
+
+        if (launch.SendPaths is { Count: > 0 } paths)
+        {
+            // Explorer's Send to: pass the paths to the running copy and leave without a word, whatever the answer.
+            _ = SendPipe.Send(paths);
+            return 0;
+        }
+
+        // A copy that restarted itself as administrator names the user it was started for. Another account would
+        // change what HKCU means, so it refuses.
+        if (!SingleInstance.RestartAllowed(launch.RestartSid, SingleInstance.CurrentUserSid()))
+        {
+            Log.Write($"Edgepad {Version} not started: --restart named a different user");
+            return 0;
+        }
 
         // An exception out of a UI event handler goes to the log and the app keeps running, instead of WinForms'
         // Continue/Quit box, which a tray app's owner has no way to make sense of.
@@ -48,12 +81,12 @@ internal static class Program
                 Strings.App_RunningAsAdmin,
                 "Edgepad",
                 MessageBoxIcon.Information);
-            return;
+            return 0;
         }
 
         using var owned = single;
         var lockFree = Acquire(single);
-        var choice = SingleInstance.Decide(lockFree, !lockFree && SameVersionRunning());
+        var choice = SingleInstance.Decide(lockFree, !lockFree && SameVersionRunning(), restart: launch.RestartSid is not null);
         if (choice == LaunchChoice.Notify)
         {
             // Double-clicking the exe again to "open" it must not quit the copy that is serving a phone.
@@ -63,7 +96,7 @@ internal static class Program
                 Strings.App_AlreadyRunning,
                 "Edgepad",
                 MessageBoxIcon.Information);
-            return;
+            return 0;
         }
 
         if (choice == LaunchChoice.TakeOver && !TakeOver(single))
@@ -74,7 +107,15 @@ internal static class Program
                 Strings.App_DidNotHandOver,
                 "Edgepad",
                 MessageBoxIcon.Information);
-            return;
+            return 0;
+        }
+
+        // Started by an in-place update: the copy it replaced is removed once it has handed over, if the rules allow.
+        if (UpdatePaths.ReplacesArgument(args) is { } replaced
+            && Environment.ProcessPath is { } self
+            && System.Version.TryParse(Version.Split('-')[0], out var selfVersion))
+        {
+            _ = WindowsUpdater.DeleteReplacedAsync(replaced, self, selfVersion);
         }
 
         try
@@ -119,6 +160,8 @@ internal static class Program
         {
             single.ReleaseMutex();
         }
+
+        return 0;
     }
 
     /// <summary>True when nothing else holds the single-instance lock, and this copy now does.</summary>

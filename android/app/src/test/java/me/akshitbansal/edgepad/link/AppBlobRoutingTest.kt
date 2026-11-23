@@ -27,7 +27,7 @@ class AppBlobRoutingTest {
     private val posted = ArrayList<() -> Unit>()
     private var postNow = true
     private val apps =
-        AppLinks(routes) { work -> if (postNow) work() else posted.add(work) }
+        AppLinks(routes, post = { work -> if (postNow) work() else posted.add(work) })
     private val told = ArrayList<Pair<Laptop, String?>>()
 
     init {
@@ -255,12 +255,14 @@ class AppBlobRoutingTest {
     }
 
     @Test
-    fun aLaptopThatDidNotNameAppsIsLeftAlone() {
+    fun aLaptopThatDidNotNameAppsGetsNoAppList() {
         val plain = laptop(features = "clipboard")
 
         apps.refresh(listOf(plain))
+        // Since 5.0.0 every connected laptop has the media-icon lane, so a sink exists; the app list still goes nowhere.
+        send(plain.fake().blobs, blob(BlobKind.APP_LIST, "", list("1.0\tAlpha")))
 
-        assertNull(plain.fake().blobs)
+        assertEquals(emptyList<String>(), names(plain))
     }
 
     @Test

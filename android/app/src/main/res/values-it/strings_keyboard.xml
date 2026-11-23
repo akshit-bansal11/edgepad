@@ -14,5 +14,5 @@
   <string name="keyboard_with_fn">Con Fn</string>
   <string name="keyboard_direct">Diretti</string>
   <!-- Read through Ui.string, which formats even with no arguments, so a percent sign stays doubled. -->
-  <string name="keyboard_function_keys_caption">Con Fn: la riga in alto fa ciò che c\'è stampato sui tasti (luminosità, media, volume) e Fn più un tasto invia da F1 a F12. Sulle tastiere 65%% e 60%%, che non hanno la riga F, la riga dei numeri digita numeri e Fn più un numero invia da F1 a F12. Diretti: la riga in alto invia da F1 a F12 e Fn più un tasto esegue l\'azione stampata; sulle 65%% e 60%% la riga dei numeri invia da F1 a F12 e Fn più un numero digita il numero.</string>
+  <string name="keyboard_function_keys_caption">Con Fn: la riga in alto fa ciò che c’è stampato sui tasti (luminosità, media, volume) e Fn più un tasto invia da F1 a F12. Sulle tastiere 65%% e 60%%, che non hanno la riga F, la riga dei numeri digita numeri e Fn più un numero invia da F1 a F12. Diretti: la riga in alto invia da F1 a F12 e Fn più un tasto esegue l’azione stampata; sulle 65%% e 60%% la riga dei numeri invia da F1 a F12 e Fn più un numero digita il numero.</string>
 </resources>

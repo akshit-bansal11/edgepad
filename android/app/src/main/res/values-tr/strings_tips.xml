@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">İpucunu kapat</string>
+  <string name="tip_presenter">Bu ekran açıkken ses tuşları slaytları değiştirir.</string>
+  <string name="tip_capture">Bölge: dokunun, sonra panelde karşı köşeye sürükleyin.</string>
+  <string name="tip_annotate">Buraya çizin. Mürekkep dizüstünde aynı yerde görünür.</string>
+  <string name="tip_shapes">Tek vuruşla çizin, sonra parmağınızı kaldırın.</string>
+  <string name="capture_to_phone">Telefona</string>
+</resources>

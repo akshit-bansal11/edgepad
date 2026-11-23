@@ -1,4 +1,4 @@
-# Golden frames for Edgepad protocol v5.
+# Golden frames for Edgepad protocol v6.
 #
 # Both test suites (android/ in Kotlin, windows/ in C#) read this file. For every
 # line they encode the fields and must get exactly these bytes, then decode the
@@ -15,6 +15,7 @@ HELLO 2 = 01 45 44 47 50 02
 HELLO 3 = 01 45 44 47 50 03
 HELLO 4 = 01 45 44 47 50 04
 HELLO 5 = 01 45 44 47 50 05
+HELLO 6 = 01 45 44 47 50 06
 TEXT 3 hi = 41 03 02 68 69
 HELLO_ACK 1 = 02 01
 MOVE 5 -3 = 10 05 00 fd ff
@@ -141,6 +142,11 @@ SET 8 20 = 21 08 14
 SET 8 100 = 21 08 64
 SET 9 35 = 21 09 23
 SET 9 100 = 21 09 64
+# CONTROL 11 FOREGROUND_WATCH, phone to laptop: 1 the phone hears the app in front, 0 it does not.
+SET 11 1 = 21 0b 01
+SET 11 0 = 21 0b 00
+# TEXT 21 FOREGROUND_APP, laptop to phone: "chrome.exe/Chrome" is 17 bytes = 0x11.
+TEXT 21 chrome.exe/Chrome = 41 15 11 63 68 72 6f 6d 65 2e 65 78 65 2f 43 68 72 6f 6d 65
 TEXT 17 FF3B30 = 41 11 06 46 46 33 42 33 30
 # ACTION 56 APPS_LIST and ACTION 57 APPS_CANCEL, phone to laptop.
 ACTION 56 = 20 38
@@ -155,18 +161,98 @@ BLOB_BEGIN 0 1234 clip = 54 00 08 d2 04 00 00 63 6c 69 70
 BLOB_BEGIN 3 8192 chrome = 54 03 0a 00 20 00 00 63 68 72 6f 6d 65
 # An unknown kind is data, not a codec error: the receiver reads it to its BLOB_END and drops it.
 BLOB_BEGIN 9 1 x = 54 09 05 01 00 00 00 78
+# Kind 7 GIT (was GITHUB), label "git": 1234 = 0x04d2, length 7 = 4 + 3.
+BLOB_BEGIN 7 1234 git = 54 07 07 d2 04 00 00 67 69 74
 # BLOB_CHUNK seq bytes, FILE_CHUNK's shape.
 BLOB_CHUNK 0 68656c6c6f = 55 00 05 68 65 6c 6c 6f
 BLOB_CHUNK 255 ff00 = 55 ff 02 ff 00
 # BLOB_END sha256, FILE_END's shape: the SHA-256 of the whole blob. This one is the hash of "hello".
 BLOB_END 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 = 56 2c f2 4d ba 5f b0 a3 0e 26 e8 3b 2a c5 b9 e2 9e 1b 16 1e 5c 1f a7 42 5e 73 04 33 62 93 8b 98 24
-# TEXT 19 BATTERIES, laptop to phone: "kind:level:charging:name" entries joined by "|". The first is 16 bytes, the "|" one, the
-# second 23, so the length is 40 = 0x28. (No name has a space here: this file splits a line on spaces.)
-TEXT 19 laptop:87:1:Desk|headphones:60:0:AirPods = 41 13 28 6c 61 70 74 6f 70 3a 38 37 3a 31 3a 44 65 73 6b 7c 68 65 61 64 70 68 6f 6e 65 73 3a 36 30 3a 30 3a 41 69 72 50 6f 64 73
+# TEXT 19 BATTERIES, laptop to phone: "kind:level:charging:health:temp:name" entries joined by "|". Health is percent of design capacity
+# and temp is whole degrees Celsius; "-" is unknown (never 0). The first entry is 22 bytes, the "|" one, the second 27, so the length
+# is 50 = 0x32. (No name has a space here: this file splits a line on spaces.)
+TEXT 19 laptop:87:1:92:38:Desk|headphones:60:0:-:-:AirPods = 41 13 32 6c 61 70 74 6f 70 3a 38 37 3a 31 3a 39 32 3a 33 38 3a 44 65 73 6b 7c 68 65 61 64 70 68 6f 6e 65 73 3a 36 30 3a 30 3a 2d 3a 2d 3a 41 69 72 50 6f 64 73
 # Empty means no devices.
 TEXT 19 = 41 13 00
-# A multi-byte name: "laptop:50:0:" is 12 bytes, "Caf" 3 and the e-acute 2 (c3 a9), so the length is 17 = 0x11.
-TEXT 19 laptop:50:0:Café = 41 13 11 6c 61 70 74 6f 70 3a 35 30 3a 30 3a 43 61 66 c3 a9
+# A multi-byte name, both unknown: "laptop:50:0:-:-:" is 16 bytes, "Caf" 3 and the e-acute 2 (c3 a9), so the length is 21 = 0x15.
+TEXT 19 laptop:50:0:-:-:Café = 41 13 15 6c 61 70 74 6f 70 3a 35 30 3a 30 3a 2d 3a 2d 3a 43 61 66 c3 a9
+# Health known, temperature unknown: 20 bytes = 0x14.
+TEXT 19 laptop:64:0:81:-:Mac = 41 13 14 6c 61 70 74 6f 70 3a 36 34 3a 30 3a 38 31 3a 2d 3a 4d 61 63
 # TEXT 20 OUTPUT, laptop to phone: "kind/name". 18 bytes = 0x12 and 16 bytes = 0x10.
 TEXT 20 headphones/AirPods = 41 14 12 68 65 61 64 70 68 6f 6e 65 73 2f 41 69 72 50 6f 64 73
 TEXT 20 speaker/Speakers = 41 14 10 73 70 65 61 6b 65 72 2f 53 70 65 61 6b 65 72 73
+# TEXT 22 MACRO_CAP, laptop to phone: decimal ASCII, "15" is 2 bytes.
+TEXT 22 15 = 41 16 02 31 35
+# TEXT 23 CAPTURE_STATE: "recording" is 9 bytes.
+TEXT 23 recording = 41 17 09 72 65 63 6f 72 64 69 6e 67
+# TEXT 24 UNAVAILABLE: "annotate:unsupported" is 20 bytes, the "/" 1, "capture:no-tool" 15, so the length is 36 = 0x24.
+TEXT 24 annotate:unsupported/capture:no-tool = 41 18 24 61 6e 6e 6f 74 61 74 65 3a 75 6e 73 75 70 70 6f 72 74 65 64 2f 63 61 70 74 75 72 65 3a 6e 6f 2d 74 6f 6f 6c
+# TEXT 25 END_ACTION: "sleep" is 5 bytes.
+TEXT 25 sleep = 41 19 05 73 6c 65 65 70
+# TEXT 26 NOW_PLAYING_FULL, multi-byte: "Caf" 3, the e-acute 2 (c3 a9), and two 3-byte CJK characters, so the length is 11 = 0x0b.
+TEXT 26 Café日本 = 41 1a 0b 43 61 66 c3 a9 e6 97 a5 e6 9c ac
+# END_SLEEP and END_CANCEL, RUN_ACTION's shape.
+ACTION 60 = 20 3c
+ACTION 62 = 20 3e
+# SET_VALUE 10 NOTIFY on.
+SET 10 1 = 21 0a 01
+# Protocol 6: the second socket of a transfer, and its frames. All numbers little-endian.
+# BULK_HELLO version, HELLO's shape under type 0x05.
+BULK_HELLO 6 = 05 45 44 47 50 06
+BULK_HELLO 255 = 05 45 44 47 50 ff
+# XFER_BEGIN id size name: the id, a length counting the u64 size and the name, then both. 8 + 5 = 13 = 0x0d.
+XFER_BEGIN 1 1234 a.bin = 57 01 0d d2 04 00 00 00 00 00 00 61 2e 62 69 6e
+# The field maxima: size 2^64-1, and a name of 247 bytes, so the length is 255 = 0xff.
+XFER_BEGIN 255 18446744073709551615 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = 57 ff ff ff ff ff ff ff ff ff ff 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78 78
+# XFER_CHUNK id offset data: the id, a length counting the u64 offset and the data, then both. 8 + 5 = 13 = 0x0d.
+XFER_CHUNK 1 0 68656c6c6f = 58 01 0d 00 00 00 00 00 00 00 00 68 65 6c 6c 6f
+# The field maxima: offset 2^63, and 247 bytes of data, so the length is 255 = 0xff.
+XFER_CHUNK 255 9223372036854775808 a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5 = 58 ff ff 00 00 00 00 00 00 00 80 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5 a5
+# XFER_END id sha256: the SHA-256 of "hello", then of nothing.
+XFER_END 1 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824 = 59 01 2c f2 4d ba 5f b0 a3 0e 26 e8 3b 2a c5 b9 e2 9e 1b 16 1e 5c 1f a7 42 5e 73 04 33 62 93 8b 98 24
+XFER_END 255 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 = 59 ff e3 b0 c4 42 98 fc 1c 14 9a fb f4 c8 99 6f b9 24 27 ae 41 e4 64 9b 93 4c a4 95 99 1b 78 52 b8 55
+# XFER_STATUS id status offset: 1 PROGRESS at 4096 = 0x1000, then 7 BUSY at 2^64-1.
+XFER_STATUS 1 1 4096 = 5a 01 01 00 10 00 00 00 00 00 00
+XFER_STATUS 255 7 18446744073709551615 = 5a ff 07 ff ff ff ff ff ff ff ff
+# PAUSED (8) and RESUME (9), either side, at 4096 bytes. The local-only TIMED_OUT and SESSION_ENDED (0xF0, 0xF1) are never framed.
+XFER_STATUS 1 8 4096 = 5a 01 08 00 10 00 00 00 00 00 00
+XFER_STATUS 1 9 4096 = 5a 01 09 00 10 00 00 00 00 00 00
+# Dashboard ids (protocol 6). CONTROL 12 DASH_WATCH, phone to laptop: 31 is every bit set, the most the laptop accepts.
+SET 12 31 = 21 0c 1f
+SET 12 0 = 21 0c 00
+SET 13 1 = 21 0d 01
+SET 13 0 = 21 0d 00
+# TEXT 27 STATS, laptop to phone: eleven fields, -1 unknown.
+TEXT 27 12/48/-1/-1/1200/340/9/0/55/-1/-1 = 41 1b 21 31 32 2f 34 38 2f 2d 31 2f 2d 31 2f 31 32 30 30 2f 33 34 30 2f 39 2f 30 2f 35 35 2f 2d 31 2f 2d 31
+# TEXT 28 STATS_INFO, names split on "|"; the network name has an e-acute (c3 a9).
+TEXT 28 Ryzen5|16384|RTX3060|12288|WiFiCafé = 41 1c 24 52 79 7a 65 6e 35 7c 31 36 33 38 34 7c 52 54 58 33 30 36 30 7c 31 32 32 38 38 7c 57 69 46 69 43 61 66 c3 a9
+# TEXT 29 DISKS: label:usedPct:totalGiB:freeGiB entries joined by "|".
+TEXT 29 C:70:476:143|D:10:931:838 = 41 1d 19 43 3a 37 30 3a 34 37 36 3a 31 34 33 7c 44 3a 31 30 3a 39 33 31 3a 38 33 38
+# TEXT 30 SESSIONS: agent:state:ctx:title entries joined by "|"; ctx is the session's context fill 0..100, -1 unknown.
+TEXT 30 claude:busy:42:FixLogin|codex:wait:-1:Refactor = 41 1e 2e 63 6c 61 75 64 65 3a 62 75 73 79 3a 34 32 3a 46 69 78 4c 6f 67 69 6e 7c 63 6f 64 65 78 3a 77 61 69 74 3a 2d 31 3a 52 65 66 61 63 74 6f 72
+# TEXT 31 PERM_ANSWER, phone to laptop, and TEXT 32 PERM_GONE, laptop to phone: the id is 12 lowercase hex digits.
+TEXT 31 a1b2c3d4e5f6/a = 41 1f 0e 61 31 62 32 63 33 64 34 65 35 66 36 2f 61
+TEXT 32 a1b2c3d4e5f6 = 41 20 0c 61 31 62 32 63 33 64 34 65 35 66 36
+# TEXT 33 LIMITS: the window is minutes (300 is five hours), "ctx" for the context window or "~name" for a limit with no duration.
+TEXT 33 claude:300:42:29500000:29499900|claude:ctx:15:-1:29499900|codex:~spend_limit:80:-1:29499900 = 41 21 5b 63 6c 61 75 64 65 3a 33 30 30 3a 34 32 3a 32 39 35 30 30 30 30 30 3a 32 39 34 39 39 39 30 30 7c 63 6c 61 75 64 65 3a 63 74 78 3a 31 35 3a 2d 31 3a 32 39 34 39 39 39 30 30 7c 63 6f 64 65 78 3a 7e 73 70 65 6e 64 5f 6c 69 6d 69 74 3a 38 30 3a 2d 31 3a 32 39 34 39 39 39 30 30
+# TEXT 34 SPEND: agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/unpriced.
+TEXT 34 claude/29499900/120000/310/800000/2100/3000000/9000/0 = 41 22 35 63 6c 61 75 64 65 2f 32 39 34 39 39 39 30 30 2f 31 32 30 30 30 30 2f 33 31 30 2f 38 30 30 30 30 30 2f 32 31 30 30 2f 33 30 30 30 30 30 30 2f 39 30 30 30 2f 30
+# TEXT 35 WEATHER: 18.5 C is 185, WMO code 3, the city; empty means none.
+TEXT 35 185/3/Oslo = 41 23 0a 31 38 35 2f 33 2f 4f 73 6c 6f
+TEXT 35 = 41 23 00
+# BLOB_BEGIN kind 6 PERM_ASK, label "id/f" (12 hex, "/", 1 complete or 0 over the cap) = 14 bytes, so the length is 18 = 0x12; size 300 = 0x012c.
+BLOB_BEGIN 6 300 a1b2c3d4e5f6/1 = 54 06 12 2c 01 00 00 61 31 62 32 63 33 64 34 65 35 66 36 2f 31
+# BLOB_BEGIN kind 7 GITHUB, label "gh" is 2 bytes, so the length is 6; size 2048 = 0x0800.
+BLOB_BEGIN 7 2048 gh = 54 07 06 00 08 00 00 67 68
+# TEXT 36 NET_INFO, laptop to phone: kind|band|linkMbps|signalPct|localIp|gateway; -1 unknown, addresses empty when none. No network name.
+TEXT 36 wifi|5|866|72|192.168.1.23|192.168.1.1 = 41 24 26 77 69 66 69 7c 35 7c 38 36 36 7c 37 32 7c 31 39 32 2e 31 36 38 2e 31 2e 32 33 7c 31 39 32 2e 31 36 38 2e 31 2e 31
+TEXT 36 none|?|-1|-1|| = 41 24 0e 6e 6f 6e 65 7c 3f 7c 2d 31 7c 2d 31 7c 7c
+# TEXT 37 SPEED_RESULT, laptop to phone: state|downKbps|upKbps|latencyMs|jitterMs|atUnixMin|bytes.
+TEXT 37 done|93500|21400|11|2|29499900|31000000 = 41 25 27 64 6f 6e 65 7c 39 33 35 30 30 7c 32 31 34 30 30 7c 31 31 7c 32 7c 32 39 34 39 39 39 30 30 7c 33 31 30 30 30 30 30 30
+TEXT 37 running|-1|-1|-1|-1|29499900|0 = 41 25 1e 72 75 6e 6e 69 6e 67 7c 2d 31 7c 2d 31 7c 2d 31 7c 2d 31 7c 32 39 34 39 39 39 30 30 7c 30
+# TEXT 38 GIT_OPEN, phone to laptop: host/listRevision/index.
+TEXT 38 github/3/12 = 41 26 0b 67 69 74 68 75 62 2f 33 2f 31 32
+# CONTROL 14 SPEED_TEST, phone to laptop: 1 start, 0 cancel. SET 12 63 is DASH_WATCH with every bit, the Network page (bit 5) included.
+SET 14 1 = 21 0e 01
+SET 14 0 = 21 0e 00
+SET 12 63 = 21 0c 3f

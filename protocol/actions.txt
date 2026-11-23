@@ -42,6 +42,12 @@ ACTION 34 BRIGHTNESS_DOWN
 # never receives. The laptop decides whether it can honour the request and answers with TEXT 8.
 ACTION 35 PAD_ATTACH
 ACTION 36 PAD_DETACH
+# The laser tool: the next PEN stroke is a dot that follows the finger and leaves nothing behind. The phone offers it only
+# for a laptop that sent FEATURES "annotate"; a laptop too old to know the id drops and counts it.
+ACTION 37 TOOL_LASER
+# The trailing laser: TOOL_LASER plus a red trail of the last 250 ms behind the dot. Both lasers take their size from CONTROL PEN_WIDTH
+# (10, 15, 20 are Small, Medium, Large; the dot's radius is 0.05% of the screen's height per step) and fade out 400 ms after the last pen event.
+ACTION 38 TOOL_LASER_TRAIL
 # Annotating the screen and signing, which the laptop draws and the phone only steers. BEGIN shows the laptop's
 # overlay and END removes it (and discards the strokes); UNDO and CLEAR edit the strokes; the six TOOL ids pick
 # what the next PEN stroke draws. SIGN_BEGIN opens a signing pad that shows nothing on the laptop and accepts
@@ -79,6 +85,12 @@ ACTION 64 MACRO_BASE
 # laptop's once-a-second survey (it reports TEXT 16 on change only); MACROS_UNWATCH stops it. Both are forgotten when the session ends.
 ACTION 58 MACROS_WATCH
 ACTION 59 MACROS_UNWATCH
+# Phone to laptop: arm the laptop to sleep (END_SLEEP) or shut down (END_SHUTDOWN) when the current media ends, or disarm it
+# (END_CANCEL). The laptop reports the armed state as TEXT 25. The phone shows the buttons only for a laptop that sent
+# FEATURES "endaction"; a laptop too old to know the ids drops and counts them.
+ACTION 60 END_SLEEP
+ACTION 61 END_SHUTDOWN
+ACTION 62 END_CANCEL
 # Reserved block of 32, like MACRO_BASE: close the app macro slot n opens, as its own close button would (never a kill).
 # The phone sends the slot and nothing else; the laptop decides what that slot is.
 ACTION 96 MACRO_CLOSE_BASE
@@ -108,6 +120,23 @@ CONTROL 8 PEN_WIDTH
 # The opacity of the next strokes in percent, phone to laptop, 10..100, 100 by default. The highlighter multiplies its
 # own 35% by it. Anything else is dropped and counted. New strokes only; forgotten when the session ends.
 CONTROL 9 PEN_OPACITY
+# Whether this link forwards the laptop's notifications: 1 yes, 0 no, phone to laptop. Forgotten when the session ends.
+# Any other value is dropped and counted. The phone offers it only for a laptop that sent FEATURES "notify".
+CONTROL 10 NOTIFY
+# Whether this link hears which app is in front (TEXT 21): 1 yes, 0 no, phone to laptop. Forgotten when the session ends.
+# Any other value is dropped and counted. The phone offers it only for a laptop that sent FEATURES "foreground".
+CONTROL 11 FOREGROUND_WATCH
+# A bitmask of what the phone draws right now, phone to laptop: bit0 (1) widgets needing system numbers (CPU, RAM, GPU,
+# network), bit1 (2) the System screen, bit2 (4) the weather widget, bit3 (8) an AI widget or the AI screen, bit4 (16) the GitHub
+# screen, bit5 (32) the Network page. Values 0..63; larger is dropped and counted. Forgotten when the session ends. It is the ONLY thing that makes the
+# laptop sample, read usage files or poll.
+CONTROL 12 DASH_WATCH
+# Developer mode: 1 on, 0 off, phone to laptop. Any other value is dropped and counted. The laptop keeps it across sessions,
+# and the phone shows the laptop's state from FEATURES "developer".
+CONTROL 13 DEVELOPER
+# Phone to laptop: 1 starts one speed test against Cloudflare (ignored while one runs), 0 cancels the running one. Anything else is
+# dropped and counted. The phone offers it only for a laptop that sent FEATURES "netinfo". The answer is TEXT 37.
+CONTROL 14 SPEED_TEST
 
 TEXT 0 NOW_PLAYING
 TEXT 1 APP
@@ -177,6 +206,69 @@ TEXT 19 BATTERIES
 # BATTERIES and cut to 40 code points. Empty means no output known. Sent after the handshake and on a default-device change,
 # not re-sent when identical.
 TEXT 20 OUTPUT
+# Laptop to phone: the app in front, "<token>/<name>" split on the first "/". Token 1 to 64 of A-Z a-z 0-9 . _ -  (Windows: the
+# lower-cased exe file name; Linux X11: the lower-cased WM_CLASS class; Mac: the bundle id). Name: control characters and "|" turned
+# to a space, trimmed, cut to 40 code points. Empty means nothing known. Sent only after CONTROL 11 is 1, on change, never logged.
+TEXT 21 FOREGROUND_APP
+# Laptop to phone: how many macro slots the laptop keeps, decimal ASCII such as "15". Empty or never sent means the phone's
+# own default.
+TEXT 22 MACRO_CAP
+# Laptop to phone: a CAPTURE_STATE_TOKEN, "idle" or "recording". Best effort: a laptop that cannot tell sends nothing.
+TEXT 23 CAPTURE_STATE
+# Laptop to phone: the features this laptop cannot offer right now and why, "feature:reason" entries joined by "/", feature a
+# FEATURE token and reason an UNAVAILABLE_REASON token. Empty means none. An unknown reason reads as UNSUPPORTED.
+TEXT 24 UNAVAILABLE
+# Laptop to phone: what END_SLEEP / END_SHUTDOWN armed, as one END_ACTION_TOKEN. Sent on change. An unknown token reads as NONE.
+TEXT 25 END_ACTION
+# Laptop to phone: the title line of what is playing before it is cleaned for TEXT 0, sent only when it differs from TEXT 0.
+TEXT 26 NOW_PLAYING_FULL
+# The dashboard kinds, authoritative layout in protocol/dashboard-vectors.txt. Every payload is UTF-8, at most 255 bytes, never
+# split inside a character. -1 is an unknown number. Clean(n) turns control characters, tab, "|", "/" and ":" into a space,
+# collapses runs, trims and cuts to n code points (never inside a surrogate pair).
+# Laptop to phone: "cpu/ram/gpu/vram/down/up/ping/loss/ctemp/gtemp/gpower": percents 0..100, down and up KiB/s, ping ms, loss
+# percent, temperatures C, gpower W. Once a second while DASH_WATCH has bit0 or bit1; not re-sent when identical.
+TEXT 27 STATS
+# Laptop to phone: "cpuName|ramMiB|gpuName|vramMiB|netName", names Clean(30). On watch start and when it changes.
+TEXT 28 STATS_INFO
+# Laptop to phone: "label:usedPct:totalGiB:freeGiB|...", label Clean(16), at most 6 disks, trailing disks dropped to fit 255.
+# Sent while DASH_WATCH has bit1, re-read every 10 s, only when changed.
+TEXT 29 DISKS
+# Laptop to phone: "agent:state:ctx:title|...", agent an AGENT token, state a SESSION_STATE token, ctx the session's context-window
+# fill 0..100 or -1 when unknown, title Clean(24), newest first, at most 8. On change, whatever the watch. Empty means none.
+TEXT 30 SESSIONS
+# Phone to laptop: exactly "id/a" or "id/d", id 12 lowercase hex. Anything else, or an unknown or answered id, is dropped and counted.
+TEXT 31 PERM_ANSWER
+# Laptop to phone: "id" of an approval answered elsewhere, timed out, or whose request died. The phone dismisses that sheet.
+TEXT 32 PERM_GONE
+# Laptop to phone: "agent:window:pct:resetAtMin:measuredAtMin|...". The window is decimal minutes of the limit window (300 is 5 h,
+# 10080 a week, 43200 thirty days; any 1..525600), or a LIMIT_WINDOW form: "ctx" for the context window, or "~" and a name
+# Clean(16) for a limit with no duration, such as "~spend_limit". pct 0..100 (floats rounded, clamped). The two times are UTC
+# minutes since the Unix epoch, -1 unknown. An entry with any other window is dropped. On change; snapshot on DASH_WATCH bit3.
+TEXT 33 LIMITS
+# Laptop to phone: "agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/unpriced|..." integers. 7d and 30d are the
+# last 7 and 30 local days, today counted; there is nothing longer, because Claude Code deletes its own history after about 30
+# days. Tokens are uncached input plus output; cents are estimates at API list prices; unpriced is 1 when some tokens had no price
+# (cents are a lower bound), else 0. On change; snapshot on DASH_WATCH bit3.
+TEXT 34 SPEND
+# Laptop to phone: "tempTenthsC/wmoCode/city", city Clean(24). Empty means none.
+TEXT 35 WEATHER
+# Laptop to phone: "kind|band|linkMbps|signalPct|localIp|gateway". kind one of wifi, ethernet, cellular, other, none; band one of 2.4, 5, 6, ?;
+# linkMbps and signalPct (0..100) -1 when unknown (Windows never knows the signal); localIp and gateway IPv4 text, empty when none,
+# Clean(15). There is NO field for a network name or a hardware address, and none may be added. Sent while DASH_WATCH has bit5,
+# once a second at most and only when the text changed.
+TEXT 36 NET_INFO
+# Laptop to phone: "state|downKbps|upKbps|latencyMs|jitterMs|atUnixMin|bytes". state one of running, done, failed, cancelled, capped;
+# the speeds are Kbit/s, the times ms, -1 unknown; atUnixMin is when the test began (UTC minutes since the Unix epoch); bytes is the
+# bytes the test actually moved, download plus upload (0 while it starts); the phone shows it as the data used. Sent when a test starts, when it ends, and again to a phone
+# that starts watching bit5 while a result is held.
+TEXT 37 SPEED_RESULT
+# Phone to laptop: exactly "host/listRevision/index". host is a git PROVIDER id (1 to 16 characters), listRevision the revision in the first line
+# of the BLOB 7 the phone is showing, index the zero-based position among that blob's P, M, R and A lines (H and N lines are not counted). The
+# phone never sends an address. The laptop opens only an https address it fetched itself for that host, that exact revision and that index,
+# on the host's own domain, in the default browser. GitHub's page holds one more address after its list lines (index = the number of P, M, R and A
+# lines): where the read-only GitHub App is installed, a constant of the laptop. A stale revision, an index out of range, a host that is not connected, an address that
+# is not https, or any other shape is dropped and counted.
+TEXT 38 GIT_OPEN
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -218,6 +310,30 @@ FEATURE clipboard CLIPBOARD
 # The laptop can list its apps for the phone to add as macros.
 FEATURE apps APPS
 FEATURE running RUNNING
+# The laptop answers ACTION 60 to 62.
+FEATURE endaction END_ACTION
+# The laptop can forward its notifications once CONTROL 10 is 1.
+FEATURE notify NOTIFY
+# The laptop can say which app is in front, in TEXT 21, once CONTROL 11 is 1.
+FEATURE foreground FOREGROUND
+# The dashboard features. Each is named only while its Integrations switch on the laptop is on and usable (github: signed in).
+FEATURE stats STATS
+FEATURE weather WEATHER
+FEATURE claude CLAUDE
+FEATURE codex CODEX
+FEATURE github GITHUB
+# The laptop can send TEXT 36 and run CONTROL 14. Named only while its stats switch is on and it can read the network.
+FEATURE netinfo NETINFO
+# More dashboard features, named like claude and github: the AI tools gemini and opencode, the git hosts gitlab, gitea
+# (Gitea, Forgejo and Codeberg), bitbucket and gitee.
+FEATURE gemini GEMINI
+FEATURE opencode OPENCODE
+FEATURE gitlab GITLAB
+FEATURE gitea GITEA
+FEATURE bitbucket BITBUCKET
+FEATURE gitee GITEE
+# Developer mode is on. Every AI tool and git host above is named only while it is.
+FEATURE developer DEVELOPER
 
 # The whole vocabulary of TEXT kind 13's second field, as "<token on the wire> <the name both apps call it>". The phone
 # uses it only to word hints that differ by OS; an unknown token reads as no OS known.
@@ -255,6 +371,69 @@ BLOB_KIND 0 CLIP_TEXT
 BLOB_KIND 1 CLIP_IMAGE
 BLOB_KIND 2 APP_LIST
 BLOB_KIND 3 APP_ICON
+# Laptop to phone. MEDIA_ICON is a PNG of 64 px, its label the app's name, or "artwork" for a browser's media artwork.
+# NOTIFICATION is UTF-8 "app\ntitle\nbody", its label the notification's id.
+BLOB_KIND 4 MEDIA_ICON
+BLOB_KIND 5 NOTIFICATION
+# Laptop to phone. PERM_ASK: label "id/f" (f is 1 when complete, 0 when the text was over the cap); body UTF-8 "agent", "tool" and
+# "text" joined by line feeds; agent an AGENT token, tool 1 to 24 of A-Za-z0-9_.-, text the command or path with newlines and tabs
+# kept, other control characters removed and bidi or zero-width characters shown as <U+XXXX>; body at most 4096 bytes, over it the
+# laptop sends f=0 and an empty text. Sent urgently. Answered with TEXT 31.
+BLOB_KIND 6 PERM_ASK
+# GIT (was GITHUB): laptop to phone, label "git", one git host's page: UTF-8 lines joined by line feeds, fields by tabs, at most 16 KiB (the last
+# lines are dropped until it fits). Line 1 is "H host login name repos followers rev": host a git PROVIDER id, login at most 39 characters, name
+# Clean(40), repos and followers counts, rev the list revision (a number that only goes up, and only when the page changed), all free text
+# cleaned. The older optional "N, empty, count, empty, empty, none" line (an unread count) is no longer sent; a phone still reads one. Then at most 30 lines
+# "P repo private language stars issues pulls" (repo owner/name, private "p" or empty, language Clean(30), the three numbers open counts), recent
+# first, then at most 20 lines each of "M repo number title flags ci state updatedMin" for items that are mine, "R ..." review requested and "A ..."
+# assigned: title Clean(80), flags d for draft and i for an issue (empty for a pull request), ci a CI token, state open, closed or merged,
+# updatedMin UTC minutes since the Unix epoch (0 unknown). No address is ever in the body; TEXT 38 names a line by its index among the P, M, R and
+# A lines. Sent while DASH_WATCH has bit4 and after each refresh that changed the page.
+BLOB_KIND 7 GIT
+
+# The whole vocabulary of TEXT kind 24's reason, as "<token on the wire> <the name both apps call it>". Tokens for the reason
+# PAD_STATUS is. An unknown token reads as UNSUPPORTED.
+UNAVAILABLE_REASON unsupported UNSUPPORTED
+UNAVAILABLE_REASON off OFF
+UNAVAILABLE_REASON no-tool NO_TOOL
+UNAVAILABLE_REASON no-permission NO_PERMISSION
+
+# The dashboard token classes, "<token on the wire> <the name both apps call it>". AGENT names whose entry it is, SESSION_STATE
+# a session's state, CI a pull request's check result. An unknown token is dropped by the reader.
+AGENT claude CLAUDE
+AGENT codex CODEX
+AGENT gemini GEMINI
+AGENT opencode OPENCODE
+# The developer providers in display order, "PROVIDER <id> <ai|git> <feature token> <1 if it has limits> <device|token|hook>".
+# An ai id is an AGENT token, and every feature token is a FEATURE token. Each laptop's DevProviders.All is held to these rows.
+PROVIDER claude ai claude 1 hook
+PROVIDER codex ai codex 1 hook
+PROVIDER gemini ai gemini 0 hook
+PROVIDER opencode ai opencode 0 hook
+PROVIDER github git github 0 device
+PROVIDER gitlab git gitlab 0 device
+PROVIDER gitea git gitea 0 token
+PROVIDER bitbucket git bitbucket 0 token
+PROVIDER gitee git gitee 0 token
+SESSION_STATE busy BUSY
+SESSION_STATE wait WAIT
+SESSION_STATE idle IDLE
+CI ok OK
+CI fail FAIL
+CI pending PENDING
+CI none NONE
+# The two non-minute forms of a LIMITS window: the context window, and the prefix of a name for a limit with no duration.
+LIMIT_WINDOW ctx CONTEXT
+LIMIT_WINDOW ~ NAMED_PREFIX
+
+# The whole vocabulary of TEXT kind 25, same shape. An unknown token reads as NONE.
+END_ACTION_TOKEN none NONE
+END_ACTION_TOKEN sleep SLEEP
+END_ACTION_TOKEN shutdown SHUTDOWN
+
+# The whole vocabulary of TEXT kind 23, same shape. An unknown token reads as IDLE.
+CAPTURE_STATE_TOKEN idle IDLE
+CAPTURE_STATE_TOKEN recording RECORDING
 
 # The whole vocabulary of TEXT kind 11, as "<token on the wire> <the name both apps call it>". Tokens for the
 # reason PAD_STATUS is: the phone branches on them, so prose would make the laptop's wording unchangeable.
@@ -300,5 +479,5 @@ PALETTE 5 GREEN 34C759
 PALETTE 6 BLUE 0068D6
 PALETTE 7 PURPLE AF52DE
 
-HANDSHAKE 5 VERSION
+HANDSHAKE 6 VERSION
 HANDSHAKE 758bb618-7b72-4cd3-9aa2-c9b88e54d555 SERVICE_ID

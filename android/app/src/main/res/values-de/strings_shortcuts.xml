@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tile_label">Edgepad</string>
+  <string name="tile_subtitle_off">Nicht verbunden</string>
+  <string name="notice_play_pause">Wiedergabe oder Pause</string>
+  <string name="notice_volume_down">Leiser</string>
+  <string name="notice_volume_up">Lauter</string>
+  <string name="controls_clipboard">Zwischenablage</string>
+  <string name="controls_presenter">Präsentation</string>
+  <string name="clip_history_title">Zwischenablage</string>
+  <string name="clip_history_empty">Noch nichts kopiert</string>
+  <string name="clip_history_empty_hint">Kopien vom Laptop und von diesem Smartphone erscheinen hier, solange „Zwischenablage teilen“ an ist.</string>
+  <string name="clip_history_from_laptop">Vom Laptop</string>
+  <string name="clip_history_from_phone">Von diesem Smartphone</string>
+  <string name="clip_history_just_now">Gerade eben</string>
+  <string name="clip_history_meta">%1$s · %2$s</string>
+  <string name="clip_history_item_desc">%1$s. %2$s.</string>
+  <string name="clip_history_sent">An %1$s gesendet</string>
+  <string name="clip_history_failed">Senden nicht möglich. Prüfe die Verbindung.</string>
+  <string name="clip_history_send_hint">Erneut senden</string>
+  <string name="presenter_title">Präsentation</string>
+  <string name="presenter_next">Nächste Folie</string>
+  <string name="presenter_previous">Vorherige Folie</string>
+  <string name="presenter_settings">Präsentationseinstellungen</string>
+  <string name="presenter_laser_title">Laser</string>
+  <string name="presenter_size_label">Größe</string>
+  <string name="presenter_size_small">Klein</string>
+  <string name="presenter_size_medium">Mittel</string>
+  <string name="presenter_size_large">Groß</string>
+  <string name="presenter_laser_zoomed">Vorschau, vergrößert</string>
+  <string name="presenter_preview_sample">Quartalsergebnisse</string>
+  <string name="presenter_laser_trail">Spur anzeigen</string>
+  <string name="presenter_point_here">Hier zeigen</string>
+  <string name="tool_laser">Laser</string>
+</resources>

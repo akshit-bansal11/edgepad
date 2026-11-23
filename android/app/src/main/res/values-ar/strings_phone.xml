@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="xfer_pause">إيقاف مؤقت</string>
+  <string name="xfer_resume">متابعة</string>
+  <string name="xfer_stop">إنهاء</string>
+  <string name="xfer_close">إغلاق</string>
+  <string name="xfer_detail">%1$s من %2$s · %3$s/ث</string>
+  <string name="xfer_detail_paused">متوقف مؤقتاً · %1$s من %2$s</string>
+  <string name="xfer_detail_count">%1$d من %2$d · %3$s</string>
+</resources>

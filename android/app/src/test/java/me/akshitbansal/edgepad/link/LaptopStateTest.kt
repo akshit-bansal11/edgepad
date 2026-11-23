@@ -1,12 +1,16 @@
 package me.akshitbansal.edgepad.link
 
+import me.akshitbansal.edgepad.protocol.AgentToken
+import me.akshitbansal.edgepad.protocol.CaptureStateToken
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
+import me.akshitbansal.edgepad.protocol.EndActionToken
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
 import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
+import me.akshitbansal.edgepad.protocol.UnavailableReason
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -225,14 +229,14 @@ class LaptopStateTest {
 
     @Test
     fun keepsAndForgetsBatteriesAndOutput() {
-        assertTrue(state.take(Frame.Text(TextKind.BATTERIES.id, "laptop:87:1:Desk")))
+        assertTrue(state.take(Frame.Text(TextKind.BATTERIES.id, "laptop:87:1:-:-:Desk")))
         assertTrue(state.take(Frame.Text(TextKind.OUTPUT.id, "speaker/Speakers")))
         assertEquals(87, state.batteries.single().level)
         assertEquals("Speakers", state.output?.name)
         // A snapshot: an empty one replaces the list.
         assertTrue(state.take(Frame.Text(TextKind.BATTERIES.id, "")))
         assertTrue(state.batteries.isEmpty())
-        state.take(Frame.Text(TextKind.BATTERIES.id, "laptop:87:1:Desk"))
+        state.take(Frame.Text(TextKind.BATTERIES.id, "laptop:87:1:-:-:Desk"))
         state.forgetPower()
         assertTrue(state.batteries.isEmpty())
         assertNull(state.output)
@@ -455,6 +459,108 @@ class LaptopStateTest {
         assertEquals(1, state.droppedText)
         assertTrue(state.inputBlocked)
     }
+
+    @Test
+    fun takesTheFiveBatchATextKinds() {
+        assertEquals(LaptopState.MACRO_SLOTS, state.macroCap)
+        state.take(Frame.Text(TextKind.MACRO_CAP.id, "99"))
+        assertEquals(LaptopState.MACRO_SLOTS_MAX, state.macroCap)
+        state.take(Frame.Text(TextKind.MACRO_CAP.id, "0"))
+        assertEquals(1, state.macroCap)
+        assertFalse(state.take(Frame.Text(TextKind.MACRO_CAP.id, "x")))
+        state.take(Frame.Text(TextKind.CAPTURE_STATE.id, "recording"))
+        assertEquals(CaptureStateToken.RECORDING, state.captureState)
+        state.take(Frame.Text(TextKind.UNAVAILABLE.id, "notify:off/capture:no-tool"))
+        assertEquals(UnavailableReason.OFF, state.unavailable["notify"])
+        assertEquals(UnavailableReason.NO_TOOL, state.unavailable["capture"])
+        state.take(Frame.Text(TextKind.END_ACTION.id, "sleep"))
+        assertEquals(EndActionToken.SLEEP, state.endAction)
+        state.take(Frame.Text(TextKind.NOW_PLAYING_FULL.id, "Song (Remastered)"))
+        assertEquals("Song (Remastered)", state.nowPlayingFull)
+        state.forgetFeatures()
+        assertEquals(LaptopState.MACRO_SLOTS, state.macroCap)
+        assertEquals(EndActionToken.NONE, state.endAction)
+    }
+
+    @Test
+    fun aNewTitleClearsTheFullTitle() {
+        state.take(Frame.Text(TextKind.NOW_PLAYING_FULL.id, "Song (Remastered)"))
+        state.take(Frame.Text(TextKind.NOW_PLAYING.id, "Next"))
+        assertEquals("", state.nowPlayingFull)
+    }
+
+    @Test
+    fun theForegroundAppIsKeptAndForgotten() {
+        state.take(Frame.Text(TextKind.FOREGROUND_APP.id, "chrome.exe/Chrome"))
+        assertEquals(ForegroundApp("chrome.exe", "Chrome"), state.foreground)
+        state.take(Frame.Text(TextKind.FOREGROUND_APP.id, ""))
+        assertNull(state.foreground)
+        state.take(Frame.Text(TextKind.FOREGROUND_APP.id, "code.exe/Code"))
+        state.forgetFeatures()
+        assertNull(state.foreground)
+    }
+
+    @Test
+    fun keepsTheDashboardNumbersAndForgetsThemWithTheLink() {
+        assertTrue(state.take(Frame.Text(TextKind.STATS.id, "12/48/-1/-1/1200/340/9/0/55/-1/-1")))
+        assertEquals(12, state.stats.latest(StatsRing.CPU))
+        assertFalse(state.take(Frame.Text(TextKind.STATS.id, "1/2/3")))
+        state.take(Frame.Text(TextKind.SESSIONS.id, "claude:busy:42:Fix"))
+        state.take(Frame.Text(TextKind.LIMITS.id, "claude:300:42:1:2|claude:5h:1:1:1"))
+        state.take(Frame.Text(TextKind.WEATHER.id, "185/3/Oslo"))
+        assertEquals(1, state.sessions.size)
+        assertEquals(1, state.limits.size)
+        assertEquals("Oslo", state.weather?.city)
+        state.take(Frame.Text(TextKind.WEATHER.id, ""))
+        assertNull(state.weather)
+        state.forgetFeatures()
+        assertEquals(0, state.stats.size)
+        assertTrue(state.sessions.isEmpty() && state.limits.isEmpty() && state.permAsks.isEmpty())
+    }
+
+    @Test
+    fun forgetsEveryDashboardKindWithTheLink() {
+        state.take(Frame.Text(TextKind.STATS_INFO.id, "Ryzen 5 5600|16384|RTX 3060|12288|Intel Wi-Fi"))
+        state.take(Frame.Text(TextKind.DISKS.id, "C:70:476:143|D:10:931:838"))
+        state.take(
+            Frame.Text(TextKind.SPEND.id, "claude/29499900/120000/310/800000/2100/3000000/9000/0"),
+        )
+        state.take(Frame.Text(TextKind.WEATHER.id, "185/3/Oslo"))
+        state.addPermAsk(PermAsk("a1b2c3d4e5f6", true, AgentToken.CODEX, "Bash", "ls"))
+        state.setGit(GitData("github", "me", "", 0, 0, 1, emptyList(), emptyList()))
+        assertEquals(2, state.disks.size)
+        assertEquals(1, state.spend.size)
+        assertEquals("Oslo", state.weather?.city)
+        assertEquals(1, state.permAsks.size)
+        assertEquals(1, state.git.size)
+        state.forgetFeatures()
+        assertNull(state.statsInfo)
+        assertTrue(state.disks.isEmpty() && state.spend.isEmpty() && state.git.isEmpty())
+        assertNull(state.weather)
+        assertTrue(state.permAsks.isEmpty())
+    }
+
+    @Test
+    fun holdsAtMostFourApprovalsAndDropsOneTheLaptopSaysIsGone() {
+        for (i in 1..5) state.addPermAsk(PermAsk("00000000000$i", true, AgentToken.CLAUDE, "Bash", "ls"))
+        assertEquals(LaptopState.MAX_ASKS, state.permAsks.size)
+        assertEquals("000000000002", state.permAsks.first().id)
+        state.take(Frame.Text(TextKind.PERM_GONE.id, "000000000003"))
+        assertEquals(listOf("000000000002", "000000000004", "000000000005"), state.permAsks.map { it.id })
+    }
+
+    @Test
+    fun anApprovalWhoseGoneCameFirstIsDroppedForTheLastSixteenIds() {
+        for (i in 0..LaptopState.MAX_GONE) state.take(Frame.Text(TextKind.PERM_GONE.id, gone(i)))
+        state.addPermAsk(PermAsk(gone(LaptopState.MAX_GONE), true, AgentToken.CLAUDE, "Bash", "ls"))
+        assertTrue(state.permAsks.isEmpty())
+
+        // The oldest id fell out of the sixteen remembered, so it is shown again.
+        state.addPermAsk(PermAsk(gone(0), true, AgentToken.CLAUDE, "Bash", "ls"))
+        assertEquals(listOf("a00000000000"), state.permAsks.map { it.id })
+    }
+
+    private fun gone(i: Int) = "a" + i.toString().padStart(11, '0')
 
     private companion object {
         /** MacroIconChunks.ChunkBytes on the laptop. Written out, because agreeing with it is the point. */

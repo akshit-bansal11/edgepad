@@ -29,6 +29,7 @@
   <string name="address_connect">Conectar</string>
   <string name="address_looking">Procurando um notebook em %1$s…</string>
   <string name="address_invalid">Isso não é um endereço. Digite um nome de host ou endereço IP, com a porta se não for 47321.</string>
+  <string name="address_bad_port">A porta deve ser um número de 1 a 65535.</string>
   <string name="address_no_laptop">Nada nesse endereço respondeu como um notebook com o Edgepad.</string>
   <string name="usb_tethering">Tethering USB</string>
   <string name="local_network_needed">O Edgepad precisa da permissão Dispositivos por perto para encontrar notebooks no seu Wi-Fi e por USB.</string>
@@ -111,9 +112,9 @@
   <string name="pair_expires">Expira em %1$s</string>
   <string name="pair_expired">Expirado</string>
   <string name="pair_confirm_title">%1$s disse que o código conferiu?</string>
-  <string name="pair_confirm_body">Se ele disse que o código estava errado, toque em Não: outro dispositivo pode estar respondendo no lugar dele.</string>
-  <string name="pair_confirm_yes">Sim, pareado</string>
-  <string name="pair_confirm_no">Não</string>
+  <string name="pair_confirm_body">Se ele disse que o código estava errado, toque em “Não coincidem”: outro dispositivo pode estar respondendo no lugar dele.</string>
+  <string name="pair_confirm_yes">Os códigos coincidem</string>
+  <string name="pair_confirm_no">Não coincidem</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Notebook fora de alcance</string>
@@ -149,7 +150,6 @@
   <string name="link_notice_reconnecting_text">O Edgepad está tentando restabelecer a conexão. Toque para abrir.</string>
   <string name="link_notice_text">Toque para abrir o Edgepad.</string>
   <string name="link_notice_text_clipboard">Toque para abrir o Edgepad. Com o compartilhamento da área de transferência ativado, isso também envia o que você copiou.</string>
-  <string name="settings_clipboard">Área de transferência</string>
   <string name="clipboard_share">Compartilhar área de transferência</string>
   <string name="clipboard_share_caption">Copie em um e cole no outro: texto e imagens. Para enviar deste celular, copie e volte ao Edgepad.</string>
   <string name="sharing_title">Antes de começar</string>
@@ -169,12 +169,10 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 réguas, divididas</string>
   <string name="media_layout_title">Layout da mídia</string>
-  <string name="media_layout_hint_upright">Este é o layout em retrato; gire o celular para organizar o de paisagem. Arraste uma peça para movê-la. Ela se ajusta à grade e às linhas do centro.</string>
-  <string name="media_layout_hint_sideways">Este é o layout em paisagem; gire o celular para organizar o de retrato. Arraste uma peça para movê-la. Ela se ajusta à grade e às linhas do centro.</string>
   <string name="piece_now_playing">Tocando agora</string>
   <string name="piece_transport">Anterior · tocar · próxima</string>
   <string name="media_layout_reset">Redefinir posições</string>
-  <string name="media_layout_reset_confirm">Redefinir posições? Toque de novo</string>
+  <string name="editor_reset_confirm">Toque de novo para redefinir</string>
   <string name="editor_options">Opções</string>
   <string name="editor_done">Concluir</string>
   <string name="media_scale">Tamanho</string>
@@ -293,7 +291,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Desenho</string>
   <string name="shapes_target_title">O que ela executa</string>
-  <string name="shapes_draw_hint">Desenhe em um só traço e levante o dedo ao terminar.</string>
   <string name="shapes_redraw">Desenhar de novo</string>
   <string name="shapes_save">Salvar</string>
   <string name="shapes_delete">Excluir</string>
@@ -339,7 +336,7 @@
   <string name="update_available">Atualização disponível</string>
   <string name="licences_title">Licenças</string>
   <string name="licences_body">Lato, a fonte: SIL Open Font License 1.1.\nLucide, os ícones: ISC License.\nAndroidSVG, que desenha os logotipos dos players: Apache License 2.0.</string>
-  <string name="about_sends">As únicas coisas que o Edgepad envia à internet são a verificação de atualização no github.com e uma atualização que você escolhe baixar. Todo o resto fica entre este celular e o seu notebook.</string>
+  <string name="about_sends">Este celular envia apenas a verificação de atualização para github.com e uma atualização que você escolher baixar. O que o aplicativo do notebook acessa, e quando, está listado em O que o Edgepad usa.</string>
   <string name="updates_install_failed">Não foi possível instalar a atualização. Baixe-a na página da versão e instale manualmente.</string>
   <string name="settings_version">Edgepad %1$s · protocolo %2$d</string>
   <string name="corners_title">Cantos</string>
@@ -422,7 +419,11 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controles</string>
-  <string name="controls_move_hint">Mantenha um bloco pressionado para movê-lo.</string>
+  <string name="controls_edit">Editar</string>
+  <string name="controls_edit_hint">Toque em um bloco para ocultá-lo ou mostrá-lo. Mantenha pressionado e arraste para movê-lo.</string>
+  <string name="controls_hidden">Oculto</string>
+  <string name="controls_all_hidden">Todos os blocos estão ocultos. Toque em Editar para mostrá-los de novo.</string>
+  <string name="controls_toggle_tile">Ocultar ou mostrar %1$s</string>
   <string name="controls_hide_dials">Ocultar réguas e mídia</string>
   <string name="controls_blackout">Apagar a tela quando ociosa</string>
   <string name="controls_open">Abrir %1$s</string>
@@ -441,10 +442,8 @@
   <string name="capture_stop">Parar gravação</string>
   <string name="capture_recording">Gravando no notebook. Toque em Parar gravação para terminar; com Salvar em Celular, o arquivo chega nesse momento.</string>
   <string name="capture_sent">Enviado ao notebook: %1$s</string>
-  <string name="capture_hint">Para uma região, toque em Região e depois segure um dedo parado no touchpad por um instante e mova-o para marcar a área.</string>
-  <string name="capture_save_to">Salvar em</string>
+  <string name="capture_drag_caption">Arraste para selecionar a área</string>
   <string name="capture_save_laptop">Notebook</string>
-  <string name="capture_save_phone">Celular</string>
   <string name="capture_receiving">Recebendo %1$s, %2$d%%</string>
   <string name="capture_saved">Salvo em %1$s</string>
   <string name="capture_bad_hash">A captura chegou danificada. Ela continua no notebook.</string>
@@ -455,8 +454,6 @@
   <string name="capture_send_failed">O notebook não conseguiu enviar a captura. Ela continua no notebook.</string>
   <string name="controls_annotate">Anotar</string>
   <string name="annotate_description">Mesa digitalizadora: um toque desenha no mesmo lugar da tela do notebook. Funciona só por toque.</string>
-  <string name="annotate_hint">Desenhe aqui. A tinta aparece no notebook no mesmo lugar.</string>
-  <string name="annotate_hint_named">Desenhe aqui. A tinta aparece em %1$s no mesmo lugar.</string>
   <string name="annotate_menu">Ferramentas de desenho</string>
   <string name="annotate_menu_expanded">Expandido</string>
   <string name="annotate_menu_collapsed">Recolhido</string>
@@ -523,7 +520,7 @@
   <string name="apps_add_from_laptop">Adicionar do notebook</string>
   <string name="apps_add_caption">Escolha um app da lista do notebook e ele vira uma macro lá. Só a sua escolha é enviada.</string>
   <string name="apps_title">Adicionar uma macro</string>
-  <string name="apps_search_hint">Pesquisar apps</string>
+  <string name="apps_search_hint">Pesquisar apps, ex.: Chrome</string>
   <string name="apps_loading">Procurando apps em %1$s…</string>
   <string name="apps_none">%1$s não listou nenhum app.</string>
   <string name="apps_no_match">Nenhum app corresponde a essa pesquisa.</string>
@@ -563,4 +560,69 @@
   <string name="battery_percent">%1$d%%</string>
   <string name="battery_more">+%1$d</string>
   <string name="battery_summary">Baterias: %1$s</string>
+  <string name="updates_later">Depois</string>
+  <string name="updates_skip">Pular esta versão</string>
+  <string name="updates_notify_text">O Edgepad %1$s está disponível. Toque para atualizar.</string>
+  <string name="end_action_title">Suspender ao terminar</string>
+  <string name="end_sleep">Suspender o notebook</string>
+  <string name="end_shutdown">Desligar o notebook</string>
+  <string name="end_cancel">Cancelar</string>
+  <string name="end_armed_sleep">Suspendendo ao terminar</string>
+  <string name="end_armed_shutdown">Desligando ao terminar</string>
+  <string name="end_no_timeline">Isto não tem hora de término, então não há o que esperar.</string>
+  <string name="unavailable_unsupported">Este notebook não consegue fazer isso.</string>
+  <string name="unavailable_off">Isto está desativado no notebook.</string>
+  <string name="unavailable_no_tool">Falta no notebook um programa necessário.</string>
+  <string name="unavailable_no_permission">O notebook ainda não permitiu isso.</string>
+  <string name="unavailable_github_resign">Entre novamente no GitHub no notebook. O Edgepad agora usa acesso somente leitura.</string>
+  <string name="capture_recording_laptop">Gravando no notebook</string>
+  <string name="xfer_send">Enviar um arquivo</string>
+  <string name="xfer_sending">Enviando %1$s · %2$d%%</string>
+  <string name="xfer_receiving">Recebendo %1$s · %2$d%%</string>
+  <string name="xfer_done">%1$s salvo</string>
+  <string name="xfer_failed">Não foi possível enviar %1$s</string>
+  <plurals name="xfer_too_many">
+    <item quantity="one">Apenas os primeiros %1$d arquivos foram colocados na fila</item>
+    <item quantity="many">Apenas os primeiros %1$d arquivos foram colocados na fila</item>
+    <item quantity="other">Apenas os primeiros %1$d arquivos foram colocados na fila</item>
+  </plurals>
+  <string name="xfer_sending_n">Enviando %1$s (%2$d de %3$d) · %4$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">%1$d arquivo enviado</item>
+    <item quantity="many">%1$d arquivos enviados</item>
+    <item quantity="other">%1$d arquivos enviados</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">%1$d arquivo recebido</item>
+    <item quantity="many">%1$d arquivos recebidos</item>
+    <item quantity="other">%1$d arquivos recebidos</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">%1$d de %2$d arquivo enviado</item>
+    <item quantity="many">%1$d de %2$d arquivos enviados</item>
+    <item quantity="other">%1$d de %2$d arquivos enviados</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d arquivo não foi enviado</item>
+    <item quantity="many">%1$d arquivos não foram enviados</item>
+    <item quantity="other">%1$d arquivos não foram enviados</item>
+  </plurals>
+  <plurals name="xfer_card_more">
+    <item quantity="one">e mais %1$d</item>
+    <item quantity="many">e mais %1$d</item>
+    <item quantity="other">e mais %1$d</item>
+  </plurals>
+  <plurals name="xfer_share_count">
+    <item quantity="one">%1$d arquivo</item>
+    <item quantity="many">%1$d de arquivos</item>
+    <item quantity="other">%1$d arquivos</item>
+  </plurals>
+  <string name="xfer_card_cancelling">Cancelando…</string>
+  <string name="xfer_retry">Tentar de novo</string>
+  <string name="xfer_card_a11y">Transferência de arquivos</string>
+  <string name="xfer_no_laptop">Conecte-se a um notebook primeiro</string>
+  <string name="xfer_channel">Transferências de arquivos</string>
+  <string name="notify_channel">Notificações do notebook</string>
+  <string name="notify_setting">Mostrar notificações do notebook</string>
+  <string name="notify_setting_hint">Requer a mesma chave ativada no menu do Edgepad no notebook.</string>
 </resources>

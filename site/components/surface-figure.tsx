@@ -277,7 +277,7 @@ export function SurfaceFigure({ className }: { className?: string }) {
       viewBox={`0 0 ${W} ${H}`}
       className={className}
       role="img"
-      aria-label="The phone's control surface: a dial wrapping each of the four corners, three buttons along the top, the media pieces in the middle, and the trackpad filling everything else."
+      aria-label="The phone’s control surface: a dial wrapping each of the four corners, three buttons along the top, the media pieces in the middle, and the trackpad filling everything else."
       fill="none"
     >
       <title>The phone&apos;s control surface</title>

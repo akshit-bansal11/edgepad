@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="tip_close">关闭提示</string>
+  <string name="tip_presenter">打开此屏幕时，音量键可切换幻灯片。</string>
+  <string name="tip_capture">区域：点按后，在触控板上拖到对角。</string>
+  <string name="tip_annotate">在这里绘制，墨迹会出现在笔记本电脑的同一位置。</string>
+  <string name="tip_shapes">一笔画完，然后抬起手指。</string>
+  <string name="capture_to_phone">发送到手机</string>
+</resources>

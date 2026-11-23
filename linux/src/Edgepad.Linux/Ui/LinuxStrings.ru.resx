@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Menu_Network" xml:space="preserve">
+    <value>Подключения по Wi-Fi и USB</value>
+  </data>
+  <data name="Menu_ShareClipboard" xml:space="preserve">
+    <value>Общий буфер обмена</value>
+  </data>
+  <data name="Menu_ShareClipboardTip" xml:space="preserve">
+    <value>Копируйте на одном устройстве, вставляйте на другом: текст и изображения.</value>
+  </data>
+  <data name="Menu_CheckUpdates" xml:space="preserve">
+    <value>Проверять обновления ежедневно</value>
+  </data>
+  <data name="Menu_Macros" xml:space="preserve">
+    <value>Макросы…</value>
+  </data>
+  <data name="Menu_Security" xml:space="preserve">
+    <value>Безопасность…</value>
+  </data>
+  <data name="Menu_Documentation" xml:space="preserve">
+    <value>Документация</value>
+  </data>
+  <data name="Menu_OpenLog" xml:space="preserve">
+    <value>Открыть журнал</value>
+  </data>
+  <data name="Menu_Quit" xml:space="preserve">
+    <value>Выйти из Edgepad</value>
+  </data>
+  <data name="Menu_Update" xml:space="preserve">
+    <value>Доступно обновление</value>
+  </data>
+  <data name="Menu_UpdateVersion" xml:space="preserve">
+    <value>Доступно обновление: {0}</value>
+  </data>
+  <data name="Menu_UpdateInstall" xml:space="preserve">
+    <value>Установить Edgepad {0}</value>
+  </data>
+  <data name="Menu_UpdateLater" xml:space="preserve">
+    <value>Позже</value>
+  </data>
+  <data name="Menu_UpdateSkip" xml:space="preserve">
+    <value>Пропустить эту версию</value>
+  </data>
+  <data name="Menu_SendFile" xml:space="preserve">
+    <value>Отправить файл на телефон…</value>
+  </data>
+  <data name="Menu_Notifications" xml:space="preserve">
+    <value>Показывать уведомления на телефоне</value>
+  </data>
+  <data name="Dialog_NetworkFirstHeading" xml:space="preserve">
+    <value>Разрешить телефонам находить этот ноутбук?</value>
+  </data>
+  <data name="Dialog_Allow" xml:space="preserve">
+    <value>Разрешить</value>
+  </data>
+  <data name="Dialog_TurnOn" xml:space="preserve">
+    <value>Включить</value>
+  </data>
+  <data name="Common_NotNow" xml:space="preserve">
+    <value>Не сейчас</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Common_Forget" xml:space="preserve">
+    <value>Забыть</value>
+  </data>
+  <data name="Error_SettingNotSaved" xml:space="preserve">
+    <value>Не удалось сохранить параметр, ничего не изменено. Причина указана в журнале.</value>
+  </data>
+  <data name="Balloon_WantsToPair" xml:space="preserve">
+    <value>{0} хочет сопрячься. Введите код сопряжения, который он показывает.</value>
+  </data>
+  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+    <value>Завершение работы</value>
+  </data>
+  <data name="EndAction_ShutdownText" xml:space="preserve">
+    <value>Воспроизведение закончилось. Ноутбук выключится через {0} с.</value>
+  </data>
+  <data name="EndAction_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Network_CouldNotListen" xml:space="preserve">
+    <value>Wi-Fi и USB: не удалось начать приём подключений. См. журнал.</value>
+  </data>
+  <data name="App_Name" xml:space="preserve">
+    <value>Edgepad</value>
+  </data>
+  <data name="Common_Install" xml:space="preserve">
+    <value>Установить</value>
+  </data>
+  <data name="Menu_StartAtLogin" xml:space="preserve">
+    <value>Запускать при входе</value>
+  </data>
+  <data name="Hint_Off" xml:space="preserve">
+    <value>Выключено</value>
+  </data>
+  <data name="Hint_Listening" xml:space="preserve">
+    <value>Прослушивает порт {0}</value>
+  </data>
+  <data name="Hint_PortInUse" xml:space="preserve">
+    <value>Порт занят, используется {0}</value>
+  </data>
+  <data name="Hint_CouldNotListen" xml:space="preserve">
+    <value>Не удалось начать прослушивание; см. журнал</value>
+  </data>
+  <data name="Open_Nothing" xml:space="preserve">
+    <value>Не удалось открыть: {0}. Пока по адресу {1} ничего нет.</value>
+  </data>
+  <data name="Open_InstallXdg" xml:space="preserve">
+    <value>Не удалось открыть: {0}. Установите xdg-utils.</value>
+  </data>
+  <data name="What_ReleasePage" xml:space="preserve">
+    <value>страница релиза</value>
+  </data>
+  <data name="What_Documentation" xml:space="preserve">
+    <value>документация</value>
+  </data>
+  <data name="What_Log" xml:space="preserve">
+    <value>журнал</value>
+  </data>
+  <data name="Fallback_Running" xml:space="preserve">
+    <value>Edgepad работает</value>
+  </data>
+  <data name="Fallback_NoTray" xml:space="preserve">
+    <value>На вашем рабочем столе нет значков в области уведомлений. В GNOME установите расширение ‘AppIndicator and KStatusNotifierItem Support’, чтобы он появился.</value>
+  </data>
+  <data name="FirstRun_NetworkBody" xml:space="preserve">
+    <value>Телефоны в той же сети Wi-Fi или подключённые через USB-модем смогут найти этот ноутбук и запросить сопряжение. Без кода сопряжения, введённого здесь, ничего не подключится.</value>
+  </data>
+  <data name="FirstRun_Firewall" xml:space="preserve">
+    <value>Брандмауэр может их блокировать. Разрешите, например, {0}/tcp и 5353/udp:</value>
+  </data>
+  <data name="FirstRun_ShareHeading" xml:space="preserve">
+    <value>Включить общий буфер обмена?</value>
+  </data>
+  <data name="Notice_WantsToConnect" xml:space="preserve">
+    <value>{0} хочет подключиться. Окно спрашивает, доверять ли ему. Найдите его на экране.</value>
+  </data>
+  <data name="Notice_UpdateAvailable" xml:space="preserve">
+    <value>Доступен Edgepad {0}. Нажмите, чтобы открыть страницу релиза.</value>
+  </data>
+  <data name="Notice_CannotControl" xml:space="preserve">
+    <value>Edgepad не может управлять этим ноутбуком</value>
+  </data>
+  <data name="Notice_TrayFailedTitle" xml:space="preserve">
+    <value>Не удалось запустить Edgepad</value>
+  </data>
+  <data name="Notice_TrayFailed" xml:space="preserve">
+    <value>Не удалось настроить его значок в области уведомлений. Причина указана в журнале.</value>
+  </data>
+  <data name="Update_MajorConfirm" xml:space="preserve">
+    <value>Edgepad {0} меняет способ связи ноутбука и телефона. Установите и подходящее приложение на телефон, иначе они не подключатся. Установить обновление для ноутбука сейчас?</value>
+  </data>
+  <data name="Update_NeedsRoot" xml:space="preserve">
+    <value>Edgepad {0} скачан и проверен, но эта копия установлена там, где её может изменить только администратор. Откройте терминал и выполните:</value>
+  </data>
+  <data name="Update_InstallFailed" xml:space="preserve">
+    <value>Не удалось установить обновление, ничего не изменено. Причина указана в журнале.</value>
+  </data>
+  <data name="Error_NotSavedAfterRestart" xml:space="preserve">
+    <value>Это действует сейчас, но сохранить не удалось, поэтому после перезапуска всё вернётся. Причина указана в журнале.</value>
+  </data>
+  <data name="Error_AutostartFailed" xml:space="preserve">
+    <value>Не удалось изменить запуск при входе. Причина указана в журнале.</value>
+  </data>
+  <data name="Forget_AllNamed" xml:space="preserve">
+    <value>Забыть все доверенные телефоны ({0})? Каждый телефон, включая этот, придётся снова признать доверенным здесь, прежде чем он сможет использовать этот ноутбук.</value>
+  </data>
+  <data name="Forget_All" xml:space="preserve">
+    <value>Забыть доверенные телефоны? Каждый телефон, включая этот, придётся снова признать доверенным здесь, прежде чем он сможет использовать этот ноутбук.</value>
+  </data>
+  <data name="Error_ForgetLinks" xml:space="preserve">
+    <value>Не удалось забыть сопряжения по Wi-Fi и USB: их файл не удалось удалить или очистить. Пока Edgepad работает, сопряжённые телефоны не смогут подключиться по Wi-Fi или USB, но смогут при следующем запуске. Снова выберите «Забыть все…» в разделе «Безопасность…» или удалите paired-links.txt сами из:</value>
+  </data>
+  <data name="Error_ForgetTrust" xml:space="preserve">
+    <value>Не удалось забыть доверенные телефоны: их файл не удалось удалить или очистить. Пока Edgepad работает, ни один телефон не подключится, но при следующем запуске Edgepad эти телефоны снова станут доверенными. Закройте то, что удерживает файл, и снова выберите «Забыть все…» в разделе «Безопасность…» или удалите его сами:</value>
+  </data>
+  <data name="Error_ForgetPin" xml:space="preserve">
+    <value>Не удалось забыть телефоны, которые вводили PIN-код: их список не удалось удалить. Пока Edgepad работает, PIN-код запрашивается у каждого телефона при каждом подключении, но при следующем запуске Edgepad эти телефоны снова будут пропускать его на уровне 2. Снова выберите «Забыть все…» в разделе «Безопасность…» или удалите pin-verified.txt сами из:</value>
+  </data>
+  <data name="Send_PickerTitle" xml:space="preserve">
+    <value>Отправить файл на телефон</value>
+  </data>
+  <data name="Send_NoPhone" xml:space="preserve">
+    <value>Телефон не подключён. Подключите его и отправьте файл снова.</value>
+  </data>
+  <data name="Send_Sent" xml:space="preserve">
+    <value>{0} отправлен на телефон.</value>
+  </data>
+  <data name="Security_Title" xml:space="preserve">
+    <value>Безопасность</value>
+  </data>
+  <data name="Security_Intro" xml:space="preserve">
+    <value>Сначала каждому телефону нужно ваше «да» здесь. На уровнях 2 и 3 дополнительно запрашивается шестизначный PIN-код, который вводится на экране телефона. Пока это окно открыто, телефоны отключены.</value>
+  </data>
+  <data name="Security_Level1" xml:space="preserve">
+    <value>Только доверие</value>
+  </data>
+  <data name="Security_Level2" xml:space="preserve">
+    <value>PIN-код один раз для телефона</value>
+  </data>
+  <data name="Security_Level3" xml:space="preserve">
+    <value>PIN-код при каждом подключении</value>
+  </data>
+  <data name="Security_SetPin" xml:space="preserve">
+    <value>Задать PIN-код…</value>
+  </data>
+  <data name="Security_ChangePin" xml:space="preserve">
+    <value>Изменить PIN-код…</value>
+  </data>
+  <data name="Security_PinStaged" xml:space="preserve">
+    <value>Новый PIN-код будет сохранён.</value>
+  </data>
+  <data name="Security_PinSet" xml:space="preserve">
+    <value>PIN-код задан.</value>
+  </data>
+  <data name="Security_PinNone" xml:space="preserve">
+    <value>PIN-код не задан.</value>
+  </data>
+  <data name="Security_PinNote" xml:space="preserve">
+    <value>После сохранения нового PIN-кода или уровня телефоны, которые уже вводили PIN-код, должны будут ввести его снова.</value>
+  </data>
+  <data name="Security_TrustedPhones" xml:space="preserve">
+    <value>Доверенные телефоны</value>
+  </data>
+  <data name="Security_ForgetAll" xml:space="preserve">
+    <value>Забыть все…</value>
+  </data>
+  <data name="Security_Reset" xml:space="preserve">
+    <value>Сбросить PIN-код и забыть телефоны…</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="Security_NoPhones" xml:space="preserve">
+    <value>Доверенных телефонов пока нет. Вопрос о доверии появляется при первом подключении телефона.</value>
+  </data>
+  <data name="Security_ForgetOneText" xml:space="preserve">
+    <value>Чтобы телефон «{0}» ({1}) мог пользоваться этим ноутбуком, ему нужно будет снова получить доверие здесь. Пока вы решаете, телефоны остаются отключёнными.</value>
+  </data>
+  <data name="Error_ForgetOne" xml:space="preserve">
+    <value>Повторите «Забыть», когда файлы Edgepad в {0} перестанут использоваться другими программами. Телефон «{1}» не удалось забыть полностью: не получилось перезаписать файл. На диске он по-прежнему доверенный, но Edgepad отклоняет его до перезапуска, а после перезапуска снова будет ему доверять, если вы не забудете его ещё раз.</value>
+  </data>
+  <data name="Error_PinNotSaved" xml:space="preserve">
+    <value>Не удалось сохранить PIN-код, ничего не изменено. Причина указана в журнале.</value>
+  </data>
+  <data name="Error_LevelNotSaved" xml:space="preserve">
+    <value>Не удалось сохранить уровень, поэтому действует прежний. Причина указана в журнале.</value>
+  </data>
+  <data name="Security_ResetText" xml:space="preserve">
+    <value>PIN-код будет удалён, уровень вернётся к 1, а все доверенные телефоны будут забыты. Каждому телефону, включая подключённый, нужно будет снова получить доверие здесь. Забытый PIN-код восстановить нельзя, его можно только сбросить.</value>
+  </data>
+  <data name="Error_ResetTrust" xml:space="preserve">
+    <value>Закройте всё, что держит файл, затем выберите ещё раз «Сбросить PIN-код и забыть телефоны» или удалите файл сами:
+
+{0}
+
+Ничего не сброшено: доверенные телефоны не удалось забыть, поэтому PIN-код и уровень остались прежними. Пока Edgepad запущен, ни один телефон не сможет подключиться, но при следующем запуске эти телефоны снова станут доверенными, с тем же PIN-кодом.</value>
+  </data>
+  <data name="Error_ResetPin" xml:space="preserve">
+    <value>Закройте всё, что держит файл, затем выберите ещё раз «Сбросить PIN-код и забыть телефоны» или удалите security.txt и pin-verified.txt сами из папки:
+
+{0}
+
+Доверенные телефоны забыты, но PIN-код сбросить не удалось: файл настроек не удалось удалить, поэтому прежний PIN-код и уровень могут продолжать действовать. Каждому телефону нужно снова получить доверие здесь.</value>
+  </data>
+  <data name="Dialog_Trust" xml:space="preserve">
+    <value>Доверять</value>
+  </data>
+  <data name="Dialog_DontTrust" xml:space="preserve">
+    <value>Не доверять</value>
+  </data>
+  <data name="Dialog_TrustHeading" xml:space="preserve">
+    <value>Доверять телефону «{0}»?</value>
+  </data>
+  <data name="Dialog_TrustText" xml:space="preserve">
+    <value>Сопряжённый телефон просит разрешения управлять указателем и клавиатурой этого ноутбука. Доверяйте ему, только если он ваш. Если вы не ответите в течение {0} s, телефон останется недоверенным.</value>
+  </data>
+  <data name="Pin_Title" xml:space="preserve">
+    <value>Новый PIN-код</value>
+  </data>
+  <data name="Pin_AgainName" xml:space="preserve">
+    <value>Новый PIN-код ещё раз</value>
+  </data>
+  <data name="Pin_Digits" xml:space="preserve">
+    <value>Шесть цифр</value>
+  </data>
+  <data name="Pin_Again" xml:space="preserve">
+    <value>Ещё раз</value>
+  </data>
+  <data name="Pin_Use" xml:space="preserve">
+    <value>Использовать этот PIN-код</value>
+  </data>
+  <data name="Pin_NotSix" xml:space="preserve">
+    <value>PIN-код состоит ровно из шести цифр.</value>
+  </data>
+  <data name="Pin_Mismatch" xml:space="preserve">
+    <value>PIN-коды не совпадают.</value>
+  </data>
+  <data name="Macro_Title" xml:space="preserve">
+    <value>Макросы</value>
+  </data>
+  <data name="Macro_EmptyHeadline" xml:space="preserve">
+    <value>Макросов пока нет</value>
+  </data>
+  <data name="Macro_Name" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="Macro_Arguments" xml:space="preserve">
+    <value>Аргументы</value>
+  </data>
+  <data name="Macro_ArgumentsOptional" xml:space="preserve">
+    <value>необязательно</value>
+  </data>
+  <data name="Macro_Remove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="Macro_Browse" xml:space="preserve">
+    <value>Обзор…</value>
+  </data>
+  <data name="Macro_AddButton" xml:space="preserve">
+    <value>Добавить макрос</value>
+  </data>
+  <data name="Macro_New" xml:space="preserve">
+    <value>Новый макрос</value>
+  </data>
+  <data name="Macro_NothingToOpen" xml:space="preserve">
+    <value>Макрос «{0}»: нечего открывать. Укажите, что он открывает, или удалите его.</value>
+  </data>
+  <data name="Macro_SaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить макросы в {0}: {1}</value>
+  </data>
+  <data name="Macro_ChooseTarget" xml:space="preserve">
+    <value>Выберите, что открывает эта кнопка</value>
+  </data>
+  <data name="Pair_Ask" xml:space="preserve">
+    <value>Введите код сопряжения, показанный на телефоне:</value>
+  </data>
+  <data name="Pair_CodeName" xml:space="preserve">
+    <value>Код сопряжения, показанный на телефоне</value>
+  </data>
+  <data name="Pair_Title" xml:space="preserve">
+    <value>Сопряжение телефона</value>
+  </data>
+  <data name="Pair_Heading" xml:space="preserve">
+    <value>Сопрячь «{0}»?</value>
+  </data>
+  <data name="Pair_Button" xml:space="preserve">
+    <value>Сопрячь</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="Pair_Checking" xml:space="preserve">
+    <value>Проверка кода сопряжения</value>
+  </data>
+  <data name="Pair_ClosesIn" xml:space="preserve">
+    <value>Закроется через {0} s</value>
+  </data>
+  <data name="Balloon_FileReceived" xml:space="preserve">
+    <value>Файл {0} получен с телефона.</value>
+  </data>
+  <data name="Menu_MacrosCount" xml:space="preserve">
+    <value>{0} из {1}</value>
+  </data>
+  <data name="Pair_Request" xml:space="preserve">
+    <value>Запрос {0}</value>
+  </data>
+  <data name="Macro_Intro" xml:space="preserve">
+    <value>Каждый макрос становится кнопкой на телефоне. Не более {0}.</value>
+  </data>
+  <data name="Macro_TargetHint" xml:space="preserve">
+    <value>Программа, файл, папка или ссылка</value>
+  </data>
+  <data name="Macro_AddApp" xml:space="preserve">
+    <value>Добавить приложение</value>
+  </data>
+  <data name="Macro_NoApps" xml:space="preserve">
+    <value>На этом ноутбуке приложения не найдены.</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="Annotate_OverlayTitle" xml:space="preserve">
+    <value>Аннотации Edgepad</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Сбросить</value>
+  </data>
+  <data name="Menu_DeveloperMode" xml:space="preserve">
+    <value>Режим разработчика</value>
+  </data>
+  <data name="Menu_Group_Clipboard" xml:space="preserve">
+    <value>Буфер обмена</value>
+  </data>
+  <data name="Menu_Group_Connections" xml:space="preserve">
+    <value>Подключения</value>
+  </data>
+  <data name="Menu_Group_Integrations" xml:space="preserve">
+    <value>Интеграции</value>
+  </data>
+  <data name="Menu_Group_Settings" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="Menu_StatsWeather" xml:space="preserve">
+    <value>Статистика и погода…</value>
+  </data>
+  <data name="Menu_ForDevelopers" xml:space="preserve">
+    <value>Для разработчиков…</value>
+  </data>
+  <data name="Integrations_Title" xml:space="preserve">
+    <value>Интеграции</value>
+  </data>
+  <data name="Integrations_Intro" xml:space="preserve">
+    <value>Здесь всё выключено, пока вы это не включите.</value>
+  </data>
+  <data name="Integrations_Stats" xml:space="preserve">
+    <value>Показывать данные системы на телефоне</value>
+  </data>
+  <data name="Integrations_Weather" xml:space="preserve">
+    <value>Показывать погоду на телефоне</value>
+  </data>
+  <data name="Integrations_City" xml:space="preserve">
+    <value>Город</value>
+  </data>
+  <data name="Integrations_WeatherNote" xml:space="preserve">
+    <value>Отправляет на open-meteo.com только название города.</value>
+  </data>
+  <data name="Integrations_Connect" xml:space="preserve">
+    <value>Подключить</value>
+  </data>
+  <data name="Integrations_Disconnect" xml:space="preserve">
+    <value>Отключить</value>
+  </data>
+  <data name="Integrations_Connected" xml:space="preserve">
+    <value>Подключено · последний сигнал {0}</value>
+  </data>
+  <data name="Integrations_NotConnected" xml:space="preserve">
+    <value>Не подключено</value>
+  </data>
+  <data name="Integrations_NotFound" xml:space="preserve">
+    <value>{0} не найден на этом компьютере</value>
+  </data>
+  <data name="Integrations_RunYourself" xml:space="preserve">
+    <value>Edgepad не смог выполнить это за вас. Выполните эти команды в терминале:</value>
+  </data>
+  <data name="Integrations_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="Integrations_TrustCodex" xml:space="preserve">
+    <value>В Codex откройте /hooks и доверьте Edgepad.</value>
+  </data>
+  <data name="Integrations_WaitingTrust" xml:space="preserve">
+    <value>Ожидание, пока Codex доверится плагину…</value>
+  </data>
+  <data name="Integrations_UpdateCodex" xml:space="preserve">
+    <value>Обновите Codex до версии 0.159 или новее.</value>
+  </data>
+  <data name="Integrations_Restart" xml:space="preserve">
+    <value>Перезапустите открытые сеансы или выполните /reload-plugins в Claude Code.</value>
+  </data>
+  <data name="Integrations_ForDevelopers" xml:space="preserve">
+    <value>Для разработчиков</value>
+  </data>
+  <data name="Integrations_SignOut" xml:space="preserve">
+    <value>Выйти</value>
+  </data>
+  <data name="Integrations_Code" xml:space="preserve">
+    <value>Ваш код: {0}</value>
+  </data>
+  <data name="Integrations_OpenPage" xml:space="preserve">
+    <value>Открыть github.com/login/device</value>
+  </data>
+  <data name="Integrations_Waiting" xml:space="preserve">
+    <value>Ожидание вашего подтверждения в браузере…</value>
+  </data>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>Выбрать репозитории на GitHub</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Войдите снова. Edgepad теперь использует доступ к GitHub только для чтения. Отзовите доступ старого Edgepad на https://github.com/settings/applications.</value>
+  </data>
+  <data name="Integrations_SignedIn" xml:space="preserve">
+    <value>Вход выполнен как {0}</value>
+  </data>
+  <data name="Integrations_NoClientId" xml:space="preserve">
+    <value>Вход не настроен в этой сборке.</value>
+  </data>
+  <data name="Integrations_Never" xml:space="preserve">
+    <value>никогда</value>
+  </data>
+  <data name="Integrations_SignInFailed" xml:space="preserve">
+    <value>Вход не завершён. Попробуйте ещё раз.</value>
+  </data>
+  <data name="Integrations_NotEncrypted" xml:space="preserve">
+    <value>Связка ключей была недоступна, поэтому вход в GitHub хранится в личном файле без шифрования.</value>
+  </data>
+  <data name="Integrations_ClaudeSteps" xml:space="preserve">
+    <value>1. Установите Claude Code на этот компьютер, если ещё не сделали этого: claude.com/claude-code
+2. Нажмите «Подключить». Edgepad добавит свой плагин в Claude Code.
+3. Перезапустите открытые сеансы Claude Code или введите в них /reload-plugins.
+4. На телефоне откройте Controls > AI.</value>
+  </data>
+  <data name="Integrations_CodexSteps" xml:space="preserve">
+    <value>1. Установите Codex на этот компьютер, если ещё не сделали этого: developers.openai.com/codex
+2. Нажмите «Подключить». Edgepad добавит свой плагин в Codex.
+3. В Codex введите /hooks и отметьте Edgepad как доверенный. В приложении Codex: Settings > Hooks > Review hooks.
+4. На телефоне откройте Controls > AI. Раздел появится, когда Codex отправит первое событие.</value>
+  </data>
+  <data name="Integrations_Working" xml:space="preserve">
+    <value>Выполняется…</value>
+  </data>
+  <data name="Integrations_GitHubSteps" xml:space="preserve">
+    <value>1. Нажмите «Войти». Откроется страница github.com.
+2. Введите показанный здесь код и нажмите Authorize.
+3. На телефоне откройте Controls > GitHub.</value>
+  </data>
+  <data name="Dev_Subtitle" xml:space="preserve">
+    <value>Подключите ИИ-инструменты и хостинги Git, чтобы видеть их на телефоне.</value>
+  </data>
+  <data name="Dev_SectionAi" xml:space="preserve">
+    <value>ИИ-инструменты</value>
+  </data>
+  <data name="Dev_SectionGit" xml:space="preserve">
+    <value>Хостинги Git</value>
+  </data>
+  <data name="Dev_HowTo" xml:space="preserve">
+    <value>Как подключить</value>
+  </data>
+  <data name="Dev_SignIn" xml:space="preserve">
+    <value>Войти</value>
+  </data>
+  <data name="Dev_Add" xml:space="preserve">
+    <value>Добавить…</value>
+  </data>
+  <data name="Dev_ComingSoon" xml:space="preserve">
+    <value>Скоро</value>
+  </data>
+  <data name="Dev_FieldUrl" xml:space="preserve">
+    <value>Адрес сервера</value>
+  </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Добавить собственный сервер…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>Открыть gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>На своём сервере создайте персональный токен доступа только с областью read_api и вставьте его ниже.</value>
+  </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>Вход в GitLab истёк — войдите снова</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Использовать токен</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>На gitlab.com создайте персональный токен доступа только с областью read_api и вставьте его ниже. В отличие от входа, он не истекает через 2 часа.</value>
+  </data>
+  <data name="Dev_FieldUser" xml:space="preserve">
+    <value>Имя пользователя или e-mail</value>
+  </data>
+  <data name="Dev_FieldToken" xml:space="preserve">
+    <value>Токен доступа</value>
+  </data>
+  <data name="Dev_SaveInvalid" xml:space="preserve">
+    <value>Проверьте адрес сервера, имя и токен и повторите попытку.</value>
+  </data>
+  <data name="Dev_SaveUnauthorized" xml:space="preserve">
+    <value>Сервер не принял этот токен.</value>
+  </data>
+  <data name="Dev_SaveForbidden" xml:space="preserve">
+    <value>У этого токена нет права на чтение. Создайте токен с доступом на чтение.</value>
+  </data>
+  <data name="Dev_SaveNotFound" xml:space="preserve">
+    <value>По этому адресу сервер не найден.</value>
+  </data>
+  <data name="Dev_SaveNetwork" xml:space="preserve">
+    <value>Не удалось связаться с сервером. Проверьте подключение.</value>
+  </data>
+  <data name="Dev_SaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить токен. Повторите попытку.</value>
+  </data>
+  <data name="Dev_GeminiSteps" xml:space="preserve">
+    <value>1. Установите Gemini CLI на этот компьютер, если ещё не установили.
+2. Нажмите «Подключить». Edgepad добавит свои хуки в настройки Gemini CLI.
+3. Перезапустите открытые сеансы Gemini CLI.</value>
+  </data>
+  <data name="Dev_OpenCodeSteps" xml:space="preserve">
+    <value>1. Установите OpenCode на этот компьютер, если ещё не установили.
+2. Нажмите «Подключить». Edgepad добавит свой плагин в папку плагинов OpenCode.
+3. Перезапустите открытые сеансы OpenCode.</value>
+  </data>
+  <data name="Dev_GiteaSteps" xml:space="preserve">
+    <value>1. На своём сервере откройте «Настройки &gt; Приложения» и создайте токен доступа с правом на чтение.
+2. Нажмите «Добавить», проверьте адрес сервера (по умолчанию Codeberg) и вставьте токен.</value>
+  </data>
+  <data name="Dev_BitbucketSteps" xml:space="preserve">
+    <value>1. В учётной записи Atlassian создайте API-токен с доступом на чтение к Bitbucket.
+2. Нажмите «Добавить», введите e-mail Bitbucket и вставьте токен.</value>
+  </data>
+  <data name="Dev_GiteeSteps" xml:space="preserve">
+    <value>1. На gitee.com откройте «Настройки &gt; Персональные токены доступа» и создайте токен с правом на чтение.
+2. Нажмите «Добавить» и вставьте токен.</value>
+  </data>
+  <data name="Dev_NeedDeveloper" xml:space="preserve">
+    <value>Включите режим разработчика, чтобы ими пользоваться.</value>
+  </data>
+  <data name="Notice_CodexTrustTitle" xml:space="preserve">
+    <value>Codex снова нужно ваше подтверждение</value>
+  </data>
+  <data name="Notice_CodexTrust" xml:space="preserve">
+    <value>Edgepad обновлён. В Codex введите /hooks и отметьте Edgepad как доверенный, иначе подтверждения останутся в терминале, а не на телефоне.</value>
+  </data>
+  <data name="Menu_Transfers" xml:space="preserve">
+    <value>Передачи</value>
+  </data>
+  <data name="Xfer_PanelSending" xml:space="preserve">
+    <value>Отправка на {0}</value>
+  </data>
+  <data name="Xfer_PanelReceiving" xml:space="preserve">
+    <value>Получение от {0}</value>
+  </data>
+  <data name="Xfer_PanelDetail" xml:space="preserve">
+    <value>{0} · {1} из {2} · {3}/с</value>
+  </data>
+  <data name="Xfer_PanelCount" xml:space="preserve">
+    <value>{0} · {1} из {2}</value>
+  </data>
+  <data name="Xfer_PanelSpeed" xml:space="preserve">
+    <value>{0} · {1}/с</value>
+  </data>
+  <data name="Xfer_PanelHeld" xml:space="preserve">
+    <value>{0} · Приостановлено</value>
+  </data>
+  <data name="Xfer_Pause" xml:space="preserve">
+    <value>Пауза</value>
+  </data>
+  <data name="Xfer_Resume" xml:space="preserve">
+    <value>Продолжить</value>
+  </data>
+  <data name="Xfer_Stop" xml:space="preserve">
+    <value>Остановить</value>
+  </data>
+  <data name="Xfer_NotReceived" xml:space="preserve">
+    <value>Не получено: {0}</value>
+  </data>
+  <data name="Xfer_NotSent" xml:space="preserve">
+    <value>Не отправлено: {0}</value>
+  </data>
+  <data name="Xfer_ReasonDamaged" xml:space="preserve">
+    <value>пришёл повреждённым</value>
+  </data>
+  <data name="Xfer_ReasonWrite" xml:space="preserve">
+    <value>не удалось сохранить</value>
+  </data>
+  <data name="Xfer_ReasonRejectedHere" xml:space="preserve">
+    <value>этот ноутбук не смог его принять</value>
+  </data>
+  <data name="Xfer_ReasonRejectedPhone" xml:space="preserve">
+    <value>телефон не смог его принять</value>
+  </data>
+  <data name="Xfer_ReasonCancelled" xml:space="preserve">
+    <value>отменён</value>
+  </data>
+  <data name="Xfer_ReasonTimedOut" xml:space="preserve">
+    <value>телефон перестал отвечать</value>
+  </data>
+  <data name="Xfer_ReasonLost" xml:space="preserve">
+    <value>телефон отключился</value>
+  </data>
+  <data name="Xfer_ReasonBusy" xml:space="preserve">
+    <value>телефон был занят другим файлом</value>
+  </data>
+  <data name="Xfer_ReasonUnreadable" xml:space="preserve">
+    <value>этот ноутбук не смог его прочитать</value>
+  </data>
+  <data name="Xfer_ReasonNotSent" xml:space="preserve">
+    <value>не был отправлен</value>
+  </data>
+</root>

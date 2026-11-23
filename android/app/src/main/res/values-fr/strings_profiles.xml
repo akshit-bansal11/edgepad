@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_profiles">Profils d’apps</string>
+  <string name="profiles_title">Profils d’apps</string>
+  <string name="profiles_toggle">Changer molettes et gestes selon l’app</string>
+  <string name="profiles_caption">L’ordinateur indique à ce téléphone quelle app est au premier plan, uniquement quand c’est activé. Rien n’est conservé sur l’ordinateur.</string>
+  <string name="profiles_empty">Aucun profil pour l’instant. Passez une app au premier plan sur l’ordinateur, puis ajoutez-la ici.</string>
+  <string name="profiles_add_current">Ajouter l’app au premier plan</string>
+  <string name="profiles_none_in_front">Aucune app au premier plan</string>
+  <string name="profiles_unsupported">Cet ordinateur ne peut pas indiquer quelle app est au premier plan.</string>
+  <string name="profiles_delete">Supprimer le profil</string>
+  <string name="profiles_delete_confirm">Supprimer le profil de %1$s ?</string>
+  <string name="profile_default">Comme par défaut</string>
+  <string name="profile_custom">Personnalisé</string>
+</resources>

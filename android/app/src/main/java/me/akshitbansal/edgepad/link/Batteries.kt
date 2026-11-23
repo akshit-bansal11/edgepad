@@ -3,17 +3,23 @@ package me.akshitbansal.edgepad.link
 import me.akshitbansal.edgepad.protocol.BatteryKind
 import me.akshitbansal.edgepad.protocol.OutputKind
 
-/** One device from TEXT BATTERIES. [level] is 0..100. */
+/**
+ * One device from TEXT BATTERIES. [level] is 0..100. [health] is percent of design capacity and [temperature]
+ * degrees Celsius; null is unknown, never 0.
+ */
 data class BatteryEntry(
     val kind: BatteryKind,
     val level: Int,
     val charging: Boolean,
     val name: String,
+    val health: Int? = null,
+    val temperature: Int? = null,
 )
 
-/** The decoder of TEXT BATTERIES: `kind:level:charging:name` entries joined by `|`. */
+/** The decoder of TEXT BATTERIES: `kind:level:charging:health:temp:name` entries joined by `|`; `-` is unknown. */
 object Batteries {
-    private const val FIELDS = 4
+    private const val FIELDS = 6
+    private const val UNKNOWN = "-"
     private const val MAX_LEVEL = 100
 
     /** Malformed entries (wrong field count, a level that is not a number) are skipped; the rest still count. */
@@ -24,7 +30,14 @@ object Batteries {
             if (parts.size != FIELDS || level == null) {
                 null
             } else {
-                BatteryEntry(BatteryKind.of(parts[0]), level.coerceIn(0, MAX_LEVEL), parts[2] == "1", parts[3])
+                BatteryEntry(
+                    BatteryKind.of(parts[0]),
+                    level.coerceIn(0, MAX_LEVEL),
+                    parts[2] == "1",
+                    parts[5],
+                    parts[3].takeIf { it != UNKNOWN }?.toIntOrNull()?.coerceIn(0, MAX_LEVEL),
+                    parts[4].takeIf { it != UNKNOWN }?.toIntOrNull(),
+                )
             }
         }
 }

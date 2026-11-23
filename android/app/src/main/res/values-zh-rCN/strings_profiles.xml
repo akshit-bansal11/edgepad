@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_profiles">应用配置</string>
+  <string name="profiles_title">应用配置</string>
+  <string name="profiles_toggle">按应用切换转盘和手势</string>
+  <string name="profiles_caption">仅在开启时,笔记本才会告诉这部手机哪个应用在最前面。笔记本上不会保存任何内容。</string>
+  <string name="profiles_empty">还没有配置。先在笔记本上把应用切到前台,再添加到这里。</string>
+  <string name="profiles_add_current">添加最前面的应用</string>
+  <string name="profiles_none_in_front">暂无最前面的应用</string>
+  <string name="profiles_unsupported">此笔记本无法告知哪个应用在最前面。</string>
+  <string name="profiles_delete">删除配置</string>
+  <string name="profiles_delete_confirm">删除%1$s的配置?</string>
+  <string name="profile_default">与默认相同</string>
+  <string name="profile_custom">已自定义</string>
+</resources>

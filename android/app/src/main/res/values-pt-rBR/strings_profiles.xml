@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_profiles">Perfis de apps</string>
+  <string name="profiles_title">Perfis de apps</string>
+  <string name="profiles_toggle">Trocar dials e gestos por app</string>
+  <string name="profiles_caption">O notebook diz a este telefone qual app está na frente, só enquanto isto estiver ativado. Nada fica guardado no notebook.</string>
+  <string name="profiles_empty">Ainda não há perfis. Traga um app para a frente no notebook e adicione aqui.</string>
+  <string name="profiles_add_current">Adicionar o app da frente</string>
+  <string name="profiles_none_in_front">Nenhum app na frente ainda</string>
+  <string name="profiles_unsupported">Este notebook não consegue dizer qual app está na frente.</string>
+  <string name="profiles_delete">Excluir perfil</string>
+  <string name="profiles_delete_confirm">Excluir o perfil de %1$s?</string>
+  <string name="profile_default">Igual ao padrão</string>
+  <string name="profile_custom">Personalizado</string>
+</resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_dials">Regelaars</string>
+  <string name="settings_capture">Vastleggen en annoteren</string>
+  <string name="settings_clipboard_files">Klembord en bestanden</string>
+  <string name="settings_developer">Ontwikkelaar</string>
+  <string name="settings_devices">Apparaten en verbinding</string>
+  <string name="settings_language">Taal</string>
+  <string name="language_system">Systeemstandaard</string>
+  <string name="language_follows_phone">Edgepad gebruikt de taal van de telefoon. Wijzig die in de instellingen van de telefoon.</string>
+  <string name="settings_pen_colour">Penkleur</string>
+</resources>

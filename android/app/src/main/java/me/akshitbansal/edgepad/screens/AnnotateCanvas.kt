@@ -6,8 +6,11 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
+import android.os.SystemClock
+import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
+import me.akshitbansal.edgepad.LaserSizes
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.surface.Letterbox
@@ -27,6 +30,8 @@ class AnnotateCanvas(
     private val strokes: Strokes,
     private val screenSize: () -> Pair<Int, Int>?,
     private val send: (Frame) -> Unit,
+    /** The Presenter's laser pad: a dot under the finger, as the laptop draws it, and no stroke (owner, 2026-11-18). */
+    private val laser: Boolean = false,
 ) : View(context) {
     /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
     constructor(context: Context) : this(context, Strokes(), { null }, {})
@@ -56,6 +61,74 @@ class AnnotateCanvas(
     private var lastSent: WirePoint? = null
     private var fingerDown = false
 
+    // Where the laser dot is drawn, in view pixels, while a finger is down on a laser pad.
+    private var dotX = 0f
+    private var dotY = 0f
+
+    /** The laser's size on the wire's PEN_WIDTH scale; [laserDotRadius] turns it into pixels. */
+    var laserSize = LaserSizes.DEFAULT
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    /** Resend the last point while a finger is held still: on for the Presenter's pad and Annotate's laser tool. */
+    var heartbeat = laser
+
+    private var sentAt = 0L
+    private var beatFrame: Frame? = null
+
+    /** A centred dim hint on a laser pad, shown only while no finger is down. */
+    var hint: CharSequence? = null
+
+    /** Draw a fading trail behind the laser dot. */
+    var laserTrail = false
+
+    // The last TRAIL_POINTS dot positions as x,y pairs in a ring, oldest at trailHead. No allocation per event.
+    private val trail = FloatArray(TRAIL_POINTS * 2)
+    private var trailCount = 0
+    private var trailHead = 0
+
+    private fun trailAdd(
+        x: Float,
+        y: Float,
+    ) {
+        val at = (trailHead + trailCount) % TRAIL_POINTS
+        trail[at * 2] = x
+        trail[at * 2 + 1] = y
+        if (trailCount < TRAIL_POINTS) {
+            trailCount++
+        } else {
+            trailHead = (trailHead + 1) % TRAIL_POINTS
+        }
+    }
+
+    private fun drawLaser(
+        canvas: Canvas,
+        radius: Float,
+    ) {
+        if (laserTrail && trailCount > 1) {
+            paint.style = Paint.Style.STROKE
+            paint.strokeCap = Paint.Cap.ROUND
+            paint.strokeWidth = radius * TRAIL_WIDTH
+            paint.color = LASER_CORE
+            for (i in 1 until trailCount) {
+                val from = (trailHead + i - 1) % TRAIL_POINTS
+                val to = (trailHead + i) % TRAIL_POINTS
+                paint.alpha = OPAQUE_ALPHA * i / trailCount
+                canvas.drawLine(trail[from * 2], trail[from * 2 + 1], trail[to * 2], trail[to * 2 + 1], paint)
+            }
+        }
+        paint.style = Paint.Style.FILL
+        paint.color = LASER_CORE
+        paint.alpha = GLOW_OUTER_ALPHA
+        canvas.drawCircle(dotX, dotY, radius * GLOW_OUTER, paint)
+        paint.alpha = GLOW_INNER_ALPHA
+        canvas.drawCircle(dotX, dotY, radius * GLOW_INNER, paint)
+        paint.alpha = OPAQUE_ALPHA
+        canvas.drawCircle(dotX, dotY, radius, paint)
+    }
+
     private fun box(): Letterbox? {
         val (w, h) = screenSize() ?: return null
         return Letterbox.fit(width.toFloat(), height.toFloat(), w, h)
@@ -77,8 +150,23 @@ class AnnotateCanvas(
         canvas.drawRect(box.left, box.top, box.left + box.width, box.top + box.height, paint)
         canvas.save()
         canvas.clipRect(box.left, box.top, box.left + box.width, box.top + box.height)
-        for (stroke in strokes.strokes) drawStroke(canvas, box, stroke)
-        strokes.active?.let { drawStroke(canvas, box, it) }
+        if (laser) {
+            if (fingerDown) {
+                drawLaser(canvas, laserDotRadius(box.height, laserSize))
+            } else {
+                hint?.let {
+                    paint.style = Paint.Style.FILL
+                    paint.textAlign = Paint.Align.CENTER
+                    val metrics = resources.displayMetrics
+                    paint.textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, HINT_SP, metrics)
+                    paint.color = palette.dim
+                    canvas.drawText(it, 0, it.length, width / 2f, height / 2f, paint)
+                }
+            }
+        } else {
+            for (stroke in strokes.strokes) drawStroke(canvas, box, stroke)
+            strokes.active?.let { drawStroke(canvas, box, it) }
+        }
         canvas.restore()
     }
 
@@ -222,12 +310,22 @@ class AnnotateCanvas(
                 requestUnbufferedDispatch(event)
                 parent?.requestDisallowInterceptTouchEvent(true)
                 fingerDown = true
+                dotX = event.x
+                dotY = event.y
+                trailCount = 0
+                trailHead = 0
+                trailAdd(dotX, dotY)
                 lastSent = null
                 emit(box.toWire(event.x, event.y), Strokes.STATE_DOWN)
+                removeCallbacks(beat)
+                if (heartbeat) postDelayed(beat, BEAT_MS)
             }
 
             MotionEvent.ACTION_MOVE -> {
                 if (fingerDown) {
+                    dotX = event.x
+                    dotY = event.y
+                    trailAdd(dotX, dotY)
                     // Every sample since the last event, not just the newest: a fast stroke is otherwise
                     // drawn as straight chords between the few points the frame rate allowed.
                     for (i in 0 until event.historySize) {
@@ -240,6 +338,7 @@ class AnnotateCanvas(
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (fingerDown) {
                     fingerDown = false
+                    removeCallbacks(beat)
                     // The up is always sent, even on a cancel: a stroke the laptop never sees end stays open.
                     emit(box.toWire(event.x, event.y), Strokes.STATE_UP, force = true)
                     if (event.actionMasked == MotionEvent.ACTION_UP) performClick()
@@ -262,13 +361,56 @@ class AnnotateCanvas(
         // Down and up are edges and always go; only a move to the point already sent is redundant.
         if (state == Strokes.STATE_MOVE && !force && point == lastSent) return
         lastSent = point
-        strokes.pen(point, state)
-        send(Frame.Pen(point.x, point.y, state))
+        if (!laser) strokes.pen(point, state)
+        val frame = Frame.Pen(point.x, point.y, state)
+        send(frame)
+        sentAt = SystemClock.uptimeMillis()
+        // The beat repeats the last point as a move; built here so a beat itself allocates nothing.
+        if (state == Strokes.STATE_MOVE) {
+            beatFrame = frame
+        } else if (state == Strokes.STATE_DOWN) {
+            beatFrame = Frame.Pen(point.x, point.y, Strokes.STATE_MOVE)
+        }
         invalidate()
     }
 
-    private companion object {
+    /** While the laser is held still the laptop would drop it (400 ms watchdog), so the last point is resent. */
+    private val beat =
+        object : Runnable {
+            override fun run() {
+                if (!fingerDown || !heartbeat) return
+                if (shouldResend(SystemClock.uptimeMillis(), sentAt)) beatFrame?.let(send)
+                postDelayed(this, BEAT_MS)
+            }
+        }
+
+    override fun onDetachedFromWindow() {
+        removeCallbacks(beat)
+        super.onDetachedFromWindow()
+    }
+
+    internal companion object {
+        /** How often a held laser repeats its point, well inside the laptop's 400 ms watchdog. */
+        const val BEAT_MS = 150L
+
+        /** Whether a beat should resend now: nothing was sent for a whole [BEAT_MS]. */
+        fun shouldResend(
+            now: Long,
+            lastSentAt: Long,
+        ): Boolean = now - lastSentAt >= BEAT_MS
+
         const val OPAQUE = 0xFF000000.toInt()
+
+        // The laptop's laser red, with a soft glow of two fainter rings round it.
+        const val LASER_CORE = 0xFFFF1A1A.toInt()
+        const val OPAQUE_ALPHA = 255
+        const val GLOW_OUTER = 2.2f
+        const val GLOW_INNER = 1.6f
+        const val GLOW_OUTER_ALPHA = 40
+        const val GLOW_INNER_ALPHA = 90
+        const val HINT_SP = 16f
+        const val TRAIL_POINTS = 24
+        const val TRAIL_WIDTH = 1.2f
         const val MAX_CACHED = 200
     }
 }

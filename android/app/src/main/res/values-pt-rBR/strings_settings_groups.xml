@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_dials">Réguas</string>
+  <string name="settings_capture">Captura e anotação</string>
+  <string name="settings_clipboard_files">Área de transferência e arquivos</string>
+  <string name="settings_developer">Desenvolvedor</string>
+  <string name="settings_devices">Dispositivos e conexão</string>
+  <string name="settings_language">Idioma</string>
+  <string name="language_system">Padrão do sistema</string>
+  <string name="language_follows_phone">O Edgepad usa o idioma do celular. Altere-o nas configurações do celular.</string>
+  <string name="settings_pen_colour">Cor da caneta</string>
+</resources>

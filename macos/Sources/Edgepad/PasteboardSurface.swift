@@ -74,7 +74,7 @@ final class PasteboardSurface: ClipboardSurface {
             done = String(bytes: content.data, encoding: .utf8).map { board.setString($0, forType: .string) } ?? false
         case .clipImage:
             done = board.setData(Data(content.data), forType: .png)
-        case .appList, .appIcon:
+        case .appList, .appIcon, .mediaIcon, .notification, .permAsk, .git:
             done = false
         }
         seen = board.changeCount

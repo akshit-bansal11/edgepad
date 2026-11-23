@@ -29,6 +29,7 @@
   <string name="address_connect">Подключить</string>
   <string name="address_looking">Поиск ноутбука по адресу %1$s…</string>
   <string name="address_invalid">Это не адрес. Введите имя хоста или IP-адрес, а также порт, если он не 47321.</string>
+  <string name="address_bad_port">Порт должен быть числом от 1 до 65535.</string>
   <string name="address_no_laptop">По этому адресу не ответил ни один ноутбук с Edgepad.</string>
   <string name="usb_tethering">USB-модем</string>
   <string name="local_network_needed">Чтобы найти ноутбуки в вашей сети Wi-Fi и по USB, Edgepad нужно разрешение «Устройства поблизости».</string>
@@ -115,9 +116,9 @@
   <string name="pair_expires">Истекает через %1$s</string>
   <string name="pair_expired">Истекло</string>
   <string name="pair_confirm_title">Ноутбук «%1$s» сообщил, что код совпал?</string>
-  <string name="pair_confirm_body">Если он сообщил, что код неверный, нажмите «Нет»: вместо него может отвечать другое устройство.</string>
-  <string name="pair_confirm_yes">Да, сопряжено</string>
-  <string name="pair_confirm_no">Нет</string>
+  <string name="pair_confirm_body">Если он сообщил, что код неверный, нажмите «Не совпадают»: вместо него может отвечать другое устройство.</string>
+  <string name="pair_confirm_yes">Коды совпадают</string>
+  <string name="pair_confirm_no">Не совпадают</string>
 
   <!-- Connection lost -->
   <string name="lost_title">Ноутбук вне зоны связи</string>
@@ -154,7 +155,6 @@
   <string name="link_notice_reconnecting_text">Edgepad пытается восстановить связь. Нажмите, чтобы открыть.</string>
   <string name="link_notice_text">Нажмите, чтобы открыть Edgepad.</string>
   <string name="link_notice_text_clipboard">Нажмите, чтобы открыть Edgepad. Если включён общий буфер обмена, при этом отправится и скопированное вами.</string>
-  <string name="settings_clipboard">Буфер обмена</string>
   <string name="clipboard_share">Общий буфер обмена</string>
   <string name="clipboard_share_caption">Копируйте на одном устройстве, вставляйте на другом: текст и изображения. Чтобы отправить с телефона, скопируйте и вернитесь в Edgepad.</string>
   <string name="sharing_title">Прежде чем начать</string>
@@ -174,12 +174,10 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 шкал, углы разделены</string>
   <string name="media_layout_title">Расположение медиа</string>
-  <string name="media_layout_hint_upright">Это портретное расположение; чтобы настроить альбомное, поверните телефон. Перетащите элемент, чтобы переместить его. Он привязывается к сетке и осевым линиям.</string>
-  <string name="media_layout_hint_sideways">Это альбомное расположение; чтобы настроить портретное, поверните телефон. Перетащите элемент, чтобы переместить его. Он привязывается к сетке и осевым линиям.</string>
   <string name="piece_now_playing">Сейчас играет</string>
   <string name="piece_transport">Пред. · пуск · след.</string>
   <string name="media_layout_reset">Сбросить положение</string>
-  <string name="media_layout_reset_confirm">Сбросить положение? Нажмите ещё раз</string>
+  <string name="editor_reset_confirm">Нажмите ещё раз для сброса</string>
   <string name="editor_options">Параметры</string>
   <string name="editor_done">Готово</string>
   <string name="media_scale">Размер</string>
@@ -300,7 +298,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">Рисование</string>
   <string name="shapes_target_title">Что запускать</string>
-  <string name="shapes_draw_hint">Рисуйте одним движением и отпустите палец, когда закончите.</string>
   <string name="shapes_redraw">Нарисовать заново</string>
   <string name="shapes_save">Сохранить</string>
   <string name="shapes_delete">Удалить</string>
@@ -346,7 +343,7 @@
   <string name="update_available">Доступно обновление</string>
   <string name="licences_title">Лицензии</string>
   <string name="licences_body">Lato, шрифт: SIL Open Font License 1.1.\nLucide, значки: ISC License.\nAndroidSVG, рисует логотипы плееров: Apache License 2.0.</string>
-  <string name="about_sends">Edgepad отправляет в интернет только проверку обновлений на github.com и обновление, которое вы решили скачать. Всё остальное остаётся между этим телефоном и вашим ноутбуком.</string>
+  <string name="about_sends">Этот телефон отправляет только проверку обновлений на github.com и обновление, которое вы решите скачать. Куда и когда обращается приложение для ноутбука, перечислено в разделе «Что использует Edgepad».</string>
   <string name="updates_install_failed">Не удалось установить обновление. Скачайте его на странице выпуска и установите вручную.</string>
   <string name="settings_version">Edgepad %1$s · протокол %2$d</string>
   <string name="corners_title">Углы</string>
@@ -429,7 +426,11 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Управление</string>
-  <string name="controls_move_hint">Нажмите на плитку и удерживайте, чтобы переместить её.</string>
+  <string name="controls_edit">Изменить</string>
+  <string name="controls_edit_hint">Нажмите на плитку, чтобы скрыть или показать её. Удерживайте и перетащите, чтобы переместить.</string>
+  <string name="controls_hidden">Скрыто</string>
+  <string name="controls_all_hidden">Все плитки скрыты. Нажмите «Изменить», чтобы снова их показать.</string>
+  <string name="controls_toggle_tile">Скрыть или показать: %1$s</string>
   <string name="controls_hide_dials">Скрыть шкалы и медиа</string>
   <string name="controls_blackout">Гасить экран при простое</string>
   <string name="controls_open">Открыть: %1$s</string>
@@ -448,10 +449,8 @@
   <string name="capture_stop">Остановить запись</string>
   <string name="capture_recording">Идёт запись на ноутбуке. Нажмите «Остановить запись», чтобы закончить; если файл сохраняется на телефон, он придёт после этого.</string>
   <string name="capture_sent">Отправлено на ноутбук: %1$s</string>
-  <string name="capture_hint">Для области нажмите «Область», затем задержите палец на тачпаде на мгновение и ведите его, чтобы выделить участок.</string>
-  <string name="capture_save_to">Куда сохранять</string>
+  <string name="capture_drag_caption">Проведите, чтобы выделить область</string>
   <string name="capture_save_laptop">Ноутбук</string>
-  <string name="capture_save_phone">Телефон</string>
   <string name="capture_receiving">Получение %1$s, %2$d&#160;%%</string>
   <string name="capture_saved">Сохранено: %1$s</string>
   <string name="capture_bad_hash">Файл пришёл повреждённым. Он остался на ноутбуке.</string>
@@ -462,8 +461,6 @@
   <string name="capture_send_failed">Ноутбуку не удалось отправить файл. Он остался на ноутбуке.</string>
   <string name="controls_annotate">Пометки</string>
   <string name="annotate_description">Планшет для пера: касание рисует в том же месте на экране ноутбука. Работает только от касания.</string>
-  <string name="annotate_hint">Рисуйте здесь. Чернила появятся на ноутбуке в том же месте.</string>
-  <string name="annotate_hint_named">Рисуйте здесь. Чернила появятся на ноутбуке «%1$s» в том же месте.</string>
   <string name="annotate_menu">Инструменты рисования</string>
   <string name="annotate_menu_expanded">Развёрнуто</string>
   <string name="annotate_menu_collapsed">Свёрнуто</string>
@@ -530,7 +527,7 @@
   <string name="apps_add_from_laptop">Добавить с ноутбука</string>
   <string name="apps_add_caption">Выберите приложение из списка ноутбука, и оно станет там макросом. Отправляется только ваш выбор.</string>
   <string name="apps_title">Добавить макрос</string>
-  <string name="apps_search_hint">Поиск приложений</string>
+  <string name="apps_search_hint">Поиск приложений, например Chrome</string>
   <string name="apps_loading">Поиск приложений на ноутбуке «%1$s»…</string>
   <string name="apps_none">Ноутбук «%1$s» не передал список приложений.</string>
   <string name="apps_no_match">Нет приложений по этому запросу.</string>
@@ -571,4 +568,76 @@
   <string name="battery_percent">%1$d&#160;%%</string>
   <string name="battery_more">+%1$d</string>
   <string name="battery_summary">Батареи: %1$s</string>
+  <string name="updates_later">Позже</string>
+  <string name="updates_skip">Пропустить эту версию</string>
+  <string name="updates_notify_text">Доступен Edgepad %1$s. Нажмите, чтобы обновить.</string>
+  <string name="end_action_title">Спящий режим по окончании</string>
+  <string name="end_sleep">Перевести ноутбук в сон</string>
+  <string name="end_shutdown">Выключить ноутбук</string>
+  <string name="end_cancel">Отмена</string>
+  <string name="end_armed_sleep">Сон по окончании</string>
+  <string name="end_armed_shutdown">Выключение по окончании</string>
+  <string name="end_no_timeline">У этого нет времени окончания, ждать нечего.</string>
+  <string name="unavailable_unsupported">Этот ноутбук так не умеет.</string>
+  <string name="unavailable_off">Это отключено на ноутбуке.</string>
+  <string name="unavailable_no_tool">На ноутбуке нет нужной программы.</string>
+  <string name="unavailable_no_permission">Ноутбук пока не разрешил это.</string>
+  <string name="unavailable_github_resign">Войдите в GitHub на ноутбуке снова. Edgepad теперь использует доступ только для чтения.</string>
+  <string name="capture_recording_laptop">Запись на ноутбуке</string>
+  <string name="xfer_send">Отправить файл</string>
+  <string name="xfer_sending">Отправка: %1$s · %2$d%%</string>
+  <string name="xfer_receiving">Получение: %1$s · %2$d%%</string>
+  <string name="xfer_done">Сохранено: %1$s</string>
+  <string name="xfer_failed">Не удалось отправить: %1$s</string>
+  <plurals name="xfer_too_many">
+    <item quantity="one">В очередь добавлены только первые %1$d файлов</item>
+    <item quantity="few">В очередь добавлены только первые %1$d файлов</item>
+    <item quantity="many">В очередь добавлены только первые %1$d файлов</item>
+    <item quantity="other">В очередь добавлены только первые %1$d файлов</item>
+  </plurals>
+  <string name="xfer_sending_n">Отправка: %1$s (%2$d из %3$d) · %4$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="one">Отправлен %1$d файл</item>
+    <item quantity="few">Отправлено %1$d файла</item>
+    <item quantity="many">Отправлено %1$d файлов</item>
+    <item quantity="other">Отправлено %1$d файла</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="one">Получен %1$d файл</item>
+    <item quantity="few">Получено %1$d файла</item>
+    <item quantity="many">Получено %1$d файлов</item>
+    <item quantity="other">Получено %1$d файла</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="one">Отправлено %1$d из %2$d файла</item>
+    <item quantity="few">Отправлено %1$d из %2$d файлов</item>
+    <item quantity="many">Отправлено %1$d из %2$d файлов</item>
+    <item quantity="other">Отправлено %1$d из %2$d файла</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="one">%1$d файл не отправлен</item>
+    <item quantity="few">%1$d файла не отправлены</item>
+    <item quantity="many">%1$d файлов не отправлены</item>
+    <item quantity="other">%1$d файла не отправлены</item>
+  </plurals>
+  <plurals name="xfer_card_more">
+    <item quantity="one">и ещё %1$d</item>
+    <item quantity="few">и ещё %1$d</item>
+    <item quantity="many">и ещё %1$d</item>
+    <item quantity="other">и ещё %1$d</item>
+  </plurals>
+  <plurals name="xfer_share_count">
+    <item quantity="one">%1$d файл</item>
+    <item quantity="few">%1$d файла</item>
+    <item quantity="many">%1$d файлов</item>
+    <item quantity="other">%1$d файла</item>
+  </plurals>
+  <string name="xfer_card_cancelling">Отмена…</string>
+  <string name="xfer_retry">Повторить</string>
+  <string name="xfer_card_a11y">Передача файлов</string>
+  <string name="xfer_no_laptop">Сначала подключитесь к ноутбуку</string>
+  <string name="xfer_channel">Передача файлов</string>
+  <string name="notify_channel">Уведомления ноутбука</string>
+  <string name="notify_setting">Показывать уведомления ноутбука</string>
+  <string name="notify_setting_hint">Тот же переключатель должен быть включён в меню Edgepad на ноутбуке.</string>
 </resources>

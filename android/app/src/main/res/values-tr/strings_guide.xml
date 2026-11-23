@@ -106,11 +106,11 @@
     <item>Pano</item>
   </string-array>
   <string-array name="guide_connect_values">
-    <item>Edgepad\'i kurup açın. Görev çubuğunun bildirim alanında, menü çubuğunda veya sistem tepsisinde durur.</item>
+    <item>Edgepad’i kurup açın. Görev çubuğunun bildirim alanında, menü çubuğunda veya sistem tepsisinde durur.</item>
     <item>Bilgisayarı bu telefonun Bluetooth ayarlarında eşleştirin, sonra Cihazlar ekranında ona dokunun.</item>
-    <item>Bilgisayardaki Edgepad menüsünde “Wi-Fi ve USB bağlantıları” seçeneğini açın (Mac\'te yalnızca Wi-Fi bağlantıları). USB için telefonda ayrıca USB ile internet paylaşımını açın.</item>
+    <item>Bilgisayardaki Edgepad menüsünde “Wi-Fi ve USB bağlantıları” seçeneğini açın (Mac’te yalnızca Wi-Fi bağlantıları). USB için telefonda ayrıca USB ile internet paylaşımını açın.</item>
     <item>İlk seferde bilgisayar bu telefona güvenip güvenmeyeceğinizi sorar: orada “Güven” düğmesini seçin. PIN isterse buraya yazın.</item>
-    <item>Android 10\'dan beri panoyu yalnızca ekrandaki uygulama okuyabilir; bu yüzden başka bir uygulamada yaptığınız kopyalama, Edgepad\'e döndüğünüzde bilgisayara ulaşır. Ya da bir metni veya resmi hemen göndermek için Paylaş, sonra Edgepad seçeneğini kullanın.</item>
+    <item>Android 10’dan beri panoyu yalnızca ekrandaki uygulama okuyabilir; bu yüzden başka bir uygulamada yaptığınız kopyalama, Edgepad’e döndüğünüzde bilgisayara ulaşır. Ya da bir metni veya resmi hemen göndermek için Paylaş, sonra Edgepad seçeneğini kullanın.</item>
   </string-array>
 
   <string name="guide_art_phone">Telefon</string>

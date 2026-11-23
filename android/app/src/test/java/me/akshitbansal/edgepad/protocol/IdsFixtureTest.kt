@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.protocol
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import java.io.File
 
@@ -41,6 +42,35 @@ class IdsFixtureTest {
         assertEquals(
             rows("FEATURE").associate { it[2] to it[1] },
             Feature.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
+    fun providerRowsAgreeWithTheAgentAndFeatureTokens() {
+        val providers = rows("PROVIDER")
+        val aiIds = providers.filter { it[2] == "ai" }.map { it[1] }
+        assertEquals(AgentToken.entries.map { it.token }, aiIds)
+        providers.forEach { assertNotNull(it[1], Feature.of(it[3])) }
+        assertEquals(providers.size, providers.map { it[1] }.toSet().size)
+    }
+
+    @Test
+    fun dashboardTokenClassesMatchTheSharedTable() {
+        assertEquals(
+            rows("AGENT").associate { it[2] to it[1] },
+            AgentToken.entries.associate { it.name to it.token },
+        )
+        assertEquals(
+            rows("SESSION_STATE").associate { it[2] to it[1] },
+            SessionStateToken.entries.associate { it.name to it.token },
+        )
+        assertEquals(
+            rows("CI").associate { it[2] to it[1] },
+            CiToken.entries.associate { it.name to it.token },
+        )
+        assertEquals(
+            rows("LIMIT_WINDOW").associate { it[2] to it[1] },
+            mapOf("CONTEXT" to LimitWindow.CONTEXT, "NAMED_PREFIX" to LimitWindow.NAMED_PREFIX),
         )
     }
 

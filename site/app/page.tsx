@@ -94,7 +94,7 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
   {
     title: "Capture",
     Icon: Camera,
-    body: "Take a screenshot or start a recording with the laptop's own shortcut, and drag out the region from the phone.",
+    body: "Take a screenshot or start a recording with the laptop’s own shortcut, and drag out the region from the phone.",
   },
   {
     title: "Share clipboard",
@@ -119,7 +119,7 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
   {
     title: "Live state",
     Icon: Activity,
-    body: "The dials show the laptop's real volume, mute and brightness, and follow changes made on the laptop.",
+    body: "The dials show the laptop’s real volume, mute and brightness, and follow changes made on the laptop.",
   },
 ];
 
@@ -156,7 +156,7 @@ const STEPS: { step: string; title: string; body: string }[] = [
   {
     step: "01",
     title: "Pair once, like a headset",
-    body: "Pair the phone in the laptop's own Bluetooth settings and confirm the code on both sides. There is no account. Wi-Fi and USB are optional, off until you turn them on in the laptop's menu, and use a one-time pairing code. The laptop asks Trust NAME? once; you can forget a phone later in Security….",
+    body: "Pair the phone in the laptop’s own Bluetooth settings and confirm the code on both sides. There is no account. Wi-Fi and USB are optional, off until you turn them on in the laptop’s menu, and use a one-time pairing code. The laptop asks Trust NAME? once; you can forget a phone later in Security….",
   },
   {
     step: "02",
@@ -171,11 +171,11 @@ const STEPS: { step: string; title: string; body: string }[] = [
 ];
 
 const LIMITS: string[] = [
-  "The default link is Bluetooth, so both ends need it, and it does not reach another room or the internet. Wi-Fi and USB connections are optional, and the phone's half of them has not been tried on real devices yet.",
+  "The default link is Bluetooth, so both ends need it, and it does not reach another room or the internet. Wi-Fi and USB connections are optional, and the phone’s half of them has not been tried on real devices yet.",
   "Mac and Linux are still in testing. Please use them at your own risk. The Windows app is the one that has been run on a real laptop; the Linux app has not been seen working on a Linux laptop yet.",
   "The laptop half needs Windows 10 version 2004 or later (64-bit), macOS 13 or later, or a 64-bit Linux laptop with BlueZ. The phone half needs Android 12 or later.",
   "Edgepad.exe is not code-signed, so SmartScreen warns the first time you run it.",
-  "The gamepad's virtual controller needs ViGEmBus, a third-party signed kernel driver you install yourself. It was archived by its author in November 2023 and receives no updates, though it remains signed and working. Without it the gamepad sends keyboard keys instead, and the laptop tells the phone which of the two it is in.",
+  "The gamepad’s virtual controller needs ViGEmBus, a third-party signed kernel driver you install yourself. It was archived by its author in November 2023 and receives no updates, though it remains signed and working. Without it the gamepad sends keyboard keys instead, and the laptop tells the phone which of the two it is in.",
   "Task Manager, and anything running as administrator, ignores the phone unless Edgepad runs as administrator too. The lock screen, UAC prompts and Ctrl+Alt+Del cannot be reached at all.",
 ];
 
@@ -229,7 +229,7 @@ function Heading({
   return (
     <Reveal>
       <p className="text-primary text-[0.9375rem] font-bold">{eyebrow}</p>
-      <h2 className="mt-2 max-w-[20ch] text-[2rem] leading-[1.08] font-black tracking-[-0.02em] md:text-5xl">
+      <h2 className="mt-2 max-w-[20ch] text-[clamp(2rem,1.4rem+2.6vw,3rem)] leading-[1.08] font-black tracking-[-0.02em]">
         {title}
       </h2>
       {children ? (
@@ -292,7 +292,7 @@ export default function Page() {
               <p className="bg-card shadow-card inline-flex rounded-full px-4 py-1.5 text-sm font-bold">
                 Phone · Bluetooth, Wi-Fi, USB · Windows; Mac and Linux in testing
               </p>
-              <h1 className="mt-6 max-w-[13ch] text-[2.75rem] leading-[1.02] font-black tracking-[-0.025em] sm:text-6xl lg:text-7xl">
+              <h1 className="mt-6 max-w-[13ch] text-[clamp(2.75rem,2rem+4vw,4.5rem)] leading-[1.02] font-black tracking-[-0.025em]">
                 Your laptop, from across the room.
               </h1>
               <p className="text-dim mt-6 max-w-[56ch] text-lg leading-relaxed md:text-xl">
@@ -337,7 +337,7 @@ export default function Page() {
 
             <Reveal>
               {/* The radius is the figure's own 44/411 of its width, so the beam runs
-                  exactly along the phone's edge at both sizes. */}
+                  exactly along the phone’s edge at both sizes. */}
               <div className="shadow-lift relative mx-auto w-64 rounded-[27.4px] lg:w-[21rem] lg:rounded-[36px]">
                 <SurfaceFigure className="block h-auto w-full" />
                 <BorderBeam
@@ -604,6 +604,19 @@ export default function Page() {
                   >
                     {DOWNLOADS.linux.file}
                   </a>
+                  {DOWNLOADS.linuxArm && (
+                    <>
+                      {" "}
+                      (or{" "}
+                      <a
+                        className="text-primary font-bold underline"
+                        href={DOWNLOADS.linuxArm.href}
+                      >
+                        {DOWNLOADS.linuxArm.file}
+                      </a>{" "}
+                      on an ARM machine)
+                    </>
+                  )}
                   , installed with sudo ./install.sh.
                 </p>
                 <p className="mt-2">

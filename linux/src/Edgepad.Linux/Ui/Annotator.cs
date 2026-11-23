@@ -35,6 +35,9 @@ internal sealed class Annotator : IDisposable
     private int disposed;
     private int posted;
 
+    /// <summary>The laser's redraw timer at screen rate; runs only while a laser shows. UI thread only.</summary>
+    private DispatcherTimer? laserTick;
+
     /// <summary>The primary screen in physical pixels, read on the UI thread; null until the UI is up.</summary>
     private static volatile PrimaryScreen? primary;
 
@@ -57,12 +60,15 @@ internal sealed class Annotator : IDisposable
     /// The TEXT 9 tokens for a laptop that can, or cannot, show the overlay and see macro apps' windows. Capture is
     /// always offered.
     /// </summary>
-    internal static string Features(bool annotate, bool running = false, bool clipboard = false, bool apps = false)
+    internal static string Features(bool annotate, bool running = false, bool clipboard = false, bool apps = false, bool notify = false, bool endAction = false, bool foreground = false)
     {
         var features = annotate ? $"{Feature.Annotate}/{Feature.Capture}" : Feature.Capture;
         features = running ? $"{features}/{Feature.Running}" : features;
         features = clipboard ? $"{features}/{Feature.Clipboard}" : features;
-        return apps ? $"{features}/{Feature.Apps}" : features;
+        features = apps ? $"{features}/{Feature.Apps}" : features;
+        features = notify ? $"{features}/{Feature.Notify}" : features;
+        features = endAction ? $"{features}/{Feature.EndAction}" : features;
+        return foreground ? $"{features}/{Feature.Foreground}" : features;
     }
 
     /// <summary>Tells every connected phone the features again, after the clipboard switch moved.</summary>
@@ -112,7 +118,44 @@ internal sealed class Annotator : IDisposable
             Log.Write($"The annotation overlay could not be built, so annotate is not offered ({session} session): {e}");
         }
 
+        uiDecided = true;
         Changed?.Invoke();
+    }
+
+    /// <summary>Set once <see cref="StartUi"/> has decided whether annotate is offered, so TEXT 24 never blames it early.</summary>
+    private static volatile bool uiDecided;
+
+    /// <summary>Whether /dev/uinput cannot be opened; capture then presses nothing.</summary>
+    private static volatile bool inputBlocked;
+
+    /// <summary>The session's word on /dev/uinput. Tells every connected phone TEXT 24 again when it flipped.</summary>
+    internal static void InputBlocked(bool blocked)
+    {
+        if (inputBlocked != blocked)
+        {
+            inputBlocked = blocked;
+            Changed?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// The TEXT 24 payload: "feature:reason" entries joined by "/", empty for none. Annotate is unsupported when the
+    /// overlay was refused (no X11 window, as on Wayland); capture needs /dev/uinput for its shortcut keys.
+    /// </summary>
+    internal static string Unavailable(bool decided, bool annotate, bool blocked)
+    {
+        var entries = new List<string>(2);
+        if (decided && !annotate)
+        {
+            entries.Add($"{Feature.Annotate}:{UnavailableReason.Unsupported}");
+        }
+
+        if (blocked)
+        {
+            entries.Add($"{Feature.Capture}:{UnavailableReason.NoPermission}");
+        }
+
+        return string.Join('/', entries);
     }
 
     /// <summary>
@@ -293,7 +336,8 @@ internal sealed class Annotator : IDisposable
             return;
         }
 
-        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning, ClipboardSetting.Enabled, apps: true)));
+        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning, ClipboardSetting.Enabled, apps: true, notify: NotifySetting.Enabled && !NotificationMonitor.Refused, endAction: LinuxPower.Reachable, foreground: LinuxForeground.Offered)));
+        sink(new Text((byte)TextKind.Unavailable, Unavailable(uiDecided, annotating, inputBlocked)));
         if (primary is { } screen)
         {
             sink(new Text(
@@ -332,6 +376,10 @@ internal sealed class Annotator : IDisposable
                 return board.SetTool(StrokeTool.Rectangle);
             case ActionId.ToolEllipse:
                 return board.SetTool(StrokeTool.Ellipse);
+            case ActionId.ToolLaser:
+                return board.SetTool(StrokeTool.Laser);
+            case ActionId.ToolLaserTrail:
+                return board.SetTool(StrokeTool.LaserTrail);
             default:
                 return false;
         }
@@ -383,11 +431,14 @@ internal sealed class Annotator : IDisposable
     private void Drain()
     {
         Volatile.Write(ref posted, 0);
-        if (Volatile.Read(ref disposed) != 0 || Snapshot() is not { } strokes)
+        var (strokes, laser, live) = Volatile.Read(ref disposed) != 0 ? (null, null, false) : Snapshot();
+        if (strokes is null)
         {
             Remove();
             return;
         }
+
+        SetLaserTick(live);
 
         if (!annotating || overlay is not { } window || primary is not { } screen)
         {
@@ -396,7 +447,7 @@ internal sealed class Annotator : IDisposable
 
         try
         {
-            window.Present(strokes, screen.Bounds);
+            window.Present(strokes, laser, screen.Bounds);
             owner = this;
         }
         catch (Exception e)
@@ -412,26 +463,72 @@ internal sealed class Annotator : IDisposable
         }
     }
 
-    /// <summary>What the overlay should show, or null when it should not be up.</summary>
-    private Stroke[]? Snapshot()
+    /// <summary>
+    /// What the overlay should show: the strokes (null when it should not be up), the laser's frame, and whether
+    /// the laser still shows anything.
+    /// </summary>
+    private (Stroke[]? Strokes, LaserFrame? Laser, bool Live) Snapshot()
     {
         lock (gate)
         {
             if (board.Mode != BoardMode.Annotate)
             {
-                return null;
+                return (null, null, false);
             }
 
             // The stroke under the finger is still growing on the reader, so it alone is copied.
             if (board.Active is not { } active)
             {
-                return [.. board.Strokes];
+                return ([.. board.Strokes], null, false);
+            }
+
+            if (active.IsLaser)
+            {
+                var now = board.NowMs;
+                return ([.. board.Strokes], LaserFrameOf(active, now), board.LaserVisible(now));
             }
 
             var copy = new Stroke(active.Tool, active.Style);
             copy.Points.AddRange(active.Points);
-            return [.. board.Strokes, copy];
+            return ([.. board.Strokes, copy], null, false);
         }
+    }
+
+    /// <summary>The laser's picture now, or null once it has faded out. Called under the gate.</summary>
+    private static LaserFrame? LaserFrameOf(Stroke stroke, long now)
+    {
+        var visibility = LaserGeometry.Visibility(now, stroke.LastEventMs);
+        if (visibility <= 0f || primary is not { } screen)
+        {
+            return null;
+        }
+
+        var (width, height) = (screen.Bounds.Width, screen.Bounds.Height);
+        var path = stroke.Path(width, height);
+        if (path.Length == 0)
+        {
+            return null;
+        }
+
+        var radius = stroke.LaserRadiusPx(height);
+        var (points, ages) = stroke.Trail(width, height, now);
+        var outline = LaserGeometry.Outline(points, ages, radius);
+        var head = (byte)Math.Round(255f * LaserGeometry.TrailAlpha(0f));
+        var tail = (byte)Math.Round(255f * LaserGeometry.TrailAlpha(ages.Length > 0 ? ages[0] : 0f));
+        return new LaserFrame(path[^1], radius, visibility, outline, points.Length > 0 ? points[0] : path[^1], tail, head);
+    }
+
+    /// <summary>Runs the 16 ms redraw timer exactly while a laser shows, then stops it. UI thread.</summary>
+    private void SetLaserTick(bool live)
+    {
+        if (!live)
+        {
+            laserTick?.Stop();
+            return;
+        }
+
+        laserTick ??= new DispatcherTimer(TimeSpan.FromMilliseconds(16), DispatcherPriority.Render, (_, _) => Redraw());
+        laserTick.Start();
     }
 
     /// <summary>Hides the overlay if it is showing this session's strokes. UI thread.</summary>
@@ -443,6 +540,7 @@ internal sealed class Annotator : IDisposable
         }
 
         owner = null;
+        laserTick?.Stop();
         overlay?.Withdraw();
     }
 

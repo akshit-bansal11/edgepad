@@ -29,6 +29,7 @@
   <string name="address_connect">连接</string>
   <string name="address_looking">正在 %1$s 查找电脑…</string>
   <string name="address_invalid">地址无效。请输入主机名或 IP 地址；端口不是 47321 时请一并写上。</string>
+  <string name="address_bad_port">端口必须是 1 到 65535 之间的数字。</string>
   <string name="address_no_laptop">这个地址上没有电脑在运行 Edgepad。</string>
   <string name="usb_tethering">USB 网络共享</string>
   <string name="local_network_needed">Edgepad 需要“附近的设备”权限，才能在 Wi-Fi 网络和 USB 上查找电脑。</string>
@@ -103,9 +104,9 @@
   <string name="pair_expires">%1$s后过期</string>
   <string name="pair_expired">已过期</string>
   <string name="pair_confirm_title">%1$s是否显示配对码一致？</string>
-  <string name="pair_confirm_body">如果它显示的配对码不一致，请点“否”：可能有其他设备在冒充它。</string>
-  <string name="pair_confirm_yes">是，已配对</string>
-  <string name="pair_confirm_no">否</string>
+  <string name="pair_confirm_body">如果它显示的配对码不一致，请点“不一致”：可能有其他设备在冒充它。</string>
+  <string name="pair_confirm_yes">配对码一致</string>
+  <string name="pair_confirm_no">不一致</string>
 
   <!-- Connection lost -->
   <string name="lost_title">电脑已失联</string>
@@ -139,7 +140,6 @@
   <string name="link_notice_reconnecting_text">Edgepad 正在尝试恢复连接。点按即可打开。</string>
   <string name="link_notice_text">点按即可打开 Edgepad。</string>
   <string name="link_notice_text_clipboard">点按即可打开 Edgepad。已开启共享剪贴板时，也会同时发送你复制的内容。</string>
-  <string name="settings_clipboard">剪贴板</string>
   <string name="clipboard_share">共享剪贴板</string>
   <string name="clipboard_share_caption">在一台设备上复制，在另一台上粘贴，支持文字和图片。要从这部手机发送，请先复制，再回到 Edgepad。</string>
   <string name="sharing_title">开始之前</string>
@@ -159,12 +159,10 @@
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 个标尺，已拆分</string>
   <string name="media_layout_title">媒体布局</string>
-  <string name="media_layout_hint_upright">这是竖屏布局；转动手机可排列横屏布局。拖动任意一块即可移动，它会吸附到网格和中心线。</string>
-  <string name="media_layout_hint_sideways">这是横屏布局；转动手机可排列竖屏布局。拖动任意一块即可移动，它会吸附到网格和中心线。</string>
   <string name="piece_now_playing">正在播放</string>
   <string name="piece_transport">上一首 · 播放 · 下一首</string>
   <string name="media_layout_reset">重置位置</string>
-  <string name="media_layout_reset_confirm">重置位置？再点一次确认</string>
+  <string name="editor_reset_confirm">再点一次即可重置</string>
   <string name="editor_options">选项</string>
   <string name="editor_done">完成</string>
   <string name="media_scale">大小</string>
@@ -279,7 +277,6 @@
   <!-- The target list's back link, which returns to the canvas. -->
   <string name="shapes_draw_back">绘制</string>
   <string name="shapes_target_title">执行的操作</string>
-  <string name="shapes_draw_hint">一笔画完，画好后抬起手指。</string>
   <string name="shapes_redraw">重新绘制</string>
   <string name="shapes_save">保存</string>
   <string name="shapes_delete">删除</string>
@@ -325,7 +322,7 @@
   <string name="update_available">有可用更新</string>
   <string name="licences_title">许可</string>
   <string name="licences_body">Lato 字体：SIL Open Font License 1.1。\nLucide 图标：ISC License。\nAndroidSVG（用于绘制播放器标志）：Apache License 2.0。</string>
-  <string name="about_sends">Edgepad 发往互联网的内容只有两项：向 github.com 检查更新，以及你选择下载的更新。其余一切都只在这部手机和电脑之间传输。</string>
+  <string name="about_sends">这部手机只向 github.com 发送检查更新的请求，以及你选择下载的更新。笔记本应用会连接哪些服务、何时连接，列在“Edgepad 的用途”中。</string>
   <string name="updates_install_failed">无法安装更新。请到发布页面下载，然后手动安装。</string>
   <string name="settings_version">Edgepad %1$s · 协议 %2$d</string>
   <string name="corners_title">边角</string>
@@ -408,7 +405,11 @@
   <!-- Macros -->
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">控制</string>
-  <string name="controls_move_hint">长按图块即可移动。</string>
+  <string name="controls_edit">编辑</string>
+  <string name="controls_edit_hint">点按图块可隐藏或显示。长按并拖动可移动。</string>
+  <string name="controls_hidden">已隐藏</string>
+  <string name="controls_all_hidden">所有图块都已隐藏。点按“编辑”可重新显示。</string>
+  <string name="controls_toggle_tile">隐藏或显示%1$s</string>
   <string name="controls_hide_dials">隐藏标尺和媒体</string>
   <string name="controls_blackout">闲置时熄屏</string>
   <string name="controls_open">打开%1$s</string>
@@ -427,10 +428,8 @@
   <string name="capture_stop">停止录制</string>
   <string name="capture_recording">正在电脑上录制。完成后点“停止录制”；若“保存到”选的是手机，文件会在此时传来。</string>
   <string name="capture_sent">已发送到电脑：%1$s</string>
-  <string name="capture_hint">要截取区域，先点“区域”，再在触控板上按住手指片刻不动，然后移动，拖出所需范围。</string>
-  <string name="capture_save_to">保存到</string>
+  <string name="capture_drag_caption">拖动以选择区域</string>
   <string name="capture_save_laptop">电脑</string>
-  <string name="capture_save_phone">手机</string>
   <string name="capture_receiving">正在接收 %1$s，%2$d%%</string>
   <string name="capture_saved">已保存到 %1$s</string>
   <string name="capture_bad_hash">截取的文件在传输中损坏了。它仍保存在电脑上。</string>
@@ -441,8 +440,6 @@
   <string name="capture_send_failed">电脑无法发送截取内容。它仍保存在电脑上。</string>
   <string name="controls_annotate">标注</string>
   <string name="annotate_description">手写板：触摸时，电脑屏幕的相同位置会同步绘制。仅支持触摸操作。</string>
-  <string name="annotate_hint">在这里绘制，墨迹会出现在电脑屏幕的相同位置。</string>
-  <string name="annotate_hint_named">在这里绘制，墨迹会出现在%1$s屏幕的相同位置。</string>
   <string name="annotate_menu">绘图工具</string>
   <string name="annotate_menu_expanded">已展开</string>
   <string name="annotate_menu_collapsed">已收起</string>
@@ -509,7 +506,7 @@
   <string name="apps_add_from_laptop">从电脑添加</string>
   <string name="apps_add_caption">选一个电脑列出的应用，它就会在电脑上变成一个宏。只会发送你的选择，不会发送其他内容。</string>
   <string name="apps_title">添加宏</string>
-  <string name="apps_search_hint">搜索应用</string>
+  <string name="apps_search_hint">搜索应用，例如 Chrome</string>
   <string name="apps_loading">正在 %1$s 上查找应用…</string>
   <string name="apps_none">%1$s没有列出任何应用。</string>
   <string name="apps_no_match">没有符合搜索条件的应用。</string>
@@ -547,4 +544,55 @@
   <string name="battery_percent">%1$d%%</string>
   <string name="battery_more">+%1$d</string>
   <string name="battery_summary">电量：%1$s</string>
+  <string name="updates_later">稍后</string>
+  <string name="updates_skip">跳过此版本</string>
+  <string name="updates_notify_text">Edgepad %1$s 可用。点按即可更新。</string>
+  <string name="end_action_title">结束后睡眠</string>
+  <string name="end_sleep">让笔记本睡眠</string>
+  <string name="end_shutdown">让笔记本关机</string>
+  <string name="end_cancel">取消</string>
+  <string name="end_armed_sleep">结束后将睡眠</string>
+  <string name="end_armed_shutdown">结束后将关机</string>
+  <string name="end_no_timeline">这没有结束时间，无需等待。</string>
+  <string name="unavailable_unsupported">这台笔记本无法执行此操作。</string>
+  <string name="unavailable_off">笔记本上已关闭此功能。</string>
+  <string name="unavailable_no_tool">笔记本缺少所需的程序。</string>
+  <string name="unavailable_no_permission">笔记本尚未允许此操作。</string>
+  <string name="unavailable_github_resign">请在电脑上重新登录 GitHub。Edgepad 现在使用只读访问。</string>
+  <string name="capture_recording_laptop">正在笔记本上录制</string>
+  <string name="xfer_send">发送文件</string>
+  <string name="xfer_sending">正在发送 %1$s · %2$d%%</string>
+  <string name="xfer_receiving">正在接收 %1$s · %2$d%%</string>
+  <string name="xfer_done">已保存 %1$s</string>
+  <string name="xfer_failed">无法发送 %1$s</string>
+  <plurals name="xfer_too_many">
+    <item quantity="other">仅将前 %1$d 个文件加入了队列</item>
+  </plurals>
+  <string name="xfer_sending_n">正在发送 %1$s（第 %2$d 个，共 %3$d 个） · %4$d%%</string>
+  <plurals name="xfer_card_sent">
+    <item quantity="other">已发送 %1$d 个文件</item>
+  </plurals>
+  <plurals name="xfer_card_received">
+    <item quantity="other">已接收 %1$d 个文件</item>
+  </plurals>
+  <plurals name="xfer_card_partial">
+    <item quantity="other">已发送 %1$d 个文件，共 %2$d 个</item>
+  </plurals>
+  <plurals name="xfer_card_not_sent">
+    <item quantity="other">%1$d 个文件未能发送</item>
+  </plurals>
+  <plurals name="xfer_card_more">
+    <item quantity="other">还有 %1$d 个</item>
+  </plurals>
+  <plurals name="xfer_share_count">
+    <item quantity="other">%1$d 个文件</item>
+  </plurals>
+  <string name="xfer_card_cancelling">正在取消…</string>
+  <string name="xfer_retry">重试</string>
+  <string name="xfer_card_a11y">文件传输</string>
+  <string name="xfer_no_laptop">请先连接笔记本</string>
+  <string name="xfer_channel">文件传输</string>
+  <string name="notify_channel">笔记本通知</string>
+  <string name="notify_setting">显示笔记本通知</string>
+  <string name="notify_setting_hint">需要在笔记本的 Edgepad 菜单中打开同一开关。</string>
 </resources>

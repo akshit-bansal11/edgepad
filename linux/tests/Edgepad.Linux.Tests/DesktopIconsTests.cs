@@ -68,6 +68,25 @@ public sealed class DesktopIconsTests : IDisposable
     }
 
     [Theory]
+    [InlineData("fox")]
+    [InlineData("fox.desktop")]
+    public void ADesktopIdFindsItsEntrysIcon(string id)
+    {
+        var icon = Write(Path.Combine("usr", "share", "icons", "hicolor", "48x48", "apps", "foxicon.png"));
+        Write(Path.Combine("usr", "share", "applications", "fox.desktop"), "[Desktop Entry]\nIcon=foxicon\nExec=fox\n");
+
+        Assert.Equal(icon, DesktopIcons.IconForDesktopId(id, Dirs));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("../fox")]
+    [InlineData("a/b")]
+    [InlineData("a\\b")]
+    public void ADesktopIdThatIsAPathOrEmptyFindsNothing(string id) =>
+        Assert.Null(DesktopIcons.IconForDesktopId(id, Dirs));
+
+    [Theory]
     [InlineData("/usr/bin/firefox %u", "firefox")]
     [InlineData("\"/opt/My App/run\" --x", "run")]
     [InlineData("env FOO=1 prog", "env")] // The first word is the whole rule, so a wrapper hides the program behind it.

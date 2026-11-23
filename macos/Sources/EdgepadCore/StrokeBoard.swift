@@ -16,6 +16,10 @@ public enum StrokeTool: Int, CaseIterable {
     case arrow
     case rectangle
     case ellipse
+    /// A dot that follows the finger: one point, never stored in the board's strokes, gone at pen up.
+    case laser
+    /// The laser plus a short fading trail: the points of the last `Stroke.trailWindowMs` ms, never stored, gone at pen up.
+    case laserTrail
 }
 
 /// A point as the phone sent it: 0 is the left/top edge of the Mac's screen, 65535 the right/bottom.
@@ -134,6 +138,15 @@ public final class Stroke {
     /// phone set. It is stroked once per path, so an overlapping stretch of one stroke is not darker than the rest.
     public static let highlighterAlpha: Float = 0.35
 
+    /// Either laser is always this red; its size comes from the pen width.
+    static let laserRgb: UInt32 = 0xFF_1A1A
+
+    /// How long a point stays in the trailing laser's trail, in milliseconds.
+    public static let trailWindowMs: Int64 = 250
+
+    /// The glow's radius as a multiple of the dot's.
+    public static let laserGlow: Float = 1.8
+
     /// The arrow head's wings are this many pen widths long.
     private static let headWidths: Float = 4
 
@@ -146,21 +159,38 @@ public final class Stroke {
 
     public internal(set) var points: [NormPoint]
 
-    public init(tool: StrokeTool, style: PenStyle, points: [NormPoint] = []) {
+    /// When each of `points` arrived (laser strokes only), same order and length.
+    public internal(set) var pointMs: [Int64]
+
+    /// When the last PEN event of this stroke arrived; the laser's watchdog runs from it.
+    public internal(set) var lastEventMs: Int64
+
+    public init(
+        tool: StrokeTool, style: PenStyle, points: [NormPoint] = [], pointMs: [Int64] = [], lastEventMs: Int64 = 0
+    ) {
         self.tool = tool
         self.style = style
         self.points = points
+        self.pointMs = pointMs
+        self.lastEventMs = lastEventMs
     }
 
     /// The colour as 0xRRGGBB, without the alpha `alpha` gives it.
     public var rgb: UInt32 {
-        style.rgb
+        isLaser ? Stroke.laserRgb : style.rgb
     }
 
     /// The ink's alpha, 0...1: the opacity the phone set, and for the highlighter that of its 35%.
     public var alpha: Float {
-        (tool == .highlighter ? Stroke.highlighterAlpha : 1) * Float(style.opacity) / 100
+        if isLaser { return 1 }
+        return (tool == .highlighter ? Stroke.highlighterAlpha : 1) * Float(style.opacity) / 100
     }
+
+    /// Either laser: sized from the pen width, never stored.
+    public var isLaser: Bool { tool == .laser || tool == .laserTrail }
+
+    /// The laser dot's radius in pixels: 0.05% of the screen's height per width step (10, 15, 20 are 0.5, 0.75, 1.0%), at least 2.
+    public func laserRadiusPx(height: Int) -> Float { max(2, Float(style.width) * 0.0005 * Float(height)) }
 
     private var isShape: Bool {
         tool == .line || tool == .arrow || tool == .rectangle || tool == .ellipse
@@ -168,7 +198,8 @@ public final class Stroke {
 
     /// The width as a share of the screen's height, so a stroke looks alike on any display; at least one pixel.
     public func widthPx(height: Int) -> Float {
-        max(1, style.penShare * (tool == .highlighter ? PenStyle.highlighterWidths : 1) * Float(height))
+        if isLaser { return 2 * laserRadiusPx(height: height) }
+        return max(1, style.penShare * (tool == .highlighter ? PenStyle.highlighterWidths : 1) * Float(height))
     }
 
     /// The points in pixels of a `width` by `height` screen, y down.
@@ -200,12 +231,37 @@ public final class Stroke {
     }
 
     /// A shape keeps two points: the down point, then wherever the finger is now.
-    func extend(_ point: NormPoint) {
-        if isShape && points.count > 1 {
+    func extend(_ point: NormPoint, nowMs: Int64 = 0) {
+        if isLaser { lastEventMs = nowMs }
+        if tool == .laser {
+            points = [point]
+            pointMs = [nowMs]
+        } else if tool == .laserTrail {
+            points.append(point)
+            pointMs.append(nowMs)
+            trimTrail(nowMs: nowMs)
+        } else if isShape && points.count > 1 {
             points[1] = point
         } else {
             points.append(point)
         }
+    }
+
+    /// Drops the trail's points older than `trailWindowMs`, always keeping the newest (the dot).
+    func trimTrail(nowMs: Int64) {
+        guard tool == .laserTrail, pointMs.count == points.count else { return }
+        var drop = 0
+        while drop < points.count - 1 && nowMs - pointMs[drop] > Stroke.trailWindowMs { drop += 1 }
+        points.removeFirst(drop)
+        pointMs.removeFirst(drop)
+    }
+
+    /// The trail as pixels with each point's age in ms, oldest first, trimmed to the window. Empty when the finger
+    /// has rested for the whole window: only the dot is left then.
+    public func trail(width: Int, height: Int, nowMs: Int64) -> (points: [SIMD2<Float>], ages: [Float]) {
+        trimTrail(nowMs: nowMs)
+        guard tool == .laserTrail, points.count >= 2 else { return ([], []) }
+        return (path(width: width, height: height), pointMs.map { Float(nowMs - $0) })
     }
 
     private static func rotate(_ v: SIMD2<Float>, _ radians: Float) -> SIMD2<Float> {
@@ -242,7 +298,23 @@ public final class StrokeBoard {
     /// The stroke under the finger now: drawn by the overlay, but not yet undoable or exportable.
     public private(set) var active: Stroke?
 
-    public init() {}
+    private let clock: () -> Int64
+
+    /// `clock`: milliseconds, monotonic; tests pass a fake.
+    public init(clock: @escaping () -> Int64 = StrokeBoard.uptimeMs) {
+        self.clock = clock
+    }
+
+    public static func uptimeMs() -> Int64 { Int64(DispatchTime.now().uptimeNanoseconds / 1_000_000) }
+
+    /// Now on the board's clock, for the overlay's redraws.
+    public var nowMs: Int64 { clock() }
+
+    /// True while a laser still shows anything: the overlay's redraw timer runs exactly this long.
+    public func laserVisible(at now: Int64) -> Bool {
+        guard let laser = active, laser.isLaser else { return false }
+        return !LaserGeometry.isFinished(nowMs: now, lastEventMs: laser.lastEventMs)
+    }
 
     /// Starts a session from nothing, so the last session's strokes never leak into this one.
     public func begin(_ newMode: BoardMode) {
@@ -322,16 +394,20 @@ public final class StrokeBoard {
         case 1:
             commit()
             guard committedPoints < StrokeBoard.maxPointsPerBoard else { return false }
-            active = Stroke(tool: tool, style: style, points: [point])
+            let now = clock()
+            active = Stroke(
+                tool: tool, style: style, points: [point],
+                pointMs: tool == .laser || tool == .laserTrail ? [now] : [],
+                lastEventMs: now)
             return true
         case 2:
             guard let open = active, open.points.count < StrokeBoard.maxPointsPerStroke else { return false }
             guard committedPoints + open.points.count < StrokeBoard.maxPointsPerBoard else { return false }
-            open.extend(point)
+            open.extend(point, nowMs: clock())
             return true
         case 0:
             guard let open = active else { return false }
-            open.extend(point)
+            open.extend(point, nowMs: clock())
             commit()
             return true
         default:
@@ -369,16 +445,102 @@ public final class StrokeBoard {
             return setTool(.rectangle)
         case .toolEllipse:
             return setTool(.ellipse)
+        case .toolLaser:
+            return setTool(.laser)
+        case .toolLaserTrail:
+            return setTool(.laserTrail)
         default:
             return false
         }
     }
 
     private func commit() {
-        if let open = active {
+        if active?.isLaser == true {
+            active = nil
+        } else if let open = active {
             strokes.append(open)
             committedPoints += open.points.count
             active = nil
         }
+    }
+}
+
+/// The laser's pure maths: how visible it is, and the one closed outline its trail is filled with. No window and
+/// no clock of its own, so a test drives it and the overlay shares it.
+public enum LaserGeometry {
+    /// No pen event for this long and the laser starts to fade: a lost pen-up cannot leave a dot behind.
+    static let watchdogMs: Int64 = 400
+
+    /// The fade from fully shown to gone.
+    static let fadeMs: Int64 = 150
+
+    /// Samples per trail segment after smoothing.
+    static let subdivisions = 4
+
+    /// 1 until `watchdogMs` after the last event, then linearly to 0 over `fadeMs`.
+    public static func visibility(nowMs: Int64, lastEventMs: Int64) -> Float {
+        let silent = nowMs - lastEventMs
+        if silent <= watchdogMs { return 1 }
+        if silent >= watchdogMs + fadeMs { return 0 }
+        return 1 - Float(silent - watchdogMs) / Float(fadeMs)
+    }
+
+    /// True once nothing shows any more: the stroke may be dropped and the redraw timer stopped.
+    public static func isFinished(nowMs: Int64, lastEventMs: Int64) -> Bool {
+        visibility(nowMs: nowMs, lastEventMs: lastEventMs) <= 0
+    }
+
+    /// The trail's alpha 0...1 at `ageMs`: 0.9 at the head, 0 at `Stroke.trailWindowMs`.
+    public static func trailAlpha(ageMs: Float) -> Float {
+        0.9 * min(max(1 - ageMs / Float(Stroke.trailWindowMs), 0), 1)
+    }
+
+    private static func catmullRom(
+        _ p0: SIMD2<Float>, _ p1: SIMD2<Float>, _ p2: SIMD2<Float>, _ p3: SIMD2<Float>, _ t: Float
+    ) -> SIMD2<Float> {
+        let t2 = t * t
+        let t3 = t2 * t
+        let a = 2 * p1 + (p2 - p0) * t
+        let b = (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2
+        let c = (3 * p1 - p0 - 3 * p2 + p3) * t3
+        return 0.5 * (a + b + c)
+    }
+
+    /// The trail as one closed polygon: the left edge from the tail to the head, then the right edge back. The
+    /// half-width is `radius` at age 0 (the head) and 0 at `Stroke.trailWindowMs` (the tail), and the centre line
+    /// is smoothed through the points with a Catmull-Rom spline. Fewer than two points have no direction, so no
+    /// outline. `points` and `ages` are oldest first.
+    public static func outline(points: [SIMD2<Float>], ages: [Float], radius: Float) -> [SIMD2<Float>] {
+        guard points.count >= 2, ages.count == points.count else { return [] }
+
+        var centre: [SIMD2<Float>] = []
+        var age: [Float] = []
+        for i in 0..<(points.count - 1) {
+            let p0 = points[max(i - 1, 0)]
+            let p3 = points[min(i + 2, points.count - 1)]
+            for s in 0..<subdivisions {
+                let t = Float(s) / Float(subdivisions)
+                centre.append(catmullRom(p0, points[i], points[i + 1], p3, t))
+                age.append(ages[i] + (ages[i + 1] - ages[i]) * t)
+            }
+        }
+        centre.append(points[points.count - 1])
+        age.append(ages[ages.count - 1])
+
+        var left: [SIMD2<Float>] = []
+        var right: [SIMD2<Float>] = []
+        var normal = SIMD2<Float>(0, 1)
+        for i in 0..<centre.count {
+            let tangent = centre[min(i + 1, centre.count - 1)] - centre[max(i - 1, 0)]
+            let lengthSquared = (tangent * tangent).sum()
+            if lengthSquared > 1e-8 {
+                let unit = tangent / lengthSquared.squareRoot()
+                normal = SIMD2(-unit.y, unit.x)
+            }
+            let half = radius * min(max(1 - age[i] / Float(Stroke.trailWindowMs), 0), 1)
+            left.append(centre[i] + normal * half)
+            right.append(centre[i] - normal * half)
+        }
+        return left + right.reversed()
     }
 }

@@ -12,10 +12,10 @@
 <a href="LICENSE"><img src="https://img.shields.io/github/license/akshit-bansal11/edgepad" alt="License"></a>
 <a href="https://github.com/akshit-bansal11/edgepad/commits/main"><img src="https://img.shields.io/github/last-commit/akshit-bansal11/edgepad" alt="Last commit"></a>
 <img src="https://img.shields.io/badge/platforms-Android%20%C2%B7%20Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-informational" alt="Platforms: Android, Windows, macOS, Linux">
-<a href="https://edgepad.akshitbansal.dev/docs"><img src="https://img.shields.io/badge/docs-edgepad.akshitbansal.dev-black" alt="Documentation"></a>
+<a href="https://getedgepad.com/docs"><img src="https://img.shields.io/badge/docs-getedgepad.com-black" alt="Documentation"></a>
 </p>
 
-<p align="center"><a href="https://edgepad.akshitbansal.dev/#demo"><img src="assets/demo-poster.jpg" width="880" alt="The Edgepad demo: a phone as a trackpad, dials and controls for a laptop. Watch it on the website."></a></p>
+<p align="center"><a href="https://getedgepad.com/#demo"><img src="assets/demo-poster.jpg" width="880" alt="The Edgepad demo: a phone as a trackpad, dials and controls for a laptop. Watch it on the website."></a></p>
 
 ## Contents
 
@@ -25,6 +25,7 @@
 - [Install](#install)
 - [Quick start](#quick-start)
 - [How it works](#how-it-works)
+- [Optional extras](#optional-extras)
 - [Languages](#languages)
 - [Security](#security)
 - [Develop](#develop)
@@ -86,7 +87,7 @@ Get both apps from the [latest release](https://github.com/akshit-bansal11/edgep
 | Phone | Android 12 or later | `Edgepad-<version>.apk` | Allow installing from this source. Later releases install over it, and the app can fetch them itself. |
 | Windows laptop | Windows 10 version 2004 or later, 64-bit | `Edgepad-<version>.exe` | One self-contained file. Not code-signed, so SmartScreen asks: **More info**, then **Run anyway**. |
 | Mac laptop | macOS 13 or later | `Edgepad-<version>-mac.zip` | Apple Silicon and Intel. Ad hoc signed, not notarised: **Open Anyway** in System Settings. In testing. |
-| Linux laptop | 64-bit, BlueZ, systemd-logind | `Edgepad-<version>-linux-x64.tar.gz` | Run `install.sh` as root, then log out and back in once. In testing. |
+| Linux laptop | 64-bit, BlueZ, systemd-logind | `Edgepad-<version>-linux-x64.tar.gz`, or `-linux-arm64.tar.gz` on an ARM laptop | Run `install.sh` as root, then log out and back in once. In testing; the arm64 build has not been run on a device. |
 
 Releases also carry `SHA256SUMS.txt`, and `gh attestation verify <file> --repo akshit-bansal11/edgepad` checks that a file was built by this repository's release workflow. Full steps for every platform, the optional ViGEmBus gamepad driver and the Linux requirements are in the [user guide](docs/USER-GUIDE.md#install).
 
@@ -157,7 +158,60 @@ sequenceDiagram
   Laptop-->>Phone: STATE changes as they happen
 ```
 
-Read more: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the apps, their threads and the trust model, [docs/PROTOCOL.md](docs/PROTOCOL.md) for the wire format, and the [online documentation](https://edgepad.akshitbansal.dev/docs).
+Read more: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the apps, their threads and the trust model, [docs/PROTOCOL.md](docs/PROTOCOL.md) for the wire format, and the [online documentation](https://getedgepad.com/docs).
+
+## Optional extras
+
+Edgepad does everything above without these. They are here if you want them, and each one is off until you turn it on. In the laptop app, open the menu and choose **Integrations…**. Nothing is assumed to be installed.
+
+- **Widgets on the phone.** Clock, weather, system numbers and network (and AI usage, once Claude Code or Codex is connected), drawn behind the trackpad. Move them in the layout editor.
+- **System screen.** The laptop's processor, memory, disks and network, from the Controls popup on the phone.
+
+For developers, there are also AI and GitHub screens. They never appear in the phone's Controls until you connect them on the laptop, and you can hide any Controls tile with **Edit**.
+
+- **Claude Code and Codex.** Approve their requests from the phone, and see their sessions, limits and spend. Needs Claude Code, or Codex 0.159 or newer. Nothing else to install: the hooks run the Edgepad app itself, and the app reads Claude spend from Claude Code's own transcripts.
+- **GitHub.** Sign in with a GitHub account to see review requests and your pull requests with their checks. Edgepad signs in through a read-only GitHub App, "Edgepad Dashboard", which can read but never change anything and sees only the repositories you install it on. Private repositories show up once you choose them: click **Choose repos on GitHub** in the laptop window, or tap "Private repos missing?" on the phone. If you signed in before 5.0.0, sign in again.
+
+What leaves the laptop:
+
+- The city name, sent to open-meteo.com for the weather widget. Weather data by Open-Meteo.com.
+- GitHub API calls, made with your own GitHub sign-in, when GitHub is on.
+- Nothing else. There is no server and no telemetry.
+
+What the laptop reads locally:
+
+- Claude Code transcripts, to count tokens.
+- Codex `sessions` files, for its state, tokens and limits. Codex's `auth.json` is never opened.
+
+Dollar amounts are estimates at API list prices, and the screens say so. A model with no price yet counts as $0, and the screen says "Some models have no price yet".
+
+Codex must trust the Edgepad plugin before its approvals work. This is a step inside Codex, not in Edgepad. In the Codex CLI, type `/hooks` and trust Edgepad. In the Codex desktop app, go to Settings > Hooks > Review hooks. The Integrations window waits until the first event arrives.
+
+Open the Integrations window from the tray icon > **Integrations…** on Windows and Linux, or the menu-bar icon > **Integrations…** on macOS. The AI and GitHub tiles appear in the phone's Controls only after you connect them here.
+
+Connect Claude Code:
+
+1. Install Claude Code on this computer if you have not: https://claude.com/claude-code
+2. Click **Connect**. Edgepad adds its plugin to Claude Code.
+3. Restart open Claude Code sessions, or type `/reload-plugins` in them.
+4. On your phone, open Controls > AI.
+
+Connect Codex:
+
+1. Install Codex on this computer if you have not: https://developers.openai.com/codex
+2. Click **Connect**. Edgepad adds its plugin to Codex.
+3. In Codex, type `/hooks` and trust Edgepad. In the Codex app: Settings > Hooks > Review hooks.
+4. On your phone, open Controls > AI. It appears once Codex sends its first event.
+
+After an Edgepad update that changes the plugin's hooks, Codex skips them until you trust them again. Edgepad shows a notification when that happens: type `/hooks` in Codex and trust Edgepad again.
+
+Connect GitHub:
+
+1. Click **Sign in with GitHub**. A github.com page opens.
+2. Enter the code shown in the Integrations window and click **Authorize**.
+3. On your phone, open Controls > GitHub.
+
+Before you uninstall Edgepad, press **Disconnect** for Claude Code and Codex in the Integrations window. Otherwise a leftover entry stays in each tool. To revoke GitHub access, open https://github.com/settings/apps/authorizations, find Edgepad Dashboard, and choose **Revoke**.
 
 ## Languages
 
@@ -165,7 +219,7 @@ Edgepad speaks English plus Simplified Chinese, Spanish, Hindi, German, French, 
 
 ## Security
 
-Only a phone that is paired with the laptop can connect, and only a phone you answer **Trust** for is admitted. Every trusted phone has full keyboard-level control of the laptop, so trust only your own. An optional PIN, set on the laptop only, adds a lock-out against guessing. There is no server, no account and no telemetry. The boundaries and the known limits are in [SECURITY.md](SECURITY.md) (report a hole privately, as it describes); the levels and the PIN are explained in the [user guide](docs/USER-GUIDE.md#security-levels-and-the-pin).
+Only a phone that is paired with the laptop can connect, and only a phone you answer **Trust** for is admitted. Every trusted phone has full keyboard-level control of the laptop, so trust only your own. An optional PIN, set on the laptop only, adds a lock-out against guessing. There is no server, no account and no telemetry. Every permission, data flow and internet host is listed in [docs/DATA-AND-PERMISSIONS.md](docs/DATA-AND-PERMISSIONS.md). The boundaries and the known limits are in [SECURITY.md](SECURITY.md) (report a hole privately, as it describes); the levels and the PIN are explained in the [user guide](docs/USER-GUIDE.md#security-levels-and-the-pin).
 
 ## Develop
 

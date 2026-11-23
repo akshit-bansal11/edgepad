@@ -105,3 +105,24 @@ internal fun probeAddress(
 
 private const val CONNECT_MS = 3_000
 private const val REPLY_MS = 5_000
+
+/** Why [parseHostPort] refused an address, so the field can say what to fix. */
+internal enum class AddressProblem { NOT_AN_ADDRESS, PORT_OUT_OF_RANGE }
+
+/** Null when [text] is an address [parseHostPort] takes; else the part that is wrong. Pure, so a test covers it. */
+internal fun addressProblem(text: String): AddressProblem? {
+    if (parseHostPort(text) != null) return null
+    val t = cleaned(text)
+    // A port was given when a colon follows the host: the single colon of `host:port`, or the one after `]`.
+    val port =
+        when {
+            t.startsWith("[") -> t.substringAfter(']', "").takeIf { it.startsWith(":") }?.drop(1)
+            t.count { it == ':' } == 1 && !t.startsWith(":") -> t.substringAfter(':')
+            else -> null
+        }
+    return if (port != null && t.none { !it.isLetterOrDigit() && it !in ADDRESS_CHARS }) {
+        AddressProblem.PORT_OUT_OF_RANGE
+    } else {
+        AddressProblem.NOT_AN_ADDRESS
+    }
+}
