@@ -2,6 +2,16 @@ import XCTest
 
 @testable import EdgepadCore
 
+/// Counts how many times the expired notice was raised.
+private final class ExpiryCount: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+
+    var value: Int { lock.withLock { count } }
+
+    func bump() { lock.withLock { count += 1 } }
+}
+
 /// Records the order tokens are saved in.
 private final class OrderedSecrets: SecretStore {
     private let lock = NSLock()
@@ -289,6 +299,74 @@ final class GitLabTests: XCTestCase {
         XCTAssertNil(secrets.get(GitLabApp.tokenName))
         XCTAssertNil(secrets.get(GitLabApp.refreshName))
         XCTAssertNil(secrets.get(GitLabApp.clientName))
+    }
+
+    func testARefusedRenewalLeavesAnExpiredStateAndRaisesTheNoticeOnce() async {
+        expiring(in: 60)
+        let http = FakeHttp { request in
+            if request.url?.path == "/oauth/token" {
+                return HttpReply(status: 400, body: Data(#"{"error":"invalid_grant"}"#.utf8))
+            }
+            return self.serve(request)
+        }
+        let gitlab = host(http)
+        let notices = ExpiryCount()
+        gitlab.onExpired = { notices.bump() }
+
+        XCTAssertFalse(gitlab.signInExpired)
+        let result = await gitlab.refresh()
+
+        XCTAssertEqual(result.result, .noPermission)
+        XCTAssertTrue(gitlab.signInExpired)
+        XCTAssertEqual(notices.value, 1)
+        XCTAssertNil(secrets.get(GitLabApp.tokenName))
+    }
+
+    func testAnUnavailableRenewalIsNotAnExpiry() async {
+        expiring(in: 60)
+        let http = FakeHttp { request in
+            if request.url?.path == "/oauth/token" {
+                return HttpReply(status: 500, body: Data(#"{"error":"server_error"}"#.utf8))
+            }
+            return self.serve(request)
+        }
+        let gitlab = host(http)
+
+        _ = await gitlab.refresh()
+
+        XCTAssertFalse(gitlab.signInExpired)
+    }
+
+    func testATokenSavedAfterAnExpiryClearsIt() async {
+        _ = secrets.set(GitLabApp.expiredName, "1")
+        let gitlab = host(FakeHttp(serve))
+        XCTAssertTrue(gitlab.signInExpired)
+
+        let saved = await gitlab.saveServer(token: pasted, url: GitLabApp.comUrl)
+
+        XCTAssertEqual(saved.status, .saved)
+        XCTAssertFalse(gitlab.signInExpired)
+        XCTAssertNil(secrets.get(GitLabApp.expiredName))
+    }
+
+    func testAGitLabComTokenIsCheckedAgainstGitLabComAndKeptWithTheFixedAddress() async {
+        let http = FakeHttp(serve)
+        let gitlab = host(http)
+
+        let saved = await gitlab.saveServer(token: " " + pasted + " ", url: GitLabApp.comUrl)
+        clock.advance(300)
+        let result = await gitlab.refresh()
+
+        XCTAssertEqual(saved, GitSaveResult(status: .saved, login: "ana"))
+        XCTAssertEqual(result.result, .ok)
+        XCTAssertEqual(gitlab.domain, "gitlab.com")
+        XCTAssertEqual(secrets.get(GitLabApp.tokenName), pasted)
+        XCTAssertNil(secrets.get(GitLabApp.refreshName))
+        for seen in http.seen {
+            XCTAssertEqual(seen.method, "GET")
+            XCTAssertEqual(seen.host, "gitlab.com")
+            XCTAssertEqual(seen.headers["Authorization"], "Bearer " + pasted)
+        }
     }
 
     func testAnyOtherRenewalFailureKeepsEveryToken() async {

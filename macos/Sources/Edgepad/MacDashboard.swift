@@ -17,6 +17,8 @@ final class MacDashboard {
     var changed: (() -> Void)?
     /// Told when a re-stamp changed Codex's hooks file, which Codex then skips until the owner trusts it again.
     var codexRetrust: (() -> Void)?
+    /// GitLab refused to renew the gitlab.com sign-in; the app posts a notification.
+    var gitLabExpired: (() -> Void)?
 
     private let folder: String
     private let installer: PluginInstaller
@@ -32,11 +34,21 @@ final class MacDashboard {
     private var gitHub: GitHubApi?
     // GitLab, Gitea (Forgejo, Codeberg), Bitbucket and Gitee: idle until their switch is on and a token is saved.
     // Tokens live in the Keychain.
-    private lazy var tokenHosts = DevTokenHosts(
-        hosts: [
-            GitLabHost(store: secrets, settings: settings), GiteaHost(store: secrets, settings: settings),
-            BitbucketHost(store: secrets, settings: settings), GiteeHost(store: secrets, settings: settings),
-        ], settings: settings)
+    private lazy var tokenHosts: DevTokenHosts = {
+        let gitlab = GitLabHost(store: secrets, settings: settings)
+        // A refused renewal reaches an open window and the notification centre at once, on the main queue.
+        gitlab.onExpired = { [weak self] in
+            DispatchQueue.main.async {
+                self?.developersWindow?.refresh()
+                self?.gitLabExpired?()
+            }
+        }
+        return DevTokenHosts(
+            hosts: [
+                gitlab, GiteaHost(store: secrets, settings: settings),
+                BitbucketHost(store: secrets, settings: settings), GiteeHost(store: secrets, settings: settings),
+            ], settings: settings)
+    }()
     private let urlOpener = MacUrlOpener()
     private var stats: MacStats?
     private lazy var net = MacNetInfo()

@@ -108,6 +108,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         notifier = Notifier(onClick: { [weak self] id in
             if id == "update" { self?.openRelease() }
+            if id == "gitlab-expired" { self?.dashboard?.showDevelopers() }
         })
         let firstRun = !networkSettings.hasChoice && !UserDefaults.standard.bool(forKey: Self.welcomedKey)
         if firstRun {
@@ -167,6 +168,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     "Note_CodexTrustBody",
                     "Edgepad was updated. In Codex, type /hooks and trust Edgepad, or phone approvals stay in the "
                         + "terminal."))
+        }
+        dashboard.gitLabExpired = { [weak self] in
+            self?.notifier?.post(
+                id: "gitlab-expired", title: "GitLab",
+                body: tr("Dev_GitLabExpired", "GitLab sign-in expired — sign in again"))
         }
         host.dashboard = dashboard
         dashboard.start()

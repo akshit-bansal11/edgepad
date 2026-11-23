@@ -158,6 +158,8 @@ public final class IntegrationHost {
     private var gitHubSent = ""
     // What this phone was last sent for each token host (by id), so an unchanged page is not sent again.
     private var gitSent: [String: String] = [:]
+    // Whether the phone was last told GitLab's sign-in expired, so it is told again only when that moves.
+    private var gitLabWasExpired = false
     // The key of GitHub's last refresh in the process-wide throttle.
     private static let gitHubKey = "github"
     private let weatherRetryAfter: TimeInterval
@@ -304,7 +306,15 @@ public final class IntegrationHost {
         if settings.active(IntegrationSettings.gitHub) && parts.gitHubSignedIn?() != true {
             reasons.append(Feature.github.rawValue + ":" + UnavailableReason.noPermission.rawValue)
         }
+        // A gitlab.com sign-in that GitLab stopped renewing: the phone says so instead of dropping the host.
+        if gitLabExpired() {
+            reasons.append(Feature.gitlab.rawValue + ":" + UnavailableReason.noPermission.rawValue)
+        }
         return reasons
+    }
+
+    private func gitLabExpired() -> Bool {
+        settings.active("gitlab") && (parts.gitHosts ?? []).contains { ($0 as? GitLabHost)?.signInExpired == true }
     }
 
     /// The phone's PERM_ANSWER. False (counted as dropped) when no ask waits for it.
@@ -569,8 +579,22 @@ public final class IntegrationHost {
             for host in hosts {
                 _ = await host.refresh()
             }
-            guard let self, self.watching(Self.gitHubBit) else { return }
+            guard let self else { return }
+            self.tellGitLabExpiry()
+            guard self.watching(Self.gitHubBit) else { return }
             self.sendGitHosts()
+        }
+    }
+
+    // GitLab's renewal was refused (or a sign-in since fixed it): tell the phone now, as GitHub's revoked token is.
+    private func tellGitLabExpiry() {
+        let expired = gitLabExpired()
+        gate.lock()
+        let moved = !disposed && expired != gitLabWasExpired
+        gitLabWasExpired = expired
+        gate.unlock()
+        if moved {
+            push(.text(kind: TextKind.unavailable.rawValue, value: unavailable().joined(separator: "/")))
         }
     }
 

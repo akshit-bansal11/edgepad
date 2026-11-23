@@ -714,6 +714,15 @@
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>Na swoim serwerze utwórz osobisty token dostępu wyłącznie z zakresem read_api i wklej go poniżej.</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>Logowanie do GitLab wygasło — zaloguj się ponownie</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Użyj tokenu zamiast tego</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>Na gitlab.com utwórz osobisty token dostępu wyłącznie z zakresem read_api i wklej go poniżej. W przeciwieństwie do logowania nie wygasa po 2 godzinach.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Nazwa użytkownika lub e-mail</value>
   </data>

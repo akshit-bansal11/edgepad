@@ -237,6 +237,7 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
         input.signingIn = isGitLab ? gitlabIn : signingIn
         input.codeShown = !(isGitLab ? gitlabCode : userCode).isEmpty
         input.saving = saving
+        input.expired = isGitLab && hooks.hosts.gitLabExpired
         if id == IntegrationSettings.gitHub {
             input.signedIn = hooks.signIn.isSignedIn && hooks.settings.flag(id)
             input.account = hooks.settings.text(IntegrationSettings.gitHubLogin)
@@ -282,6 +283,7 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
         switch line {
         case .working, .waiting: return tr("Integrations_Working", "Working…")
         case .notConfigured: return tr("Integrations_NoClientId", "Sign-in is not set up in this build.")
+        case .expired: return tr("Dev_GitLabExpired", "GitLab sign-in expired — sign in again")
         case .notConnected:
             if provider.id == "gitlab", let gitlabProblem { return gitlabProblem }
             if provider.id == IntegrationSettings.gitHub {
@@ -652,12 +654,12 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
 
     // ---- token hosts
 
-    func openForm(_ id: String) {
+    func openForm(_ id: String, com: Bool = false) {
         editing = id
         saveNote = nil
         let url = hooks.hosts.url(id)
         rows.first { $0.provider.id == id }?.prepareForm(
-            url: url.isEmpty && id == "gitea" ? GiteaHost.defaultUrl : url, user: hooks.hosts.user(id))
+            url: url.isEmpty && id == "gitea" ? GiteaHost.defaultUrl : url, user: hooks.hosts.user(id), com: com)
         expanded.remove(id)
         refresh()
         rows.first { $0.provider.id == id }?.focusForm()
@@ -709,6 +711,11 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
         title: tr("Integrations_ChooseRepos", "Choose repos on GitHub"), target: nil, action: nil)
     let selfHost = NSButton(
         title: tr("Dev_GitLabServer", "Add a self-hosted server…"), target: nil, action: nil)
+    let useToken = NSButton(
+        title: tr("Dev_GitLabUseToken", "Use a token instead"), target: nil, action: nil)
+
+    // The form is GitLab's "Use a token instead": gitlab.com, so no address field; the address is GitLabApp.comUrl.
+    private var comToken = false
 
     private weak var owner: DevelopersWindow?
     private let dot = DotView()
@@ -812,12 +819,17 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
         selfHost.contentTintColor = .linkColor
         selfHost.target = self
         selfHost.action = #selector(selfHostPressed)
+        useToken.isBordered = false
+        useToken.font = .systemFont(ofSize: 12)
+        useToken.contentTintColor = .linkColor
+        useToken.target = self
+        useToken.action = #selector(useTokenPressed)
         if provider.id == "gitlab" {
             openPage.title = tr("Dev_GitLabOpenPage", "Open gitlab.com/oauth/device")
         }
         buildCodePanel()
         buildForm()
-        detail.setViews([steps, extra, copyCommands, codePanel, chooseRepos, selfHost, form], in: .top)
+        detail.setViews([steps, extra, copyCommands, codePanel, chooseRepos, useToken, selfHost, form], in: .top)
         detail.orientation = .vertical
         detail.alignment = .leading
         detail.spacing = 8
@@ -835,6 +847,7 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
         codePanel.isHidden = true
         chooseRepos.isHidden = true
         selfHost.isHidden = true
+        useToken.isHidden = true
         form.isHidden = true
     }
 
@@ -921,6 +934,8 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
     func showSelfHost(_ visible: Bool, enabled: Bool) {
         selfHost.isHidden = !visible
         selfHost.isEnabled = enabled
+        useToken.isHidden = !visible
+        useToken.isEnabled = enabled
     }
 
     func showForm(_ open: Bool, error message: String?, saving: Bool, enabled: Bool) {
@@ -933,15 +948,28 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
         }
     }
 
-    func prepareForm(url: String, user: String) {
+    func prepareForm(url: String, user: String, com: Bool = false) {
+        comToken = com && provider.id == "gitlab"
         urlField.stringValue = url
         userField.stringValue = user
         tokenField.stringValue = ""
+        urlLabel.isHidden = comToken
+        urlField.isHidden = comToken
+        hint.stringValue =
+            comToken
+            ? tr(
+                "Dev_GitLabComTokenHint",
+                "On gitlab.com, create a personal access token with only the read_api scope, then paste it below. "
+                    + "Unlike the sign-in, it does not run out after 2 hours.")
+            : tr(
+                "Dev_GitLabTokenHint",
+                "On your server, create a personal access token with only the read_api scope, then paste it below.")
     }
 
     func focusForm() {
         let first: NSTextField
         switch provider.id {
+        case "gitlab" where comToken: first = tokenField
         case "gitea", "gitlab": first = urlField
         case "bitbucket": first = userField
         default: first = tokenField
@@ -950,7 +978,7 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
     }
 
     func formValues() -> (token: String, url: String, user: String) {
-        (tokenField.stringValue, urlField.stringValue, userField.stringValue)
+        (tokenField.stringValue, comToken ? GitLabApp.comUrl : urlField.stringValue, userField.stringValue)
     }
 
     func clearToken() {
@@ -971,6 +999,7 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
     @objc private func openPagePressed() { owner?.openDevicePage(for: provider.id) }
     @objc private func copyCodePressed() { owner?.copyCode(for: provider.id) }
     @objc private func selfHostPressed() { owner?.openForm(provider.id) }
+    @objc private func useTokenPressed() { owner?.openForm(provider.id, com: true) }
     @objc private func chooseReposPressed() { owner?.openInstallPage() }
     @objc private func savePressed() { owner?.save() }
     @objc private func cancelPressed() { owner?.cancelForm() }

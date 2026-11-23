@@ -146,7 +146,18 @@ public final class GitLabHost: TokenGitHost {
 
     override func canRenew() -> Bool { server.isEmpty && renewal.canRefresh }
 
-    override func renew() async -> RefreshOutcome { await renewal.refresh() }
+    /// Whether GitLab refused the renewal of the gitlab.com sign-in and nothing has been signed in since: the person is
+    /// told to sign in again (or use a token) instead of the host quietly vanishing.
+    public var signInExpired: Bool { server.isEmpty && GitLabApp.isExpired(secrets) }
+
+    /// Called each time a renewal is refused, on whatever thread asked. The app shows a notice.
+    public var onExpired: (() -> Void)?
+
+    override func renew() async -> RefreshOutcome {
+        let outcome = await renewal.refresh()
+        if outcome == .rejected && signInExpired { onExpired?() }
+        return outcome
+    }
 
     /// Checks a `read_api` token for the self-hosted server at `url` and saves both when the server accepts it; an
     /// empty address is refused (gitlab.com signs in by the device flow).

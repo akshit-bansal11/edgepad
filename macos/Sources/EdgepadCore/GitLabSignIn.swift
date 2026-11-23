@@ -21,6 +21,15 @@ public enum GitLabApp {
     /// The Application ID that issued the saved token.
     public static let clientName = "gitlab.client"
 
+    /// Set to "1" when GitLab refused the refresh token: the tokens are gone and the person must sign in again.
+    /// Cleared by any sign-in, token or sign-out.
+    public static let expiredName = "gitlab.expired"
+
+    /// The address a gitlab.com personal access token is saved with ("Use a token instead"): a token does not run out
+    /// every 2 hours, so it is the reliable fallback. The window passes this constant to `GitLabHost.saveServer`; the
+    /// person never types it.
+    public static let comUrl = "https://gitlab.com"
+
     /// The page the person opens to type the code; always this constant, never an address a server sent.
     public static let devicePage = "https://gitlab.com/oauth/device"
 
@@ -98,13 +107,21 @@ public enum GitLabApp {
         }
     }
 
-    /// Forgets everything saved, but only while nothing has moved since `epoch` and the refresh token is still the one
-    /// sent.
+    /// Forgets everything saved and records that the sign-in expired (so the person is told, not silently signed out),
+    /// but only while nothing has moved since `epoch` and the refresh token is still the one sent.
     static func forgetIfCurrent(_ store: SecretStore, epoch: Int, sentRefresh: String?) {
         let made = state(store)
         made.gate.withLock {
-            if made.epoch == epoch && store.get(refreshName) == sentRefresh { forget(store) }
+            if made.epoch == epoch && store.get(refreshName) == sentRefresh {
+                forget(store)
+                _ = store.set(expiredName, "1")
+            }
         }
+    }
+
+    /// Whether the last gitlab.com sign-in was refused a renewal and no token has been saved since.
+    public static func isExpired(_ store: SecretStore) -> Bool {
+        store.get(expiredName) == "1" && !GitTokens.isToken(store.get(tokenName))
     }
 
     /// Saves a token with its record; false when it could not be saved (nothing half-saved stays). The order is
@@ -125,11 +142,13 @@ public enum GitLabApp {
             forget(store)
             return false
         }
+        store.delete(expiredName)
         return true
     }
 
-    /// Deletes the refresh token, the expiry and the record: what a pasted token must not sit beside.
+    /// Deletes the refresh token, the expiry, the record and the expired mark: what a pasted token must not sit beside.
     static func forgetRenewal(_ store: SecretStore) {
+        store.delete(expiredName)
         store.delete(refreshName)
         store.delete(expiresName)
         store.delete(clientName)

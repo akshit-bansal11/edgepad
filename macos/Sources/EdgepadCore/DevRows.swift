@@ -23,6 +23,8 @@ public enum DevLine: Equatable {
     /// This build has no GitHub client id.
     case notConfigured
     case notConnected
+    /// GitLab refused to renew the gitlab.com sign-in: sign in again, or use a token.
+    case expired
 }
 
 /// What one row knows right now. The window fills it from the settings, the installers and its own sign-in state.
@@ -40,6 +42,8 @@ public struct DevRowInput {
     public var account = ""
     /// A token host's form is saving.
     public var saving = false
+    /// GitLab: the gitlab.com sign-in expired and none has been made since.
+    public var expired = false
 
     public init() {}
 }
@@ -123,12 +127,14 @@ public enum DevRowModel {
             line = .signedIn(input.account)
         } else if input.signingIn && !input.codeShown {
             line = .waiting
+        } else if input.expired && !input.signingIn {
+            line = .expired
         } else {
             line = .notConnected
         }
         let button: DevAction = input.signedIn ? .signOut : input.signingIn ? .cancel : .signIn
         return DevRowView(
-            line: line, dot: input.signedIn, calm: !input.signedIn, button: button,
+            line: line, dot: input.signedIn, calm: line != .expired && !input.signedIn, button: button,
             buttonEnabled: button == .signIn ? !input.saving : true, canHowTo: false)
     }
 
@@ -178,6 +184,11 @@ public final class DevTokenHosts {
     /// Whether a token is saved for the host with this provider id.
     public func isSignedIn(_ id: String) -> Bool {
         hosts[id]?.isSignedIn ?? false
+    }
+
+    /// Whether GitLab refused to renew the gitlab.com sign-in and nothing has been signed in since.
+    public var gitLabExpired: Bool {
+        (hosts["gitlab"] as? GitLabHost)?.signInExpired == true
     }
 
     /// The login the last save named, for display only; empty when none.

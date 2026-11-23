@@ -720,6 +720,15 @@
   <data name="Dev_GitLabTokenHint" xml:space="preserve">
     <value>On your server, create a personal access token with only the read_api scope, then paste it below.</value>
   </data>
+  <data name="Dev_GitLabExpired" xml:space="preserve">
+    <value>GitLab sign-in expired — sign in again</value>
+  </data>
+  <data name="Dev_GitLabUseToken" xml:space="preserve">
+    <value>Use a token instead</value>
+  </data>
+  <data name="Dev_GitLabComTokenHint" xml:space="preserve">
+    <value>On gitlab.com, create a personal access token with only the read_api scope, then paste it below. Unlike the sign-in, it does not run out after 2 hours.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Username or email</value>
   </data>
