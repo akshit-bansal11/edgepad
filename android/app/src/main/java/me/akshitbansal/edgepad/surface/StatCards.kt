@@ -92,13 +92,21 @@ class StatCards(
         canvas.drawRoundRect(box, radius - half, radius - half, stroke)
 
         val pad = (short * PAD_SHARE).coerceIn(dp(MIN_PAD_DP), dp(Space.M))
-        val size = (short * TEXT_SHARE).coerceIn(dp(MIN_TEXT_DP), sp(Type.SMALL))
-        nameInk.textSize = size
-        valueInk.textSize = size
-        nameInk.color = hue
-        valueInk.color = hue
+        var size = (short * TEXT_SHARE).coerceIn(dp(MIN_TEXT_DP), sp(Type.SMALL))
         val left = at.left + pad
         val right = at.right - pad
+        nameInk.textSize = size
+        valueInk.textSize = size
+        // A long label (VRAM, or a translation) shrinks a step at a time to stay on one line with its value.
+        while (size > dp(MIN_TEXT_DP) &&
+            nameInk.measureText(label) + dp(Space.XS) + valueInk.measureText(value) > right - left
+        ) {
+            size = maxOf(size * SHRINK, dp(MIN_TEXT_DP))
+            nameInk.textSize = size
+            valueInk.textSize = size
+        }
+        nameInk.color = hue
+        valueInk.color = hue
         val nameMetrics = nameInk.fontMetrics
         val base = at.top + pad - nameMetrics.ascent
         val lineHeight = nameMetrics.descent - nameMetrics.ascent
@@ -225,6 +233,7 @@ class StatCards(
         const val PAD_SHARE = 0.12f
         const val MIN_PAD_DP = 5f
         const val TEXT_SHARE = 0.2f
+        const val SHRINK = 0.92f
         const val MIN_TEXT_DP = 10f
         const val MIN_GRAPH_DP = 8f
         const val ARROW_BOX_DP = 28f
