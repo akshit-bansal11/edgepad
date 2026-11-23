@@ -103,13 +103,11 @@ public struct GitSnapshot: Equatable {
     public let profile: GitProfile
     public let repos: [GitRepo]
     public let items: [GitItem]
-    public var unread: Int?
 
-    public init(profile: GitProfile, repos: [GitRepo], items: [GitItem], unread: Int? = nil) {
+    public init(profile: GitProfile, repos: [GitRepo], items: [GitItem]) {
         self.profile = profile
         self.repos = repos
         self.items = items
-        self.unread = unread
     }
 }
 
@@ -150,13 +148,15 @@ public struct GitPage: Equatable {
 }
 
 /// The body of a BLOB GIT: UTF-8 lines joined by line feeds, fields by tabs, at most `GitLimits.maxBytes`, the last
-/// lines dropped until it fits. Line one is `H host login name repos followers rev`. An optional `N` line (GitHub's
-/// unread count) keeps the older six-field shape: `N, empty, count, empty, empty, none`. Then
-/// `P repo private language stars issues pulls` (private is `p` or empty) for each repository, and
+/// lines dropped until it fits. Line one is `H host login name repos followers rev`. There is no `N` (unread count) line
+/// any more: GitHub gives notifications only to a classic token, and a phone still reads one from an older laptop.
+/// Then `P repo private language stars issues pulls` (private is `p` or empty) for each repository, and
 /// `M|R|A repo number title flags ci state updatedMin` for each item (flags: `d` draft, `i` an issue). Every free-text
 /// field is cleaned and cut. Byte for byte the laptop core's GitBlob.
 public enum GitBlob {
-    public static func encode(_ host: String, _ snapshot: GitSnapshot, _ rev: Int64) -> GitPage {
+    public static func encode(
+        _ host: String, _ snapshot: GitSnapshot, _ rev: Int64, extraUrl: String? = nil
+    ) -> GitPage {
         var rows: [(row: String, url: String?)] = [
             (
                 join([
@@ -166,9 +166,6 @@ public enum GitBlob {
                 ]), nil
             )
         ]
-        if let unread = snapshot.unread {
-            rows.append((join(["N", "", num(Int64(unread)), "", "", CiToken.none.rawValue]), nil))
-        }
         let repos = snapshot.repos.filter { GitHubParse.isRepo($0.fullName) }.prefix(GitLimits.maxRepos)
         for repo in repos {
             rows.append(
@@ -201,7 +198,10 @@ public enum GitBlob {
         }
         let body = DashWire.fit(rows.map { $0.row }, "\n", GitLimits.maxBytes)
         let kept = body.isEmpty ? 0 : body.utf8.filter { $0 == 10 }.count + 1
-        return GitPage(rev: rev, body: body, urls: rows.prefix(kept).compactMap { $0.url })
+        // An address that is not a list line (GitHub's "choose repositories"). Last, so its index is the number of
+        // repository and item lines the phone counted. A constant of the host, never text from the phone.
+        let urls = rows.prefix(kept).compactMap { $0.url } + (extraUrl.map { [$0] } ?? [])
+        return GitPage(rev: rev, body: body, urls: urls)
     }
 
     private static func letter(_ section: GitSection) -> String {
@@ -226,13 +226,15 @@ public enum GitBlob {
 /// `GitOpen` aimed at a page from before a sign-out can never match a page after it.
 public final class GitBook {
     private let host: String
+    private let extraUrl: String?
     private let gate = NSLock()
     private var rev: Int64 = 0
     private var key: String?
     private var current: GitPage?
 
-    public init(host: String) {
+    public init(host: String, extraUrl: String? = nil) {
         self.host = host
+        self.extraUrl = extraUrl
     }
 
     public var page: GitPage? {
@@ -242,14 +244,14 @@ public final class GitBook {
     @discardableResult
     public func update(_ snapshot: GitSnapshot) -> GitPage {
         gate.withLock {
-            let probe = GitBlob.encode(host, snapshot, 0)
+            let probe = GitBlob.encode(host, snapshot, 0, extraUrl: extraUrl)
             let next = probe.body + "\u{0001}" + probe.urls.joined(separator: "\u{0001}")
             if let current, next == key {
                 return current
             }
             key = next
             rev += 1
-            let made = GitBlob.encode(host, snapshot, rev)
+            let made = GitBlob.encode(host, snapshot, rev, extraUrl: extraUrl)
             current = made
             return made
         }

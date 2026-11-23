@@ -176,13 +176,6 @@ final class GitHubParseTests: XCTestCase {
         }
     }
 
-    func testTheUnreadCountIsTheListLengthCappedAtFifty() {
-        XCTAssertEqual(GitHubParse.unread(Data("[{},{},5]".utf8)), 2)
-        let eighty = "[" + Array(repeating: "{}", count: 80).joined(separator: ",") + "]"
-        XCTAssertEqual(GitHubParse.unread(Data(eighty.utf8)), 50)
-        XCTAssertNil(GitHubParse.unread(Data("{}".utf8)))
-    }
-
     func testTheLoginMustLookLikeOne() {
         let cases: [(String, String?)] = [
             (#"{"login":"octo-cat"}"#, "octo-cat"), (#"{"login":"evil name"}"#, nil), (#"{"login":""}"#, nil),

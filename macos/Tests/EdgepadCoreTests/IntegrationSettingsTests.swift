@@ -5,7 +5,7 @@ import XCTest
 final class IntegrationSettingsTests: XCTestCase {
     private static let flags = [
         IntegrationSettings.stats, IntegrationSettings.weather, IntegrationSettings.claude, IntegrationSettings.codex,
-        IntegrationSettings.gitHub, IntegrationSettings.gitHubPrivate, IntegrationSettings.codexTrusted,
+        IntegrationSettings.gitHub, IntegrationSettings.codexTrusted,
     ]
 
     private var dir = ""
@@ -70,7 +70,6 @@ final class IntegrationSettingsTests: XCTestCase {
         let settings = IntegrationSettings(path: filePath)
         XCTAssertTrue(settings.setFlag(IntegrationSettings.stats, true))
         XCTAssertTrue(settings.setFlag(IntegrationSettings.gitHub, true))
-        XCTAssertTrue(settings.setFlag(IntegrationSettings.gitHubPrivate, true))
         XCTAssertTrue(settings.setFlag(IntegrationSettings.codexTrusted, true))
         XCTAssertTrue(settings.setFlag(IntegrationSettings.weather, false))
         let texts = [
@@ -88,7 +87,6 @@ final class IntegrationSettingsTests: XCTestCase {
 
         XCTAssertTrue(again.flag(IntegrationSettings.stats))
         XCTAssertTrue(again.flag(IntegrationSettings.gitHub))
-        XCTAssertTrue(again.flag(IntegrationSettings.gitHubPrivate))
         XCTAssertTrue(again.flag(IntegrationSettings.codexTrusted))
         XCTAssertFalse(again.flag(IntegrationSettings.weather))
         XCTAssertFalse(again.flag(IntegrationSettings.claude))

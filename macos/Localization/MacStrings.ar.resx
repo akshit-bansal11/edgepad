@@ -643,8 +643,11 @@
   <data name="Integrations_Waiting" xml:space="preserve">
     <value>في انتظار موافقتك في المتصفح…</value>
   </data>
-  <data name="Integrations_Private" xml:space="preserve">
-    <value>تضمين المستودعات الخاصة</value>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>اختر المستودعات على GitHub</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>سجّل الدخول مجددًا. يستخدم Edgepad الآن وصولًا للقراءة فقط إلى GitHub.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>تم تسجيل الدخول باسم {0}</value>

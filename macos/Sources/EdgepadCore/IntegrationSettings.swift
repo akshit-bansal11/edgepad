@@ -15,7 +15,6 @@ public final class IntegrationSettings {
     public static let claude = "claude"
     public static let codex = "codex"
     public static let gitHub = "github"
-    public static let gitHubPrivate = "githubPrivate"
     public static let city = "city"
     public static let lat = "lat"
     public static let lon = "lon"

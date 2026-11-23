@@ -40,11 +40,13 @@ public enum GitHubRefresh {
 
 /// The GitHub screen's data, over https from api.github.com only: one GraphQL query that never changes (the account,
 /// its newest repositories, and the pull requests and issues that are the user's, wait for the user's review or are
-/// assigned to the user) and one REST call for the unread notification count, kept by ETag. It only reads: every
-/// request passes the `ReadOnlyGate`. The token is read from the `SecretStore` for each refresh and goes only into the
-/// Authorization header of these requests; it is never held, logged, or put in anything the phone receives. Redirects
-/// are refused, a reply is capped at 1 MiB and 15 s, and refreshes never overlap. The twin of the laptop core's
-/// GitHubApi.
+/// assigned to the user). It only reads: every request passes the `ReadOnlyGate`. The token is a GitHub App user token
+/// (read-only, and limited to what the App is installed on); it is read from the `SecretStore` for each request and
+/// goes only into the Authorization header of these requests; it is never held, logged, or put in anything the phone
+/// receives. An expiring token is renewed shortly before its end, and once after a 401, by `GitHubTokenRefresh`; when
+/// that fails the token is deleted and the screen says so. Redirects are refused, a reply is capped at 1 MiB and 15 s,
+/// and refreshes never overlap. Notifications are not asked: GitHub gives them only to a classic personal access
+/// token. The twin of the laptop core's GitHubApi.
 public final class GitHubApi: GitHost {
     public static let maxBytes = 1024 * 1024
 
@@ -97,7 +99,6 @@ public final class GitHubApi: GitHost {
         """
 
     public static let graphQlUrl = "https://api.github.com/graphql"
-    public static let notificationsUrl = "https://api.github.com/notifications?per_page=50"
     public static let userUrl = "https://api.github.com/user"
 
     /// A rate limit is waited out for at least this long, and never longer than `maxBackoff`, whatever the reply
@@ -105,17 +106,15 @@ public final class GitHubApi: GitHost {
     public static let minBackoff: TimeInterval = 60
     public static let maxBackoff: TimeInterval = 60 * 60
 
-    private static let maxETag = 200
     private static let timeout: TimeInterval = 15
 
     private let store: SecretStore
     private let http: HttpSender
     private let now: () -> Date
+    private let renewal: GitHubTokenRefresh
     private let gate = NSLock()
-    private let book = GitBook(host: "github")
+    private let book = GitBook(host: "github", extraUrl: GitHubApp.installUrl)
     private var snapshot: GitSnapshot?
-    private var unread: Int?
-    private var etag: String?
     private var backoffUntil = Date.distantPast
     private var running = false
 
@@ -123,6 +122,7 @@ public final class GitHubApi: GitHost {
         self.store = store
         self.http = http
         self.now = clock
+        self.renewal = GitHubTokenRefresh(store: store, clientId: GitHubApp.clientId, http: http, clock: clock)
     }
 
     public var id: String { "github" }
@@ -138,7 +138,7 @@ public final class GitHubApi: GitHost {
         (try? JSONSerialization.data(withJSONObject: ["query": query])) ?? Data()
     }
 
-    /// Asks for the account, repositories, pull requests and issues, then the notification count.
+    /// Asks for the account, repositories, pull requests and issues.
     public func refresh() async -> GitHubRefreshResult {
         let (busy, waiting) = gate.withLock { () -> (Bool, Bool) in
             if running { return (true, false) }
@@ -153,95 +153,86 @@ public final class GitHubApi: GitHost {
             return GitHubRefreshResult(result: .rateLimited, changed: false)
         }
         let before = book.page?.rev
-        var result = await refreshPulls()
-        if result == .ok || result == .failed {
-            let notifications = await refreshUnread()
-            let replace = result == .ok || !(notifications == .ok || notifications == .failed)
-            result = replace ? notifications : result
-        }
+        let result = await refreshPulls()
         rebuild()
         return GitHubRefreshResult(result: result, changed: book.page?.rev != before)
     }
 
     /// The signed-in user's login, for display only; nil when it cannot be read. A refused token is deleted.
     public func login() async -> String? {
-        guard let request = authorized("GET", Self.userUrl) else { return nil }
-        let reply = await http.send(request, maxBytes: Self.maxBytes, what: "Asking GitHub who is signed in")
-        guard judge(reply, request) == .ok, let reply else { return nil }
+        let (result, reply) = await call("GET", Self.userUrl, nil, "Asking GitHub who is signed in")
+        guard result == .ok, let reply else { return nil }
         return GitHubParse.login(reply.body)
     }
 
     private func refreshPulls() async -> GitHubResult {
-        guard var request = authorized("POST", Self.graphQlUrl) else { return .notSignedIn }
-        request.httpBody = Self.queryBody()
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let reply = await http.send(request, maxBytes: Self.maxBytes, what: "Asking GitHub for pull requests")
-        let result = judge(reply, request)
+        let (result, reply) = await call("POST", Self.graphQlUrl, Self.queryBody(), "Asking GitHub for pull requests")
         guard result == .ok, let reply else { return result }
         guard let parsed = GitHubParse.snapshot(reply.body) else { return .failed }
         gate.withLock { snapshot = parsed }
         return .ok
     }
 
-    /// Makes the page from the last good snapshot and unread count; a revision is spent only when what the phone sees
-    /// changed.
+    /// Makes the page from the last good snapshot; a revision is spent only when what the phone sees changed.
     private func rebuild() {
-        let (current, count) = gate.withLock { (snapshot, unread) }
-        guard var current else { return }
-        current.unread = count
+        guard let current = gate.withLock({ snapshot }) else { return }
         book.update(current)
     }
 
-    private func refreshUnread() async -> GitHubResult {
-        guard var request = authorized("GET", Self.notificationsUrl) else { return .notSignedIn }
-        let known = gate.withLock { unread == nil ? nil : etag }
-        if let known {
-            request.setValue(known, forHTTPHeaderField: "If-None-Match")
-        }
-        let reply = await http.send(request, maxBytes: Self.maxBytes, what: "Asking GitHub for notifications")
-        if reply?.status == 304 { return .ok }
-        let result = judge(reply, request)
-        guard result == .ok, let reply else { return result }
-        guard let count = GitHubParse.unread(reply.body) else { return .failed }
-        let tag = reply.header("ETag")
-        let usable =
-            tag.map { (1...Self.maxETag).contains($0.utf8.count) && $0.utf8.allSatisfy { $0 >= 0x20 && $0 <= 0x7E } }
-            ?? false
-        gate.withLock {
-            unread = count
-            etag = usable ? tag : nil
-        }
-        return .ok
+    private func clearScreen() {
+        gate.withLock { snapshot = nil }
+        book.clear()
     }
 
-    /// A request carrying the saved token; nil when there is no usable one.
-    private func authorized(_ method: String, _ url: String) -> URLRequest? {
-        let token = store.get(GitHubApp.tokenName)
-        guard GitHubApp.isToken(token), let token, let address = URL(string: url) else { return nil }
-        var request = URLRequest(url: address, timeoutInterval: Self.timeout)
-        request.httpMethod = method
-        request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
-        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
-        request.setValue("Edgepad", forHTTPHeaderField: "User-Agent")
-        return request
+    /// One request with the saved token: the token is renewed first when it is about to expire, and the request is
+    /// sent once more with a new token after a 401 when a renewal makes one. A token from the old OAuth app is deleted
+    /// first (`GitHubApp.migrate`).
+    private func call(
+        _ method: String, _ url: String, _ body: Data?, _ what: String
+    ) async -> (GitHubResult, HttpReply?) {
+        GitHubApp.migrate(store, GitHubApp.clientId)
+        if renewal.isDue(), await renewal.refresh() == .rejected {
+            clearScreen()
+            return (.noPermission, nil)
+        }
+        var attempt = 0
+        while true {
+            guard let token = store.get(GitHubApp.tokenName), GitHubApp.isToken(token),
+                let address = URL(string: url)
+            else { return (.notSignedIn, nil) }
+            var request = URLRequest(url: address, timeoutInterval: Self.timeout)
+            request.httpMethod = method
+            request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
+            request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+            request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
+            request.setValue("Edgepad", forHTTPHeaderField: "User-Agent")
+            if let body {
+                request.httpBody = body
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            }
+            let reply = await http.send(request, maxBytes: Self.maxBytes, what: what)
+            if reply?.status == 401, attempt == 0, renewal.canRefresh, store.get(GitHubApp.tokenName) == token {
+                attempt += 1
+                switch await renewal.refresh() {
+                case .refreshed: continue
+                case .unavailable: return (.failed, reply)
+                case .rejected: break
+                }
+            }
+            return (judge(reply, token), reply)
+        }
     }
 
     /// Success is ok; 401 deletes the token; 403 or 429 with rate-limit headers starts a back-off; anything else fails.
-    private func judge(_ reply: HttpReply?, _ request: URLRequest) -> GitHubResult {
+    private func judge(_ reply: HttpReply?, _ sent: String) -> GitHubResult {
         guard let reply else { return .failed }
         if reply.isSuccess { return .ok }
         if reply.status == 401 {
             // Only the token this request carried goes: one saved by a sign-in while it was out is a different one.
-            let sent = request.value(forHTTPHeaderField: "Authorization")
-            if store.get(GitHubApp.tokenName).map({ "Bearer " + $0 }) == sent {
-                store.delete(GitHubApp.tokenName)
-                gate.withLock {
-                    snapshot = nil
-                    unread = nil
-                    etag = nil
-                }
-                book.clear()
+            let saved = store.get(GitHubApp.tokenName)
+            if saved == nil || saved == sent {
+                GitHubApp.forget(store)
+                clearScreen()
             }
             return .noPermission
         }
@@ -282,7 +273,6 @@ public enum GitHubParse {
     /// The GraphQL reply nests ten deep; two to spare.
     public static let maxDepth = 12
     public static let maxTitle = 80
-    public static let maxUnread = 50
 
     /// The web host every address kept from a reply must be on.
     public static let domain = "github.com"
@@ -312,12 +302,6 @@ public enum GitHubParse {
         let name = DashWire.clean(GitJson.text(viewer, "name") ?? "", GitLimits.maxName)
         let profile = GitProfile(login: login, name: name, repos: repoTotal, followers: followers)
         return GitSnapshot(profile: profile, repos: repos, items: items)
-    }
-
-    /// How many unread notifications a `GET /notifications` reply lists, at most 50; nil when it is not a list.
-    public static func unread(_ body: Data) -> Int? {
-        guard let list = JsonRead.parse(body, maxDepth: maxDepth) as? [Any] else { return nil }
-        return min(list.filter { $0 is [String: Any] }.count, maxUnread)
     }
 
     /// The login of a `GET /user` reply when it is a plausible GitHub login (1..39 letters, digits, hyphens); else nil.

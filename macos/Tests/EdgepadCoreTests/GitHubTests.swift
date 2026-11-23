@@ -127,7 +127,7 @@ final class GitHubSignInTests: XCTestCase {
 
     func testAnEmptyClientIdReportsNotConfiguredWithoutARequest() async {
         let http = FakeHttp { _ in FakeHttp.json200(self.code) }
-        let start = await newSignIn(http, clientId: "").start(includePrivate: false)
+        let start = await newSignIn(http, clientId: "").start()
 
         XCTAssertEqual(start.state, .notConfigured)
         XCTAssertTrue(http.seen.isEmpty)
@@ -137,7 +137,7 @@ final class GitHubSignInTests: XCTestCase {
 
     func testStartAsksGitHubForACodeAtTheFixedAddress() async {
         let http = FakeHttp.script([code])
-        let start = await newSignIn(http).start(includePrivate: false)
+        let start = await newSignIn(http).start()
 
         XCTAssertEqual(
             start,
@@ -145,19 +145,18 @@ final class GitHubSignInTests: XCTestCase {
         XCTAssertEqual(http.seen.count, 1)
         XCTAssertEqual(http.seen.first?.method, "POST")
         XCTAssertEqual(http.seen.first?.url, "https://github.com/login/device/code")
-        XCTAssertEqual(http.seen.first?.body, "client_id=Ov23liTestClient0001&scope=public_repo%20notifications")
+        XCTAssertEqual(http.seen.first?.body, "client_id=Ov23liTestClient0001")
         XCTAssertEqual(http.seen.first?.headers["Accept"], "application/json")
     }
 
-    func testPrivateRepositoriesAskForTheRepoScope() async {
-        let http = FakeHttp.script([code])
-        _ = await newSignIn(http).start(includePrivate: true)
-        XCTAssertEqual(http.seen.first?.body, "client_id=Ov23liTestClient0001&scope=repo%20notifications")
+    func testTheAppIsTheReadOnlyGitHubApp() {
+        XCTAssertEqual(GitHubApp.clientId, "Iv23lie6SY6AFlHwufmK")
+        XCTAssertEqual(GitHubApp.installUrl, "https://github.com/apps/edgepad-dashboard/installations/new")
     }
 
     func testAVerificationUriFromTheServerIsIgnored() async {
         let evil = code.replacingOccurrences(of: "https://github.com/login/device", with: "https://evil.example/login")
-        let start = await newSignIn(FakeHttp.script([evil])).start(includePrivate: false)
+        let start = await newSignIn(FakeHttp.script([evil])).start()
         XCTAssertEqual(start.page, "https://github.com/login/device")
     }
 
@@ -178,7 +177,7 @@ final class GitHubSignInTests: XCTestCase {
         ]
         for (from, to) in cases {
             let reply = code.replacingOccurrences(of: from, with: to)
-            let start = await newSignIn(FakeHttp.script([reply])).start(includePrivate: false)
+            let start = await newSignIn(FakeHttp.script([reply])).start()
             XCTAssertEqual(start.state, .failed, to)
         }
     }
@@ -186,7 +185,7 @@ final class GitHubSignInTests: XCTestCase {
     func testAMissingIntervalMeansFiveSeconds() async {
         let noInterval = code.replacingOccurrences(of: #","interval":5"#, with: "")
         let signIn = newSignIn(FakeHttp.script([noInterval, granted]))
-        _ = await signIn.start(includePrivate: false)
+        _ = await signIn.start()
         let state = await signIn.wait()
         XCTAssertEqual(state, .signedIn)
         XCTAssertEqual(waits, [5])
@@ -195,11 +194,11 @@ final class GitHubSignInTests: XCTestCase {
     func testARedirectOrServerErrorAtStartFails() async {
         for status in [302, 502] {
             let http = FakeHttp { _ in HttpReply(status: status) }
-            let start = await newSignIn(http).start(includePrivate: false)
+            let start = await newSignIn(http).start()
             XCTAssertEqual(start.state, .failed)
         }
         let huge = FakeHttp.script([String(repeating: " ", count: GitHubSignIn.maxBytes + 1)])
-        let start = await newSignIn(huge).start(includePrivate: false)
+        let start = await newSignIn(huge).start()
         XCTAssertEqual(start.state, .failed)
     }
 
@@ -207,7 +206,7 @@ final class GitHubSignInTests: XCTestCase {
         let http = FakeHttp.script([code, pending, pending, granted])
         let signIn = newSignIn(http)
 
-        _ = await signIn.start(includePrivate: false)
+        _ = await signIn.start()
         let state = await signIn.wait()
 
         XCTAssertEqual(state, .signedIn)
@@ -227,7 +226,7 @@ final class GitHubSignInTests: XCTestCase {
 
     func testSlowDownAddsFiveSecondsToEveryLaterWait() async {
         let signIn = newSignIn(FakeHttp.script([code, slowDown, pending, granted]))
-        _ = await signIn.start(includePrivate: false)
+        _ = await signIn.start()
         let state = await signIn.wait()
         XCTAssertEqual(state, .signedIn)
         XCTAssertEqual(waits, [5, 10, 10])
@@ -241,7 +240,7 @@ final class GitHubSignInTests: XCTestCase {
         ]
         for (answer, expected) in cases {
             let signIn = newSignIn(FakeHttp.script([code, answer]))
-            _ = await signIn.start(includePrivate: false)
+            _ = await signIn.start()
             let state = await signIn.wait()
             XCTAssertEqual(state, expected, answer)
             XCTAssertNil(secrets.get(GitHubApp.tokenName))
@@ -250,7 +249,7 @@ final class GitHubSignInTests: XCTestCase {
 
     func testAFailedPollIsTriedAgain() async {
         let signIn = newSignIn(FakeHttp.script([code, nil, nil, granted]))
-        _ = await signIn.start(includePrivate: false)
+        _ = await signIn.start()
         let state = await signIn.wait()
         XCTAssertEqual(state, .signedIn)
     }
@@ -260,7 +259,7 @@ final class GitHubSignInTests: XCTestCase {
             FakeHttp.json200(request.url?.path == "/login/device/code" ? self.code : self.pending)
         }
         let signIn = newSignIn(http)
-        _ = await signIn.start(includePrivate: false)
+        _ = await signIn.start()
         let state = await signIn.wait()
         XCTAssertEqual(state, .expired)
         XCTAssertEqual(http.seen.count, 900 / 5)
@@ -268,7 +267,7 @@ final class GitHubSignInTests: XCTestCase {
 
     func testCancelEndsTheWait() async {
         let signIn = forever(FakeHttp.script([code]))
-        _ = await signIn.start(includePrivate: false)
+        _ = await signIn.start()
         let waiting = Task { await signIn.wait() }
         try? await Task.sleep(nanoseconds: 50_000_000)
         signIn.cancel()
@@ -278,7 +277,7 @@ final class GitHubSignInTests: XCTestCase {
 
     func testCancellingTheTaskEndsTheWait() async {
         let signIn = forever(FakeHttp.script([code]))
-        _ = await signIn.start(includePrivate: false)
+        _ = await signIn.start()
         let waiting = Task { await signIn.wait() }
         try? await Task.sleep(nanoseconds: 50_000_000)
         waiting.cancel()
@@ -288,10 +287,10 @@ final class GitHubSignInTests: XCTestCase {
 
     func testANewSignInCancelsTheOldOne() async {
         let signIn = forever(FakeHttp.script([code, code]))
-        _ = await signIn.start(includePrivate: false)
+        _ = await signIn.start()
         let waiting = Task { await signIn.wait() }
         try? await Task.sleep(nanoseconds: 50_000_000)
-        _ = await signIn.start(includePrivate: false)
+        _ = await signIn.start()
         let state = await waiting.value
         XCTAssertEqual(state, .cancelled)
     }
@@ -304,14 +303,69 @@ final class GitHubSignInTests: XCTestCase {
     func testATokenThatCannotBeSavedIsAFailure() async {
         secrets.refuse = true
         let signIn = newSignIn(FakeHttp.script([code, granted]))
-        _ = await signIn.start(includePrivate: false)
+        _ = await signIn.start()
         let state = await signIn.wait()
         XCTAssertEqual(state, .failed)
         XCTAssertFalse(signIn.isSignedIn)
     }
 
+    func testAnExpiringTokenIsSavedWithItsRefreshTokenExpiryAndClientId() async {
+        let expiring =
+            #"{"access_token":"ghu_SecretTokenValue1234567890abcdef","expires_in":28800,"#
+            + #""refresh_token":"ghr_RefreshValue1234567890abcdef","refresh_token_expires_in":15897600,"scope":""}"#
+        let signIn = newSignIn(FakeHttp.script([code, expiring]))
+        _ = await signIn.start()
+        let state = await signIn.wait()
+
+        XCTAssertEqual(state, .signedIn)
+        XCTAssertEqual(secrets.get(GitHubApp.tokenName), "ghu_SecretTokenValue1234567890abcdef")
+        XCTAssertEqual(secrets.get(GitHubApp.refreshName), "ghr_RefreshValue1234567890abcdef")
+        XCTAssertEqual(secrets.get(GitHubApp.expiresName), String(Int64(clock.now.timeIntervalSince1970) + 28800))
+        XCTAssertEqual(secrets.get(GitHubApp.clientName), client)
+    }
+
+    func testHalfOfAnExpiringPairOrAnOutOfRangeLifeIsAFailure() async {
+        let answers = [
+            #"{"access_token":"ghu_SecretTokenValue1234567890abcdef","expires_in":28800}"#,
+            #"{"access_token":"ghu_SecretTokenValue1234567890abcdef","refresh_token":"ghr_Value123"}"#,
+            #"{"access_token":"ghu_SecretTokenValue1234567890abcdef","refresh_token":"ghr_bad value","expires_in":28800}"#,
+            #"{"access_token":"ghu_SecretTokenValue1234567890abcdef","refresh_token":"ghr_Value123","expires_in":0}"#,
+        ]
+        for answer in answers {
+            let signIn = newSignIn(FakeHttp.script([code, answer]))
+            _ = await signIn.start()
+            let state = await signIn.wait()
+            XCTAssertEqual(state, .failed, answer)
+            XCTAssertNil(secrets.get(GitHubApp.tokenName))
+        }
+    }
+
+    func testATokenFromTheOldOAuthAppIsDeletedOnTheFirstLookAndTheNoteStaysUntilANewSignIn() async {
+        _ = secrets.set(GitHubApp.tokenName, "gho_OldOAuthAppToken1234567890")
+        let signIn = newSignIn(FakeHttp.script([code, granted]))
+
+        XCTAssertFalse(signIn.isSignedIn)
+        XCTAssertNil(secrets.get(GitHubApp.tokenName))
+        XCTAssertTrue(signIn.needsReSignIn)
+
+        _ = await signIn.start()
+        _ = await signIn.wait()
+        XCTAssertTrue(signIn.isSignedIn)
+        XCTAssertFalse(signIn.needsReSignIn)
+    }
+
+    func testATokenFromThisAppIsKept() async {
+        let signIn = newSignIn(FakeHttp.script([code, granted]))
+        _ = await signIn.start()
+        _ = await signIn.wait()
+        let again = newSignIn(FakeHttp.script([]))
+        XCTAssertTrue(again.isSignedIn)
+        XCTAssertFalse(again.needsReSignIn)
+    }
+
     func testSignOutForgetsTheToken() {
         _ = secrets.set(GitHubApp.tokenName, token)
+        _ = secrets.set(GitHubApp.clientName, client)
         let signIn = newSignIn(FakeHttp.script([]))
         XCTAssertTrue(signIn.isSignedIn)
         signIn.signOut()
@@ -321,7 +375,7 @@ final class GitHubSignInTests: XCTestCase {
 
     func testTheTokenNeverReachesTheLog() async throws {
         let signIn = newSignIn(FakeHttp.script([code, nil, granted]))
-        _ = await signIn.start(includePrivate: false)
+        _ = await signIn.start()
         _ = await signIn.wait()
         let log = (try? String(contentsOfFile: Log.filePath, encoding: .utf8)) ?? ""
         XCTAssertFalse(log.contains(token))
@@ -329,32 +383,55 @@ final class GitHubSignInTests: XCTestCase {
     }
 }
 
+
 final class GitHubApiTests: XCTestCase {
-    private let token = "gho_SecretTokenValue1234567890abcdef"
-    private let twoUnread = #"[{"id":"1","unread":true},{"id":"2","unread":true}]"#
+    private let token = "ghu_SecretTokenValue1234567890abcdef"
+    private let refreshToken = "ghr_RefreshTokenValue1234567890abcdef"
+    private let newToken = "ghu_RenewedTokenValue1234567890abcdef"
+    private let newRefresh = "ghr_RenewedRefreshValue1234567890abcdef"
+    private let renewed =
+        #"{"access_token":"ghu_RenewedTokenValue1234567890abcdef","expires_in":28800,"#
+        + #""refresh_token":"ghr_RenewedRefreshValue1234567890abcdef","refresh_token_expires_in":15897600,"#
+        + #""scope":"","token_type":"bearer"}"#
     private let clock = TestClock()
     private let secrets = MemorySecrets()
 
     override func setUp() {
         _ = secrets.set(GitHubApp.tokenName, token)
+        _ = secrets.set(GitHubApp.clientName, GitHubApp.clientId)
     }
 
     private func newApi(_ http: FakeHttp) -> GitHubApi {
         GitHubApi(store: secrets, http: http, clock: { [clock] in clock.now })
     }
 
-    private func serve(_ pulls: String, _ unread: String) -> FakeHttp {
-        FakeHttp { request in FakeHttp.json200(request.url?.path == "/graphql" ? pulls : unread) }
+    private func serve(_ pulls: String) -> FakeHttp {
+        FakeHttp { request in
+            guard request.url?.path == "/graphql" else { return nil }
+            return FakeHttp.json200(pulls)
+        }
     }
 
-    func testARefreshSendsTheConstantQueryThenAsksForNotifications() async throws {
-        let http = serve(GitHubParseTests.normal, twoUnread)
+    /// The refresh answers with `renewal`, the query with the normal reply.
+    private func routes(_ renewal: String) -> FakeHttp {
+        FakeHttp { request in
+            FakeHttp.json200(request.url?.path == "/graphql" ? GitHubParseTests.normal : renewal)
+        }
+    }
+
+    private func expiring(in seconds: TimeInterval) {
+        _ = secrets.set(GitHubApp.refreshName, refreshToken)
+        _ = secrets.set(GitHubApp.expiresName, String(Int64(clock.now.timeIntervalSince1970 + seconds)))
+    }
+
+    func testARefreshSendsTheConstantQueryAndNothingElse() async throws {
+        let http = serve(GitHubParseTests.normal)
         let api = newApi(http)
 
         let result = await api.refresh()
 
         XCTAssertEqual(result, GitHubRefreshResult(result: .ok, changed: true))
-        XCTAssertEqual(http.seen.count, 2)
+        XCTAssertEqual(http.seen.count, 1)
         let graphql = http.seen[0]
         XCTAssertEqual(graphql.method, "POST")
         XCTAssertEqual(graphql.url, "https://api.github.com/graphql")
@@ -362,8 +439,7 @@ final class GitHubApiTests: XCTestCase {
         XCTAssertEqual(body["query"] as? String, GitHubApi.query)
         XCTAssertEqual(body.count, 1)
         XCTAssertEqual(graphql.headers["Content-Type"], "application/json")
-        XCTAssertEqual(http.seen[1].method, "GET")
-        XCTAssertEqual(http.seen[1].url, "https://api.github.com/notifications?per_page=50")
+        XCTAssertFalse(http.seen.contains { $0.url.contains("notifications") })
         for seen in http.seen {
             XCTAssertEqual(seen.host, "api.github.com")
             XCTAssertEqual(seen.headers["Authorization"], "Bearer " + token)
@@ -379,7 +455,6 @@ final class GitHubApiTests: XCTestCase {
             page.body,
             [
                 "H\tgithub\tocto-cat\tOcto Cat\t34\t12\t1",
-                "N\t\t2\t\t\tnone",
                 "P\tocto-cat/edgepad\t\tC#\t5\t2\t1",
                 "P\tocto-cat/secret\tp\t\t0\t0\t0",
                 "M\tme/my_repo-2\t3\tMine\t\tfail\tmerged\t\(min)",
@@ -394,11 +469,24 @@ final class GitHubApiTests: XCTestCase {
                 "https://github.com/octo-cat/edgepad", "https://github.com/octo-cat/secret",
                 "https://github.com/me/my_repo-2/pull/3", "https://github.com/me/my_repo-2/issues/9",
                 "https://github.com/octo/edgepad/pull/12", "https://github.com/octo/other.repo/pull/7", "",
+                "https://github.com/apps/edgepad-dashboard/installations/new",
             ])
     }
 
+    func testTheInstallAddressIsTheOnlyExtraOpenableOne() async throws {
+        let api = newApi(serve(GitHubParseTests.normal))
+        _ = await api.refresh()
+        let page = try XCTUnwrap(api.page)
+        let find: (String) -> GitHost? = { $0 == "github" ? api : nil }
+        let last = page.urls.count - 1
+        let opened = GitOpenGate.resolve("github/\(page.rev)/\(last)", hosts: find)
+        XCTAssertEqual(opened?.absoluteString, GitHubApp.installUrl)
+        XCTAssertNil(GitOpenGate.resolve("github/\(page.rev)/\(last + 1)", hosts: find))
+        XCTAssertNil(GitOpenGate.resolve("github/1/https://evil.example", hosts: find))
+    }
+
     func testTheRevisionOnlyGoesUpWhenThePageChanges() async {
-        let api = newApi(serve(GitHubParseTests.normal, twoUnread))
+        let api = newApi(serve(GitHubParseTests.normal))
 
         _ = await api.refresh()
         let again = await api.refresh()
@@ -409,46 +497,134 @@ final class GitHubApiTests: XCTestCase {
 
     func testWithoutATokenNobodyIsAsked() async {
         secrets.delete(GitHubApp.tokenName)
-        let http = serve(GitHubParseTests.normal, twoUnread)
+        let http = serve(GitHubParseTests.normal)
         let result = await newApi(http).refresh()
         XCTAssertEqual(result.result, .notSignedIn)
         XCTAssertTrue(http.seen.isEmpty)
     }
 
     func testATokenThatCouldInjectAHeaderIsNeverSent() async {
-        _ = secrets.set(GitHubApp.tokenName, "gho_x\r\nX-Evil: 1")
-        let http = serve(GitHubParseTests.normal, twoUnread)
+        _ = secrets.set(GitHubApp.tokenName, "ghu_x\r\nX-Evil: 1")
+        let http = serve(GitHubParseTests.normal)
         let result = await newApi(http).refresh()
         XCTAssertEqual(result.result, .notSignedIn)
         XCTAssertTrue(http.seen.isEmpty)
     }
 
-    func testTheETagIsSentBackAndANotModifiedKeepsTheCount() async throws {
-        var first = true
+    func testATokenFromTheOldOAuthAppIsDeletedAndNobodyIsAsked() async {
+        secrets.delete(GitHubApp.clientName)
+        let http = serve(GitHubParseTests.normal)
+
+        let result = await newApi(http).refresh()
+
+        XCTAssertEqual(result.result, .notSignedIn)
+        XCTAssertTrue(http.seen.isEmpty)
+        XCTAssertNil(secrets.get(GitHubApp.tokenName))
+        XCTAssertTrue(GitHubApp.needsReSignIn(secrets))
+    }
+
+    func testAnExpiringTokenIsRenewedBeforeItRunsOutWithNoSecretAndTheNewOneIsUsed() async {
+        expiring(in: 120)
+        let http = routes(renewed)
+
+        let result = await newApi(http).refresh()
+
+        XCTAssertEqual(result.result, .ok)
+        XCTAssertEqual(http.seen.count, 2)
+        XCTAssertEqual(http.seen[0].url, "https://github.com/login/oauth/access_token")
+        XCTAssertEqual(http.seen[0].method, "POST")
+        XCTAssertEqual(
+            http.seen[0].body, "client_id=\(GitHubApp.clientId)&grant_type=refresh_token&refresh_token=\(refreshToken)")
+        XCTAssertFalse(http.seen[0].body.lowercased().contains("secret"))
+        XCTAssertEqual(http.seen[1].headers["Authorization"], "Bearer " + newToken)
+        XCTAssertEqual(secrets.get(GitHubApp.tokenName), newToken)
+        XCTAssertEqual(secrets.get(GitHubApp.refreshName), newRefresh)
+        XCTAssertEqual(secrets.get(GitHubApp.expiresName), String(Int64(clock.now.timeIntervalSince1970) + 28800))
+    }
+
+    func testATokenWithTimeLeftIsNotRenewed() async {
+        expiring(in: 2 * 3600)
+        let http = routes(renewed)
+
+        _ = await newApi(http).refresh()
+
+        XCTAssertEqual(http.seen.count, 1)
+        XCTAssertEqual(http.seen[0].url, "https://api.github.com/graphql")
+    }
+
+    func testARefusalIsAnsweredByOneRenewalAndOneRetryThenTheTokenGoes() async {
+        expiring(in: 2 * 3600)
         let http = FakeHttp { request in
-            if request.url?.path == "/graphql" { return FakeHttp.json200(GitHubParseTests.normal) }
-            if first {
-                first = false
-                return FakeHttp.json200(self.twoUnread, headers: ["ETag": #""abc123""#])
-            }
-            return HttpReply(status: 304)
+            request.url?.path == "/graphql" ? HttpReply(status: 401) : FakeHttp.json200(self.renewed)
+        }
+
+        let result = await newApi(http).refresh()
+
+        XCTAssertEqual(result.result, .noPermission)
+        XCTAssertEqual(http.seen.count, 3)
+        XCTAssertNil(secrets.get(GitHubApp.tokenName))
+        XCTAssertNil(secrets.get(GitHubApp.refreshName))
+    }
+
+    func testARefusalThatARenewalFixesIsRetriedOnce() async {
+        expiring(in: 2 * 3600)
+        var graphql = 0
+        let http = FakeHttp { request in
+            if request.url?.path != "/graphql" { return FakeHttp.json200(self.renewed) }
+            graphql += 1
+            return graphql == 1 ? HttpReply(status: 401) : FakeHttp.json200(GitHubParseTests.normal)
+        }
+
+        let result = await newApi(http).refresh()
+
+        XCTAssertEqual(result.result, .ok)
+        XCTAssertEqual(http.seen.count, 3)
+        XCTAssertEqual(http.seen[2].headers["Authorization"], "Bearer " + newToken)
+    }
+
+    func testARefusedRefreshTokenSignsOutWithAClearResult() async {
+        expiring(in: 60)
+        let http = FakeHttp { _ in
+            FakeHttp.json200(#"{"error":"bad_refresh_token","error_description":"The refresh token is incorrect."}"#)
         }
         let api = newApi(http)
 
-        _ = await api.refresh()
-        let again = await api.refresh()
+        let result = await api.refresh()
 
-        XCTAssertEqual(again, GitHubRefreshResult(result: .ok, changed: false))
-        XCTAssertNil(http.seen[1].headers["If-None-Match"])
-        XCTAssertEqual(http.seen[3].headers["If-None-Match"], #""abc123""#)
-        XCTAssertTrue(try XCTUnwrap(api.page).body.contains("\nN\t\t2\t\t\tnone"))
+        XCTAssertEqual(result.result, .noPermission)
+        XCTAssertEqual(http.seen.count, 1)
+        XCTAssertNil(secrets.get(GitHubApp.tokenName))
+        XCTAssertNil(secrets.get(GitHubApp.refreshName))
+        XCTAssertNil(api.page)
+    }
+
+    func testARenewalThatCannotReachGitHubKeepsTheTokens() async {
+        expiring(in: 60)
+        let http = FakeHttp { request in
+            request.url?.path == "/graphql" ? FakeHttp.json200(GitHubParseTests.normal) : nil
+        }
+
+        _ = await newApi(http).refresh()
+
+        XCTAssertEqual(secrets.get(GitHubApp.tokenName), token)
+        XCTAssertEqual(secrets.get(GitHubApp.refreshName), refreshToken)
+    }
+
+    func testATokenThatDoesNotExpireIsNeverRenewedAndARefusalDeletesIt() async {
+        let http = FakeHttp { _ in HttpReply(status: 401) }
+
+        let result = await newApi(http).refresh()
+
+        XCTAssertEqual(result.result, .noPermission)
+        XCTAssertEqual(http.seen.count, 1)
+        XCTAssertEqual(http.seen[0].url, "https://api.github.com/graphql")
+        XCTAssertNil(secrets.get(GitHubApp.tokenName))
     }
 
     func testARefusedTokenIsDeletedAndTheScreenEmptied() async {
         var refuse = false
-        let http = FakeHttp { request in
-            if refuse { return HttpReply(status: 401) }
-            return FakeHttp.json200(request.url?.path == "/graphql" ? GitHubParseTests.normal : self.twoUnread)
+        let http = FakeHttp { _ in
+            refuse ? HttpReply(status: 401) : FakeHttp.json200(GitHubParseTests.normal)
         }
         let api = newApi(http)
         _ = await api.refresh()
@@ -459,16 +635,17 @@ final class GitHubApiTests: XCTestCase {
         XCTAssertEqual(result, GitHubRefreshResult(result: .noPermission, changed: true))
         XCTAssertNil(secrets.get(GitHubApp.tokenName))
         XCTAssertNil(api.page)
+        XCTAssertEqual(http.seen.count, 2)
     }
 
     func testARateLimitKeepsTheLastResultAndWaitsForTheReset() async {
         var limited = false
         let reset = String(Int64(clock.now.timeIntervalSince1970) + 600)
-        let http = FakeHttp { request in
+        let http = FakeHttp { _ in
             if limited {
                 return HttpReply(status: 403, headers: ["x-ratelimit-remaining": "0", "x-ratelimit-reset": reset])
             }
-            return FakeHttp.json200(request.url?.path == "/graphql" ? GitHubParseTests.normal : self.twoUnread)
+            return FakeHttp.json200(GitHubParseTests.normal)
         }
         let api = newApi(http)
 
@@ -478,18 +655,18 @@ final class GitHubApiTests: XCTestCase {
         let first = await api.refresh()
         XCTAssertEqual(first.result, .rateLimited)
         XCTAssertEqual(api.page, kept)
-        XCTAssertEqual(http.seen.count, 3)
+        XCTAssertEqual(http.seen.count, 2)
 
         clock.advance(9 * 60)
         let second = await api.refresh()
         XCTAssertEqual(second.result, .rateLimited)
-        XCTAssertEqual(http.seen.count, 3)
+        XCTAssertEqual(http.seen.count, 2)
 
         limited = false
         clock.advance(2 * 60)
         let third = await api.refresh()
         XCTAssertEqual(third.result, .ok)
-        XCTAssertEqual(http.seen.count, 5)
+        XCTAssertEqual(http.seen.count, 3)
     }
 
     func testARetryAfterIsHonouredButNeverPastAnHour() async {
@@ -513,15 +690,14 @@ final class GitHubApiTests: XCTestCase {
         let first = await api.refresh()
         XCTAssertEqual(first.result, .failed)
         _ = await api.refresh()
-        XCTAssertEqual(http.seen.count, 4)
+        XCTAssertEqual(http.seen.count, 2)
     }
 
     func testAnyOtherErrorKeepsTheLastGoodResult() async {
         for status in [500, 302, 404] {
             var broken = false
-            let http = FakeHttp { request in
-                if broken { return HttpReply(status: status) }
-                return FakeHttp.json200(request.url?.path == "/graphql" ? GitHubParseTests.normal : self.twoUnread)
+            let http = FakeHttp { _ in
+                broken ? HttpReply(status: status) : FakeHttp.json200(GitHubParseTests.normal)
             }
             let api = newApi(http)
             _ = await api.refresh()
@@ -535,7 +711,7 @@ final class GitHubApiTests: XCTestCase {
 
     func testAReplyOverOneMibIsRefused() async {
         let huge = String(repeating: " ", count: GitHubApi.maxBytes + 1)
-        let result = await newApi(serve(huge, twoUnread)).refresh()
+        let result = await newApi(serve(huge)).refresh()
         XCTAssertEqual(result.result, .failed)
     }
 
@@ -549,7 +725,7 @@ final class GitHubApiTests: XCTestCase {
     }
 
     func testARefusalOfTheOldTokenKeepsANewerOneSavedWhileTheRequestWasOut() async {
-        let newer = "gho_NewerTokenValue1234567890abcdefghij"
+        let newer = "ghu_NewerTokenValue1234567890abcdefghij"
         let secrets = secrets
         let http = FakeHttp { _ in
             _ = secrets.set(GitHubApp.tokenName, newer)

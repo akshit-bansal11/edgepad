@@ -124,7 +124,8 @@ final class DashboardHostTests: XCTestCase {
 
     private func gitHubParts(_ http: FakeHttp, signedIn: @escaping () -> Bool) -> DashboardParts {
         let secrets = MemorySecrets()
-        _ = secrets.set(GitHubApp.tokenName, "gho_SecretTokenValue1234567890abcdef")
+        _ = secrets.set(GitHubApp.tokenName, "ghu_SecretTokenValue1234567890abcdef")
+        _ = secrets.set(GitHubApp.clientName, GitHubApp.clientId)
         let clock = TestClock()
         XCTAssertTrue(settings.setFlag(IntegrationSettings.developer, true))
         XCTAssertTrue(settings.setFlag(IntegrationSettings.gitHub, true))
@@ -201,7 +202,8 @@ final class DashboardHostTests: XCTestCase {
 
     func testOpenGitOpensOnlyWhatThisMacFetchedForTheCurrentRevisionAndIndex() async {
         let secrets = MemorySecrets()
-        _ = secrets.set(GitHubApp.tokenName, "gho_SecretTokenValue1234567890abcdef")
+        _ = secrets.set(GitHubApp.tokenName, "ghu_SecretTokenValue1234567890abcdef")
+        _ = secrets.set(GitHubApp.clientName, GitHubApp.clientId)
         let clock = TestClock()
         let api = GitHubApi(store: secrets, http: gitHubReplies(), clock: { clock.now })
         XCTAssertTrue(settings.setFlag(IntegrationSettings.developer, true))
@@ -227,7 +229,8 @@ final class DashboardHostTests: XCTestCase {
 
     func testOpenGitAllowsAFewOpensASecondAndRefusesTheRestUntilTheWindowPasses() async {
         let secrets = MemorySecrets()
-        _ = secrets.set(GitHubApp.tokenName, "gho_SecretTokenValue1234567890abcdef")
+        _ = secrets.set(GitHubApp.tokenName, "ghu_SecretTokenValue1234567890abcdef")
+        _ = secrets.set(GitHubApp.clientName, GitHubApp.clientId)
         let clock = TestClock()
         let api = GitHubApi(store: secrets, http: gitHubReplies(), clock: { clock.now })
         _ = await api.refresh()
@@ -246,7 +249,8 @@ final class DashboardHostTests: XCTestCase {
 
     func testAHostMadeAgainOnTheSamePartsKeepsTheOpenLimit() async {
         let secrets = MemorySecrets()
-        _ = secrets.set(GitHubApp.tokenName, "gho_SecretTokenValue1234567890abcdef")
+        _ = secrets.set(GitHubApp.tokenName, "ghu_SecretTokenValue1234567890abcdef")
+        _ = secrets.set(GitHubApp.clientName, GitHubApp.clientId)
         let clock = TestClock()
         let api = GitHubApi(store: secrets, http: gitHubReplies(), clock: { clock.now })
         _ = await api.refresh()
@@ -285,7 +289,8 @@ final class DashboardHostTests: XCTestCase {
 
     func testOpenGitDoesNothingWhileGitHubIsOffOrThereIsNoOpener() async {
         let secrets = MemorySecrets()
-        _ = secrets.set(GitHubApp.tokenName, "gho_SecretTokenValue1234567890abcdef")
+        _ = secrets.set(GitHubApp.tokenName, "ghu_SecretTokenValue1234567890abcdef")
+        _ = secrets.set(GitHubApp.clientName, GitHubApp.clientId)
         let clock = TestClock()
         let api = GitHubApi(store: secrets, http: gitHubReplies(), clock: { clock.now })
         _ = await api.refresh()

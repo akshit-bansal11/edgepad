@@ -243,9 +243,8 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
             row.showCode(
                 signingIn && !userCode.isEmpty ? tr("Integrations_Code", "Your code: %1$@", userCode) : nil,
                 enabled: developerOn)
-            row.privateRepos.isHidden = !(input.signedIn && !signingIn)
-            row.privateRepos.state = hooks.settings.flag(IntegrationSettings.gitHubPrivate) ? .on : .off
-            row.privateRepos.isEnabled = developerOn
+            row.chooseRepos.isHidden = !(input.signedIn && !signingIn)
+            row.chooseRepos.isEnabled = developerOn
         }
         row.showForm(
             editing == id, error: saveNote.map(Self.saveText), saving: saving, enabled: developerOn)
@@ -265,8 +264,11 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
         case .working, .waiting: return tr("Integrations_Working", "Working…")
         case .notConfigured: return tr("Integrations_NoClientId", "Sign-in is not set up in this build.")
         case .notConnected:
-            if provider.id == IntegrationSettings.gitHub, let gitHubProblem {
-                return gitHubProblem
+            if provider.id == IntegrationSettings.gitHub {
+                if let gitHubProblem { return gitHubProblem }
+                if hooks.signIn.needsReSignIn {
+                    return tr("Integrations_ReSignIn", "Sign in again. Edgepad now uses read-only GitHub access.")
+                }
             }
             return tr("Integrations_NotConnected", "Not connected")
         case .signedIn(let name):
@@ -434,7 +436,7 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
             } else if hooks.signIn.isSignedIn && hooks.settings.flag(id) {
                 signOutGitHub()
             } else {
-                startSignIn(includePrivate: hooks.settings.flag(IntegrationSettings.gitHubPrivate), revert: false)
+                startSignIn()
             }
         case "gitea", "bitbucket", "gitee":
             if hooks.hosts.isSignedIn(id) {
@@ -466,11 +468,10 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
         }
     }
 
-    func privateChanged(_ on: Bool) {
-        hooks.settings.setFlag(IntegrationSettings.gitHubPrivate, on)
-        // The scope changes with the box, so a signed-in owner signs in again to grant (or drop) it.
-        if hooks.signIn.isSignedIn {
-            startSignIn(includePrivate: on, revert: true)
+    /// Opens the page where the user chooses which repositories the read-only GitHub App may read.
+    func openInstallPage() {
+        if let url = URL(string: GitHubApp.installUrl) {
+            NSWorkspace.shared.open(url)
         }
     }
 
@@ -519,9 +520,8 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
     }
 
     /// The device flow: ask for a code, show it with Copy and the page to type it on, and wait. A newer flow replaces
-    /// an older one, whose continuation then does nothing. `revert` puts the private box back when this one does not
-    /// finish.
-    private func startSignIn(includePrivate: Bool, revert: Bool) {
+    /// an older one, whose continuation then does nothing.
+    private func startSignIn() {
         signInRun += 1
         let run = signInRun
         gitHubProblem = nil
@@ -530,10 +530,10 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
         refresh()
         let hooks = hooks
         Task { @MainActor [weak self] in
-            let code = await hooks.signIn.start(includePrivate: includePrivate)
+            let code = await hooks.signIn.start()
             guard let self, self.signInRun == run else { return }
             guard code.state == .started else {
-                self.endSignIn(code.state, revert: revert, includePrivate: includePrivate)
+                self.endSignIn(code.state)
                 return
             }
             self.userCode = code.userCode
@@ -541,27 +541,23 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
             let end = await hooks.signIn.wait()
             guard self.signInRun == run else { return }
             if end == .signedIn {
-                hooks.settings.setFlag(IntegrationSettings.gitHubPrivate, includePrivate)
                 let login = await hooks.login()
                 hooks.settings.set(IntegrationSettings.gitHubLogin, login ?? "")
                 hooks.settings.setFlag(IntegrationSettings.gitHub, true)
                 hooks.switched(IntegrationSettings.gitHub, true)
             }
             guard self.signInRun == run else { return }
-            self.endSignIn(end, revert: revert, includePrivate: includePrivate)
+            self.endSignIn(end)
         }
     }
 
-    private func endSignIn(_ state: SignInState, revert: Bool, includePrivate: Bool) {
+    private func endSignIn(_ state: SignInState) {
         signingIn = false
         userCode = ""
         switch state {
         case .signedIn, .cancelled: gitHubProblem = nil
         case .notConfigured: gitHubProblem = tr("Integrations_NoClientId", "Sign-in is not set up in this build.")
         default: gitHubProblem = tr("Integrations_SignInFailed", "Sign-in did not finish. Try again.")
-        }
-        if revert && state != .signedIn {
-            hooks.settings.setFlag(IntegrationSettings.gitHubPrivate, !includePrivate)
         }
         refresh()
     }
@@ -621,8 +617,8 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
     let view = NSStackView()
     let steps = NSTextField(wrappingLabelWithString: "")
     let extra = NSTextField(wrappingLabelWithString: "")
-    let privateRepos = NSButton(
-        checkboxWithTitle: tr("Integrations_Private", "Include private repositories"), target: nil, action: nil)
+    let chooseRepos = NSButton(
+        title: tr("Integrations_ChooseRepos", "Choose repos on GitHub"), target: nil, action: nil)
 
     private weak var owner: DevelopersWindow?
     private let dot = DotView()
@@ -709,11 +705,14 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
         error.font = .systemFont(ofSize: 12)
         copyCommands.target = self
         copyCommands.action = #selector(copyPressed)
-        privateRepos.target = self
-        privateRepos.action = #selector(privateChanged)
+        chooseRepos.isBordered = false
+        chooseRepos.font = .systemFont(ofSize: 12)
+        chooseRepos.contentTintColor = .linkColor
+        chooseRepos.target = self
+        chooseRepos.action = #selector(chooseReposPressed)
         buildCodePanel()
         buildForm()
-        detail.setViews([steps, extra, copyCommands, codePanel, privateRepos, form], in: .top)
+        detail.setViews([steps, extra, copyCommands, codePanel, chooseRepos, form], in: .top)
         detail.orientation = .vertical
         detail.alignment = .leading
         detail.spacing = 8
@@ -729,7 +728,7 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
         extra.isHidden = true
         copyCommands.isHidden = true
         codePanel.isHidden = true
-        privateRepos.isHidden = true
+        chooseRepos.isHidden = true
         form.isHidden = true
     }
 
@@ -854,7 +853,7 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
     @objc private func copyPressed() { owner?.copy(commands.joined(separator: "\n")) }
     @objc private func openPagePressed() { owner?.openGitHubPage() }
     @objc private func copyCodePressed() { owner?.copyCode() }
-    @objc private func privateChanged() { owner?.privateChanged(privateRepos.state == .on) }
+    @objc private func chooseReposPressed() { owner?.openInstallPage() }
     @objc private func savePressed() { owner?.save() }
     @objc private func cancelPressed() { owner?.cancelForm() }
 }

@@ -1,21 +1,31 @@
 import Foundation
 
-/// The GitHub OAuth App Edgepad signs in through, and the fixed names and addresses that go with it. The twin of the
-/// laptop core's GitHubApp.
+/// The read-only "Edgepad Dashboard" GitHub App Edgepad signs in through, and the fixed names and addresses that go
+/// with it. The twin of the laptop core's GitHubApp.
 public enum GitHubApp {
-    /// The public Client ID of the Edgepad OAuth App, the same value as GitHubApp.cs. A Client ID is public by design;
-    /// the device flow needs no client secret, and none may ever be added. An empty value reports
-    /// `SignInState.notConfigured` and asks nobody.
-    public static let clientId = "Ov23li11P3z1LCVz9APf"
+    /// The public Client ID of the Edgepad Dashboard GitHub App, the same value as GitHubApp.cs. A Client ID is public
+    /// by design; the device flow and the refresh of a device-flow token need no client secret, and none may ever be
+    /// added. An empty value reports `SignInState.notConfigured` and asks nobody.
+    public static let clientId = "Iv23lie6SY6AFlHwufmK"
 
-    /// The `SecretStore` name the token is kept under.
+    /// The `SecretStore` name the access token is kept under.
     public static let tokenName = "github.token"
 
-    /// Public repositories and notifications: the default.
-    public static let scopePublic = "public_repo notifications"
+    /// The refresh token (absent when the app's tokens do not expire).
+    public static let refreshName = "github.refresh"
 
-    /// Private repositories too, when the user ticks "Include private repositories".
-    public static let scopePrivate = "repo notifications"
+    /// When the access token expires, as Unix seconds (absent when it does not expire).
+    public static let expiresName = "github.expires"
+
+    /// The Client ID that issued the saved token; a token without this record came from the old OAuth app.
+    public static let clientName = "github.client"
+
+    /// Set (to "1") when a token from the old OAuth app was deleted; the windows then say "Sign in again".
+    public static let reSignInName = "github.resign"
+
+    /// Where the user chooses which repositories the App may read. The one address besides a host's own lists that a
+    /// phone can ask the laptop to open; a constant here, never text from the phone.
+    public static let installUrl = "https://github.com/apps/edgepad-dashboard/installations/new"
 
     private static let maxClientId = 64
     private static let maxToken = 255
@@ -37,6 +47,47 @@ public enum GitHubApp {
     public static func isToken(_ token: String?) -> Bool {
         guard let token, (1...maxToken).contains(token.utf8.count) else { return false }
         return token.unicodeScalars.allSatisfy { isAsciiLetterOrDigit($0) || $0 == "_" }
+    }
+
+    /// A saved token that no record says `clientId` issued came from the old OAuth app: it is deleted and the "sign in
+    /// again" note is left. Idempotent; a token saved by a sign-in always carries the record.
+    static func migrate(_ store: SecretStore, _ clientId: String) {
+        guard store.get(tokenName) != nil, store.get(clientName) != clientId else { return }
+        forget(store)
+        _ = store.set(reSignInName, "1")
+    }
+
+    /// Whether the old token was deleted and nobody has signed in since.
+    public static func needsReSignIn(_ store: SecretStore) -> Bool {
+        store.get(reSignInName) == "1" && store.get(tokenName) == nil
+    }
+
+    /// Saves a token with its record; false when the access token could not be saved (nothing half-saved stays).
+    static func save(
+        _ store: SecretStore, _ clientId: String, access: String, refresh: String?, expires: Date?
+    ) -> Bool {
+        var saved = store.set(tokenName, access) && store.set(clientName, clientId)
+        if saved, let refresh, let expires {
+            let until = String(Int64(expires.timeIntervalSince1970))
+            saved = store.set(refreshName, refresh) && store.set(expiresName, until)
+        } else if saved {
+            store.delete(refreshName)
+            store.delete(expiresName)
+        }
+        guard saved else {
+            forget(store)
+            return false
+        }
+        store.delete(reSignInName)
+        return true
+    }
+
+    /// Deletes the token and everything that belongs to it.
+    static func forget(_ store: SecretStore) {
+        store.delete(tokenName)
+        store.delete(refreshName)
+        store.delete(expiresName)
+        store.delete(clientName)
     }
 
     static func isAsciiLetterOrDigit(_ scalar: Unicode.Scalar) -> Bool {
@@ -74,8 +125,8 @@ public struct DeviceCode: Equatable {
     }
 }
 
-/// GitHub sign-in by the OAuth device flow (GitHub docs, "Authorizing OAuth apps", device flow): ask github.com for a
-/// code, show it, and poll until the user has entered it at https://github.com/login/device. The token goes straight
+/// GitHub sign-in by the device flow of a GitHub App (GitHub docs, "Generating a user access token for a GitHub App"):
+/// ask github.com for a code, show it, and poll until the user has entered it at https://github.com/login/device. The token goes straight
 /// into the `SecretStore` under `GitHubApp.tokenName`; it is never logged, never returned, and never sent to the phone.
 /// github.com is the only host asked, redirects are refused, every reply is capped at 16 KiB and 15 s, and there is no
 /// client secret anywhere. One flow at a time: starting another cancels the first. The twin of the core's GitHubSignIn.
@@ -85,6 +136,7 @@ public final class GitHubSignIn {
 
     private static let defaultInterval = 5
     private static let maxDeviceCode = 255
+    private static let maxLifeSeconds = 31 * 24 * 3600
     private static let grantType = "urn:ietf:params:oauth:grant-type:device_code"
     private static let timeout: TimeInterval = 15
 
@@ -99,7 +151,7 @@ public final class GitHubSignIn {
     private enum Poll {
         case pending
         case slowDown
-        case token(String)
+        case token(String, String?, Int?)
         case end(SignInState)
     }
 
@@ -179,18 +231,26 @@ public final class GitHubSignIn {
         self.delay = delay
     }
 
-    /// Whether a usable token is saved.
+    /// Whether a usable token is saved. A token from the old OAuth app is deleted first (`GitHubApp.migrate`).
     public var isSignedIn: Bool {
-        GitHubApp.isToken(store.get(GitHubApp.tokenName))
+        GitHubApp.migrate(store, clientId)
+        return GitHubApp.isToken(store.get(GitHubApp.tokenName))
     }
 
-    /// Asks GitHub for a code. `.notConfigured` without a request while the Client ID is the placeholder; `.failed`
-    /// when GitHub cannot be asked or answers outside the documented ranges.
-    public func start(includePrivate: Bool) async -> DeviceCode {
+    /// Whether a token from the old OAuth app was deleted and nobody has signed in since: the window says "Sign in
+    /// again".
+    public var needsReSignIn: Bool {
+        GitHubApp.migrate(store, clientId)
+        return GitHubApp.needsReSignIn(store)
+    }
+
+    /// Asks GitHub for a code. No scope is sent: a GitHub App's token reads what the App's own read-only permissions
+    /// and its installations allow. `.notConfigured` without a request while the Client ID is the placeholder;
+    /// `.failed` when GitHub cannot be asked or answers outside the documented ranges.
+    public func start() async -> DeviceCode {
         guard GitHubApp.isConfigured(clientId) else { return .not(.notConfigured) }
         cancel()
-        let scope = includePrivate ? GitHubApp.scopePrivate : GitHubApp.scopePublic
-        let form = "client_id=\(UrlText.escape(clientId))&scope=\(UrlText.escape(scope))"
+        let form = "client_id=\(UrlText.escape(clientId))"
         let reply = await post(GitHubApp.deviceCodeUrl, form, "Asking GitHub for a sign-in code")
         guard let reply, reply.isSuccess, let issued = Self.parseDeviceCode(reply.body) else { return .not(.failed) }
         let flow = Flow(
@@ -227,8 +287,10 @@ public final class GitHubSignIn {
             let reply = await post(GitHubApp.tokenUrl, form, "Waiting for GitHub sign-in")
             if Task.isCancelled || flow.isStopped { return .cancelled }
             switch Self.readPoll(reply) {
-            case .token(let token):
-                return store.set(GitHubApp.tokenName, token) ? .signedIn : .failed
+            case .token(let token, let refresh, let life):
+                let expires = life.map { now().addingTimeInterval(TimeInterval($0)) }
+                let saved = GitHubApp.save(store, clientId, access: token, refresh: refresh, expires: expires)
+                return saved ? .signedIn : .failed
             case .pending:
                 break
             case .slowDown:
@@ -251,7 +313,8 @@ public final class GitHubSignIn {
     /// Stops any sign-in and forgets the token.
     public func signOut() {
         cancel()
-        store.delete(GitHubApp.tokenName)
+        GitHubApp.forget(store)
+        store.delete(GitHubApp.reSignInName)
     }
 
     /// The device code reply: device_code (1..255 printable ASCII), user_code matching `^[A-Z0-9-]{4,20}$`, interval
@@ -281,7 +344,7 @@ public final class GitHubSignIn {
         }
         guard let root = parsed as? [String: Any] else { return .end(.failed) }
         if reply.isSuccess, let token = root["access_token"] as? String {
-            return GitHubApp.isToken(token) ? .token(token) : .end(.failed)
+            return readToken(root, token)
         }
         switch root["error"] as? String {
         case "authorization_pending": return .pending
@@ -291,6 +354,17 @@ public final class GitHubSignIn {
         case nil where !reply.isSuccess: return .pending
         default: return .end(.failed)
         }
+    }
+
+    /// A token reply: an expiring token has a refresh token and expires_in (1 s..31 days); one with neither does not
+    /// expire. Half of the pair, or a value outside the ranges, is a failure.
+    private static func readToken(_ root: [String: Any], _ token: String) -> Poll {
+        let refresh = root["refresh_token"] as? String
+        let life = JsonRead.int32(root["expires_in"])
+        let expiring = refresh != nil || life != nil
+        let lifeFine = life.map { (1...maxLifeSeconds).contains($0) } ?? false
+        let fine = GitHubApp.isToken(token) && (!expiring || (GitHubApp.isToken(refresh) && lifeFine))
+        return fine ? .token(token, refresh, life) : .end(.failed)
     }
 
     private func post(_ url: String, _ form: String, _ what: String) async -> HttpReply? {

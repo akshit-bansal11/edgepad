@@ -643,8 +643,11 @@
   <data name="Integrations_Waiting" xml:space="preserve">
     <value>Ожидание вашего подтверждения в браузере…</value>
   </data>
-  <data name="Integrations_Private" xml:space="preserve">
-    <value>Включать частные репозитории</value>
+  <data name="Integrations_ChooseRepos" xml:space="preserve">
+    <value>Выбрать репозитории на GitHub</value>
+  </data>
+  <data name="Integrations_ReSignIn" xml:space="preserve">
+    <value>Войдите снова. Edgepad теперь использует доступ к GitHub только для чтения.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>Вход выполнен как {0}</value>

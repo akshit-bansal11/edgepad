@@ -192,12 +192,11 @@ final class GitTests: XCTestCase {
         XCTAssertFalse(page.body.contains("https"))
     }
 
-    func testAnUnreadCountIsAnOlderStyleLineThatDoesNotTakeAnIndex() {
-        var withUnread = snapshot()
-        withUnread.unread = 7
-        let page = GitBlob.encode("github", withUnread, 1)
-        XCTAssertEqual(page.body.split(separator: "\n", omittingEmptySubsequences: false)[1], "N\t\t7\t\t\tnone")
-        XCTAssertEqual(page.urls.count, 3)
+    func testNoNotificationCountLineIsSentAndAnExtraAddressComesLast() {
+        let page = GitBlob.encode("github", snapshot(), 1, extraUrl: GitHubApp.installUrl)
+        XCTAssertFalse(page.body.split(separator: "\n").contains { $0.hasPrefix("N\t") })
+        XCTAssertEqual(page.urls.count, 4)
+        XCTAssertEqual(page.urls.last, "https://github.com/apps/edgepad-dashboard/installations/new")
     }
 
     func testHostileTextIsCleanedAndCutAndABadRepositoryIsDropped() {
