@@ -119,7 +119,7 @@
   <string name="perm_notif">يحتاج وكيل ذكاء اصطناعي إلى موافقة.</string>
   <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
   <string name="dev_title">المطوّر</string>
-  <string name="hub_switch_laptop">%1$s، تبديل اللابتوب</string>
+  <string name="hub_switch_laptop">%1$s، تبديل الجهاز</string>
   <string name="phone_battery">البطارية</string>
   <string name="phone_charging">قيد الشحن</string>
   <string name="phone_temperature">درجة الحرارة</string>

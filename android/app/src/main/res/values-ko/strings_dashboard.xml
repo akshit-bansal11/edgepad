@@ -99,7 +99,7 @@
   <string name="perm_notif">AI 에이전트가 승인을 기다리고 있습니다.</string>
   <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
   <string name="dev_title">개발자</string>
-  <string name="hub_switch_laptop">%1$s, 노트북 전환</string>
+  <string name="hub_switch_laptop">%1$s, 기기 전환</string>
   <string name="phone_battery">배터리</string>
   <string name="phone_charging">충전 중</string>
   <string name="phone_temperature">온도</string>

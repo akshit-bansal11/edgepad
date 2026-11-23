@@ -103,7 +103,7 @@
   <string name="perm_notif">Bir yapay zeka aracısının onaya ihtiyacı var.</string>
   <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
   <string name="dev_title">Geliştirici</string>
-  <string name="hub_switch_laptop">%1$s, dizüstü değiştir</string>
+  <string name="hub_switch_laptop">%1$s, cihaz değiştir</string>
   <string name="phone_battery">Pil</string>
   <string name="phone_charging">Şarj oluyor</string>
   <string name="phone_temperature">Sıcaklık</string>

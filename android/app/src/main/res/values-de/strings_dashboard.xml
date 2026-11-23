@@ -103,7 +103,7 @@
   <string name="perm_notif">Ein KI-Agent braucht eine Genehmigung.</string>
   <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
   <string name="dev_title">Entwickler</string>
-  <string name="hub_switch_laptop">%1$s, Laptop wechseln</string>
+  <string name="hub_switch_laptop">%1$s, Gerät wechseln</string>
   <string name="phone_battery">Akku</string>
   <string name="phone_charging">Lädt</string>
   <string name="phone_temperature">Temperatur</string>

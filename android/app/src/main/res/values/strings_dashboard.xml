@@ -109,7 +109,7 @@
   <string name="perm_notif">An AI agent needs approval.</string>
   <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
   <string name="dev_title">Developer</string>
-  <string name="hub_switch_laptop">%1$s, switch laptop</string>
+  <string name="hub_switch_laptop">%1$s, switch device</string>
   <string name="phone_battery">Battery</string>
   <string name="phone_charging">Charging</string>
   <string name="phone_temperature">Temperature</string>

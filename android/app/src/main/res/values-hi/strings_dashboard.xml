@@ -103,7 +103,7 @@
   <string name="perm_notif">एक AI एजेंट को स्वीकृति चाहिए।</string>
   <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
   <string name="dev_title">डेवलपर</string>
-  <string name="hub_switch_laptop">%1$s, लैपटॉप बदलें</string>
+  <string name="hub_switch_laptop">%1$s, डिवाइस बदलें</string>
   <string name="phone_battery">बैटरी</string>
   <string name="phone_charging">चार्ज हो रही है</string>
   <string name="phone_temperature">तापमान</string>

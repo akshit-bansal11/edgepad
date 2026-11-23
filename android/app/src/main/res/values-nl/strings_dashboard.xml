@@ -103,7 +103,7 @@
   <string name="perm_notif">Een AI-agent heeft goedkeuring nodig.</string>
   <!-- System and Developer hubs: the Phone and Network pages. No plurals: nothing here is a count. -->
   <string name="dev_title">Ontwikkelaar</string>
-  <string name="hub_switch_laptop">%1$s, wissel van laptop</string>
+  <string name="hub_switch_laptop">%1$s, wissel van apparaat</string>
   <string name="phone_battery">Accu</string>
   <string name="phone_charging">Laadt op</string>
   <string name="phone_temperature">Temperatuur</string>
