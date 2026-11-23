@@ -5,10 +5,10 @@ import AppKit
 /// its highlight.
 enum MenuBarMark {
     private static let side: CGFloat = 18
-    /// The mark's strokes span 188...780 in its own units, including the round caps; they fill the image less a
-    /// point of margin.
-    private static let origin: CGFloat = 188
-    private static let scale: CGFloat = (side - 2) / 592
+    /// The mark's strokes span 181.8...925.8 in its own units, including the round caps; they fill the image less a
+    /// point of margin. The numbers are scripts/logo.ps1's output; regenerate them from there if the mark changes.
+    private static let origin: CGFloat = 181.8
+    private static let scale: CGFloat = (side - 2) / 744
     /// About the weight of an SF Symbol at this size.
     private static let lineWidth: CGFloat = 1.6
 
@@ -20,16 +20,19 @@ enum MenuBarMark {
             path.lineCapStyle = .round
             // The five ticks and the arc of the mark, in the order of the SVG paths.
             let ticks: [((CGFloat, CGFloat), (CGFloat, CGFloat))] = [
-                ((394, 744), (224, 744)), ((420.6, 610.1), (263.6, 545)), ((610.1, 420.6), (545, 263.6)),
-                ((744, 394), (744, 224)), ((496.5, 496.5), (348, 348)),
+                ((457.8, 881.8), (225.8, 881.8)), ((490.075, 719.542), (275.735, 630.76)),
+                ((719.542, 490.075), (630.76, 275.735)), ((881.8, 457.8), (881.8, 225.8)),
+                ((581.987, 581.987), (372.683, 372.683)),
             ]
             for (from, to) in ticks {
                 path.move(to: point(from.0, from.1))
                 path.line(to: point(to.0, to.1))
             }
-            // A quarter circle of radius 240 about (504, 504), from the bottom to the right.
-            path.move(to: point(504, 744))
-            path.curve(to: point(744, 504), controlPoint1: point(636.55, 744), controlPoint2: point(744, 636.55))
+            // A quarter circle of radius 288 about the pivot (881.8, 881.8), from its left point up to its top point,
+            // bulging away from the pivot. Control points sit 0.5523 x 288 = 159.058 along each end's tangent.
+            path.move(to: point(593.8, 881.8))
+            path.curve(
+                to: point(881.8, 593.8), controlPoint1: point(593.8, 722.742), controlPoint2: point(722.742, 593.8))
             NSColor.black.setStroke()
             path.stroke()
             if badged {
