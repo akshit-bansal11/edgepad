@@ -70,6 +70,8 @@ internal sealed class LinuxDashboard : IDisposable
         installer = new PluginInstaller(bundle, Settings, PluginInstaller.DefaultRoot(), version);
         hookConfig = new HookConfigInstaller(bundle, Settings, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), version, Environment.ProcessPath ?? string.Empty);
         signIn = new(() => new GitHubSignIn(secrets.Value));
+        // The old OAuth app's token goes at start, off the constructor's thread (the secret store may reach for the keyring).
+        _ = Task.Run(() => signIn.Value.Migrate());
         tokenHosts = new(() => new Dictionary<string, TokenGitHost>
         {
             ["gitea"] = new GiteaHost(secrets.Value, Settings),

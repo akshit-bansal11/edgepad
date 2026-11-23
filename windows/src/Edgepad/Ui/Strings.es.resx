@@ -750,7 +750,7 @@ Se olvidaron los teléfonos de confianza, pero no se pudo restablecer el PIN: no
     <value>Elegir repos en GitHub</value>
   </data>
   <data name="Integrations_ReSignIn" xml:space="preserve">
-    <value>Inicia sesión de nuevo. Edgepad ahora usa acceso de solo lectura a GitHub.</value>
+    <value>Inicia sesión de nuevo. Edgepad ahora usa acceso de solo lectura a GitHub. Revoca el Edgepad anterior en https://github.com/settings/applications.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>Sesión iniciada como {0}</value>

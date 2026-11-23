@@ -492,7 +492,7 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
     <value>Wybierz repozytoria na GitHubie</value>
   </data>
   <data name="Integrations_ReSignIn" xml:space="preserve">
-    <value>Zaloguj się ponownie. Edgepad używa teraz dostępu do GitHuba tylko do odczytu.</value>
+    <value>Zaloguj się ponownie. Edgepad używa teraz dostępu do GitHuba tylko do odczytu. Cofnij dostęp starego Edgepada na https://github.com/settings/applications.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>Zalogowano jako {0}</value>

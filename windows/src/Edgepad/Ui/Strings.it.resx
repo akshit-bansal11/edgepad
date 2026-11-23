@@ -750,7 +750,7 @@ I telefoni autorizzati sono stati dimenticati, ma non è stato possibile reimpos
     <value>Scegli i repository su GitHub</value>
   </data>
   <data name="Integrations_ReSignIn" xml:space="preserve">
-    <value>Accedi di nuovo. Edgepad ora usa un accesso a GitHub di sola lettura.</value>
+    <value>Accedi di nuovo. Edgepad ora usa un accesso a GitHub di sola lettura. Revoca il vecchio Edgepad su https://github.com/settings/applications.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>Accesso eseguito come {0}</value>

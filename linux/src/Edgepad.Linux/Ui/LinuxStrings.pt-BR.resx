@@ -492,7 +492,7 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
     <value>Escolher repositórios no GitHub</value>
   </data>
   <data name="Integrations_ReSignIn" xml:space="preserve">
-    <value>Entre novamente. O Edgepad agora usa acesso somente leitura ao GitHub.</value>
+    <value>Entre novamente. O Edgepad agora usa acesso somente leitura ao GitHub. Revogue o Edgepad antigo em https://github.com/settings/applications.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>Conectado como {0}</value>

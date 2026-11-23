@@ -731,7 +731,7 @@
     <value>Repository’s kiezen op GitHub</value>
   </data>
   <data name="Integrations_ReSignIn" xml:space="preserve">
-    <value>Log opnieuw in. Edgepad gebruikt nu alleen-lezen toegang tot GitHub.</value>
+    <value>Log opnieuw in. Edgepad gebruikt nu alleen-lezen toegang tot GitHub. Trek het oude Edgepad in via https://github.com/settings/applications.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>Ingelogd als {0}</value>

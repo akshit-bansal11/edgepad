@@ -492,7 +492,7 @@
     <value>GitHubでリポジトリを選ぶ</value>
   </data>
   <data name="Integrations_ReSignIn" xml:space="preserve">
-    <value>もう一度サインインしてください。Edgepad は読み取り専用の GitHub アクセスを使うようになりました。</value>
+    <value>もう一度サインインしてください。Edgepad は読み取り専用の GitHub アクセスを使うようになりました。古いEdgepadのアクセスは https://github.com/settings/applications で取り消してください。</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>{0} としてサインイン中</value>

@@ -492,7 +492,7 @@
     <value>GitHub पर रिपॉज़िटरी चुनें</value>
   </data>
   <data name="Integrations_ReSignIn" xml:space="preserve">
-    <value>फिर से साइन इन करें। Edgepad अब GitHub की केवल-पढ़ने वाली पहुँच का उपयोग करता है।</value>
+    <value>फिर से साइन इन करें। Edgepad अब GitHub की केवल-पढ़ने वाली पहुँच का उपयोग करता है। पुराने Edgepad की पहुँच https://github.com/settings/applications पर रद्द करें।</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>{0} के रूप में साइन इन है</value>

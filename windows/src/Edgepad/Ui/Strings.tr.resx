@@ -740,7 +740,7 @@ Güvenilen telefonlar unutuldu ama PIN sıfırlanamadı: bir ayar dosyası kald�
     <value>GitHub’da depoları seç</value>
   </data>
   <data name="Integrations_ReSignIn" xml:space="preserve">
-    <value>Yeniden oturum açın. Edgepad artık GitHub’a salt okunur erişim kullanıyor.</value>
+    <value>Yeniden oturum açın. Edgepad artık GitHub’a salt okunur erişim kullanıyor. Eski Edgepad’in erişimini https://github.com/settings/applications adresinden iptal edin.</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>{0} olarak oturum açıldı</value>

@@ -492,7 +492,7 @@
     <value>在 GitHub 上选择仓库</value>
   </data>
   <data name="Integrations_ReSignIn" xml:space="preserve">
-    <value>请重新登录。Edgepad 现在使用只读的 GitHub 访问权限。</value>
+    <value>请重新登录。Edgepad 现在使用只读的 GitHub 访问权限。 请在 https://github.com/settings/applications 撤销旧的 Edgepad 授权。</value>
   </data>
   <data name="Integrations_SignedIn" xml:space="preserve">
     <value>已登录为 {0}</value>

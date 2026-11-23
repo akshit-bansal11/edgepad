@@ -74,6 +74,7 @@ internal sealed partial class WindowsIntegrations : IDisposable
         Settings = new IntegrationSettings(Path.Combine(folder, IntegrationSettings.FileName));
         Secrets = new WindowsSecretStore();
         SignIn = new GitHubSignIn(Secrets);
+        SignIn.Migrate();
         var bundle = new ResourcePluginSource(typeof(WindowsIntegrations).Assembly);
         installer = new PluginInstaller(bundle, Settings, PluginInstaller.DefaultRoot(), version, shortPath: ShortPath);
         hookConfig = new HookConfigInstaller(bundle, Settings, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), version, Environment.ProcessPath ?? string.Empty);
