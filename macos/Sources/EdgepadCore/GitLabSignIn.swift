@@ -30,6 +30,83 @@ public enum GitLabApp {
     /// The API root of gitlab.com.
     static let api = "https://gitlab.com/api/v4/"
 
+    private final class State {
+        let gate = NSLock()
+        var epoch = 0
+    }
+
+    // One per secret store, shared by the host, the sign-in and the renewal, so no two of them write tokens at once.
+    private static let registry = NSLock()
+    private static var states: [ObjectIdentifier: State] = [:]
+
+    private static func state(_ store: SecretStore) -> State {
+        registry.withLock {
+            if let found = states[ObjectIdentifier(store)] { return found }
+            let made = State()
+            states[ObjectIdentifier(store)] = made
+            return made
+        }
+    }
+
+    /// The lock every write of a gitlab.com token and every write of the server address holds.
+    static func lock(_ store: SecretStore) -> NSLock {
+        state(store).gate
+    }
+
+    /// The sign-in generation: moved by every sign-in start, server save and sign-out, so a result that began earlier
+    /// is known to be stale.
+    static func epoch(_ store: SecretStore) -> Int {
+        let made = state(store)
+        return made.gate.withLock { made.epoch }
+    }
+
+    /// Moves the generation on; whatever began before is dropped when it finishes. The caller holds `lock(store)`.
+    static func bumpLocked(_ store: SecretStore) {
+        state(store).epoch += 1
+    }
+
+    /// Moves the generation on, taking the lock.
+    static func bump(_ store: SecretStore) {
+        lock(store).withLock { bumpLocked(store) }
+    }
+
+    /// Starts a gitlab.com sign-in: forgets every saved token and the server address (a token for one server must never
+    /// sit beside another), then returns the new generation; nil when the address could not be cleared.
+    static func begin(_ store: SecretStore, _ settings: IntegrationSettings) -> Int? {
+        let made = state(store)
+        return made.gate.withLock { () -> Int? in
+            forget(store)
+            guard settings.set(GitTokens.urlKey("gitlab"), "") else { return nil }
+            made.epoch += 1
+            return made.epoch
+        }
+    }
+
+    /// Saves a gitlab.com token only if nothing has moved since it was asked for: the generation is still `epoch`, no
+    /// server address is saved and, for a renewal, the saved refresh token is still `sentRefresh`. Otherwise the
+    /// result is dropped, so a gitlab.com token can never land beside a self-hosted address.
+    static func saveIfCurrent(
+        _ store: SecretStore, _ settings: IntegrationSettings, epoch: Int, sentRefresh: String?, access: String,
+        refresh: String?, expires: Date?
+    ) -> Bool {
+        let made = state(store)
+        return made.gate.withLock { () -> Bool in
+            guard made.epoch == epoch, settings.text(GitTokens.urlKey("gitlab")).isEmpty,
+                sentRefresh == nil || store.get(refreshName) == sentRefresh
+            else { return false }
+            return save(store, clientId, access: access, refresh: refresh, expires: expires)
+        }
+    }
+
+    /// Forgets everything saved, but only while nothing has moved since `epoch` and the refresh token is still the one
+    /// sent.
+    static func forgetIfCurrent(_ store: SecretStore, epoch: Int, sentRefresh: String?) {
+        let made = state(store)
+        made.gate.withLock {
+            if made.epoch == epoch && store.get(refreshName) == sentRefresh { forget(store) }
+        }
+    }
+
     /// Saves a token with its record; false when it could not be saved (nothing half-saved stays). The order is
     /// refresh token, access token, expiry, then the record, so a stop at any point leaves a pair that works or one
     /// that refreshes.
@@ -124,9 +201,15 @@ public final class GitLabSignIn {
         guard let reply, reply.isSuccess, let issued = GitHubSignIn.parseDeviceCode(reply.body) else {
             return DeviceCode(state: .failed, userCode: "", page: GitLabApp.devicePage, expiresIn: 0)
         }
+        // `begin` forgets every saved token and the server address, so the tokens this flow saves can never sit beside
+        // another server.
+        guard let epoch = GitLabApp.begin(store, settings) else {
+            return DeviceCode(state: .failed, userCode: "", page: GitLabApp.devicePage, expiresIn: 0)
+        }
         let flow = GitHubSignIn.Flow(
             deviceCode: issued.deviceCode, interval: issued.interval,
             deadline: now().addingTimeInterval(TimeInterval(issued.expiresIn)))
+        flow.epoch = epoch
         let old = gate.withLock { () -> GitHubSignIn.Flow? in
             let previous = current
             current = flow
@@ -158,7 +241,7 @@ public final class GitLabSignIn {
             if Task.isCancelled || flow.isStopped { return .cancelled }
             switch Self.readPoll(reply) {
             case .token(let token, let refresh, let life):
-                return save(token, refresh, life) ? .signedIn : .failed
+                return save(token, refresh, life, flow.epoch) ? .signedIn : .failed
             case .pending:
                 break
             case .slowDown:
@@ -178,12 +261,12 @@ public final class GitLabSignIn {
         flow?.stop()
     }
 
-    /// Saves the tokens for gitlab.com: the server address goes first, so a token is never saved beside a self-hosted
-    /// address.
-    private func save(_ token: String, _ refresh: String?, _ life: Int) -> Bool {
-        guard settings.set(GitTokens.urlKey("gitlab"), "") else { return false }
+    /// Saves the tokens for gitlab.com, but only if no server address was saved and no other sign-in began since this
+    /// flow started; otherwise they are dropped.
+    private func save(_ token: String, _ refresh: String?, _ life: Int, _ epoch: Int) -> Bool {
         let expires = refresh == nil ? nil : now().addingTimeInterval(TimeInterval(life))
-        return GitLabApp.save(store, GitLabApp.clientId, access: token, refresh: refresh, expires: expires)
+        return GitLabApp.saveIfCurrent(
+            store, settings, epoch: epoch, sentRefresh: nil, access: token, refresh: refresh, expires: expires)
     }
 
     private static func readPoll(_ reply: HttpReply?) -> Poll {

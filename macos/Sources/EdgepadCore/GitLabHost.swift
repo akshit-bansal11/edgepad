@@ -15,6 +15,7 @@ final class GitLabRenewal {
     private static let margin: TimeInterval = 5 * 60
 
     private let store: SecretStore
+    private let settings: IntegrationSettings
     private let http: HttpSender
     private let now: () -> Date
 
@@ -22,8 +23,9 @@ final class GitLabRenewal {
     private static let flights = NSLock()
     private static var running: [ObjectIdentifier: Task<RefreshOutcome, Never>] = [:]
 
-    init(store: SecretStore, http: HttpSender, clock: @escaping () -> Date) {
+    init(store: SecretStore, settings: IntegrationSettings, http: HttpSender, clock: @escaping () -> Date) {
         self.store = store
+        self.settings = settings
         self.http = http
         self.now = clock
     }
@@ -59,8 +61,9 @@ final class GitLabRenewal {
     /// The exchange itself, in a task of its own: a caller that is cancelled while it runs cannot lose the new refresh
     /// token, and the 15 s timeout bounds it.
     private func exchange() async -> RefreshOutcome {
+        let epoch = GitLabApp.epoch(store)
         guard let sent = store.get(GitLabApp.refreshName), GitTokens.isToken(sent) else {
-            GitLabApp.forget(store)
+            GitLabApp.forgetIfCurrent(store, epoch: epoch, sentRefresh: store.get(GitLabApp.refreshName))
             return .rejected
         }
         guard let address = URL(string: GitLabApp.tokenUrl) else { return .unavailable }
@@ -80,7 +83,7 @@ final class GitLabRenewal {
             // it.
             guard error == "invalid_grant" else { return .unavailable }
             if store.get(GitLabApp.refreshName) != sent { return .refreshed }
-            GitLabApp.forget(store)
+            GitLabApp.forgetIfCurrent(store, epoch: epoch, sentRefresh: sent)
             return .rejected
         }
         guard reply.isSuccess, let access = root["access_token"] as? String,
@@ -88,7 +91,8 @@ final class GitLabRenewal {
             let life = JsonRead.int32(root["expires_in"]), (1...Self.maxLifeSeconds).contains(life)
         else { return .unavailable }
         let expires = now().addingTimeInterval(TimeInterval(life))
-        let saved = GitLabApp.save(store, GitLabApp.clientId, access: access, refresh: next, expires: expires)
+        let saved = GitLabApp.saveIfCurrent(
+            store, settings, epoch: epoch, sentRefresh: sent, access: access, refresh: next, expires: expires)
         return saved ? .refreshed : .unavailable
     }
 }
@@ -115,12 +119,28 @@ public final class GitLabHost: TokenGitHost {
     ) {
         secrets = store
         options = settings
-        renewal = GitLabRenewal(store: store, http: http, clock: clock)
+        renewal = GitLabRenewal(store: store, settings: settings, http: http, clock: clock)
         super.init(spec: GitLabSpec(), store: store, settings: settings, http: http, clock: clock)
     }
 
     /// The self-hosted server's address as saved; empty for gitlab.com.
     public var server: String { options.text(GitTokens.urlKey("gitlab")) }
+
+    override var tokenLock: NSLock { GitLabApp.lock(secrets) }
+
+    // Under the lock, just before an address and its token are written: a gitlab.com sign-in or renewal still in flight
+    // is dropped, and its tokens go.
+    override func willStore() {
+        GitLabApp.bumpLocked(secrets)
+        GitLabApp.forgetRenewal(secrets)
+    }
+
+    // A gitlab.com token (the one with a record of the application that issued it) goes to gitlab.com only, never to a
+    // server address.
+    override func mayAttach(_ url: URL, _ token: String) -> Bool {
+        guard secrets.get(GitLabApp.clientName) != nil, secrets.get(GitLabApp.tokenName) == token else { return true }
+        return url.scheme == "https" && url.host?.lowercased() == "gitlab.com"
+    }
 
     override func renewDue() -> Bool { server.isEmpty && renewal.isDue() }
 
@@ -134,18 +154,18 @@ public final class GitLabHost: TokenGitHost {
         guard !url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return GitSaveResult(status: .badUrl, login: "")
         }
-        let result = await save(token: token, url: url, user: "")
-        if result.status == .saved {
-            // A pasted token has no refresh token: nothing of a gitlab.com sign-in may stay beside it.
-            GitLabApp.forgetRenewal(secrets)
-        }
-        return result
+        // `willStore` (under the same lock the sign-in and the renewal save under) drops a gitlab.com sign-in still in
+        // flight and its tokens.
+        return await save(token: token, url: url, user: "")
     }
 
     /// Forgets the token, its refresh token and the page; the server address stays for the next sign-in.
     public override func signOut() {
         super.signOut()
-        GitLabApp.forgetRenewal(secrets)
+        GitLabApp.lock(secrets).withLock {
+            GitLabApp.bumpLocked(secrets)
+            GitLabApp.forgetRenewal(secrets)
+        }
     }
 
     /// The pipeline state of a merge request as a `CiToken`, from GitLab's pipeline statuses

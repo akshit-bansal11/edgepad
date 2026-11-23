@@ -174,6 +174,8 @@ public final class GitHubSignIn {
         let deviceCode: String
         let interval: Int
         let deadline: Date
+        /// The sign-in generation a GitLab flow began in; unused by GitHub's.
+        var epoch = 0
         private let gate = NSLock()
         private var stopped = false
         private var waiting = false

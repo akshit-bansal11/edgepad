@@ -23,11 +23,27 @@ private final class OrderedSecrets: SecretStore {
     func delete(_ name: String) { lock.withLock { values[name] = nil } }
 }
 
+/// A network that lets a test do something (save a server, say) at the moment a request is out.
+private final class RacingHttp: HttpSender {
+    private let inner: FakeHttp
+    var before: ((URLRequest) async -> Void)?
+
+    init(_ inner: FakeHttp) {
+        self.inner = inner
+    }
+
+    func send(_ request: URLRequest, maxBytes: Int, what: String) async -> HttpReply? {
+        await before?(request)
+        return await inner.send(request, maxBytes: maxBytes, what: what)
+    }
+}
+
 final class GitLabTests: XCTestCase {
     private let client = "90603e45237215e265b1cc5a873ec796353c5e3185c14be0341a371a0dc5d000"
     private let token = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
     private let refreshToken = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
     private let newToken = "aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbccccccccccccccccdddddddddddddddd"
+    private let pasted = "glpat-SelfHostedPastedToken123"
     private let newRefresh = "eeeeeeeeeeeeeeeeffffffffffffffff0000000000000000ffffffffffffffff"
 
     private let code =
@@ -97,11 +113,11 @@ final class GitLabTests: XCTestCase {
 
     // ---- helpers
 
-    private func host(_ http: FakeHttp) -> GitLabHost {
+    private func host(_ http: HttpSender) -> GitLabHost {
         GitLabHost(store: secrets, settings: settings, http: http, clock: { [clock] in clock.now })
     }
 
-    private func signIn(_ http: FakeHttp, _ store: SecretStore? = nil) -> GitLabSignIn {
+    private func signIn(_ http: HttpSender, _ store: SecretStore? = nil) -> GitLabSignIn {
         GitLabSignIn(
             store: store ?? secrets, settings: settings, http: http, clock: { [clock] in clock.now },
             delay: { [weak self] seconds in
@@ -436,13 +452,13 @@ final class GitLabTests: XCTestCase {
         let http = FakeHttp(serve)
         let gitlab = host(http)
 
-        let saved = await gitlab.saveServer(token: " " + token + " ", url: "https://git.example.org")
+        let saved = await gitlab.saveServer(token: " " + pasted + " ", url: "https://git.example.org")
 
         XCTAssertEqual(saved, GitSaveResult(status: .saved, login: "ana"))
         XCTAssertEqual(settings.text(GitTokens.urlKey("gitlab")), "https://git.example.org")
         XCTAssertNil(secrets.get(GitLabApp.refreshName))
         XCTAssertNil(secrets.get(GitLabApp.expiresName))
-        XCTAssertEqual(secrets.get(GitLabApp.tokenName), token)
+        XCTAssertEqual(secrets.get(GitLabApp.tokenName), pasted)
 
         clock.advance(300)
         let result = await gitlab.refresh()
@@ -452,7 +468,7 @@ final class GitLabTests: XCTestCase {
             XCTAssertEqual(seen.method, "GET")
             XCTAssertEqual(seen.host, "git.example.org")
             XCTAssertTrue(seen.url.hasPrefix("https://git.example.org/api/v4/"), seen.url)
-            XCTAssertEqual(seen.headers["Authorization"], "Bearer " + token)
+            XCTAssertEqual(seen.headers["Authorization"], "Bearer " + pasted)
         }
     }
 
@@ -477,6 +493,73 @@ final class GitLabTests: XCTestCase {
         XCTAssertNil(secrets.get(GitLabApp.expiresName))
         XCTAssertNil(secrets.get(GitLabApp.clientName))
         XCTAssertEqual(settings.text(GitTokens.urlKey("gitlab")), "https://git.example.org")
+    }
+
+    // ---- a gitlab.com token never lands beside, or goes to, a server
+
+    func testARenewalFinishingAfterAServerWasSavedStoresNothing() async {
+        expiring(in: 60)
+        let inner = FakeHttp { request in
+            request.url?.path == "/oauth/token" ? FakeHttp.json200(self.renewed) : self.serve(request)
+        }
+        let racing = RacingHttp(inner)
+        let gitlab = host(racing)
+        racing.before = { [pasted] request in
+            // The person saves a self-hosted server while the renewal is out.
+            if request.url?.path == "/oauth/token" {
+                let saved = await gitlab.saveServer(token: pasted, url: "https://git.example.org")
+                XCTAssertEqual(saved.status, .saved)
+            }
+        }
+
+        _ = await gitlab.refresh()
+
+        XCTAssertEqual(secrets.get(GitLabApp.tokenName), pasted)
+        XCTAssertNil(secrets.get(GitLabApp.refreshName))
+        XCTAssertNil(secrets.get(GitLabApp.expiresName))
+        XCTAssertNil(secrets.get(GitLabApp.clientName))
+        XCTAssertEqual(settings.text(GitTokens.urlKey("gitlab")), "https://git.example.org")
+        XCTAssertFalse(inner.seen.contains { $0.headers["Authorization"] == "Bearer " + newToken })
+        XCTAssertFalse(inner.seen.contains { $0.host == "gitlab.com" && $0.headers["Authorization"] != nil })
+    }
+
+    func testADeviceSignInFinishingAfterAServerWasSavedStoresNothing() async {
+        let inner = FakeHttp { request in
+            switch request.url?.path ?? "" {
+            case "/oauth/authorize_device": return FakeHttp.json200(self.code)
+            case "/oauth/token": return FakeHttp.json200(self.granted)
+            default: return self.serve(request)
+            }
+        }
+        let racing = RacingHttp(inner)
+        let gitlab = host(racing)
+        racing.before = { [pasted] request in
+            if request.url?.path == "/oauth/token" {
+                let saved = await gitlab.saveServer(token: pasted, url: "https://git.example.org")
+                XCTAssertEqual(saved.status, .saved)
+            }
+        }
+        let flow = signIn(racing)
+
+        _ = await flow.start()
+        let state = await flow.wait()
+
+        XCTAssertEqual(state, .failed)
+        XCTAssertEqual(secrets.get(GitLabApp.tokenName), pasted)
+        XCTAssertNil(secrets.get(GitLabApp.refreshName))
+        XCTAssertNil(secrets.get(GitLabApp.clientName))
+        XCTAssertEqual(settings.text(GitTokens.urlKey("gitlab")), "https://git.example.org")
+    }
+
+    func testAGitLabComTokenIsNeverSentToAnotherHost() async {
+        expiring(in: 3600)
+        settings.set(GitTokens.urlKey("gitlab"), "https://git.example.org")
+        let http = FakeHttp(serve)
+
+        let result = await host(http).refresh()
+
+        XCTAssertEqual(result.result, .failed)
+        XCTAssertTrue(http.seen.isEmpty)
     }
 
     // ---- the read-only gate

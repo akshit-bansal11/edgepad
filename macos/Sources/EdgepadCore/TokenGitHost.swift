@@ -238,6 +238,17 @@ public class TokenGitHost: GitHost {
     private let gate = NSLock()
     // Held while the token is replaced or deleted, so a 401 for an old token cannot delete one saved after it was sent.
     private let tokenGate = NSLock()
+
+    /// The lock every write or delete of this host's token holds. A host whose tokens are also written elsewhere
+    /// (GitLab's sign-in and renewal) shares its own.
+    var tokenLock: NSLock { tokenGate }
+
+    /// Called under `tokenLock` just before a checked token and address are written, so a host can drop what a sign-in
+    /// still in flight would store.
+    func willStore() {}
+
+    /// Whether this token may be sent to this address. A host whose token belongs to one server refuses any other.
+    func mayAttach(_ url: URL, _ token: String) -> Bool { true }
     private let book: GitBook
     private var backoffUntil = Date.distantPast
     private var lastRefresh: Date?
@@ -306,6 +317,9 @@ public class TokenGitHost: GitHost {
             book.clear()
             return GitHubRefreshResult(result: .noPermission, changed: book.page?.rev != before)
         }
+        // A sign-in or an address saved while the renewal was out moved the host: stop, never read a server with
+        // another one's token.
+        guard self.api == api else { return GitHubRefreshResult(result: .failed, changed: false) }
         var token = store.get(GitTokens.tokenName(spec.id)) ?? saved
         var read = await spec.read(getter(api, token, user), api: api)
         if read.snapshot == nil, read.failure?.status == 401, canRenew(),
@@ -314,6 +328,7 @@ public class TokenGitHost: GitHost {
             switch await renew() {
             case .refreshed:
                 if let fresh = store.get(GitTokens.tokenName(spec.id)), GitTokens.isToken(fresh) {
+                    guard self.api == api else { return GitHubRefreshResult(result: .failed, changed: false) }
                     token = fresh
                     read = await spec.read(getter(api, fresh, user), api: api)
                 }
@@ -371,9 +386,10 @@ public class TokenGitHost: GitHost {
         while keep.hasSuffix("/") {
             keep.removeLast()
         }
-        let stored = tokenGate.withLock { () -> Bool in
+        let stored = tokenLock.withLock { () -> Bool in
             // The old token goes first and the new one is stored last: whichever step fails, no token is ever left
             // beside an address it was not checked against.
+            willStore()
             store.delete(GitTokens.tokenName(spec.id))
             guard settings.set(GitTokens.urlKey(spec.id), spec.apiIsFixed ? "" : keep),
                 settings.set(GitTokens.userKey(spec.id), spec.requiresUser ? name : ""),
@@ -413,13 +429,13 @@ public class TokenGitHost: GitHost {
 
     /// Forgets the token and the page; the address and name stay for the next sign-in.
     public func signOut() {
-        tokenGate.withLock { store.delete(GitTokens.tokenName(spec.id)) }
+        tokenLock.withLock { store.delete(GitTokens.tokenName(spec.id)) }
         book.clear()
     }
 
     /// Deletes the saved token only while it is still `sent`; true when it was deleted.
     private func deleteIfStill(_ sent: String) -> Bool {
-        tokenGate.withLock {
+        tokenLock.withLock {
             guard store.get(GitTokens.tokenName(spec.id)) == sent else { return false }
             store.delete(GitTokens.tokenName(spec.id))
             return true
@@ -427,8 +443,10 @@ public class TokenGitHost: GitHost {
     }
 
     private func getter(_ api: URL, _ token: String, _ user: String) -> GitGet {
-        { [spec, http] path in
-            guard let address = URL(string: api.absoluteString + path) else { return .unusable }
+        { [self, spec, http] path in
+            guard let address = URL(string: api.absoluteString + path), mayAttach(address, token) else {
+                return .unusable
+            }
             var request = URLRequest(url: spec.sign(address, token: token), timeoutInterval: Self.timeout)
             request.httpMethod = "GET"
             if let authorization = spec.authorization(token: token, user: user) {
