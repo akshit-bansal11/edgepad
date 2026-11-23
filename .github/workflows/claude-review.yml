@@ -151,8 +151,6 @@ jobs:
           g diff --stat "origin/$BASE_REF...HEAD" > .review/stat.txt
           g diff "origin/$BASE_REF...HEAD" > .review/diff.patch
           g log --format='%h %s' "origin/$BASE_REF..HEAD" > .review/log.txt
-          # A known-good copy of the repo's git config and hooks, restored before any later git command.
-          echo "GIT_CONFIG_SUM=$(sha256sum .git/config | cut -d" " -f1)" >> "$GITHUB_ENV"
           # Title, body and the owner's comments only: anyone can comment on a public PR.
           gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json title,body,comments \
             | jq -r --arg o "$OWNER" '"# " + .title + "\n\n" + (.body // "") + "\n\n## Comments by the owner\n"
@@ -208,9 +206,10 @@ jobs:
           ROUNDS: ${{ steps.rounds.outputs.n }}
           MAY_FIX: ${{ steps.rounds.outputs.may_fix }}
         run: |
-          # Before any git: .git/config must be exactly what checkout wrote (its sum sits in GITHUB_ENV, out of
-          # Claude's reach), no global or system config is read, and git runs with nothing it could hook.
-          [ "$(sha256sum .git/config | cut -d' ' -f1)" = "$GIT_CONFIG_SUM" ] || { echo "::error::.git/config changed during the run; stopping."; exit 1; }
+          # Before any git: .git/config is written again from scratch (the action edits it for its own git, and Claude
+          # must not be able to plant a filter, hook or helper there), no global or system config is read, and git
+          # runs with nothing it could hook. Pushes go to a URL with the token, so nothing else is needed here.
+          printf '[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = false\n\tlogallrefupdates = true\n[remote "origin"]\n\turl = https://github.com/%s\n\tfetch = +refs/heads/*:refs/remotes/origin/*\n' "$GITHUB_REPOSITORY" > .git/config
           export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_ATTR_NOSYSTEM=1 HOME="$(mktemp -d)"
           g() { git -c core.hooksPath=/dev/null -c core.fsmonitor=false -c core.pager=cat "$@"; }
           verdict=$(printf '%s' "$OUTPUT" | jq -r '.verdict // ""')
