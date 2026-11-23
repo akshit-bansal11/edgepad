@@ -41,7 +41,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p /tmp/issue
-          gh issue view "$NUMBER" --repo "$GITHUB_REPOSITORY" --comments > /tmp/issue/item.txt
+          # Title and body only: a comment can come from anyone, even on the owner's issue.
+          gh issue view "$NUMBER" --repo "$GITHUB_REPOSITORY" --json title,body \
+            --jq '"# " + .title + "\n\n" + .body' > /tmp/issue/item.txt
           cp /tmp/issue/item.txt ./.issue.txt
           echo ".issue.txt" >> .git/info/exclude
           git config user.name "claude[bot]"
@@ -103,7 +105,8 @@ jobs:
             gh issue comment "$NUMBER" --repo "$GITHUB_REPOSITORY" --body "Claude looked at this and made no code change; see the TL;DR above."
             exit 0
           fi
-          if [ "$OURS" != true ] && git diff --cached --name-only | grep -qE '^\.github/|^\.git/'; then
+          # Even the owner's: a change to CI or the workflows is made by the session in its own PR, never here.
+          if git diff --cached --name-only | grep -qE '^\.github/|^\.git/'; then
             echo "::error::The change touches .github/; not opened."; exit 1
           fi
           for s in "$OAUTH" "$GH_TOKEN" "$APP_TOKEN"; do
