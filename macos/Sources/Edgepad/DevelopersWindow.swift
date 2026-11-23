@@ -1,9 +1,4 @@
-        let first: NSTextField
-        switch provider.id {
-        case "gitea", "gitlab": first = urlField
-        case "bitbucket": first = userField
-        default: first = tokenField
-        }import AppKit
+import AppKit
 import EdgepadCore
 
 /// What the For developers window needs from the rest of the app, filled by `MacDashboard`.

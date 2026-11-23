@@ -1,6 +1,4 @@
-        guard let saved = store.get(GitTokens.tokenName(spec.id)), GitTokens.isToken(saved), let api,
-            !spec.requiresUser || GitTokens.isUser(user)
-        else { return GitHubRefreshResult(result: .notSignedIn, changed: false) }import Foundation
+import Foundation
 
 /// How saving a pasted token went. The windows turn each into their own translated words; nothing here is English.
 public enum GitSaveStatus: Equatable {
