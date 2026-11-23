@@ -277,6 +277,10 @@ object Transfers {
                         notice.progress(name, held, size, false)
                         receiving(name, held, size)
                     },
+                    failed = { name, code ->
+                        notice.finish(name, false)
+                        closeReceive(failureOf(code) ?: XferFailure.NOT_SENT)
+                    },
                     after = { delayMs, work ->
                         val task = Runnable(work)
                         idle.postDelayed(task, delayMs)

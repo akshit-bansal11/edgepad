@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.link.xfer
 
 import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
 import android.os.StatFs
 import android.provider.MediaStore
 import java.io.File
@@ -68,12 +69,21 @@ class AndroidXferStore(
             out.use { sink -> part.inputStream().use { it.copyTo(sink, XferLimits.BUFFER_BYTES) } }
             resolver.update(uri, ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
             part.delete()
-            final
+            // MediaStore renames a clash `taken` cannot see (a file of an earlier install): report the name it kept.
+            displayName(uri) ?: final
         } catch (e: IOException) {
+            resolver.delete(uri, null, null)
+            null
+        } catch (e: RuntimeException) {
             resolver.delete(uri, null, null)
             null
         }
     }
+
+    private fun displayName(uri: Uri): String? =
+        context.contentResolver
+            .query(uri, arrayOf(MediaStore.MediaColumns.DISPLAY_NAME), null, null, null)
+            ?.use { if (it.moveToFirst()) it.getString(0) else null }
 
     private fun taken(name: String): Boolean =
         context.contentResolver

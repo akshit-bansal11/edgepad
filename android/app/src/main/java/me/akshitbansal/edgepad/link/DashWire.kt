@@ -481,7 +481,7 @@ object DashWire {
         }
         val s = out.toString()
         val end = if (s.codePointCount(0, s.length) <= max) s.length else s.offsetByCodePoints(0, max)
-        return s.substring(0, end).trim()
+        return s.substring(0, end).trimEnd(' ')
     }
 
     /**

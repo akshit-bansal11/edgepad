@@ -18,6 +18,8 @@ import kotlin.concurrent.thread
  * @param reply Takes one status for the laptop.
  * @param arrived Takes the name a file was published under.
  * @param progress Takes the bytes held after each chunk, for the notification to gate.
+ * @param failed Takes the name and code of a file that was arriving and ended unsaved (CANCELLED by either end or by
+ * the idle drop, BAD_HASH, REJECTED, WRITE_FAILED, SESSION_ENDED), so its notification can end.
  * @param runner Runs the publish; tests run it in place.
  * @param after Runs the work once after the delay and answers how to cancel it. One is pending per file arriving: it
  * drops a file that has been [XferLimits.IDLE_MS] without a chunk (the part stays, the laptop is told CANCELLED), so
@@ -31,6 +33,7 @@ class XferReceiver(
     private val reply: (Frame.XferStatus) -> Unit,
     private val arrived: (String) -> Unit = {},
     private val progress: (name: String, held: Long, size: Long) -> Unit = { _, _, _ -> },
+    private val failed: (name: String, code: XferCode) -> Unit = { _, _ -> },
     private val runner: (() -> Unit) -> Unit = { work -> thread(name = "edgepad-xfer-save", block = work) },
     private val now: () -> Long = System::currentTimeMillis,
     private val after: (Long, () -> Unit) -> (() -> Unit) = { _, _ -> {} },
@@ -65,6 +68,7 @@ class XferReceiver(
             val a = active?.takeUnless { it.saving } ?: return false
             finish(deletePart = true)
             say(a.id, XferCode.CANCELLED, 0)
+            failed(a.name, XferCode.CANCELLED)
             true
         }
 
@@ -98,7 +102,9 @@ class XferReceiver(
     /** The session is over: the part stays, for the next BEGIN of the same name and size. */
     fun close() {
         synchronized(lock) {
-            if (active?.saving == false) finish(deletePart = false)
+            val a = active?.takeUnless { it.saving } ?: return
+            finish(deletePart = false)
+            failed(a.name, XferCode.SESSION_ENDED)
         }
     }
 
@@ -175,6 +181,7 @@ class XferReceiver(
             if (a.held.toULong() + frame.data.size.toULong() > a.size.toULong()) {
                 finish(deletePart = true)
                 say(frame.id, XferCode.REJECTED, 0)
+                failed(a.name, XferCode.REJECTED)
                 return true
             }
             try {
@@ -182,6 +189,7 @@ class XferReceiver(
             } catch (e: IOException) {
                 finish(deletePart = true)
                 say(frame.id, XferCode.WRITE_FAILED, 0)
+                failed(a.name, XferCode.WRITE_FAILED)
                 return true
             }
             a.digest.update(frame.data)
@@ -205,6 +213,7 @@ class XferReceiver(
             if (!MessageDigest.isEqual(a.digest.digest(), frame.sha256)) {
                 finish(deletePart = true)
                 say(frame.id, XferCode.BAD_HASH, 0)
+                failed(a.name, XferCode.BAD_HASH)
                 return true
             }
             a.saving = true
@@ -223,6 +232,7 @@ class XferReceiver(
             when (frame.status) {
                 XferCode.CANCELLED.value -> {
                     finish(deletePart = true)
+                    failed(a.name, XferCode.CANCELLED)
                     true
                 }
 
@@ -276,11 +286,20 @@ class XferReceiver(
                 store.publish(a.part, a.name)
             } catch (e: IOException) {
                 null
+            } catch (e: RuntimeException) {
+                // MediaStore throws these (IllegalState, IllegalArgument, Security, UnsupportedOperation) on a bad
+                // volume or a revoked grant; uncaught on this thread one would end the process.
+                null
             }
         synchronized(lock) {
             if (active === a) active = null
             a.stopTimer()
-            if (published == null) say(a.id, XferCode.WRITE_FAILED, 0) else say(a.id, XferCode.SAVED, a.size)
+            if (published == null) {
+                say(a.id, XferCode.WRITE_FAILED, 0)
+                failed(a.name, XferCode.WRITE_FAILED)
+            } else {
+                say(a.id, XferCode.SAVED, a.size)
+            }
         }
         if (published != null) arrived(published)
     }
@@ -305,6 +324,7 @@ class XferReceiver(
                 }
                 finish(deletePart = false)
                 say(a.id, XferCode.CANCELLED, 0)
+                failed(a.name, XferCode.CANCELLED)
                 return
             }
             val left = XferLimits.IDLE_MS - (now() - a.lastChunkAt)
@@ -314,6 +334,7 @@ class XferReceiver(
             }
             finish(deletePart = false)
             say(a.id, XferCode.CANCELLED, 0)
+            failed(a.name, XferCode.CANCELLED)
         }
     }
 
