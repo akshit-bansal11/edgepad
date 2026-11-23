@@ -42,7 +42,7 @@ public sealed class HookProtocolTests
     public void AUsageReportWithAnUnusableFolderKeepsItsLimitsAndLosesOnlyTheFolder(string cwdField)
     {
         var field = cwdField.Replace("LONG", new string('x', HookProtocol.MaxCwdLength + 1), StringComparison.Ordinal);
-        var line = $$"""{"v":1,"token":"T","agent":"claude","kind":"usage","d":{"limits":[{"kind":"five_hour","percentUsed":12}],"context":{"percent":7},{{field}}}}""";
+        var line = $$$"""{"v":1,"token":"T","agent":"claude","kind":"usage","d":{"limits":[{"kind":"five_hour","percentUsed":12}],"context":{"percent":7},{{{field}}}}}""";
 
         var usage = Assert.IsType<UsageRequest>(HookProtocol.TryParse(Encoding.UTF8.GetBytes(line)));
 
