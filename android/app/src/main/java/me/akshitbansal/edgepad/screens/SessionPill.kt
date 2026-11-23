@@ -142,7 +142,7 @@ class SessionPill(
         badge.color = brand
         initialPaint.color = TileContrast.letter(brand)
         outline = TileContrast.needsOutline(brand, palette.faint)
-        logo = logoRes?.let { context.getDrawable(it) }
+        logo = logoRes?.let { this.context.getDrawable(it) }
         placeLogo()
         this.title = title
         this.stateLabel = stateLabel

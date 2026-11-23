@@ -229,14 +229,14 @@ class LaptopStateTest {
 
     @Test
     fun keepsAndForgetsBatteriesAndOutput() {
-        assertTrue(state.take(Frame.Text(TextKind.BATTERIES.id, "laptop:87:1:Desk")))
+        assertTrue(state.take(Frame.Text(TextKind.BATTERIES.id, "laptop:87:1:-:-:Desk")))
         assertTrue(state.take(Frame.Text(TextKind.OUTPUT.id, "speaker/Speakers")))
         assertEquals(87, state.batteries.single().level)
         assertEquals("Speakers", state.output?.name)
         // A snapshot: an empty one replaces the list.
         assertTrue(state.take(Frame.Text(TextKind.BATTERIES.id, "")))
         assertTrue(state.batteries.isEmpty())
-        state.take(Frame.Text(TextKind.BATTERIES.id, "laptop:87:1:Desk"))
+        state.take(Frame.Text(TextKind.BATTERIES.id, "laptop:87:1:-:-:Desk"))
         state.forgetPower()
         assertTrue(state.batteries.isEmpty())
         assertNull(state.output)
@@ -522,7 +522,9 @@ class LaptopStateTest {
     fun forgetsEveryDashboardKindWithTheLink() {
         state.take(Frame.Text(TextKind.STATS_INFO.id, "Ryzen 5 5600|16384|RTX 3060|12288|Intel Wi-Fi"))
         state.take(Frame.Text(TextKind.DISKS.id, "C:70:476:143|D:10:931:838"))
-        state.take(Frame.Text(TextKind.SPEND.id, "claude/29499900/120000/310/800000/2100/3000000/9000/90000000/31000/0"))
+        state.take(
+            Frame.Text(TextKind.SPEND.id, "claude/29499900/120000/310/800000/2100/3000000/9000/90000000/31000/0"),
+        )
         state.take(Frame.Text(TextKind.WEATHER.id, "185/3/Oslo"))
         state.addPermAsk(PermAsk("a1b2c3d4e5f6", true, AgentToken.CODEX, "Bash", "ls"))
         state.setGit(GitData("github", "me", "", 0, 0, 1, emptyList(), emptyList()))
