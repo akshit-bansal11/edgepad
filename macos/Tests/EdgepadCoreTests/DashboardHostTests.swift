@@ -146,12 +146,12 @@ final class DashboardHostTests: XCTestCase {
         XCTAssertEqual(timers, 1)
 
         host.signedInChanged()
-        XCTAssertTrue(wait { http.seen.count >= 2 })
+        XCTAssertTrue(wait { http.seen.count >= 1 })
         Thread.sleep(forTimeInterval: 0.1)
         host.signedInChanged()
         Thread.sleep(forTimeInterval: 0.1)
 
-        XCTAssertEqual(http.seen.count, 2)
+        XCTAssertEqual(http.seen.count, 1)
         XCTAssertEqual(timers, 1)
         host.dispose()
     }
@@ -219,11 +219,16 @@ final class DashboardHostTests: XCTestCase {
         XCTAssertTrue(wait { opener.opened.count == 1 })
         XCTAssertEqual(opener.opened, ["https://github.com/me/my_repo-2/pull/3"])
 
-        for wire in ["github/2/0", "github/1/7", "github/1/6", "gitlab/1/0", "https://evil.example/"] {
+        // Index 6 is a line without an address, 7 is the one allow-listed install address, 8 is past the end.
+        for wire in ["github/2/0", "github/1/6", "github/1/8", "gitlab/1/0", "https://evil.example/"] {
             XCTAssertFalse(host.openGit(wire), wire)
         }
         try? await Task.sleep(nanoseconds: 100_000_000)
         XCTAssertEqual(opener.opened.count, 1)
+
+        XCTAssertTrue(host.openGit("github/1/7"))
+        XCTAssertTrue(wait { opener.opened.count == 2 })
+        XCTAssertEqual(opener.opened.last, GitHubApp.installUrl)
         host.dispose()
     }
 
