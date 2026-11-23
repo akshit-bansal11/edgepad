@@ -122,7 +122,7 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
   {
     title: "Sleep when this ends",
     Icon: Moon,
-    body: "Sleep or shut down the laptop when the current video or track ends, after a 60 second countdown you can cancel. Windows, Mac and Linux.",
+    body: "Sleep or shut down the laptop when the current video or track ends. Shut down shows a 60 second countdown you can cancel. Windows, Mac and Linux.",
   },
   {
     title: "Quick Settings tile",

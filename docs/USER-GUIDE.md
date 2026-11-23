@@ -35,7 +35,7 @@ Because the signature is ad hoc, macOS treats every new version as a different a
 2. Extract it and run the installer as root:
 
    ```sh
-   tar xzf Edgepad-<version>-linux-*.tar.gz
+   tar xzf Edgepad-<version>-linux-x64.tar.gz   # or -linux-arm64.tar.gz
    cd edgepad-<version>
    sudo ./install.sh            # or: sudo ./install.sh /opt/edgepad  to install under another prefix
    ```

@@ -265,7 +265,7 @@ export function ProductSections() {
             },
             {
               title: "Sleep when this ends",
-              body: "Sleep or shut down the laptop when the current video or track ends, after a 60 second countdown on the laptop that you can cancel. Windows, Mac and Linux.",
+              body: "Sleep or shut down the laptop when the current video or track ends. Shut down shows a 60 second countdown on the laptop that you can cancel. Windows, Mac and Linux.",
             },
             {
               title: "Quick Settings tile",
@@ -972,7 +972,7 @@ sudo ./install.sh`}
           <strong>App profiles</strong> switch dials and gestures with the app in front
           on the laptop; they are off by default and work on Windows, Mac and Linux on X11.{" "}
           <strong>Sleep when this ends</strong> sleeps or shuts down the laptop when the
-          current video or track ends, after a 60 second countdown you can cancel
+          current video or track ends. Shut down first shows a 60 second countdown
           (Windows, Mac and Linux). The <strong>Quick Settings tile</strong> and the Stay
           connected notification&apos;s play/pause and volume buttons are on the phone.{" "}
           <strong>Laptop notifications</strong> are off until both sides turn them on,
