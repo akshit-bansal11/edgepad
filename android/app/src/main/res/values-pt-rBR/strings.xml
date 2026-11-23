@@ -575,6 +575,7 @@
   <string name="unavailable_off">Isto está desativado no notebook.</string>
   <string name="unavailable_no_tool">Falta no notebook um programa necessário.</string>
   <string name="unavailable_no_permission">O notebook ainda não permitiu isso.</string>
+  <string name="unavailable_github_resign">Entre novamente no GitHub no notebook. O Edgepad agora usa acesso somente leitura.</string>
   <string name="capture_recording_laptop">Gravando no notebook</string>
   <string name="xfer_send">Enviar um arquivo</string>
   <string name="xfer_sending">Enviando %1$s · %2$d%%</string>

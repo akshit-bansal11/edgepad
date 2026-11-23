@@ -23,6 +23,7 @@ import me.akshitbansal.edgepad.link.GitRepo
 import me.akshitbansal.edgepad.link.GitSection
 import me.akshitbansal.edgepad.link.GitWire
 import me.akshitbansal.edgepad.link.LaptopState
+import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.UnavailableReason
 
 /**
@@ -71,7 +72,8 @@ class GitScreen(
                 it.feature in s.features && s.unavailable[it.feature.token] != UnavailableReason.NO_PERMISSION
             }
         if (hosts.isEmpty()) {
-            card { note(ui.string(R.string.git_signin)) }
+            val again = s.unavailable[Feature.GITHUB.token] == UnavailableReason.NO_PERMISSION
+            card { note(ui.string(if (again) R.string.unavailable_github_resign else R.string.git_signin)) }
             return
         }
         val current = hosts.firstOrNull { it == host } ?: hosts.first()

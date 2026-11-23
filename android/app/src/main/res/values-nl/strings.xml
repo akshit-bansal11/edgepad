@@ -566,6 +566,7 @@
   <string name="unavailable_off">Dit staat uit op de laptop.</string>
   <string name="unavailable_no_tool">De laptop mist een programma dat hiervoor nodig is.</string>
   <string name="unavailable_no_permission">De laptop heeft dit nog niet toegestaan.</string>
+  <string name="unavailable_github_resign">Log op je laptop opnieuw in bij GitHub. Edgepad gebruikt nu alleen-lezen toegang.</string>
   <string name="capture_recording_laptop">Opnemen op de laptop</string>
   <string name="xfer_send">Bestand verzenden</string>
   <string name="xfer_sending">%1$s wordt verzonden · %2$d%%</string>

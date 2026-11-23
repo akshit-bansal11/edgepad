@@ -565,6 +565,7 @@
   <string name="unavailable_off">Das ist am Laptop ausgeschaltet.</string>
   <string name="unavailable_no_tool">Dem Laptop fehlt ein Programm, das dafür nötig ist.</string>
   <string name="unavailable_no_permission">Der Laptop hat das noch nicht erlaubt.</string>
+  <string name="unavailable_github_resign">Melde dich auf deinem Laptop erneut bei GitHub an. Edgepad nutzt jetzt nur lesenden Zugriff.</string>
   <string name="capture_recording_laptop">Aufnahme auf dem Laptop</string>
   <string name="xfer_send">Datei senden</string>
   <string name="xfer_sending">%1$s wird gesendet · %2$d%%</string>

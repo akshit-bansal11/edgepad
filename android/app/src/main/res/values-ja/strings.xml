@@ -562,6 +562,7 @@
   <string name="unavailable_off">ノートPC側でオフになっています。</string>
   <string name="unavailable_no_tool">必要なプログラムがノートPCにありません。</string>
   <string name="unavailable_no_permission">ノートPCがまだ許可していません。</string>
+  <string name="unavailable_github_resign">ノートPCでGitHubにもう一度サインインしてください。Edgepadは読み取り専用のアクセスを使うようになりました。</string>
   <string name="capture_recording_laptop">ノートPCで録画中</string>
   <string name="xfer_send">ファイルを送信</string>
   <string name="xfer_sending">%1$s を送信中 · %2$d%%</string>

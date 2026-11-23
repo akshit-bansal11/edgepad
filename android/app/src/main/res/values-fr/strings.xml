@@ -575,6 +575,7 @@
   <string name="unavailable_off">C’est désactivé sur l’ordinateur.</string>
   <string name="unavailable_no_tool">Il manque à l’ordinateur un programme nécessaire.</string>
   <string name="unavailable_no_permission">L’ordinateur ne l’a pas encore autorisé.</string>
+  <string name="unavailable_github_resign">Reconnectez-vous à GitHub sur votre ordinateur. Edgepad utilise désormais un accès en lecture seule.</string>
   <string name="capture_recording_laptop">Enregistrement sur l’ordinateur</string>
   <string name="xfer_send">Envoyer un fichier</string>
   <string name="xfer_sending">Envoi de %1$s · %2$d%%</string>

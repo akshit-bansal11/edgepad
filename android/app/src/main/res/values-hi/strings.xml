@@ -566,6 +566,7 @@
   <string name="unavailable_off">यह लैपटॉप पर बंद है।</string>
   <string name="unavailable_no_tool">लैपटॉप में इसके लिए ज़रूरी प्रोग्राम नहीं है।</string>
   <string name="unavailable_no_permission">लैपटॉप ने अभी इसकी अनुमति नहीं दी है।</string>
+  <string name="unavailable_github_resign">अपने लैपटॉप पर GitHub में फिर से साइन इन करें। Edgepad अब केवल-पढ़ने वाली पहुँच का उपयोग करता है।</string>
   <string name="capture_recording_laptop">लैपटॉप पर रिकॉर्डिंग</string>
   <string name="xfer_send">फ़ाइल भेजें</string>
   <string name="xfer_sending">%1$s भेजी जा रही है · %2$d%%</string>

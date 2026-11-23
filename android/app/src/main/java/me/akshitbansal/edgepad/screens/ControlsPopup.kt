@@ -481,10 +481,18 @@ class ControlsPopup(
         return when (target) {
             Target.CAPTURE -> reasonText(reason[Feature.CAPTURE.token])
             Target.ANNOTATE -> reasonText(reason[Feature.ANNOTATE.token])
-            Target.DEVELOPER -> dashNote(reason[Feature.CLAUDE.token])
+            Target.DEVELOPER -> githubNote(reason) ?: dashNote(reason[Feature.CLAUDE.token])
             else -> reasonText(null)
         }
     }
+
+    // GitHub refused (a sign-in from before the read-only App, or one that could not be renewed): say what to do.
+    private fun githubNote(reason: Map<String, UnavailableReason>): Int? =
+        if (reason[Feature.GITHUB.token] == UnavailableReason.NO_PERMISSION) {
+            R.string.unavailable_github_resign
+        } else {
+            null
+        }
 
     private fun dashNote(reason: UnavailableReason?): Int =
         if (reason == null) R.string.controls_dash_off else reasonText(reason)

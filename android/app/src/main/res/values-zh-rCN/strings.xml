@@ -559,6 +559,7 @@
   <string name="unavailable_off">笔记本上已关闭此功能。</string>
   <string name="unavailable_no_tool">笔记本缺少所需的程序。</string>
   <string name="unavailable_no_permission">笔记本尚未允许此操作。</string>
+  <string name="unavailable_github_resign">请在电脑上重新登录 GitHub。Edgepad 现在使用只读访问。</string>
   <string name="capture_recording_laptop">正在笔记本上录制</string>
   <string name="xfer_send">发送文件</string>
   <string name="xfer_sending">正在发送 %1$s · %2$d%%</string>

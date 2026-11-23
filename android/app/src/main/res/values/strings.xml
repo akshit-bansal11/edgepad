@@ -580,6 +580,7 @@
   <string name="unavailable_off">This is turned off on the laptop.</string>
   <string name="unavailable_no_tool">The laptop is missing a program this needs.</string>
   <string name="unavailable_no_permission">The laptop has not allowed this yet.</string>
+  <string name="unavailable_github_resign">Sign in to GitHub again on your laptop. Edgepad now uses read-only access.</string>
   <string name="capture_recording_laptop">Recording on the laptop</string>
   <string name="xfer_send">Send a file</string>
   <string name="xfer_sending">Sending %1$s · %2$d%%</string>

@@ -561,6 +561,7 @@
   <string name="unavailable_off">Bu, dizüstünde kapalı.</string>
   <string name="unavailable_no_tool">Dizüstünde bunun için gereken program yok.</string>
   <string name="unavailable_no_permission">Dizüstü buna henüz izin vermedi.</string>
+  <string name="unavailable_github_resign">Bilgisayarınızda GitHub’da yeniden oturum açın. Edgepad artık salt okunur erişim kullanıyor.</string>
   <string name="capture_recording_laptop">Dizüstünde kayıt yapılıyor</string>
   <string name="xfer_send">Dosya gönder</string>
   <string name="xfer_sending">%1$s gönderiliyor · %2$d%%</string>

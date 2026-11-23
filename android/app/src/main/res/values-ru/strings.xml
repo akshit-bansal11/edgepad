@@ -583,6 +583,7 @@
   <string name="unavailable_off">Это отключено на ноутбуке.</string>
   <string name="unavailable_no_tool">На ноутбуке нет нужной программы.</string>
   <string name="unavailable_no_permission">Ноутбук пока не разрешил это.</string>
+  <string name="unavailable_github_resign">Войдите в GitHub на ноутбуке снова. Edgepad теперь использует доступ только для чтения.</string>
   <string name="capture_recording_laptop">Запись на ноутбуке</string>
   <string name="xfer_send">Отправить файл</string>
   <string name="xfer_sending">Отправка: %1$s · %2$d%%</string>
