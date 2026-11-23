@@ -705,6 +705,15 @@
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>サーバーのアドレス</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>セルフホストのサーバーを追加…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>gitlab.com/oauth/device を開く</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>サーバーで read_api スコープだけを持つパーソナルアクセストークンを作成し、下に貼り付けてください。</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>ユーザー名またはメールアドレス</value>
   </data>

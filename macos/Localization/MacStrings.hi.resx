@@ -705,6 +705,15 @@
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>सर्वर का पता</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>सेल्फ-होस्टेड सर्वर जोड़ें…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>gitlab.com/oauth/device खोलें</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>अपने सर्वर पर केवल read_api स्कोप वाला पर्सनल एक्सेस टोकन बनाएँ, फिर उसे नीचे चिपकाएँ।</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>यूज़रनेम या ईमेल</value>
   </data>

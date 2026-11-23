@@ -1,0 +1,230 @@
+import Foundation
+
+/// The gitlab.com OAuth application Edgepad signs in through, and the names its tokens are saved under. The twin of the
+/// laptop core's GitLabApp.
+public enum GitLabApp {
+    /// The Application ID of the "Edgepad" application on gitlab.com, the same value as GitLabApp.cs: not confidential,
+    /// device authorization grant on, scopes read_api and read_user only. An Application ID is public by design; no
+    /// client secret is used or kept anywhere.
+    public static let clientId = "90603e45237215e265b1cc5a873ec796353c5e3185c14be0341a371a0dc5d000"
+
+    /// The two scopes asked for, space separated. Both are read only.
+    public static let scope = "read_api read_user"
+
+    /// The access token. A self-hosted server's pasted token is kept under the same name by `GitTokens.tokenName`.
+    public static let tokenName = "gitlab.token"
+    public static let refreshName = "gitlab.refresh"
+
+    /// When the access token expires, Unix seconds (absent when it does not expire).
+    public static let expiresName = "gitlab.expires"
+
+    /// The Application ID that issued the saved token.
+    public static let clientName = "gitlab.client"
+
+    /// The page the person opens to type the code; always this constant, never an address a server sent.
+    public static let devicePage = "https://gitlab.com/oauth/device"
+
+    static let deviceCodeUrl = "https://gitlab.com/oauth/authorize_device"
+    static let tokenUrl = "https://gitlab.com/oauth/token"
+
+    /// The API root of gitlab.com.
+    static let api = "https://gitlab.com/api/v4/"
+
+    /// Saves a token with its record; false when it could not be saved (nothing half-saved stays). The order is
+    /// refresh token, access token, expiry, then the record, so a stop at any point leaves a pair that works or one
+    /// that refreshes.
+    static func save(
+        _ store: SecretStore, _ clientId: String, access: String, refresh: String?, expires: Date?
+    ) -> Bool {
+        let saved: Bool
+        if let refresh, let expires {
+            let until = String(Int64(expires.timeIntervalSince1970))
+            saved = store.set(refreshName, refresh) && store.set(tokenName, access) && store.set(expiresName, until)
+        } else {
+            saved = store.set(tokenName, access)
+            if saved { forgetRenewal(store) }
+        }
+        guard saved, store.set(clientName, clientId) else {
+            forget(store)
+            return false
+        }
+        return true
+    }
+
+    /// Deletes the refresh token, the expiry and the record: what a pasted token must not sit beside.
+    static func forgetRenewal(_ store: SecretStore) {
+        store.delete(refreshName)
+        store.delete(expiresName)
+        store.delete(clientName)
+    }
+
+    /// Deletes the token and everything that belongs to it.
+    static func forget(_ store: SecretStore) {
+        store.delete(tokenName)
+        forgetRenewal(store)
+    }
+}
+
+/// gitlab.com sign-in by the OAuth device authorization grant (https://docs.gitlab.com/api/oauth2/): ask for a code
+/// with `GitLabApp.clientId` and the scopes `GitLabApp.scope`, show it, and poll until the person has entered it at
+/// `GitLabApp.devicePage`. The tokens go straight into the `SecretStore`; they are never logged, never returned and
+/// never sent to the phone. Only gitlab.com is asked, redirects are refused, every reply is capped at 16 KiB and 15 s,
+/// and there is no client secret anywhere. One flow at a time: starting another cancels the first. A self-hosted server
+/// does not use this: it takes a pasted token (see `GitLabHost.saveServer`). The twin of the core's GitLabSignIn.
+public final class GitLabSignIn {
+    private static let maxLifeSeconds = 31 * 24 * 3600
+    private static let grantType = "urn:ietf:params:oauth:grant-type:device_code"
+    private static let timeout: TimeInterval = 15
+
+    private enum Poll {
+        case pending
+        case slowDown
+        case token(String, String?, Int)
+        case end(SignInState)
+    }
+
+    private let store: SecretStore
+    private let settings: IntegrationSettings
+    private let http: HttpSender
+    private let now: () -> Date
+    private let delay: (TimeInterval) async throws -> Void
+    private let gate = NSLock()
+    private var current: GitHubSignIn.Flow?
+
+    public init(
+        store: SecretStore,
+        settings: IntegrationSettings,
+        http: HttpSender = CappedHttp(),
+        clock: @escaping () -> Date = Date.init,
+        delay: @escaping (TimeInterval) async throws -> Void = { try await Task.sleep(nanoseconds: UInt64($0 * 1e9)) }
+    ) {
+        self.store = store
+        self.settings = settings
+        self.http = http
+        self.now = clock
+        self.delay = delay
+    }
+
+    /// Whether a usable token is saved (from this sign-in or pasted for a server).
+    public var isSignedIn: Bool {
+        GitTokens.isToken(store.get(GitLabApp.tokenName))
+    }
+
+    /// The form body of the device request: this application and the two read scopes, spaces written as `+` as
+    /// GitLab's docs do.
+    static func deviceForm() -> String {
+        let scope = UrlText.escape(GitLabApp.scope).replacingOccurrences(of: "%20", with: "+")
+        return "client_id=\(UrlText.escape(GitLabApp.clientId))&scope=\(scope)"
+    }
+
+    /// Asks gitlab.com for a code. `.failed` when it cannot be asked or answers outside the documented ranges.
+    public func start() async -> DeviceCode {
+        cancel()
+        let reply = await post(GitLabApp.deviceCodeUrl, Self.deviceForm(), "Asking GitLab for a sign-in code")
+        guard let reply, reply.isSuccess, let issued = GitHubSignIn.parseDeviceCode(reply.body) else {
+            return DeviceCode(state: .failed, userCode: "", page: GitLabApp.devicePage, expiresIn: 0)
+        }
+        let flow = GitHubSignIn.Flow(
+            deviceCode: issued.deviceCode, interval: issued.interval,
+            deadline: now().addingTimeInterval(TimeInterval(issued.expiresIn)))
+        let old = gate.withLock { () -> GitHubSignIn.Flow? in
+            let previous = current
+            current = flow
+            return previous
+        }
+        old?.stop()
+        return DeviceCode(
+            state: .started, userCode: issued.userCode, page: GitLabApp.devicePage,
+            expiresIn: TimeInterval(issued.expiresIn))
+    }
+
+    /// Polls until the person has entered the code, said no, or the code ran out, honouring GitLab's interval and its
+    /// slow_down. Cancelling the calling task or calling `cancel` ends it as `.cancelled`.
+    public func wait() async -> SignInState {
+        let flow = gate.withLock { current }
+        guard let flow, flow.claim() else { return .failed }
+        defer { gate.withLock { if current === flow { current = nil } } }
+        var interval = flow.interval
+        let form =
+            "client_id=\(UrlText.escape(GitLabApp.clientId))&device_code=\(UrlText.escape(flow.deviceCode))"
+            + "&grant_type=\(UrlText.escape(Self.grantType))"
+        while true {
+            let seconds = TimeInterval(interval)
+            let delay = self.delay
+            await flow.sleep(Task { try await delay(seconds) })
+            if Task.isCancelled || flow.isStopped { return .cancelled }
+            if now() >= flow.deadline { return .expired }
+            let reply = await post(GitLabApp.tokenUrl, form, "Waiting for GitLab sign-in")
+            if Task.isCancelled || flow.isStopped { return .cancelled }
+            switch Self.readPoll(reply) {
+            case .token(let token, let refresh, let life):
+                return save(token, refresh, life) ? .signedIn : .failed
+            case .pending:
+                break
+            case .slowDown:
+                interval += GitHubSignIn.slowDownSeconds
+            case .end(let state):
+                return state
+            }
+        }
+    }
+
+    /// Stops a sign-in in progress; its `wait` ends as `.cancelled`.
+    public func cancel() {
+        gate.lock()
+        let flow = current
+        current = nil
+        gate.unlock()
+        flow?.stop()
+    }
+
+    /// Saves the tokens for gitlab.com: the server address goes first, so a token is never saved beside a self-hosted
+    /// address.
+    private func save(_ token: String, _ refresh: String?, _ life: Int) -> Bool {
+        guard settings.set(GitTokens.urlKey("gitlab"), "") else { return false }
+        let expires = refresh == nil ? nil : now().addingTimeInterval(TimeInterval(life))
+        return GitLabApp.save(store, GitLabApp.clientId, access: token, refresh: refresh, expires: expires)
+    }
+
+    private static func readPoll(_ reply: HttpReply?) -> Poll {
+        guard let reply else { return .pending }
+        guard let parsed = JsonRead.parse(reply.body, maxDepth: 64) else {
+            // A server error page, not an answer: try again at the next interval, until the code runs out.
+            return reply.isSuccess ? .end(.failed) : .pending
+        }
+        guard let root = parsed as? [String: Any] else { return .end(.failed) }
+        if reply.isSuccess, let token = root["access_token"] as? String {
+            return readToken(root, token)
+        }
+        switch root["error"] as? String {
+        case "authorization_pending": return .pending
+        case "slow_down": return .slowDown
+        case "expired_token": return .end(.expired)
+        case "access_denied": return .end(.denied)
+        case nil where !reply.isSuccess: return .pending
+        default: return .end(.failed)
+        }
+    }
+
+    /// A token reply: a refresh token needs an expires_in (1 s..31 days) beside it. A reply without a refresh token is
+    /// kept as a token that is used until GitLab refuses it. A value outside the ranges is a failure.
+    private static func readToken(_ root: [String: Any], _ token: String) -> Poll {
+        let refresh = root["refresh_token"] as? String
+        let life = JsonRead.int32(root["expires_in"]) ?? 0
+        let fine =
+            GitTokens.isToken(token)
+            && (refresh == nil || (GitTokens.isToken(refresh) && (1...maxLifeSeconds).contains(life)))
+        return fine ? .token(token, refresh, life) : .end(.failed)
+    }
+
+    private func post(_ url: String, _ form: String, _ what: String) async -> HttpReply? {
+        guard let address = URL(string: url) else { return nil }
+        var request = URLRequest(url: address, timeoutInterval: Self.timeout)
+        request.httpMethod = "POST"
+        request.httpBody = Data(form.utf8)
+        request.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Edgepad", forHTTPHeaderField: "User-Agent")
+        return await http.send(request, maxBytes: GitHubSignIn.maxBytes, what: what)
+    }
+}

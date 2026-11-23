@@ -170,7 +170,7 @@ public final class GitHubSignIn {
     }
 
     /// One sign-in: its device code, GitHub's interval, the moment the code runs out, and the wait it may be in.
-    private final class Flow {
+    final class Flow {
         let deviceCode: String
         let interval: Int
         let deadline: Date

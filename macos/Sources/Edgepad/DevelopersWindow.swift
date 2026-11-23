@@ -1,10 +1,16 @@
-import AppKit
+        let first: NSTextField
+        switch provider.id {
+        case "gitea", "gitlab": first = urlField
+        case "bitbucket": first = userField
+        default: first = tokenField
+        }import AppKit
 import EdgepadCore
 
 /// What the For developers window needs from the rest of the app, filled by `MacDashboard`.
 struct DevelopersHooks {
     let settings: IntegrationSettings
     let signIn: GitHubSignIn
+    let gitlabSignIn: GitLabSignIn
     /// The signed-in GitHub login, for display only; nil when it cannot be read.
     let login: () async -> String?
     /// An AI tool's state from the saved switch.
@@ -65,6 +71,12 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
     private var signInRun = 0
     private var gitHubProblem: String?
 
+    // GitLab sign-in, the same way.
+    private var gitlabCode = ""
+    private var gitlabIn = false
+    private var gitlabRun = 0
+    private var gitlabProblem: String?
+
     init(hooks: DevelopersHooks) {
         self.hooks = hooks
         super.init()
@@ -106,6 +118,11 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
         }
         signInRun += 1
         signingIn = false
+        if gitlabIn {
+            hooks.gitlabSignIn.cancel()
+        }
+        gitlabRun += 1
+        gitlabIn = false
         for row in rows {
             row.clearToken()
         }
@@ -221,8 +238,9 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
             input.agent = problem[id] ?? hooks.status(id)
         }
         input.configured = GitHubApp.isConfigured(GitHubApp.clientId)
-        input.signingIn = signingIn
-        input.codeShown = !userCode.isEmpty
+        let isGitLab = id == "gitlab"
+        input.signingIn = isGitLab ? gitlabIn : signingIn
+        input.codeShown = !(isGitLab ? gitlabCode : userCode).isEmpty
         input.saving = saving
         if id == IntegrationSettings.gitHub {
             input.signedIn = hooks.signIn.isSignedIn && hooks.settings.flag(id)
@@ -246,6 +264,12 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
             row.chooseRepos.isHidden = !(input.signedIn && !signingIn)
             row.chooseRepos.isEnabled = developerOn
         }
+        if isGitLab {
+            row.showCode(
+                gitlabIn && !gitlabCode.isEmpty ? tr("Integrations_Code", "Your code: %1$@", gitlabCode) : nil,
+                enabled: developerOn)
+            row.showSelfHost(!input.signedIn && !gitlabIn && editing != id, enabled: developerOn)
+        }
         row.showForm(
             editing == id, error: saveNote.map(Self.saveText), saving: saving, enabled: developerOn)
     }
@@ -264,6 +288,7 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
         case .working, .waiting: return tr("Integrations_Working", "Working…")
         case .notConfigured: return tr("Integrations_NoClientId", "Sign-in is not set up in this build.")
         case .notConnected:
+            if provider.id == "gitlab", let gitlabProblem { return gitlabProblem }
             if provider.id == IntegrationSettings.gitHub {
                 if let gitHubProblem { return gitHubProblem }
                 if hooks.signIn.needsReSignIn {
@@ -320,7 +345,6 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
         case .signOut: return tr("Integrations_SignOut", "Sign out")
         case .cancel: return tr("Common_Cancel", "Cancel")
         case .add: return tr("Dev_Add", "Add…")
-        case .comingSoon: return tr("Dev_ComingSoon", "Coming soon")
         }
     }
 
@@ -338,7 +362,7 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
         }
     }
 
-    /// The setup steps a provider's "How to connect" opens; empty for GitLab until its sign-in ships.
+    /// The setup steps a provider's "How to connect" opens; empty for GitLab, which has none.
     static func steps(_ id: String) -> String {
         switch id {
         case "claude":
@@ -441,6 +465,16 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
             } else {
                 startSignIn()
             }
+        case "gitlab":
+            if gitlabIn {
+                hooks.gitlabSignIn.cancel()
+            } else if hooks.hosts.isSignedIn(id) && hooks.settings.flag(id) {
+                hooks.hosts.signOut(id)
+                hooks.gitChanged()
+                refresh()
+            } else {
+                startGitLabSignIn()
+            }
         case "gitea", "bitbucket", "gitee":
             if hooks.hosts.isSignedIn(id) {
                 hooks.hosts.signOut(id)
@@ -461,12 +495,13 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
         NSPasteboard.general.setString(text, forType: .string)
     }
 
-    func copyCode() {
-        copy(userCode)
+    func copyCode(for id: String) {
+        copy(id == "gitlab" ? gitlabCode : userCode)
     }
 
-    func openGitHubPage() {
-        if let url = URL(string: GitHubApp.devicePage) {
+    /// Opens the page the code is typed on: GitHub's or GitLab's, each a constant.
+    func openDevicePage(for id: String) {
+        if let url = URL(string: id == "gitlab" ? GitLabApp.devicePage : GitHubApp.devicePage) {
             NSWorkspace.shared.open(url)
         }
     }
@@ -525,6 +560,12 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
     /// The device flow: ask for a code, show it with Copy and the page to type it on, and wait. A newer flow replaces
     /// an older one, whose continuation then does nothing.
     private func startSignIn() {
+        if gitlabIn {
+            gitlabRun += 1
+            hooks.gitlabSignIn.cancel()
+            gitlabIn = false
+            gitlabCode = ""
+        }
         signInRun += 1
         let run = signInRun
         gitHubProblem = nil
@@ -565,14 +606,63 @@ final class DevelopersWindow: NSObject, NSWindowDelegate {
         refresh()
     }
 
+    // ---- GitLab
+
+    /// GitLab's device flow, the same way as GitHub's: ask for a code, show it with Copy and the page to type it on,
+    /// and wait. A newer flow (or a sign-out) replaces an older one, whose continuation then does nothing. The flow
+    /// clears a saved server address.
+    private func startGitLabSignIn() {
+        if signingIn {
+            signInRun += 1
+            hooks.signIn.cancel()
+            signingIn = false
+            userCode = ""
+        }
+        gitlabRun += 1
+        let run = gitlabRun
+        gitlabProblem = nil
+        gitlabIn = true
+        gitlabCode = ""
+        refresh()
+        let hooks = hooks
+        Task { @MainActor [weak self] in
+            let code = await hooks.gitlabSignIn.start()
+            guard let self, self.gitlabRun == run else { return }
+            guard code.state == .started else {
+                self.endGitLabSignIn(code.state)
+                return
+            }
+            self.gitlabCode = code.userCode
+            self.refresh()
+            let end = await hooks.gitlabSignIn.wait()
+            guard self.gitlabRun == run else { return }
+            if end == .signedIn {
+                await hooks.hosts.finishDeviceSignIn("gitlab")
+                hooks.gitChanged()
+            }
+            guard self.gitlabRun == run else { return }
+            self.endGitLabSignIn(end)
+        }
+    }
+
+    private func endGitLabSignIn(_ state: SignInState) {
+        gitlabIn = false
+        gitlabCode = ""
+        switch state {
+        case .signedIn, .cancelled: gitlabProblem = nil
+        default: gitlabProblem = tr("Integrations_SignInFailed", "Sign-in did not finish. Try again.")
+        }
+        refresh()
+    }
+
     // ---- token hosts
 
-    private func openForm(_ id: String) {
+    func openForm(_ id: String) {
         editing = id
         saveNote = nil
         let url = hooks.hosts.url(id)
         rows.first { $0.provider.id == id }?.prepareForm(
-            url: url.isEmpty ? GiteaHost.defaultUrl : url, user: hooks.hosts.user(id))
+            url: url.isEmpty && id == "gitea" ? GiteaHost.defaultUrl : url, user: hooks.hosts.user(id))
         expanded.remove(id)
         refresh()
         rows.first { $0.provider.id == id }?.focusForm()
@@ -622,6 +712,8 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
     let extra = NSTextField(wrappingLabelWithString: "")
     let chooseRepos = NSButton(
         title: tr("Integrations_ChooseRepos", "Choose repos on GitHub"), target: nil, action: nil)
+    let selfHost = NSButton(
+        title: tr("Dev_GitLabServer", "Add a self-hosted server…"), target: nil, action: nil)
 
     private weak var owner: DevelopersWindow?
     private let dot = DotView()
@@ -651,6 +743,10 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
     private let tokenLabel = NSTextField(labelWithString: tr("Dev_FieldToken", "Access token"))
     private let tokenField = NSSecureTextField()
     private let error = NSTextField(wrappingLabelWithString: "")
+    private let hint = NSTextField(
+        wrappingLabelWithString: tr(
+            "Dev_GitLabTokenHint",
+            "On your server, create a personal access token with only the read_api scope, then paste it below."))
     private let saveButton = NSButton(title: tr("Common_Save", "Save"), target: nil, action: nil)
     private let cancelButton = NSButton(title: tr("Common_Cancel", "Cancel"), target: nil, action: nil)
 
@@ -700,6 +796,9 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
 
         let detailWidth = wide - 44
         steps.textColor = .secondaryLabelColor
+        hint.textColor = .secondaryLabelColor
+        hint.font = .systemFont(ofSize: 12)
+        hint.preferredMaxLayoutWidth = 300
         for label in [steps, extra, waiting, error] {
             label.preferredMaxLayoutWidth = detailWidth
         }
@@ -713,9 +812,17 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
         chooseRepos.contentTintColor = .linkColor
         chooseRepos.target = self
         chooseRepos.action = #selector(chooseReposPressed)
+        selfHost.isBordered = false
+        selfHost.font = .systemFont(ofSize: 12)
+        selfHost.contentTintColor = .linkColor
+        selfHost.target = self
+        selfHost.action = #selector(selfHostPressed)
+        if provider.id == "gitlab" {
+            openPage.title = tr("Dev_GitLabOpenPage", "Open gitlab.com/oauth/device")
+        }
         buildCodePanel()
         buildForm()
-        detail.setViews([steps, extra, copyCommands, codePanel, chooseRepos, form], in: .top)
+        detail.setViews([steps, extra, copyCommands, codePanel, chooseRepos, selfHost, form], in: .top)
         detail.orientation = .vertical
         detail.alignment = .leading
         detail.spacing = 8
@@ -732,6 +839,7 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
         copyCommands.isHidden = true
         codePanel.isHidden = true
         chooseRepos.isHidden = true
+        selfHost.isHidden = true
         form.isHidden = true
     }
 
@@ -767,7 +875,8 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
         let buttons = NSStackView(views: [saveButton, cancelButton])
         buttons.spacing = 8
         var views: [NSView] = []
-        if provider.id == "gitea" { views += [urlLabel, urlField] }
+        if provider.id == "gitea" || provider.id == "gitlab" { views += [urlLabel, urlField] }
+        if provider.id == "gitlab" { views.append(hint) }
         if provider.id == "bitbucket" { views += [userLabel, userField] }
         views += [tokenLabel, tokenField, error, buttons]
         form.setViews(views, in: .top)
@@ -814,6 +923,11 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
         copyCode.isEnabled = enabled
     }
 
+    func showSelfHost(_ visible: Bool, enabled: Bool) {
+        selfHost.isHidden = !visible
+        selfHost.isEnabled = enabled
+    }
+
     func showForm(_ open: Bool, error message: String?, saving: Bool, enabled: Bool) {
         form.isHidden = !open
         error.stringValue = message ?? ""
@@ -831,7 +945,12 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
     }
 
     func focusForm() {
-        let first = provider.id == "gitea" ? urlField : provider.id == "bitbucket" ? userField : tokenField
+        let first: NSTextField
+        switch provider.id {
+        case "gitea", "gitlab": first = urlField
+        case "bitbucket": first = userField
+        default: first = tokenField
+        }
         first.window?.makeFirstResponder(first)
     }
 
@@ -854,8 +973,9 @@ final class DevRowControl: NSObject, NSTextFieldDelegate {
     @objc private func buttonPressed() { owner?.pressed(provider) }
     @objc private func howToPressed() { owner?.toggleSteps(provider.id) }
     @objc private func copyPressed() { owner?.copy(commands.joined(separator: "\n")) }
-    @objc private func openPagePressed() { owner?.openGitHubPage() }
-    @objc private func copyCodePressed() { owner?.copyCode() }
+    @objc private func openPagePressed() { owner?.openDevicePage(for: provider.id) }
+    @objc private func copyCodePressed() { owner?.copyCode(for: provider.id) }
+    @objc private func selfHostPressed() { owner?.openForm(provider.id) }
     @objc private func chooseReposPressed() { owner?.openInstallPage() }
     @objc private func savePressed() { owner?.save() }
     @objc private func cancelPressed() { owner?.cancelForm() }

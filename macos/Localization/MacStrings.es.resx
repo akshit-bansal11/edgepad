@@ -705,6 +705,15 @@
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>Dirección del servidor</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Añadir un servidor autoalojado…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>Abrir gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>En tu servidor, crea un token de acceso personal solo con el alcance read_api y pégalo abajo.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Usuario o correo</value>
   </data>

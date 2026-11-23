@@ -23,18 +23,19 @@ final class MacDashboard {
     private let hookConfig: HookConfigInstaller
     private let secrets = KeychainSecretStore()
     private lazy var signIn = GitHubSignIn(store: secrets)
+    private lazy var gitlabSignIn = GitLabSignIn(store: secrets, settings: settings)
     private lazy var usage = UsageStore(path: folder + "/" + UsageStore.fileName, now: Date())
     private var agents: Agents?
     private var codex: CodexWatcher?
     private var claude: ClaudeSpend?
     private var weather: WeatherClient?
     private var gitHub: GitHubApi?
-    // Gitea (Forgejo, Codeberg), Bitbucket and Gitee: idle until their switch is on and a token is saved. Tokens live
-    // in the Keychain.
+    // GitLab, Gitea (Forgejo, Codeberg), Bitbucket and Gitee: idle until their switch is on and a token is saved.
+    // Tokens live in the Keychain.
     private lazy var tokenHosts = DevTokenHosts(
         hosts: [
-            GiteaHost(store: secrets, settings: settings), BitbucketHost(store: secrets, settings: settings),
-            GiteeHost(store: secrets, settings: settings),
+            GitLabHost(store: secrets, settings: settings), GiteaHost(store: secrets, settings: settings),
+            BitbucketHost(store: secrets, settings: settings), GiteeHost(store: secrets, settings: settings),
         ], settings: settings)
     private let urlOpener = MacUrlOpener()
     private var stats: MacStats?
@@ -155,7 +156,8 @@ final class MacDashboard {
             let usage = usage
             developersWindow = DevelopersWindow(
                 hooks: DevelopersHooks(
-                    settings: settings, signIn: signIn, login: { await GitHubApi(store: secrets).login() },
+                    settings: settings, signIn: signIn, gitlabSignIn: gitlabSignIn,
+                    login: { await GitHubApi(store: secrets).login() },
                     status: { [weak self] in self?.status($0) ?? .notConnected },
                     lastHeard: { usage.lastHeard($0) },
                     connect: { [weak self] in await self?.connect($0) ?? PluginResult(.failed) },

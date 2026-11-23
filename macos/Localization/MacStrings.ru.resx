@@ -705,6 +705,15 @@
   <data name="Dev_FieldUrl" xml:space="preserve">
     <value>Адрес сервера</value>
   </data>
+  <data name="Dev_GitLabServer" xml:space="preserve">
+    <value>Добавить собственный сервер…</value>
+  </data>
+  <data name="Dev_GitLabOpenPage" xml:space="preserve">
+    <value>Открыть gitlab.com/oauth/device</value>
+  </data>
+  <data name="Dev_GitLabTokenHint" xml:space="preserve">
+    <value>На своём сервере создайте персональный токен доступа только с областью read_api и вставьте его ниже.</value>
+  </data>
   <data name="Dev_FieldUser" xml:space="preserve">
     <value>Имя пользователя или e-mail</value>
   </data>

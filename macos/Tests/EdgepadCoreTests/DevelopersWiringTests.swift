@@ -87,11 +87,26 @@ final class DevelopersWiringTests: XCTestCase {
         }
     }
 
-    func testGitLabIsComingSoonWithNoSteps() throws {
-        let view = DevRowModel.view(try provider("gitlab"), input { _ in })
-        XCTAssertEqual(view.button, .comingSoon)
-        XCTAssertFalse(view.buttonEnabled)
-        XCTAssertFalse(view.canHowTo)
+    func testGitLabRowFollowsItsSignInAndHasNoSteps() throws {
+        let gitlab = try provider("gitlab")
+        let idle = DevRowModel.view(gitlab, input { _ in })
+        XCTAssertEqual(idle.button, .signIn)
+        XCTAssertEqual(idle.line, .notConnected)
+        XCTAssertTrue(idle.buttonEnabled)
+        XCTAssertFalse(idle.canHowTo)
+
+        let asking = DevRowModel.view(gitlab, input { $0.signingIn = true })
+        XCTAssertEqual(asking.line, .waiting)
+        XCTAssertEqual(asking.button, .cancel)
+
+        let doneInput = input {
+            $0.signedIn = true
+            $0.account = "ana"
+        }
+        let done = DevRowModel.view(gitlab, doneInput)
+        XCTAssertEqual(done.line, .signedIn("ana"))
+        XCTAssertEqual(done.button, .signOut)
+        XCTAssertTrue(done.dot)
         for provider in DevProviders.all {
             XCTAssertEqual(DevRowModel.hasSteps(provider.id), provider.id != "gitlab", provider.id)
         }

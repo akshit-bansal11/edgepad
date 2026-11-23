@@ -1,4 +1,6 @@
-import Foundation
+        guard let saved = store.get(GitTokens.tokenName(spec.id)), GitTokens.isToken(saved), let api,
+            !spec.requiresUser || GitTokens.isUser(user)
+        else { return GitHubRefreshResult(result: .notSignedIn, changed: false) }import Foundation
 
 /// How saving a pasted token went. The windows turn each into their own translated words; nothing here is English.
 public enum GitSaveStatus: Equatable {
@@ -79,6 +81,16 @@ enum GitTokens {
     /// absolute https address with no user info, query or fragment passes; anything else is nil. A `%` in the host is
     /// refused: `URLComponents.host` would decode "evil.example%23.codeberg.org" into a host with a `#` in it.
     static func giteaApi(_ url: String?) -> URL? {
+        apiRoot(url, suffix: "/api/v1/")
+    }
+
+    /// The API root (`https://host[:port][/path]/api/v4/`) of a GitLab server given its web address, under the same
+    /// rules as `giteaApi`; nil when it is not one.
+    static func gitlabApi(_ url: String?) -> URL? {
+        apiRoot(url, suffix: "/api/v4/")
+    }
+
+    private static func apiRoot(_ url: String?, suffix: String) -> URL? {
         let text = (url ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         guard (1...maxUrl).contains(text.utf16.count), let parts = URLComponents(string: text),
             parts.scheme?.lowercased() == "https", parts.user == nil, parts.password == nil, parts.query == nil,
@@ -92,7 +104,7 @@ enum GitTokens {
         if let number = parts.port, number != 443 {
             port = ":" + String(number)
         }
-        return URL(string: "https://" + host.lowercased() + port + path + "/api/v1/")
+        return URL(string: "https://" + host.lowercased() + port + path + suffix)
     }
 }
 
@@ -290,7 +302,28 @@ public class TokenGitHost: GitHost {
         }
 
         let before = book.page?.rev
-        let read = await spec.read(getter(api, token, user), api: api)
+        if renewDue(), await renew() == .rejected {
+            book.clear()
+            return GitHubRefreshResult(result: .noPermission, changed: book.page?.rev != before)
+        }
+        var token = store.get(GitTokens.tokenName(spec.id)) ?? saved
+        var read = await spec.read(getter(api, token, user), api: api)
+        if read.snapshot == nil, read.failure?.status == 401, canRenew(),
+            store.get(GitTokens.tokenName(spec.id)) == token
+        {
+            switch await renew() {
+            case .refreshed:
+                if let fresh = store.get(GitTokens.tokenName(spec.id)), GitTokens.isToken(fresh) {
+                    token = fresh
+                    read = await spec.read(getter(api, fresh, user), api: api)
+                }
+            case .unavailable:
+                return GitHubRefreshResult(result: .failed, changed: false)
+            case .rejected:
+                book.clear()
+                return GitHubRefreshResult(result: .noPermission, changed: book.page?.rev != before)
+            }
+        }
         if let snapshot = read.snapshot {
             book.update(snapshot)
             return GitHubRefreshResult(result: .ok, changed: book.page?.rev != before)
@@ -359,6 +392,24 @@ public class TokenGitHost: GitHost {
         book.clear()
         return GitSaveResult(status: .saved, login: login)
     }
+
+    /// The signed-in account's login, for display only; nil when there is no token or the host does not answer. Never
+    /// deletes a token.
+    public func login() async -> String? {
+        guard let token = store.get(GitTokens.tokenName(spec.id)), GitTokens.isToken(token), let api else { return nil }
+        let reply = await getter(api, token, settings.text(GitTokens.userKey(spec.id)))(spec.userPath)
+        guard reply.result == .ok, let parsed = spec.login(reply.body) else { return nil }
+        return DashWire.clean(parsed, Self.maxLogin)
+    }
+
+    /// Whether the saved token expires and is about to (or has); only a host with a refreshable sign-in says yes.
+    func renewDue() -> Bool { false }
+
+    /// Whether a refresh token is saved, so a 401 may be answered by a renewal.
+    func canRenew() -> Bool { false }
+
+    /// Exchanges the refresh token for a new access token and saves it in the secret store.
+    func renew() async -> RefreshOutcome { .rejected }
 
     /// Forgets the token and the page; the address and name stay for the next sign-in.
     public func signOut() {

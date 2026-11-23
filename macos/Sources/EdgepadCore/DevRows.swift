@@ -8,7 +8,6 @@ public enum DevAction: Equatable {
     case signOut
     case cancel
     case add
-    case comingSoon
 }
 
 /// What a row's status line says. The window turns each into its own translated words.
@@ -76,7 +75,8 @@ public enum DevRowModel {
             buttonEnabled: view.buttonEnabled && input.developerOn, canHowTo: view.canHowTo)
     }
 
-    /// A provider has setup steps unless its sign-in has not shipped (GitLab).
+    /// A provider has setup steps unless it is GitLab, whose two ways in (a device code, a pasted server token) need
+    /// none.
     public static func hasSteps(_ id: String) -> Bool {
         id != "gitlab"
     }
@@ -107,11 +107,7 @@ public enum DevRowModel {
         case .git:
             switch provider.id {
             case "github": return github(input)
-            case "gitlab":
-                // Device sign-in for GitLab needs a registered client id: until then the row says so and does nothing.
-                return DevRowView(
-                    line: .notConnected, dot: false, calm: true, button: .comingSoon, buttonEnabled: false,
-                    canHowTo: false)
+            case "gitlab": return gitlab(input)
             default:
                 return DevRowView(
                     line: input.signedIn ? .signedIn(input.account) : .notConnected, dot: input.signedIn,
@@ -119,6 +115,21 @@ public enum DevRowModel {
                     buttonEnabled: input.signedIn || !input.saving, canHowTo: !input.signedIn)
             }
         }
+    }
+
+    private static func gitlab(_ input: DevRowInput) -> DevRowView {
+        let line: DevLine
+        if input.signedIn {
+            line = .signedIn(input.account)
+        } else if input.signingIn && !input.codeShown {
+            line = .waiting
+        } else {
+            line = .notConnected
+        }
+        let button: DevAction = input.signedIn ? .signOut : input.signingIn ? .cancel : .signIn
+        return DevRowView(
+            line: line, dot: input.signedIn, calm: !input.signedIn, button: button,
+            buttonEnabled: button == .signIn ? !input.saving : true, canHowTo: false)
     }
 
     private static func github(_ input: DevRowInput) -> DevRowView {
@@ -140,11 +151,12 @@ public enum DevRowModel {
     }
 }
 
-/// The token-pasting git hosts the window adds a token to: Gitea (Forgejo, Codeberg), Bitbucket and Gitee. Saving a
-/// token the host accepts turns that host's switch on and keeps its login for the window; signing out forgets the token
-/// and turns the switch off. GitHub and GitLab sign in by device flow and are not here.
+/// The git hosts besides GitHub that the window signs in: GitLab (gitlab.com by device flow, or a self-hosted server
+/// by a pasted token), Gitea (Forgejo, Codeberg), Bitbucket and Gitee. Saving a token the host accepts, or finishing
+/// the device flow, turns that host's switch on and keeps its login for the window; signing out forgets the token and
+/// turns the switch off. GitHub signs in by device flow and is not here.
 public final class DevTokenHosts {
-    public static let ids = ["gitea", "bitbucket", "gitee"]
+    public static let ids = ["gitlab", "gitea", "bitbucket", "gitee"]
 
     private let hosts: [String: TokenGitHost]
     private let settings: IntegrationSettings
@@ -191,12 +203,26 @@ public final class DevTokenHosts {
     /// host's switch on and keeps the login. The caller then tells the dashboard.
     public func save(_ id: String, token: String, url: String, user: String) async -> GitSaveResult {
         guard let host = hosts[id] else { return GitSaveResult(status: .failed, login: "") }
-        let result = await host.save(token: token, url: url, user: user)
+        // GitLab's form is for a self-hosted server only: gitlab.com signs in by the device flow.
+        let result: GitSaveResult
+        if let gitlab = host as? GitLabHost {
+            result = await gitlab.saveServer(token: token, url: url)
+        } else {
+            result = await host.save(token: token, url: url, user: user)
+        }
         if result.status == .saved {
             settings.setFlag(id, true)
             settings.set(Self.loginKey(id), result.login)
         }
         return result
+    }
+
+    /// The device flow ended signed in: turns the host's switch on and keeps its login (asked of the host) for the
+    /// window.
+    public func finishDeviceSignIn(_ id: String) async {
+        let name = await hosts[id]?.login()
+        settings.setFlag(id, true)
+        settings.set(Self.loginKey(id), name ?? "")
     }
 
     /// Forgets the host's token and turns its switch off.
