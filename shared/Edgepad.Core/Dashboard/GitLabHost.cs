@@ -104,7 +104,7 @@ internal sealed class GitLabHost(ISecretStore store, IntegrationSettings setting
         var total = projects.Headers.TryGetValue("x-total", out var count) && int.TryParse(count, NumberStyles.None, CultureInfo.InvariantCulture, out var n) ? n : repos.Count;
 
         var items = new List<GitItem>();
-        foreach (var (section, merges, issues, optional) in new[]
+        foreach (var (section, merges, issues, optional) in new (GitSection, string, string?, bool)[]
         {
             (GitSection.Mine, "created_by_me", "created_by_me", false),
             (GitSection.Review, "reviews_for_me", null, true),
