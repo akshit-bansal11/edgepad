@@ -133,6 +133,7 @@ public sealed class GitHubApiTests
     [Fact]
     public async Task ATokenFromTheOldOAuthAppIsDeletedAndNobodyIsAsked()
     {
+        secrets.Set(GitHubApp.TokenName, "gho_OldOAuthAppToken1234567890");
         secrets.Delete(GitHubApp.ClientName);
         var http = Serve(GitHubParseTests.Normal);
 
@@ -150,13 +151,99 @@ public sealed class GitHubApiTests
         Assert.Equal(Token, secrets.Get(GitHubApp.TokenName));
         Assert.False(GitHubApp.NeedsReSignIn(secrets));
 
-        secrets.Delete(GitHubApp.ClientName);
+        secrets.Set(GitHubApp.TokenName, "gho_OldOAuthAppToken1234567890");
         GitHubApp.Migrate(secrets, GitHubApp.ClientId);
         Assert.True(GitHubApp.NeedsReSignIn(secrets));
 
         Assert.True(GitHubApp.Save(secrets, GitHubApp.ClientId, Token, null, null));
         Assert.False(GitHubApp.NeedsReSignIn(secrets));
         Assert.Equal(GitHubApp.ClientId, secrets.Get(GitHubApp.ClientName));
+    }
+
+    [Fact]
+    public void ATokenOfTheNewKindWithNoRecordIsKeptAndTheRecordIsWritten()
+    {
+        secrets.Delete(GitHubApp.ClientName);
+
+        GitHubApp.Migrate(secrets, GitHubApp.ClientId);
+
+        Assert.Equal(Token, secrets.Get(GitHubApp.TokenName));
+        Assert.Equal(GitHubApp.ClientId, secrets.Get(GitHubApp.ClientName));
+    }
+
+    [Fact]
+    public void AnOldKindOfTokenIsDeletedEvenWithTheNewRecord()
+    {
+        secrets.Set(GitHubApp.TokenName, "gho_OldOAuthAppToken1234567890");
+
+        GitHubApp.Migrate(secrets, GitHubApp.ClientId);
+
+        Assert.Null(secrets.Get(GitHubApp.TokenName));
+        Assert.True(GitHubApp.NeedsReSignIn(secrets));
+    }
+
+    [Fact]
+    public void ASaveWritesTheRefreshTokenFirstThenTheTokenTheExpiryAndTheRecord()
+    {
+        var recording = new RecordingSecrets();
+
+        Assert.True(GitHubApp.Save(recording, GitHubApp.ClientId, Token, Refresh, clock.Now.AddHours(8)));
+
+        Assert.Equal(
+            new List<string> { GitHubApp.RefreshName, GitHubApp.TokenName, GitHubApp.ExpiresName, GitHubApp.ClientName },
+            recording.Written);
+    }
+
+    [Fact]
+    public async Task OtherRefreshErrorsKeepTheTokensAndOnlyBadRefreshTokenSignsOut()
+    {
+        Expiring(clock.Now.AddMinutes(1));
+        var http = new FakeHttp(_ => FakeHttp.Json("""{"error":"temporarily_unavailable"}"""));
+
+        var result = await New(http).RefreshAsync(TestContext.Current.CancellationToken);
+
+        Assert.NotEqual(GitHubResult.NoPermission, result.Result);
+        Assert.Equal(Token, secrets.Get(GitHubApp.TokenName));
+        Assert.Equal(Refresh, secrets.Get(GitHubApp.RefreshName));
+    }
+
+    [Fact]
+    public async Task A401OnTheRefreshSignsOut()
+    {
+        Expiring(clock.Now.AddMinutes(1));
+        var http = new FakeHttp(_ => FakeHttp.Status(HttpStatusCode.Unauthorized));
+
+        var result = await New(http).RefreshAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(GitHubResult.NoPermission, result.Result);
+        Assert.Null(secrets.Get(GitHubApp.RefreshName));
+    }
+
+    [Fact]
+    public async Task TwoClientsOnOneStoreRefreshOnlyOnce()
+    {
+        Expiring(clock.Now.AddMinutes(1));
+        var http = Routes(Renewed);
+        var ct = TestContext.Current.CancellationToken;
+
+        await Task.WhenAll(New(http).RefreshAsync(ct), New(http).RefreshAsync(ct));
+
+        Assert.Single(http.Seen, s => s.Uri.AbsolutePath == "/login/oauth/access_token");
+        Assert.Equal(NewToken, secrets.Get(GitHubApp.TokenName));
+    }
+
+    [Fact]
+    public async Task ACancelledCallerStillLeavesTheRenewedTokensSaved()
+    {
+        Expiring(clock.Now.AddMinutes(1));
+        using var stop = new CancellationTokenSource();
+        await stop.CancelAsync();
+        var http = Routes(Renewed);
+
+        await Record.ExceptionAsync(() => New(http).RefreshAsync(stop.Token));
+
+        Assert.Equal(NewToken, secrets.Get(GitHubApp.TokenName));
+        Assert.Equal(NewRefresh, secrets.Get(GitHubApp.RefreshName));
     }
 
     [Fact]
@@ -470,6 +557,23 @@ public sealed class GitHubApiTests
     {
         secrets.Set(GitHubApp.RefreshName, Refresh);
         secrets.Set(GitHubApp.ExpiresName, at.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture));
+    }
+
+    private sealed class RecordingSecrets : ISecretStore
+    {
+        public List<string> Written { get; } = [];
+
+        public string? Get(string name) => null;
+
+        public bool Set(string name, string value)
+        {
+            Written.Add(name);
+            return true;
+        }
+
+        public void Delete(string name)
+        {
+        }
     }
 
     private sealed class Secrets : ISecretStore

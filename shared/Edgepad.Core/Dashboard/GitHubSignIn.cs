@@ -73,6 +73,9 @@ internal sealed class GitHubSignIn(
         }
     }
 
+    /// <summary>Deletes a token from the old OAuth app now. Each laptop calls it once at start, so the old grant goes even if no window or phone ever asks.</summary>
+    public void Migrate() => GitHubApp.Migrate(store, clientId);
+
     /// <summary>Whether a token from the old OAuth app was deleted and nobody has signed in since: the window says "Sign in again".</summary>
     public bool NeedsReSignIn
     {

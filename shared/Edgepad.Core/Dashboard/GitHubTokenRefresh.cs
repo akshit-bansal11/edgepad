@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 
@@ -33,8 +35,10 @@ internal sealed class GitHubTokenRefresh(ISecretStore store, string clientId, Ht
     /// <summary>A token this close to its end is refreshed before it is used.</summary>
     private static readonly TimeSpan Margin = TimeSpan.FromMinutes(5);
 
-    private readonly Lock gate = new();
-    private Task<RefreshOutcome>? running;
+    // One flight per store, shared by every GitHubApi on it (the window's login lookup builds its own), so refreshes never overlap.
+    private static readonly ConditionalWeakTable<ISecretStore, Flight> Flights = new();
+
+    private readonly Flight flight = Flights.GetOrCreateValue(store);
 
     /// <summary>Whether a refresh token is saved, so a 401 may be answered by a refresh.</summary>
     public bool CanRefresh => GitHubApp.IsToken(store.Get(GitHubApp.RefreshName));
@@ -44,32 +48,33 @@ internal sealed class GitHubTokenRefresh(ISecretStore store, string clientId, Ht
         CanRefresh && long.TryParse(store.Get(GitHubApp.ExpiresName), NumberStyles.None, CultureInfo.InvariantCulture, out var seconds)
         && seconds < DateTimeOffset.MaxValue.ToUnixTimeSeconds() && now() + Margin >= DateTimeOffset.FromUnixTimeSeconds(seconds);
 
-    public Task<RefreshOutcome> RefreshAsync(CancellationToken ct)
+    /// <summary>Refreshes, or joins the refresh already running. Never takes the caller's cancellation: a stop after the request left would lose the new refresh token, and the 15 s timeout bounds it.</summary>
+    public Task<RefreshOutcome> RefreshAsync()
     {
-        lock (gate)
+        lock (flight.Gate)
         {
-            return running ??= RunAsync(ct);
+            return flight.Running ??= RunAsync();
         }
     }
 
-    private async Task<RefreshOutcome> RunAsync(CancellationToken ct)
+    private async Task<RefreshOutcome> RunAsync()
     {
         // Never finishes before the caller has stored the task, so the finally below cannot run first.
         await Task.Yield();
         try
         {
-            return await ExchangeAsync(ct).ConfigureAwait(false);
+            return await ExchangeAsync().ConfigureAwait(false);
         }
         finally
         {
-            lock (gate)
+            lock (flight.Gate)
             {
-                running = null;
+                flight.Running = null;
             }
         }
     }
 
-    private async Task<RefreshOutcome> ExchangeAsync(CancellationToken ct)
+    private async Task<RefreshOutcome> ExchangeAsync()
     {
         var refresh = store.Get(GitHubApp.RefreshName);
         if (!GitHubApp.IsToken(refresh))
@@ -85,10 +90,16 @@ internal sealed class GitHubTokenRefresh(ISecretStore store, string clientId, Ht
         };
         request.Headers.Accept.ParseAdd("application/json");
         request.Headers.UserAgent.ParseAdd("Edgepad");
-        var reply = await CappedHttp.SendAsync(request, MaxBytes, Timeout, handler, "Renewing the GitHub sign-in", ct).ConfigureAwait(false);
+        var reply = await CappedHttp.SendAsync(request, MaxBytes, Timeout, handler, "Renewing the GitHub sign-in", CancellationToken.None).ConfigureAwait(false);
         if (reply is null)
         {
             return RefreshOutcome.Unavailable;
+        }
+
+        if (reply.Status == HttpStatusCode.Unauthorized)
+        {
+            GitHubApp.Forget(store);
+            return RefreshOutcome.Rejected;
         }
 
         try
@@ -102,7 +113,13 @@ internal sealed class GitHubTokenRefresh(ISecretStore store, string clientId, Ht
 
             if (root.TryGetProperty("error", out var error) && error.ValueKind == JsonValueKind.String)
             {
-                // GitHub answers a refused refresh token with 200 and an error; a busy server says nothing of the kind.
+                // GitHub answers a refused refresh token with 200 and bad_refresh_token. Any other error (a busy server, a
+                // misunderstanding) keeps the tokens for the next try.
+                if (error.GetString() != "bad_refresh_token")
+                {
+                    return RefreshOutcome.Unavailable;
+                }
+
                 GitHubApp.Forget(store);
                 return RefreshOutcome.Rejected;
             }
@@ -124,4 +141,11 @@ internal sealed class GitHubTokenRefresh(ISecretStore store, string clientId, Ht
 
     private static string? Text(JsonElement root, string name) =>
         root.TryGetProperty(name, out var e) && e.ValueKind == JsonValueKind.String ? e.GetString() : null;
+
+    private sealed class Flight
+    {
+        public Lock Gate { get; } = new();
+
+        public Task<RefreshOutcome>? Running { get; set; }
+    }
 }

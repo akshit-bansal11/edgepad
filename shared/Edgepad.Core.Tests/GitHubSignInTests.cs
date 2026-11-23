@@ -8,11 +8,11 @@ namespace Edgepad.Tests;
 public sealed class GitHubSignInTests
 {
     private const string Client = "Ov23liTestClient0001";
-    private const string Token = "gho_SecretTokenValue1234567890abcdef";
+    private const string Token = "ghu_SecretTokenValue1234567890abcdef";
     private const string Code = """{"device_code":"3584d83530557fdd1f46af8289938c8ef79f9dc5","user_code":"WDJB-MJHT","verification_uri":"https://github.com/login/device","expires_in":900,"interval":5}""";
     private const string Pending = """{"error":"authorization_pending"}""";
     private const string SlowDown = """{"error":"slow_down","interval":10}""";
-    private const string Granted = """{"access_token":"gho_SecretTokenValue1234567890abcdef","token_type":"bearer","scope":""}""";
+    private const string Granted = """{"access_token":"ghu_SecretTokenValue1234567890abcdef","token_type":"bearer","scope":""}""";
 
     private readonly FakeClock clock = new();
     private readonly MemorySecrets secrets = new();

@@ -238,7 +238,7 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
     private async Task<(GitHubResult Result, CappedReply? Reply)> CallAsync(HttpMethod method, Uri uri, byte[]? body, string what, CancellationToken ct)
     {
         GitHubApp.Migrate(store, GitHubApp.ClientId);
-        if (renewal.IsDue() && await renewal.RefreshAsync(ct).ConfigureAwait(false) == RefreshOutcome.Rejected)
+        if (renewal.IsDue() && await renewal.RefreshAsync().ConfigureAwait(false) == RefreshOutcome.Rejected)
         {
             ClearScreen();
             return (GitHubResult.NoPermission, null);
@@ -265,7 +265,7 @@ internal sealed class GitHubApi(ISecretStore store, HttpMessageHandler? handler 
             var reply = await CappedHttp.SendAsync(request, MaxBytes, Timeout, handler, what, ct).ConfigureAwait(false);
             if (reply?.Status == HttpStatusCode.Unauthorized && attempt == 0 && renewal.CanRefresh && store.Get(GitHubApp.TokenName) == token)
             {
-                var outcome = await renewal.RefreshAsync(ct).ConfigureAwait(false);
+                var outcome = await renewal.RefreshAsync().ConfigureAwait(false);
                 if (outcome == RefreshOutcome.Refreshed)
                 {
                     continue;

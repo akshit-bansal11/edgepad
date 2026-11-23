@@ -11,7 +11,7 @@ namespace Edgepad.Tests;
 
 public sealed class IntegrationHostTests : IDisposable
 {
-    private const string GitHubToken = "gho_SecretTokenValue1234567890abcdef";
+    private const string GitHubToken = "ghu_SecretTokenValue1234567890abcdef";
 
     private readonly DirectoryInfo dir = Directory.CreateTempSubdirectory("edgepad-host");
     private readonly FakeClock clock = new();

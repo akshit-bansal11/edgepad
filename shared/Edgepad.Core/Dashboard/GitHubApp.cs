@@ -31,6 +31,7 @@ internal static class GitHubApp
 
     private const int MaxClientId = 64;
     private const int MaxToken = 255;
+    private const string TokenPrefix = "ghu_";
 
     /// <summary>The page the user opens to type the code; always this constant, never an address a server sent.</summary>
     public static readonly Uri DevicePage = new("https://github.com/login/device");
@@ -53,13 +54,25 @@ internal static class GitHubApp
         token is { Length: > 0 and <= MaxToken } && token.All(c => char.IsAsciiLetterOrDigit(c) || c == '_');
 
     /// <summary>
-    /// A saved token that no record says <paramref name="clientId"/> issued came from the old OAuth app: it is deleted and the
-    /// "sign in again" note is left. Idempotent; a token saved by a sign-in always carries the record.
+    /// A saved token from the old OAuth app (it does not start with <c>ghu_</c>, which every GitHub App user token does, or the record
+    /// names another client) is deleted and the "sign in again" note is left. A <c>ghu_</c> token with no record is one whose save
+    /// stopped before the record: it is kept and the record is written. Idempotent.
     /// </summary>
     public static void Migrate(ISecretStore store, string clientId)
     {
-        if (store.Get(TokenName) is null || store.Get(ClientName) == clientId)
+        if (store.Get(TokenName) is not { } token)
         {
+            return;
+        }
+
+        var record = store.Get(ClientName);
+        if (token.StartsWith(TokenPrefix, StringComparison.Ordinal) && (record is null || record == clientId))
+        {
+            if (record is null)
+            {
+                _ = store.Set(ClientName, clientId);
+            }
+
             return;
         }
 
@@ -70,21 +83,29 @@ internal static class GitHubApp
     /// <summary>Whether the old token was deleted and nobody has signed in since.</summary>
     public static bool NeedsReSignIn(ISecretStore store) => store.Get(ReSignInName) == "1" && store.Get(TokenName) is null;
 
-    /// <summary>Saves a token with its record; false when the access token could not be saved (nothing half-saved stays).</summary>
+    /// <summary>
+    /// Saves a token with its record; false when it could not be saved (nothing half-saved stays). The refresh token goes first, then
+    /// the access token, the expiry and the record, so a stop at any point leaves a pair that works or one that refreshes.
+    /// </summary>
     public static bool Save(ISecretStore store, string clientId, string access, string? refresh, DateTimeOffset? expires)
     {
-        var saved = store.Set(TokenName, access) && store.Set(ClientName, clientId);
-        if (saved && refresh is not null && expires is { } at)
+        bool saved;
+        if (refresh is not null && expires is { } at)
         {
-            saved = store.Set(RefreshName, refresh) && store.Set(ExpiresName, at.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture));
+            saved = store.Set(RefreshName, refresh) && store.Set(TokenName, access)
+                && store.Set(ExpiresName, at.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture));
         }
-        else if (saved)
+        else
         {
-            store.Delete(RefreshName);
-            store.Delete(ExpiresName);
+            saved = store.Set(TokenName, access);
+            if (saved)
+            {
+                store.Delete(RefreshName);
+                store.Delete(ExpiresName);
+            }
         }
 
-        if (!saved)
+        if (!saved || !store.Set(ClientName, clientId))
         {
             Forget(store);
             return false;
