@@ -263,7 +263,8 @@ TEXT 37 SPEED_RESULT
 # Phone to laptop: exactly "host/listRevision/index". host is a git PROVIDER id (1 to 16 characters), listRevision the revision in the first line
 # of the BLOB 7 the phone is showing, index the zero-based position among that blob's P, M, R and A lines (H and N lines are not counted). The
 # phone never sends an address. The laptop opens only an https address it fetched itself for that host, that exact revision and that index,
-# on the host's own domain, in the default browser. A stale revision, an index out of range, a host that is not connected, an address that
+# on the host's own domain, in the default browser. GitHub's page holds one more address after its list lines (index = the number of P, M, R and A
+# lines): where the read-only GitHub App is installed, a constant of the laptop. A stale revision, an index out of range, a host that is not connected, an address that
 # is not https, or any other shape is dropped and counted.
 TEXT 38 GIT_OPEN
 
@@ -380,7 +381,7 @@ BLOB_KIND 6 PERM_ASK
 # GIT (was GITHUB): laptop to phone, label "git", one git host's page: UTF-8 lines joined by line feeds, fields by tabs, at most 16 KiB (the last
 # lines are dropped until it fits). Line 1 is "H host login name repos followers rev": host a git PROVIDER id, login at most 39 characters, name
 # Clean(40), repos and followers counts, rev the list revision (a number that only goes up, and only when the page changed), all free text
-# cleaned. An optional "N, empty, count, empty, empty, none" line (GitHub's unread count, the older six-field shape). Then at most 30 lines
+# cleaned. The older optional "N, empty, count, empty, empty, none" line (an unread count) is no longer sent; a phone still reads one. Then at most 30 lines
 # "P repo private language stars issues pulls" (repo owner/name, private "p" or empty, language Clean(30), the three numbers open counts), recent
 # first, then at most 20 lines each of "M repo number title flags ci state updatedMin" for items that are mine, "R ..." review requested and "A ..."
 # assigned: title Clean(80), flags d for draft and i for an issue (empty for a pull request), ci a CI token, state open, closed or merged,

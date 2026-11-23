@@ -170,7 +170,7 @@ Edgepad does everything above without these. They are here if you want them, and
 For developers, there are also AI and GitHub screens. They never appear in the phone's Controls until you connect them on the laptop, and you can hide any Controls tile with **Edit**.
 
 - **Claude Code and Codex.** Approve their requests from the phone, and see their sessions, limits and spend. Needs Claude Code, or Codex 0.159 or newer. Nothing else to install: the hooks run the Edgepad app itself, and the app reads Claude spend from Claude Code's own transcripts.
-- **GitHub.** Sign in with a GitHub account to see review requests, your pull requests with their checks, and notifications. Private repositories are included only if you tick **Include private repositories**.
+- **GitHub.** Sign in with a GitHub account to see review requests and your pull requests with their checks. Edgepad signs in through a read-only GitHub App, "Edgepad Dashboard", which can read but never change anything and sees only the repositories you install it on. Private repositories show up once you choose them: click **Choose repos on GitHub** in the laptop window, or tap "Private repos missing?" on the phone. If you signed in before 5.0.0, sign in again.
 
 What leaves the laptop:
 
@@ -211,7 +211,7 @@ Connect GitHub:
 2. Enter the code shown in the Integrations window and click **Authorize**.
 3. On your phone, open Controls > GitHub.
 
-Before you uninstall Edgepad, press **Disconnect** for Claude Code and Codex in the Integrations window. Otherwise a leftover entry stays in each tool. To revoke GitHub access, open https://github.com/settings/applications, find Edgepad, and choose **Revoke**.
+Before you uninstall Edgepad, press **Disconnect** for Claude Code and Codex in the Integrations window. Otherwise a leftover entry stays in each tool. To revoke GitHub access, open https://github.com/settings/apps/authorizations, find Edgepad Dashboard, and choose **Revoke**.
 
 ## Languages
 

@@ -52,7 +52,7 @@ A search of the phone, Windows, Mac and Linux source for web addresses found the
 | `github.com` | phone and laptop apps | The update check (once a day unless you turn it off) and an update you choose to download | One request for the newest version; nothing about your device |
 | `speed.cloudflare.com` | laptop | Only when you tap Test speed | Test data; nothing about you |
 | `api.open-meteo.com`, `geocoding-api.open-meteo.com` | laptop | Only if the weather widget is on | The place you chose, to find its coordinates, then the forecast request |
-| `github.com`, `api.github.com` | laptop | Only after you sign in to GitHub there | Sign-in, then read-only requests |
+| `github.com`, `api.github.com` | laptop | Only after you sign in to GitHub there | Sign-in and renewing the sign-in (the read-only GitHub App "Edgepad Dashboard"; no client secret, no notifications), then read-only requests. It sees only the repositories you install it on; **Choose repos on GitHub** opens that page in your browser |
 | `gitlab.com`, or the GitLab server you enter | laptop | Only after you sign in to GitLab there | Sign-in, then read-only requests |
 | `codeberg.org`, or the Gitea or Forgejo server you enter | laptop | Only after you paste a token | Read-only requests |
 | `api.bitbucket.org` | laptop | Only after you paste a token | Read-only requests |
