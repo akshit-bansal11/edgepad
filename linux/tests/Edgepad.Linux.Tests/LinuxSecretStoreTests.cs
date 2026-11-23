@@ -189,6 +189,24 @@ public sealed class LinuxSecretStoreTests : IDisposable
         Assert.Equal("fresh", store.Get("github.token"));
     }
 
+    [Fact]
+    public void ATimedOutDeleteKeepsTheItemHiddenUntilItCanBeRemoved()
+    {
+        var service = new FakeService();
+        var store = new LinuxSecretStore(service, folder);
+        Assert.True(store.Set("github.token", "secret"));
+
+        // A fresh store has no session yet, and the service does not answer.
+        var later = new LinuxSecretStore(service, folder);
+        service.Unreachable = true;
+        later.Delete("github.token");
+        service.Unreachable = false;
+        Assert.Single(service.Items);
+
+        Assert.Null(later.Get("github.token"));
+        Assert.Empty(service.Items);
+    }
+
     private sealed class FakeService : ISecretService
     {
         private int next;
@@ -201,7 +219,12 @@ public sealed class LinuxSecretStoreTests : IDisposable
 
         public Dictionary<string, (Dictionary<string, string> Attributes, byte[] Secret)> Items { get; } = [];
 
-        public string? OpenSession() => Present ? "/org/freedesktop/secrets/session/s1" : null;
+        // The service is there but a call timed out (a slow start): OpenSession fails without the service being absent.
+        public bool Unreachable { get; set; }
+
+        public bool IsAbsent => !Present;
+
+        public string? OpenSession() => Present && !Unreachable ? "/org/freedesktop/secrets/session/s1" : null;
 
         public string? DefaultCollection() => Present ? "/org/freedesktop/secrets/collection/login" : null;
 

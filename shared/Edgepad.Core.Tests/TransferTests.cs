@@ -252,6 +252,15 @@ public sealed class TransferTests : IDisposable
     }
 
     [Fact]
+    public void ARoomyDestinationDoesNotSaveAFileWhosePartialVolumeIsFull()
+    {
+        receiver.Dispose();
+        receiver = NewReceiver(folder => folder == Partial ? 10 : Plenty);
+        receiver.Take(new XferBegin(1, 10, "split.bin"));
+        Assert.Equal([new XferStatus(1, (byte)XferCode.Rejected, 0)], replies);
+    }
+
+    [Fact]
     public void FreeSpaceThatCannotBeReadRefusesTheFileAndTheSessionGoesOn()
     {
         receiver.Dispose();

@@ -244,6 +244,47 @@ public sealed class ClaudeSpendTests : IDisposable
     }
 
     [Fact]
+    public void AWholeReReadOfAGrownFileIsChargedItsWholeSize()
+    {
+        var path = Transcript("p/big.jsonl", Line("m1", Day(19), Sonnet, 100000, 10000));
+        PadWithJunkLines(path, 20);
+        File.SetLastWriteTimeUtc(path, now.UtcDateTime.AddMinutes(-1));
+        Clock = now;
+        using var watcher = NewWatcher();
+        watcher.SetWatch(ClaudeSpendWatcher.AiBit);
+        watcher.Poll();
+        Assert.Equal(45, Spend.Snapshot().Single().CentsToday);
+
+        // The old end was not a line end, so the whole file is read again: 40 MB, which leaves no budget for the other file.
+        PadWithJunkLines(path, 20);
+        File.SetLastWriteTimeUtc(path, now.UtcDateTime);
+        var other = Transcript("p/other.jsonl", Line("m2", Day(19), Sonnet, 100000, 10000));
+        File.SetLastWriteTimeUtc(other, now.UtcDateTime.AddMinutes(-2));
+        Clock = now.AddMinutes(2);
+        watcher.Poll();
+
+        Assert.Equal(45, Spend.Snapshot().Single().CentsToday);
+        Assert.Equal(2, opened.Count(p => p == path));
+        Assert.DoesNotContain(other, opened);
+    }
+
+    // Short junk lines; each 1 MB chunk ends mid-line, so the file's end is never a line end.
+    private static void PadWithJunkLines(string path, int megabytes)
+    {
+        var chunk = new byte[1024 * 1024];
+        for (var i = 0; i < chunk.Length; i++)
+        {
+            chunk[i] = (byte)(i % 3 == 2 ? '\n' : '{');
+        }
+
+        using var stream = new FileStream(path, FileMode.Append, FileAccess.Write);
+        for (var m = 0; m < megabytes; m++)
+        {
+            stream.Write(chunk);
+        }
+    }
+
+    [Fact]
     public void TheCacheIsWrittenAtMostEveryFiveMinutesAndOnDispose()
     {
         var path = Transcript("p/s.jsonl", Line("m1", Day(19), Sonnet, 100000, 10000));

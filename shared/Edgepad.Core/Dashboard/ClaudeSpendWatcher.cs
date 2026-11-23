@@ -224,12 +224,15 @@ internal sealed class ClaudeSpendWatcher : IDisposable
             }
 
             var grown = hit is not null && covers && hit.Size < size ? hit : null;
-            budget -= size - (grown?.Size ?? 0);
             CacheEntry entry;
             try
             {
                 using var stream = open(file.FullName);
-                entry = (grown is null ? null : Appended(stream, grown)) ?? Read(stream, periods.From);
+                var appended = grown is null ? null : Appended(stream, grown);
+
+                // Only the new bytes are parsed when the cached rows were extended; a whole re-read costs the whole file.
+                budget -= appended is null ? size : size - (grown?.Size ?? 0);
+                entry = appended ?? Read(stream, periods.From);
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {

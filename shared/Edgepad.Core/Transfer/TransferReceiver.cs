@@ -106,7 +106,9 @@ internal sealed class TransferReceiver : IDisposable
             {
                 Directory.CreateDirectory(destination);
                 Directory.CreateDirectory(partialFolder);
-                if (freeSpace(destination) < (long)begin.Size + TransferLimits.FreeSpaceMargin)
+                // The part file grows in partialFolder, which can be another volume than the destination it is renamed into.
+                var need = (long)begin.Size + TransferLimits.FreeSpaceMargin;
+                if (freeSpace(destination) < need || freeSpace(partialFolder) < need)
                 {
                     Fail(begin.Id, shown, XferCode.Rejected);
                     return true;

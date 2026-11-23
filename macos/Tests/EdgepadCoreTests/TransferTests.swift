@@ -125,6 +125,13 @@ final class TransferTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: URL(fileURLWithPath: destination + "/w.txt")), Data(body))
     }
 
+    func testARoomyDestinationDoesNotSaveAFileWhosePartialVolumeIsFull() {
+        let partialPath = partial
+        let incoming = receiver(freeSpace: { folder in folder == partialPath ? 10 : Int64.max / 2 })
+        _ = incoming.take(begin: 1, size: 1, name: "split.bin")
+        XCTAssertEqual(replies, [status(1, .rejected)])
+    }
+
     func testAnUnusableNameATooBigFileAndAFullDiskAreRefusedAndASecondFileIsBusy() {
         let incoming = receiver(freeSpace: { _ in 10 })
         _ = incoming.take(begin: 1, size: 1, name: "CON")

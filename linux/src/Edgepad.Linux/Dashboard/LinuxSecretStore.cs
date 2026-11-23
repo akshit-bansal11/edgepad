@@ -11,6 +11,9 @@ internal interface ISecretService
     /// <summary>A plain (unencrypted transport, the bus is the user's own) session's object path; null when the service is not there.</summary>
     string? OpenSession();
 
+    /// <summary>True when the last <see cref="OpenSession"/> failed because no Secret Service is on the bus; false for a timeout or any other failure.</summary>
+    bool IsAbsent { get; }
+
     /// <summary>The object path of the "default" collection; null when there is none or the call failed.</summary>
     string? DefaultCollection();
 
@@ -174,13 +177,13 @@ internal sealed class LinuxSecretStore(ISecretService service, string folder) : 
 
     public void Dispose() => (service as IDisposable)?.Dispose();
 
-    // Under gate. True when no keyring item is left under the name (also when there is no keyring); false when one is, or when
-    // that could not be found out.
+    // Under gate. True when no keyring item is left under the name (also when there is no keyring at all); false when one is, or
+    // when that could not be found out (a timed-out call, a service still starting).
     private bool RemoveFromKeyring(string name)
     {
         if (Session() is null)
         {
-            return true;
+            return service.IsAbsent;
         }
 
         if (service.Search(Attributes(name)) is not { } found)
@@ -294,7 +297,18 @@ internal sealed class DbusSecretService(Bus bus) : ISecretService, IDisposable
     private const string ServiceInterface = "org.freedesktop.Secret.Service";
     private const string NoPrompt = "/";
 
-    public string? OpenSession() =>
+    private volatile bool absent;
+
+    public bool IsAbsent => absent;
+
+    public string? OpenSession()
+    {
+        var ok = OpenSessionCall(out var path, out var refusal);
+        absent = !ok && refusal is "org.freedesktop.DBus.Error.ServiceUnknown" or "org.freedesktop.DBus.Error.NameHasNoOwner";
+        return ok ? path : null;
+    }
+
+    private bool OpenSessionCall(out string? path, out string? refusal) =>
         bus.Call(
             c =>
             {
@@ -310,9 +324,8 @@ internal sealed class DbusSecretService(Bus bus) : ISecretService, IDisposable
                 r.ReadVariantValue();
                 return r.ReadObjectPathAsString();
             },
-            out var path)
-            ? path
-            : null;
+            out path,
+            out refusal);
 
     public string? DefaultCollection() =>
         bus.Call(

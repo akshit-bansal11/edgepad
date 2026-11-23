@@ -123,7 +123,9 @@ public final class TransferReceiver {
             try folders.createDirectory(atPath: destination, withIntermediateDirectories: true)
             try folders.createDirectory(
                 atPath: partialFolder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
-            guard freeSpace(destination) >= Int64(size) + TransferLimits.freeSpaceMargin else {
+            // The part file grows in partialFolder, which can be another volume than the destination it moves into.
+            let need = Int64(size) + TransferLimits.freeSpaceMargin
+            guard freeSpace(destination) >= need, freeSpace(partialFolder) >= need else {
                 status(id, .rejected, 0)
                 return true
             }
