@@ -140,7 +140,7 @@ jobs:
           BASE_REF: ${{ steps.pr.outputs.base_ref }}
           OWNER: ${{ github.repository_owner }}
         run: |
-          g() { git -c core.hooksPath=/dev/null -c core.fsmonitor= -c diff.external= -c core.pager=cat "$@"; }
+          g() { git -c core.hooksPath=/dev/null -c core.fsmonitor=false -c core.pager=cat "$@"; }
           g fetch -q origin "$BASE_REF"
           n=$(g log "origin/$BASE_REF..HEAD" --format=%s | grep -c '^fix(review): round ' || true)
           echo "n=$n" >> "$GITHUB_OUTPUT"
@@ -212,7 +212,7 @@ jobs:
           # Claude's reach), no global or system config is read, and git runs with nothing it could hook.
           [ "$(sha256sum .git/config | cut -d' ' -f1)" = "$GIT_CONFIG_SUM" ] || { echo "::error::.git/config changed during the run; stopping."; exit 1; }
           export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_ATTR_NOSYSTEM=1 HOME="$(mktemp -d)"
-          g() { git -c core.hooksPath=/dev/null -c core.fsmonitor= -c diff.external= -c core.pager=cat "$@"; }
+          g() { git -c core.hooksPath=/dev/null -c core.fsmonitor=false -c core.pager=cat "$@"; }
           verdict=$(printf '%s' "$OUTPUT" | jq -r '.verdict // ""')
           [ "$verdict" = pass ] || verdict=fail
           printf '%s\n' "$(printf '%s' "$OUTPUT" | jq -r '.summary // ""')" | head -c 6000 > .review/summary.md

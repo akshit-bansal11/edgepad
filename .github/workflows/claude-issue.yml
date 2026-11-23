@@ -90,7 +90,7 @@ jobs:
           # Claude's reach), no global or system config is read, and git runs with nothing it could hook.
           [ "$(sha256sum .git/config | cut -d' ' -f1)" = "$GIT_CONFIG_SUM" ] || { echo "::error::.git/config changed during the run; stopping."; exit 1; }
           export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_ATTR_NOSYSTEM=1 HOME="$(mktemp -d)"
-          g() { git -c core.hooksPath=/dev/null -c core.fsmonitor= -c diff.external= -c core.pager=cat "$@"; }
+          g() { git -c core.hooksPath=/dev/null -c core.fsmonitor=false -c core.pager=cat "$@"; }
           rm -f .issue.txt
           g add -A
           if g diff --cached --quiet; then
