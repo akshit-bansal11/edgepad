@@ -165,6 +165,7 @@ import me.akshitbansal.edgepad.screens.SystemScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.screens.WidgetsScreen
 import me.akshitbansal.edgepad.screens.XferCard
+import me.akshitbansal.edgepad.screens.fillCutout
 import me.akshitbansal.edgepad.screens.hideBars
 import me.akshitbansal.edgepad.screens.openOver
 import me.akshitbansal.edgepad.screens.showOver
@@ -1665,6 +1666,7 @@ class MainActivity :
             bars.setSystemBarsAppearance(if (ui.palette.dark) 0 else light, light)
         }
         // Every screen hides the bars; an edge swipe shows them for a moment (see hideBars).
+        window.fillCutout()
         window.hideBars()
         updateBack()
     }

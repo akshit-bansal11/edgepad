@@ -21,6 +21,7 @@ import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -1053,6 +1054,18 @@ fun Window.hideBars() {
         it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         it.hide(WindowInsets.Type.systemBars())
     }
+}
+
+/**
+ * Lets this window draw under the camera cutout on every edge: with the bars hidden, the default letterboxes a
+ * landscape cutout side with a black strip. Pages and editors pad themselves clear of it ([Ui.page], [Ui.padToBars]);
+ * the control surface draws under it. Activities only; a dialog stays inside the safe area.
+ */
+fun Window.fillCutout() {
+    attributes =
+        attributes.apply {
+            layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+        }
 }
 
 /**

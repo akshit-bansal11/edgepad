@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.View
 import me.akshitbansal.edgepad.Type
+import me.akshitbansal.edgepad.screens.fillCutout
 import me.akshitbansal.edgepad.screens.hideBars
 
 /**
@@ -22,6 +23,7 @@ class GalleryActivity : Activity() {
             } else {
                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
+        window.fillCutout()
         window.hideBars()
         // The app's fonts, as MainActivity loads them; every screen reads them.
         Type.load(this)
