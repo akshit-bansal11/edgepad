@@ -534,7 +534,7 @@ final class SessionTests: XCTestCase {
         XCTAssertEqual(
             powerTexts(),
             [
-                .text(kind: TextKind.batteries.rawValue, value: "laptop:80:0:Mac"),
+                .text(kind: TextKind.batteries.rawValue, value: "laptop:80:0:-:-:Mac"),
                 .text(kind: TextKind.output.rawValue, value: "speaker/Speakers"),
             ])
 
@@ -544,7 +544,7 @@ final class SessionTests: XCTestCase {
         power.list = [BatteryEntry(kind: .laptop, level: 79, charging: false, name: "Mac")]
         power.changed?()
         XCTAssertEqual(powerTexts().count, 3)
-        XCTAssertEqual(powerTexts().last, .text(kind: TextKind.batteries.rawValue, value: "laptop:79:0:Mac"))
+        XCTAssertEqual(powerTexts().last, .text(kind: TextKind.batteries.rawValue, value: "laptop:79:0:-:-:Mac"))
 
         pollAlive(session, 120)
         XCTAssertEqual(powerTexts().count, 3)
@@ -559,7 +559,7 @@ final class SessionTests: XCTestCase {
         pollAlive(session, 119)
         XCTAssertEqual(powerTexts().count, 2)
         session.poll()
-        XCTAssertEqual(powerTexts().last, .text(kind: TextKind.batteries.rawValue, value: "mouse:10:1:Mouse"))
+        XCTAssertEqual(powerTexts().last, .text(kind: TextKind.batteries.rawValue, value: "mouse:10:1:-:-:Mouse"))
     }
 
     func testNoPowerSourceSendsNeitherTextAndEndLetsGo() {

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Management;
 using System.Runtime.InteropServices;
 using Edgepad.Power;
 using Edgepad.Protocol;
@@ -33,6 +34,11 @@ internal sealed partial class PowerSource : IDisposable
     // Created on first use, so constructing one touches no COM.
     private MMDeviceEnumerator? devices;
     private string? logged;
+
+    // Health moves over months and a WMI call is slow, so it is read at most every ten minutes.
+    private static readonly TimeSpan HealthEvery = TimeSpan.FromMinutes(10);
+    private long healthAt;
+    private int? health;
 
     /// <summary>The laptop first, when it has a battery, then connected Bluetooth devices that report a level.</summary>
     public IReadOnlyList<BatteryEntry> ReadBatteries()
@@ -172,7 +178,7 @@ internal sealed partial class PowerSource : IDisposable
         };
     }
 
-    private static BatteryEntry? Laptop()
+    private BatteryEntry? Laptop()
     {
         var status = SystemInformation.PowerStatus;
         // Unknown (255) carries the NoSystemBattery bit too, and an unknown level reads as 2.55.
@@ -182,7 +188,54 @@ internal sealed partial class PowerSource : IDisposable
         }
 
         return new BatteryEntry(
-            BatteryKind.Laptop, (int)Math.Round(status.BatteryLifePercent * 100), status.PowerLineStatus == PowerLineStatus.Online, "");
+            BatteryKind.Laptop,
+            (int)Math.Round(status.BatteryLifePercent * 100),
+            status.PowerLineStatus == PowerLineStatus.Online,
+            "",
+            Health());
+    }
+
+    /// <summary>
+    /// Percent of design capacity: what the battery holds fully charged, over what it was built to hold, both from
+    /// WMI (no admin). Windows has no cheap battery temperature, so that stays unknown. Null when WMI has no answer.
+    /// </summary>
+    private int? Health()
+    {
+        var now = Environment.TickCount64;
+        if (healthAt != 0 && now - healthAt < HealthEvery.TotalMilliseconds)
+        {
+            return health;
+        }
+
+        healthAt = now;
+        try
+        {
+            var full = FirstWmi("FullChargedCapacity", "BatteryFullChargedCapacity");
+            var design = FirstWmi("DesignedCapacity", "BatteryStaticData");
+            health = full > 0 && design > 0 ? (int)Math.Min(100, Math.Round(100.0 * full / design)) : null;
+        }
+        catch (Exception e) when (e is ManagementException or COMException or UnauthorizedAccessException)
+        {
+            LogOnce($"Battery health unreadable: {e.GetType().Name}: {e.Message}");
+            health = null;
+        }
+
+        return health;
+    }
+
+    private static long FirstWmi(string property, string wmiClass)
+    {
+        using var searcher = new ManagementObjectSearcher(@"root\WMI", $"SELECT {property} FROM {wmiClass}");
+        using var rows = searcher.Get();
+        foreach (var row in rows.OfType<ManagementObject>())
+        {
+            using (row)
+            {
+                return Convert.ToInt64(row[property], CultureInfo.InvariantCulture);
+            }
+        }
+
+        return 0;
     }
 
     /// <summary>Connected classic Bluetooth devices. No inquiry is made, so this answers from what Windows already knows.</summary>

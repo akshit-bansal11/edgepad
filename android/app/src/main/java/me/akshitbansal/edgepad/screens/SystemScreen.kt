@@ -13,6 +13,7 @@ import me.akshitbansal.edgepad.link.DiskEntry
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.StatsFormat
 import me.akshitbansal.edgepad.link.StatsRing
+import me.akshitbansal.edgepad.protocol.BatteryKind
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.surface.StatCards
@@ -117,10 +118,17 @@ class SystemScreen(
                 val low = battery.level <= LOW && !battery.charging
                 add(ui.row(ui.text(battery.name, Type.BODY, ui.palette.ink), ui.secondary(charge, Type.VALUE)))
                 meter(battery.name, battery.level, if (low) ui.palette.danger else ui.palette.accent)
+                if (battery.kind == BatteryKind.LAPTOP) {
+                    kv(ui.string(R.string.phone_health), battery.health.orDash(R.string.battery_percent))
+                    kv(ui.string(R.string.phone_temperature), battery.temperature.orDash(R.string.phone_celsius))
+                }
                 add(View(ui.context), height = ui.dp(Space.M))
             }
         }
     }
+
+    /** [this] through the format string [format], or a dash when it is unknown. */
+    private fun Int?.orDash(format: Int): String = if (this == null) none else ui.string(format, this)
 
     /** The metrics as cards, 2 to a row upright and 4 sideways, and the network speeds under them. */
     private fun Column.grid() {

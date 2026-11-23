@@ -6,12 +6,20 @@ public struct BatteryEntry: Equatable {
     public let level: Int
     public let charging: Bool
     public let name: String
+    /// Percent of design capacity, or nil when unknown.
+    public let health: Int?
+    /// Whole degrees Celsius, or nil when unknown.
+    public let temperature: Int?
 
-    public init(kind: BatteryKind, level: Int, charging: Bool, name: String) {
+    public init(
+        kind: BatteryKind, level: Int, charging: Bool, name: String, health: Int? = nil, temperature: Int? = nil
+    ) {
         self.kind = kind
         self.level = level
         self.charging = charging
         self.name = name
+        self.health = health
+        self.temperature = temperature
     }
 }
 
@@ -40,7 +48,9 @@ public enum PowerText {
         var parts = entries.map { entry -> String in
             let level = min(max(entry.level, 0), 100)
             let name = clean(entry.name, limit: maxBatteryName, fallback: entry.kind.rawValue)
-            return "\(entry.kind.rawValue):\(level):\(entry.charging ? 1 : 0):\(name)"
+            let health = entry.health.map { String(min(max($0, 0), 100)) } ?? "-"
+            let temperature = entry.temperature.map { String(min(max($0, -50), 150)) } ?? "-"
+            return "\(entry.kind.rawValue):\(level):\(entry.charging ? 1 : 0):\(health):\(temperature):\(name)"
         }
         while parts.count > 1, parts.joined(separator: "|").utf8.count > maxBytes {
             parts.removeLast()

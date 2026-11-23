@@ -34,10 +34,10 @@ public sealed class PowerTextTests
     [Fact]
     public void EncodeReproducesTheGoldenPayloads()
     {
-        Assert.Equal("laptop:87:1:Desk|headphones:60:0:AirPods",
-            BatteryText.Encode([new("laptop", 87, true, "Desk"), new("headphones", 60, false, "AirPods")]));
+        Assert.Equal("laptop:87:1:92:38:Desk|headphones:60:0:-:-:AirPods",
+            BatteryText.Encode([new("laptop", 87, true, "Desk", 92, 38), new("headphones", 60, false, "AirPods")]));
         Assert.Equal(string.Empty, BatteryText.Encode([]));
-        Assert.Equal("laptop:50:0:Café", BatteryText.Encode([new("laptop", 50, false, "Café")]));
+        Assert.Equal("laptop:50:0:-:-:Café", BatteryText.Encode([new("laptop", 50, false, "Café")]));
         Assert.Equal("headphones/AirPods", OutputText.Encode("headphones", "AirPods"));
         Assert.Equal("speaker/Speakers", OutputText.Encode("speaker", "Speakers"));
     }
@@ -45,16 +45,24 @@ public sealed class PowerTextTests
     [Fact]
     public void EncodeClampsAndFillsEmptyNamesAndKinds()
     {
-        Assert.Equal("laptop:100:1:Desk|other:0:0:other",
+        Assert.Equal("laptop:100:1:-:-:Desk|other:0:0:-:-:other",
             BatteryText.Encode([new("laptop", 150, true, "Desk"), new("bogus", -4, false, "")]));
+    }
+
+    [Fact]
+    public void HealthAndTemperatureAreClampedAndUnknownIsADash()
+    {
+        Assert.Equal("laptop:50:0:100:-50:L", BatteryText.Encode([new("laptop", 50, false, "L", 140, -90)]));
+        Assert.Equal("laptop:50:0:0:150:L", BatteryText.Encode([new("laptop", 50, false, "L", 0, 400)]));
+        Assert.Equal("laptop:50:0:-:-:L", BatteryText.Encode([new("laptop", 50, false, "L", null, null)]));
     }
 
     [Fact]
     public void NamesAreSanitisedAndCut()
     {
-        Assert.Equal("a b c", BatteryText.Encode([new("mouse", 5, false, "a|b\nc")]).Split(':', 4)[3]);
+        Assert.Equal("a b c", BatteryText.Encode([new("mouse", 5, false, "a|b\nc")]).Split(':', 6)[5]);
         var emoji = string.Concat(Enumerable.Repeat("\U0001F600", 30));
-        var name = BatteryText.Encode([new("mouse", 5, false, emoji)]).Split(':', 4)[3];
+        var name = BatteryText.Encode([new("mouse", 5, false, emoji)]).Split(':', 6)[5];
         Assert.Equal(24, name.EnumerateRunes().Count());
         Assert.Equal(40, OutputText.Encode("headphones", new string('x', 60)).Split('/', 2)[1].Length);
         Assert.StartsWith("other/", OutputText.Encode("?", "x"));
@@ -71,8 +79,8 @@ public sealed class PowerTextTests
 
         var text = BatteryText.Encode(entries);
         Assert.True(Encoding.UTF8.GetByteCount(text) <= 255);
-        Assert.StartsWith("laptop:80:0:L|", text);
-        Assert.All(text.Split('|'), p => Assert.Equal(4, p.Split(':').Length));
+        Assert.StartsWith("laptop:80:0:-:-:L|", text);
+        Assert.All(text.Split('|'), p => Assert.Equal(6, p.Split(':').Length));
         Assert.True(text.Split('|').Length < 21);
     }
 
@@ -91,7 +99,7 @@ public sealed class PowerTextTests
         level = 49;
         r.Poke();
         Assert.Equal(3, sent.Count);
-        Assert.Equal("laptop:49:0:L", sent[2].Value);
+        Assert.Equal("laptop:49:0:-:-:L", sent[2].Value);
     }
 
     [Fact]

@@ -1,16 +1,21 @@
+using System.Globalization;
 using System.Text;
 using Edgepad.Protocol;
 
 namespace Edgepad.Power;
 
-/// <summary>One device for TEXT BATTERIES. <paramref name="Kind"/> is a <see cref="BatteryKind"/> token. A device with no level is never built: the reader omits it.</summary>
-internal sealed record BatteryEntry(string Kind, int Level, bool Charging, string Name);
+/// <summary>
+/// One device for TEXT BATTERIES. <paramref name="Kind"/> is a <see cref="BatteryKind"/> token. A device with no level is never built: the reader omits it.
+/// <paramref name="Health"/> is percent of design capacity and <paramref name="Temperature"/> degrees Celsius; null is unknown, never 0.
+/// </summary>
+internal sealed record BatteryEntry(string Kind, int Level, bool Charging, string Name, int? Health = null, int? Temperature = null);
 
 /// <summary>Builds the payloads of TEXT BATTERIES and TEXT OUTPUT. The format lives in docs/PROTOCOL.md.</summary>
 internal static class BatteryText
 {
     private const int MaxBytes = 255;
     private const int NameCodePoints = 24;
+    private const string Unknown = "-";
 
     /// <summary>The whole list as one snapshot, laptop first. Entries are dropped from the end until it fits 255 bytes, so the laptop stays and none is cut in half.</summary>
     public static string Encode(IEnumerable<BatteryEntry> entries)
@@ -20,7 +25,10 @@ internal static class BatteryText
         {
             var kind = BatteryKind.Of(e.Kind);
             var name = Sanitize(e.Name, NameCodePoints);
-            parts.Add($"{kind}:{Math.Clamp(e.Level, 0, 100)}:{(e.Charging ? 1 : 0)}:{(name.Length == 0 ? kind : name)}");
+            var health = e.Health is { } h ? Math.Clamp(h, 0, 100).ToString(CultureInfo.InvariantCulture) : Unknown;
+            var temp = e.Temperature is { } t ? Math.Clamp(t, -50, 150).ToString(CultureInfo.InvariantCulture) : Unknown;
+            var level = Math.Clamp(e.Level, 0, 100);
+            parts.Add($"{kind}:{level}:{(e.Charging ? 1 : 0)}:{health}:{temp}:{(name.Length == 0 ? kind : name)}");
         }
 
         var text = string.Join('|', parts);

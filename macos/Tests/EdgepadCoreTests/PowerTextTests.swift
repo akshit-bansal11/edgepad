@@ -10,11 +10,23 @@ final class PowerTextTests: XCTestCase {
     func testBatteriesMatchTheGoldenPayloads() {
         XCTAssertEqual(
             PowerText.encodeBatteries([
-                entry(.laptop, 87, true, "Desk"), entry(.headphones, 60, false, "AirPods"),
+                BatteryEntry(kind: .laptop, level: 87, charging: true, name: "Desk", health: 92, temperature: 38),
+                entry(.headphones, 60, false, "AirPods"),
             ]),
-            "laptop:87:1:Desk|headphones:60:0:AirPods")
+            "laptop:87:1:92:38:Desk|headphones:60:0:-:-:AirPods")
         XCTAssertEqual(PowerText.encodeBatteries([]), "")
-        XCTAssertEqual(PowerText.encodeBatteries([entry(.laptop, 50, false, "Café")]), "laptop:50:0:Café")
+        XCTAssertEqual(PowerText.encodeBatteries([entry(.laptop, 50, false, "Café")]), "laptop:50:0:-:-:Café")
+    }
+
+    func testHealthAndTemperatureAreClampedAndUnknownIsADash() {
+        let laptop = { (health: Int?, temperature: Int?) in
+            BatteryEntry(
+                kind: .laptop, level: 50, charging: false, name: "L", health: health, temperature: temperature)
+        }
+        XCTAssertEqual(PowerText.encodeBatteries([laptop(140, -90)]), "laptop:50:0:100:-50:L")
+        XCTAssertEqual(PowerText.encodeBatteries([laptop(0, 400)]), "laptop:50:0:0:150:L")
+        XCTAssertEqual(PowerText.encodeBatteries([laptop(81, nil)]), "laptop:50:0:81:-:L")
+        XCTAssertEqual(PowerText.encodeBatteries([laptop(nil, nil)]), "laptop:50:0:-:-:L")
     }
 
     func testOutputMatchesTheGoldenPayloads() {
@@ -24,15 +36,15 @@ final class PowerTextTests: XCTestCase {
     }
 
     func testLevelIsClampedAndNameSanitised() {
-        XCTAssertEqual(PowerText.encodeBatteries([entry(.mouse, 140, false, " a|b\u{7}c ")]), "mouse:100:0:a b c")
-        XCTAssertEqual(PowerText.encodeBatteries([entry(.mouse, -5, false, "  ")]), "mouse:0:0:mouse")
+        XCTAssertEqual(PowerText.encodeBatteries([entry(.mouse, 140, false, " a|b\u{7}c ")]), "mouse:100:0:-:-:a b c")
+        XCTAssertEqual(PowerText.encodeBatteries([entry(.mouse, -5, false, "  ")]), "mouse:0:0:-:-:mouse")
     }
 
     func testNamesAreCutToCodePointsNeverInsideAPair() {
         let long = String(repeating: "😀", count: 30)
         XCTAssertEqual(
             PowerText.encodeBatteries([entry(.other, 1, false, long)]),
-            "other:1:0:" + String(repeating: "😀", count: 24))
+            "other:1:0:-:-:" + String(repeating: "😀", count: 24))
         XCTAssertEqual(
             PowerText.encodeOutput((.other, String(repeating: "a", count: 50))),
             "other/" + String(repeating: "a", count: 40))
@@ -42,8 +54,8 @@ final class PowerTextTests: XCTestCase {
         let entries = [entry(.laptop, 90, false, "L")] + (0..<20).map { entry(.mouse, $0, false, "Mouse \($0)") }
         let text = PowerText.encodeBatteries(entries)
         XCTAssertLessThanOrEqual(text.utf8.count, 255)
-        XCTAssertTrue(text.hasPrefix("laptop:90:0:L|mouse:0:0:Mouse 0|"))
+        XCTAssertTrue(text.hasPrefix("laptop:90:0:-:-:L|mouse:0:0:-:-:Mouse 0|"))
         XCTAssertFalse(text.hasSuffix("|"))
-        XCTAssertTrue(text.split(separator: "|").allSatisfy { $0.split(separator: ":").count == 4 })
+        XCTAssertTrue(text.split(separator: "|").allSatisfy { $0.split(separator: ":").count == 6 })
     }
 }

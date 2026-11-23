@@ -11,29 +11,45 @@ class BatteriesTest {
     fun parsesTheGoldenSnapshot() {
         assertEquals(
             listOf(
-                BatteryEntry(BatteryKind.LAPTOP, 87, true, "Desk"),
+                BatteryEntry(BatteryKind.LAPTOP, 87, true, "Desk", 92, 38),
                 BatteryEntry(BatteryKind.HEADPHONES, 60, false, "AirPods Pro"),
             ),
-            Batteries.parse("laptop:87:1:Desk|headphones:60:0:AirPods Pro"),
+            Batteries.parse("laptop:87:1:92:38:Desk|headphones:60:0:-:-:AirPods Pro"),
         )
     }
 
     @Test
     fun emptyIsNoDevicesAndANameMayHoldColons() {
         assertEquals(emptyList<BatteryEntry>(), Batteries.parse(""))
-        assertEquals("a:b", Batteries.parse("mouse:5:0:a:b").single().name)
+        assertEquals("a:b", Batteries.parse("mouse:5:0:-:-:a:b").single().name)
     }
 
     @Test
     fun skipsMalformedEntriesClampsAndReadsUnknownKindAsOther() {
-        val parsed = Batteries.parse("junk|mouse:x:0:M|mouse:150:0:Big|kb:-5:0:K|toaster:50:0:T")
+        val parsed = Batteries.parse("junk|mouse:x:0:-:-:M|mouse:150:0:-:-:Big|kb:-5:0:-:-:K|toaster:50:0:-:-:T")
         assertEquals(listOf(100, 0, 50), parsed.map { it.level })
         assertEquals(BatteryKind.OTHER, parsed.last().kind)
     }
 
     @Test
     fun parsesAMultiByteName() {
-        assertEquals("Café", Batteries.parse("keyboard:40:0:Café").single().name)
+        assertEquals("Café", Batteries.parse("keyboard:40:0:-:-:Café").single().name)
+    }
+
+    @Test
+    fun healthAndTemperatureAreNullWhenADashOrNotANumberNeverZero() {
+        val unknown = Batteries.parse("laptop:50:0:-:-:L").single()
+        assertNull(unknown.health)
+        assertNull(unknown.temperature)
+        val half = Batteries.parse("laptop:50:0:81:-:L").single()
+        assertEquals(81, half.health)
+        assertNull(half.temperature)
+        val odd = Batteries.parse("laptop:50:0:x:y:L").single()
+        assertNull(odd.health)
+        assertNull(odd.temperature)
+        val clamped = Batteries.parse("laptop:50:0:140:-4:L").single()
+        assertEquals(100, clamped.health)
+        assertEquals(-4, clamped.temperature)
     }
 
     @Test

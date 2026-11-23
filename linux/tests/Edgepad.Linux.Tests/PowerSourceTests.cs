@@ -34,6 +34,19 @@ public sealed class PowerSourceTests
     }
 
     [Fact]
+    public void HealthAndTemperatureComeFromUPowerAndZeroIsUnknown()
+    {
+        var entries = PowerSource.Entries(
+        [
+            new UPowerDevice(2, 80, 2, "", true, true, 91.6, 36.4),
+            new UPowerDevice(5, 40, 2, "MX Master 3", true, false, 0, 0),
+        ]);
+        Assert.Equal(new BatteryEntry("laptop", 80, false, "", 92, 36), entries[0]);
+        Assert.Null(entries[1].Health);
+        Assert.Null(entries[1].Temperature);
+    }
+
+    [Fact]
     public void AbsentAndLevellessDevicesAreLeftOut()
     {
         Assert.Empty(PowerSource.Entries(
