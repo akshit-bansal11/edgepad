@@ -152,7 +152,7 @@ jobs:
           g diff "origin/$BASE_REF...HEAD" > .review/diff.patch
           g log --format='%h %s' "origin/$BASE_REF..HEAD" > .review/log.txt
           # A known-good copy of the repo's git config and hooks, restored before any later git command.
-          mkdir -p /tmp/gitsafe && cp .git/config /tmp/gitsafe/config
+          echo "GIT_CONFIG_SUM=$(sha256sum .git/config | cut -d" " -f1)" >> "$GITHUB_ENV"
           # Title, body and the owner's comments only: anyone can comment on a public PR.
           gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json title,body,comments \
             | jq -r --arg o "$OWNER" '"# " + .title + "\n\n" + (.body // "") + "\n\n## Comments by the owner\n"
@@ -192,8 +192,8 @@ jobs:
           claude_args: >-
             --max-turns 120
             --permission-mode default
-            --allowedTools "Read,Grep,Glob${{ steps.rounds.outputs.may_fix == 'true' && ',Edit,Write' || '' }}"
-            --disallowedTools "Bash,WebFetch,WebSearch,Read(//proc/**),Read(//tmp/**),Read(//etc/**),Read(//run/**),Read(//home/runner/work/_temp/**),Read(//home/runner/.*/**),Read(./.git/config),Read(**/.env*),Edit(./.git/**),Write(./.git/**),Edit(./.github/**),Write(./.github/**)"
+            --allowedTools "Read,Grep,Glob${{ steps.rounds.outputs.may_fix == 'true' && ',Edit(./**),Write(./**)' || '' }}"
+            --disallowedTools "Bash,WebFetch,WebSearch,Edit(//tmp/**),Write(//tmp/**),Edit(//home/runner/.*/**),Write(//home/runner/.*/**),Edit(//home/runner/work/_temp/**),Write(//home/runner/work/_temp/**),Read(//proc/**),Read(//tmp/**),Read(//etc/**),Read(//run/**),Read(//home/runner/work/_temp/**),Read(//home/runner/.*/**),Read(./.git/config),Read(**/.env*),Edit(./.git/**),Write(./.git/**),Edit(./.github/**),Write(./.github/**)"
             --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["pass","fail"]},"summary":{"type":"string"}},"required":["verdict","summary"]}'
 
       - name: Check and push the fixes as one round (no AI in this step)
@@ -208,8 +208,10 @@ jobs:
           ROUNDS: ${{ steps.rounds.outputs.n }}
           MAY_FIX: ${{ steps.rounds.outputs.may_fix }}
         run: |
-          # Before any git: put back the config saved before Claude ran, and run git with nothing it could hook.
-          cp /tmp/gitsafe/config .git/config
+          # Before any git: .git/config must be exactly what checkout wrote (its sum sits in GITHUB_ENV, out of
+          # Claude's reach), no global or system config is read, and git runs with nothing it could hook.
+          [ "$(sha256sum .git/config | cut -d' ' -f1)" = "$GIT_CONFIG_SUM" ] || { echo "::error::.git/config changed during the run; stopping."; exit 1; }
+          export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_ATTR_NOSYSTEM=1 HOME="$(mktemp -d)"
           g() { git -c core.hooksPath=/dev/null -c core.fsmonitor= -c diff.external= -c core.pager=cat "$@"; }
           verdict=$(printf '%s' "$OUTPUT" | jq -r '.verdict // ""')
           [ "$verdict" = pass ] || verdict=fail
