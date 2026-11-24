@@ -1,6 +1,4 @@
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/edgepad-light.svg"><img src="assets/edgepad-dark.svg" width="96" alt="Edgepad"></picture></p>
-
-<h1 align="center">Edgepad</h1>
+<h1 align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/brand/edgepad/edgepad-wordmark-dark.svg"><img src="assets/brand/edgepad/edgepad-wordmark-light.svg" width="360" alt="Edgepad"></picture></h1>
 
 <p align="center">Turn an Android phone into a trackpad, a media remote and a control panel for a Windows, Mac or Linux laptop, over a direct Bluetooth link with nothing in between.</p>
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DocsSearch } from "@/components/docs-search";
 import { HeaderMenu } from "@/components/header-menu";
+import { EdgepadLogo } from "@/components/icons/edgepad-logo";
 import { GithubMark } from "@/components/icons/github";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,7 @@ export function SiteHeader({
             href="/"
             className="flex min-h-11 items-center gap-2 rounded-lg text-xl font-black tracking-[-0.01em]"
           >
+            <EdgepadLogo className="size-7 shrink-0" />
             Edgepad
             {docs ? (
               <span className="text-dim hidden text-[0.9375rem] font-bold sm:inline">
