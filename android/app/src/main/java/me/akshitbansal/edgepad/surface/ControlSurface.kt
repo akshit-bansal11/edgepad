@@ -1424,6 +1424,8 @@ class ControlSurface(
             removeCallbacks(goDark)
             airMouse?.release()
             releaseAirButton()
+            // Focus is gone, so the key-up will not reach us either.
+            airButtonSpent = false
         }
     }
 
@@ -1432,6 +1434,8 @@ class ControlSurface(
         wake()
         airMouse?.release()
         releaseAirButton()
+        // The key-up may go to another screen, so it cannot be relied on to clear this.
+        airButtonSpent = false
         super.onDetachedFromWindow()
     }
 
