@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The opening screen (OpeningScreen): first launch and once after each update. -->
+  <string name="opening_version">Версия %1$s</string>
+  <string name="opening_github">GitHub</string>
+  <string name="opening_continue">Коснитесь в любом месте, чтобы продолжить</string>
+  <string name="opening_screen_cd">Edgepad, версия %1$s</string>
+  <string name="opening_github_cd">Edgepad на GitHub, открывается в браузере</string>
+</resources>

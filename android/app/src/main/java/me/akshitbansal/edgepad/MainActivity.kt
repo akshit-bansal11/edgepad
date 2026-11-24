@@ -29,7 +29,6 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.EditText
@@ -148,6 +147,7 @@ import me.akshitbansal.edgepad.screens.MacroScreen
 import me.akshitbansal.edgepad.screens.MacroSettingsScreen
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.NetworkScreen
+import me.akshitbansal.edgepad.screens.OpeningScreen
 import me.akshitbansal.edgepad.screens.PairCodeScreen
 import me.akshitbansal.edgepad.screens.PermissionSheet
 import me.akshitbansal.edgepad.screens.PickerScreen
@@ -232,6 +232,7 @@ class MainActivity :
     Activity(),
     LaptopConnections.Events {
     private enum class Screen {
+        OPENING,
         ONBOARDING,
         GUIDE,
         USES,
@@ -499,25 +500,8 @@ class MainActivity :
             }
         }
 
-    /** Keeps the launch screen up until its logo animation has played; one listener, removed once it lets go. */
-    private fun holdSplash() {
-        val until = SystemClock.uptimeMillis() + SPLASH_MS
-        val content = findViewById<View>(android.R.id.content)
-        content.viewTreeObserver.addOnPreDrawListener(
-            object : ViewTreeObserver.OnPreDrawListener {
-                override fun onPreDraw(): Boolean {
-                    if (SystemClock.uptimeMillis() < until) return false
-                    content.viewTreeObserver.removeOnPreDrawListener(this)
-                    return true
-                }
-            },
-        )
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Only a fresh launch shows the splash; a rotation or theme recreate has none, so holding would show a blank window.
-        if (savedInstanceState == null) holdSplash()
         settings = Settings(this)
         if (settings.seenVersion.isEmpty()) settings.seenVersion = getString(R.string.app_version)
         gamepads = GamepadStore(this)
@@ -641,6 +625,7 @@ class MainActivity :
         }
         goTo(
             when {
+                retained == null && settings.openingVersion != getString(R.string.app_version) -> Screen.OPENING
                 !settings.onboarded -> Screen.ONBOARDING
                 retained != null -> retained.screen
                 else -> Screen.PAIRING
@@ -680,7 +665,7 @@ class MainActivity :
             listApps()
             appList?.listChanged()
         }
-        if (screen != Screen.ONBOARDING && settings.reconnect) connectSaved()
+        if (!inIntro() && settings.reconnect) connectSaved()
         if (screen == Screen.RECONNECTING) handler.post(ticker)
         // A download begun by an activity a rotation replaced reports here now.
         UpdateJob.onChange = ::updateChanged
@@ -697,7 +682,7 @@ class MainActivity :
     private fun checkForUpdateIfDue() {
         val sinceCheck = System.currentTimeMillis() - settings.lastUpdateCheck
         val due = settings.autoUpdateCheck && sinceCheck >= Updates.CHECK_EVERY_MS
-        if (screen != Screen.ONBOARDING && due) checkForUpdate()
+        if (!inIntro() && due) checkForUpdate()
     }
 
     override fun onStop() {
@@ -1233,6 +1218,15 @@ class MainActivity :
         val sendKey = { code: Int, down: Boolean -> send(Frame.Key(code, down)) }
         val view: View =
             when (next) {
+                Screen.OPENING -> {
+                    OpeningScreen.build(
+                        ui,
+                        getString(R.string.app_version),
+                        onGithub = { open(GITHUB_URL) },
+                        onContinue = { finishOpening() },
+                    )
+                }
+
                 Screen.ONBOARDING -> {
                     GuideScreen.build(ui, settings, intro = true, onFinish = {
                         settings.onboarded = true
@@ -1781,6 +1775,10 @@ class MainActivity :
                 }
             }
 
+            Screen.OPENING -> {
+                finishOpening()
+            }
+
             Screen.SETTINGS -> {
                 goTo(settingsBack())
             }
@@ -2269,6 +2267,20 @@ class MainActivity :
         Updates.isNewer(settings.latestVersion, getString(R.string.app_version)) &&
             updateChoice.shouldShow(settings.latestVersion, System.currentTimeMillis())
 
+    /** Ends the opening screen: noted as shown for this version, then on to the guide on a first run or the app. */
+    private fun finishOpening() {
+        settings.openingVersion = getString(R.string.app_version)
+        if (!settings.onboarded) {
+            goTo(Screen.ONBOARDING)
+            return
+        }
+        goTo(Screen.PAIRING)
+        if (settings.reconnect) connectSaved()
+        syncService()
+        if (serviceUp) askNotifications()
+        checkForUpdateIfDue()
+    }
+
     /** The app is a different version from the one last noted; cleared on leaving Settings, see [goTo]. */
     private fun justUpdated(): Boolean = settings.seenVersion != getString(R.string.app_version)
 
@@ -2412,7 +2424,8 @@ class MainActivity :
     }
 
     /** The first run's guide, or the list of what Edgepad uses opened from it: no permission question yet. */
-    private fun inIntro(): Boolean = screen == Screen.ONBOARDING || (screen == Screen.USES && !settings.onboarded)
+    private fun inIntro(): Boolean =
+        screen == Screen.OPENING || screen == Screen.ONBOARDING || (screen == Screen.USES && !settings.onboarded)
 
     private fun refreshPicker() {
         // The guide comes first; the permission prompts wait for the list they are asked for.
@@ -3396,8 +3409,7 @@ class MainActivity :
     }
 
     private companion object {
-        /** The launch logo's animation length (res/drawable/splash_logo.xml); the splash is held this long. */
-        const val SPLASH_MS = 760L
+        const val GITHUB_URL = "https://github.com/akshit-bansal11/edgepad"
 
         /** Screens that show a secret (the PIN, a pairing code): FLAG_SECURE, and never carried. */
         val secure = setOf(Screen.PIN, Screen.PAIR_CODE)
@@ -3431,6 +3443,7 @@ class MainActivity :
         /** Pages that only read: they turn with the phone, whatever the Orientation setting says. */
         val followsPhone =
             setOf(
+                Screen.OPENING,
                 Screen.ONBOARDING,
                 Screen.GUIDE,
                 Screen.USES,

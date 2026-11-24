@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The opening screen (OpeningScreen): first launch and once after each update. -->
+  <string name="opening_version">版本 %1$s</string>
+  <string name="opening_github">GitHub</string>
+  <string name="opening_continue">点按任意位置继续</string>
+  <string name="opening_screen_cd">Edgepad，版本 %1$s</string>
+  <string name="opening_github_cd">GitHub 上的 Edgepad，在浏览器中打开</string>
+</resources>

@@ -223,6 +223,9 @@ class Settings(
     /** The version this phone last showed the "Updated to" note for; empty on a first install. */
     var seenVersion by pref({ prefs.getString(KEY_SEEN_VERSION, "").orEmpty() }) { putString(KEY_SEEN_VERSION, it) }
 
+    /** The version the opening screen was last shown for; empty before the first launch. */
+    var openingVersion by pref({ prefs.getString(KEY_OPENING, "").orEmpty() }) { putString(KEY_OPENING, it) }
+
     /** The newest release the last answer named, such as "3.2.1"; empty before any answer. */
     var latestVersion by pref({ prefs.getString(KEY_LATEST_VERSION, "").orEmpty() }) {
         putString(KEY_LATEST_VERSION, it)
@@ -667,6 +670,7 @@ class Settings(
         private const val KEY_LAST_UPDATE_CHECK = "lastUpdateCheck"
         private const val KEY_LATEST_VERSION = "latestVersion"
         private const val KEY_SEEN_VERSION = "seenVersion"
+        private const val KEY_OPENING = "openingVersion"
         private const val KEY_SENSITIVITY = "sensitivity"
         private const val KEY_AIR_SENSITIVITY = "airSensitivity"
         private const val KEY_AIR_DEAD_ZONE = "airDeadZone"
