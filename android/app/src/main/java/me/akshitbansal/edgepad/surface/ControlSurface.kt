@@ -143,6 +143,7 @@ class ControlSurface(
         if (trackpadOnly || !settings.airMouse) {
             airMouse?.release()
             airMouse = null
+            releaseAirButton()
             return null
         }
         return airMouse
@@ -158,16 +159,28 @@ class ControlSurface(
     /** True while Volume-down holds the left button for the air mouse ([airButton]). */
     private var airButtonDown = false
 
+    /** True from the key going down until it comes up, so a held key's auto-repeat cannot press a second time. */
+    private var airButtonSpent = false
+
     /**
      * Volume-down as the air mouse's left button (issue #75): the resting finger only clutches the tilt, so a
      * drag needs a button of its own. True when the key was taken, false to leave it to the system's volume.
      */
     fun airButton(down: Boolean): Boolean {
+        // A key-up always ends a held button, even if Air mouse was switched off meanwhile: never leave it stuck.
+        if (!down) airButtonSpent = false
+        if (!down && airButtonDown) {
+            releaseAirButton()
+            haptic()
+            return true
+        }
         if (air()?.works != true) return false
-        // A locked pad takes the key so the volume does not jump, but presses nothing.
-        if (down != airButtonDown && !(down && locked)) {
-            airButtonDown = down
-            send(Frame.PointerButton(TrackpadRecognizer.LEFT, down))
+        // A locked pad takes the key so the volume does not jump, but presses nothing. Auto-repeat of a key that
+        // was already let go (touch cancel) does not press again.
+        if (down && !airButtonDown && !locked && !airButtonSpent) {
+            airButtonDown = true
+            airButtonSpent = true
+            send(Frame.PointerButton(TrackpadRecognizer.LEFT, true))
             haptic()
         }
         return true
