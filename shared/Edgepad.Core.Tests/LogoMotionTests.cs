@@ -26,4 +26,34 @@ public sealed class LogoMotionTests
             Assert.Equal(1, pose.Opacity, 9);
         }
     }
+
+    [Fact]
+    public void TileStartsAtTheLogoPathAndIsClosed()
+    {
+        Assert.Equal(354.65, LogoMotion.TileStart.X, 9);
+        Assert.Equal(0, LogoMotion.TileStart.Y, 9);
+        var last = LogoMotion.TileSegments[^1];
+        Assert.Equal(6, last.Length);
+        Assert.Equal(LogoMotion.TileStart.X, last[4], 9);
+        Assert.Equal(LogoMotion.TileStart.Y, last[5], 9);
+    }
+
+    [Fact]
+    public void TileIsSymmetricAcrossBothAxes()
+    {
+        var points = new List<(double X, double Y)> { LogoMotion.TileStart };
+        foreach (var segment in LogoMotion.TileSegments)
+        {
+            for (var i = 0; i < segment.Length; i += 2)
+            {
+                points.Add((segment[i], segment[i + 1]));
+            }
+        }
+
+        foreach (var (x, y) in points)
+        {
+            Assert.Contains(points, p => Math.Abs(p.X - (LogoMotion.Canvas - x)) < 1e-9 && Math.Abs(p.Y - y) < 1e-9);
+            Assert.Contains(points, p => Math.Abs(p.X - x) < 1e-9 && Math.Abs(p.Y - (LogoMotion.Canvas - y)) < 1e-9);
+        }
+    }
 }

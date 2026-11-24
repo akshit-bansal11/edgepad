@@ -13,6 +13,15 @@ internal static class LogoMotion
     public const double ArcRadius = 288;
     public const double TotalMs = 760;
 
+    /// <summary>The tile's outline, exactly as the logo SVG's `bg` path (continuous corners): the one copy of its numbers.</summary>
+    public const string TilePath =
+        "M354.65 0H669.35C771.47 0 822.53 0 868.58 15.2C937.64 37.99 986.01 86.36 1008.8 155.42C1024 201.47 1024 252.53 1024 354.65V669.35C1024 771.47 1024 822.53 1008.8 868.58C986.01 937.64 937.64 986.01 868.58 1008.8C822.53 1024 771.47 1024 669.35 1024H354.65C252.53 1024 201.47 1024 155.42 1008.8C86.36 986.01 37.99 937.64 15.2 868.58C0 822.53 0 771.47 0 669.35V354.65C0 252.53 0 201.47 15.2 155.42C37.99 86.36 86.36 37.99 155.42 15.2C201.47 0 252.53 0 354.65 0Z";
+
+    /// <summary>The tile as a start point and segments: two numbers is a line to there, six a cubic (two controls, then the end). Closed.</summary>
+    public static readonly (double X, double Y) TileStart = (354.65, 0);
+
+    public static readonly IReadOnlyList<double[]> TileSegments = ParseTile();
+
     private const double Stagger = 60;
     private const double PartMs = 420;
     private const double FromScale = 0.55;
@@ -40,6 +49,81 @@ internal static class LogoMotion
         }
 
         return poses;
+    }
+
+    private static List<double[]> ParseTile()
+    {
+        var tokens = new List<string>();
+        var number = new System.Text.StringBuilder();
+
+        void Flush()
+        {
+            if (number.Length > 0)
+            {
+                tokens.Add(number.ToString());
+                number.Clear();
+            }
+        }
+
+        foreach (var ch in TilePath)
+        {
+            if (char.IsLetter(ch))
+            {
+                Flush();
+                tokens.Add(ch.ToString());
+            }
+            else if (ch == ' ')
+            {
+                Flush();
+            }
+            else
+            {
+                number.Append(ch);
+            }
+        }
+
+        Flush();
+        var segments = new List<double[]>();
+        double x = 0;
+        double y = 0;
+        var at = 0;
+        var command = ' ';
+
+        double Next() => double.Parse(tokens[at++], System.Globalization.CultureInfo.InvariantCulture);
+
+        while (at < tokens.Count)
+        {
+            if (char.IsLetter(tokens[at][0]))
+            {
+                command = tokens[at++][0];
+            }
+
+            switch (command)
+            {
+                case 'M':
+                    x = Next();
+                    y = Next();
+                    break;
+                case 'H':
+                    x = Next();
+                    segments.Add([x, y]);
+                    break;
+                case 'V':
+                    y = Next();
+                    segments.Add([x, y]);
+                    break;
+                case 'C':
+                    double[] curve = [Next(), Next(), Next(), Next(), Next(), Next()];
+                    x = curve[4];
+                    y = curve[5];
+                    segments.Add(curve);
+                    break;
+                default:
+                    return segments;
+            }
+        }
+
+        return segments;
     }
 
     private static double Spring(double x) => x >= 1 ? 1 : 1 - (Math.Exp(-6 * x) * Math.Cos(9 * x));

@@ -9,7 +9,6 @@ namespace Edgepad.Ui;
 /// </summary>
 internal sealed class LogoMark : Control
 {
-    private const double TileRadius = 230;
     private readonly Palette palette;
     private readonly System.Windows.Forms.Timer frames = new() { Interval = 16 };
     private long started;
@@ -59,7 +58,7 @@ internal sealed class LogoMark : Control
         var side = Math.Min(Width, Height);
         var unit = (float)(side / LogoMotion.Canvas);
 
-        using (var tile = Rounded(side, (float)(TileRadius * unit)))
+        using (var tile = Tile(unit))
         using (var fill = new SolidBrush(palette.Card))
         using (var edge = new Pen(palette.Hairline))
         {
@@ -100,14 +99,29 @@ internal sealed class LogoMark : Control
         }
     }
 
-    private static GraphicsPath Rounded(int side, float radius)
+    /// <summary>The logo's own tile outline (continuous corners), from lines and cubic Béziers, scaled by <paramref name="unit"/>.</summary>
+    private static GraphicsPath Tile(float unit)
     {
-        var d = radius * 2;
+        PointF At(double x, double y) => new((float)(x * unit), (float)(y * unit));
+
         var path = new GraphicsPath();
-        path.AddArc(0, 0, d, d, 180, 90);
-        path.AddArc(side - d - 1, 0, d, d, 270, 90);
-        path.AddArc(side - d - 1, side - d - 1, d, d, 0, 90);
-        path.AddArc(0, side - d - 1, d, d, 90, 90);
+        var at = At(LogoMotion.TileStart.X, LogoMotion.TileStart.Y);
+        foreach (var s in LogoMotion.TileSegments)
+        {
+            if (s.Length == 2)
+            {
+                var to = At(s[0], s[1]);
+                path.AddLine(at, to);
+                at = to;
+            }
+            else
+            {
+                var end = At(s[4], s[5]);
+                path.AddBezier(at, At(s[0], s[1]), At(s[2], s[3]), end);
+                at = end;
+            }
+        }
+
         path.CloseFigure();
         return path;
     }

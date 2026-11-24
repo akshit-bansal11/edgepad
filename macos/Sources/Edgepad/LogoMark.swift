@@ -5,8 +5,6 @@ import EdgepadCore
 /// (`LogoMotion`). Decorative: hidden from accessibility. The timer runs only while the pop plays, and with "Reduce
 /// motion" on the finished logo is drawn at once.
 final class LogoMark: NSView {
-    private static let tileRadius = 230.0
-    private static let arcSteps = 24
     private var ms = LogoMotion.totalMs
     private var started = 0.0
     private var timer: Timer?
@@ -59,10 +57,20 @@ final class LogoMark: NSView {
         let accent = dark ? Self.rgb(0x4DA3FF) : Self.rgb(0x0068D6)
         let side = min(bounds.width, bounds.height)
         let unit = side / LogoMotion.canvas
-        let radius = Self.tileRadius * unit
 
-        let body = NSBezierPath(
-            roundedRect: NSRect(x: 0.5, y: 0.5, width: side - 1, height: side - 1), xRadius: radius, yRadius: radius)
+        let body = NSBezierPath()
+        func tilePoint(_ x: Double, _ y: Double) -> NSPoint { NSPoint(x: x * unit, y: y * unit) }
+        body.move(to: tilePoint(LogoMotion.tileStart.x, LogoMotion.tileStart.y))
+        for segment in LogoMotion.tileSegments {
+            if segment.count == 2 {
+                body.line(to: tilePoint(segment[0], segment[1]))
+            } else {
+                body.curve(
+                    to: tilePoint(segment[4], segment[5]), controlPoint1: tilePoint(segment[0], segment[1]),
+                    controlPoint2: tilePoint(segment[2], segment[3]))
+            }
+        }
+        body.close()
         tile.setFill()
         body.fill()
         ink.withAlphaComponent(0.12).setStroke()
@@ -82,10 +90,10 @@ final class LogoMark: NSView {
                     y: (LogoMotion.pivot + reach * pose.scale * sin(radians)) * unit)
             }
             if stroke.isArc {
-                path.move(to: point(stroke.outer, 180))
-                for n in 1...Self.arcSteps {
-                    path.line(to: point(stroke.outer, 180 + 90 * Double(n) / Double(Self.arcSteps)))
-                }
+                // Raw angles run 180 to 270, y down: the quarter that bulges away from the pivot, up and left.
+                path.appendArc(
+                    withCenter: NSPoint(x: LogoMotion.pivot * unit, y: LogoMotion.pivot * unit),
+                    radius: stroke.outer * pose.scale * unit, startAngle: 180, endAngle: 270, clockwise: false)
             } else {
                 path.move(to: point(stroke.inner, stroke.angle))
                 path.line(to: point(stroke.outer, stroke.angle))

@@ -13,7 +13,6 @@ namespace Edgepad.Ui;
 /// </summary>
 internal sealed class LogoMark : Control
 {
-    private const double TileRadius = 230;
     private readonly Look look = Look.Current;
     private readonly DispatcherTimer frames = new() { Interval = TimeSpan.FromMilliseconds(16) };
     private long started;
@@ -59,12 +58,35 @@ internal sealed class LogoMark : Control
         InvalidateVisual();
     }
 
+    /// <summary>The logo's own tile outline (continuous corners), from lines and cubic Béziers, scaled by <paramref name="unit"/>.</summary>
+    private static StreamGeometry Tile(double unit)
+    {
+        Point At(double x, double y) => new(x * unit, y * unit);
+
+        var tile = new StreamGeometry();
+        using var g = tile.Open();
+        g.BeginFigure(At(LogoMotion.TileStart.X, LogoMotion.TileStart.Y), true);
+        foreach (var s in LogoMotion.TileSegments)
+        {
+            if (s.Length == 2)
+            {
+                g.LineTo(At(s[0], s[1]));
+            }
+            else
+            {
+                g.CubicBezierTo(At(s[0], s[1]), At(s[2], s[3]), At(s[4], s[5]));
+            }
+        }
+
+        g.EndFigure(true);
+        return tile;
+    }
+
     public override void Render(DrawingContext context)
     {
         var side = Math.Min(Bounds.Width, Bounds.Height);
         var unit = side / LogoMotion.Canvas;
-        var radius = TileRadius * unit;
-        context.DrawRectangle(look.Card, new Pen(look.Line), new Rect(0.5, 0.5, side - 1, side - 1), radius, radius);
+        context.DrawGeometry(look.Card, new Pen(look.Line), Tile(unit));
 
         var poses = LogoMotion.Frame(ms);
         for (var i = 0; i < poses.Length; i++)
