@@ -1284,9 +1284,18 @@ class ControlSurface(
                 // Phone-local: nothing crosses the link. The lock button's own live region carries it,
                 // because a surface that rearranges itself under a finger is otherwise silent.
                 when (target.mode) {
-                    PadMode.FOCUS -> dialsHidden = true
-                    PadMode.PAD_LOCKED -> locked = true
-                    PadMode.NORMAL -> Unit
+                    PadMode.FOCUS -> {
+                        dialsHidden = true
+                    }
+
+                    PadMode.PAD_LOCKED -> {
+                        locked = true
+                        releaseAirButton()
+                    }
+
+                    PadMode.NORMAL -> {
+                        Unit
+                    }
                 }
                 enterMode()
             }
