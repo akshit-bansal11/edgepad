@@ -516,7 +516,8 @@ class MainActivity :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        holdSplash()
+        // Only a fresh launch shows the splash; a rotation or theme recreate has none, so holding would show a blank window.
+        if (savedInstanceState == null) holdSplash()
         settings = Settings(this)
         if (settings.seenVersion.isEmpty()) settings.seenVersion = getString(R.string.app_version)
         gamepads = GamepadStore(this)
