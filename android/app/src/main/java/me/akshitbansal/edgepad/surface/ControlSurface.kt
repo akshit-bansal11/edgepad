@@ -155,6 +155,31 @@ class ControlSurface(
             ).also { airMouse = it }
     }
 
+    /** True while Volume-down holds the left button for the air mouse ([airButton]). */
+    private var airButtonDown = false
+
+    /**
+     * Volume-down as the air mouse's left button (issue #75): the resting finger only clutches the tilt, so a
+     * drag needs a button of its own. True when the key was taken, false to leave it to the system's volume.
+     */
+    fun airButton(down: Boolean): Boolean {
+        if (air()?.works != true) return false
+        // A locked pad takes the key so the volume does not jump, but presses nothing.
+        if (down != airButtonDown && !(down && locked)) {
+            airButtonDown = down
+            send(Frame.PointerButton(TrackpadRecognizer.LEFT, down))
+            haptic()
+        }
+        return true
+    }
+
+    /** Lets go of a Volume-down drag the key will not end itself: focus or the screen went away first. */
+    private fun releaseAirButton() {
+        if (!airButtonDown) return
+        airButtonDown = false
+        send(Frame.PointerButton(TrackpadRecognizer.LEFT, false))
+    }
+
     private val showHints = settings.hints && !trackpadOnly
     private val hintFade = HintFade(settings.hintsSeen) { settings.hintsSeen = it }
 
@@ -1316,6 +1341,7 @@ class ControlSurface(
         drawingShape = false
         holdTicked = false
         removeCallbacks(holdDue)
+        releaseAirButton()
         trackpad.handle(TrackpadRecognizer.Action.CANCEL, touchXs, touchYs, time, count = 0)
     }
 
@@ -1384,6 +1410,7 @@ class ControlSurface(
         } else {
             removeCallbacks(goDark)
             airMouse?.release()
+            releaseAirButton()
         }
     }
 
@@ -1391,6 +1418,7 @@ class ControlSurface(
         widgets.detach()
         wake()
         airMouse?.release()
+        releaseAirButton()
         super.onDetachedFromWindow()
     }
 

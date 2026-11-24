@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="controls_air_mouse">Air mouse</string>
-  <string name="air_how">Rest a thumb on the trackpad, then turn the phone left or right and tilt it up or down. While this is on, holding a finger does not drag.</string>
+  <string name="air_how">Rest a thumb on the trackpad, then turn the phone left or right and tilt it up or down. While this is on, holding a finger does not drag: to drag, hold Volume-down while you tilt, and let go to drop.</string>
   <string name="air_caption">Tilt the phone to move the pointer while a finger rests on the trackpad. The motion sensor is read only then.</string>
   <string name="air_sensitivity">Sensitivity</string>
   <string name="air_dead_zone">Dead zone</string>

@@ -144,7 +144,7 @@ The phone shows a card with the file name, "2 of 5", a progress bar with percent
 
 #### Air mouse and Floating dials
 
-**Controls › Air mouse**: tilt the phone to move the pointer while a finger rests on the trackpad. It works in any grip (flat, held like a remote, or upright) and stops the moment the finger lifts. The gyroscope is read only then. While it is on, a held finger does not drag; taps still click.
+**Controls › Air mouse**: tilt the phone to move the pointer while a finger rests on the trackpad. It works in any grip (flat, held like a remote, or upright) and stops the moment the finger lifts. The gyroscope is read only then. While it is on, a held finger does not drag; taps still click. To drag a window, file or icon, hold **Volume-down** while you tilt, and let go of the key to drop. Volume-down only does this on the trackpad with Air mouse on.
 
 **Controls › Floating dials** shows the dials over other apps. It asks for Android's "draw over other apps" permission and needs a connected laptop and **Stay connected**.
 
