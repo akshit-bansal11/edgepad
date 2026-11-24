@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="controls_air_mouse">Mouse aereo</string>
-  <string name="air_how">Appoggia un pollice sul touchpad, poi ruota il telefono a sinistra o a destra e inclinalo in alto o in basso. Finché è attivo, tenere premuto un dito non trascina.</string>
+  <string name="air_how">Appoggia un pollice sul touchpad per puntare: ruota il telefono a sinistra o a destra e inclinalo in alto o in basso. Per trascinare, tieni premuto Sinistro o Destro e inclina. Solleva il pollice per rilasciare.</string>
+  <string name="air_left">Sinistro</string>
+  <string name="air_right">Destro</string>
+  <string name="air_pill">Mouse aereo · Disattivato</string>
+  <string name="air_left_desc">Tieni premuto per trascinare con il tasto sinistro</string>
+  <string name="air_right_desc">Tieni premuto per trascinare con il tasto destro</string>
   <string name="air_caption">Inclina il telefono per muovere il puntatore mentre un dito è sul trackpad. Il sensore di movimento viene letto solo allora.</string>
   <string name="air_sensitivity">Sensibilità</string>
   <string name="air_dead_zone">Zona morta</string>

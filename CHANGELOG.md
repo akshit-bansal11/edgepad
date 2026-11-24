@@ -4,6 +4,15 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [5.1.0] - 2026-11-24
+
+No wire-protocol change: the protocol stays at version 6, so a 5.1.0 half works with a 5.0.x half.
+
+### Added
+
+- **Phone: drag with the air mouse, with one thumb** (issue #75). With Air mouse on, the trackpad screen shows only the pad, a small "Air mouse · Off" pill at the top, and two drag buttons, **Left** and **Right**. Hold a button and tilt to drag a window, file or icon; lift your thumb to drop. Upright, the two buttons sit side by side along the bottom edge. Sideways, they are a strip down the right edge. A finger resting elsewhere on the pad still only aims, and taps still click. The button is also let go when the app loses focus, the screen changes, the touch is cancelled or the pad is locked.
+- **Phone: Air mouse hides the rest of the surface.** The corner dials, the top row, the media block and the widgets step aside while it is on. Tap the pill to turn Air mouse off and bring them back.
+
 ## [5.0.1] - 2026-11-24
 
 No wire-protocol change: the protocol stays at version 6, so a 5.0.1 half works with a 5.0.0 half.
@@ -1088,7 +1097,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v5.0.1...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v5.1.0...HEAD
+[5.1.0]: https://github.com/akshit-bansal11/edgepad/compare/v5.0.1...v5.1.0
 [5.0.1]: https://github.com/akshit-bansal11/edgepad/compare/v5.0.0...v5.0.1
 [5.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v4.2.1...v5.0.0
 [4.2.1]: https://github.com/akshit-bansal11/edgepad/compare/v4.2.0...v4.2.1

@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="controls_air_mouse">الماوس الهوائي</string>
-  <string name="air_how">ضع إبهامك على لوحة اللمس، ثم أدر الهاتف يمينًا أو يسارًا وأمِله لأعلى أو لأسفل. أثناء تشغيل هذا الخيار، لا يؤدي تثبيت الإصبع إلى السحب.</string>
+  <string name="air_how">ضع إبهامك على لوحة اللمس للتصويب، ثم أدر الهاتف يمينًا أو يسارًا وأمِله لأعلى أو لأسفل. للسحب، اضغط مع الاستمرار على يسار أو يمين ثم أمِل الهاتف. ارفع إبهامك للإفلات.</string>
+  <string name="air_left">يسار</string>
+  <string name="air_right">يمين</string>
+  <string name="air_pill">الماوس الهوائي · متوقف</string>
+  <string name="air_left_desc">اضغط مع الاستمرار للسحب بالزر الأيسر</string>
+  <string name="air_right_desc">اضغط مع الاستمرار للسحب بالزر الأيمن</string>
   <string name="air_caption">أمِل الهاتف لتحريك المؤشر أثناء وضع إصبع على لوحة اللمس. يُقرأ حساس الحركة حينها فقط.</string>
   <string name="air_sensitivity">الحساسية</string>
   <string name="air_dead_zone">المنطقة الميتة</string>

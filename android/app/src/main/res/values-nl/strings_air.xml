@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="controls_air_mouse">Luchtmuis</string>
-  <string name="air_how">Leg een duim op het touchpad en draai de telefoon naar links of rechts en kantel hem omhoog of omlaag. Zolang dit aan staat, sleept een vastgehouden vinger niet.</string>
+  <string name="air_how">Leg een duim op het touchpad om te richten: draai de telefoon naar links of rechts en kantel hem omhoog of omlaag. Om te slepen houd je Links of Rechts ingedrukt en kantel je. Til je duim op om los te laten.</string>
+  <string name="air_left">Links</string>
+  <string name="air_right">Rechts</string>
+  <string name="air_pill">Luchtmuis · Uit</string>
+  <string name="air_left_desc">Ingedrukt houden om te slepen met de linkerknop</string>
+  <string name="air_right_desc">Ingedrukt houden om te slepen met de rechterknop</string>
   <string name="air_caption">Kantel de telefoon om de aanwijzer te bewegen terwijl een vinger op het trackpad rust. De bewegingssensor wordt alleen dan gelezen.</string>
   <string name="air_sensitivity">Gevoeligheid</string>
   <string name="air_dead_zone">Dode zone</string>
