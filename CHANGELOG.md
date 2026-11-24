@@ -1088,7 +1088,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v5.0.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v5.0.1...HEAD
+[5.0.1]: https://github.com/akshit-bansal11/edgepad/compare/v5.0.0...v5.0.1
 [5.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v4.2.1...v5.0.0
 [4.2.1]: https://github.com/akshit-bansal11/edgepad/compare/v4.2.0...v4.2.1
 [4.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v4.1.0...v4.2.0
