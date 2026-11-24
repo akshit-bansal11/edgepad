@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="controls_air_mouse">Mysz powietrzna</string>
-  <string name="air_how">Połóż kciuk na touchpadzie, a potem obracaj telefon w lewo lub w prawo i przechylaj go w górę lub w dół. Gdy to jest włączone, przytrzymanie palca nie przeciąga.</string>
+  <string name="air_how">Połóż kciuk na touchpadzie, aby celować: obracaj telefon w lewo lub w prawo i przechylaj go w górę lub w dół. Aby przeciągnąć, przytrzymaj Lewy lub Prawy i przechyl. Unieś kciuk, aby upuścić.</string>
+  <string name="air_left">Lewy</string>
+  <string name="air_right">Prawy</string>
+  <string name="air_pill">Mysz powietrzna · Wyłączona</string>
+  <string name="air_left_desc">Przytrzymaj, aby przeciągać lewym przyciskiem</string>
+  <string name="air_right_desc">Przytrzymaj, aby przeciągać prawym przyciskiem</string>
   <string name="air_caption">Przechyl telefon, by ruszać wskaźnikiem, gdy palec spoczywa na gładziku. Czujnik ruchu jest wtedy odczytywany.</string>
   <string name="air_sensitivity">Czułość</string>
   <string name="air_dead_zone">Strefa martwa</string>

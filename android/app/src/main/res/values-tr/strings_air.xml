@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="controls_air_mouse">Hava faresi</string>
-  <string name="air_how">Başparmağınızı dokunmatik yüzeye koyun, sonra telefonu sola veya sağa çevirip yukarı veya aşağı eğin. Bu açıkken parmağı basılı tutmak sürüklemez.</string>
+  <string name="air_how">Nişan almak için başparmağınızı dokunmatik yüzeye koyun: telefonu sola veya sağa çevirip yukarı veya aşağı eğin. Sürüklemek için Sol veya Sağ tuşunu basılı tutup eğin. Bırakmak için parmağınızı kaldırın.</string>
+  <string name="air_left">Sol</string>
+  <string name="air_right">Sağ</string>
+  <string name="air_pill">Hava faresi · Kapalı</string>
+  <string name="air_left_desc">Sol tuşla sürüklemek için basılı tutun</string>
+  <string name="air_right_desc">Sağ tuşla sürüklemek için basılı tutun</string>
   <string name="air_caption">Parmağınız dokunmatik yüzeydeyken imleci hareket ettirmek için telefonu eğin. Hareket sensörü yalnızca o zaman okunur.</string>
   <string name="air_sensitivity">Hassasiyet</string>
   <string name="air_dead_zone">Ölü bölge</string>
