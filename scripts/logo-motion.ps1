@@ -81,7 +81,8 @@ foreach ($kind in 'pop', 'dial') {
   $total = $ANIM[$kind]
   $n = [int][math]::Ceiling($total / 1000 * $Fps)
   $samples = for ($i = 0; $i -le $n; $i++) { , (Frame $kind ([math]::Min($total, $i * 1000.0 / $Fps))) }
-  $keyTimes = (0..$n | ForEach-Object { N ($_ / $n) }) -join ';'
+  # Five decimals: at 2 the dial's 160 samples (6 ms apart) collapse onto duplicate key times and the timing jitters.
+  $keyTimes = (0..$n | ForEach-Object { ([math]::Round($_ / $n, 5)).ToString('0.#####', $inv) }) -join ';'
   foreach ($theme in 'light', 'dark') {
     $col = $C[$theme]
     $dur = "$(N ($total / 1000))s"
