@@ -4,6 +4,19 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [5.0.1] - 2026-11-24
+
+No wire-protocol change: the protocol stays at version 6, so a 5.0.1 half works with a 5.0.0 half.
+
+### Changed
+
+- **A rebuilt logo on every app.** The mark is drawn from computed geometry: it spans exactly 90 degrees, its five ticks sit 22.5 degrees apart and are all the same width, the centre tick is 20% longer than the four around it, and the arc is a true quarter circle. It is on the phone's launcher icon (themed icons included) and its own screens, the Windows exe and tray icons, the Mac app and menu-bar icons, and the Linux app and tray icons. One script, `scripts/logo.ps1`, writes every copy.
+- **Website and README:** the README opens with the new wordmark, the website header shows the logo beside the name, and the favicon, touch icon and link previews use the new logo. The README, the user guide and the website now describe 5.0.
+
+### Fixed
+
+- **Mac: the menu-bar icon's arc bulged the wrong way,** about the wrong centre. It now curves round the dial's pivot, as in the app icon.
+
 ## [5.0.0] - 2026-11-23
 
 Wire protocol 6. A 5.0 phone and a 4.x laptop (or the reverse) refuse each other at the handshake and say which side needs updating, so install the phone and the laptop from the same release. Windows needs nothing new installed or allowed. It has been tested on the owner's phone and Windows laptop through drafts 83 to 87. The Mac and Linux apps have passed CI only and have not been tried on a device.
@@ -1075,7 +1088,8 @@ Superseded by 0.4.0 before it was tagged; its fixes are listed there.
 - The laptop's action layer: a dispatcher for every frame, input injection that releases held keys when a session ends, Core Audio volume and microphone, WMI brightness, trust on first use, start with Windows.
 - CI for both apps and a tag-triggered release with a signed APK and a self-contained exe.
 
-[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v5.0.0...HEAD
+[Unreleased]: https://github.com/akshit-bansal11/edgepad/compare/v5.0.1...HEAD
+[5.0.1]: https://github.com/akshit-bansal11/edgepad/compare/v5.0.0...v5.0.1
 [5.0.0]: https://github.com/akshit-bansal11/edgepad/compare/v4.2.1...v5.0.0
 [4.2.1]: https://github.com/akshit-bansal11/edgepad/compare/v4.2.0...v4.2.1
 [4.2.0]: https://github.com/akshit-bansal11/edgepad/compare/v4.1.0...v4.2.0
