@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The launch-screen logo is wired into the theme in a later commit on this branch; until then lint's
+     UnusedResources (warnings are errors) would fail on it. Remove this file once the theme names it. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@drawable/splash_logo" />
