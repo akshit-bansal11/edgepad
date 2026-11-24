@@ -49,6 +49,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         styleMask: [.titled, .closable, .nonactivatingPanel], backing: .buffered,
         defer: false)
     private let phone: String
+    private let logo = LogoMark(size: 64)
     private let ask = NSTextField(
         wrappingLabelWithString: tr("Pair_Ask", "Type the pairing code shown on the phone:"))
     private let code = NSTextField(frame: NSRect(x: 0, y: 0, width: 160, height: 32))
@@ -100,7 +101,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         pair.isEnabled = false
         let buttons = NSStackView(views: [cancel, pair])
         buttons.spacing = 12
-        let stack = NSStackView(views: [title, from, warning, ask, code, countdown, buttons])
+        let stack = NSStackView(views: [logo, title, from, warning, ask, code, countdown, buttons])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 10
@@ -120,6 +121,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
         // Not activated and not key: typing meant for another app must not land in the code box. The owner clicks
         // the box, and the Dock icon bounces to say a question waits.
         reveal(from: origin)
+        logo.play()
         NSApp.requestUserAttention(.criticalRequest)
         Announce.say(
             tr("Pair_Announce", "Pair %1$@? Closes in %2$@ s.", phone, "\(Int(LinkResponder.ownerTimeoutSeconds))"))
@@ -237,6 +239,7 @@ private final class PairingWindow: NSObject, NSWindowDelegate, NSTextFieldDelega
 
     /// Cancel, the close box and Escape are all the owner saying no, unless an answer was already given.
     func windowWillClose(_ notification: Notification) {
+        logo.stop()
         stopTicking()
         if !answered {
             answered = true

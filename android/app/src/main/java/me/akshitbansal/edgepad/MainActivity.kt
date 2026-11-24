@@ -29,6 +29,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.EditText
@@ -498,8 +499,24 @@ class MainActivity :
             }
         }
 
+    /** Keeps the launch screen up until its logo animation has played; one listener, removed once it lets go. */
+    private fun holdSplash() {
+        val until = SystemClock.uptimeMillis() + SPLASH_MS
+        val content = findViewById<View>(android.R.id.content)
+        content.viewTreeObserver.addOnPreDrawListener(
+            object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    if (SystemClock.uptimeMillis() < until) return false
+                    content.viewTreeObserver.removeOnPreDrawListener(this)
+                    return true
+                }
+            },
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        holdSplash()
         settings = Settings(this)
         if (settings.seenVersion.isEmpty()) settings.seenVersion = getString(R.string.app_version)
         gamepads = GamepadStore(this)
@@ -3378,6 +3395,9 @@ class MainActivity :
     }
 
     private companion object {
+        /** The launch logo's animation length (res/drawable/splash_logo.xml); the splash is held this long. */
+        const val SPLASH_MS = 760L
+
         /** Screens that show a secret (the PIN, a pairing code): FLAG_SECURE, and never carried. */
         val secure = setOf(Screen.PIN, Screen.PAIR_CODE)
 

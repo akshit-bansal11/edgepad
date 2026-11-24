@@ -104,12 +104,14 @@ internal sealed class PairingWindow : Form
     private const int DialogWidth = 400;
     private const int Pad = 24;
     private const int Box = 36;
+    private const int LogoSize = 64;
 
     private readonly Palette palette = Palette.Current;
     private readonly long deadline;
     private readonly Action<string> onTyped;
     private readonly Action onOwnerCancelled;
 
+    private readonly LogoMark logo;
     private readonly Label heading = new() { AutoSize = false };
     private readonly Label origin = new() { AutoSize = false };
     private readonly Label ask = new() { AutoSize = false, Text = Strings.Pair_Ask };
@@ -159,6 +161,7 @@ internal sealed class PairingWindow : Form
         AutoScaleMode = AutoScaleMode.None;
         BackColor = palette.Card;
 
+        logo = new LogoMark(palette);
         code = new CodeBoxes(palette);
         cancel = new FlatButton(Strings.Common_Cancel, ButtonKind.Outline, palette);
         pair = new FlatButton(Strings.Pair_Button, ButtonKind.Primary, palette) { Enabled = false };
@@ -172,7 +175,7 @@ internal sealed class PairingWindow : Form
         // Enter only does anything once six digits are in, since Pair is disabled until then.
         AcceptButton = pair;
         CancelButton = cancel;
-        Controls.AddRange([heading, origin, ask, code, glyph, countdown, warn, pair, cancel]);
+        Controls.AddRange([logo, heading, origin, ask, code, glyph, countdown, warn, pair, cancel]);
         Count();
         tick.Start();
         Relayout();
@@ -272,6 +275,7 @@ internal sealed class PairingWindow : Form
         base.OnShown(e);
         code.Focus();
         Reveal.Window(this);
+        logo.Play();
     }
 
     protected override void OnDpiChanged(DpiChangedEventArgs e)
@@ -357,7 +361,10 @@ internal sealed class PairingWindow : Form
             y += height + gap;
         }
 
-        // Top to bottom: who, from where, what to do, the boxes, how it is going, the warning, the buttons.
+        logo.SetBounds(left, y, S(LogoSize), S(LogoSize));
+        y += S(LogoSize + 12);
+
+        // Top to bottom: the logo, who, from where, what to do, the boxes, how it is going, the warning, the buttons.
         Put(heading, 20f, Weight.Bold, palette.Ink, S(4));
         if (origin.Text.Length > 0)
         {
