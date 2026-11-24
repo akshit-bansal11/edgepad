@@ -10,7 +10,8 @@ No wire-protocol change: the protocol stays at version 6, so a 5.1.0 half works 
 
 ### Added
 
-- **Phone: drag with the air mouse** (issue #75). With Air mouse on, hold **Volume-down** on the trackpad screen to hold the left button, tilt to drag a window, file or icon, and let go of the key to drop. The button is also let go when the app loses focus, the screen changes or the pad is locked. Volume-down still changes the volume everywhere else, and always when Air mouse is off.
+- **Phone: drag with the air mouse, with one thumb** (issue #75). With Air mouse on, the trackpad screen shows only the pad, a small "Air mouse · Off" pill at the top, and two drag buttons, **Left** and **Right**. Hold a button and tilt to drag a window, file or icon; lift your thumb to drop. Upright, the two buttons sit side by side along the bottom edge. Sideways, they are a strip down the right edge. A finger resting elsewhere on the pad still only aims, and taps still click. The button is also let go when the app loses focus, the screen changes, the touch is cancelled or the pad is locked.
+- **Phone: Air mouse hides the rest of the surface.** The corner dials, the top row, the media block and the widgets step aside while it is on. Tap the pill to turn Air mouse off and bring them back.
 
 ## [5.0.1] - 2026-11-24
 

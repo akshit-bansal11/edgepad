@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="controls_air_mouse">空中鼠标</string>
-  <string name="air_how">把拇指放在触控板上，然后左右转动、上下倾斜手机。开启时，按住手指不会拖动。 要拖动，请在倾斜时按住音量减键，松开即可放下。</string>
+  <string name="air_how">把拇指放在触控板上瞄准：左右转动、上下倾斜手机。要拖动，请按住“左键”或“右键”并倾斜。抬起拇指即可放下。</string>
+  <string name="air_left">左键</string>
+  <string name="air_right">右键</string>
+  <string name="air_pill">空中鼠标 · 关</string>
+  <string name="air_left_desc">按住以用左键拖动</string>
+  <string name="air_right_desc">按住以用右键拖动</string>
   <string name="air_caption">手指放在触控板上时,倾斜手机即可移动指针。仅在此时读取运动传感器。</string>
   <string name="air_sensitivity">灵敏度</string>
   <string name="air_dead_zone">死区</string>

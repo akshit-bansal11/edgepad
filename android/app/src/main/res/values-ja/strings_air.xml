@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="controls_air_mouse">エアマウス</string>
-  <string name="air_how">トラックパッドに親指を置いたまま、スマホを左右に回し、上下に傾けます。オンの間は、指を置いたままにしてもドラッグしません。 ドラッグするには、傾けながら音量ダウンボタンを押し続け、離すとドロップします。</string>
+  <string name="air_how">トラックパッドに親指を置いて狙います。スマホを左右に回し、上下に傾けてください。ドラッグするには、左または右を押したまま傾けます。親指を離すと放します。</string>
+  <string name="air_left">左</string>
+  <string name="air_right">右</string>
+  <string name="air_pill">エアマウス · オフ</string>
+  <string name="air_left_desc">押したまま左ボタンでドラッグ</string>
+  <string name="air_right_desc">押したまま右ボタンでドラッグ</string>
   <string name="air_caption">トラックパッドに指を置いている間、スマホを傾けるとポインターが動きます。モーションセンサーはそのときだけ読み取ります。</string>
   <string name="air_sensitivity">感度</string>
   <string name="air_dead_zone">不感帯</string>

@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.surface
 
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.Context
 import android.graphics.Canvas
@@ -23,6 +24,7 @@ import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Toast
+import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
@@ -143,7 +145,7 @@ class ControlSurface(
         if (trackpadOnly || !settings.airMouse) {
             airMouse?.release()
             airMouse = null
-            releaseAirButton()
+            releaseDrag()
             return null
         }
         return airMouse
@@ -156,41 +158,73 @@ class ControlSurface(
             ).also { airMouse = it }
     }
 
-    /** True while Volume-down holds the left button for the air mouse ([airButton]). */
-    private var airButtonDown = false
-
-    /** True from the key going down until it comes up, so a held key's auto-repeat cannot press a second time. */
-    private var airButtonSpent = false
-
     /**
-     * Volume-down as the air mouse's left button (issue #75): the resting finger only clutches the tilt, so a
-     * drag needs a button of its own. True when the key was taken, false to leave it to the system's volume.
+     * Air mouse is on and this phone has a gyroscope (issue #75): the surface shows only the pad, the pill and
+     * the two drag buttons. Decided once when the surface is built; the pill ([airOff]) is the only thing that
+     * changes it while the surface is up, because the setting itself lives on another screen.
      */
-    fun airButton(down: Boolean): Boolean {
-        // A key-up always ends a held button, even if Air mouse was switched off meanwhile: never leave it stuck.
-        if (!down) airButtonSpent = false
-        if (!down && airButtonDown) {
-            releaseAirButton()
-            haptic()
-            return true
+    private var airMode = false
+
+    /** What Hide dials was set to by the user, so turning Air mouse off puts it back as it was. */
+    private var userHidden = false
+
+    /** The mouse button the finger on a drag button holds down (TrackpadRecognizer.LEFT or RIGHT), or -1. */
+    private var dragSide = -1
+    private var pressedPill = false
+
+    /** How much of the dials, top row and media shows: easing from 0 to 1 when Air mouse ends. */
+    private var chromeAlpha = 1f
+    private val chromeFade =
+        ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = Motion.REVEAL
+            addUpdateListener {
+                chromeAlpha = it.animatedFraction
+                invalidate()
+            }
         }
-        if (air()?.works != true) return false
-        // A locked pad takes the key so the volume does not jump, but presses nothing. Auto-repeat of a key that
-        // was already let go (touch cancel) does not press again.
-        if (down && !airButtonDown && !locked && !airButtonSpent) {
-            airButtonDown = true
-            airButtonSpent = true
-            send(Frame.PointerButton(TrackpadRecognizer.LEFT, true))
-            haptic()
-        }
-        return true
+    private val pillHit = RectF()
+    private val leftHit = RectF()
+    private val rightHit = RectF()
+    private val leftText = context.getString(R.string.air_left)
+    private val rightText = context.getString(R.string.air_right)
+    private val leftDescription = context.getString(R.string.air_left_desc)
+    private val rightDescription = context.getString(R.string.air_right_desc)
+    private var pillLine = ""
+    private var pillHalfWidth = 0f
+    private var pillMiddle = 0f
+
+    /** A finger went down on a drag button: that mouse button is held and the tilt moves the pointer (#75). */
+    private fun pressDrag(side: Int) {
+        dragSide = side
+        send(Frame.PointerButton(side, true))
+        haptic()
+        air()?.clutchDown()
     }
 
-    /** Lets go of a Volume-down drag the key will not end itself: focus or the screen went away first. */
-    private fun releaseAirButton() {
-        if (!airButtonDown) return
-        airButtonDown = false
-        send(Frame.PointerButton(TrackpadRecognizer.LEFT, false))
+    /** Lets go of a held drag button: the finger lifted, or something took the touch away first. */
+    private fun releaseDrag() {
+        if (dragSide < 0) return
+        send(Frame.PointerButton(dragSide, false))
+        dragSide = -1
+    }
+
+    /** The pill's tap, by finger or accessibility action: Air mouse goes off and the whole surface comes back. */
+    private fun airOff() {
+        if (!airMode) return
+        settings.airMouse = false
+        // The setting is off now, so this lets go of the sensors and any held button.
+        air()
+        airMode = false
+        dialsHidden = userHidden
+        enterMode()
+        cancelTouches(SystemClock.uptimeMillis())
+        if (ValueAnimator.areAnimatorsEnabled()) {
+            chromeAlpha = 0f
+            chromeFade.start()
+        } else {
+            chromeAlpha = 1f
+        }
+        invalidate()
     }
 
     private val showHints = settings.hints && !trackpadOnly
@@ -429,6 +463,9 @@ class ControlSurface(
         }
     private val captionTint = SurfacePainter.withAlpha(accent, CAPTION_TINT_ALPHA)
 
+    // The two drag buttons' label, in the ink while at rest and the accent's own contrast colour while held.
+    private val dragPaint = TextPaint(captionPaint).apply { color = ink }
+
     // Low is the theme's red even under a control colour the user chose, so it is never tinted through it.
     private val strip = BatteryStrip(context, ink, accent, dim, palette.danger)
 
@@ -476,6 +513,12 @@ class ControlSurface(
         // the screen reader reads it. Nothing else on this view ever changes it, so nothing else speaks.
         accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
         if (!trackpadOnly) strip.refresh(BatteryModel.chips(batteries.groups()))
+        // Air mouse hides the dials through the same switch as Hide dials, so every gate on it already holds.
+        airMode = air()?.works == true
+        if (airMode) {
+            dialsHidden = true
+            chromeAlpha = 0f
+        }
         stateDescription = modeLabel()
         applyState()
         widgets.update(state)
@@ -577,6 +620,45 @@ class ControlSurface(
         rebuildText()
         // The caption is cut to the width it has to fit in, so a new width is a new cut.
         rebuildCaption()
+        layoutAir(w.toFloat(), h.toFloat())
+    }
+
+    /**
+     * The pill and the two drag buttons. Upright, the buttons sit side by side along the bottom edge, about
+     * 40% of the width each; sideways, they are a strip down the right edge with Left the taller. All of it is
+     * made here so drawing allocates nothing.
+     */
+    private fun layoutAir(
+        w: Float,
+        h: Float,
+    ) {
+        pillLine =
+            TextUtils
+                .ellipsize(
+                    context.getString(R.string.air_pill),
+                    captionPaint,
+                    w - 2 * dp(Space.L + CAPTION_PAD_X_DP),
+                    TextUtils.TruncateAt.END,
+                ).toString()
+        pillHalfWidth = captionPaint.measureText(pillLine) / 2 + dp(CAPTION_PAD_X_DP)
+        pillMiddle = topShift + dp(PILL_MIDDLE_DP)
+        val reach = maxOf(pillHalfWidth, dp(Space.TOUCH) / 2)
+        pillHit.set(w / 2 - reach, pillMiddle - dp(Space.TOUCH) / 2, w / 2 + reach, pillMiddle + dp(Space.TOUCH) / 2)
+        if (w > h) {
+            val right = w - dp(DRAG_EDGE_DP)
+            val left = right - dp(DRAG_WIDE_DP)
+            val top = h * DRAG_TOP_SHARE
+            val room = h * (1 - 2 * DRAG_TOP_SHARE) - dp(Space.M)
+            leftHit.set(left, top, right, top + room * DRAG_LEFT_SHARE)
+            rightHit.set(left, leftHit.bottom + dp(Space.M), right, top + room + dp(Space.M))
+        } else {
+            val bottom = h - dp(DRAG_BOTTOM_DP)
+            val top = bottom - dp(DRAG_HEIGHT_DP)
+            val edge = w * DRAG_SIDE_SHARE
+            val each = w * DRAG_WIDTH_SHARE
+            leftHit.set(edge, top, edge + each, bottom)
+            rightHit.set(w - edge - each, top, w - edge, bottom)
+        }
     }
 
     /**
@@ -764,6 +846,9 @@ class ControlSurface(
             return
         }
         backdrop.draw(canvas)
+        // Easing back in after Air mouse: one layer for everything that was hidden, made only while it fades.
+        val fading = chromeAlpha < 1f && !airMode
+        if (fading) fadeLayer(canvas)
         // Behind everything else, and gone with the dials when focus hides them.
         if (widgets.active && !dialsHidden) widgets.draw(canvas)
         if (mediaShown()) {
@@ -787,14 +872,16 @@ class ControlSurface(
                 buttonDown,
             )
         }
-        for (button in topButtons) {
-            // Both tints were made in the constructor; picking between them here allocates nothing.
-            val lit = button === lockButton && locked
-            surfacePainter.drawTopButton(canvas, button.hit, button.icon, button === pressedTop, lit)
+        if (!airMode) {
+            for (button in topButtons) {
+                // Both tints were made in the constructor; picking between them here allocates nothing.
+                val lit = button === lockButton && locked
+                surfacePainter.drawTopButton(canvas, button.hit, button.icon, button === pressedTop, lit)
+            }
+            surfacePainter.drawBatteryStrip(canvas, strip, pressedStrip)
         }
-        surfacePainter.drawBatteryStrip(canvas, strip, pressedStrip)
         // AND-A-16: the eye-off mark sits under the lock button for as long as the dials are hidden.
-        if (dialsHidden && !trackpadOnly) {
+        if (dialsHidden && !trackpadOnly && !airMode) {
             surfacePainter.drawIcon(
                 canvas,
                 focusIconOn,
@@ -803,7 +890,9 @@ class ControlSurface(
                 dp(EYE_DP),
             )
         }
-        if (showHints) drawHints(canvas)
+        if (fading) canvas.restore()
+        if (airMode) drawAirControls(canvas)
+        if (showHints && !airMode) drawHints(canvas)
         // Non-modal and drawn from a layout made when the laptop's word arrived, so the frame allocates nothing.
         blockedLayout?.let {
             canvas.save()
@@ -818,8 +907,59 @@ class ControlSurface(
         // Focus hides the dials; [dialAt] stops answering for them in the same breath, so nothing is left
         // taking touches where there is nothing drawn.
         if (!dialsHidden) {
+            if (fading) fadeLayer(canvas)
             for (i in dials.indices) drawDial(canvas, i)
+            if (fading) canvas.restore()
         }
+    }
+
+    /** The pill that ends Air mouse, and the two drag buttons: what the surface shows besides the pad (#75). */
+    private fun drawAirControls(canvas: Canvas) {
+        fill.color = captionTint
+        canvas.drawRoundRect(
+            width / 2f - pillHalfWidth,
+            pillMiddle - pillHalfHeight(),
+            width / 2f + pillHalfWidth,
+            pillMiddle + pillHalfHeight(),
+            pillHalfHeight(),
+            pillHalfHeight(),
+            fill,
+        )
+        canvas.drawText(pillLine, width / 2f, pillMiddle + captionPaint.textSize * Type.CAP_CENTRE, captionPaint)
+        drawDragButton(canvas, leftHit, leftText, dragSide == TrackpadRecognizer.LEFT)
+        drawDragButton(canvas, rightHit, rightText, dragSide == TrackpadRecognizer.RIGHT)
+    }
+
+    private fun fadeLayer(canvas: Canvas) {
+        canvas.saveLayerAlpha(0f, 0f, width.toFloat(), height.toFloat(), (chromeAlpha * ALPHA_OPAQUE).toInt())
+    }
+
+    private fun pillHalfHeight(): Float = captionPaint.textSize / 2 + dp(CAPTION_PAD_Y_DP)
+
+    /**
+     * Held, it is filled with the accent and outlined heavier, so the state does not ride on colour alone.
+     */
+    private fun drawDragButton(
+        canvas: Canvas,
+        box: RectF,
+        label: String,
+        held: Boolean,
+    ) {
+        val radius = dp(DRAG_RADIUS_DP)
+        fill.color = if (held) accent else captionTint
+        canvas.drawRoundRect(box, radius, radius, fill)
+        stroke.color = if (held) accent else dim
+        stroke.strokeWidth = dp(if (held) DRAG_HELD_STROKE_DP else DRAG_STROKE_DP)
+        canvas.drawRoundRect(box, radius, radius, stroke)
+        stroke.strokeWidth = dp(Space.HAIR)
+        dragPaint.color = if (held) onAccent else ink
+        dragPaint.drawFitted(
+            canvas,
+            label,
+            box.centerX(),
+            box.centerY() + dragPaint.textSize * Type.CAP_CENTRE,
+            box.width() - 2 * dp(Space.M),
+        )
     }
 
     /**
@@ -974,6 +1114,7 @@ class ControlSurface(
         val res =
             when {
                 locked -> R.string.surface_locked_caption
+                airMode -> null
                 dialsHidden -> R.string.surface_focus_caption
                 trackpad.selecting -> R.string.capture_drag_caption
                 else -> null
@@ -1127,7 +1268,16 @@ class ControlSurface(
                 pressedTop = null
                 val onStrip = pressedStrip
                 pressedStrip = false
+                val onPill = pressedPill
+                pressedPill = false
                 when {
+                    onPill -> {
+                        if (pillHit.contains(event.x, event.y)) {
+                            performClick()
+                            airOff()
+                        }
+                    }
+
                     onStrip -> {
                         if (strip.hit.contains(event.x, event.y)) {
                             performClick()
@@ -1172,14 +1322,28 @@ class ControlSurface(
         val y = event.y
         val media = mediaShown()
         val button = if (media) transportAt(x, y) else null
-        val top = topButtons.firstOrNull { it.hit.contains(x, y) }
+        // Air mouse hides the top row and the strip, so they take no touch either.
+        val top = if (airMode) null else topButtons.firstOrNull { it.hit.contains(x, y) }
         when {
             top != null -> {
                 pressedTop = top
             }
 
+            airMode && pillHit.contains(x, y) -> {
+                pressedPill = true
+            }
+
+            // Only a finger on a button holds it, and only on an unlocked pad: a resting finger elsewhere just aims.
+            airMode && !locked && leftHit.contains(x, y) -> {
+                pressDrag(TrackpadRecognizer.LEFT)
+            }
+
+            airMode && !locked && rightHit.contains(x, y) -> {
+                pressDrag(TrackpadRecognizer.RIGHT)
+            }
+
             // Empty when there are no chips, so a hidden strip takes no touch.
-            strip.hit.contains(x, y) -> {
+            !airMode && strip.hit.contains(x, y) -> {
                 pressedStrip = true
             }
 
@@ -1286,11 +1450,12 @@ class ControlSurface(
                 when (target.mode) {
                     PadMode.FOCUS -> {
                         dialsHidden = true
+                        userHidden = true
                     }
 
                     PadMode.PAD_LOCKED -> {
                         locked = true
-                        releaseAirButton()
+                        releaseDrag()
                     }
 
                     PadMode.NORMAL -> {
@@ -1316,6 +1481,10 @@ class ControlSurface(
     /** Ends the touch and says whether it tapped a dial; a top button is settled in [onTouchEvent]. */
     private fun up(event: MotionEvent): Boolean {
         when {
+            dragSide >= 0 -> {
+                releaseDrag()
+            }
+
             buttonDown != null -> {
                 buttonDown = null
             }
@@ -1357,18 +1526,20 @@ class ControlSurface(
         buttonDown = null
         pressedTop = null
         pressedStrip = false
+        pressedPill = false
         scrubbing = false
         fingerCount = 0
         trailLength = 0
         drawingShape = false
         holdTicked = false
         removeCallbacks(holdDue)
-        releaseAirButton()
+        releaseDrag()
         trackpad.handle(TrackpadRecognizer.Action.CANCEL, touchXs, touchYs, time, count = 0)
     }
 
     private fun onTrackpad(): Boolean =
-        !locked && activeDial < 0 && buttonDown == null && pressedTop == null && !pressedStrip && !scrubbing
+        !locked && activeDial < 0 && buttonDown == null && pressedTop == null && !pressedStrip && !scrubbing &&
+            dragSide < 0 && !pressedPill
 
     /** A tap on the lock button, by finger or accessibility action: it locks the trackpad and nothing else. */
     private fun tapLock() {
@@ -1380,11 +1551,14 @@ class ControlSurface(
     }
 
     /** AND-A-16: the Controls popup's Hide dials switch. */
-    val isDialsHidden: Boolean get() = dialsHidden
+    val isDialsHidden: Boolean get() = userHidden
 
     fun setDialsHidden(hidden: Boolean) {
-        if (dialsHidden == hidden) return
-        dialsHidden = hidden
+        userHidden = hidden
+        // Air mouse keeps them hidden whatever this says; [airOff] brings back what the user chose.
+        val shown = hidden || airMode
+        if (dialsHidden == shown) return
+        dialsHidden = shown
         enterMode()
         cancelTouches(SystemClock.uptimeMillis())
         invalidate()
@@ -1432,9 +1606,7 @@ class ControlSurface(
         } else {
             removeCallbacks(goDark)
             airMouse?.release()
-            releaseAirButton()
-            // Focus is gone, so the key-up will not reach us either.
-            airButtonSpent = false
+            releaseDrag()
         }
     }
 
@@ -1442,9 +1614,7 @@ class ControlSurface(
         widgets.detach()
         wake()
         airMouse?.release()
-        releaseAirButton()
-        // The key-up may go to another screen, so it cannot be relied on to clear this.
-        airButtonSpent = false
+        releaseDrag()
         super.onDetachedFromWindow()
     }
 
@@ -1461,6 +1631,7 @@ class ControlSurface(
     private fun modeLabel(): String =
         context.getString(
             when {
+                airMode && !locked -> R.string.air_how
                 locked && dialsHidden -> R.string.surface_mode_both
                 locked -> R.string.surface_mode_locked
                 dialsHidden -> R.string.surface_mode_focus
@@ -1563,6 +1734,11 @@ class ControlSurface(
         // super fills the node's state description from the view's own, which [tapLock] keeps current: a
         // screen reader landing on a locked surface is told why the pad will not answer before it tries.
         super.onInitializeAccessibilityNodeInfo(info)
+        if (airMode) {
+            // The buttons are drawn, not views, so what they do is read with the surface, and the pill is an action.
+            info.contentDescription = "${info.contentDescription}. $leftDescription. $rightDescription"
+            info.addAction(AccessibilityNodeInfo.AccessibilityAction(R.id.action_air_off, pillLine))
+        }
         for (action in accessibilityActions.keys) info.addAction(action)
         // Labelled with what the strip shows, so the levels are read when the user looks, never announced.
         if (!trackpadOnly) {
@@ -1577,6 +1753,10 @@ class ControlSurface(
     ): Boolean {
         if (action == R.id.action_batteries && !trackpadOnly) {
             onOpenBatteries()
+            return true
+        }
+        if (action == R.id.action_air_off && airMode) {
+            airOff()
             return true
         }
         val run = accessibilityActions.entries.firstOrNull { it.key.id == action }?.value
@@ -1714,6 +1894,21 @@ class ControlSurface(
         private const val TRAIL = 18
         private const val TRAIL_ALPHA = 200f
         private const val ALPHA_SHIFT = 24
+        private const val ALPHA_OPAQUE = 255f
+
+        /** The air mouse pill and the two drag buttons: where they sit, in dp, or as a share of the screen. */
+        private const val PILL_MIDDLE_DP = 36f
+        private const val DRAG_RADIUS_DP = 20f
+        private const val DRAG_STROKE_DP = 2f
+        private const val DRAG_HELD_STROKE_DP = 4f
+        private const val DRAG_HEIGHT_DP = 88f
+        private const val DRAG_BOTTOM_DP = 32f
+        private const val DRAG_WIDE_DP = 104f
+        private const val DRAG_EDGE_DP = 24f
+        private const val DRAG_SIDE_SHARE = 0.07f
+        private const val DRAG_WIDTH_SHARE = 0.4f
+        private const val DRAG_LEFT_SHARE = 0.6f
+        private const val DRAG_TOP_SHARE = 0.14f
 
         /**
          * The button row's centre. 60dp rather than 40 so the battery strip's shapes, which end by

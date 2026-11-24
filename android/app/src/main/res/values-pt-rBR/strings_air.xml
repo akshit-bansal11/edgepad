@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="controls_air_mouse">Mouse aéreo</string>
-  <string name="air_how">Apoie um polegar no touchpad e gire o celular para a esquerda ou a direita e incline-o para cima ou para baixo. Com isto ligado, segurar um dedo não arrasta. Para arrastar, segure Diminuir volume enquanto inclina e solte para largar.</string>
+  <string name="air_how">Apoie um polegar no touchpad para mirar: gire o celular para a esquerda ou a direita e incline-o para cima ou para baixo. Para arrastar, segure Esquerdo ou Direito e incline. Levante o polegar para soltar.</string>
+  <string name="air_left">Esquerdo</string>
+  <string name="air_right">Direito</string>
+  <string name="air_pill">Mouse aéreo · Desligado</string>
+  <string name="air_left_desc">Segure para arrastar com o botão esquerdo</string>
+  <string name="air_right_desc">Segure para arrastar com o botão direito</string>
   <string name="air_caption">Incline o telefone para mover o ponteiro enquanto um dedo estiver no trackpad. O sensor de movimento só é lido nesse momento.</string>
   <string name="air_sensitivity">Sensibilidade</string>
   <string name="air_dead_zone">Zona morta</string>

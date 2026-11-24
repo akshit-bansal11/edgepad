@@ -1082,10 +1082,6 @@ class MainActivity :
             if (event?.repeatCount == 0) presenter?.step(if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) 1 else -1)
             return true
         }
-        // With the air mouse on, Volume-down on the surface holds the left button, so tilting drags (#75).
-        if (screen == Screen.SURFACE && keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && surface?.airButton(true) == true) {
-            return true
-        }
         return super.onKeyDown(keyCode, event)
     }
 
@@ -1094,9 +1090,6 @@ class MainActivity :
         event: KeyEvent?,
     ): Boolean {
         val volume = keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-        if (screen == Screen.SURFACE && keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && surface?.airButton(false) == true) {
-            return true
-        }
         return (screen == Screen.PRESENTER && volume) || super.onKeyUp(keyCode, event)
     }
 
