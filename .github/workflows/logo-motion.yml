@@ -1,0 +1,71 @@
+name: Logo motion
+
+# Renders the logo animations to MP4 and GIF. scripts/logo-motion.ps1 writes the animated SVGs (committed) and, with
+# -Frames, one still SVG per frame; this job draws each frame with rsvg-convert and encodes them with ffmpeg.
+# Nothing is committed from here: download the artifact with `gh run download <run> -n edgepad-logo-motion`, copy
+# the files into assets/brand/edgepad/motion/, commit them. Runs only when the script or this file changes.
+on:
+  pull_request:
+    paths:
+      - 'scripts/logo-motion.ps1'
+      - '.github/workflows/logo-motion.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: logo-motion-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the renderers
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends librsvg2-bin ffmpeg
+      # MP4 at 60 fps and GIF at 50 fps (a GIF frame lasts a whole number of hundredths of a second, so 60 fps
+      # cannot be stored; 50 is the closest rate every browser plays at full speed).
+      - name: Write the frames
+        shell: pwsh
+        run: |
+          pwsh -NoProfile -File scripts/logo-motion.ps1 -Frames frames60 -Fps 60
+          pwsh -NoProfile -File scripts/logo-motion.ps1 -Frames frames50 -Fps 50
+      - name: Render MP4 and GIF
+        run: |
+          set -eu
+          mkdir -p out
+          # Each clip holds its last frame for 1 s so a loop reads as the logo at rest, not a jump cut.
+          # MP4: 1080 x 1080 on the page ground, the 1024 tile drawn at 720 px in the middle.
+          # GIF: 480 x 480, same layout, its own palette per clip.
+          for kind in pop dial; do
+            for theme in light dark; do
+              if [ "$theme" = light ]; then bg='#F2F3F7'; else bg='#0E0F12'; fi
+              for fps in 60 50; do
+                src="frames$fps/$kind-$theme"
+                png="png$fps/$kind-$theme"
+                mkdir -p "$png"
+                for f in "$src"/*.svg; do
+                  # -b fills the corners outside the rounded tile; MP4 has no alpha, so they would encode black.
+                  rsvg-convert -w 1024 -h 1024 -b "$bg" -o "$png/$(basename "$f" .svg).png" "$f"
+                done
+              done
+              ffmpeg -loglevel error -y -framerate 60 -i "png60/$kind-$theme/%04d.png" \
+                -vf "scale=720:720:flags=lanczos,pad=1080:1080:180:180:color=$bg,tpad=stop_mode=clone:stop_duration=1,format=yuv420p" \
+                -c:v libx264 -profile:v high -crf 16 -preset slow -movflags +faststart \
+                "out/edgepad-logo-$kind-$theme.mp4"
+              ffmpeg -loglevel error -y -framerate 50 -i "png50/$kind-$theme/%04d.png" \
+                -vf "scale=320:320:flags=lanczos,pad=480:480:80:80:color=$bg,tpad=stop_mode=clone:stop_duration=1,split[a][b];[a]palettegen=stats_mode=full[p];[b][p]paletteuse=dither=sierra2_4a" \
+                -loop 0 "out/edgepad-logo-$kind-$theme.gif"
+            done
+          done
+          ls -l out
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: edgepad-logo-motion
+          path: out/
+          if-no-files-found: error

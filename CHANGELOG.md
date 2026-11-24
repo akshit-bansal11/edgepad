@@ -12,6 +12,10 @@ No wire-protocol change: the protocol stays at version 6, so a 5.1.0 half works 
 
 - **Phone: drag with the air mouse, with one thumb** (issue #75). With Air mouse on, the trackpad screen shows only the pad, a small "Air mouse · Off" pill at the top, and two drag buttons, **Left** and **Right**. Hold a button and tilt to drag a window, file or icon; lift your thumb to drop. Upright, the two buttons sit side by side along the bottom edge. Sideways, they are a strip down the right edge. A finger resting elsewhere on the pad still only aims, and taps still click. The button is also let go when the app loses focus, the screen changes, the touch is cancelled or the pad is locked.
 - **Phone: Air mouse hides the rest of the surface.** The corner dials, the top row, the media block and the widgets step aside while it is on. Tap the pill to turn Air mouse off and bring them back.
+- **Phone: an opening screen** on first launch and once after each update. A near-black ground with the trackpad's thin grid, the logo popping in, the name, the version and a GitHub button. Tap anywhere, or Back, to continue. Every other launch goes straight in.
+- **Phone: the logo animates on the launch splash.**
+- **Windows, Mac and Linux: the logo pops in at the top of the pairing window.**
+- **Logo animation files** in `assets/brand/edgepad/motion/`: a short pop and a longer dial turn, each as an animated SVG, MP4 and GIF, light and dark. `scripts/logo-motion.ps1` writes them from the same geometry as the logo.
 
 ## [5.0.1] - 2026-11-24
 

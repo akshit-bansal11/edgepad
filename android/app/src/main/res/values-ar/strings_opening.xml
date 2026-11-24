@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The opening screen (OpeningScreen): first launch and once after each update. -->
+  <string name="opening_version">الإصدار %1$s</string>
+  <string name="opening_github">GitHub</string>
+  <string name="opening_continue">المس أي مكان للمتابعة</string>
+  <string name="opening_screen_cd">Edgepad، الإصدار %1$s</string>
+  <string name="opening_github_cd">Edgepad على GitHub، يفتح في المتصفح</string>
+</resources>

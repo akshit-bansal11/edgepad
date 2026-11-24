@@ -11,6 +11,10 @@
     <item name="android:navigationBarColor">@color/panel</item>
     <!-- AND-B-37: every AlertDialog built from this theme's context picks the dialog theme below. -->
     <item name="android:alertDialogTheme">@style/Theme.Edgepad.Dialog</item>
+    <!-- The launch screen plays the logo pop (drawable{,-night}/splash_logo.xml); MainActivity holds the first draw that long. -->
+    <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+    <item name="android:windowSplashScreenAnimationDuration">760</item>
+    <item name="android:windowSplashScreenBackground">@color/ic_launcher_background</item>
   </style>
 
   <!-- AND-B-37: Edgepad's palette on the platform's alert dialog, light here and dark in values-night. The font is a layer of its own, in fonts.xml. -->
