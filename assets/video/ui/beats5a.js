@@ -15,7 +15,7 @@
   // The laptop's screen rect per pose. In 16:9 these keep it clear of the headline, the sub-lines, the phone and the caption pill
   // (centred y 990): rest sits under a headline on `lap`, big is the left two thirds under a `top` headline, side the left of a sideways
   // phone on the right, split the laptop of the volume sync. The tall cuts use the director's presets.
-  const POSE = { rest: { x: 600, y: 670, w: 640, a: 1 }, big: { x: 580, y: 530, w: 1000, a: 1 }, side: { x: 480, y: 570, w: 760, a: 1 }, split: { x: 640, y: 600, w: 800, a: 1 } };
+  const POSE = { rest: { x: 600, y: 670, w: 640, a: 1 }, big: { x: 580, y: 530, w: 1000, a: 1 }, side: { x: 480, y: 570, w: 760, a: 1 }, split: { x: 640, y: 640, w: 720, a: 1 } };
   const TALL_POSE = { rest: 'rest', big: 'race', side: 'race', split: 'split' };
   const P = (name) => (tall() ? EP.LAPS[TALL_POSE[name]] : POSE[name]);
   // Cameras: the sideways phone on the right of the laptop (16:9 uses landRight, the laptop would sit under `land`), the same pushed in,
@@ -98,7 +98,9 @@
     D.lapScreen(m0, 'race', attract);
   };
   // Demo 1. No headline for the first seconds: it arrives on "across".
-  DEMO[1] = { h: 'Across the *room.*@across', lap: true, act: (L, D) => hook(L, D, { across: 'across', tv: true }) };
+  // The tall cuts keep line 1's headline at the top of the wall, clear of the TV, the beam and the stand (no `lap`).
+  const lap169 = (b) => Object.defineProperty(b, 'lap', { get: () => !EP.F.tall, enumerable: true });
+  DEMO[1] = lap169({ h: 'Across the *room.*@across', act: (L, D) => hook(L, D, { across: 'across', tv: true }) });
   DEMO[2] = { h: "You're *over here.*", lap: true, act: (L, D) => pullBack(L, D, 'here') };
   REEL[1] = {
     h: 'Across the *room.*',
@@ -154,11 +156,12 @@
     }
   };
   // The headline breaks after "This is" in 16:9 only; the tall cuts keep it on one line so the ident clears it.
-  DEMO[3] = Object.defineProperty({
+  const meetHead = (b) => Object.defineProperty(b, 'h', { get: () => (EP.F.tall ? 'This is *Edgepad 5.*' : 'This is | *Edgepad 5.*'), enumerable: true });
+  DEMO[3] = meetHead({
     s: ['Free and *open source*@free', 'Trackpad · keyboard · *gamepad* · remote@trackpad', 'Windows · Mac · *Linux*@windows'],
     act: (L, D) => meet(L, D, { os: true }),
-  }, 'h', { get: () => (EP.F.tall ? 'This is *Edgepad 5.*' : 'This is | *Edgepad 5.*'), enumerable: true });
-  REEL[2] = { h: 'This is *Edgepad 5.*', act: (L, D) => meet(L, D, { os: false }) };
+  });
+  REEL[2] = meetHead({ act: (L, D) => meet(L, D, { os: false }) });
 
   // ---- 4 and 5: the trackpad, then the dials ----
   // The four rulers light in turn, clockwise from the top left, 90 ms apart, from `at`.
@@ -244,7 +247,7 @@
     const p = P('split'), a = L.w(o.from) - 0.2, b = L.w(o.to) + 0.3;
     const pos = onScreen(p, 520, 120);
     const knob = (v) => ({ x: pos.x + pos.s * (88 + 3.32 * v), y: pos.y + pos.s * 72 });
-    D.move(L.t0 - 0.3, cam('split169', 'lapTl'), 0.9);
+    D.move(L.t0 - 0.3, cam({ x: 1449, y: 924, s: 1.3, r: 0 }, 'lapTl'), 0.9);
     D.lap(L.t0 - 0.3, p, 0.9);
     D.lapScreen(L.t0 - 0.3, 'desktop', {});
     D.vol.to(L.t0 - 0.35, L.t0 - 0.05, 30);

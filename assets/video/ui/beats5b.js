@@ -12,18 +12,20 @@
   // ---- where the phone, the laptop and the cards stand, per layout (read when an act runs, once EP.F is set) ----
   // 16:9 keeps the phone on the right and the laptop back left; the tall cuts stack them (laptop above, phone below the headline).
   const lay = () => (!EP.F.tall ? '169' : EP.F.cap.cy > 1500 ? '916' : '34');
-  const ASIDE = { '169': { x: 1350, y: 910, s: 0.5, r: 0 }, '916': { x: 908, y: 1440, s: 0.43, r: 0 }, '34': { x: 908, y: 1150, s: 0.42, r: 0 } }; // stepped aside (tall: its top is under a 2-line headline and a sub-line)
-  // Tall cuts only: a small phone whose top is below a two-line headline and one sub-line (916: text ends about 1240, 34: about 950).
-  const UNDER = { '916': { x: 540, y: 1443, s: 0.42, r: 0 }, '34': { x: 540, y: 1152, s: 0.42, r: 0 } };
-  // Tall cuts only: the sideways phone for the Edgepad 6 mirror, its top under the same text.
-  const TALL_LAND = { '916': { x: 540, y: 1450, s: 0.85, r: -90 }, '34': { x: 540, y: 1170, s: 0.75, r: -90 } };
+  const ASIDE = { '169': { x: 1350, y: 910, s: 0.5, r: 0 }, '916': { x: 908, y: 1415, s: 0.46, r: 0 }, '34': { x: 908, y: 1118, s: 0.48, r: 0 } }; // stepped aside
+  const ASIDE_FAR = { x: 1720, y: 780, s: 0.5, r: 0 }; // 16:9 with more than four cards: right of them
   const SIDE = { x: 1560, y: 700, s: 0.8, r: 0 }; // 16:9 only: small at the right of a centred laptop
   // 16:9 only: the phone's foot pushed in so the transfer card (centre 3, 370 dp from the phone's centre) sits mid-right at 1.7 px per dp.
   const FOOT169 = { x: 1435, y: 71, s: 1.7, r: 0 };
-  const CARDS = () => ({ '169': EP.F.talk, '916': { x: 72, y: 1175, s: 0.84 }, '34': { x: 72, y: 890, s: 0.78 } })[lay()];
+  // Where the plain cards sit: `subs` is a beat with sub-lines (the demo), whose cards start 80 px lower in the tall cuts; `many` is more
+  // than four rows (16:9 then sets them at scale 1.0 from y 165).
+  const CARDS = (subs, many) => ({
+    '169': many ? { ...EP.F.talk, s: 1.0 } : EP.F.talk,
+    '916': { x: 72, y: subs ? 1260 : 1175, s: 0.84 },
+    '34': { x: 72, y: subs ? 970 : 890, s: 0.78 },
+  })[lay()];
   // The phone's camera: `name` in 16:9, the film.js lap* preset `tall` in the tall cuts.
   const phoneAt = (name, tall = 'lapPhone') => (EP.F.tall ? tall : name);
-  const underText = (name) => (EP.F.tall ? UNDER[lay()] : name);
   const foot = () => (EP.F.tall ? 'lapFoot' : FOOT169);
   // 'rest' is too low for the caption pill with a headline above it, so 16:9 takes a slightly smaller, higher pose.
   const LAP = () => (EP.F.tall ? EP.LAPS.rest : { ...EP.LAPS.rest, x: 600, y: 708, w: 580 });
@@ -182,26 +184,28 @@
   // The phone steps aside, the laptop stays up at its pose, the cards sit at CARDS(). `line` (t0, t1) draws the phone-laptop line.
   // 16:9 takes a smaller laptop here, so the two-line sub of line 21 clears it by 32 px.
   const LAP_TALK = () => (EP.F.tall ? LAP() : { ...EP.LAPS.rest, x: 600, y: 735, w: 520 });
-  function talkAct(L, D, items, line) {
-    stage(L, D, ASIDE[lay()], LAP_TALK());
-    D.card(L.t0, L.next - 0.05, cards(items), CARDS());
+  function talkAct(L, D, items, line, subs = false) {
+    const many = items.length > 4, p = many && !EP.F.tall ? ASIDE_FAR : ASIDE[lay()];
+    stage(L, D, p, LAP_TALK());
+    D.card(L.t0, L.next - 0.05, cards(items), CARDS(subs, many));
     if (!line) return;
     if (!EP.F.tall) return D.line(line[0], line[1]);
     // Tall cuts: a near-vertical line down the right of the headline, from under the laptop's deck to the top of the phone.
-    const r = EP.LAPS.rest, h = r.w / 1.6, p = ASIDE[lay()];
+    const r = EP.LAPS.rest, h = r.w / 1.6;
     D.line(line[0], line[1], { x: r.x + r.w / 2 + 20, y: r.y + h * 0.59 + 8 }, { x: p.x, y: p.y - 434 * p.s });
   }
   // ---- Edgepad 6: two concept pictures, not screens of it ----
   const { GREY } = EP.TOK;
-  const LAND169 = { x: 1420, y: 790, s: 0.9, r: -90 }; // 16:9: the sideways phone at the right
+  const LAND169 = { x: 1340, y: 790, s: 0.85, r: -90 }; // 16:9: the sideways phone at the right, 72 px clear of the page edge
   // The far scene's geometry per layout, in page px: the small laptop's pose, the phone's camera, the house round the laptop, and the
   // arc from the laptop to the phone's top (control point between). The tall cuts keep it right of the headline's text.
   const far = () => {
     const l = lay();
     if (l === '169') return { lap: { x: 300, y: 700, w: 300 }, phone: { x: 1640, y: 700, s: 0.66, r: 0 }, house: { x0: 100, x1: 500, eaves: 575, apex: 510, base: 850 }, to: 1480, arc: [[470, 640], [985, 360], [1503, 600]] };
-    const c = EP.CAM.lapPhone, top = c.y - 434 * c.s, end = [800 + 100 * c.s, top];
-    if (l === '916') return { lap: { x: 270, y: 520, w: 360 }, phone: { ...c, x: 800 }, house: { x0: 72, x1: 468, eaves: 380, apex: 300, base: 720 }, to: 1000, arc: [[460, 560], [1000, 640], end] };
-    return { lap: { x: 250, y: 330, w: 340 }, phone: { ...c, x: 800 }, house: { x0: 72, x1: 428, eaves: 190, apex: 120, base: 520 }, to: 1000, arc: [[420, 330], [980, 430], end] };
+    // The tall cuts keep the whole picture inside the laptop band above the headline: a small outline of the phone stands for the far
+    // phone at the band's right, and the real phone (lapPhone) below shows the finger.
+    if (l === '916') return { lap: { x: 270, y: 520, w: 360 }, phone: 'lapPhone', house: { x0: 72, x1: 468, eaves: 380, apex: 300, base: 720 }, to: 1008, tick: 820, outline: { x: 820, y: 450, w: 130, h: 270 }, arc: [[460, 560], [672, 320], [885, 450]] };
+    return { lap: { x: 250, y: 330, w: 340 }, phone: 'lapPhone', house: { x0: 72, x1: 428, eaves: 190, apex: 120, base: 520 }, to: 1008, tick: 770, outline: { x: 770, y: 310, w: 100, h: 210 }, arc: [[420, 330], [645, 220], [820, 310]] };
   };
   // The distance made visible (a D.card painter in page px): a line-drawn house round the far laptop and none round the phone, a dashed
   // ground with tick marks between them, and a long arc drawn on from `r` with a pulse travelling along it.
@@ -226,8 +230,19 @@
     ctx.lineTo(g.to, h.base);
     ctx.stroke();
     ctx.setLineDash([]);
+    if (g.outline) {
+      const o = g.outline;
+      ctx.lineWidth = 4;
+      rr(ctx, o.x, o.y, o.w, o.h, 16);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(o.x + o.w / 2 - 12, o.y + o.h - 14);
+      ctx.lineTo(o.x + o.w / 2 + 12, o.y + o.h - 14);
+      ctx.stroke();
+      ctx.lineWidth = 3;
+    }
     for (let i = 1; i <= 5; i++) {
-      const x = lerp(h.x1, g.to, i / 6);
+      const x = lerp(h.x1, g.tick ?? g.to, i / 6);
       ctx.beginPath();
       ctx.moveTo(x, h.base - 10);
       ctx.lineTo(x, h.base + 10);
@@ -269,7 +284,7 @@
   //    phone turns upright and moves to one side, the laptop shrinks far on the other, a house is drawn round the laptop, a dashed ground
   //    with ticks and a long arc with a travelling pulse between them; the phone glides a finger and the far pointer follows it.
   function futureAct(L, D, m, r) {
-    const end = L.next - 0.3, g = far(), land = EP.F.tall ? TALL_LAND[lay()] : LAND169;
+    const end = L.next - 0.3, g = far(), land = EP.F.tall ? 'lapLand' : LAND169;
     const lead0 = m - 0.52 - (L.t0 - 0.3);
     if (lead0 >= 0.6) stage(L, D, phoneAt('hero'), LAP(), Math.min(0.9, lead0 - 0.05));
     else D.lap(L.t0 - 0.3, LAP(), 0.9);
@@ -283,8 +298,8 @@
     D.turn.to(m - 0.52, m - 0.12, 1);
     D.screen(m - 0.5, 'mirror', (t) => ({ kind: 'desktop', screen: mirrored(t), t, a: ramp(t, m - 0.1, m + 0.3) }), [[m - 0.5, 0]], true);
     if (EP.F.tall) {
-      const rest = EP.LAPS.rest;
-      D.line(m + 0.2, r - 0.1, { x: rest.x + rest.w / 2 + 20, y: rest.y + (rest.w / 1.6) * 0.59 + 8 }, { x: land.x + 434 * land.s - 30, y: land.y - 207 * land.s });
+      const rest = EP.LAPS.rest, c = EP.CAM.lapLand;
+      D.line(m + 0.2, r - 0.1, { x: rest.x + rest.w / 2 + 20, y: rest.y + (rest.w / 1.6) * 0.59 + 8 }, { x: c.x + 434 * c.s - 30, y: c.y - 207 * c.s });
     } else D.line(m + 0.2, r - 0.1);
     D.turn.to(r - 0.5, r - 0.1, 0);
     D.move(r - 0.5, g.phone, 0.9);
@@ -318,7 +333,7 @@
   demo[13] = {
     h: 'Copy here. *Paste* there.', s: ['Both *ways*@both', 'With a *history*@history'], lap: true,
     act: (L, D) => {
-      stage(L, D, underText('wide')); // two headline lines and a sub in the tall cuts: the phone starts below them
+      stage(L, D, phoneAt('wide'));
       const sel = L.t0 + 0.2, fly = Math.max(L.w('paste') - 0.2, L.t0 + 1.0);
       const back = Math.max(L.w('both') - 0.1, fly + 1.2);
       const hist = Math.max(L.w('history') - 0.2, back + 0.9);
@@ -362,8 +377,7 @@
   demo[17] = {
     h: 'Your *pull requests.*', s: ['GitHub · GitLab · *and more*@more', 'Tap, and it *opens*@opens'], lap: true,
     act: (L, D) => {
-      // 9:16 breaks the headline in two and has a sub-line, so the phone starts below them there; 3:4 keeps the head of the phone.
-      stage(L, D, EP.F.tall && lay() === '916' ? UNDER['916'] : phoneAt('hero', 'lapHead'));
+      stage(L, D, phoneAt('hero', 'lapHead'));
       devAct(D, { s: L.t0 - 0.3, swipe: L.t0 - 0.1, press: L.w('tap') });
       const open = L.w('opens');
       D.lapScreen(L.t0 - 0.3, 'editor');
@@ -406,7 +420,7 @@
         { name: 'Bluetooth', at: L.w('bluetooth') },
         { name: 'Wi-Fi', at: L.w('wifi') },
         { name: 'USB', at: L.w('usb') },
-      ], [L.w('straight') - 0.1, nextEnd(L) + 0.1]);
+      ], [L.w('straight') - 0.1, nextEnd(L) + 0.1], true);
     },
   };
   // 21: the headline stays; Windows tested, Mac and Linux newer, tell us on GitHub. The phone is still aside and the line still drawn.
@@ -420,7 +434,7 @@
         { name: 'Mac', desc: 'Newer', at: L.w('mac'), descAt: L.w('newer') },
         { name: 'Linux', desc: 'Newer', at: L.w('linux'), descAt: L.w('newer') },
         { name: 'Tell us on GitHub', at: L.w('tell') },
-      ]);
+      ], undefined, true);
     },
   };
   // 22: mirroring from "mirroring" (at least 2.2 s), then remote access from "remote" (or 2.2 s after mirroring starts) to the hold's end.

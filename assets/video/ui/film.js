@@ -815,8 +815,13 @@
     // the ground covers it down to the foot of the headline, so a pushed-in phone never runs under the text or the laptop.
     const band = F.tall ? lapNow.a * ease(seg(D.room.at(t), 0.6, 1)) : 0;
     if (band > 0.003) {
+      // A beat whose text runs deeper than two headline lines (a sub-line under them) pushes the phone and the scrim down by that much.
+      const deep = lapDeep(t);
+      ctx.save();
+      ctx.translate(0, deep * band);
       drawPhone(ctx, t);
-      const foot = F.lap.y + F.head.size * 2.1 + 20;
+      ctx.restore();
+      const foot = LAP_FOOT + deep;
       ctx.save();
       ctx.globalAlpha = band;
       const g = ctx.createLinearGradient(0, foot, 0, foot + 40);
@@ -948,6 +953,14 @@
     spans.forEach((s, i) => tl.fromTo(s, { opacity: 0, y: 26, filter: 'blur(14px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.55, ease: 'power3.out' }, Math.max(0, ts[i] - 0.06)));
   const leave = (tl, el, t) => tl.to(el, { opacity: 0, y: -14, filter: 'blur(8px)', duration: 0.32, ease: 'power2.in' }, Math.max(0, t - 0.3));
 
+  // The tall cuts' text depth under a laptop beat: [t, px beyond LAP_FOOT], eased from one beat's to the next over 0.4 s.
+  const LAP_FOOT = F.lap.y + F.head.size * 2.1 + 20;
+  const lapDeeps = [[-1, 0]];
+  function lapDeep(t) {
+    let v = 0;
+    for (const [at, px] of lapDeeps) v = lerp(v, px, ease(seg(t, at, at + 0.4)));
+    return v;
+  }
   function buildText(tl) {
     let head = null; // { n, lay, size }: the layout of the headline on screen (its tallest entry)
     let cur = null; // { el, from, to }: the element on screen, kept so D.dim can find it
@@ -1002,18 +1015,25 @@
       const subs = b.s === undefined || b.s === null ? [] : Array.isArray(b.s) ? b.s : [b.s];
       const top = head ? head.lay.y + head.n * head.size * 1.0 + (b.lay === 'top' ? 18 : F.sub.gap) : lay.y;
       const y = b.lay === 'top' ? top : Math.max(b.lap ? 0 : F.sub.min, top);
+      let subLines = 0;
       subs.forEach((raw, k) => {
         const [s, anchor] = raw.split('@');
         const ws = parse(s).filter((x) => x.w !== '|');
         const el = block('sub', lay.x, y);
         el.style.fontSize = `${subSize}px`;
         const from = anchor ? L(i).w(anchor) : line.start;
-        reveal(tl, words(el, wrap(ws, 700, subSize, lay.max, 0)), anchor ? ws.map((_, j) => from + j * 0.09) : times(ws, line, from));
+        const wrapped = wrap(ws, 700, subSize, lay.max, 0);
+        subLines = Math.max(subLines, wrapped.length);
+        reveal(tl, words(el, wrapped), anchor ? ws.map((_, j) => from + j * 0.09) : times(ws, line, from));
         if (k + 1 < subs.length) {
           const nxt = subs[k + 1].split('@')[1];
           leave(tl, el, L(i).w(nxt));
         } else subEnd.push(el);
       });
+      if (F.tall && b.lap) {
+        const bottom = subLines ? y + subLines * subSize * 1.15 : head ? head.lay.y + head.n * head.size : 0;
+        lapDeeps.push([line.start - 0.3, Math.max(0, bottom + 24 - LAP_FOOT)]);
+      }
     });
     // D.dim: the headline on screen at t0 fades to `to` and comes back at t1 (not when it is leaving by then).
     for (const d of D.dims) {
