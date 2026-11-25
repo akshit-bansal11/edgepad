@@ -20,9 +20,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.provider.DocumentsContract
 import android.provider.Settings.Global
-import android.text.Editable
 import android.text.InputType
-import android.text.TextWatcher
 import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
@@ -168,6 +166,7 @@ import me.akshitbansal.edgepad.screens.WidgetsScreen
 import me.akshitbansal.edgepad.screens.XferCard
 import me.akshitbansal.edgepad.screens.fillCutout
 import me.akshitbansal.edgepad.screens.hideBars
+import me.akshitbansal.edgepad.screens.onEdited
 import me.akshitbansal.edgepad.screens.openOver
 import me.akshitbansal.edgepad.screens.showOver
 import me.akshitbansal.edgepad.surface.BackgroundImage
@@ -2839,27 +2838,7 @@ class MainActivity :
             problem.visibility = if (found == null) View.GONE else View.VISIBLE
             return found == null
         }
-        field.addTextChangedListener(
-            object : TextWatcher {
-                override fun beforeTextChanged(
-                    text: CharSequence?,
-                    start: Int,
-                    count: Int,
-                    after: Int,
-                ) = Unit
-
-                override fun onTextChanged(
-                    text: CharSequence?,
-                    start: Int,
-                    before: Int,
-                    count: Int,
-                ) = Unit
-
-                override fun afterTextChanged(text: Editable?) {
-                    problem.visibility = View.GONE
-                }
-            },
-        )
+        field.onEdited { problem.visibility = View.GONE }
         // Leaving the field with something typed in it is the moment to say it is wrong; an empty field is not yet.
         field.setOnFocusChangeListener { _, focused ->
             if (!focused && field.text.isNotBlank()) check()
