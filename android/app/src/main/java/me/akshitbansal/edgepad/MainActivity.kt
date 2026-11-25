@@ -20,7 +20,6 @@ import android.os.Looper
 import android.os.SystemClock
 import android.provider.DocumentsContract
 import android.provider.Settings.Global
-import android.text.Editable
 import android.text.InputType
 import android.util.Log
 import android.view.HapticFeedbackConstants
