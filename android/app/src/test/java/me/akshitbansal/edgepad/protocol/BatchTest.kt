@@ -1,7 +1,12 @@
 package me.akshitbansal.edgepad.protocol
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
+import java.io.ByteArrayInputStream
+import java.io.DataInputStream
+import java.io.EOFException
+import java.io.StreamCorruptedException
 
 /** The writer packs many frames into one buffer; a reader must take them apart again, TEXT included. */
 class BatchTest {
@@ -34,5 +39,28 @@ class BatchTest {
         }
         assertEquals(frames, decoded)
         assertEquals(length, at)
+    }
+
+    @Test
+    fun readTakesTheSameBatchOffAStream() {
+        val frames =
+            listOf(
+                Frame.Move(5, -3),
+                Frame.Text(TextKind.TYPE.id, "h\u00e9llo"),
+                Frame.Ping(1234567890123),
+            )
+        val bytes = frames.fold(ByteArray(0)) { all, frame -> all + FrameCodec.encode(frame) }
+        val input = DataInputStream(ByteArrayInputStream(bytes))
+
+        assertEquals(frames, frames.map { FrameCodec.read(input, "closed") })
+        val end = assertThrows(EOFException::class.java) { FrameCodec.read(input, "closed") }
+        assertEquals("closed", end.message)
+    }
+
+    @Test
+    fun readRefusesAnUnknownType() {
+        val input = DataInputStream(ByteArrayInputStream(byteArrayOf(0xFF.toByte())))
+
+        assertThrows(StreamCorruptedException::class.java) { FrameCodec.read(input, "closed") }
     }
 }

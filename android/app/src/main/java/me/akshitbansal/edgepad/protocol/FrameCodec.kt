@@ -1,5 +1,7 @@
 package me.akshitbansal.edgepad.protocol
 
+import java.io.DataInputStream
+import java.io.EOFException
 import java.io.StreamCorruptedException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -304,6 +306,34 @@ object FrameCodec {
             }
         }
         return b.position() - offset
+    }
+
+    /**
+     * Reads one whole frame off [input] and decodes it: the type byte, then a fixed payload, or for a
+     * [LENGTH_PREFIXED] type the two header bytes and as many bytes as they say. Blocks until the frame is in.
+     *
+     * @param closed the [EOFException] message when the stream ends before a type byte, naming which link closed.
+     * @throws EOFException when the stream ends, before or inside the frame.
+     * @throws StreamCorruptedException for an unknown type byte or a malformed payload.
+     */
+    fun read(
+        input: DataInputStream,
+        closed: String,
+    ): Frame {
+        val type = input.read()
+        if (type < 0) throw EOFException(closed)
+        val length = payloadLength(type)
+        if (length == LENGTH_PREFIXED) {
+            val header = ByteArray(TEXT_HEADER_LENGTH)
+            input.readFully(header)
+            val body = ByteArray(header[1].toInt() and 0xFF)
+            input.readFully(body)
+            return decode(type, header + body)
+        }
+        if (length < 0) throw StreamCorruptedException("Unknown frame type 0x%02x".format(type))
+        val payload = ByteArray(length)
+        input.readFully(payload)
+        return decode(type, payload)
     }
 
     /** Decodes one frame. Anything malformed throws, and the caller drops the connection. */

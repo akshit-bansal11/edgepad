@@ -1551,8 +1551,6 @@ class ControlSurface(
     }
 
     /** AND-A-16: the Controls popup's Hide dials switch. */
-    val isDialsHidden: Boolean get() = userHidden
-
     fun setDialsHidden(hidden: Boolean) {
         userHidden = hidden
         // Air mouse keeps them hidden whatever this says; [airOff] brings back what the user chose.
