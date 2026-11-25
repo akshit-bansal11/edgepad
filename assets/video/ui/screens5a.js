@@ -155,7 +155,7 @@
     const run = 1 - done;
     if (run > 0) {
       const line = 15 * FACE_LINE, sub = 12 * FACE_LINE, top = cy - (line + sub + 4 + 4) / 2;
-      const figures = paused > 0.5 ? `${STR.paused} · ${pct}%` : `${pct}%`;
+      const figures = paused > 0.5 ? `${STR.paused} · ${Math.round(pct)}%` : `${Math.round(pct)}%`;
       text(ctx, o.name ?? 'slides.pdf', wx, top + line * 0.8, { size: 15, w: 'Bold', color: pal.ink, a: run });
       text(ctx, `${o.index ?? 2} of ${count} · ${figures}`, wx, top + line + sub * 0.8, { size: 12, color: pal.dim, a: run });
       const by = top + line + sub + 4;

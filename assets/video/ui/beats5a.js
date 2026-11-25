@@ -409,18 +409,20 @@
     fillRR(ctx, -48, 12, 60, 8, 4, TOK.GREY);
   };
   // Capture: Region tapped, the plain drag on the pad growing the laptop's region rectangle to match, Full screen (an 80 ms white flash),
-  // Record (a red dot pulsing top right), and on `ph` the thumbnail arcs from the laptop into the phone. o = { t0, region, full, rec, ph }.
+  // Record (a red dot pulsing top right), and on `ph` the thumbnail arcs from the laptop into the phone. o = { t0, full, rec, ph }.
   const capture = (L, D, o) => {
     D.turn.to(o.t0, o.t0 + 0.4, 0);
     D.move(o.t0, UP(), 0.6);
     D.lap(o.t0, P('big'), 0.9);
-    D.screen(o.t0, 'capture', { phone: true }, [[o.t0, 0.4], [o.region - 0.3, 1.0], [o.full - 0.15, 3.5], [o.full, 4.0], [o.rec, 5.0]]);
+    // Region tapped (lt 1.0), the drag (1.9-3.4) done 0.9 s before Full screen so the rectangle holds 0.8 s, and gone 0.1 s before it.
+    const g1 = Math.max(o.full - 0.9, o.t0 + 0.5), g0 = Math.max(o.t0 + 0.25, g1 - 0.6);
+    D.screen(o.t0, 'capture', { phone: true }, [[o.t0, 0.4], [g0, 1.9], [g1, 3.4], [o.full, 4.0], [o.rec, 5.0]]);
     const entry = D.screens[D.screens.length - 1];
     D.lapScreen(o.t0, 'slides', (t) => {
       const lt = EP.warp(t, entry.anchors), k = ease(seg(lt, 2.2, 3.4));
       return {
         slide: 1,
-        region: lt >= 1.9 && t < o.ph ? { x0: 0.2, y0: 0.25, x1: lerp(0.22, 0.78, k), y1: lerp(0.28, 0.72, k) } : null,
+        region: lt >= 1.9 && t < o.full - 0.1 ? { x0: 0.2, y0: 0.25, x1: lerp(0.22, 0.78, k), y1: lerp(0.28, 0.72, k) } : null,
         flash: Math.max(0, 1 - Math.abs(t - (o.full + 0.04)) / 0.04),
         rec: ease(seg(t, o.rec, o.rec + 0.2)),
       };
@@ -437,7 +439,7 @@
     h: '*Capture* it.@capture',
     s: ['A *region*@region', 'The *full screen*@full', 'A *recording*@recording', 'Straight to your *phone*@phone'],
     lap: true,
-    act: (L, D) => capture(L, D, { t0: L.t0 - 0.1, region: L.w('region'), full: L.w('full'), rec: L.w('recording'), ph: L.w('phone') }),
+    act: (L, D) => capture(L, D, { t0: L.t0 - 0.35, full: L.w('full'), rec: L.w('recording'), ph: L.w('phone') }),
   });
   // Reel 6: the presenter (Next on "presenter", the laser from "laser") then the capture, compressed into one line.
   REEL[6] = {
@@ -446,7 +448,7 @@
     act: (L, D) => {
       const ss = L.w('screenshots'), rec = L.w('recordings');
       present(L, D, { start: L.t0 - 0.3, next: L.w('presenter') + 0.3, l0: L.w('laser'), l1: ss - 1.3 });
-      capture(L, D, { t0: ss - 1.3, region: ss - 0.7, full: ss, rec, ph: L.w('phone') });
+      capture(L, D, { t0: ss - 1.3, full: ss, rec, ph: L.w('phone') });
     },
   };
 })();

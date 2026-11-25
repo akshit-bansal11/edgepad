@@ -12,7 +12,7 @@
   // ---- where the phone, the laptop and the cards stand, per layout (read when an act runs, once EP.F is set) ----
   // 16:9 keeps the phone on the right and the laptop back left; the tall cuts stack them (laptop above, phone below the headline).
   const lay = () => (!EP.F.tall ? '169' : EP.F.cap.cy > 1500 ? '916' : '34');
-  const ASIDE = { '169': { x: 1350, y: 910, s: 0.5, r: 0 }, '916': { x: 900, y: 1415, s: 0.46, r: 0 }, '34': { x: 900, y: 1118, s: 0.48, r: 0 } }; // stepped aside
+  const ASIDE = { '169': { x: 1350, y: 910, s: 0.5, r: 0 }, '916': { x: 908, y: 1415, s: 0.46, r: 0 }, '34': { x: 908, y: 1118, s: 0.48, r: 0 } }; // stepped aside
   const SIDE = { x: 1560, y: 700, s: 0.8, r: 0 }; // 16:9 only: small at the right of a centred laptop
   // 16:9 only: the phone's foot pushed in so the transfer card (centre 3, 370 dp from the phone's centre) sits mid-right at 1.7 px per dp.
   const FOOT169 = { x: 1435, y: 71, s: 1.7, r: 0 };
@@ -173,7 +173,11 @@
   function talkAct(L, D, items, line) {
     stage(L, D, ASIDE[lay()], LAP_TALK());
     D.card(L.t0, L.next - 0.05, cards(items), CARDS());
-    if (line) D.line(line[0], line[1]);
+    if (!line) return;
+    if (!EP.F.tall) return D.line(line[0], line[1]);
+    // Tall cuts: a near-vertical line down the right of the headline, from under the laptop's deck to the top of the phone.
+    const r = EP.LAPS.rest, h = r.w / 1.6, p = ASIDE[lay()];
+    D.line(line[0], line[1], { x: r.x + r.w / 2 + 20, y: r.y + h * 0.59 + 8 }, { x: p.x, y: p.y - 434 * p.s });
   }
   // Facing each other, and the unresolved shape glinting on both screens: it rises at `at` and holds to the end of the hold.
   function glintAct(L, D, at) {
