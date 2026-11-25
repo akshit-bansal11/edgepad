@@ -224,7 +224,7 @@
     presses: [],
     fingers: [],
     cards: [],
-    media: [[-1, { app: 'YouTube', title: 'Mountain Lake Timelapse', dur: 612, pos: 298, playing: true }]],
+    media: [[-1, { app: 'Video', title: 'Mountain Lake Timelapse', dur: 612, pos: 298, playing: true }]],
     shaping: [],
     scrubOff: new Track(0),
     steps: {}, // stepper dials (ZOOM, DEVICES, ...): kind -> Track of steps taken
@@ -455,8 +455,8 @@
       ctx.fillStyle = rgba(pal.bg);
       ctx.fillRect(0, 0, w, h);
       let o = resolve(s.o, t);
-      if (s.key === 'controls') {
-        // The popup is drawn over the surface as it stands; its own Controls button press is the popup's, not the film's.
+      if (s.key === 'controls' || s.key === 'xfer' || s.key === 'clipboard') {
+        // A popup, card or dialog is drawn over the surface as it stands; a Controls button press is the popup's, not the film's.
         const under = surfaceState(t, pal, land);
         delete under.press;
         o = { ...o, under };

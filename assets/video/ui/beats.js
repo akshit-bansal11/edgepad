@@ -682,6 +682,7 @@
     D.screen(g - 0.2, 'gamepad', {}, [[g - 0.2, 0], [L.w('xbox'), 1.0], [L.t1, 3.6]], true);
   };
 
+  EP.cards = C; // the laptop cards, for the 5.x beats (beats5a.js, beats5b.js)
   window.BEATS = {
     full: [
       // What it is

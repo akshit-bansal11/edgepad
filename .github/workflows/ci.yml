@@ -425,6 +425,14 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/venv"
           "$RUNNER_TEMP/venv/bin/pip" install edge-tts==7.3.1 numpy==2.5.4 \
             "earshot @ git+https://github.com/Leonxlnx/earshot@7a7f7c5c70d4a763a1eca4b3666af7c77e313f97"
+      # A slip in a script would otherwise show up as a blank render many minutes in.
+      - name: Check the scripts parse
+        if: steps.changed.outputs.changed == 'true'
+        working-directory: assets/video
+        run: |
+          for f in ui/*.js; do node --check "$f"; done
+          "$RUNNER_TEMP/venv/bin/python" -m py_compile voice.py music.py sfx.py
+          for f in scripts/*.json; do node -e "JSON.parse(require('fs').readFileSync('$f', 'utf8'))"; done
       # One short sentence in the narration's voice and one in the default, so a failed take shows whether the
       # service, the voice or the script is at fault.
       - name: Check the voice service

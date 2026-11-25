@@ -384,6 +384,43 @@
     dot(ctx, EP.path(lt, [[8.1, ex + 40, ey + 70], [8.4, ex, ey], [8.65, ex, ey]]));
   };
 
+  // The 5.x film's deck (MacroScreen.kt over DeckPage.kt, as S.macros): nine neutral macros, six to a page (the page size
+  // is a setting; six makes the nine two pages).
+  // lt: 0.95 a tap runs Blender (its cross shows from 1.4); 2.0 a slide to page two, where it stays.
+  const MACROS5 = [
+    ['Blender', 'blender', '#E87D0D'], ['Figma', 'figma', '#F24E1E'], ['OBS', 'obsstudio', null], ['VLC', 'vlcmediaplayer', '#FF8800'], ['Steam', 'steam', null],
+    ['Firefox', 'firefoxbrowser', '#FF7139'], ['Notion', 'notion', null], ['Obsidian', 'obsidian', '#7C3AED'], ['Terminal', 'gnometerminal', null],
+  ];
+  S.macros5 = (ctx, w, h, pal, lt) => {
+    const per = 6, pages = Math.ceil(MACROS5.length / per);
+    const pageK = ease((lt - 2.0) / 0.55);
+    bar(ctx, w, pal, 'Macros', 'Surface', null, 0, true);
+    const across = w - 32, room = h - TOP - 48 - 24 - BOTTOM, down = room - 24;
+    const g = plan(per, across, down, null);
+    const area = { x: 16, y: TOP + 48 };
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(16, area.y - 8, across, down + 16);
+    ctx.clip();
+    MACROS5.forEach(([label, brand, colour], m) => {
+      const page = Math.floor(m / per);
+      const r = place(m % per, Math.min(per, MACROS5.length - page * per), g, area);
+      const draw = (cx, cy, size) => EP.brand(ctx, brand, cx, cy, size * 0.78, colour || rgba(pal.ink));
+      tile(ctx, pal, { ...r, x: r.x + (page - pageK) * across }, draw, label, { cross: m === 0 ? ease((lt - 1.4) / 0.2) : 0, press: m === 0 ? tri(lt, 0.95, 0.35) : 0 });
+    });
+    ctx.restore();
+    const dotsY = area.y + room - 12;
+    for (let i = 0; i < pages; i++) {
+      ctx.fillStyle = rgba(EP.mixRgb(pal.off, pal.accent, i === 0 ? 1 - pageK : pageK));
+      ctx.beginPath();
+      ctx.arc(w / 2 + (i - (pages - 1) / 2) * 16, dotsY, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    const r0 = place(0, per, g, area);
+    dot(ctx, EP.path(lt, [[0.55, r0.x + r0.w / 2 + 60, r0.y + r0.h / 2 + 80], [0.95, r0.x + r0.w / 2, r0.y + r0.h / 2], [1.3, r0.x + r0.w / 2, r0.y + r0.h / 2]]));
+    dot(ctx, EP.path(lt, [[2.0, w * 0.8, area.y + 200], [2.55, w * 0.2, area.y + 200]], true));
+  };
+
   // ---- Controls (ControlsPopup.kt): a small modal over the surface, three tiles to a row upright and five sideways, under a header. ----
   // The tiles' icons are StencilIcon.kt: a body in the ink with holes cut through it, and one part in the accent, drawn in a
   // 48 unit square. Composed on a layer of their own, so the holes clear the icon and never the tile behind it.
