@@ -12,13 +12,19 @@
   // ---- where the phone, the laptop and the cards stand, per layout (read when an act runs, once EP.F is set) ----
   // 16:9 keeps the phone on the right and the laptop back left; the tall cuts stack them (laptop above, phone below the headline).
   const lay = () => (!EP.F.tall ? '169' : EP.F.cap.cy > 1500 ? '916' : '34');
-  const ASIDE = { '169': { x: 1350, y: 910, s: 0.5, r: 0 }, '916': { x: 908, y: 1415, s: 0.46, r: 0 }, '34': { x: 908, y: 1118, s: 0.48, r: 0 } }; // stepped aside
+  const ASIDE = { '169': { x: 1350, y: 910, s: 0.5, r: 0 }, '916': { x: 908, y: 1440, s: 0.43, r: 0 }, '34': { x: 908, y: 1150, s: 0.42, r: 0 } }; // stepped aside (tall: its top is under a 2-line headline and a sub-line)
+  // Tall cuts only: a small phone whose top is below a two-line headline and one sub-line (916: text ends about 1240, 34: about 950).
+  const UNDER = { '916': { x: 540, y: 1443, s: 0.42, r: 0 }, '34': { x: 540, y: 1152, s: 0.42, r: 0 } };
+  // Tall cuts only: the sideways phone for the Edgepad 6 mirror, its top under the same text.
+  const TALL_LAND = { '916': { x: 540, y: 1450, s: 0.85, r: -90 }, '34': { x: 540, y: 1170, s: 0.75, r: -90 } };
   const SIDE = { x: 1560, y: 700, s: 0.8, r: 0 }; // 16:9 only: small at the right of a centred laptop
   // 16:9 only: the phone's foot pushed in so the transfer card (centre 3, 370 dp from the phone's centre) sits mid-right at 1.7 px per dp.
   const FOOT169 = { x: 1435, y: 71, s: 1.7, r: 0 };
   const CARDS = () => ({ '169': EP.F.talk, '916': { x: 72, y: 1175, s: 0.84 }, '34': { x: 72, y: 890, s: 0.78 } })[lay()];
   // The phone's camera: `name` in 16:9, the film.js lap* preset `tall` in the tall cuts.
   const phoneAt = (name, tall = 'lapPhone') => (EP.F.tall ? tall : name);
+  const underText = (name) => (EP.F.tall ? UNDER[lay()] : name);
+  const foot = () => (EP.F.tall ? 'lapFoot' : FOOT169);
   // 'rest' is too low for the caption pill with a headline above it, so 16:9 takes a slightly smaller, higher pose.
   const LAP = () => (EP.F.tall ? EP.LAPS.rest : { ...EP.LAPS.rest, x: 600, y: 708, w: 580 });
   const LAP_CENTRE = () => (EP.F.tall ? EP.LAPS.rest : { ...EP.LAPS.rest, x: 960, y: 620, w: 780 });
@@ -119,6 +125,7 @@
   function macrosAct(D, T) {
     D.screen(T.s, 'macros5', {}, [[T.s, 0.2], [T.apps, 0.95], [T.web, 2.0], [T.web + 0.55, 2.55]]);
     D.screen(T.surf, 'surface');
+    if (EP.F.tall) camTo(D, T.draw + 0.2, 'lapPhone', T.web + 0.6); // the bolt is drawn on the pad: the whole phone
     const t0 = T.draw + 0.45, d = Math.max(0.7, T.end - t0);
     D.touch([[T.draw, 225, 320], [t0, 225, 320], [t0 + 0.4 * d, 150, 445], [t0 + 0.6 * d, 220, 455], [t0 + d, 165, 580]]);
     D.shaping.push([t0, t0 + d + 0.1]);
@@ -262,7 +269,7 @@
   //    phone turns upright and moves to one side, the laptop shrinks far on the other, a house is drawn round the laptop, a dashed ground
   //    with ticks and a long arc with a travelling pulse between them; the phone glides a finger and the far pointer follows it.
   function futureAct(L, D, m, r) {
-    const end = L.next - 0.3, g = far(), land = EP.F.tall ? 'lapLand' : LAND169;
+    const end = L.next - 0.3, g = far(), land = EP.F.tall ? TALL_LAND[lay()] : LAND169;
     const lead0 = m - 0.52 - (L.t0 - 0.3);
     if (lead0 >= 0.6) stage(L, D, phoneAt('hero'), LAP(), Math.min(0.9, lead0 - 0.05));
     else D.lap(L.t0 - 0.3, LAP(), 0.9);
@@ -276,8 +283,8 @@
     D.turn.to(m - 0.52, m - 0.12, 1);
     D.screen(m - 0.5, 'mirror', (t) => ({ kind: 'desktop', screen: mirrored(t), t, a: ramp(t, m - 0.1, m + 0.3) }), [[m - 0.5, 0]], true);
     if (EP.F.tall) {
-      const c = EP.CAM.lapLand, rest = EP.LAPS.rest;
-      D.line(m + 0.2, r - 0.1, { x: rest.x + rest.w / 2 + 20, y: rest.y + (rest.w / 1.6) * 0.59 + 8 }, { x: c.x + 434 * c.s - 30, y: c.y - 207 * c.s });
+      const rest = EP.LAPS.rest;
+      D.line(m + 0.2, r - 0.1, { x: rest.x + rest.w / 2 + 20, y: rest.y + (rest.w / 1.6) * 0.59 + 8 }, { x: land.x + 434 * land.s - 30, y: land.y - 207 * land.s });
     } else D.line(m + 0.2, r - 0.1);
     D.turn.to(r - 0.5, r - 0.1, 0);
     D.move(r - 0.5, g.phone, 0.9);
@@ -311,7 +318,7 @@
   demo[13] = {
     h: 'Copy here. *Paste* there.', s: ['Both *ways*@both', 'With a *history*@history'], lap: true,
     act: (L, D) => {
-      stage(L, D, phoneAt('wide'));
+      stage(L, D, underText('wide')); // two headline lines and a sub in the tall cuts: the phone starts below them
       const sel = L.t0 + 0.2, fly = Math.max(L.w('paste') - 0.2, L.t0 + 1.0);
       const back = Math.max(L.w('both') - 0.1, fly + 1.2);
       const hist = Math.max(L.w('history') - 0.2, back + 0.9);
@@ -324,7 +331,7 @@
     act: (L, D) => {
       // The camera pushes in on the phone's foot (the card) and the laptop grows for its toast, both landing by "either"; the next act pulls back.
       const settle = Math.min(1.4, Math.max(0.52, L.w('either') - (L.t0 - 0.3)));
-      stage(L, D, EP.F.tall ? 'lapFoot' : FOOT169, EP.F.tall ? LAP() : { ...EP.LAPS.rest, x: 540, y: 630, w: 760 }, settle);
+      stage(L, D, foot(), EP.F.tall ? LAP() : { ...EP.LAPS.rest, x: 540, y: 630, w: 760 }, settle);
       const a = L.t0 - 0.05, one = Math.max(L.w('two'), a + 0.8), watch = Math.max(L.w('watch'), one + 0.8), pause = Math.max(L.w('pause'), watch + 0.3);
       const f3 = L.next - 0.4, f2 = f3 - 0.35, resume = Math.max(pause + 0.45, Math.min(pause + 0.7, f2 - 0.3));
       const T = { s: L.t0 - 0.3, a, one, watch, pause, resume, f2, f3 };
@@ -336,7 +343,7 @@
   demo[15] = {
     h: '*Macros.*', s: ['Apps · folders · *websites*@macros', 'Draw a *shape*@draw', 'And it *runs*@runs'], lap: true,
     act: (L, D) => {
-      stage(L, D, phoneAt('hero'));
+      stage(L, D, phoneAt('hero', 'lapHead'));
       const apps = L.w('apps'), web = Math.max(L.w('folders') + 0.05, apps + 0.5), surf = Math.max(L.w('draw') - 0.3, web + 0.6), runs = L.w('runs');
       macrosAct(D, { s: L.t0 - 0.3, apps, web, surf, draw: Math.max(L.w('draw'), surf + 0.1), end: runs - 0.1, runs });
     },
@@ -345,7 +352,7 @@
   demo[16] = {
     h: 'For *developers.*', s: ['*Limits* and spend@limits', 'Every open *session*@session'], lap: true,
     act: (L, D) => {
-      stage(L, D, phoneAt('hero'));
+      stage(L, D, phoneAt('hero', 'lapHead'));
       const tap = L.w('developer');
       devAct(D, { s: L.t0 - 0.3, tap, hub: Math.max(L.w('your') - 0.15, tap + 0.5), fill: L.w('limits') - 0.1, sess: L.w('session') });
       D.lapScreen(L.t0 - 0.3, 'editor');
@@ -355,7 +362,8 @@
   demo[17] = {
     h: 'Your *pull requests.*', s: ['GitHub · GitLab · *and more*@more', 'Tap, and it *opens*@opens'], lap: true,
     act: (L, D) => {
-      stage(L, D, phoneAt('hero'));
+      // 9:16 breaks the headline in two and has a sub-line, so the phone starts below them there; 3:4 keeps the head of the phone.
+      stage(L, D, EP.F.tall && lay() === '916' ? UNDER['916'] : phoneAt('hero', 'lapHead'));
       devAct(D, { s: L.t0 - 0.3, swipe: L.t0 - 0.1, press: L.w('tap') });
       const open = L.w('opens');
       D.lapScreen(L.t0 - 0.3, 'editor');
@@ -366,7 +374,7 @@
   demo[18] = {
     h: '*Air* mouse.', s: ['*Tilt* to aim@tilt', '*Hold* to drag@hold'], lap: true,
     act: (L, D) => {
-      stage(L, D, phoneAt('hero'));
+      stage(L, D, phoneAt('hero', 'lapFoot'));
       airAct(D, { s: L.t0 - 0.3, tilt: L.w('tilt'), hold: L.w('hold'), end: L.next });
     },
   };
@@ -438,10 +446,9 @@
       xferAct(D, T);
       D.lapScreen(s, 'notes', (t) => ({ ...notes(t), toast: toastAt(T)(t) }));
       // The camera follows the phone's work: the foot for the card, the head for the deck, the whole phone for the shape.
-      camTo(D, file, phoneAt('wide', 'lapFoot'), L.t0 + 0.5);
+      camTo(D, file, foot(), L.t0 + 0.5);
       camTo(D, mac, phoneAt('wide', 'lapHead'), T.f3 + 0.3);
       const web = mac + 0.4, surf = Math.max(shape - 0.45, web + 0.6);
-      camTo(D, shape, phoneAt('wide', 'lapPhone'), web + 0.6);
       macrosAct(D, { s: mac - 0.3, apps: mac + 0.05, web, surf, draw: Math.max(shape - 0.2, surf + 0.1), end: dr + 0.2, runs: dr + 0.4 });
     },
   };

@@ -115,16 +115,26 @@
   // the chips take its place under the sub-lines, in the tall cuts the ident takes its band.
   const meet = (L, D, o) => {
     const t0 = L.t0, tp = L.w('trackpad'), kb = L.w('keyboard'), gp = L.w('gamepad'), rm = L.w('remote');
-    // 9:16 and 3:4 (no laptop): the ident sits over the phone's top, under the headline; 9:16's phone is lowered to make room.
+    // Poses per layout. 16:9: the ident above the headline, the sideways phone right of the headline and sub-lines (they wrap at 800 px
+    // from x 150). Tall cuts (no laptop): the ident under the headline, the phone below it; with o.os (sub-lines and OS chips) the
+    // ident sits under the chips row and the phone is lowered to make room, both upright and sideways.
     const wide916 = EP.F.head.y === 262;
-    const upright = !tall() ? EP.CAM.hero : wide916 ? { x: 540, y: 1100, s: 1.1, r: 0 } : EP.CAM.hero;
-    // Where the sideways phone sits for the keyboard and the gamepad: 16:9 right of the headline and sub-lines (they wrap at 800 px
-    // from x 150), the tall cuts centred under the ident.
-    const sideways = !tall() ? { x: 1450, y: 540, s: 0.85, r: -90 } : wide916 ? { x: 540, y: 1150, s: 1.1, r: -90 } : EP.CAM.land;
+    let upright = EP.CAM.hero, sideways = { x: 1450, y: 540, s: 0.85, r: -90 }, ident = { x: EP.F.head.x + 110, y: 120, size: 220 }, chips = null;
+    if (tall() && wide916) {
+      upright = o.os ? { x: 540, y: 1230, s: 0.9, r: 0 } : { x: 540, y: 1100, s: 1.1, r: 0 };
+      sideways = o.os ? { x: 540, y: 1220, s: 1.0, r: -90 } : { x: 540, y: 1150, s: 1.1, r: -90 };
+      ident = o.os ? { x: 540, y: 690, size: 200 } : { x: 540, y: 490, size: 220 };
+      chips = { x: 80, y: 510, s: 1 };
+    } else if (tall()) {
+      upright = o.os ? { x: 540, y: 960, s: 0.85, r: 0 } : EP.CAM.hero;
+      sideways = o.os ? { x: 540, y: 950, s: 0.95, r: -90 } : EP.CAM.land;
+      ident = o.os ? { x: 540, y: 450, size: 180 } : { x: 540, y: 290, size: 200 };
+      chips = { x: 72, y: 260, s: 1 };
+    }
     D.move(t0 - 0.1, upright, 0.9);
     D.hand.to(t0, t0 + 0.4, 0);
     D.lap(t0 - 0.1, { ...P('rest'), a: 0 }, 0.4);
-    D.ident(t0, !tall() ? { x: EP.F.head.x + 110, y: 120, size: 220 } : wide916 ? { x: 540, y: 490, size: 220 } : { x: 540, y: 290, size: 200 });
+    D.ident(t0, ident);
     D.handoff(L.t1 - 0.25, 'VOL');
     D.screen(t0 - 0.1, 'surface');
     D.touch([[tp - 0.05, 160, 380], [tp + 0.25, 210, 420], [tp + 0.5, 250, 470]]);
@@ -139,14 +149,15 @@
     D.screen(rm - 0.3, 'surface', {}, null, false, 0.3);
     if (o.os) {
       const items = [{ name: 'Windows', at: L.w('windows') }, { name: 'macOS', at: L.w('mac') }, { name: 'Linux', at: L.w('linux') }];
-      D.card(L.w('windows') - 0.2, L.t1 + 0.2, C.rows(items, null, true), EP.F.band);
+      // 16:9: dark rows under the sub-lines. Tall: a row of chips between the sub-line and the ident.
+      D.card(L.w('windows') - 0.2, L.t1 + 0.2, tall() ? C.chips(items) : C.rows(items, null, true), chips);
     }
   };
-  DEMO[3] = {
-    h: 'This is | *Edgepad 5.*',
+  // The headline breaks after "This is" in 16:9 only; the tall cuts keep it on one line so the ident clears it.
+  DEMO[3] = Object.defineProperty({
     s: ['Free and *open source*@free', 'Trackpad · keyboard · *gamepad* · remote@trackpad', 'Windows · Mac · *Linux*@windows'],
     act: (L, D) => meet(L, D, { os: true }),
-  };
+  }, 'h', { get: () => (EP.F.tall ? 'This is *Edgepad 5.*' : 'This is | *Edgepad 5.*'), enumerable: true });
   REEL[2] = { h: 'This is *Edgepad 5.*', act: (L, D) => meet(L, D, { os: false }) };
 
   // ---- 4 and 5: the trackpad, then the dials ----
@@ -332,6 +343,7 @@
       D.screen(g - 0.25, 'gamepad', (tt) => ({ preset: 'xbox', input: EP.game.input(D.raceAt(tt)) }), null, true, 0.4);
       D.race(g, 0.85);
       D.lapScreen(g - 0.25, 'race', { mode: 'race' });
+      D.lap(g - 0.25, P('big'), 0.9);
       D.move(g - 0.5, cam('raceSplit', 'lapLand'), 0.8);
     },
   });
@@ -347,6 +359,7 @@
     act: (L, D) => {
       const two = L.w('two');
       D.turn.to(L.t0 - 0.2, L.t0 + 0.4, 1);
+      D.move(L.t0 - 0.2, SIDE(), 0.4);
       D.screen(L.t0 - 0.2, 'gamepad', (t) => ({ preset: 'xbox', input: EP.game.input(D.raceAt(t)) }), null, true, 0.4);
       D.race(two);
       D.lapScreen(L.t0 - 0.2, 'race', { mode: 'race' });
@@ -447,7 +460,7 @@
     act: (L, D) => capture(L, D, { t0: L.t0 - 0.35, full: L.w('full'), rec: L.w('recording'), ph: L.w('phone') }),
   });
   // Reel 6: the presenter (Next on "presenter", the laser from "laser") then the capture, compressed into one line.
-  REEL[6] = {
+  REEL[6] = top({
     h: '*Present.* Capture.',
     lap: true,
     act: (L, D) => {
@@ -455,5 +468,5 @@
       present(L, D, { start: L.t0 - 0.3, next: L.w('presenter') + 0.3, l0: L.w('laser'), l1: ss - 1.3 });
       capture(L, D, { t0: ss - 1.3, full: ss, rec, ph: L.w('phone') });
     },
-  };
+  });
 })();
