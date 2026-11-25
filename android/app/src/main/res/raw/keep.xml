@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- The theme now names splash_logo (windowSplashScreenAnimatedIcon), so this keep is no longer needed; delete this
-     file. It is left only because a review session cannot delete files. -->
-<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@drawable/splash_logo" />
