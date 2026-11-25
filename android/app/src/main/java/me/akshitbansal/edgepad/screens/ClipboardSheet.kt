@@ -1,17 +1,14 @@
 package me.akshitbansal.edgepad.screens
 
-import android.app.AlertDialog
 import android.text.TextUtils
 import android.text.format.DateUtils
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -19,7 +16,6 @@ import me.akshitbansal.edgepad.link.ClipItem
 import me.akshitbansal.edgepad.link.ClipSide
 import me.akshitbansal.edgepad.link.ClipboardHistory
 
-private const val MAX_WIDTH_DP = 360f
 private const val PREVIEW_CHARS = 240
 private const val PREVIEW_LINES = 3
 private const val EMPTY_HEIGHT_DP = 180f
@@ -48,46 +44,11 @@ internal fun isJustNow(ageMs: Long): Boolean = ageMs < JUST_NOW_MS
  * The text is shown, never logged.
  */
 class ClipboardSheet(
-    private val ui: Ui,
+    ui: Ui,
     private val history: ClipboardHistory,
     private val onSend: (String) -> Unit,
-) {
-    private var dialog: AlertDialog? = null
-    private val list = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
-
-    val isOpen: Boolean get() = dialog?.isShowing == true
-
-    fun show(owner: View) {
-        dismiss()
-        val bars =
-            owner.rootWindowInsets?.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
-        val width =
-            minOf(
-                owner.width - (bars?.left ?: 0) - (bars?.right ?: 0) - 2 * ui.dp(Space.PAGE),
-                ui.dp(MAX_WIDTH_DP),
-            )
-        val pad = ui.dp(Space.L)
-        list.setPadding(pad, pad, pad, pad)
-        (list.parent as? ViewGroup)?.removeView(list)
-        fill()
-        val scroll = ScrollView(ui.context).apply { addView(list) }
-        val shown = AlertDialog.Builder(ui.context).setView(scroll).openOver(owner)
-        dialog = shown
-        shown.window?.apply {
-            setTitle(ui.string(R.string.clip_history_title))
-            setBackgroundDrawable(ui.rounded(ui.palette.card, Space.CARD_RADIUS))
-            setGravity(Gravity.CENTER)
-            setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-            Carry.reveal(this, owner)
-        }
-    }
-
-    fun dismiss() {
-        dialog?.dismiss()
-        dialog = null
-    }
-
-    private fun fill() {
+) : ListSheet(ui, R.string.clip_history_title, reveal = true) {
+    override fun fill() {
         list.removeAllViews()
         val items = history.items
         val title = ui.section(ui.string(R.string.clip_history_title)).apply { setPadding(0, 0, 0, 0) }

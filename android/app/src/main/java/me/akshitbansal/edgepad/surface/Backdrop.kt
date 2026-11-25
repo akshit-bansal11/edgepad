@@ -199,9 +199,6 @@ class Backdrop(
     /** Whether this is the theme's own background, which the theme's own ink and accent are made for. */
     val themed: Boolean get() = kind == Settings.Background.THEME
 
-    /** Whether a background image is loaded and drawn, which controls over it get a scrim for. */
-    val hasImage: Boolean get() = image != null
-
     /** Whether text and controls drawn over this read best in a light colour. */
     val isDark: Boolean
         get() =

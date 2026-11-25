@@ -1,13 +1,10 @@
 package me.akshitbansal.edgepad.screens
 
-import android.app.AlertDialog
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -21,7 +18,6 @@ import me.akshitbansal.edgepad.surface.BatteryRow
 import me.akshitbansal.edgepad.surface.BatterySource
 import me.akshitbansal.edgepad.surface.LaptopView
 
-private const val MAX_WIDTH_DP = 360f
 private const val BAR_WIDTH_DP = 56f
 private const val BAR_HEIGHT_DP = 6f
 private const val PERCENT_WIDTH_DP = 44f
@@ -52,50 +48,15 @@ class LiveBatteries(
  * screen is short. [refresh] rebuilds the rows while it is open; Back or a tap outside closes it.
  */
 class BatterySheet(
-    private val ui: Ui,
+    ui: Ui,
     private val source: BatterySource,
-) {
-    private var dialog: AlertDialog? = null
-    private val list = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
-
-    val isOpen: Boolean get() = dialog?.isShowing == true
-
-    fun show(owner: View) {
-        dismiss()
-        val bars =
-            owner.rootWindowInsets?.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
-        val width =
-            minOf(
-                owner.width - (bars?.left ?: 0) - (bars?.right ?: 0) - 2 * ui.dp(Space.PAGE),
-                ui.dp(MAX_WIDTH_DP),
-            )
-        val pad = ui.dp(Space.L)
-        list.setPadding(pad, pad, pad, pad)
-        (list.parent as? ViewGroup)?.removeView(list)
-        fill()
-        val scroll = ScrollView(ui.context).apply { addView(list) }
-        val shown = AlertDialog.Builder(ui.context).setView(scroll).openOver(owner)
-        dialog = shown
-        shown.window?.apply {
-            // The window's own title is what a screen reader announces when it opens.
-            setTitle(ui.string(R.string.battery_title))
-            setBackgroundDrawable(ui.rounded(ui.palette.card, Space.CARD_RADIUS))
-            setGravity(Gravity.CENTER)
-            setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-        }
-    }
-
+) : ListSheet(ui, R.string.battery_title, reveal = false) {
     /** A battery changed: the rows are made again from what the source says now. */
     fun refresh() {
         if (isOpen) fill()
     }
 
-    fun dismiss() {
-        dialog?.dismiss()
-        dialog = null
-    }
-
-    private fun fill() {
+    override fun fill() {
         list.removeAllViews()
         val g = source.groups()
         g.inUse?.let { group(ui.string(R.string.battery_in_use), it) }

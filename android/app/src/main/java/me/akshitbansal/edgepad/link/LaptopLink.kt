@@ -11,10 +11,8 @@ import me.akshitbansal.edgepad.protocol.Pin
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
 import me.akshitbansal.edgepad.protocol.TextKind
 import java.io.DataInputStream
-import java.io.EOFException
 import java.io.IOException
 import java.io.OutputStream
-import java.io.StreamCorruptedException
 import java.net.InetAddress
 import java.net.SocketTimeoutException
 import java.util.concurrent.LinkedBlockingQueue
@@ -430,22 +428,7 @@ class LaptopLink(
             0
         }
 
-    private fun readFrame(input: DataInputStream): Frame {
-        val type = input.read()
-        if (type < 0) throw EOFException("The laptop closed the connection")
-        val length = FrameCodec.payloadLength(type)
-        if (length == FrameCodec.LENGTH_PREFIXED) {
-            val header = ByteArray(FrameCodec.TEXT_HEADER_LENGTH)
-            input.readFully(header)
-            val body = ByteArray(header[1].toInt() and 0xFF)
-            input.readFully(body)
-            return FrameCodec.decode(type, header + body)
-        }
-        if (length < 0) throw StreamCorruptedException("Unknown frame type 0x%02x".format(type))
-        val payload = ByteArray(length)
-        input.readFully(payload)
-        return FrameCodec.decode(type, payload)
-    }
+    private fun readFrame(input: DataInputStream): Frame = FrameCodec.read(input, "The laptop closed the connection")
 
     private companion object {
         const val TAG = "Edgepad"
