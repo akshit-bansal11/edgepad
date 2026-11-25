@@ -175,34 +175,8 @@ internal static class DesktopIcons
     {
         string? icon = null;
         string? exec = null;
-        var inEntry = false;
-        foreach (var raw in lines)
+        foreach (var (key, value) in DesktopEntry.MainGroup(lines))
         {
-            var line = raw.Trim();
-            if (line.Length == 0 || line[0] == '#')
-            {
-                continue;
-            }
-
-            if (line[0] == '[')
-            {
-                if (inEntry)
-                {
-                    break;
-                }
-
-                inEntry = line == "[Desktop Entry]";
-                continue;
-            }
-
-            var equals = line.IndexOf('=', StringComparison.Ordinal);
-            if (!inEntry || equals <= 0)
-            {
-                continue;
-            }
-
-            var key = line[..equals].TrimEnd();
-            var value = line[(equals + 1)..].Trim();
             if (key == "Icon")
             {
                 icon ??= value;

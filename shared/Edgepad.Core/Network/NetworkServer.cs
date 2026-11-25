@@ -10,6 +10,7 @@ namespace Edgepad.Network;
 /// so they can find this laptop. Every connection runs <see cref="LinkResponder"/> on the listener's thread for it, and
 /// only a link it lets through, a phone paired here or pairing now with the owner typing its code, is handed to
 /// <paramref name="accept"/>. Everything else is closed. The tray decides when this runs, from <c>network.txt</c>.
+/// Shared by the Windows and Linux apps; the Mac app has its own in Swift.
 /// </summary>
 /// <param name="accept">Takes a link the phone has proved itself on; <c>SessionHost.Accept</c> in the app.</param>
 /// <param name="onPaired">Told the phone's name when a pairing has just succeeded, before that link is handed on.</param>
@@ -35,6 +36,7 @@ internal sealed class NetworkServer(
 
     private TcpLinkListener? listener;
     private MdnsAdvertiser? advertiser;
+    private bool announced;
 
     // Cancelled by a stop, which withdraws a pairing question still open and refuses a link let through after it.
     // ponytail: never disposed, it has no timer or wait handle; one per start.
@@ -52,6 +54,18 @@ internal sealed class NetworkServer(
             lock (gate)
             {
                 return listener?.Port;
+            }
+        }
+    }
+
+    /// <summary>True while the laptop is announced; when listening without it, a phone must already know the address.</summary>
+    public bool IsAnnounced
+    {
+        get
+        {
+            lock (gate)
+            {
+                return announced;
             }
         }
     }
@@ -86,7 +100,7 @@ internal sealed class NetworkServer(
 
             // False is logged by the advertiser: the laptop is then not announced, and a phone can still reach it by address.
             var announcing = new MdnsAdvertiser(identity, (ushort)opened.Port);
-            _ = announcing.Start();
+            announced = announcing.Start();
             listener = opened;
             advertiser = announcing;
             running = stopping;
@@ -148,6 +162,7 @@ internal sealed class NetworkServer(
         live.Clear();
         listener = null;
         advertiser = null;
+        announced = false;
         running = null;
         Log.Write("Stopped listening for Wi-Fi and USB phones");
     }
@@ -158,7 +173,6 @@ internal sealed class NetworkServer(
     /// </summary>
     private void Serve(Socket socket, Action done, CancellationToken stopping)
     {
-        var remote = (socket.RemoteEndPoint as IPEndPoint)?.Address;
         CancellationToken dropped;
         lock (gate)
         {
@@ -170,7 +184,7 @@ internal sealed class NetworkServer(
         LinkResult? result = null;
         try
         {
-            result = LinkResponder.Accept(raw, identity, paired, limiter, prompt, trust, Log.Write, socket.Dispose, ended.Token, refusing: refusing, remote: remote, peerGone: () => LinkResponder.HungUp(socket));
+            result = LinkResponder.Accept(raw, identity, paired, limiter, prompt, trust, Log.Write, socket.Dispose, ended.Token, refusing: refusing, remote: (socket.RemoteEndPoint as IPEndPoint)?.Address, peerGone: () => LinkResponder.HungUp(socket));
         }
         finally
         {
@@ -206,8 +220,9 @@ internal sealed class NetworkServer(
             onPaired(result.PhoneName);
         }
 
-        // SessionHost.Accept refuses by returning false, releasing the link, but throws if a session cannot be built;
-        // the link is then ours to close, and nothing may escape to the listener but what it already logs.
+        // The Windows SessionHost.Accept catches everything itself. The Linux one refuses by returning false, releasing
+        // the link, but throws if a session cannot be built; the link is then ours to close, and nothing may escape to
+        // the listener but what it already logs.
         try
         {
             accept(link);

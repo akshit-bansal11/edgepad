@@ -35,15 +35,8 @@ internal static class LinuxMacroIcons
     /// <summary>Mitchell is a cubic that stays sharp downscaling a 256 or 512 pixel icon to the phone's square.</summary>
     private static readonly SKSamplingOptions Sampling = new(SKCubicResampler.Mitchell);
 
-    private static readonly Lock Gate = new();
-
-    /// <summary>
-    /// Keyed by path, last-write time and size together, as on Windows: a replaced icon is picked up rather than served stale
-    /// for the life of the process, and a phone reconnecting costs no work at all. A null result is cached too, so a
-    /// bad file is logged once and not on every connect.
-    /// </summary>
-    // ponytail: never evicted; one entry per path and write time. Bound it if a long-running session ever shows it.
-    private static readonly Dictionary<string, byte[]?> Cache = [];
+    /// <summary>The PNGs already made, so a phone reconnecting costs no work.</summary>
+    private static readonly IconCache Cache = new();
 
     /// <summary>
     /// The PNG for <paramref name="macro"/> at <paramref name="size"/>, a tier no larger than <see cref="MaxSize"/>, or
@@ -68,31 +61,7 @@ internal static class LinuxMacroIcons
                 return null;
             }
 
-            string key;
-            try
-            {
-                key = $"{path}|{File.GetLastWriteTimeUtc(path).Ticks}|{size}";
-            }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
-            {
-                return null;
-            }
-
-            lock (Gate)
-            {
-                if (Cache.TryGetValue(key, out var cached))
-                {
-                    return cached;
-                }
-            }
-
-            var png = Render(path, size);
-            lock (Gate)
-            {
-                Cache[key] = png;
-            }
-
-            return png;
+            return Cache.Get(path, size, (file, side) => Render(file, side));
         }
         catch (Exception e)
         {

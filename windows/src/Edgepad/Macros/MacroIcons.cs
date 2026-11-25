@@ -34,16 +34,8 @@ internal static partial class MacroIcons
     /// <summary>ASSOCSTR_DEFAULTICON: the "file,index" a file type's icon is read from.</summary>
     private const uint DefaultIconString = 15;
 
-    private static readonly Lock Gate = new();
-
-    /// <summary>
-    /// Keyed by path, last-write time and size together, so rebuilding an exe replaces its icon rather than
-    /// serving the old one for the life of the process, and a phone reconnecting costs no work at all.
-    /// </summary>
-    // ponytail: never evicted, so a session that rebuilds the same exe many times keeps every icon it ever
-    // made — fifteen macros at six kilobytes each per rebuild. Bound it if a tray app left running for weeks
-    // on a build machine ever shows it.
-    private static readonly Dictionary<string, byte[]?> Cache = [];
+    /// <summary>The PNGs already made, so a phone reconnecting costs no work.</summary>
+    private static readonly IconCache Cache = new();
 
     /// <summary>Extensions whose icon lives inside the file as a resource.</summary>
     private static readonly string[] Programs = [".exe", ".dll", ".ico", ".scr", ".cpl"];
@@ -82,31 +74,7 @@ internal static partial class MacroIcons
             return null;
         }
 
-        string key;
-        try
-        {
-            key = $"{path}|{File.GetLastWriteTimeUtc(path).Ticks}|{size}";
-        }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            return null;
-        }
-
-        lock (Gate)
-        {
-            if (Cache.TryGetValue(key, out var cached))
-            {
-                return cached;
-            }
-        }
-
-        var png = Render(path, size);
-        lock (Gate)
-        {
-            Cache[key] = png;
-        }
-
-        return png;
+        return Cache.Get(path, size, Render);
     }
 
     /// <summary>

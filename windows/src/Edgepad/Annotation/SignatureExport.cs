@@ -1,6 +1,5 @@
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.Numerics;
 using Edgepad.Protocol;
 using DrawingPen = System.Drawing.Pen; // Edgepad.Protocol.Pen, the PEN frame, is in scope here too
 
@@ -12,49 +11,12 @@ namespace Edgepad.Annotation;
 /// </summary>
 internal static class SignatureExport
 {
-    /// <summary>Breathing room around the ink, in pixels, so the stroke's anti-aliased edge is never clipped.</summary>
-    internal const int Margin = 8;
-
     /// <summary>
-    /// The part of a <paramref name="width"/> by <paramref name="height"/> screen that the ink and its margin
-    /// cover; null when there is no ink.
+    /// The part of a <paramref name="width"/> by <paramref name="height"/> screen that the ink and its margin cover;
+    /// null when there is no ink. See <see cref="SignatureCrop.Of"/>.
     /// </summary>
-    public static Rectangle? CropRect(IReadOnlyList<Stroke> strokes, int width, int height)
-    {
-        if (width <= 0 || height <= 0)
-        {
-            return null;
-        }
-
-        var min = new Vector2(float.MaxValue);
-        var max = new Vector2(float.MinValue);
-        var any = false;
-        foreach (var stroke in strokes)
-        {
-            if (stroke.Ink(width, height) is not { } ink)
-            {
-                continue;
-            }
-
-            min = Vector2.Min(min, ink.Min);
-            max = Vector2.Max(max, ink.Max);
-            any = true;
-        }
-
-        if (!any)
-        {
-            return null;
-        }
-
-        var crop = Rectangle.Intersect(
-            Rectangle.FromLTRB(
-                (int)MathF.Floor(min.X) - Margin,
-                (int)MathF.Floor(min.Y) - Margin,
-                (int)MathF.Ceiling(max.X) + Margin,
-                (int)MathF.Ceiling(max.Y) + Margin),
-            new Rectangle(0, 0, width, height));
-        return crop.IsEmpty ? null : crop;
-    }
+    public static Rectangle? CropRect(IReadOnlyList<Stroke> strokes, int width, int height) =>
+        SignatureCrop.Of(strokes, width, height) is { } c ? new Rectangle(c.X, c.Y, c.Width, c.Height) : null;
 
     /// <summary>The PNG, or null when there is nothing to export.</summary>
     public static byte[]? Render(IReadOnlyList<Stroke> strokes, int width, int height)
