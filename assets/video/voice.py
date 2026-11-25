@@ -134,37 +134,51 @@ def build(sid):
 
     # Cut each line out of the take midway through the silence after it, then lay the pieces out again.
     cuts = [0.0] + [(ends[i] + starts[i + 1]) / 2 for i in range(len(flat) - 1)] + [ends[-1] + 0.3]
-    filters, order, at, lines, chapters = [], [], 0.0, [], []
-    for i, (ci, text) in enumerate(flat):
-        last = i == len(flat) - 1
-        lead = LEAD if i == 0 else 0.0
-        a = max(cuts[i], starts[i] - 0.12)
-        b = min(cuts[i + 1], ends[i] + 0.25)
-        speech = ends[i] - starts[i]
-        gap = TAIL if last else CHAPTER_GAP if flat[i + 1][0] != ci else script.get("gap", GAP)
-        if not last and flat[i + 1][0] != ci:  # the next chapter lands on a beat, so the music can hit it
-            end = at + lead + speech + gap + (0.12 if i else 0)
-            gap += math.ceil(end / BEAT) * BEAT - end
-        slot = lead + speech + gap
-        before = max(lead + (0.12 if i else 0) - (starts[i] - a), 0.001)  # silence ahead of the cut
-        first = at + before + (starts[i] - a)  # where this line's first word lands
-        shift = first - starts[i]
-        if not chapters or chapters[-1]["index"] != ci:
-            chapters.append({"index": ci, "title": script["chapters"][ci]["title"], "start": round(at, 3)})
-        filters.append(f"[0:a]atrim={a:.3f}:{b:.3f},asetpts=PTS-STARTPTS,apad=whole_dur={slot + (0.12 if i else 0) - before:.3f},atrim=0:{slot + (0.12 if i else 0) - before:.3f}[s{i}]")
-        filters.append(f"anullsrc=r=24000:cl=mono,atrim=0:{before:.3f}[p{i}]")
-        order.append(f"[p{i}][s{i}]")
-        toks = tokens(text, spoken[i])
-        lines.append(
-            {
-                "chapter": ci,
-                "text": text,
-                "start": round(first, 3),
-                "end": round(ends[i] + shift, 3),
-                "words": [[t, round(s + shift, 3), round(e + shift, 3)] for t, s, e in toks],
-            }
-        )
-        at += slot + (0.12 if i else 0)
+
+    def lay(holds, line_gap):
+        """The layout for these holds ("line number, from 1" -> extra seconds of silence after it) and this gap."""
+        filters, order, at, lines, chapters = [], [], 0.0, [], []
+        for i, (ci, text) in enumerate(flat):
+            last = i == len(flat) - 1
+            lead = LEAD if i == 0 else 0.0
+            a = max(cuts[i], starts[i] - 0.12)
+            b = min(cuts[i + 1], ends[i] + 0.25)
+            speech = ends[i] - starts[i]
+            hold = float(holds.get(str(i + 1), 0))
+            gap = hold + (TAIL if last else CHAPTER_GAP if flat[i + 1][0] != ci else line_gap)
+            if not last and flat[i + 1][0] != ci:  # the next chapter lands on a beat, so the music can hit it
+                end = at + lead + speech + gap + (0.12 if i else 0)
+                gap += math.ceil(end / BEAT) * BEAT - end
+            slot = lead + speech + gap
+            before = max(lead + (0.12 if i else 0) - (starts[i] - a), 0.001)  # silence ahead of the cut
+            first = at + before + (starts[i] - a)  # where this line's first word lands
+            shift = first - starts[i]
+            if not chapters or chapters[-1]["index"] != ci:
+                chapters.append({"index": ci, "title": script["chapters"][ci]["title"], "start": round(at, 3)})
+            filters.append(f"[0:a]atrim={a:.3f}:{b:.3f},asetpts=PTS-STARTPTS,apad=whole_dur={slot + (0.12 if i else 0) - before:.3f},atrim=0:{slot + (0.12 if i else 0) - before:.3f}[s{i}]")
+            filters.append(f"anullsrc=r=24000:cl=mono,atrim=0:{before:.3f}[p{i}]")
+            order.append(f"[p{i}][s{i}]")
+            toks = tokens(text, spoken[i])
+            lines.append(
+                {
+                    "chapter": ci,
+                    "text": text,
+                    "start": round(first, 3),
+                    "end": round(ends[i] + shift, 3),
+                    "hold": hold,
+                    "words": [[t, round(s + shift, 3), round(e + shift, 3)] for t, s, e in toks],
+                }
+            )
+            at += slot + (0.12 if i else 0)
+        return filters, order, at, lines, chapters
+
+    # "fit" keeps a cut inside its length: under `under` seconds its `holds` replace the script's, over `over` its `gap` does.
+    holds, line_gap, fit = dict(script.get("holds", {})), script.get("gap", GAP), script.get("fit", {})
+    filters, order, at, lines, chapters = lay(holds, line_gap)
+    if "under" in fit and at < fit["under"]:
+        filters, order, at, lines, chapters = lay({**holds, **fit.get("holds", {})}, line_gap)
+    elif "over" in fit and at > fit["over"]:
+        filters, order, at, lines, chapters = lay(holds, fit.get("gap", line_gap))
     graph = ";".join(filters) + ";" + "".join(order) + f"concat=n={2 * len(flat)}:v=0:a=1,loudnorm=I=-16:TP=-1.5:LRA=11[out]"
     subprocess.run(
         ["ffmpeg", "-y", "-loglevel", "error", "-i", str(out / "take.mp3"), "-filter_complex", graph,
@@ -172,14 +186,19 @@ def build(sid):
         check=True,
     )
     (out / "take.mp3").unlink()
-    # The poster is a frame from the corner-dial beat, the picture that says the most about the app.
-    dial = next((ln for ln in lines if "dial" in ln["text"].lower()), lines[len(lines) // 2])
+    # The poster is the middle of the script's "poster_line" (from 1), or else a frame from the corner-dial beat.
+    if "poster_line" in script:
+        chosen = lines[script["poster_line"] - 1]
+        poster = (chosen["start"] + chosen["end"]) / 2
+    else:
+        dial = next((ln for ln in lines if "dial" in ln["text"].lower()), lines[len(lines) // 2])
+        poster = min(dial["end"], dial["start"] + 3.0)
     timing = {
         "id": sid,
         "title": script["title"],
         "bpm": BPM,
         "duration": round(at, 3),
-        "poster": round(min(dial["end"], dial["start"] + 3.0), 3),
+        "poster": round(poster, 3),
         "chapters": [{"title": c["title"], "start": c["start"]} for c in chapters],
         "lines": lines,
     }
@@ -191,7 +210,7 @@ def build(sid):
 
 
 def main():
-    ids = sys.argv[1:] or sorted(p.stem for p in (HERE / "scripts").glob("*.json"))
+    ids = sys.argv[1:] or sorted(p.stem for p in (HERE / "scripts").glob("*.json") if not p.stem.endswith(".cues"))
     for sid in ids:
         build(sid)
 

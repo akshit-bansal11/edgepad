@@ -247,8 +247,21 @@
     ctx.stroke();
   };
 
-  const HINTS = ['One finger: move, tap to click', 'Two: scroll, pinch to zoom, tap to right-click', 'Three: swipe desktops', 'Four: swipe apps'];
   const CAPTIONS = { focus: 'Dials and media hidden · tap the lock to show', locked: 'Pad locked · tap the lock to unlock' };
+  const SLEEP_CHIP = 'Sleep when this ends'; // strings.xml end_action_title
+
+  // res/drawable/ic_battery_keyboard.xml, the Type button's icon (kit.js has no copy of it): stroke 1.5, round caps and joins.
+  const TYPE_ICON = new Path2D('M4 6H20A1.5 1.5 0 0 1 21.5 7.5V16.5A1.5 1.5 0 0 1 20 18H4A1.5 1.5 0 0 1 2.5 16.5V7.5A1.5 1.5 0 0 1 4 6ZM6.5 10H6.51M10 10H10.01M14 10H14.01M17.5 10H17.51M8 14H16');
+  function typeIcon(ctx, cx, cy, size, color, a) {
+    ctx.save();
+    ctx.translate(cx - size / 2, cy - size / 2);
+    ctx.scale(size / 24, size / 24);
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = ctx.lineJoin = 'round';
+    ctx.strokeStyle = rgba(color, a);
+    ctx.stroke(TYPE_ICON);
+    ctx.restore();
+  }
 
   // Text cut to `room` with an ellipsis, the way TextUtils.ellipsize cuts the now-playing lines.
   function ellipsize(ctx, s, size, weight, room) {
@@ -259,10 +272,10 @@
   }
 
   // S: { pal, bg, radius, split 0..1, extra 0..1, dials {KIND:{ruler,text,armed}}, mode 'normal'|'focus'|'locked',
-  //      media {a, playing, app, title, sub, at:[x,y]}, hint 0..1, press {name,k}, fingers, trail, shaping,
+  //      media {a, playing, app, title, sub, at:[x,y]}, sleepChip 0..1, press {name,k}, fingers, trail, shaping,
   //      extraKinds [4 kinds for the empty halves, slots 1 2 5 6; default APPS SCROLL RATE ZOOM2],
   //      scrubOnADial (default true: a scrub dial is on the pad, so now playing shows the app and no time) }
-  // press.name: 'settings', 'lock' or 'controls' ('dashboard' is read as 'controls'). Dial keys: VOL BRI ZOOM SCRUB APPS RATE
+  // press.name: 'controls', 'type', 'lock' or 'settings' ('dashboard' is read as 'controls'). Dial keys: VOL BRI ZOOM SCRUB APPS RATE
   // ZOOM2 SCROLL SIDE DESK TABS DEVICES (the LAPTOP dial: text is the laptop's name, cut to 10).
   EP.drawSurface = (ctx, w, h, S) => {
     const pal = S.pal;
@@ -308,10 +321,24 @@
       ctx.restore();
     }
 
-    // Top row of three (TopButton, side -1, 0, 1 in steps of `step`): Settings, Lock, Controls, 24 dp icons. The lock is
-    // lit on a 44 dp accent tint outside normal mode.
+    // Sleep when this ends (strings.xml end_action_title): the chip under the now-playing lines, rising 8 dp as it fades in.
+    // The app prints this string as the Settings section title; the chip itself is the film's, drawn as Ui.chip is (a 32 dp pill).
+    if (m && m.a > 0 && mode !== 'focus' && S.sleepChip > 0.003) {
+      const [nx, ny] = m.at || [0.5, 0.78];
+      const cw = EP.measure(ctx, SLEEP_CHIP, 15, 'Bold') + 32;
+      const cy = ny * h - 8 + 54 + (1 - S.sleepChip) * 8;
+      ctx.save();
+      ctx.globalAlpha *= m.a * S.sleepChip;
+      EP.fillRR(ctx, nx * w - cw / 2, cy - 16, cw, 32, 16, rgba(pal.accentSoft));
+      EP.textMid(ctx, SLEEP_CHIP, nx * w, cy, { size: 15, w: 'Bold', color: pal.accent, align: 'center' });
+      ctx.restore();
+    }
+
+    // Top row of four (ControlSurface.kt:288-297, TopButton side -1.5, -0.5, 0.5, 1.5 in steps of `step`): Controls, Type,
+    // Lock, Settings, 24 dp icons. Upright (step 48, w 390) their centres are x 123, 171, 219, 267; sideways (step 56,
+    // w 844) 338, 394, 450, 506. The lock is lit on a 44 dp accent tint outside normal mode.
     const chrome = S.chrome ?? 1;
-    const buttons = [['settings', -1], ['lock', 0], ['controls', 1]];
+    const buttons = [['controls', -1.5], ['type', -0.5], ['lock', 0.5], ['settings', 1.5]];
     const pressed = S.press && (S.press.name === 'dashboard' ? 'controls' : S.press.name);
     for (const [name, side] of buttons) {
       const cx = w / 2 + side * step;
@@ -328,15 +355,14 @@
         ctx.arc(cx, 40, 22, 0, Math.PI * 2);
         ctx.fill();
       }
-      icon(ctx, name, cx, 40, 24, lit ? pal.accent : pal.dim, chrome);
+      if (name === 'type') typeIcon(ctx, cx, 40, 24, lit ? pal.accent : pal.dim, chrome);
+      else icon(ctx, name, cx, 40, 24, lit ? pal.accent : pal.dim, chrome);
     }
 
-    // Hints, the way the app prints them in the middle of an idle pad, and the mode caption a gap above them.
-    const hintTop = h / 2 - ((HINTS.length - 1) * 16) / 2;
-    if (S.hint > 0) HINTS.forEach((line, i) => text(ctx, line, w / 2, hintTop + i * 16, { size: 12, color: pal.dim, align: 'center', a: S.hint }));
+    // No hint text on the pad (U10). The mode caption keeps the place it had, 28 dp above where the hints began.
     if (mode !== 'normal') {
       const line = CAPTIONS[mode];
-      const base = hintTop - 28;
+      const base = h / 2 - 24 - 28;
       const mid = base - 13 * 0.35;
       const hw = EP.measure(ctx, line, 13, 'Bold') / 2 + 14, hh = 13 / 2 + 7;
       EP.fillRR(ctx, w / 2 - hw, mid - hh, 2 * hw, 2 * hh, hh, rgba(pal.accent, 0.14));

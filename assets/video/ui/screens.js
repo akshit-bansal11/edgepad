@@ -384,123 +384,156 @@
     dot(ctx, EP.path(lt, [[8.1, ex + 40, ey + 70], [8.4, ex, ey], [8.65, ex, ey]]));
   };
 
-  // ---- Controls (ControlsPopup.kt): a small modal under the surface's top buttons, three tiles to a row, in a card. ----
-  // The Controls tiles' icons are StencilIcon.kt: a body in the ink with holes cut through it, and one part in the accent,
-  // drawn in a 48 unit square. Composed on a layer of their own, so the holes clear the icon and never the tile behind it.
+  // The 5.x film's deck (MacroScreen.kt over DeckPage.kt, as S.macros): nine neutral macros, six to a page (the page size
+  // is a setting; six makes the nine two pages).
+  // lt: 0.95 a tap runs Blender (its cross shows from 1.4); 2.0 a slide to page two, where it stays.
+  const MACROS5 = [
+    ['Blender', 'blender', '#E87D0D'], ['Figma', 'figma', '#F24E1E'], ['OBS', 'obsstudio', null], ['VLC', 'vlcmediaplayer', '#FF8800'], ['Steam', 'steam', null],
+    ['Firefox', 'firefoxbrowser', '#FF7139'], ['Notion', 'notion', null], ['Obsidian', 'obsidian', '#7C3AED'], ['Terminal', 'gnometerminal', null],
+  ];
+  S.macros5 = (ctx, w, h, pal, lt) => {
+    const per = 6, pages = Math.ceil(MACROS5.length / per);
+    const pageK = ease((lt - 2.0) / 0.55);
+    bar(ctx, w, pal, 'Macros', 'Surface', null, 0, true);
+    const across = w - 32, room = h - TOP - 48 - 24 - BOTTOM, down = room - 24;
+    const g = plan(per, across, down, null);
+    const area = { x: 16, y: TOP + 48 };
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(16, area.y - 8, across, down + 16);
+    ctx.clip();
+    MACROS5.forEach(([label, brand, colour], m) => {
+      const page = Math.floor(m / per);
+      const r = place(m % per, Math.min(per, MACROS5.length - page * per), g, area);
+      const draw = (cx, cy, size) => EP.brand(ctx, brand, cx, cy, size * 0.78, colour || rgba(pal.ink));
+      tile(ctx, pal, { ...r, x: r.x + (page - pageK) * across }, draw, label, { cross: m === 0 ? ease((lt - 1.4) / 0.2) : 0, press: m === 0 ? tri(lt, 0.95, 0.35) : 0 });
+    });
+    ctx.restore();
+    const dotsY = area.y + room - 12;
+    for (let i = 0; i < pages; i++) {
+      ctx.fillStyle = rgba(EP.mixRgb(pal.off, pal.accent, i === 0 ? 1 - pageK : pageK));
+      ctx.beginPath();
+      ctx.arc(w / 2 + (i - (pages - 1) / 2) * 16, dotsY, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    const r0 = place(0, per, g, area);
+    dot(ctx, EP.path(lt, [[0.55, r0.x + r0.w / 2 + 60, r0.y + r0.h / 2 + 80], [0.95, r0.x + r0.w / 2, r0.y + r0.h / 2], [1.3, r0.x + r0.w / 2, r0.y + r0.h / 2]]));
+    dot(ctx, EP.path(lt, [[2.0, w * 0.8, area.y + 200], [2.55, w * 0.2, area.y + 200]], true));
+  };
+
+  // ---- Controls (ControlsPopup.kt): a small modal over the surface, three tiles to a row upright and five sideways, under a header. ----
+  // The tiles' icons are StencilIcon.kt: a body in the ink with holes cut through it, and one part in the accent, drawn in a
+  // 48 unit square. Composed on a layer of their own, so the holes clear the icon and never the tile behind it.
   const stencilCache = {};
   function drawStencil(g, kind, ink, accent) {
-    const card = (x, y, w, h, r) => {
-      g.beginPath();
-      g.roundRect(x, y, w, h, r);
-    };
+    const rect = (x, y, w, h, r) => g.roundRect(x, y, w, h, r);
     const circle = (x, y, r) => {
-      g.beginPath();
+      g.moveTo(x + r, y);
       g.arc(x, y, r, 0, Math.PI * 2);
     };
-    g.lineCap = g.lineJoin = 'round';
-    g.fillStyle = ink;
-    g.strokeStyle = ink;
-    const hole = (fn, stroke, width) => {
-      g.globalCompositeOperation = 'destination-out';
-      fn();
-      if (stroke) {
-        g.lineWidth = width;
-        g.stroke();
-      } else g.fill();
-      g.globalCompositeOperation = 'source-over';
+    const line = (...p) => {
+      g.moveTo(p[0], p[1]);
+      for (let i = 2; i < p.length; i += 2) g.lineTo(p[i], p[i + 1]);
     };
+    const shut = (...p) => {
+      line(...p);
+      g.closePath();
+    };
+    // One part: filled, or stroked at o.width; a hole clears what is under it, o.alpha is the part's own opacity.
+    const part = (color, build, o = {}) => {
+      g.save();
+      g.globalCompositeOperation = o.hole ? 'destination-out' : 'source-over';
+      g.globalAlpha = o.alpha ?? 1;
+      g.fillStyle = g.strokeStyle = color;
+      g.lineWidth = o.width || 0;
+      g.lineCap = o.cap || 'butt';
+      g.lineJoin = 'round';
+      g.beginPath();
+      build();
+      if (o.width) g.stroke();
+      else g.fill();
+      g.restore();
+    };
+    const solid = (build, o) => part(ink, build, o);
+    const hole = (build, o) => part(ink, build, { ...o, hole: true });
+    const live = (build, o) => part(accent, build, o);
+    const round = { width: 3.8, cap: 'round' }; // StencilIcon.HOLE_STROKE
     if (kind === 'KEYBOARD') {
-      const cols = [8, 15, 22, 29, 36];
-      card(3, 11, 42, 26, 6);
-      g.fill();
+      solid(() => rect(4, 11, 40, 26, 6));
       hole(() => {
-        g.beginPath();
-        for (const x of cols) g.roundRect(x, 16, 4.5, 4.5, 1.2);
-        for (const x of cols) if (x !== 22) g.roundRect(x, 23, 4.5, 4.5, 1.2);
-        g.roundRect(13, 30, 22, 3.4, 1.7);
+        for (let i = 0; i < 5; i++) rect(8.8 + i * 6.2, 16, 5.2, 4.4, 1.4);
+        for (let i = 0; i < 4; i++) rect(11.9 + i * 6.2, 22.4, 5.2, 4.4, 1.4);
       });
-      g.fillStyle = accent;
-      card(22, 23, 4.5, 4.5, 1.2);
-      g.fill();
+      live(() => rect(14, 29.2, 20, 4, 2));
     } else if (kind === 'GAMEPAD') {
-      card(2, 12, 44, 24, 12);
-      g.fill();
+      solid(() => rect(4, 13, 40, 22, 11));
       hole(() => {
-        g.beginPath();
-        g.moveTo(9.5, 24);
-        g.lineTo(18.5, 24);
-        g.moveTo(14, 19.5);
-        g.lineTo(14, 28.5);
-      }, true, 3.2);
-      hole(() => circle(34, 24, 6));
-      g.fillStyle = accent;
-      circle(34, 24, 3);
-      g.fill();
+        line(10, 24, 20, 24);
+        line(15, 19, 15, 29);
+      }, round);
+      live(() => circle(33, 24, 4.4));
     } else if (kind === 'MACROS') {
-      g.globalAlpha = 89 / 255;
-      card(14, 5, 29, 29, 6);
-      g.fill();
-      g.globalAlpha = 1;
-      card(5, 14, 29, 29, 6);
-      g.fill();
-      g.fillStyle = g.strokeStyle = accent;
-      g.lineWidth = 2.4;
-      g.beginPath();
-      g.moveTo(15.5, 22.5);
-      g.lineTo(26, 28.5);
-      g.lineTo(15.5, 34.5);
-      g.closePath();
-      g.fill();
-      g.stroke();
+      solid(() => rect(17, 5, 26, 26, 6), { alpha: 89 / 255 });
+      solid(() => rect(5, 17, 26, 26, 6));
+      live(() => shut(14.4, 24.4, 24.4, 30, 14.4, 35.6));
     } else if (kind === 'CAPTURE') {
-      circle(24, 24, 21);
-      g.fill();
+      solid(() => circle(24, 24, 19));
       hole(() => {
-        g.beginPath();
-        [[19.5, 16.2, 45, 16.2], [28.5, 16.2, 41, 37.9], [33, 24, 20, 46.4], [28.5, 31.8, 3, 31.8], [19.5, 31.8, 7, 10.1], [15, 24, 28, 1.6]].forEach(([a, b, c2, d]) => {
-          g.moveTo(a, b);
-          g.lineTo(c2, d);
-        });
-      }, true, 2);
+        line(18.4, 6.4, 26.4, 20.2);
+        line(39.2, 13.2, 31.2, 27);
+        line(41.2, 30.8, 25.2, 30.8);
+        line(29.6, 41.6, 21.6, 27.8);
+        line(8.8, 34.8, 16.8, 21);
+        line(6.8, 17.2, 22.8, 17.2);
+      }, { width: 2.4 });
+      live(() => circle(24, 24, 5.2));
+    } else if (kind === 'ANNOTATE') {
+      solid(() => shut(9, 33.6, 11.6, 24.8, 30.4, 6, 36.6, 12.2, 17.8, 31));
+      live(() => {
+        g.moveTo(25, 40.4);
+        g.bezierCurveTo(30.2, 37.2, 34.2, 42.2, 41, 38.4);
+      }, { width: 4, cap: 'round' });
+    } else if (kind === 'CLIPBOARD') {
+      solid(() => rect(10, 9, 28, 34, 6));
       hole(() => {
-        g.beginPath();
-        g.moveTo(33, 24);
-        g.lineTo(28.5, 31.8);
-        g.lineTo(19.5, 31.8);
-        g.lineTo(15, 24);
-        g.lineTo(19.5, 16.2);
-        g.lineTo(28.5, 16.2);
-        g.closePath();
-      });
-      g.fillStyle = accent;
-      circle(24, 24, 3.6);
-      g.fill();
-    } else {
-      g.beginPath();
-      g.moveTo(24, 45);
-      g.lineTo(11, 25);
-      g.bezierCurveTo(11, 17, 16, 11, 17, 4);
-      g.lineTo(31, 4);
-      g.bezierCurveTo(32, 11, 37, 17, 37, 25);
-      g.closePath();
-      g.fill();
+        line(17, 22, 31, 22);
+        line(17, 28.4, 31, 28.4);
+        line(17, 34.8, 26, 34.8);
+      }, { width: 3.2, cap: 'round' });
+      live(() => rect(17, 5, 14, 8, 3));
+    } else if (kind === 'PRESENTER') {
+      solid(() => rect(5, 6, 38, 25, 4));
+      solid(() => {
+        line(24, 31, 24, 37);
+        line(16, 43, 24, 37, 32, 43);
+      }, round);
+      hole(() => rect(9.4, 10.4, 29.2, 16.2, 1.6));
+      live(() => circle(29, 18.6, 4.4));
+    } else if (kind === 'SEND') {
+      solid(() => shut(5, 22.4, 43, 6, 28, 43, 22, 27.4));
+      live(() => shut(43, 6, 22, 27.4, 28, 43));
+    } else if (kind === 'STATS') {
+      solid(() => rect(5, 7, 38, 27, 6));
+      solid(() => rect(16, 38, 16, 4, 2));
+      hole(() => line(11, 21, 17, 21, 20.6, 15, 25.4, 27, 29, 21, 31.4, 21), { width: 3.4, cap: 'round' });
+      live(() => circle(36.4, 21, 3.2));
+    } else if (kind === 'DEVELOPER') {
+      solid(() => rect(5, 8, 38, 32, 6));
       hole(() => {
-        g.beginPath();
-        g.moveTo(24, 43);
-        g.lineTo(24, 28);
-      }, true, 2);
-      g.fillStyle = accent;
-      circle(24, 24, 3.6);
-      g.fill();
+        line(18, 18.4, 12.4, 24, 18, 29.6);
+        line(30, 18.4, 35.6, 24, 30, 29.6);
+      }, round);
+      live(() => line(26.2, 16.6, 21.8, 31.4), round);
     }
   }
-  // kind: KEYBOARD | GAMEPAD | MACROS | CAPTURE | ANNOTATE; ink and accent are CSS colours.
+  // kind: KEYBOARD | GAMEPAD | MACROS | PRESENTER | CAPTURE | ANNOTATE | CLIPBOARD | SEND | STATS | DEVELOPER; ink and accent are
+  // CSS colours.
   EP.stencil = (ctx, kind, cx, cy, size, ink, accent) => {
     const px = Math.max(48, Math.ceil(size * 2));
-    const key = kind + ink + accent + px;
-    let c = stencilCache[key];
+    const slot = kind + ink + accent + px;
+    let c = stencilCache[slot];
     if (!c) {
-      c = stencilCache[key] = document.createElement('canvas');
+      c = stencilCache[slot] = document.createElement('canvas');
       c.width = c.height = px;
       const g = c.getContext('2d');
       g.scale(px / 48, px / 48);
@@ -509,94 +542,249 @@
     ctx.drawImage(c, cx - size / 2, cy - size / 2, size, size);
   };
 
-  // lt: 0.15 the Controls button on the surface is tapped, 0.45 the popup opens, 2.2 Keyboard is tapped.
-  // o.under is the surface's state (what film.js passes to EP.drawSurface), drawn behind the popup.
+  // The popup's tiles in ControlsPopup.draw's order: Target.entries, with Send a file added just before Stats.
+  const CONTROL_TILES = [['Keyboard', 'KEYBOARD'], ['Gamepad', 'GAMEPAD'], ['Macros', 'MACROS'], ['Presenter', 'PRESENTER'], ['Capture', 'CAPTURE'], ['Annotate', 'ANNOTATE'], ['Clipboard', 'CLIPBOARD'], ['Send a file', 'SEND'], ['Stats', 'STATS'], ['Developer', 'DEVELOPER']];
+  const POPOVER = [[34, 35, 40], [251, 251, 253]]; // values-night/colors.xml and values/colors.xml: popover
+  // lt: 0.1-0.4 the Controls button on the surface (the top row's first place) is pressed, tapped at 0.15; 0.2-0.5 the popup
+  // grows from the button (REVEAL, 300 ms, from 85%); 2.2 the tile named by o.press is tapped.
+  // o.under is the surface's state (what film.js passes to EP.drawSurface), drawn behind the popup. o.dev (default true) shows
+  // the Developer tile. o.press: 'Keyboard' (default) | 'Gamepad' | 'Macros' | 'Presenter' | 'Capture' | 'Annotate' |
+  // 'Clipboard' | 'Send a file' | 'Stats' | 'Developer'. Upright 390 x 844 and sideways 844 x 390 both work.
   S.controls = (ctx, w, h, pal, lt, o = {}) => {
     EP.drawSurface(ctx, w, h, { pal, radius: 44, dials: {}, fingers: [], trail: [], press: { name: 'controls', k: tri(lt, 0.1, 0.3) }, ...(o.under || {}) });
-    const open = ease((lt - 0.4) / 0.15);
+    const step = w > h ? 56 : 48, bx = w / 2 - 1.5 * step, by = 40;
+    const open = EP.easeOut((lt - 0.2) / 0.3);
+    let tapAt = null;
     if (open > 0) {
+      const tiles = CONTROL_TILES.filter(([name]) => name !== 'Developer' || o.dev !== false);
+      const cols = w > h ? 5 : 3, rows = Math.ceil(tiles.length / cols);
+      const pw = Math.min(cols * 128 + (cols - 1) * GAP + 32, w - 32), tw = (pw - 32 - (cols - 1) * GAP) / cols;
+      const ph = 48 + rows * 112 + (rows - 1) * GAP + 16, px = (w - pw) / 2, py = (h - ph) / 2;
       ctx.save();
       ctx.globalAlpha *= open;
       ctx.fillStyle = 'rgba(0,0,0,0.6)'; // the dialog's default window dim
       ctx.fillRect(0, 0, w, h);
-      const pw = Math.min(w - 32, 360), px = (w - pw) / 2, py = TOP + 48 + 16;
-      const across = pw - 32, rows = 2, down = rows * 96 + GAP;
-      fillRR(ctx, px, py, pw, down + 32, 14, pal.card);
-      const items = [['Keyboard', 'KEYBOARD'], ['Gamepad', 'GAMEPAD'], ['Macros', 'MACROS'], ['Capture', 'CAPTURE'], ['Annotate', 'ANNOTATE']];
-      const g = plan(items.length, across, down, rows);
-      const area = { x: px + 16, y: py + 16 };
-      const at = (i) => place(i, items.length, g, area);
-      items.forEach(([name, kind], i) => {
-        const draw = (cx, cy, size) => EP.stencil(ctx, kind, cx, cy, size, rgba(pal.ink), rgba(pal.accent));
-        tile(ctx, pal, at(i), draw, name, { press: i === 0 ? tri(lt, 2.2, 0.4) : 0 });
+      const grow = lerp(0.85, 1, open);
+      ctx.translate(bx, by);
+      ctx.scale(grow, grow);
+      ctx.translate(-bx, -by);
+      fillRR(ctx, px, py, pw, ph, 16, EP.mixRgb(POPOVER[0], POPOVER[1], pal.k));
+      // The header row: the heading at the start, the pencil (16 dp in a 48 dp target) at the end.
+      textMid(ctx, 'Controls', px + 16, py + 24, { size: 17, w: 'Bold', color: pal.ink });
+      icon(ctx, 'tool_pen', px + pw - 24, py + 24, 16, pal.ink);
+      const g = { cols, cw: tw, ch: 112 }, area = { x: px + 16, y: py + 48 };
+      const pressed = Math.max(0, tiles.findIndex(([name]) => name === (o.press || 'Keyboard')));
+      tiles.forEach(([name, kind], i) => {
+        const r = place(i, tiles.length, g, area);
+        // A tile: a 40 dp picture, 8 above a 15 sp bold label.
+        const line = 15 * 1.25, top = r.y + r.h / 2 - (40 + 8 + line) / 2;
+        if (i === pressed) fillRR(ctx, r.x, r.y, r.w, r.h, 16, pal.faint, tri(lt, 2.2, 0.4));
+        EP.stencil(ctx, kind, r.x + r.w / 2, top + 20, 40, rgba(pal.ink), rgba(pal.accent));
+        text(ctx, name, r.x + r.w / 2, top + 48 + line * 0.78, { size: 15, w: 'Bold', color: pal.ink, align: 'center' });
+        if (i === pressed) tapAt = [r.x + r.w / 2, r.y + r.h / 2, r.w, r.h];
       });
       ctx.restore();
-      const r = at(0);
-      dot(ctx, EP.path(lt, [[1.5, r.x + r.w + 40, r.y + r.h + 80], [2.1, r.x + r.w / 2, r.y + r.h / 2], [2.6, r.x + r.w / 2, r.y + r.h / 2]]));
     }
-    dot(ctx, EP.path(lt, [[-0.2, w - 40, 120], [0.18, w / 2 + 48, 40], [0.4, w / 2 + 48, 40]]));
+    if (tapAt) dot(ctx, EP.path(lt, [[1.5, tapAt[0] + tapAt[2] / 2 + 40, tapAt[1] + tapAt[3] / 2 + 80], [2.1, tapAt[0], tapAt[1]], [2.6, tapAt[0], tapAt[1]]]));
+    dot(ctx, EP.path(lt, [[-0.2, w - 40, 120], [0.18, bx, by], [0.4, bx, by]]));
   };
 
-  // ---- Keyboard (KeyboardScreen.kt, KeyboardLayouts.kt): a bar with a gear, then the 75% board, the default size. ----
-  // [label, units, printed F-number or null]. 16 units across: the F row's keys print their media job (Function keys: With Fn)
-  // and name the F-key small on top. Light, Kbd- and Kbd+ do nothing (KeyOut.None) and are drawn dim.
-  const F_ROW = [['Bri-', 'F1'], ['Bri+', 'F2'], ['Task', 'F3'], ['Find', 'F4'], ['Kbd-', 'F5'], ['Kbd+', 'F6'], ['Prev', 'F7'], ['Play', 'F8'], ['Next', 'F9'], ['Mute', 'F10'], ['Vol-', 'F11'], ['Vol+', 'F12']];
-  const DIM_KEYS = ['Light', 'Kbd-', 'Kbd+'];
-  const ROWS = [
-    [['Esc', 1], ...F_ROW.map(([l, f]) => [l, 1, f]), ['PrtSc', 1], ['Del', 1], ['Light', 1]],
-    [['`', 1], ...'1234567890-='.split('').map((c) => [c, 1]), ['Backspace', 2], ['PgUp', 1]],
-    [['Tab', 1.5], ...'QWERTYUIOP[]'.split('').map((c) => [c, 1]), ['\\', 1.5], ['PgDn', 1]],
-    [['Caps', 1.75], ...'ASDFGHJKL;\''.split('').map((c) => [c, 1]), ['Enter', 2.25], ['Home', 1]],
-    [['Shift', 2.25], ...'ZXCVBNM,./'.split('').map((c) => [c, 1]), ['Shift', 1.75], ['↑', 1], ['End', 1]],
-    [['Ctrl', 1.25], ['Alt', 1.25], ['Win', 1.25], ['Space', 6.25], ['Win', 1], ['Fn', 1], ['Ctrl', 1], ['←', 1], ['↓', 1], ['→', 1]],
-  ];
-  // lt: 1.1 Ctrl latched by a tap, 2.2 C, 3.4 Ctrl released; 3.9 Shift held while 4.3 Alt is tapped.
-  S.keyboard = (ctx, w, h, pal, lt) => {
-    bar(ctx, w, pal, 'Keyboard', 'Surface', null, tri(lt, 99), true);
-    const top = TOP + 48, pad = 6, maxGap = 6, units = 16;
-    const vw = w, vh = h - top - BOTTOM;
-    const unit = (vw - 2 * pad) / units, rowH = (vh - 2 * pad) / ROWS.length;
-    const gap = Math.min(maxGap, 0.15 * Math.min(unit, rowH));
-    const dark = pal.k < 0.5;
-    const keyFill = dark ? pal.faint : pal.card, fnFill = dark ? pal.card : pal.off;
-    const ctrl = ease((lt - 1.2) / 0.12) * (1 - ease((lt - 3.4) / 0.15));
-    const shift = held(lt, 3.9, 5.0);
-    const press = { C: tri(lt, 2.2, 0.35), V: tri(lt, 2.9, 0.35), AltL: tri(lt, 4.3, 0.35) };
-    // Every label is cut to one size, the one the widest legend needs (fitLabels): 14 dp, or less where a key is too small.
+  // ---- Keyboard (KeyboardScreen.kt, KeyboardLayouts.kt): a bar with the type-text icon and a gear, then the board. ----
+  // A key is { id, label, units, f (the small legend), rows (2 for a tall key) }; a gap is { gap }. The id is stable across the
+  // six sizes, so a key can be matched through the reflow (the numpad's keys carry an N, the second Fn is Fn2).
+  const key = (label, units = 1, o = {}) => ({ id: label, label, units, ...o });
+  const gap = (units) => ({ gap: units });
+  const num = (d) => key(d, 1, { id: 'N' + d });
+  const F_KEYS = [['Bri-', 'F1'], ['Bri+', 'F2'], ['Task', 'F3'], ['Find', 'F4'], ['Kbd-', 'F5'], ['Kbd+', 'F6'], ['Prev', 'F7'], ['Play', 'F8'], ['Next', 'F9'], ['Mute', 'F10'], ['Vol-', 'F11'], ['Vol+', 'F12']]
+    .map(([label, f]) => key(label, 1, { id: f, f }));
+  const fRow = (a, b) => F_KEYS.slice(a, b);
+  const letters = (s, f) => s.split('').map((c) => key(c, 1, f(c)));
+  const NO_FN = () => ({});
+  const n15 = () => ['`', ...'1234567890-='.split('')].map((c) => key(c)).concat(key('Backspace', 2));
+  const t15 = (f = NO_FN) => [key('Tab', 1.5), ...letters('QWERTYUIOP[]', f), key('\\', 1.5)];
+  const c15 = (f = NO_FN) => [key('Caps', 1.75), ...letters('ASDFGHJKL;\'', f), key('Enter', 2.25)];
+  const s15 = (f = NO_FN, right = 2.75) => [key('Shift', 2.25, { id: 'ShiftL' }), ...letters('ZXCVBNM,./', f), key('Shift', right, { id: 'ShiftR' })];
+  const b15 = () => [key('Ctrl', 1.25, { id: 'CtrlL' }), key('Alt', 1.25, { id: 'AltL' }), key('Win', 1.25, { id: 'WinL' }), key('Space', 6.25), key('Win', 1.25, { id: 'WinR' }), key('Alt', 1.25, { id: 'AltR' }), key('Fn', 1.25), key('Ctrl', 1.25, { id: 'CtrlR' })];
+  const b13 = () => [key('Ctrl', 1.25, { id: 'CtrlL' }), key('Alt', 1.25, { id: 'AltL' }), key('Win', 1.25, { id: 'WinL' }), key('Space', 6.25), key('Win', 1, { id: 'WinR' }), key('Fn', 1), key('Ctrl', 1, { id: 'CtrlR' })];
+  const arrows = () => [key('←'), key('↓'), key('→')];
+  const nav3 = (a, b, c) => [a, b, c].map((l) => key(l));
+  const numLock = () => [key('NumLk'), key('/', 1, { id: 'N/' }), key('*', 1, { id: 'N*' }), key('-', 1, { id: 'N-' })];
+  const numberKeys = () => '1234567890-='.split('').map((c, i) => key(c, 1, { f: 'F' + (i + 1) }));
+  const FN_60 = { I: 'menu', P: 'ins', '[': 'pgup', ']': 'home', K: 'up', ';': 'pgdn', '\'': 'end', M: 'left', ',': 'down', '.': 'right', '/': 'del' };
+  const fn60 = (c) => ({ f: FN_60[c] });
+  const KEYBOARDS = {
+    100: { width: 22.75, rows: [
+      [key('Esc'), gap(1), ...fRow(0, 4), gap(0.5), ...fRow(4, 8), gap(0.5), ...fRow(8, 12), gap(0.5), key('PrtSc'), key('Mic'), key('Light'), gap(4.25)],
+      [...n15(), gap(0.5), ...nav3('Ins', 'Home', 'PgUp'), gap(0.25), ...numLock()],
+      [...t15(), gap(0.5), ...nav3('Del', 'End', 'PgDn'), gap(0.25), num('7'), num('8'), num('9'), key('+', 1, { id: 'N+', rows: 2 })],
+      [...c15(), gap(0.5), gap(3), gap(0.25), num('4'), num('5'), num('6'), gap(1)],
+      [...s15(), gap(0.5), gap(1), key('↑'), gap(1), gap(0.25), num('1'), num('2'), num('3'), key('Enter', 1, { id: 'NEnter', rows: 2 })],
+      [...b15(), gap(0.5), ...arrows(), gap(0.25), key('0', 2, { id: 'N0' }), key('.', 1, { id: 'N.' }), gap(1)],
+    ] },
+    96: { width: 19, rows: [
+      [key('Esc'), ...fRow(0, 12), key('Del'), key('Home'), key('End'), key('PgUp'), key('PgDn'), key('Light')],
+      [...n15(), ...numLock()],
+      [...t15(), num('7'), num('8'), num('9'), key('+', 1, { id: 'N+', rows: 2 })],
+      [...c15(), num('4'), num('5'), num('6'), gap(1)],
+      [...s15(NO_FN, 1.75), key('↑'), num('1'), num('2'), num('3'), key('Enter', 1, { id: 'NEnter', rows: 2 })],
+      [...b13(), ...arrows(), num('0'), key('.', 1, { id: 'N.' }), gap(1)],
+    ] },
+    80: { width: 18.5, rows: [
+      [key('Esc'), gap(1), ...fRow(0, 4), gap(0.5), ...fRow(4, 8), gap(0.5), ...fRow(8, 12), gap(0.5), key('PrtSc'), key('Mic'), key('Light')],
+      [...n15(), gap(0.5), ...nav3('Ins', 'Home', 'PgUp')],
+      [...t15(), gap(0.5), ...nav3('Del', 'End', 'PgDn')],
+      [...c15(), gap(3.5)],
+      [...s15(), gap(0.5), gap(1), key('↑'), gap(1)],
+      [...b15(), gap(0.5), ...arrows()],
+    ] },
+    75: { width: 16, rows: [
+      [key('Esc'), ...fRow(0, 12), key('PrtSc'), key('Del'), key('Light')],
+      [...n15(), key('PgUp')],
+      [...t15(), key('PgDn')],
+      [...c15(), key('Home')],
+      [...s15(NO_FN, 1.75), key('↑'), key('End')],
+      [...b13(), ...arrows()],
+    ] },
+    65: { width: 16, rows: [
+      [key('Esc', 1, { f: '`' }), ...numberKeys(), key('Backspace', 2, { f: 'Del' }), key('Light')],
+      [...t15(), key('Home')],
+      [...c15(), key('PgUp')],
+      [...s15(NO_FN, 1.75), key('↑'), key('PgDn')],
+      [...b13().slice(0, 6), key('Fn', 1, { id: 'Fn2' }), ...arrows()],
+    ] },
+    60: { width: 15, rows: [
+      [key('Esc', 1, { f: '`' }), ...numberKeys(), key('Backspace', 2)],
+      t15(fn60),
+      c15(fn60),
+      s15(fn60),
+      [...b15().slice(0, 5), key('Fn', 1.25), key('Fn', 1.25, { id: 'Fn2' }), key('Ctrl', 1.25, { id: 'CtrlR' })],
+    ] },
+  };
+  // The size of the label at 14 dp bold: fitLabels shrinks the board to the height of the keys, and a key more to its own width.
+  // Keys of one board by id, each { ri, x, y, w, h, label, f, size } with the board filling vw x vh from (0, top).
+  function boardRects(ctx, percent, vw, vh, top) {
+    const board = KEYBOARDS[percent], pad = 6;
+    const unit = (vw - 2 * pad) / board.width, rowH = (vh - 2 * pad) / board.rows.length;
+    const space = Math.min(6, 0.15 * Math.min(unit, rowH));
+    const out = new Map();
     let fit = 1;
-    const rects = [];
-    ROWS.forEach((row, ri) => {
+    board.rows.forEach((row, ri) => {
       let col = 0;
-      const seen = {};
-      row.forEach(([label, u, f]) => {
-        const left = pad + col * unit + gap / 2, kw = u * unit - gap;
-        const id = label + (seen[label] ? 'R' : 'L');
-        seen[label] = true;
-        rects.push({ ri, id, label, f, x: left, y: pad + ri * rowH + gap / 2 + top, w: kw, h: rowH - gap });
-        const wide = Math.max(measure(ctx, label, 14, 'Bold'), f ? measure(ctx, f, 14, 'Bold') : 0);
-        if (wide > 0) fit = Math.min(fit, Math.max(0, kw - 8) / wide);
-        fit = Math.min(fit, Math.max(0, rowH - gap - 8) / (14 * 1.2));
-        col += u;
-      });
+      for (const k of row) {
+        if (k.gap) {
+          col += k.gap;
+          continue;
+        }
+        const r = { ri, x: pad + col * unit + space / 2, y: top + pad + ri * rowH + space / 2, w: k.units * unit - space, h: (k.rows || 1) * rowH - space, label: k.label, f: k.f };
+        const wide = Math.max(measure(ctx, k.label, 14, 'Bold'), k.f ? measure(ctx, k.f, 14, 'Bold') : 0);
+        r.keyFit = wide > 0 ? Math.min(1, Math.max(0, r.w - 8) / wide) : 1;
+        fit = Math.min(fit, Math.max(0, r.h - 8) / (14 * 1.2));
+        out.set(k.id, r);
+        col += k.units;
+      }
     });
-    const size = 14 * fit;
-    const hit = {};
-    for (const k of rects) {
-      const fnKey = (k.label.length > 1 && k.label !== 'Space') || '←↑↓→'.includes(k.label);
-      const mod = ['Shift', 'Ctrl', 'Alt', 'Fn'].includes(k.label);
-      const lit = k.id === 'CtrlL' && k.ri === 5 ? ctrl : k.id === 'ShiftL' ? shift : k.id === 'AltL' ? press.AltL : press[k.label] || 0;
-      const radius = Math.min(10, k.w / 3);
-      if (!dark) fillRR(ctx, k.x, k.y + 1, k.w, k.h, radius, pal.line);
-      fillRR(ctx, k.x, k.y, k.w, k.h, radius, fnKey ? fnFill : keyFill);
-      if (lit > 0) fillRR(ctx, k.x, k.y, k.w, k.h, radius, pal.accent, lit);
-      const color = lit > 0.5 ? pal.onAccent : !mod && DIM_KEYS.includes(k.label) ? pal.dim : pal.ink;
-      textMid(ctx, k.label, k.x + k.w / 2, k.y + k.h / 2, { size, w: 'Bold', color, align: 'center' });
-      if (k.f) text(ctx, k.f, k.x + k.w / 2, k.y + 4 + size * 0.6, { size: size * 0.6, w: 'Bold', color: lit > 0.5 ? pal.onAccent : pal.dim, align: 'center' });
-      hit[k.ri + k.id] = [k.x + k.w / 2, k.y + k.h / 2];
+    out.forEach((r) => {
+      r.size = 14 * fit * r.keyFit;
+    });
+    return out;
+  }
+  // lt: 1.1 Ctrl latched by a tap, 2.2 C, 3.4 Ctrl released; 3.9 Shift held while 4.3 Alt is tapped (only when o.demo !== false).
+  // o.from and o.to are the sizes (percent: 100 | 96 | 80 | 75 | 65 | 60; default 75, 75) and o.k (default 1) the reflow between
+  // them: each key glides from its old rect to its new one, in-out, a row later by 6 ms of the 280 ms; a key that goes fades out
+  // over the first 160 ms and a new one fades in over the last 160. o.keys: [[lt, label], ...] are extra presses, lit for 0.35 s
+  // with a dot on the key (a letter, or a label such as Enter, Space, Shift).
+  S.keyboard = (ctx, w, h, pal, lt, o = {}) => {
+    bar(ctx, w, pal, 'Keyboard', 'Controls', null, 0, true);
+    icon(ctx, 'keyboard', w - 76, TOP + 24, 24, pal.accent);
+    const top = TOP + 48, vh = h - top - BOTTOM;
+    const from = boardRects(ctx, o.from || 75, w, vh, top), to = boardRects(ctx, o.to || 75, w, vh, top);
+    const k = o.k ?? 1, stagger = 6 / 280, span = 1 - 5 * stagger;
+    const dark = pal.k < 0.5, demo = o.demo !== false;
+    const keyFill = dark ? pal.faint : pal.card, fnFill = dark ? pal.card : pal.off;
+    const lit = { CtrlL: ease((lt - 1.2) / 0.12) * (1 - ease((lt - 3.4) / 0.15)), ShiftL: held(lt, 3.9, 5.0), C: tri(lt, 2.2, 0.35), V: tri(lt, 2.9, 0.35), AltL: tri(lt, 4.3, 0.35) };
+    if (!demo) Object.keys(lit).forEach((id) => (lit[id] = 0));
+    const idOf = (label) => [label, label + 'L', String(label).toUpperCase()].find((id) => to.has(id) || from.has(id));
+    (o.keys || []).forEach(([t, label]) => {
+      const id = idOf(label);
+      if (id) lit[id] = Math.max(lit[id] || 0, tri(lt, t, 0.35));
+    });
+    const centre = {};
+    const ids = [...new Set([...to.keys(), ...from.keys()])];
+    for (const id of ids) {
+      const a = from.get(id), b = to.get(id);
+      let r, size, alpha = 1;
+      if (a && b) {
+        const p = EP.easeInOut((k - b.ri * stagger) / span);
+        r = mixRect(a, b, p);
+        size = lerp(a.size, b.size, p);
+      } else if (b) {
+        r = b;
+        size = b.size;
+        alpha = seg(k, 0.429, 1);
+      } else {
+        r = a;
+        size = a.size;
+        alpha = 1 - seg(k, 0, 0.571);
+      }
+      if (alpha <= 0) continue;
+      const label = (b || a).label, f = (b || a).f;
+      const fnKey = (label.length > 1 && label !== 'Space') || '←↑↓→'.includes(label);
+      const mod = ['Shift', 'Ctrl', 'Alt', 'Fn'].includes(label);
+      const on = lit[id] || 0, radius = Math.min(10, r.w / 3);
+      ctx.save();
+      ctx.globalAlpha *= alpha;
+      if (!dark) fillRR(ctx, r.x, r.y + 1, r.w, r.h, radius, pal.line);
+      fillRR(ctx, r.x, r.y, r.w, r.h, radius, fnKey ? fnFill : keyFill);
+      if (on > 0) fillRR(ctx, r.x, r.y, r.w, r.h, radius, pal.accent, on);
+      const color = on > 0.5 ? pal.onAccent : !mod && ['Light', 'Kbd-', 'Kbd+'].includes(label) ? pal.dim : pal.ink;
+      textMid(ctx, label, r.x + r.w / 2, r.y + r.h / 2, { size, w: 'Bold', color, align: 'center' });
+      if (f) text(ctx, f, r.x + r.w / 2, r.y + 4 + size * 0.6, { size: size * 0.6, w: 'Bold', color: on > 0.5 ? pal.onAccent : fnKey ? pal.ink : pal.dim, align: 'center' });
+      ctx.restore();
+      centre[id] = [r.x + r.w / 2, r.y + r.h / 2];
     }
-    dot(ctx, EP.path(lt, [[0.6, 140, h - 30], [1.1, ...hit['5CtrlL']], [1.45, ...hit['5CtrlL']], [2.1, ...hit['4CL']], [2.45, ...hit['4CL']], [2.85, ...hit['4VL']], [3.15, ...hit['4VL']], [3.3, ...hit['5CtrlL']], [3.55, ...hit['5CtrlL']]]));
-    dot(ctx, EP.path(lt, [[3.75, ...hit['4ShiftL']], [5.0, ...hit['4ShiftL']]]));
-    dot(ctx, EP.path(lt, [[4.15, ...hit['5AltL']], [4.6, ...hit['5AltL']]]));
+    if (demo) {
+      const P = (id) => centre[id] || [w / 2, h / 2];
+      dot(ctx, EP.path(lt, [[0.6, 140, h - 30], [1.1, ...P('CtrlL')], [1.45, ...P('CtrlL')], [2.1, ...P('C')], [2.45, ...P('C')], [2.85, ...P('V')], [3.15, ...P('V')], [3.3, ...P('CtrlL')], [3.55, ...P('CtrlL')]]));
+      dot(ctx, EP.path(lt, [[3.75, ...P('ShiftL')], [5.0, ...P('ShiftL')]]));
+      dot(ctx, EP.path(lt, [[4.15, ...P('AltL')], [4.6, ...P('AltL')]]));
+    }
+    (o.keys || []).forEach(([t, label]) => {
+      const c = centre[idOf(label)];
+      if (c) dot(ctx, EP.path(lt, [[t - 0.1, ...c], [t + 0.25, ...c]]));
+    });
+  };
+
+  // ---- Keyboard settings (KeyboardSettingsScreen.kt): the Size choices, Function keys, and the text size. ----
+  // lt: nothing is timed by lt. o.sel is the chosen size's index, fractional while the check moves (0 = 100% ... 5 = 60%;
+  // default 3, the 75% board). o.scroll is how far the page has scrolled, in dp (a sideways screen cannot hold the six rows).
+  // o.tap: [lt, index] taps that size's row at lt. Sideways or upright.
+  S.keyboardSettings = (ctx, w, h, pal, lt, o = {}) => {
+    const sel = o.sel ?? 3, scroll = o.scroll || 0;
+    ctx.save();
+    ctx.translate(0, -scroll);
+    let y = largeTitle(ctx, pal, 'Keyboard settings', TOP + 48);
+    y = section(ctx, pal, 'Size', y);
+    const sizes = ['100%', '96%', '80%', '75%', '65%', '60%'];
+    const ys = card(ctx, w, pal, y, sizes.length, 48);
+    sizes.forEach((s, i) => {
+      textMid(ctx, s, 32, ys[i], { size: 16, color: pal.ink });
+      const on = Math.max(0, 1 - Math.abs(i - sel));
+      if (on > 0) check(ctx, pal, w - 42, ys[i], on);
+    });
+    y += sizes.length * 49 - 1;
+    y = para(ctx, 'Larger sizes fit more keys, so each key is smaller. They want a wider screen.', 32, y + 8, w - 64, 13, rgba(pal.dim));
+    y += 24;
+    const fy = card(ctx, w, pal, y, 1)[0];
+    textMid(ctx, 'Function keys', 32, fy, { size: 16, color: pal.ink });
+    EP.segmented(ctx, pal, w - 32, fy, ['With Fn', 'Direct'], 0);
+    y = para(ctx, 'With Fn: the top row does what is printed on it (brightness, media, volume) and Fn plus a key sends F1 to F12. On 65% and 60%, which have no F row, the number row types numbers and Fn plus a number sends F1 to F12. Direct: the top row sends F1 to F12 and Fn plus a key does the printed action; on 65% and 60% the number row sends F1 to F12 and Fn plus a number types the number.', 32, y + 52 + 8, w - 64, 13, rgba(pal.dim));
+    y += 24;
+    fillRR(ctx, 16, y, w - 32, 76, 14, pal.card);
+    gslider(ctx, w, pal, y, 'Keyboard text size', '×1.0', (1 - 0.6) / (2 - 0.6), 14);
+    ctx.restore();
+    fillRR(ctx, 0, 0, w, TOP + 48, 0, pal.bg);
+    bar(ctx, w, pal, '', 'Keyboard', null);
+    if (o.tap) tap(ctx, lt, o.tap[0], w - 42, ys[o.tap[1]] - scroll);
   };
 
   // ---- Annotate (AnnotateScreen.kt, AnnotateCanvas.kt): a full-screen pen pad for the laptop's screen, one round handle that
@@ -816,44 +1004,115 @@
     dot(ctx, EP.path(lt, sk, true));
   };
 
-  // ---- Capture (CaptureScreen.kt): three buttons, the hint, Save to Laptop | Phone, a status line, then the bare pad. ----
-  // o.phone selects Phone and shows the status line once the capture arrives (3.9); o.folder is what it was saved into.
+  // ---- Capture (CaptureScreen.kt, 5.x): the pad fills the screen and the three buttons sit under it (in a column beside it when
+  // sideways). "To phone" is a chip at the bar's end; the line over the buttons says what the last tap did. ----
+  // lt: 1.0 Region is tapped (its line appears), the plain drag on the pad 1.9-3.4 (the hold ring fills 1.9-2.3 while the
+  // finger holds still, then it turns accent and the finger drags), 4.0 Full screen, 5.0 Record (it reads Stop recording).
+  // o.phone: the "To phone" chip is on.
   S.capture = (ctx, w, h, pal, lt, o = {}) => {
-    bar(ctx, w, pal, 'Capture', 'Surface', null);
-    const labels = ['Region', 'Full screen', 'Record'];
-    const bw = (w - 32 - 2 * GAP) / 3, by = TOP + 48;
-    const presses = [held(lt, 1.0, 1.5), 0, tri(lt, 5.0, 0.4)];
-    labels.forEach((s, i) => {
-      const x = 16 + i * (bw + GAP);
-      button(ctx, pal, s, x, by, bw, 'OUTLINED', 1, presses[i]);
-    });
-    let y = para(ctx, 'For a region, tap Region, then tap, hold and move on the pad to drag out the area.', 16, by + 50 + 8, w - 32, 13, rgba(pal.dim));
-    y += 12;
-    text(ctx, 'Save to', 16, y + 24 + 5, { size: 13, color: rgba(pal.dim) });
-    EP.segmented(ctx, pal, w - 16, y + 24, ['Laptop', 'Phone'], o.phone ? 1 : 0);
-    y += 48 + 8;
-    if (o.phone && lt > 3.9) text(ctx, `Saved to ${o.folder || 'Pictures/Edgepad'}`, 16, y + 13, { size: 13, color: rgba(pal.dim) });
-    y += 13 * LEAD + 12;
+    const side = w > h;
+    bar(ctx, w, pal, 'Capture', 'Controls', null);
+    const chipLabel = o.phone ? '✓ To phone' : 'To phone';
+    const chipW = measure(ctx, chipLabel, 15, 'Bold') + 32;
+    fillRR(ctx, w - 4 - chipW, TOP + 24 - 16, chipW, 32, 16, o.phone ? pal.accentSoft : pal.faint);
+    textMid(ctx, chipLabel, w - 4 - chipW / 2, TOP + 24, { size: 15, w: 'Bold', color: o.phone ? pal.accent : pal.ink, align: 'center' });
+    const status = lt >= 5.0 ? 'Recording on the laptop' : lt >= 4.0 ? 'Sent to the laptop: Full screen' : lt >= 1.0 ? 'Sent to the laptop: Region' : '';
+    const statusH = status ? 13 * LEAD : 0;
+    const top = TOP + 48, bottom = h - BOTTOM;
+    // The actions: a row under the pad, or a column of 200 beside it, the line over the buttons in both.
+    let pad, buttons, line;
+    if (side) {
+      const colH = (status ? statusH + 8 : 0) + 3 * 50 + 2 * GAP;
+      const y0 = top + (bottom - top - colH) / 2;
+      pad = { x: 0, y: top, w: w - 200, h: bottom - top };
+      line = { x: w - 200 + 16, y: y0, w: 168 };
+      buttons = [0, 1, 2].map((i) => ({ x: w - 200 + 16, y: y0 + (status ? statusH + 8 : 0) + i * (50 + GAP), w: 168 }));
+    } else {
+      const bw = (w - 32 - 2 * GAP) / 3, rowY = bottom - GAP - 50;
+      const lineY = rowY - GAP - statusH;
+      pad = { x: 0, y: top, w, h: (status ? lineY : rowY) - GAP - top };
+      line = { x: 16, y: lineY, w: w - 32 };
+      buttons = [0, 1, 2].map((i) => ({ x: 16 + i * (bw + GAP), y: rowY, w: bw }));
+    }
     // The pad is the control surface in its trackpad-only mode: its backdrop, and nothing else.
     ctx.save();
     ctx.beginPath();
-    ctx.rect(0, y, w, h - BOTTOM - y);
+    ctx.rect(pad.x, pad.y, pad.w, pad.h);
     ctx.clip();
-    ctx.translate(0, y);
-    EP.drawBackdrop(ctx, w, h - BOTTOM - y, pal, null);
+    ctx.translate(pad.x, pad.y);
+    EP.drawBackdrop(ctx, pad.w, pad.h, pal, null);
     ctx.restore();
-    const drag = [[1.9, 110, y + 60], [2.2, 110, y + 60], [3.4, 290, y + 220], [3.8, 290, y + 220]];
+    if (status) para(ctx, status, line.x, line.y, line.w, 13, rgba(pal.dim));
+    const labels = ['Region', 'Full screen', lt >= 5.0 ? 'Stop recording' : 'Record'];
+    const presses = [tri(lt, 1.0, 0.35), tri(lt, 4.0, 0.35), tri(lt, 5.0, 0.35)];
+    buttons.forEach((b, i) => {
+      fillRR(ctx, b.x, b.y, b.w, 50, 14, pal.accentSoft);
+      if (presses[i] > 0) fillRR(ctx, b.x, b.y, b.w, 50, 14, pal.faint, presses[i] * 0.6);
+      textMid(ctx, labels[i], b.x + b.w / 2, b.y + 25, { size: 15, w: 'Bold', color: pal.accent, align: 'center' });
+    });
+    const p0 = [pad.x + pad.w * 0.3, pad.y + pad.h * 0.25], p1 = [pad.x + pad.w * 0.72, pad.y + pad.h * 0.68];
+    const drag = [[1.9, ...p0], [2.3, ...p0], [3.4, ...p1], [3.8, ...p1]];
     const now = EP.path(lt, drag, true);
-    if (now) EP.drawFingers(ctx, { fingers: [now], trail: EP.trailOf((tt) => EP.path(tt, drag, true) || now, lt, 12, 0.025) }, pal);
-    dot(ctx, EP.path(lt, [[0.5, w - 80, by + 120], [0.95, 16 + bw / 2, by + 25], [1.5, 16 + bw / 2, by + 25]]));
-    dot(ctx, EP.path(lt, [[4.5, 300, y + 200], [4.95, w - 16 - bw / 2, by + 25], [5.4, w - 16 - bw / 2, by + 25]]));
+    if (now) {
+      EP.drawFingers(ctx, { fingers: [now], trail: EP.trailOf((tt) => EP.path(tt, drag, true) || now, lt, 12, 0.025) }, pal);
+      // ControlSurface.drawHold: a 22 dp ring, 3 wide, from the top, filling over HOLD_MS (400) and shown from a quarter of it.
+      const fill = seg(lt, 1.9, 2.3);
+      if (fill >= 0.25) {
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = rgba(fill >= 1 ? pal.accent : pal.dim, now.a);
+        ctx.beginPath();
+        ctx.arc(now.x, now.y, 22, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * fill);
+        ctx.stroke();
+      }
+    }
+    [1.0, 4.0, 5.0].forEach((t, i) => {
+      const x = buttons[i].x + buttons[i].w / 2, y = buttons[i].y + 25;
+      tap(ctx, lt, t, x, y, x + 40, y - 110);
+    });
   };
 
-  // ---- Gamepad (GamepadLayout.kt, the Xbox preset; GamepadScreen.kt PadPainter): always sideways. ----
+  // ---- Gamepad (GamepadLayout.kt presets, GamepadScreen.kt PadPainter): always sideways. ----
   // Sizes in dp: sticks and the d-pad 150, shoulders 110 x 46 (SHOULDER_ASPECT 0.42), face buttons 64, Start, Back, L3, R3 44.
-  S.gamepad = (ctx, w, h, pal, lt) => {
-    const X = (f) => f * w, Y = (f) => f * h;
+  const SHOULDER_ASPECT = 0.42, STICK_THUMB_RATIO = 0.35, CORNER = 10;
+  const pc = (id, kind, label, x, y, size, trigger) => ({ id, kind, label, x, y, size, trigger });
+  const PAD_PRESETS = {
+    xbox: [
+      pc('lstick', 'stick', 'L', 0.13, 0.46, 150), pc('rstick', 'stick', 'R', 0.7, 0.78, 150), pc('dpad', 'dpad', 'D', 0.3, 0.78, 150),
+      pc('a', 'button', 'A', 0.84, 0.58, 64), pc('b', 'button', 'B', 0.92, 0.46, 64), pc('x', 'button', 'X', 0.76, 0.46, 64), pc('y', 'button', 'Y', 0.84, 0.34, 64),
+      pc('lt', 'shoulder', 'LT', 0.16, 0.12, 110, 'L'), pc('lb', 'shoulder', 'LB', 0.32, 0.12, 110), pc('rb', 'shoulder', 'RB', 0.68, 0.12, 110), pc('rt', 'shoulder', 'RT', 0.84, 0.12, 110, 'R'),
+      pc('start', 'button', 'Start', 0.56, 0.92, 44), pc('back', 'button', 'Back', 0.44, 0.92, 44), pc('l3', 'button', 'L3', 0.05, 0.88, 44), pc('r3', 'button', 'R3', 0.95, 0.88, 44),
+    ],
+    xboxKeys: [
+      pc('stick', 'stick', 'L', 0.14, 0.55, 150), pc('dpad', 'dpad', 'D', 0.3, 0.72, 150),
+      pc('a', 'button', 'A', 0.82, 0.65, 64), pc('b', 'button', 'B', 0.9, 0.55, 64), pc('x', 'button', 'X', 0.74, 0.55, 64), pc('y', 'button', 'Y', 0.82, 0.45, 64),
+      pc('lb', 'shoulder', 'LB', 0.2, 0.12, 110), pc('rb', 'shoulder', 'RB', 0.8, 0.12, 110), pc('lt', 'shoulder', 'LT', 0.34, 0.12, 110), pc('rt', 'shoulder', 'RT', 0.66, 0.12, 110),
+      pc('start', 'button', 'Start', 0.58, 0.9, 44), pc('select', 'button', 'Select', 0.42, 0.9, 44),
+    ],
+    platformer: [
+      pc('dpad', 'dpad', 'D', 0.18, 0.6, 150), pc('jump', 'button', 'Jump', 0.85, 0.6, 72), pc('run', 'button', 'Run', 0.72, 0.72, 72), pc('pause', 'button', 'Pause', 0.5, 0.9, 44),
+    ],
+    racing: [
+      pc('accelerate', 'shoulder', 'Accelerate', 0.85, 0.6, 160), pc('brake', 'shoulder', 'Brake', 0.85, 0.85, 160),
+      pc('left', 'button', 'Left', 0.12, 0.7, 80), pc('right', 'button', 'Right', 0.28, 0.7, 80), pc('nitro', 'button', 'Nitro', 0.5, 0.85, 56),
+    ],
+    shooter: [
+      pc('stick', 'stick', 'L', 0.14, 0.55, 150), pc('fire', 'button', 'Fire', 0.85, 0.6, 80), pc('jump', 'button', 'Jump', 0.72, 0.75, 60),
+      pc('reload', 'button', 'Reload', 0.9, 0.35, 52), pc('crouch', 'button', 'Crouch', 0.72, 0.4, 52), pc('aim', 'shoulder', 'Aim', 0.85, 0.12, 110),
+    ],
+  };
+  // The controls of a preset on a w x h screen: id, label, kind ('button' | 'dpad' | 'stick' | 'shoulder'), centre, half sizes,
+  // and for a controller trigger its side ('L' | 'R'). preset: xbox | xboxKeys | platformer | racing | shooter.
+  EP.gamepadLayout = (preset, w, h) =>
+    (PAD_PRESETS[preset] || PAD_PRESETS.xbox).map((c) => {
+      const rw = c.size / 2;
+      return { id: c.id, label: c.label, kind: c.kind, cx: c.x * w, cy: c.y * h, rw, rh: c.kind === 'shoulder' ? rw * SHOULDER_ASPECT : rw, trigger: c.trigger };
+    });
+  // PadPainter: draws `controls` (EP.gamepadLayout's shape, positions free to move) on a w x h pad. state: input {lx, ly (+ is down),
+  // rt, lt, a} drives the left stick's thumb, the two triggers' analog fill and A; press {id: 0..1} holds a control down;
+  // thumb {id: {x, y}} puts a stick's thumb at that share of its travel; lifted: the id the editor has lifted (the accent ring).
+  EP.drawPad = (ctx, w, h, pal, controls, state = {}) => {
     const light = pal.k > 0.5;
+    const input = state.input, press = state.press || {};
     const circle = (cx, cy, r, color) => {
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -864,7 +1123,7 @@
     const body = (cx, cy, rw, rh, on, round, pull = 0) => {
       const shape = (dy, color) => {
         if (round) circle(cx, cy + dy, rw, color);
-        else fillRR(ctx, cx - rw, cy + dy - rh, 2 * rw, 2 * rh, 10, color);
+        else fillRR(ctx, cx - rw, cy + dy - rh, 2 * rw, 2 * rh, CORNER, color);
       };
       if (light) shape(1, pal.line);
       shape(0, on ? pal.accent : pal.card);
@@ -877,57 +1136,97 @@
         ctx.restore();
       }
     };
-    const label = (s, cx, cy, width, on, dim) => textMid(ctx, s, cx, cy, { size: width < 56 ? 13 : 15, w: 'Bold', color: on ? pal.onAccent : dim ? pal.dim : pal.ink, align: 'center' });
-    const a = lt * 2.2;
-    const stick = (fx, fy, name, mx, my, heldOn) => {
-      body(X(fx), Y(fy), 75, 75, false, true);
-      circle(X(fx) + mx, Y(fy) + my, 26.25, heldOn ? pal.accent : pal.off);
-      label(name, X(fx), Y(fy), 150, false, true);
+    // PadPainter.label: 13 on a control narrower than 56, else 15, drawn fitted to the control less 8.
+    const label = (s, cx, cy, width, on, dim) => {
+      let size = width < 56 ? 13 : 15;
+      const wide = measure(ctx, s, size, 'Bold');
+      if (wide > width - 8) size *= (width - 8) / wide;
+      textMid(ctx, s, cx, cy, { size, w: 'Bold', color: on ? pal.onAccent : dim ? pal.dim : pal.ink, align: 'center' });
     };
-    const thumb = [X(0.13) + 14 * Math.cos(a), Y(0.46) + 14 * Math.sin(a)];
-    stick(0.13, 0.46, 'L', 14 * Math.cos(a), 14 * Math.sin(a), true);
-    stick(0.7, 0.78, 'R', 0, 0, false);
     // PadPainter.plus: a centre and four arms, the outer corners rounded to 10.
-    const dx = X(0.3), dy = Y(0.78), third = 50;
-    const arm = (r, c, radii) => {
+    const plus = (cx, cy, size) => {
+      const third = size / 3, radius = Math.min(CORNER, third / 2);
+      const arm = (r, c, radii) => {
+        ctx.fillStyle = rgba(pal.card);
+        ctx.beginPath();
+        ctx.roundRect(cx - size / 2 + c * third, cy - size / 2 + r * third, third, third, radii.map((v) => v && radius));
+        ctx.fill();
+      };
+      if (light) {
+        ctx.save();
+        ctx.translate(0, 1);
+        ctx.fillStyle = rgba(pal.line);
+        ctx.fillRect(cx - third / 2, cy - size / 2, third, size);
+        ctx.fillRect(cx - size / 2, cy - third / 2, size, third);
+        ctx.restore();
+      }
       ctx.fillStyle = rgba(pal.card);
-      ctx.beginPath();
-      ctx.roundRect(dx - 75 + c * third, dy - 75 + r * third, third, third, radii);
-      ctx.fill();
+      ctx.fillRect(cx - third / 2 - 1, cy - third / 2 - 1, third + 2, third + 2);
+      arm(0, 1, [1, 1, 0, 0]);
+      arm(2, 1, [0, 0, 1, 1]);
+      arm(1, 0, [1, 0, 0, 1]);
+      arm(1, 2, [0, 1, 1, 0]);
     };
-    if (light) {
-      ctx.save();
-      ctx.translate(0, 1);
-      ctx.fillStyle = rgba(pal.line);
-      ctx.fillRect(dx - third / 2, dy - 75, third, 150);
-      ctx.fillRect(dx - 75, dy - third / 2, 150, third);
-      ctx.restore();
+    for (const c of controls) {
+      const { cx, cy, rw, rh } = c;
+      const pressed = press[c.id] ?? (input && c.id === 'a' ? input.a : 0);
+      if (c.kind === 'dpad') {
+        plus(cx, cy, 2 * rw);
+        label(c.label, cx, cy, 2 * rw, false, true);
+      } else if (c.kind === 'stick') {
+        body(cx, cy, rw, rw, false, true);
+        const travel = rw * (1 - STICK_THUMB_RATIO);
+        const t = (state.thumb && state.thumb[c.id]) || (input && (c.id === 'lstick' || c.id === 'stick') ? { x: input.lx, y: input.ly || 0 } : null);
+        circle(cx + (t ? t.x * travel : 0), cy + (t ? t.y * travel : 0), rw * STICK_THUMB_RATIO, t ? pal.accent : pal.off);
+        label(c.label, cx, cy, 2 * rw, false, true);
+      } else {
+        const pull = c.trigger && input ? (c.trigger === 'L' ? input.lt : input.rt) : 0;
+        const on = !c.trigger && pressed > 0.3;
+        body(cx, cy, rw, rh, on, c.kind === 'button', pull);
+        label(c.label, cx, cy, 2 * rw, on, false);
+      }
+      if (state.lifted === c.id) {
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = rgba(pal.accent);
+        ctx.beginPath();
+        if (c.kind === 'shoulder') ctx.roundRect(cx - rw - 1, cy - rh - 1, 2 * rw + 2, 2 * rh + 2, CORNER + 1);
+        else if (c.kind === 'dpad') ctx.rect(cx - rw - 1, cy - rh - 1, 2 * rw + 2, 2 * rh + 2);
+        else ctx.arc(cx, cy, rw + 1, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
-    ctx.fillStyle = rgba(pal.card);
-    ctx.fillRect(dx - third / 2 - 1, dy - third / 2 - 1, third + 2, third + 2);
-    arm(0, 1, [10, 10, 0, 0]);
-    arm(2, 1, [0, 0, 10, 10]);
-    arm(1, 0, [10, 0, 0, 10]);
-    arm(1, 2, [0, 10, 10, 0]);
-    label('D', dx, dy, 150, false, true);
-    const face = [['A', 0.84, 0.58], ['B', 0.92, 0.46], ['X', 0.76, 0.46], ['Y', 0.84, 0.34]];
-    const press = { A: tri(lt, 1.0, 0.4), X: tri(lt, 1.7, 0.4), B: tri(lt, 2.2, 0.4), Y: tri(lt, 3.3, 0.4) };
-    face.forEach(([n, fx, fy]) => {
-      const on = press[n] > 0.3;
-      body(X(fx), Y(fy), 32, 32, on, true);
-      label(n, X(fx), Y(fy), 64, on, false);
+  };
+  // lt: with no o.input the 4.0 demo runs on the Xbox preset: the left thumb circles from 0.4 and A 1.0, X 1.7, B 2.2, Y 3.3 are
+  // pressed. o.input { lx, ly (+ is down), rt, lt, a } (sticks -1..1, triggers 0..1, a 0..1) makes the left stick, RT and LT fill
+  // (analog pull) and A follow it exactly, with the thumbs' dots on them. o.preset: xbox (default) | xboxKeys | platformer |
+  // racing | shooter.
+  S.gamepad = (ctx, w, h, pal, lt, o = {}) => {
+    const controls = EP.gamepadLayout(o.preset || 'xbox', w, h);
+    const find = (id) => controls.find((c) => c.id === id);
+    const stick = find('lstick') || find('stick');
+    const input = o.input;
+    const travel = stick ? stick.rw * (1 - STICK_THUMB_RATIO) : 1;
+    const a = lt * 2.2;
+    const state = input
+      ? { input }
+      : { press: { a: tri(lt, 1.0, 0.4), x: tri(lt, 1.7, 0.4), b: tri(lt, 2.2, 0.4), y: tri(lt, 3.3, 0.4) }, thumb: stick ? { [stick.id]: { x: (14 * Math.cos(a)) / travel, y: (14 * Math.sin(a)) / travel } } : {} };
+    EP.drawPad(ctx, w, h, pal, controls, state);
+    if (!stick) return;
+    if (!input) {
+      const thumb = [stick.cx + 14 * Math.cos(a), stick.cy + 14 * Math.sin(a)];
+      dot(ctx, EP.path(lt, [[0.4, ...thumb], [4.4, ...thumb]]));
+      const at = (id) => { const c = find(id); return [c.cx, c.cy]; };
+      if (o.preset && o.preset !== 'xbox') return;
+      dot(ctx, EP.path(lt, [[0.8, ...at('a')], [1.2, ...at('a')], [1.6, ...at('x')], [1.9, ...at('x')], [2.1, ...at('b')], [2.4, ...at('b')], [3.2, ...at('y')], [3.5, ...at('y')]]));
+      return;
+    }
+    EP.tapDot(ctx, stick.cx + input.lx * travel, stick.cy + (input.ly || 0) * travel, 1);
+    [['rt', input.rt], ['lt', input.lt]].forEach(([id, v]) => {
+      const c = find(id);
+      if (c && v > 0.02) EP.tapDot(ctx, c.cx, c.cy + c.rh - 2 * c.rh * v, clamp(v * 8));
     });
-    [['LT', 0.1, 0.12], ['LB', 0.24, 0.12], ['RB', 0.76, 0.12], ['RT', 0.9, 0.12]].forEach(([n, fx, fy]) => {
-      body(X(fx), Y(fy), 55, 55 * 0.42, false, false);
-      label(n, X(fx), Y(fy), 110, false, false);
-    });
-    [['Start', 0.56, 0.92], ['Back', 0.44, 0.92], ['L3', 0.05, 0.88], ['R3', 0.95, 0.88]].forEach(([n, fx, fy]) => {
-      body(X(fx), Y(fy), 22, 22, false, true);
-      label(n, X(fx), Y(fy), 44, false, false);
-    });
-    dot(ctx, EP.path(lt, [[0.4, ...thumb], [4.4, ...thumb]]));
-    const at = (n) => [X(face.find((q) => q[0] === n)[1]), Y(face.find((q) => q[0] === n)[2])];
-    dot(ctx, EP.path(lt, [[0.8, ...at('A')], [1.2, ...at('A')], [1.6, ...at('X')], [1.9, ...at('X')], [2.1, ...at('B')], [2.4, ...at('B')], [3.2, ...at('Y')], [3.5, ...at('Y')]]));
+    const btn = find('a');
+    if (btn && input.a > 0.02) EP.tapDot(ctx, btn.cx, btn.cy, clamp(input.a * 4));
   };
 
   // ---- PIN (PinScreen.kt, PinEntry.kt): six dots, then a phone-style keypad of cards. ----
@@ -1028,16 +1327,16 @@
     ['4 fingers', [['Tap', 'Notifications'], ['Swipe left', 'App switcher'], ['Swipe right', 'App switcher'], ['Swipe up', 'Task view'], ['Swipe down', 'Show desktop']]],
   ];
   // Ui.slider: the label and value over a 4 dp track, a 20 dp thumb, and the step ticks under it.
-  function gslider(ctx, w, pal, y, label, value, f) {
+  function gslider(ctx, w, pal, y, label, value, f, steps = 26) {
     text(ctx, label, 32, y + 24, { size: 16, color: pal.ink });
     text(ctx, value, w - 32, y + 24, { size: 15, color: pal.dim, align: 'right' });
     const x0 = 42, x1 = w - 42, ty = y + 44;
     fillRR(ctx, x0, ty - 2, x1 - x0, 4, 2, pal.off);
     fillRR(ctx, x0, ty - 2, (x1 - x0) * f, 4, 2, pal.accent);
     ctx.fillStyle = rgba(pal.dim, 0.5);
-    for (let i = 0; i <= 26; i++) {
+    for (let i = 0; i <= steps; i++) {
       ctx.beginPath();
-      ctx.arc(lerp(x0, x1, i / 26), ty + 18, 1.5, 0, Math.PI * 2);
+      ctx.arc(lerp(x0, x1, i / steps), ty + 18, 1.5, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.beginPath();
@@ -1205,11 +1504,6 @@
     tap(ctx, lt, 1.4, 12 + 20 + 30, ay, 12 + 120, ay + 70);
   };
 
-  // The phone's status bar over every screen but the surface, which runs edge to edge.
-  EP.statusBar = (ctx, w, pal) => {
-    text(ctx, '9:41', 26, 21, { size: 14, w: 'Bold', color: pal.ink });
-    fillRR(ctx, w - 50, 11, 24, 12, 3.5, pal.ink, 0.9);
-    fillRR(ctx, w - 25, 15, 2, 4, 1, pal.ink, 0.9);
-    text(ctx, '82%', w - 56, 21, { size: 12, w: 'Bold', color: pal.ink, align: 'right' });
-  };
+  // The Page.kt pieces and the finger helpers, for the 5.x screens in screens5a.js and screens5b.js.
+  Object.assign(EP.ui, { TOP, BOTTOM, GAP, LEAD, tri, held, within, dot, tap, wrapLines, para, bar, toggle, toggleRow, chip, segmented, button, largeTitle, check, plan, place, mixRect, tile, slider });
 })();

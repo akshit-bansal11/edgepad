@@ -18,6 +18,7 @@ SR = 44100
 CHORDS = [(33, 57, 60, 64, 71), (29, 53, 57, 60, 64), (36, 55, 60, 62, 64), (31, 55, 59, 62, 64)]
 ARP = (0, 2, 1, 3, 2, 1, 3, 2)  # which pad note each eighth plays
 DUCK = 0.5  # the bed's gain under speech
+HOLD_DUCK = 10 ** (-4 / 20)  # a further 4 LU down through a held silence the script marks with "duck_hold"
 
 rng = np.random.default_rng(4)
 
@@ -154,6 +155,11 @@ def compose(sid):
     speech = np.zeros(size)
     for line in timing["lines"]:
         speech[int((line["start"] - 0.1) * SR) : int((line["end"] + 0.15) * SR)] = 1
+    # The script's "duck_hold" line (from 1): through the silence held after it the bed sits HOLD_DUCK under its
+    # level under speech, so what the picture is doing there (the race's engine) leads.
+    if "duck_hold" in script:
+        held = timing["lines"][script["duck_hold"] - 1]
+        speech[int(held["end"] * SR) : int((held["end"] + held["hold"] + 0.3) * SR)] = (1 - DUCK * HOLD_DUCK) / (1 - DUCK)
     win = int(0.15 * SR)
     speech = np.convolve(speech, np.ones(win) / win, "same")
     duck = 1 - (1 - DUCK) * speech
@@ -175,5 +181,5 @@ def compose(sid):
     print(f"music {sid}: {dur:.1f}s at {timing['bpm']} bpm, {len(starts)} sections")
 
 
-for sid in sys.argv[1:] or sorted(p.stem for p in (HERE / "scripts").glob("*.json")):
+for sid in sys.argv[1:] or sorted(p.stem for p in (HERE / "scripts").glob("*.json") if not p.stem.endswith(".cues")):
     compose(sid)

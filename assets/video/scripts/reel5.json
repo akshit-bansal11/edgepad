@@ -1,0 +1,35 @@
+{
+  "id": "reel5",
+  "title": "Edgepad 5 in ninety seconds",
+  "gap": 0.9,
+  "holds": { "1": 1.5, "5": 3.0, "9": 1.0, "12": 3.0 },
+  "fit": { "under": 88, "holds": { "5": 5.0 }, "over": 98, "gap": 0.7 },
+  "chapters": [
+    { "title": "Hook", "energy": 0.4, "lines": [
+      "Your laptop's across the room. Your phone is in your hand.",
+      "This is Edgepad five. Free, open source, and it turns your phone into the trackpad, keyboard, gamepad and remote for your laptop."
+    ]},
+    { "title": "The surface", "energy": 0.75, "lines": [
+      "A multi-touch trackpad, with dials on every corner. Volume, brightness, zoom, scrubbing.",
+      "Change the volume on the laptop, and the dial follows."
+    ]},
+    { "title": "Controls", "energy": 0.9, "lines": [
+      "A keyboard in six sizes. A gamepad your games see as a real Xbox controller, on Windows and Linux.",
+      "A presenter with a laser. Screenshots and recordings, sent to your phone.",
+      "Clipboard sync and file sending, both ways. Macros that run from a shape you draw.",
+      "Air mouse: tilt to aim, hold a button to drag.",
+      "And for developers: your AI limits, sessions and pull requests, at a glance."
+    ]},
+    { "title": "Everywhere", "energy": 0.7, "lines": [
+      "Windows, Mac and Linux. Bluetooth, Wi-Fi or USB. No account, no server.",
+      "Mac and Linux are newer, so tell us on GitHub when something's off."
+    ]},
+    { "title": "Next", "energy": 0.9, "lines": [
+      "Screen mirroring and remote access are coming in Edgepad six."
+    ]},
+    { "title": "Get it", "energy": 1, "lines": [
+      "Edgepad. Free and open source, on GitHub.",
+      "Your laptop, from anywhere in the room."
+    ]}
+  ]
+}

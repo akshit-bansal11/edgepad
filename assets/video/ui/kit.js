@@ -33,6 +33,12 @@
   };
   // The page the phone stands on: ground #F2F3F7, ink #16171A, accent #0068D6, secondary #6B6E76.
   EP.page = { ground: '#F2F3F7', ink: '#16171A', accent: '#0068D6', dim: '#6B6E76' };
+  // The 5.x film's tokens (DESIGN.md), each defined here once.
+  EP.TOK = {
+    GROUND: '#1E2026', INK: '#F2F3F5', GREY: '#9A9CA3', BLUE: '#4DA3FF', PILL: '#2B2D33', PHONE: '#0E0F12', ROOM_DEEP: '#121317',
+    LAPTOP_BODY: '#2B2D33', LAPTOP_RIM: 'rgba(255,255,255,0.12)', LASER: '#FF3B30', LASER_GLOW: 'rgba(255,59,48,0.35)', HAND: '#15161A',
+    IDENT_TILE: '#FFFFFF', IDENT_INK: '#16171A', IDENT_ACCENT: '#0068D6',
+  };
 
   // ---- text ----
   const WEIGHT = { Regular: 400, Bold: 700, Black: 900 };
@@ -153,8 +159,9 @@
 
   // ---- the Edgepad mark (assets/edgepad-light.svg and -dark.svg), drawn at `size` px with its top-left at (x, y). ----
   const TILE = new Path2D('M354.65 0H669.35C771.47 0 822.53 0 868.58 15.2C937.64 37.99 986.01 86.36 1008.8 155.42C1024 201.47 1024 252.53 1024 354.65V669.35C1024 771.47 1024 822.53 1008.8 868.58C986.01 937.64 937.64 986.01 868.58 1008.8C822.53 1024 771.47 1024 669.35 1024H354.65C252.53 1024 201.47 1024 155.42 1008.8C86.36 986.01 37.99 937.64 15.2 868.58C0 822.53 0 771.47 0 669.35V354.65C0 252.53 0 201.47 15.2 155.42C37.99 86.36 86.36 37.99 155.42 15.2C201.47 0 252.53 0 354.65 0Z');
-  const TICKS = new Path2D('M394 744H224M420.6 610.1L263.6 545M610.1 420.6L545 263.6M744 394V224');
-  const ARC = new Path2D('M496.5 496.5L348 348M504 744A240 240 0 0 1 744 504');
+  // The 5.0.1 logo (assets/brand/edgepad/edgepad-logo-light.svg): stroke 88, pivot 881.8; the ticks, then the arc and the needle in the accent.
+  const TICKS = new Path2D('M457.8 881.8L225.8 881.8M490.075 719.542L275.735 630.76M719.542 490.075L630.76 275.735M881.8 457.8L881.8 225.8');
+  const ARC = new Path2D('M581.987 581.987L372.683 372.683M593.8 881.8A288 288 0 0 1 881.8 593.8');
   EP.mark = (ctx, x, y, size, dark, a = 1) => {
     ctx.save();
     ctx.globalAlpha *= a;
@@ -162,8 +169,7 @@
     ctx.scale(size / 1024, size / 1024);
     ctx.fillStyle = dark ? '#1B1C20' : '#FFFFFF';
     ctx.fill(TILE);
-    ctx.transform(1.2, 0, 0, 1.2, -102.4, -102.4);
-    ctx.lineWidth = 72;
+    ctx.lineWidth = 88;
     ctx.lineCap = 'round';
     ctx.strokeStyle = dark ? '#F2F3F5' : '#16171A';
     ctx.stroke(TICKS);

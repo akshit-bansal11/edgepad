@@ -363,8 +363,8 @@
   };
 
   // ---- acts: what the phone does while a line is spoken ----
-  // Surface buttons in dp: Settings 147, Lock 195, Controls 243, all on the top row.
-  const PLAY = [195, 0.9 * 844], LOCK = [195, 40], CONTROLS = [243, 40];
+  // Surface buttons in dp: Controls 123, Type 171, Lock 219, Settings 267, all on the top row.
+  const PLAY = [195, 0.9 * 844], LOCK = [219, 40], CONTROLS = [123, 40];
   // Anchors that end by holding: a screen that must not run past a point on its own clock (a tap, a latency, a Disconnect).
   const cap = (L, anchors, lt) => [...anchors, [L.next + 1.2, lt]];
   const A = {};
@@ -682,6 +682,7 @@
     D.screen(g - 0.2, 'gamepad', {}, [[g - 0.2, 0], [L.w('xbox'), 1.0], [L.t1, 3.6]], true);
   };
 
+  EP.cards = C; // the laptop cards, for the 5.x beats (beats5a.js, beats5b.js)
   window.BEATS = {
     full: [
       // What it is

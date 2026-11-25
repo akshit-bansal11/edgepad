@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Edgepad 5 in ninety seconds, landscape</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<link rel="stylesheet" href="../film.css">
+</head>
+<body>
+<!-- Edgepad 5 in ninety seconds, landscape: the `reel5` script, laid out for 1920 x 1080. The narration (voice.py) sets the length; the director (ui/film.js) builds the rest. -->
+<div id="root" data-composition-id="reel5-landscape" data-start="0" data-width="1920" data-height="1080">
+  <canvas id="film-canvas"></canvas>
+  <div id="film-text"></div>
+  <audio id="voice" src="../out/reel5/voice.mp3" data-start="0" data-track-index="0"></audio>
+  <audio id="music" src="../out/reel5/music.mp3" data-start="0" data-track-index="1" data-volume="0.2"></audio>
+  <audio id="sfx" src="../out/reel5/sfx.mp3" data-start="0" data-track-index="2"></audio>
+</div>
+<script>window.CUT = { id: 'reel5-landscape', script: 'reel5', w: 1920, h: 1080, base: '../' };</script>
+<script src="../out/reel5/timing.js"></script>
+<script src="../ui/kit.js"></script>
+<script src="../ui/icons.js"></script>
+<script src="../ui/surface.js"></script>
+<script src="../ui/screens.js"></script>
+<script src="../ui/screens5a.js"></script>
+<script src="../ui/screens5b.js"></script>
+<script src="../ui/game.js"></script>
+<script src="../ui/laptop.js"></script>
+<script src="../ui/ident.js"></script>
+<script src="../ui/beats.js"></script>
+<script src="../ui/beats5a.js"></script>
+<script src="../ui/beats5b.js"></script>
+<script src="../ui/beats5.js"></script>
+<script src="../ui/film.js"></script>
+<script>window.__filmReady.then((tl) => { window.__timelines["reel5-landscape"] = tl; window.__hfForceTimelineRebind?.(); });</script>
+</body>
+</html>

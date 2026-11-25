@@ -1,0 +1,55 @@
+{
+  "id": "demo5",
+  "title": "Edgepad 5: the demo",
+  "aspect": "16x9",
+  "gap": 0.6,
+  "holds": { "2": 0.4, "9": 2.0, "22": 3.0 },
+  "poster_line": 9,
+  "duck_hold": 9,
+  "chapters": [
+    { "title": "Hook", "energy": 0.35, "lines": [
+      "Your laptop's on the TV. Or the projector. Or across the room, running the show.",
+      "You're over here. That's fine.",
+      "This is Edgepad five. A free, open-source Android app that turns your phone into the trackpad, keyboard, gamepad and remote for your laptop. Windows, Mac or Linux."
+    ]},
+    { "title": "The surface", "energy": 0.7, "lines": [
+      "The middle is a multi-touch trackpad. The corners are dials.",
+      "Slide for volume. Brightness. Zoom. Scrub through a video. Split the corners, and four dials become eight.",
+      "Change the volume on the laptop, and the dial moves with it."
+    ]},
+    { "title": "Type and play", "energy": 0.9, "lines": [
+      "Tap Controls, and the phone becomes whatever you need next.",
+      "A full keyboard, in six sizes, from a full board with a number pad down to a compact sixty percent.",
+      "A gamepad with two sticks and analog triggers. On Windows and Linux, your laptop sees a real Xbox controller, so your games just work.",
+      "Drag every control where your thumbs want it, or start from a racing, platformer or shooter layout."
+    ]},
+    { "title": "Present and capture", "energy": 0.75, "lines": [
+      "Giving a talk? Presenter steps through your slides, and a laser dot follows your thumb.",
+      "Capture a region, the full screen or a recording, and send it straight to your phone."
+    ]},
+    { "title": "Move things", "energy": 0.8, "lines": [
+      "Copy on one, paste on the other. Clipboard sync works both ways, and keeps a history.",
+      "Send files either way, up to two gigabytes each. Pick a few, watch them go, pause any time.",
+      "Macros open apps, folders and websites. Draw a shape on the trackpad, and one runs."
+    ]},
+    { "title": "For developers", "energy": 0.7, "lines": [
+      "Writing code? Turn on developer mode. Your Claude Code and Codex limits, your spend and every open session, right on your phone.",
+      "Pull requests and issues from GitHub, GitLab and more. Tap one, and it opens on the laptop."
+    ]},
+    { "title": "Small things", "energy": 0.75, "lines": [
+      "Air mouse: tilt to aim, hold a button to drag.",
+      "Falling asleep to a film? Edgepad puts the laptop to sleep when it ends."
+    ]},
+    { "title": "Straight talk", "energy": 0.45, "lines": [
+      "No account. No server. Your phone talks straight to your laptop, over Bluetooth, Wi-Fi or USB.",
+      "Windows is tested on real hardware. Mac and Linux are newer, so tell us on GitHub when something's off."
+    ]},
+    { "title": "Next", "energy": 0.9, "lines": [
+      "Coming in Edgepad six: screen mirroring, and remote access."
+    ]},
+    { "title": "Get it", "energy": 1, "lines": [
+      "Edgepad. Free and open source, on GitHub.",
+      "Your laptop, from anywhere in the room."
+    ]}
+  ]
+}

@@ -377,13 +377,16 @@ jobs:
             assets/brand/
           if-no-files-found: error
 
-  # The marketing videos, a HyperFrames project at assets/video/ (its README): one narration take per script, then
-  # the three cuts, their web copies, posters and captions, and the two covers. Slow, so it renders only when something
-  # under assets/video/ changed in the push (or, on a pull request, against its base). A change anywhere else skips
-  # every step after the check, and the job still passes.
-  video:
+  # The marketing videos, a HyperFrames project at assets/video/ (its README), in three jobs. video-sound makes one
+  # narration take per script, the music and the effects; video-render renders the five cuts and the covers side by
+  # side from that one take; video makes the web copy, poster, captions and contact sheets. Slow, so they run only when
+  # something under assets/video/ changed in the push (or, on a pull request, against its base). A change anywhere
+  # else skips the work, and the jobs still pass.
+  video-sound:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
+    outputs:
+      changed: ${{ steps.changed.outputs.changed }}
     env:
       # The HyperFrames CLI, pinned: a render is only reproducible against the version that made it.
       HYPERFRAMES: hyperframes@0.8.193
@@ -415,13 +418,24 @@ jobs:
         if: steps.changed.outputs.changed == 'true'
         with:
           node-version: '24'
-      - name: Install ffmpeg, edge-tts and numpy
+      # earshot makes the sound effects (assets/video/SOUND.md): the base install only, from GitHub at one commit,
+      # because PyPI's `earshot` is another project.
+      - name: Install ffmpeg, edge-tts, numpy and earshot
         if: steps.changed.outputs.changed == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends ffmpeg python3-venv
           python3 -m venv "$RUNNER_TEMP/venv"
-          "$RUNNER_TEMP/venv/bin/pip" install edge-tts==7.3.1 numpy==2.5.4
+          "$RUNNER_TEMP/venv/bin/pip" install edge-tts==7.3.1 numpy==2.5.4 \
+            "earshot @ git+https://github.com/Leonxlnx/earshot@7a7f7c5c70d4a763a1eca4b3666af7c77e313f97"
+      # A slip in a script would otherwise show up as a blank render many minutes in.
+      - name: Check the scripts parse
+        if: steps.changed.outputs.changed == 'true'
+        working-directory: assets/video
+        run: |
+          for f in ui/*.js; do node --check "$f"; done
+          "$RUNNER_TEMP/venv/bin/python" -m py_compile voice.py music.py sfx.py
+          for f in scripts/*.json; do node -e "JSON.parse(require('fs').readFileSync('$f', 'utf8'))"; done
       # One short sentence in the narration's voice and one in the default, so a failed take shows whether the
       # service, the voice or the script is at fault.
       - name: Check the voice service
@@ -432,18 +446,23 @@ jobs:
           "$RUNNER_TEMP/venv/bin/edge-tts" --text "Edgepad, a test." --write-media "$RUNNER_TEMP/b.mp3" && ls -l "$RUNNER_TEMP/b.mp3" || echo "the default voice failed"
       - name: Voice
         if: steps.changed.outputs.changed == 'true'
-        run: '"$RUNNER_TEMP/venv/bin/python" assets/video/voice.py'
+        run: '"$RUNNER_TEMP/venv/bin/python" assets/video/voice.py demo5 reel5'
       - name: Music
         if: steps.changed.outputs.changed == 'true'
-        run: '"$RUNNER_TEMP/venv/bin/python" assets/video/music.py'
-      # The root's length is read before scripts run, so it is written in here from the take.
+        run: '"$RUNNER_TEMP/venv/bin/python" assets/video/music.py demo5 reel5'
+      - name: Sound effects
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          export PATH="$RUNNER_TEMP/venv/bin:$PATH"
+          python assets/video/sfx.py demo5 reel5
+      # The root's length is read before scripts run, so it is written in here from the take (the render jobs do the same).
       - name: Stamp each cut's length
         if: steps.changed.outputs.changed == 'true'
         working-directory: assets/video
         run: |
-          for p in full:index.html short:cuts/linkedin.html short:cuts/instagram.html; do
+          for p in demo5:demo5.html demo5:cuts/demo5-portrait.html reel5:cuts/reel5-landscape.html reel5:cuts/reel5-portrait.html reel5:cuts/reel5-34.html; do
             d=$(node -p "require('./out/${p%%:*}/timing.json').duration")
-            sed -i "s/data-composition-id=\"[a-z]*\"/& data-duration=\"$d\"/" "${p#*:}"
+            sed -i "s/data-composition-id=\"[a-z0-9-]*\"/& data-duration=\"$d\"/" "${p#*:}"
           done
       # Lint gates the render. `check` also audits layout, motion and contrast in a browser; its findings are worth
       # reading in this log, but the phone is a canvas the audits cannot see into, so they do not stop the render.
@@ -451,18 +470,66 @@ jobs:
         if: steps.changed.outputs.changed == 'true'
         working-directory: assets/video
         run: |
-          npx --yes "$HYPERFRAMES" lint
-          for f in cuts/*.html; do npx --yes "$HYPERFRAMES" lint "$f"; done
+          for f in demo5.html cuts/*5*.html; do npx --yes "$HYPERFRAMES" lint "$f"; done
       - name: Check the compositions
         if: steps.changed.outputs.changed == 'true'
         continue-on-error: true
         working-directory: assets/video
         run: npx --yes "$HYPERFRAMES" check
-      # H.264 at 30 fps on the delivery (quality-based) setting. A render that wrote its file and then failed while
-      # tidying up keeps the file: only a missing output fails the step.
-      - name: Render
+      # The take, the bed and the effects, for the render jobs: every cut is cut from the same narration.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: steps.changed.outputs.changed == 'true'
+        with:
+          name: video-sound
+          path: assets/video/out/
+          retention-days: 1
+          if-no-files-found: error
+
+  # One job per cut, side by side: the long film (demo5) in 16:9 and 9:16, the short one (reel5) in 16:9, 9:16 and
+  # 3:4, and the two covers.
+  video-render:
+    needs: video-sound
+    if: needs.video-sound.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        cut: [demo5, demo5-portrait, reel5-landscape, reel5-portrait, reel5-34, covers]
+    env:
+      # The HyperFrames CLI, pinned: a render is only reproducible against the version that made it.
+      HYPERFRAMES: hyperframes@0.8.193
+      HYPERFRAMES_SKIP_SKILLS: "1"
+      DO_NOT_TRACK: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: video-sound
+          path: assets/video/out
+      # The root's length is read before scripts run, so it is written in here from the take.
+      - name: Stamp each cut's length
         working-directory: assets/video
+        run: |
+          for p in demo5:demo5.html demo5:cuts/demo5-portrait.html reel5:cuts/reel5-landscape.html reel5:cuts/reel5-portrait.html reel5:cuts/reel5-34.html; do
+            d=$(node -p "require('./out/${p%%:*}/timing.json').duration")
+            sed -i "s/data-composition-id=\"[a-z0-9-]*\"/& data-duration=\"$d\"/" "${p#*:}"
+          done
+      # H.264 at 30 fps and 20 Mbit/s: at a low bitrate the canvas text goes soft. A render that wrote its file and
+      # then failed while tidying up keeps the file: only a missing output fails the step.
+      - name: Render
+        working-directory: assets/video
+        env:
+          CUT: ${{ matrix.cut }}
         run: |
           set -euo pipefail
           V="$RUNNER_TEMP/video"
@@ -478,52 +545,88 @@ jobs:
               fi
             fi
           }
-          render "$V/full.mp4" --quality delivery
-          render "$V/linkedin.mp4" -c cuts/linkedin.html --quality delivery
-          render "$V/instagram.mp4" -c cuts/instagram.html --quality delivery
-          for id in thumb-landscape thumb-portrait; do
-            render "$RUNNER_TEMP/frames-$id" -c "cuts/$id.html" --format png-sequence
-            cp "$(find "$RUNNER_TEMP/frames-$id" -name '*.png' | sort | head -n 1)" "$V/$id.png"
-          done
-      # The web copies are for the site: CRF 23, capped so a 4.5-minute cut stays under about 40 MB.
+          case "$CUT" in
+            demo5) render "$V/demo5.mp4" -c demo5.html --video-bitrate 20M ;;
+            covers)
+              for id in thumb5-landscape thumb5-portrait; do
+                render "$RUNNER_TEMP/frames-$id" -c "cuts/$id.html" --format png-sequence
+                cp "$(find "$RUNNER_TEMP/frames-$id" -name '*.png' | sort | head -n 1)" "$V/$id.png"
+              done ;;
+            *) render "$V/$CUT.mp4" -c "cuts/$CUT.html" --video-bitrate 20M ;;
+          esac
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: video-cut-${{ matrix.cut }}
+          path: ${{ runner.temp }}/video/
+          retention-days: 1
+          if-no-files-found: error
+
+  video:
+    needs: [video-sound, video-render]
+    if: needs.video-sound.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: video-sound
+          path: assets/video/out
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: video-cut-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/video
+      # The web copy is for the site: CRF 23, capped so the cut stays under about 40 MB.
       - name: Web copies, posters and captions
-        if: steps.changed.outputs.changed == 'true'
         run: |
           set -euo pipefail
           V="$RUNNER_TEMP/video"
-          for id in full; do
+          for id in demo5; do
             ffmpeg -y -loglevel error -i "$V/$id.mp4" -c:v libx264 -preset slow -crf 23 -maxrate 1000k -bufsize 2000k \
               -pix_fmt yuv420p -c:a aac -b:a 96k -movflags +faststart "$V/$id-web.mp4"
             size=$(stat -c %s "$V/$id-web.mp4")
             if [ "$size" -gt 41943040 ]; then echo "::warning::$id-web.mp4 is $((size / 1048576)) MB, over 40"; fi
-            poster=$(node -p "require('./assets/video/out/$id/timing.json').poster")
+            poster=$(jq -r .poster "assets/video/out/$id/timing.json")
             ffmpeg -y -loglevel error -ss "$poster" -i "$V/$id.mp4" -frames:v 1 -q:v 2 "$V/$id-poster.jpg"
           done
-          for id in full short; do
+          # A small copy of every cut for sites with an upload limit: CRF 26, capped at 2.5 Mbit/s, the picture size kept.
+          for id in demo5 demo5-portrait reel5-landscape reel5-portrait reel5-34; do
+            ffmpeg -y -loglevel error -i "$V/$id.mp4" -c:v libx264 -preset medium -crf 26 -maxrate 2500k -bufsize 5000k \
+              -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart "$V/$id-small.mp4"
+          done
+          for id in demo5 reel5; do
             cp "assets/video/out/$id/$id.en.vtt" "$V/"
             cp "assets/video/out/$id/timing.json" "$V/$id.timing.json"
             cp "assets/video/out/$id/music.mp3" "$V/$id-music.mp3"
+            cp "assets/video/out/$id/sfx.mp3" "$V/$id-sfx.mp3"
           done
-          # The balance, for an ear that cannot be in this log: the voice should sit well above the bed.
-          for f in full short; do
-            for s in voice music; do
+          # The balance, for an ear that cannot be in this log: each stem's loudness as written (the page plays the bed
+          # at data-volume 0.2, 14 dB under this reading), then each finished mix with its true peak.
+          for f in demo5 reel5; do
+            for s in voice music sfx; do
               echo "$f $s: $(ffmpeg -hide_banner -i "assets/video/out/$f/$s.mp3" -af ebur128 -f null - 2>&1 | grep -E '^ +I:' | tail -n 1)"
             done
           done
-          # Small contact sheets, so a review need not download the renders.
+          for id in demo5 demo5-portrait reel5-landscape reel5-portrait reel5-34; do
+            echo "$id mix: $(ffmpeg -hide_banner -i "$V/$id.mp4" -vn -af ebur128=peak=true -f null - 2>&1 | grep -E '^ +(I|Peak):' | tail -n 2 | tr -s "[:space:]" " ")"
+          done
+          # Contact sheets, a frame every two seconds, so a review need not download the renders.
           mkdir -p "$RUNNER_TEMP/sheets"
-          for id in full linkedin instagram; do
-            ffmpeg -y -loglevel error -i "$V/$id.mp4" -vf "fps=1/3,scale=-1:360,tile=8x6" -q:v 4 -vsync vfr "$RUNNER_TEMP/sheets/$id-%02d.jpg"
+          for s in demo5:640:360:3x3 demo5-portrait:360:640:5x2 reel5-landscape:640:360:3x3 reel5-portrait:360:640:5x2 reel5-34:384:512:5x2; do
+            IFS=: read -r id w h tile <<< "$s"
+            ffmpeg -y -loglevel error -i "$V/$id.mp4" -vf "fps=1/2,scale=$w:$h,tile=$tile" -q:v 4 -vsync vfr "$RUNNER_TEMP/sheets/$id-%02d.jpg"
           done
           ls -la "$V"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: steps.changed.outputs.changed == 'true'
         with:
           name: edgepad-video
           path: ${{ runner.temp }}/video/
           if-no-files-found: error
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: steps.changed.outputs.changed == 'true'
         with:
           name: edgepad-video-sheets
           path: ${{ runner.temp }}/sheets/
@@ -533,7 +636,7 @@ jobs:
   # It fails if any job failed or was cancelled; a job skipped on purpose passes.
   ci-ok:
     if: always()
-    needs: [android, core, linux, linux-arm64, windows, lockfiles, android-gallery, macos, plugin, design-doc, icons, video]
+    needs: [android, core, linux, linux-arm64, windows, lockfiles, android-gallery, macos, plugin, design-doc, icons, video-sound, video-render, video]
     runs-on: ubuntu-latest
     steps:
       - name: Every job passed
