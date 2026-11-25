@@ -231,7 +231,7 @@ If the phone says the laptop hung up before the handshake (an older phone app sh
 Settings is in sections, in this order. Each screen also keeps its own gear for what only applies to it.
 
 1. **Surface** (also the surface's gear): Corners and Split corners, Trackpad (the gesture map, pointer and scroll speed, natural scrolling and on-screen hints, which are off by default), Shapes (every stroke you have drawn, with what it runs), Dial feel (slide sensitivity, dial length and height, haptic ticks, snapping to round numbers, with a live preview), Media layout, Control colour, Widgets and Look (a colour, gradient or image behind the surface, and a grid, dots or checker over it).
-2. **Keyboard**: its own gear; a full-screen canvas where pieces are dragged anywhere.
+2. **Keyboard**: its own gear. Size picks one of six fixed boards (100, 96, 80, 75, 65 and 60%; 75% by default), Function keys picks "With Fn" or "Direct", and Keyboard text size sets the key labels. The keys themselves cannot be moved.
 3. **Gamepad**: the same kind of canvas.
 4. **Macros**.
 5. **Presenter**: Laser size and Show trail.
