@@ -88,7 +88,9 @@ public final class CappedHttp: HttpSender {
     }
 }
 
-private final class NoRedirects: NSObject, URLSessionTaskDelegate {
+/// A task delegate that refuses every redirect, so a reply comes from the host asked or not at all. The capped
+/// fetch, the speed test's upload and the update check and download all use it.
+final class NoRedirects: NSObject, URLSessionTaskDelegate {
     func urlSession(
         _ session: URLSession,
         task: URLSessionTask,

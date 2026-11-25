@@ -95,7 +95,7 @@ public enum UpdateCheck {
         }
         var request = URLRequest(url: url, timeoutInterval: 10)
         request.httpMethod = "HEAD"
-        let session = URLSession(configuration: .ephemeral, delegate: RedirectRefuser(), delegateQueue: nil)
+        let session = URLSession(configuration: .ephemeral, delegate: NoRedirects(), delegateQueue: nil)
         let task = session.dataTask(with: request) { _, response, error in
             session.finishTasksAndInvalidate()
             if let error {
@@ -107,17 +107,5 @@ public enum UpdateCheck {
             completion(versionIn(location))
         }
         task.resume()
-    }
-}
-
-private final class RedirectRefuser: NSObject, URLSessionTaskDelegate {
-    func urlSession(
-        _ session: URLSession,
-        task: URLSessionTask,
-        willPerformHTTPRedirection response: HTTPURLResponse,
-        newRequest request: URLRequest,
-        completionHandler: @escaping (URLRequest?) -> Void
-    ) {
-        completionHandler(nil)
     }
 }

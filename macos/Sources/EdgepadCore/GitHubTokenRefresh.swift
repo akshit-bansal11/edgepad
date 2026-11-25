@@ -20,9 +20,6 @@ final class GitHubTokenRefresh {
     private static let maxLifeSeconds = 31 * 24 * 3600
     private static let timeout: TimeInterval = 15
 
-    /// A token this close to its end is refreshed before it is used.
-    private static let margin: TimeInterval = 5 * 60
-
     private let store: SecretStore
     private let clientId: String
     private let http: HttpSender
@@ -30,8 +27,7 @@ final class GitHubTokenRefresh {
 
     // One flight per store, shared by every GitHubApi on it (the window's login lookup builds its own), so refreshes
     // never overlap.
-    private static let flights = NSLock()
-    private static var running: [ObjectIdentifier: Task<RefreshOutcome, Never>] = [:]
+    private static let flight = RefreshFlight()
 
     init(store: SecretStore, clientId: String, http: HttpSender, clock: @escaping () -> Date) {
         self.store = store
@@ -47,25 +43,11 @@ final class GitHubTokenRefresh {
 
     /// Whether the saved access token is about to run out (or has) and can be refreshed.
     func isDue() -> Bool {
-        guard canRefresh, let text = store.get(GitHubApp.expiresName), !text.isEmpty,
-            text.utf8.allSatisfy({ $0 >= 48 && $0 <= 57 }), let seconds = Int64(text)
-        else { return false }
-        return now().addingTimeInterval(Self.margin) >= Date(timeIntervalSince1970: TimeInterval(seconds))
+        canRefresh && RefreshFlight.isDue(store.get(GitHubApp.expiresName), now: now())
     }
 
     func refresh() async -> RefreshOutcome {
-        let task = Self.flights.withLock { () -> Task<RefreshOutcome, Never> in
-            let key = ObjectIdentifier(store)
-            if let running = Self.running[key] { return running }
-            let made = Task { await self.exchange() }
-            Self.running[key] = made
-            return made
-        }
-        let outcome = await task.value
-        Self.flights.withLock {
-            if Self.running[ObjectIdentifier(store)] == task { Self.running[ObjectIdentifier(store)] = nil }
-        }
-        return outcome
+        await Self.flight.join(store) { await self.exchange() }
     }
 
     /// The exchange itself, in a task of its own: a caller that is cancelled while it runs cannot lose the new refresh

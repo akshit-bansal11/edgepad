@@ -108,7 +108,7 @@ public enum UpdateDownload {
                 throw DownloadError.refused("The address is not an https address on GitHub.")
             }
             let request = URLRequest(url: current, timeoutInterval: timeout)
-            let (bytes, response) = try await session.bytes(for: request, delegate: RedirectRefuser())
+            let (bytes, response) = try await session.bytes(for: request, delegate: NoRedirects())
             guard let http = response as? HTTPURLResponse else {
                 throw DownloadError.refused("The answer was not HTTP.")
             }
@@ -133,17 +133,5 @@ public enum UpdateDownload {
             return (bytes, http.expectedContentLength)
         }
         throw DownloadError.refused("Too many redirects.")
-    }
-}
-
-private final class RedirectRefuser: NSObject, URLSessionTaskDelegate {
-    func urlSession(
-        _ session: URLSession,
-        task: URLSessionTask,
-        willPerformHTTPRedirection response: HTTPURLResponse,
-        newRequest request: URLRequest,
-        completionHandler: @escaping (URLRequest?) -> Void
-    ) {
-        completionHandler(nil)
     }
 }
