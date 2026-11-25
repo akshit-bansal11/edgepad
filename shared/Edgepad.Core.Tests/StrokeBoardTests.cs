@@ -30,6 +30,42 @@ public sealed class StrokeBoardTests
     }
 
     [Fact]
+    public void ActionsBeginEndAndPickTools()
+    {
+        var board = new StrokeBoard();
+
+        Assert.False(board.Apply(ActionId.ToolArrow));
+        Assert.True(board.Apply(ActionId.AnnotateBegin));
+        Assert.Equal(BoardMode.Annotate, board.Mode);
+        Assert.True(board.Apply(ActionId.ToolArrow));
+        Assert.Equal(StrokeTool.Arrow, board.Tool);
+        Assert.True(board.Apply(ActionId.AnnotateEnd));
+        Assert.Equal(BoardMode.Off, board.Mode);
+    }
+
+    [Fact]
+    public void SigningTakesOnlyThePenAndEndsLikeAnnotating()
+    {
+        var board = new StrokeBoard();
+
+        Assert.True(board.Apply(ActionId.SignBegin));
+        Assert.Equal(BoardMode.Sign, board.Mode);
+        Assert.False(board.Apply(ActionId.ToolHighlighter));
+        Assert.True(board.Apply(ActionId.ToolPen));
+        Assert.True(board.Apply(ActionId.AnnotateEnd));
+        Assert.Equal(BoardMode.Off, board.Mode);
+    }
+
+    [Fact]
+    public void AnActionThatIsNotTheBoardsIsDropped()
+    {
+        var board = Started();
+
+        Assert.False(board.Apply(ActionId.SignSave));
+        Assert.Equal(BoardMode.Annotate, board.Mode);
+    }
+
+    [Fact]
     public void ANewBoardIsOffAndAcceptsNothing()
     {
         var board = new StrokeBoard();

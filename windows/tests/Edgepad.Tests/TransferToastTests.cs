@@ -1,4 +1,3 @@
-using System.Globalization;
 using Edgepad.Transfer;
 using Edgepad.Ui;
 using Xunit;
@@ -25,8 +24,8 @@ public sealed class TransferToastTests
     [Fact]
     public void RunningSubtitleCountsOnlyWhenThereIsMoreThanOneFile()
     {
-        Assert.StartsWith(Strings.Xfer_PanelDetail.Fill("a.pdf", 2, 5, ToastText.Bytes(4096)), ToastText.Subtitle(Running()));
-        Assert.Equal(Strings.Xfer_PanelSpeed.Fill("a.pdf", ToastText.Bytes(4096)), ToastText.Subtitle(Running(total: 1, index: 1)));
+        Assert.StartsWith(Strings.Xfer_PanelDetail.Fill("a.pdf", 2, 5, ByteSize.Format(4096)), ToastText.Subtitle(Running()));
+        Assert.Equal(Strings.Xfer_PanelSpeed.Fill("a.pdf", ByteSize.Format(4096)), ToastText.Subtitle(Running(total: 1, index: 1)));
         Assert.Equal(Strings.Xfer_PanelCount.Fill("a.pdf", 2, 5), ToastText.Subtitle(Running() with { BytesPerSecond = 0 }));
         Assert.Equal("a.pdf", ToastText.Subtitle(Running(total: 0, index: 1) with { BytesPerSecond = 0 }));
     }
@@ -120,26 +119,6 @@ public sealed class TransferToastTests
         Assert.Equal(37, ToastText.Percent(Running()));
         Assert.Equal(0, ToastText.Percent(Running() with { Size = 0 }));
         Assert.Equal(100, ToastText.Percent(Running() with { Sent = 500 }));
-    }
-
-    [Theory]
-    [InlineData(0UL, "0 B")]
-    [InlineData(1023UL, "1023 B")]
-    [InlineData(1024UL, "1.0 KB")]
-    [InlineData(1572864UL, "1.5 MB")]
-    [InlineData(2147483648UL, "2.0 GB")]
-    public void BytesUseBinaryUnits(ulong bytes, string expected)
-    {
-        var old = CultureInfo.CurrentCulture;
-        try
-        {
-            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-            Assert.Equal(expected, ToastText.Bytes(bytes));
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = old;
-        }
     }
 
     [Fact]

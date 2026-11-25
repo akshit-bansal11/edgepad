@@ -1,4 +1,3 @@
-using System.Globalization;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
@@ -33,7 +32,7 @@ internal static class TransferCardText
 
         // Receiving has no file count: the running index is all there is to show.
         var total = Math.Max(view.Total, view.Index);
-        var speed = view.BytesPerSecond > 0 ? Bytes((ulong)view.BytesPerSecond) : null;
+        var speed = view.BytesPerSecond > 0 ? ByteSize.Format((ulong)view.BytesPerSecond) : null;
         return (total > 1, speed) switch
         {
             (true, { } rate) => Say.Format(LinuxStrings.Xfer_PanelDetail, file, view.Index, total, rate),
@@ -74,23 +73,6 @@ internal static class TransferCardText
         }
 
         return view.Size == 0 ? 0 : Math.Min(1.0, (double)view.Sent / view.Size);
-    }
-
-    /// <summary>1024-based units: "0 B", "1023 B", "1.0 KB", "12.4 MB". The number follows the current culture.</summary>
-    public static string Bytes(ulong bytes)
-    {
-        string[] units = ["B", "KB", "MB", "GB", "TB"];
-        var value = (double)bytes;
-        var unit = 0;
-        while (value >= 1024 && unit < units.Length - 1)
-        {
-            value /= 1024;
-            unit++;
-        }
-
-        return unit == 0
-            ? string.Create(CultureInfo.CurrentCulture, $"{bytes} B")
-            : string.Create(CultureInfo.CurrentCulture, $"{value:0.0} {units[unit]}");
     }
 }
 
