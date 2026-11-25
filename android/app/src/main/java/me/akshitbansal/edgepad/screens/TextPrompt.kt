@@ -2,8 +2,6 @@ package me.akshitbansal.edgepad.screens
 
 import android.app.AlertDialog
 import android.content.Context
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
@@ -31,27 +29,9 @@ fun askText(
             // ANDU-13: a half-typed text comes back after a rotation closed the box, which presses neither button.
             setText(TextDraft.text)
             setSelection(text.length)
-            addTextChangedListener(
-                object : TextWatcher {
-                    override fun beforeTextChanged(
-                        text: CharSequence?,
-                        start: Int,
-                        count: Int,
-                        after: Int,
-                    ) = Unit
-
-                    override fun onTextChanged(
-                        text: CharSequence?,
-                        start: Int,
-                        before: Int,
-                        count: Int,
-                    ) = Unit
-
-                    override fun afterTextChanged(text: Editable?) {
-                        TextDraft.text = text?.toString().orEmpty()
-                    }
-                },
-            )
+            onEdited { text ->
+                TextDraft.text = text?.toString().orEmpty()
+            }
         }
     AlertDialog
         .Builder(context)

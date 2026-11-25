@@ -4,9 +4,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.RectF
-import android.text.Editable
 import android.text.InputFilter
-import android.text.TextWatcher
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
@@ -696,27 +694,9 @@ object GamepadLayoutScreen {
             // AND-A-24: OK waits for a usable name, and the empty field says what is wanted.
             val ok = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
             ok.isEnabled = GamepadLayout.clean(field.text.toString(), max) != null
-            field.addTextChangedListener(
-                object : TextWatcher {
-                    override fun beforeTextChanged(
-                        text: CharSequence?,
-                        start: Int,
-                        count: Int,
-                        after: Int,
-                    ) = Unit
-
-                    override fun onTextChanged(
-                        text: CharSequence?,
-                        start: Int,
-                        before: Int,
-                        count: Int,
-                    ) = Unit
-
-                    override fun afterTextChanged(text: Editable?) {
-                        ok.isEnabled = GamepadLayout.clean(text.toString(), max) != null
-                    }
-                },
-            )
+            field.onEdited { text ->
+                ok.isEnabled = GamepadLayout.clean(text.toString(), max) != null
+            }
         }
 
         /** AND-A-23: a tick when a hold reaches the long press, so it no longer looks like a tap until release. */

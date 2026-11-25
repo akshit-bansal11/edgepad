@@ -1,9 +1,7 @@
 package me.akshitbansal.edgepad.screens
 
-import android.text.Editable
 import android.text.InputType
 import android.text.TextUtils
-import android.text.TextWatcher
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -216,28 +214,10 @@ class AppListScreen(
             setTextColor(ui.palette.ink)
             setHintTextColor(ui.palette.dim)
             minimumHeight = ui.dp(Space.ROW)
-            addTextChangedListener(
-                object : TextWatcher {
-                    override fun beforeTextChanged(
-                        text: CharSequence?,
-                        start: Int,
-                        count: Int,
-                        after: Int,
-                    ) = Unit
-
-                    override fun onTextChanged(
-                        text: CharSequence?,
-                        start: Int,
-                        before: Int,
-                        count: Int,
-                    ) = Unit
-
-                    override fun afterTextChanged(text: Editable?) {
-                        query = text?.toString().orEmpty()
-                        applyFilter()
-                    }
-                },
-            )
+            onEdited { text ->
+                query = text?.toString().orEmpty()
+                applyFilter()
+            }
         }
 
     private companion object {
