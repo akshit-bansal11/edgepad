@@ -245,7 +245,7 @@ and the phone stands right. In the tall cuts the laptop sits above and the phone
 
 ### Chapter: Straight talk
 
-**20.** "No account. No Edgepad server. Your phone talks straight to your laptop, over Bluetooth, Wi-Fi or USB."
+**20.** "No account. No server. Your phone talks straight to your laptop, over Bluetooth, Wi-Fi or USB."
 - h: `No account. | No *server.*`
 - s: `*Straight* to your laptop@straight`, `Bluetooth · Wi-Fi · *USB*@bluetooth`
 - cam: `talk` (the 4.0 plain-cards layout, beats.js C.talk). The phone steps aside.
@@ -312,7 +312,7 @@ between them (DESIGN.md, tall layout). Each line reuses a demo5 act, shortened.
 9. "And for developers: your AI limits, sessions and pull requests, at a glance."
    - Demo 16 + 17.
    - h: `For *developers.*`
-10. "Windows, Mac and Linux. Bluetooth, Wi-Fi or USB. No account, no Edgepad server."
+10. "Windows, Mac and Linux. Bluetooth, Wi-Fi or USB. No account, no server."
     - Demo 20.
     - h: `No account. No *server.*`
 11. "Mac and Linux are newer, so tell us on GitHub when something's off."

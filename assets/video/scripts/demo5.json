@@ -41,7 +41,7 @@
       "Falling asleep to a film? Edgepad puts the laptop to sleep when it ends."
     ]},
     { "title": "Straight talk", "energy": 0.45, "lines": [
-      "No account. No Edgepad server. Your phone talks straight to your laptop, over Bluetooth, Wi-Fi or USB.",
+      "No account. No server. Your phone talks straight to your laptop, over Bluetooth, Wi-Fi or USB.",
       "Windows is tested on real hardware. Mac and Linux are newer, so tell us on GitHub when something's off."
     ]},
     { "title": "Next", "energy": 0.9, "lines": [

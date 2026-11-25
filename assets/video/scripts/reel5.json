@@ -21,7 +21,7 @@
       "And for developers: your AI limits, sessions and pull requests, at a glance."
     ]},
     { "title": "Everywhere", "energy": 0.7, "lines": [
-      "Windows, Mac and Linux. Bluetooth, Wi-Fi or USB. No account, no Edgepad server.",
+      "Windows, Mac and Linux. Bluetooth, Wi-Fi or USB. No account, no server.",
       "Mac and Linux are newer, so tell us on GitHub when something's off."
     ]},
     { "title": "Next", "energy": 0.9, "lines": [
