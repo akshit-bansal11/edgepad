@@ -181,5 +181,5 @@ def compose(sid):
     print(f"music {sid}: {dur:.1f}s at {timing['bpm']} bpm, {len(starts)} sections")
 
 
-for sid in sys.argv[1:] or sorted(p.stem for p in (HERE / "scripts").glob("*.json")):
+for sid in sys.argv[1:] or sorted(p.stem for p in (HERE / "scripts").glob("*.json") if not p.stem.endswith(".cues")):
     compose(sid)

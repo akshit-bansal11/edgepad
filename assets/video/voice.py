@@ -210,7 +210,7 @@ def build(sid):
 
 
 def main():
-    ids = sys.argv[1:] or sorted(p.stem for p in (HERE / "scripts").glob("*.json"))
+    ids = sys.argv[1:] or sorted(p.stem for p in (HERE / "scripts").glob("*.json") if not p.stem.endswith(".cues"))
     for sid in ids:
         build(sid)
 
