@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -19,47 +18,20 @@ internal sealed class GitLabRenewal(ISecretStore store, IntegrationSettings sett
 
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
 
-    /// <summary>A token this close to its end is refreshed before it is used.</summary>
-    private static readonly TimeSpan Margin = TimeSpan.FromMinutes(5);
-
     // One flight per store, so refreshes never overlap whoever asks.
-    private static readonly ConditionalWeakTable<ISecretStore, Flight> Flights = new();
+    private static readonly ConditionalWeakTable<ISecretStore, RefreshFlight> Flights = new();
 
-    private readonly Flight flight = Flights.GetOrCreateValue(store);
+    private readonly RefreshFlight flight = Flights.GetOrCreateValue(store);
 
     /// <summary>Whether a refresh token is saved, so a 401 may be answered by a refresh.</summary>
     public bool CanRefresh => GitTokens.IsToken(store.Get(GitLabApp.RefreshName));
 
     /// <summary>Whether the saved access token is about to run out (or has) and can be refreshed.</summary>
     public bool IsDue() =>
-        CanRefresh && long.TryParse(store.Get(GitLabApp.ExpiresName), NumberStyles.None, CultureInfo.InvariantCulture, out var seconds)
-        && seconds < DateTimeOffset.MaxValue.ToUnixTimeSeconds() && now() + Margin >= DateTimeOffset.FromUnixTimeSeconds(seconds);
+        CanRefresh && RefreshFlight.IsDue(store.Get(GitLabApp.ExpiresName), now());
 
     /// <summary>Refreshes, or joins the refresh already running. Never takes the caller's cancellation: a stop after the request left would lose the new refresh token, and the 15 s timeout bounds it.</summary>
-    public Task<RefreshOutcome> RefreshAsync()
-    {
-        lock (flight.Gate)
-        {
-            return flight.Running ??= RunAsync();
-        }
-    }
-
-    private async Task<RefreshOutcome> RunAsync()
-    {
-        // Never finishes before the caller has stored the task, so the finally below cannot run first.
-        await Task.Yield();
-        try
-        {
-            return await ExchangeAsync().ConfigureAwait(false);
-        }
-        finally
-        {
-            lock (flight.Gate)
-            {
-                flight.Running = null;
-            }
-        }
-    }
+    public Task<RefreshOutcome> RefreshAsync() => flight.Join(ExchangeAsync);
 
     private async Task<RefreshOutcome> ExchangeAsync()
     {
@@ -117,12 +89,5 @@ internal sealed class GitLabRenewal(ISecretStore store, IntegrationSettings sett
         {
             return RefreshOutcome.Unavailable;
         }
-    }
-
-    private sealed class Flight
-    {
-        public Lock Gate { get; } = new();
-
-        public Task<RefreshOutcome>? Running { get; set; }
     }
 }

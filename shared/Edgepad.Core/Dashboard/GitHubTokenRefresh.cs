@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -32,47 +31,20 @@ internal sealed class GitHubTokenRefresh(ISecretStore store, string clientId, Ht
 
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
 
-    /// <summary>A token this close to its end is refreshed before it is used.</summary>
-    private static readonly TimeSpan Margin = TimeSpan.FromMinutes(5);
-
     // One flight per store, shared by every GitHubApi on it (the window's login lookup builds its own), so refreshes never overlap.
-    private static readonly ConditionalWeakTable<ISecretStore, Flight> Flights = new();
+    private static readonly ConditionalWeakTable<ISecretStore, RefreshFlight> Flights = new();
 
-    private readonly Flight flight = Flights.GetOrCreateValue(store);
+    private readonly RefreshFlight flight = Flights.GetOrCreateValue(store);
 
     /// <summary>Whether a refresh token is saved, so a 401 may be answered by a refresh.</summary>
     public bool CanRefresh => GitHubApp.IsToken(store.Get(GitHubApp.RefreshName));
 
     /// <summary>Whether the saved access token is about to run out (or has) and can be refreshed.</summary>
     public bool IsDue() =>
-        CanRefresh && long.TryParse(store.Get(GitHubApp.ExpiresName), NumberStyles.None, CultureInfo.InvariantCulture, out var seconds)
-        && seconds < DateTimeOffset.MaxValue.ToUnixTimeSeconds() && now() + Margin >= DateTimeOffset.FromUnixTimeSeconds(seconds);
+        CanRefresh && RefreshFlight.IsDue(store.Get(GitHubApp.ExpiresName), now());
 
     /// <summary>Refreshes, or joins the refresh already running. Never takes the caller's cancellation: a stop after the request left would lose the new refresh token, and the 15 s timeout bounds it.</summary>
-    public Task<RefreshOutcome> RefreshAsync()
-    {
-        lock (flight.Gate)
-        {
-            return flight.Running ??= RunAsync();
-        }
-    }
-
-    private async Task<RefreshOutcome> RunAsync()
-    {
-        // Never finishes before the caller has stored the task, so the finally below cannot run first.
-        await Task.Yield();
-        try
-        {
-            return await ExchangeAsync().ConfigureAwait(false);
-        }
-        finally
-        {
-            lock (flight.Gate)
-            {
-                flight.Running = null;
-            }
-        }
-    }
+    public Task<RefreshOutcome> RefreshAsync() => flight.Join(ExchangeAsync);
 
     private async Task<RefreshOutcome> ExchangeAsync()
     {
@@ -141,11 +113,4 @@ internal sealed class GitHubTokenRefresh(ISecretStore store, string clientId, Ht
 
     private static string? Text(JsonElement root, string name) =>
         root.TryGetProperty(name, out var e) && e.ValueKind == JsonValueKind.String ? e.GetString() : null;
-
-    private sealed class Flight
-    {
-        public Lock Gate { get; } = new();
-
-        public Task<RefreshOutcome>? Running { get; set; }
-    }
 }
