@@ -22,11 +22,13 @@ internal sealed record MdnsService(string Instance, string Host, ushort Port, IR
     public string HostName => $"{Host}.local";
 }
 
+/// <summary>One question read from a packet, and whether the asker wants the answer by unicast (the QU bit).</summary>
 internal sealed record MdnsQuestion(string Name, ushort Type, bool Unicast);
 
 /// <summary>One record read from a packet. Only the fields of its own type are set; other types are not kept.</summary>
 internal sealed record MdnsRecord(string Name, ushort Type, uint Ttl, string Target, ushort Port, IReadOnlyList<string> Text, IPAddress? Address);
 
+/// <summary>A whole packet as read: its id, whether it is a response, and the questions and records it carries.</summary>
 internal sealed record MdnsMessage(ushort Id, bool IsResponse, IReadOnlyList<MdnsQuestion> Questions, IReadOnlyList<MdnsRecord> Records);
 
 /// <summary>An answer to a query, and whether the asker wanted it by unicast (the QU bit).</summary>

@@ -90,6 +90,7 @@ public protocol CaptureFolders: AnyObject {
     func clipboardPNG() -> Data?
 }
 
+/// No clipboard by default: a stand-in that does not override these never falls back to a clipboard image.
 extension CaptureFolders {
     public func clipboardStamp() -> Int? {
         nil

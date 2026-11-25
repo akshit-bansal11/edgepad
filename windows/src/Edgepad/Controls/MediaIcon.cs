@@ -16,6 +16,7 @@ namespace Edgepad.Controls;
 /// </summary>
 internal static class MediaIcon
 {
+    /// <summary>Which picture goes beside the media title: none, the system media controls' artwork, or the playing app's icon.</summary>
     internal enum Pick
     {
         None,

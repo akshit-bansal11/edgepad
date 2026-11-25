@@ -53,6 +53,7 @@ internal fun parseTxt(attributes: Map<String, ByteArray?>): Txt? {
 /** The longest laptop name shown, however it was learned: anything on the network can announce one. */
 internal const val MAX_LAPTOP_NAME = 64
 
+/** The bytes of an even-length hex string, either case, or null for anything else: a TXT record is anyone's to write. */
 internal fun parseHex(text: String): ByteArray? {
     if (text.length % 2 != 0 || text.any { it !in '0'..'9' && it !in 'a'..'f' && it !in 'A'..'F' }) return null
     return ByteArray(text.length / 2) { text.substring(it * 2, it * 2 + 2).toInt(16).toByte() }

@@ -16,6 +16,7 @@ import path from "node:path";
 
 const PROTOCOL_DIR = path.join(process.cwd(), "..", "protocol");
 
+/** Which way a frame travels. */
 export type Direction = "phone-to-laptop" | "laptop-to-phone" | "both";
 
 export type FrameExample = {
@@ -25,6 +26,11 @@ export type FrameExample = {
   bytes: string;
 };
 
+/**
+ * One frame of the protocol table: its fixture examples, joined with the prose this
+ * file holds for it. `documented` is false when the fixture has a frame this file has
+ * no prose for yet.
+ */
 export type FrameRow = {
   name: string;
   /** First byte of the fixture's own bytes, so the type can never be mistyped here. */
@@ -36,6 +42,10 @@ export type FrameRow = {
   documented: boolean;
 };
 
+/**
+ * One row of an id table (actions, controls, TEXT kinds and the rest), as
+ * `protocol/actions.txt` lists it.
+ */
 export type IdRow = {
   /** As the fixture writes it: a number, or for PAD_STATUS the token on the wire. */
   id: string;
@@ -44,6 +54,7 @@ export type IdRow = {
   documented: boolean;
 };
 
+/** Everything the protocol pages show, read from the two fixture files. */
 export type ProtocolTables = {
   version: number;
   serviceId: string;
@@ -597,6 +608,11 @@ function assertParsed(tables: Omit<ProtocolTables, "undescribedInFixture">): voi
   }
 }
 
+/**
+ * Reads `protocol/frames.txt` and `protocol/actions.txt` at build time. Throws, failing
+ * the build, when either cannot be parsed, so the site never shows a protocol the apps
+ * do not speak.
+ */
 export function loadProtocol(): ProtocolTables {
   const frames = parseFrames();
   const ids = parseIds();

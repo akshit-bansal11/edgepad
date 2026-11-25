@@ -134,6 +134,7 @@ const TROUBLE: { says: string; fix: string }[] = [
   },
 ];
 
+/** The user guide on /docs: the overview, installing, and using every part of the apps. */
 export function ProductSections() {
   return (
     <>

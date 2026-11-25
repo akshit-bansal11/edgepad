@@ -1,10 +1,12 @@
 namespace Edgepad.Transfer;
 
+/// <summary>Whether a batch has not started, is moving, or has ended, however it ended.</summary>
 internal enum TransferPhase { Idle, Running, Finished }
 
 /// <summary>Why one file of a batch did not arrive. Pure: each platform maps it to its own words.</summary>
 internal enum TransferFailure { Refused, Damaged, WriteFailed, Busy, TimedOut, LinkLost, Unreadable, Cancelled, NotSent }
 
+/// <summary>Maps the protocol's per-file result codes to <see cref="TransferFailure"/>. Pure.</summary>
 internal static class TransferOutcome
 {
     /// <summary>How a transfer's final code reads as a failure; null for <see cref="XferCode.Saved"/>.</summary>
@@ -29,6 +31,7 @@ internal static class TransferOutcome
         failure is TransferFailure.Refused or TransferFailure.Damaged or TransferFailure.WriteFailed or TransferFailure.Unreadable;
 }
 
+/// <summary>One file of a batch that did not arrive, and why.</summary>
 internal sealed record TransferFailed(string Name, TransferFailure Why);
 
 /// <summary>

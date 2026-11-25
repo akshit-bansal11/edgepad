@@ -25,6 +25,10 @@ internal readonly record struct LaunchArgs(string? RestartSid, bool ProbeNotific
     public IReadOnlyList<string> SendPaths => Send ?? [];
 }
 
+/// <summary>
+/// One Edgepad per user: the lock a running copy holds, and how a starting copy reads its command line and decides
+/// what to do about it.
+/// </summary>
 internal static class SingleInstance
 {
     /// <summary>The Win32 error for a UAC prompt the owner declined.</summary>

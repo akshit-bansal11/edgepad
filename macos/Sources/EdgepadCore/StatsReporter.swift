@@ -18,6 +18,7 @@ public protocol StatsSource: AnyObject {
     func idle()
 }
 
+/// Nothing held between readings by default.
 extension StatsSource {
     public func idle() {}
 }

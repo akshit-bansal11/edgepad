@@ -13,6 +13,10 @@ const MESSAGE: Record<CopyState, string> = {
   failed: "Copy failed. Select the text instead.",
 };
 
+/**
+ * A button that copies `text` and says how it went: a tick for 1.5 s, or an error for 4
+ * s with a spoken message. `label` is its accessible name.
+ */
 export function CopyButton({ text, label }: { text: string; label: string }) {
   const [state, setState] = useState<CopyState>("idle");
 

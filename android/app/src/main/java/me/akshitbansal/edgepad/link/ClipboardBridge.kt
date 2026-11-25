@@ -259,6 +259,7 @@ internal fun decodeScale(
     height: Int,
 ): Double = min(1.0, sqrt(MAX_DECODED_PIXELS / (width.toDouble() * height)))
 
+/** [side] at [scale], rounded down and never under one pixel, so a very thin picture still has a row to decode. */
 internal fun scaled(
     side: Int,
     scale: Double,

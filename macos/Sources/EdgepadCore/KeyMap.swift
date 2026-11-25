@@ -6,6 +6,7 @@ public enum KeyTarget: Equatable {
     case chord([MacKey])
 }
 
+/// The macOS virtual key codes (`kVK_*` in Carbon's Events.h) the phone's keys map to.
 extension MacKey {
     public static let command = MacKey(0x37)
     public static let shift = MacKey(0x38)

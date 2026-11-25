@@ -111,6 +111,10 @@ const WINDOWS_FOLDERS: { path: string; what: string; pure: boolean }[] = [
   },
 ];
 
+/**
+ * The developer docs' working sections: the repo, prerequisites, the quality gate,
+ * running it locally, tests, contributing and releases.
+ */
 export function DevelopingSections({ protocolVersion }: { protocolVersion: number }) {
   return (
     <>

@@ -1,10 +1,16 @@
 import Foundation
 
+/// What `UpdatePolicy.decide` says to do with an offered release, the twin of the laptop core's UpdateDecision.
 public enum UpdateDecision {
+    /// Not newer than the running version, or the running version cannot be read: nothing to do.
     case notNewer
+    /// The owner chose to skip this version.
     case skipped
+    /// This build has no update-signing key, so nothing can be verified: open the release page instead.
     case noKey
+    /// Download, verify and install it.
     case install
+    /// A new major version, which needs the phone updated too: the owner confirms before it is installed.
     case installNeedsMajorConfirm
 }
 

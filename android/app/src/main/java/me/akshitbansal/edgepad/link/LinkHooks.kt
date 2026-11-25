@@ -76,6 +76,7 @@ enum class LingerAction {
     WAIT,
 }
 
+/** [LingerAction.WAIT] while any of [sharing] shares is still going, else [LingerAction.CLOSE]. */
 internal fun lingerAction(sharing: Int): LingerAction = if (sharing > 0) LingerAction.WAIT else LingerAction.CLOSE
 
 /**

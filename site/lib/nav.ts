@@ -5,6 +5,7 @@
  * than repeating it.
  */
 export type NavItem = { id: string; label: string };
+/** One heading of a docs sidebar and the sections under it. */
 export type NavGroup = { label: string; items: NavItem[] };
 
 /** /docs: the user guide, plus the reference list (limits and licence are for users too). */
@@ -61,9 +62,14 @@ export const DEV_NAV: NavGroup[] = [
 const ids = (groups: NavGroup[]): string[] =>
   groups.flatMap((group) => group.items.map((item) => item.id));
 
+/**
+ * Every section id on /docs and on /docs/developers, so an old landing-page hash can be
+ * sent to the right page.
+ */
 export const DOCS_NAV_IDS: string[] = ids(DOCS_NAV);
 export const DEV_NAV_IDS: string[] = ids(DEV_NAV);
 
+/** The repository, and the page of its newest release. */
 export const REPO = "https://github.com/akshit-bansal11/edgepad";
 export const LATEST_RELEASE = `${REPO}/releases/latest`;
 

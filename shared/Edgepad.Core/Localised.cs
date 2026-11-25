@@ -2,6 +2,7 @@ using System.Globalization;
 
 namespace Edgepad;
 
+/// <summary>Helpers for the words the laptop apps show in the UI language.</summary>
 internal static class Localised
 {
     /// <summary>

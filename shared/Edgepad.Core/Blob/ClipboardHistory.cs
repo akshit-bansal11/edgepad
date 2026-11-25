@@ -2,6 +2,7 @@ using System.Text;
 
 namespace Edgepad.Blob;
 
+/// <summary>Which end a copied text came from.</summary>
 internal enum ClipSide { Laptop, Phone }
 
 /// <summary>One copied text and which end it came from.</summary>
@@ -92,10 +93,13 @@ internal sealed class ClipboardHistory(Func<DateTimeOffset>? clock = null)
     }
 }
 
+/// <summary>The unit a history entry's age is shown in.</summary>
 internal enum AgeUnit { JustNow, Minutes, Hours, Days }
 
+/// <summary>An age as the panel words it: <paramref name="Count"/> of <paramref name="Unit"/>, 0 for just now.</summary>
 internal readonly record struct Age(AgeUnit Unit, int Count);
 
+/// <summary>Turns how long ago something was copied into the coarse age the history panel shows. Pure, so it is tested.</summary>
 internal static class RelativeAge
 {
     public static Age Of(TimeSpan elapsed)

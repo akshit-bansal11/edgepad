@@ -111,8 +111,10 @@ internal static class XrandrParse
 /// <summary>One mode of a monitor as Mutter lists it.</summary>
 internal sealed record MutterMode(string Id, int Width, int Height, double Rate, bool Current, bool Interlaced);
 
+/// <summary>One physical monitor as Mutter lists it: its connector name, such as <c>eDP-1</c>, and every mode it offers.</summary>
 internal sealed record MutterMonitor(string Connector, IReadOnlyList<MutterMode> Modes);
 
+/// <summary>One logical monitor, a place on the desktop, and the connectors that show it (more than one when mirrored).</summary>
 internal sealed record MutterLogical(int X, int Y, double Scale, uint Transform, bool Primary, IReadOnlyList<string> Connectors);
 
 /// <summary>What <c>org.gnome.Mutter.DisplayConfig.GetCurrentState</c> said, and the part of it a rate switch needs.</summary>

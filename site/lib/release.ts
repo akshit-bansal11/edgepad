@@ -28,6 +28,7 @@ async function fetchVersion(): Promise<string> {
   return version;
 }
 
+/** The newest release's version, such as `5.1.0`, read once at build time. */
 export const RELEASE_VERSION = await fetchVersion();
 
 const asset = (file: string) => ({
@@ -38,6 +39,10 @@ const asset = (file: string) => ({
 // The arm64 build is published from 5.0.0 on.
 const hasArm = Number(RELEASE_VERSION.split(".")[0]) >= 5;
 
+/**
+ * The download link of each platform's file in that release. `linuxArm` is null before
+ * 5.0.0, which had no arm64 build.
+ */
 export const DOWNLOADS = {
   windows: asset(`Edgepad-${RELEASE_VERSION}.exe`),
   mac: asset(`Edgepad-${RELEASE_VERSION}-mac.zip`),

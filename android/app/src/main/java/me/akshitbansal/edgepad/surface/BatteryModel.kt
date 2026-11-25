@@ -23,11 +23,13 @@ data class LaptopView(
     val entries: List<BatteryEntry>,
 )
 
+/** One heading of the battery list, a laptop's or the phone's, and the device lines under it. */
 data class BatteryGroup(
     val name: String,
     val rows: List<BatteryRow>,
 )
 
+/** The battery list in the order it is shown: the laptop in use, the other connected laptops, then this phone. */
 data class BatteryGroups(
     val inUse: BatteryGroup?,
     val others: List<BatteryGroup>,
@@ -44,6 +46,7 @@ data class BatteryChips(
     val isEmpty: Boolean get() = laptop == null && phone == null && plus == 0
 }
 
+/** Where the strip and the battery sheet read the groups from, as they are now. */
 fun interface BatterySource {
     fun groups(): BatteryGroups
 
@@ -52,14 +55,23 @@ fun interface BatterySource {
     }
 }
 
+/**
+ * Pure rules behind the battery strip and sheet: which level counts as low, how laptops are grouped, and what the strip
+ * has room for.
+ */
 object BatteryModel {
     const val LOW = 20
 
+    /** Whether [level] is under [LOW] percent and the device is not charging, which is when it is drawn in the danger colour. */
     fun low(
         level: Int,
         charging: Boolean,
     ) = level < LOW && !charging
 
+    /**
+     * Groups for the [selected] laptop, then each of [others] not already shown (one seen over two transports counts
+     * once), then [phone].
+     */
     fun build(
         selected: LaptopView?,
         others: List<LaptopView>,
@@ -71,6 +83,10 @@ object BatteryModel {
         return BatteryGroups(selected?.let(::group), rest.map(::group), phone)
     }
 
+    /**
+     * What the strip draws for [g]: the laptop's own battery, the phone's, and a count of every other line, with whether
+     * any of those is low.
+     */
     fun chips(g: BatteryGroups): BatteryChips {
         val laptop = g.inUse?.rows?.firstOrNull { it.kind == BatteryKind.LAPTOP }
         val rows = g.inUse?.rows ?: emptyList()

@@ -2,6 +2,7 @@ using System.Globalization;
 
 namespace Edgepad.Platform;
 
+/// <summary>What a starting copy does about one that is already running.</summary>
 internal enum SecondLaunch
 {
     /// <summary>The same version is already running: say so and leave.</summary>

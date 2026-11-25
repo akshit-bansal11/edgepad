@@ -1,11 +1,21 @@
 namespace Edgepad.Updates;
 
+/// <summary>What <see cref="UpdatePolicy.Decide"/> says to do with an offered release.</summary>
 public enum UpdateDecision
 {
+    /// <summary>Not newer than the running version, or not a version a release would carry: nothing to do.</summary>
     NotNewer,
+
+    /// <summary>The owner chose to skip this version.</summary>
     Skipped,
+
+    /// <summary>This build has no update-signing key, so nothing can be verified: open the release page instead.</summary>
     NoKey,
+
+    /// <summary>Download, verify and install it.</summary>
     Install,
+
+    /// <summary>A new major version, which needs the phone updated too: the owner confirms before it is installed.</summary>
     InstallNeedsMajorConfirm,
 }
 

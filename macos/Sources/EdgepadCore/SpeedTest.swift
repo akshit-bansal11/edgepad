@@ -361,6 +361,7 @@ public final class CloudflareSpeedTransport: SpeedTransport {
     }
 }
 
+/// Why a speed test leg failed: no usable URL, an answer other than 200, or no answer in time.
 enum SpeedFailure: Error {
     case badAddress
     case badStatus

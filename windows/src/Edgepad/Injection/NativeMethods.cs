@@ -129,6 +129,7 @@ internal static partial class NativeMethods
     public static partial bool GlobalUnlock(nint block);
 }
 
+/// <summary>POINT, as Win32 lays it out.</summary>
 [StructLayout(LayoutKind.Sequential)]
 internal readonly struct NativePoint(int x, int y)
 {
@@ -136,6 +137,7 @@ internal readonly struct NativePoint(int x, int y)
     public readonly int Y = y;
 }
 
+/// <summary>SIZE, as Win32 lays it out.</summary>
 [StructLayout(LayoutKind.Sequential)]
 internal readonly struct NativeSize(int width, int height)
 {
@@ -196,6 +198,7 @@ internal readonly struct BitmapInfoHeader
     }
 }
 
+/// <summary>INPUT, one event for SendInput: a type and the mouse or keyboard data it says.</summary>
 [StructLayout(LayoutKind.Sequential)]
 internal struct NativeInput
 {
@@ -203,6 +206,10 @@ internal struct NativeInput
     public NativeInputData Data;
 }
 
+/// <summary>
+/// The union inside INPUT: the mouse and keyboard halves. HARDWAREINPUT is never sent and is the smallest member, so
+/// leaving it out does not change the size SendInput checks.
+/// </summary>
 [StructLayout(LayoutKind.Explicit)]
 internal struct NativeInputData
 {
@@ -213,6 +220,7 @@ internal struct NativeInputData
     public KeyboardInput Keyboard;
 }
 
+/// <summary>MOUSEINPUT: a relative move, a button edge or a wheel turn.</summary>
 [StructLayout(LayoutKind.Sequential)]
 internal struct MouseInput
 {
@@ -224,6 +232,7 @@ internal struct MouseInput
     public nint ExtraInfo;
 }
 
+/// <summary>KEYBDINPUT: one key edge, by virtual-key code, scan code or Unicode character.</summary>
 [StructLayout(LayoutKind.Sequential)]
 internal struct KeyboardInput
 {

@@ -12,6 +12,10 @@ using Edgepad.Updates;
 
 namespace Edgepad;
 
+/// <summary>
+/// The entry point. An agent's hook command and Explorer's Send to are answered and leave at once; otherwise it settles
+/// which copy runs (a second launch, an update taking over, a restart as administrator) before the tray starts.
+/// </summary>
 internal static class Program
 {
     /// <summary>A newer copy sets this to ask the running one to quit.</summary>

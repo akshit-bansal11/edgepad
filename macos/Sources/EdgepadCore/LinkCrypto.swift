@@ -181,6 +181,7 @@ public enum LinkCrypto {
     }
 }
 
+/// Why a link key could not be used.
 enum LinkCryptoError: Error {
     /// The peer's key is not an uncompressed P-256 point on the curve.
     case badKey

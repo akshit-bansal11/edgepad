@@ -11,6 +11,7 @@ internal abstract record PinResult
     {
     }
 
+    /// <summary>Right: the phone is let through.</summary>
     public sealed record Accepted : PinResult;
 
     /// <summary>Wrong, with this many tries left before the phone is locked out.</summary>
