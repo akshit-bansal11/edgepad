@@ -244,7 +244,7 @@ internal sealed class Annotator : IDisposable
         bool taken;
         lock (gate)
         {
-            taken = Apply(id);
+            taken = board.Apply(id);
         }
 
         if (taken)
@@ -343,45 +343,6 @@ internal sealed class Annotator : IDisposable
             sink(new Text(
                 (byte)TextKind.ScreenSize,
                 string.Create(CultureInfo.InvariantCulture, $"{screen.Bounds.Width}/{screen.Bounds.Height}")));
-        }
-    }
-
-    private bool Apply(ActionId id)
-    {
-        switch (id)
-        {
-            case ActionId.AnnotateBegin:
-                board.Begin(BoardMode.Annotate);
-                return true;
-            case ActionId.SignBegin:
-                board.Begin(BoardMode.Sign);
-                return true;
-            case ActionId.AnnotateEnd:
-                // Ends a signature too: the phone has one way out of either surface.
-                board.End();
-                return true;
-            case ActionId.AnnotateUndo:
-                return board.Undo();
-            case ActionId.AnnotateClear:
-                return board.Clear();
-            case ActionId.ToolPen:
-                return board.SetTool(StrokeTool.Pen);
-            case ActionId.ToolHighlighter:
-                return board.SetTool(StrokeTool.Highlighter);
-            case ActionId.ToolLine:
-                return board.SetTool(StrokeTool.Line);
-            case ActionId.ToolArrow:
-                return board.SetTool(StrokeTool.Arrow);
-            case ActionId.ToolRectangle:
-                return board.SetTool(StrokeTool.Rectangle);
-            case ActionId.ToolEllipse:
-                return board.SetTool(StrokeTool.Ellipse);
-            case ActionId.ToolLaser:
-                return board.SetTool(StrokeTool.Laser);
-            case ActionId.ToolLaserTrail:
-                return board.SetTool(StrokeTool.LaserTrail);
-            default:
-                return false;
         }
     }
 
@@ -592,7 +553,7 @@ internal sealed class Annotator : IDisposable
             return SignStatus.Empty;
         }
 
-        var path = SignatureExport.WriteNew(SignatureExport.Folder(), SignatureExport.Stem(DateTime.Now), png);
+        var path = SignatureFile.WriteNew(SignatureExport.Folder(), SignatureFile.Stem(DateTime.Now), png);
         Log.Write($"Signature saved to {path}");
         if (!await SignatureExport.CopyAsync(overlay, png))
         {

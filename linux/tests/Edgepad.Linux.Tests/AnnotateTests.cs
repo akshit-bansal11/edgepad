@@ -6,7 +6,7 @@ using Xunit;
 namespace Edgepad.Tests;
 
 /// <summary>
-/// The parts of annotate and sign that need no display: the crop, the file names, the Pictures folder, the clipboard
+/// The parts of annotate and sign that need no display: the crop, the Pictures folder, the clipboard
 /// tools and what TEXT 9 offers. Rendering the PNG needs Avalonia's renderer, which needs a platform the CI runner
 /// does not have without the Avalonia.Headless package, so the drawing itself is not tested here.
 /// </summary>
@@ -104,37 +104,6 @@ public sealed class AnnotateTests
         Assert.True(crop.Bottom > 915);
         Assert.Equal(239, crop.X);
     }
-
-    [Fact]
-    public void TwoSavesInOneSecondKeepEverySignature()
-    {
-        // Same stem, as saves within one second get: each takes a new name, never an earlier one's file.
-        var folder = Path.Combine(Path.GetTempPath(), $"edgepad-signatures-{Guid.NewGuid():N}");
-        try
-        {
-            byte[] one = [1];
-            byte[] two = [2];
-            byte[] three = [3];
-            var first = SignatureExport.WriteNew(folder, "signature-20261024-120000", one);
-            var second = SignatureExport.WriteNew(folder, "signature-20261024-120000", two);
-            var third = SignatureExport.WriteNew(folder, "signature-20261024-120000", three);
-
-            Assert.Equal(Path.Combine(folder, "signature-20261024-120000.png"), first);
-            Assert.Equal(Path.Combine(folder, "signature-20261024-120000-2.png"), second);
-            Assert.Equal(Path.Combine(folder, "signature-20261024-120000-3.png"), third);
-            Assert.Equal(one, File.ReadAllBytes(first));
-            Assert.Equal(two, File.ReadAllBytes(second));
-            Assert.Equal(three, File.ReadAllBytes(third));
-        }
-        finally
-        {
-            Directory.Delete(folder, recursive: true);
-        }
-    }
-
-    [Fact]
-    public void TheStemIsTheLocalTimeToTheSecond() =>
-        Assert.Equal("signature-20261024-090507", SignatureExport.Stem(new DateTime(2026, 10, 24, 9, 5, 7)));
 
     [Fact]
     public void AnAbsolutePicturesVariableWins() =>

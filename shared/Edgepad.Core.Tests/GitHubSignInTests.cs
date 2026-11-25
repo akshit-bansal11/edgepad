@@ -165,7 +165,7 @@ public sealed class GitHubSignInTests
         var ct = TestContext.Current.CancellationToken;
         Assert.Equal(SignInState.Failed, (await New(new FakeHttp(_ => FakeHttp.Redirect("https://evil.example/"))).StartAsync(ct)).State);
         Assert.Equal(SignInState.Failed, (await New(new FakeHttp(_ => FakeHttp.Status(HttpStatusCode.BadGateway))).StartAsync(ct)).State);
-        Assert.Equal(SignInState.Failed, (await New(new FakeHttp(_ => FakeHttp.Json(new string(' ', GitHubSignIn.MaxBytes + 1)))).StartAsync(ct)).State);
+        Assert.Equal(SignInState.Failed, (await New(new FakeHttp(_ => FakeHttp.Json(new string(' ', DeviceFlow.MaxBytes + 1)))).StartAsync(ct)).State);
     }
 
     [Fact]

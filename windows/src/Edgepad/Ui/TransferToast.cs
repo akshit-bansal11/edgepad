@@ -1,6 +1,5 @@
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
-using System.Globalization;
 using Edgepad.Controls;
 using Edgepad.Transfer;
 
@@ -64,7 +63,7 @@ internal static class ToastText
             }
 
             var total = Math.Max(view.Total, view.Index);
-            var speed = view.BytesPerSecond > 0 ? Bytes((ulong)view.BytesPerSecond) : null;
+            var speed = view.BytesPerSecond > 0 ? ByteSize.Format((ulong)view.BytesPerSecond) : null;
             return (total > 1, speed) switch
             {
                 (true, { } rate) => Strings.Xfer_PanelDetail.Fill(file, view.Index, total, rate),
@@ -94,23 +93,6 @@ internal static class ToastText
         TransferFailure.Cancelled => Strings.Xfer_WhyCancelled,
         _ => Strings.Xfer_WhySkipped,
     };
-
-    /// <summary>1024-based units: "0 B", "1023 B", "1.0 KB", "12.4 MB". The number follows the current culture.</summary>
-    public static string Bytes(ulong bytes)
-    {
-        string[] units = ["B", "KB", "MB", "GB", "TB"];
-        var value = (double)bytes;
-        var unit = 0;
-        while (value >= 1024 && unit < units.Length - 1)
-        {
-            value /= 1024;
-            unit++;
-        }
-
-        return unit == 0
-            ? string.Create(CultureInfo.CurrentCulture, $"{bytes} B")
-            : string.Create(CultureInfo.CurrentCulture, $"{value:0.0} {units[unit]}");
-    }
 }
 
 /// <summary>Which of the card's three buttons a view offers. Close is always there; Pause and Stop only while a batch runs and is not already stopping.</summary>

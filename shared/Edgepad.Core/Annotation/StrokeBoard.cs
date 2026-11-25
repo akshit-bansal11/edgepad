@@ -313,6 +313,49 @@ internal sealed class StrokeBoard
     /// <summary>Ends the session and throws its strokes away.</summary>
     public void End() => Begin(BoardMode.Off);
 
+    /// <summary>
+    /// One of the begin, end, undo, clear and tool actions. False means dropped: an action this board does not take, or
+    /// one the mode refuses. SIGN_SAVE is not one of these; the laptop's annotator exports the signature itself.
+    /// </summary>
+    public bool Apply(ActionId id)
+    {
+        switch (id)
+        {
+            case ActionId.AnnotateBegin:
+                Begin(BoardMode.Annotate);
+                return true;
+            case ActionId.SignBegin:
+                Begin(BoardMode.Sign);
+                return true;
+            case ActionId.AnnotateEnd:
+                // Ends a signature too: the phone has one way out of either surface.
+                End();
+                return true;
+            case ActionId.AnnotateUndo:
+                return Undo();
+            case ActionId.AnnotateClear:
+                return Clear();
+            case ActionId.ToolPen:
+                return SetTool(StrokeTool.Pen);
+            case ActionId.ToolHighlighter:
+                return SetTool(StrokeTool.Highlighter);
+            case ActionId.ToolLine:
+                return SetTool(StrokeTool.Line);
+            case ActionId.ToolArrow:
+                return SetTool(StrokeTool.Arrow);
+            case ActionId.ToolRectangle:
+                return SetTool(StrokeTool.Rectangle);
+            case ActionId.ToolEllipse:
+                return SetTool(StrokeTool.Ellipse);
+            case ActionId.ToolLaser:
+                return SetTool(StrokeTool.Laser);
+            case ActionId.ToolLaserTrail:
+                return SetTool(StrokeTool.LaserTrail);
+            default:
+                return false;
+        }
+    }
+
     /// <summary>False when the tool is not allowed in this mode, so the caller counts the frame as dropped.</summary>
     public bool SetTool(StrokeTool tool)
     {

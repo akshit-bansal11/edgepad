@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Globalization;
 using Edgepad.Protocol;
 using Pen = Edgepad.Protocol.Pen; // System.Drawing.Pen is in scope too, through the WinForms implicit usings
 
@@ -175,46 +174,19 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         return taken;
     }
 
+    /// <summary>
+    /// The board's own action, and the screen it is on: a begin takes the screen under the cursor, and an end lets it
+    /// go. The caller holds the lock, which covers both.
+    /// </summary>
     private bool Apply(ActionId id)
     {
-        switch (id)
+        chosen = id switch
         {
-            case ActionId.AnnotateBegin:
-                chosen = UnderCursor();
-                board.Begin(BoardMode.Annotate);
-                return true;
-            case ActionId.SignBegin:
-                chosen = UnderCursor();
-                board.Begin(BoardMode.Sign);
-                return true;
-            case ActionId.AnnotateEnd:
-                // Ends a signature too: the phone has one way out of either surface.
-                chosen = null;
-                board.End();
-                return true;
-            case ActionId.AnnotateUndo:
-                return board.Undo();
-            case ActionId.AnnotateClear:
-                return board.Clear();
-            case ActionId.ToolPen:
-                return board.SetTool(StrokeTool.Pen);
-            case ActionId.ToolHighlighter:
-                return board.SetTool(StrokeTool.Highlighter);
-            case ActionId.ToolLine:
-                return board.SetTool(StrokeTool.Line);
-            case ActionId.ToolArrow:
-                return board.SetTool(StrokeTool.Arrow);
-            case ActionId.ToolRectangle:
-                return board.SetTool(StrokeTool.Rectangle);
-            case ActionId.ToolEllipse:
-                return board.SetTool(StrokeTool.Ellipse);
-            case ActionId.ToolLaser:
-                return board.SetTool(StrokeTool.Laser);
-            case ActionId.ToolLaserTrail:
-                return board.SetTool(StrokeTool.LaserTrail);
-            default:
-                return false;
-        }
+            ActionId.AnnotateBegin or ActionId.SignBegin => UnderCursor(),
+            ActionId.AnnotateEnd => null,
+            _ => chosen,
+        };
+        return board.Apply(id);
     }
 
     private bool SaveSignature()
@@ -438,8 +410,7 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         }
 
         var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Edgepad");
-        var stem = string.Create(CultureInfo.InvariantCulture, $"signature-{DateTime.Now:yyyyMMdd-HHmmss}");
-        WriteNew(folder, stem, png);
+        SignatureFile.WriteNew(folder, SignatureFile.Stem(DateTime.Now), png);
 
         // The file is written, so the signature is saved whatever the clipboard does: another app holding it open
         // must not make the phone say the save failed.
@@ -461,40 +432,6 @@ internal sealed class Annotator(SynchronizationContext ui) : IDisposable
         }
 
         return SignStatus.Saved;
-    }
-
-    /// <summary>
-    /// Writes <paramref name="png"/> as <c>stem.png</c> in <paramref name="folder"/>, or <c>stem-2.png</c>,
-    /// <c>stem-3.png</c> and on when that is taken, and returns the path. Never over an existing file: two saves
-    /// in one second share a stem, and overwriting would lose the first signature. CreateNew rather than a check
-    /// first, so a file that appears between the check and the write cannot be overwritten either.
-    /// </summary>
-    internal static string WriteNew(string folder, string stem, byte[] png)
-    {
-        Directory.CreateDirectory(folder);
-        for (var n = 1; ; n++)
-        {
-            var name = n == 1 ? $"{stem}.png" : string.Create(CultureInfo.InvariantCulture, $"{stem}-{n}.png");
-            var path = Path.Combine(folder, name);
-            FileStream file;
-            try
-            {
-                file = new FileStream(path, FileMode.CreateNew, FileAccess.Write);
-            }
-            catch (IOException) when (File.Exists(path))
-            {
-                // Taken: try the next number. Only the open is caught, so a failed write (a full disk) still
-                // fails the save rather than spinning through names.
-                continue;
-            }
-
-            using (file)
-            {
-                file.Write(png);
-            }
-
-            return path;
-        }
     }
 
     /// <summary>
