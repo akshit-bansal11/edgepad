@@ -532,8 +532,9 @@ jobs:
           done
           # Small contact sheets, so a review need not download the renders.
           mkdir -p "$RUNNER_TEMP/sheets"
-          for id in demo5 linkedin5 instagram5; do
-            ffmpeg -y -loglevel error -i "$V/$id.mp4" -vf "fps=1/2,scale=-1:360,tile=6x4" -q:v 4 -vsync vfr "$RUNNER_TEMP/sheets/$id-%02d.jpg"
+          for s in demo5:640:360:3x3 linkedin5:384:512:5x2 instagram5:360:640:5x2; do
+            IFS=: read -r id w h tile <<< "$s"
+            ffmpeg -y -loglevel error -i "$V/$id.mp4" -vf "fps=1/2,scale=$w:$h,tile=$tile" -q:v 4 -vsync vfr "$RUNNER_TEMP/sheets/$id-%02d.jpg"
           done
           ls -la "$V"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

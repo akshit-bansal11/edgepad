@@ -35,6 +35,8 @@
   EP.F = F;
 
   // Camera presets: the phone's centre in page pixels, its scale in pixels per dp, and its turn in degrees.
+  // The lap* presets are for beats with the laptop band up: in the tall cuts the phone (lapPhone upright, lapLand sideways) and
+  // its corners (lapTl .. lapBl) sit below the headline, where the band's scrim leaves them clear; in 16:9 they are the plain ones.
   // roomWide and talk keep the phone off the page (the room, or the plain cards, are the picture). raceSplit is the sideways
   // phone (set D.turn to 1) lower right (169) or below the laptop band (tall). split169 shows the phone's top-left corner.
   const CAMS = {
@@ -44,6 +46,7 @@
       top: { x: 1483, y: 942, s: 1.68, r: 0 }, media: { x: 1320, y: 410, s: 1.45, r: 0 }, settings: { x: 1300, y: 700, s: 1.55, r: 0 },
       land: { x: 1040, y: 615, s: 1.55, r: -90 }, landRight: { x: 1330, y: 560, s: 1.0, r: -90 }, end: { x: 1350, y: 545, s: 0.845, r: 0 }, wide: { x: 1300, y: 548, s: 1.0, r: 0 },
       roomWide: { x: 1300, y: 1700, s: 1.08, r: 0 }, raceSplit: { x: 1440, y: 820, s: 0.95, r: -90 }, split169: { x: 1449, y: 864, s: 1.3, r: 0 }, talk: { x: 1300, y: 1700, s: 1.08, r: 0 },
+      lapPhone: { x: 1300, y: 548, s: 1.08, r: 0 }, lapLand: { x: 1440, y: 820, s: 0.95, r: -90 }, lapTl: { x: 1515, y: 1047, s: 1.79, r: 0 }, lapTr: { x: 1160, y: 1047, s: 1.79, r: 0 }, lapBr: { x: 1200, y: 40, s: 1.79, r: 0 }, lapBl: { x: 1515, y: 40, s: 1.79, r: 0 },
     },
     '916': {
       off: { x: 540, y: 2500, s: 1.15, r: 0 }, right: { x: 540, y: 1085, s: 1.1, r: 0 }, hero: { x: 540, y: 1085, s: 1.1, r: 0 },
@@ -51,6 +54,7 @@
       top: { x: 540, y: 1500, s: 1.7, r: 0 }, media: { x: 540, y: 1000, s: 1.6, r: 0 }, settings: { x: 540, y: 1085, s: 1.1, r: 0 },
       land: { x: 540, y: 1150, s: 1.18, r: -90 }, landRight: { x: 540, y: 1200, s: 1.1, r: -90 }, end: { x: 540, y: 1240, s: 0.76, r: 0 }, wide: { x: 540, y: 1085, s: 1.1, r: 0 },
       roomWide: { x: 540, y: 2500, s: 1.15, r: 0 }, raceSplit: { x: 540, y: 1450, s: 0.8, r: -90 }, split169: { x: 379, y: 1564, s: 1.3, r: 0 }, talk: { x: 540, y: 2500, s: 1.15, r: 0 },
+      lapPhone: { x: 540, y: 1544, s: 0.85, r: 0 }, lapLand: { x: 540, y: 1400, s: 1.0, r: -90 }, lapTl: { x: 640, y: 1889, s: 1.6, r: 0 }, lapTr: { x: 440, y: 1889, s: 1.6, r: 0 }, lapBr: { x: 440, y: 896, s: 1.6, r: 0 }, lapBl: { x: 640, y: 896, s: 1.6, r: 0 },
     },
     '34': {
       off: { x: 540, y: 1900, s: 0.9, r: 0 }, right: { x: 540, y: 880, s: 0.9, r: 0 }, hero: { x: 540, y: 885, s: 0.92, r: 0 },
@@ -58,6 +62,7 @@
       top: { x: 540, y: 1031, s: 1.5, r: 0 }, media: { x: 540, y: 573, s: 1.3, r: 0 }, settings: { x: 540, y: 885, s: 0.92, r: 0 },
       land: { x: 540, y: 900, s: 0.98, r: -90 }, landRight: { x: 540, y: 900, s: 0.9, r: -90 }, end: { x: 540, y: 1040, s: 0.62, r: 0 }, wide: { x: 540, y: 885, s: 0.92, r: 0 },
       roomWide: { x: 540, y: 1900, s: 0.9, r: 0 }, raceSplit: { x: 540, y: 1150, s: 0.62, r: -90 }, split169: { x: 328, y: 1257, s: 1.1, r: 0 }, talk: { x: 540, y: 1900, s: 0.9, r: 0 },
+      lapPhone: { x: 540, y: 1168, s: 0.64, r: 0 }, lapLand: { x: 540, y: 1100, s: 0.95, r: -90 }, lapTl: { x: 640, y: 1468, s: 1.3, r: 0 }, lapTr: { x: 440, y: 1468, s: 1.3, r: 0 }, lapBr: { x: 440, y: 756, s: 1.3, r: 0 }, lapBl: { x: 640, y: 756, s: 1.3, r: 0 },
     },
   };
   const CAM = CAMS[LAY];
@@ -724,8 +729,25 @@
     ctx.fillRect(0, 0, W, H);
     const lapNow = roomBack(ctx, t);
     glow(ctx, t);
+    // The tall cuts stack the laptop, the headline and the phone: while the laptop band is up, the phone is drawn first and
+    // the ground covers it down to the foot of the headline, so a pushed-in phone never runs under the text or the laptop.
+    const band = F.tall ? lapNow.a * ease(seg(D.room.at(t), 0.6, 1)) : 0;
+    if (band > 0.003) {
+      drawPhone(ctx, t);
+      const foot = F.lap.y + F.head.size * 2.1 + 20;
+      ctx.save();
+      ctx.globalAlpha = band;
+      const g = ctx.createLinearGradient(0, foot, 0, foot + 40);
+      g.addColorStop(0, GROUND);
+      g.addColorStop(1, 'rgba(30,32,38,0)');
+      ctx.fillStyle = GROUND;
+      ctx.fillRect(0, 0, W, foot);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, foot, W, 40);
+      ctx.restore();
+    }
     laptopFront(ctx, t, lapNow);
-    drawPhone(ctx, t);
+    if (band <= 0.003) drawPhone(ctx, t);
     // A scrim of the ground under the headline, only while the camera is pushed in and no laptop band is shown; at rest there is none.
     const push = F.scrim ? ease(seg(D.cam.at(t).s, CAM.hero.s * 1.1, CAM.hero.s * 1.4)) * (1 - lapNow.a) : 0;
     if (push > 0.003) {

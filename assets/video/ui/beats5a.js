@@ -20,9 +20,11 @@
   const P = (name) => (tall() ? EP.LAPS[TALL_POSE[name]] : POSE[name]);
   // Cameras: the sideways phone on the right of the laptop (16:9 uses landRight, the laptop would sit under `land`), the same pushed in,
   // and the upright phone on the right clear of a `top` headline.
-  const SIDE = () => (tall() ? 'land' : 'landRight');
-  const PUSH = () => (tall() ? 'land' : { x: 1360, y: 575, s: 1.12, r: -90 });
-  const UP = () => (tall() ? 'hero' : { x: 1500, y: 610, s: 1.0, r: 0 });
+  // With the laptop up the tall cuts use the director's lap* presets (below the headline band); 16:9 keeps `plain`.
+  const cam = (plain, lap) => (tall() ? lap : plain);
+  const SIDE = () => cam('landRight', 'lapLand');
+  const PUSH = () => cam({ x: 1360, y: 575, s: 1.12, r: -90 }, 'lapLand');
+  const UP = () => cam({ x: 1500, y: 610, s: 1.0, r: 0 }, 'lapPhone');
   // A beat whose headline takes the top layout in 16:9 (a sideways phone, or the laptop big below it); the tall cuts use `lap` instead.
   const top = (b) => Object.defineProperty(b, 'lay', { get: () => (EP.F.tall ? undefined : 'top'), enumerable: true });
 
@@ -58,7 +60,7 @@
   };
   // `str` typed between start and end: the keys [[time, label], ...] the keyboard lights, and the text on the laptop at t.
   const typing = (str, start, end) => {
-    const step = clamp((end - start) / str.length, 0.05, 0.11);
+    const step = clamp((end - start) / str.length, 0.03, 0.11);
     const keys = [...str].map((ch, i) => [start + i * step, ch === ' ' ? 'Space' : ch === '\n' ? 'Enter' : ch]);
     return { keys, textAt: (t) => str.slice(0, keys.filter(([k]) => t >= k + 0.05).length) };
   };
@@ -88,7 +90,7 @@
   const pullBack = (L, D, word) => {
     const at = L.w(word), m0 = Math.max(at - 1.4, L.prev + 0.02);
     D.screen(m0, 'surface');
-    D.move(m0, 'hero', at - m0);
+    D.move(m0, cam('hero', 'lapPhone'), at - m0);
     D.room.to(m0, at, 1);
     D.hand.to(m0, at, 1);
     D.dolly.to(m0, at, 0);
@@ -114,10 +116,13 @@
   // the chips take its place under the sub-lines, in the tall cuts the ident takes its band.
   const meet = (L, D, o) => {
     const t0 = L.t0, tp = L.w('trackpad'), kb = L.w('keyboard'), gp = L.w('gamepad'), rm = L.w('remote');
-    D.move(t0, { ...EP.CAM.hero, s: EP.CAM.hero.s * 1.02 }, L.t1 - t0);
+    // 9:16 and 3:4 (no laptop): the ident sits over the phone's top, under the headline; 9:16's phone is lowered to make room.
+    const wide916 = EP.F.head.y === 262;
+    if (!tall()) D.move(t0, { ...EP.CAM.hero, s: EP.CAM.hero.s * 1.02 }, L.t1 - t0);
+    else D.move(t0 - 0.1, wide916 ? { x: 540, y: 1100, s: 1.1, r: 0 } : 'hero', 0.9);
     D.hand.to(t0, t0 + 0.4, 0);
     D.lap(t0 - 0.1, { ...P('rest'), a: 0 }, 0.4);
-    D.ident(t0, tall() ? { x: P('rest').x, y: P('rest').y, size: EP.F.end.mark } : { x: EP.F.head.x + 130, y: 132, size: 260 });
+    D.ident(t0, !tall() ? { x: EP.F.head.x + 130, y: 132, size: 260 } : wide916 ? { x: 540, y: 490, size: 220 } : { x: 540, y: 290, size: 200 });
     D.handoff(L.t1 - 0.25, 'VOL');
     D.screen(t0 - 0.1, 'surface');
     D.touch([[tp - 0.05, 160, 380], [tp + 0.25, 210, 420], [tp + 0.5, 250, 470]]);
@@ -152,14 +157,14 @@
     act: (L, D) => {
       const m = L.w('multitouch'), tp = L.w('trackpad'), c = L.w('corners');
       D.screen(L.t0 - 0.2, 'surface');
-      D.move(L.t0 - 0.2, 'hero', 0.6);
+      D.move(L.t0 - 0.2, cam('hero', 'lapPhone'), 0.6);
       D.lap(L.t0 - 0.2, P('rest'), 0.5);
       glide(D, m, L.t0 - 0.1);
       // The two-finger scroll once the glide has lifted.
       const s = Math.max(tp, m + 0.8);
       D.touch([[s, 160, 380], [s + 0.15, 160, 380], [s + 0.6, 160, 540], [s + 0.7, 160, 540]], false);
       D.touch([[s, 232, 380], [s + 0.15, 232, 380], [s + 0.6, 232, 540], [s + 0.7, 232, 540]], false);
-      D.move(c - 0.52, 'tl', 0.52);
+      D.move(c - 0.52, cam('tl', 'lapTl'), 0.52);
       lightRulers(D, c);
     },
   };
@@ -168,10 +173,10 @@
   // w = { vol, bri, zoom, sc } are the word times; the first move takes `lead` seconds.
   const dials = (L, D, w, lead = 0.52) => {
     const span = (a, b) => Math.max(a + 0.3, Math.min(a + 0.9, b - 0.6));
-    D.move(w.vol - lead, 'tl', lead);
-    D.move(w.bri - 0.52, 'tr', 0.52);
-    D.move(w.zoom - 0.52, 'br', 0.52);
-    D.move(w.sc - 0.52, 'bl', 0.52);
+    D.move(w.vol - lead, cam('tl', 'lapTl'), lead);
+    D.move(w.bri - 0.52, cam('tr', 'lapTr'), 0.52);
+    D.move(w.zoom - 0.52, cam('br', 'lapBr'), 0.52);
+    D.move(w.sc - 0.52, cam('bl', 'lapBl'), 0.52);
     D.dial('VOL', w.vol, span(w.vol, w.bri), 63);
     D.dial('BRI', w.bri, span(w.bri, w.zoom), 82);
     D.dial('ZOOM', w.zoom, span(w.zoom, w.sc), 3);
@@ -192,7 +197,7 @@
       dials(L, D, { vol: L.w('volume'), bri: L.w('brightness'), zoom: L.w('zoom'), sc: L.w('scrub') });
       // "Split the corners": Settings > Corners over the phone, the switch flips, and the surface shows eight halves.
       const sp = L.w('split'), cr = L.w('corners'), bc = L.w('become'), eight = L.w('eight');
-      D.move(sp - 0.6, 'hero', 0.6);
+      D.move(sp - 0.6, cam('hero', 'lapPhone'), 0.6);
       D.screen(sp - 0.35, 'corners', {}, [[sp - 0.35, 0.3], [cr + 0.2, 1.0], [bc - 0.3, 1.5]]);
       D.screen(bc - 0.3, 'surface');
       D.split.to(bc - 0.3, bc + 0.1, 1);
@@ -200,11 +205,11 @@
     },
   };
   REEL[3] = {
-    h: 'Dials on every *corner.*',
+    h: 'Dials on every *corner.*@a',
     lap: true,
     act: (L, D) => {
       D.screen(L.t0 - 0.2, 'surface');
-      D.move(L.t0 - 0.2, 'hero', 0.6);
+      D.move(L.t0 - 0.2, cam('hero', 'lapPhone'), 0.6);
       D.lap(L.t0 - 0.2, P('rest'), 0.5);
       glide(D, L.w('multitouch'), L.t0 - 0.1);
       lightRulers(D, L.w('corner'));
@@ -220,7 +225,7 @@
     const p = P('split'), a = L.w(o.from) - 0.2, b = L.w(o.to) + 0.3;
     const pos = onScreen(p, 520, 120);
     const knob = (v) => ({ x: pos.x + pos.s * (88 + 3.32 * v), y: pos.y + pos.s * 72 });
-    D.move(L.t0 - 0.3, 'split169', 0.9);
+    D.move(L.t0 - 0.3, cam('split169', 'lapTl'), 0.9);
     D.lap(L.t0 - 0.3, p, 0.9);
     D.lapScreen(L.t0 - 0.3, 'desktop', {});
     D.vol.to(L.t0 - 0.35, L.t0 - 0.05, 30);
@@ -258,7 +263,7 @@
       D.split.to(L.next - 0.2, L.next + 0.5, 0);
     }
   };
-  DEMO[6] = { h: 'Volume *syncs* both ways.', lap: true, act: (L, D) => sync(L, D, { from: 'laptop', to: 'moves', split: true }) };
+  DEMO[6] = { h: 'Volume *syncs* both ways.@change', lap: true, act: (L, D) => sync(L, D, { from: 'laptop', to: 'moves', split: true }) };
   REEL[4] = { h: '*Syncs* both ways.', lap: true, act: (L, D) => sync(L, D, { from: 'laptop', to: 'follows', split: false }) };
 
   // ---- 7: Tap Controls ----
@@ -272,8 +277,8 @@
       D.turn.to(L.t0 - 0.3, L.t0, 0);
       D.lap(L.t0 - 0.3, P('rest'), 0.5);
       D.lapScreen(L.t0 - 0.3, 'desktop', {});
-      D.move(Math.max(c - 0.7, L.prev + 0.02), 'top', Math.min(0.7, c - L.prev - 0.02));
-      D.move(c + 0.3, 'right', 0.9);
+      D.move(Math.max(c - 0.7, L.prev + 0.02), cam('top', 'lapPhone'), Math.min(0.7, c - L.prev - 0.02));
+      D.move(c + 0.3, cam('right', 'lapPhone'), 0.9);
       D.screen(c - 0.15, 'controls', {}, [[c - 0.15, 0], [c + 0.45, 0.6], [L.next - 0.05, 2.2]]);
     },
   };
@@ -295,7 +300,7 @@
       D.screen(t, 'keyboard', {}, [[t, 0.3]], true);
       D.screen(f2, 'keyboardSettings', (tt) => ({ sel: lerp(3, 0, ease(seg(tt, f2 + 0.35, f2 + 0.65))), tap: [0.3, 0] }), [[f2, 0]], true);
       const steps = spaced([[k2 + 0.35, 100], [L.w('compact') - 0.05, 80], [L.w('sixty') - 0.05, 65], [L.w('percent') - 0.05, 60]]);
-      const typed = typing(NOTE, k2 + 0.8, L.next - 0.35);
+      const typed = typing(NOTE, k2 + 0.4, L.t1 - 0.3);
       const rel = typed.keys.map(([a, label]) => [a - k2, label]);
       const board = chain(steps, 75);
       D.screen(k2, 'keyboard', (tt) => ({ ...board(tt), demo: false, keys: rel }), [[k2, 0]], true);
@@ -319,7 +324,7 @@
       D.screen(g - 0.25, 'gamepad', (tt) => ({ preset: 'xbox', input: EP.game.input(D.raceAt(tt)) }), null, true, 0.4);
       D.race(g, 0.85);
       D.lapScreen(g - 0.25, 'race', { mode: 'race' });
-      D.move(g - 0.5, 'raceSplit', 0.8);
+      D.move(g - 0.5, cam('raceSplit', 'lapLand'), 0.8);
     },
   });
 
@@ -328,8 +333,8 @@
   // race starts on "two" (the green light) while the camera lands on the raceSplit framing, the laptop big behind the sideways phone.
   // The headline dims to 40% over the 2 s hold after the line.
   DEMO[9] = top({
-    h: 'A real *gamepad.*',
-    s: ['Two sticks · *analog* triggers@analog', 'Seen as an *Xbox controller*@xbox', 'Windows and *Linux*@windows'],
+    h: 'A real *gamepad.*@a',
+    s: ['Two sticks · *analog* triggers@analog', 'Windows and *Linux*@windows', 'Seen as an *Xbox controller*@xbox'],
     lap: true,
     act: (L, D) => {
       const two = L.w('two');
@@ -338,7 +343,7 @@
       D.race(two);
       D.lapScreen(L.t0 - 0.2, 'race', { mode: 'race' });
       D.lap(L.t0 - 0.2, P('big'), 0.9);
-      D.move(two - 0.6, 'raceSplit', 0.6);
+      D.move(two - 0.6, cam('raceSplit', 'lapLand'), 0.6);
       D.dim(L.t1, L.next - 0.3);
     },
   });
@@ -348,7 +353,7 @@
   // "start", and the checked layout moves Racing -> Platformer -> Shooter on their words, the controls reflowing in 280 ms each. The
   // race still runs on the laptop beside the pushed-in phone.
   DEMO[10] = top({
-    h: 'Your *layout.*',
+    h: 'Your *layout.*@drag',
     s: ['*Drag* anything@drag', 'Racing · Platformer · *Shooter*@racing'],
     lap: true,
     act: (L, D) => {
@@ -426,7 +431,7 @@
     act: (L, D) => present(L, D, { start: L.t0 - 0.2, next: L.w('steps'), l0: L.w('laser'), l1: L.t1 }),
   });
   DEMO[12] = top({
-    h: '*Capture* it.',
+    h: '*Capture* it.@capture',
     s: ['A *region*@region', 'The *full screen*@full', 'A *recording*@recording', 'Straight to your *phone*@phone'],
     lap: true,
     act: (L, D) => capture(L, D, { t0: L.t0 - 0.1, region: L.w('region'), full: L.w('full'), rec: L.w('recording'), ph: L.w('phone') }),

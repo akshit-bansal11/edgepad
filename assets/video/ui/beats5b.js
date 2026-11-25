@@ -12,11 +12,10 @@
   // ---- where the phone, the laptop and the cards stand, per layout (read when an act runs, once EP.F is set) ----
   // 16:9 keeps the phone on the right and the laptop back left; the tall cuts stack them (laptop above, phone below the headline).
   const lay = () => (!EP.F.tall ? '169' : EP.F.cap.cy > 1500 ? '916' : '34');
-  const LOW = { '916': { x: 540, y: 1450, s: 0.46, r: 0 }, '34': { x: 540, y: 1118, s: 0.48, r: 0 } }; // the phone under the headline
   const ASIDE = { '169': { x: 1350, y: 910, s: 0.5, r: 0 }, '916': { x: 900, y: 1440, s: 0.46, r: 0 }, '34': { x: 900, y: 1118, s: 0.48, r: 0 } }; // stepped aside
   const SIDE = { x: 1560, y: 700, s: 0.8, r: 0 }; // 16:9 only: small at the right of a centred laptop
   const CARDS = () => ({ '169': EP.F.talk, '916': { x: 72, y: 1260, s: 0.62 }, '34': { x: 72, y: 975, s: 0.55 } })[lay()];
-  const phoneAt = (name) => (EP.F.tall ? LOW[lay()] : name);
+  const phoneAt = (name) => (EP.F.tall ? 'lapPhone' : name);
   // 'rest' is too low for the caption pill with a headline above it, so 16:9 takes a slightly smaller, higher pose.
   const LAP = () => (EP.F.tall ? EP.LAPS.rest : { ...EP.LAPS.rest, x: 600, y: 708, w: 580 });
   const LAP_CENTRE = () => (EP.F.tall ? EP.LAPS.rest : { ...EP.LAPS.rest, x: 960, y: 620, w: 780 });
@@ -245,7 +244,7 @@
     h: 'Sleep when it *ends.*', lap: true,
     act: (L, D) => {
       const s = L.t0 - 0.3, sleep = L.w('sleep');
-      stage(L, D, EP.F.tall ? LOW[lay()] : SIDE, LAP_CENTRE());
+      stage(L, D, EP.F.tall ? 'lapPhone' : SIDE, LAP_CENTRE());
       D.roomFx.lamp.to(L.t0 - 0.2, L.t0 + 0.9, 0.6);
       D.screen(s, 'surface');
       D.sleep.to(L.t0, L.t0 + 0.5, 1);
