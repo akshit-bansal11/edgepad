@@ -593,6 +593,11 @@ jobs:
             poster=$(jq -r .poster "assets/video/out/$id/timing.json")
             ffmpeg -y -loglevel error -ss "$poster" -i "$V/$id.mp4" -frames:v 1 -q:v 2 "$V/$id-poster.jpg"
           done
+          # A small copy of every cut for sites with an upload limit: CRF 26, capped at 2.5 Mbit/s, the picture size kept.
+          for id in demo5 demo5-portrait reel5-landscape reel5-portrait reel5-34; do
+            ffmpeg -y -loglevel error -i "$V/$id.mp4" -c:v libx264 -preset medium -crf 26 -maxrate 2500k -bufsize 5000k \
+              -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart "$V/$id-small.mp4"
+          done
           for id in demo5 reel5; do
             cp "assets/video/out/$id/$id.en.vtt" "$V/"
             cp "assets/video/out/$id/timing.json" "$V/$id.timing.json"
