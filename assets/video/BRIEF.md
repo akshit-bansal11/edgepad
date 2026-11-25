@@ -1,52 +1,48 @@
 ---
 workflow: general-video
 flow: automation
-storyboard: no
-message: "Your phone is your laptop's remote: a trackpad in the middle, a dial on every corner, everything else one tap away."
-destination: youtube, site, reels
-aspect: 1920x1080 (full, minute), 1080x1920 (reel)
+storyboard: yes (STORYBOARD.md)
+message: "Your phone becomes the trackpad, keyboard, gamepad and remote for your laptop. Your laptop, from anywhere in the room."
+destination: website, README, YouTube (demo5); Instagram and LinkedIn (reel5)
+cuts: demo5 1920x1080 (~2.5 min), reel5 at 1080x1920 (instagram5) and 1080x1440 (linkedin5), ~95 s
 language: en
-length: full ~4.5 min, minute ~60 s, reel ~30 s
-angle: product demo and tutorial
-voice: en-US-AndrewMultilingualNeural
+angle: premium product film, keynote style, dark
+voice: en-US-AndrewMultilingualNeural (edge-tts), one take per script
 ---
+
+# Edgepad 5 film: brief
 
 ## Intent
 
-Edgepad 4.0.0's demo, its one-minute cut and its reel, rebuilt to studio quality to match a reference video the owner
-loves: an off-white ground with a soft white glow, a huge Lato Black headline revealed word by word with one blue
-keyword, a Lato Bold sub-line, a white caption pill that follows the voice word by word, and a large phone the camera
-pushes into, turns sideways for the keyboard and gamepad, and holds still while you read.
+Edgepad 5.1's launch film and its social cut. The 4.0 films (scripts/full.json, scripts/short.json, the compositions
+index.html and cuts/linkedin.html, cuts/instagram.html) were a careful walkthrough. This one is a product film: fewer
+words on screen, bigger moves, more of the laptop's own screen, and every 5.x feature worth a second shown working.
+It keeps the 4.0 machinery (voice.py, music.py, ui/film.js as the director, ui/beats.js as the per-line acts, the
+ported canvas renderers) and the 4.0 dark look, and adds three things the 4.0 film never had:
 
-## Assets
+1. A laptop with a live screen, drawn in the room, so the phone's input lands somewhere visible: an original racing
+   game (GAME.md), slides with the laser dot, a file arriving, a pull request opening, a shape firing a macro.
+2. The animated Edgepad mark from assets/brand/edgepad/motion/ as the ident: the dial animation opens the meet line and
+   closes the film. Its ruler hands off into the phone's real corner dial.
+3. Sound design: earshot effects on every tap, slide, landing and whoosh, plus the racing game's engine (SOUND.md).
 
-- scripts/full.json, scripts/minute.json, scripts/reel.json — the narration, used as written.
-- brand/edgepad-light.svg, brand/edgepad-dark.svg — the 4.0 mark (copies of assets/edgepad-*.svg), used as-is.
-- brand/logo_youtube.svg, brand/logo_spotify.svg — the app's own now-playing logos (android res/raw).
-- icons/*.svg — Simple Icons 16.35.0 (CC0) for the macro deck.
+## Audience
 
-## Customizations
+People with a laptop on a TV, a projector, or a desk they would rather not sit at; gamers who play on a laptop;
+people who give talks; developers. They have not heard of Edgepad. They should leave knowing it is free, open source,
+for Windows, Mac and Linux, and on GitHub.
 
-- The phone's UI is the app's drawing code ported to canvas (ui/kit.js, surface.js, screens.js), never screenshots.
-- 4.0 features in the reference's style: the new mark, Split corners (4 dials to 8), the Controls tiles, Annotate and
-  Sign, Capture, the macro deck (no fill, hold to drag, grid picker, short last row centred), PIN entry and the
-  laptop's trust question, the gamepad as shipped (Windows and Linux), sideways, dark and light, a custom background.
-- Laptop-side cards in the laptop's own look: the level overlay, the Windows volume flyout, the trust question, the
-  security levels, the tray menu, the screen under Annotate and Snipping Tool.
-- Covers: thumb-landscape (1280 x 720) and thumb-portrait (1080 x 1920).
+## Files
 
-## Notes
+- scripts/demo5.json, scripts/reel5.json: the narration, used as written. "Wi-Fi" is written normally; voice.py says
+  it as "Why-Fye" (SPOKEN map) so captions keep the written form.
+- STORYBOARD.md: one frame per line, both cuts. DESIGN.md: tokens and layout. MOTION.md: every move. GAME.md: the
+  racing game. SOUND.md: the cue sheet. FACTS.md: the proof for every claim. PORT.md: what to draw and from where.
 
-- Nothing renders locally: every HyperFrames command runs in CI (the laptop crashes under load).
-- No music: media-use resolves a music bed only through a HeyGen account this project does not have.
-- No latency figure may appear anywhere.
+## Rules
 
-## 2026-10-31 — dark look, hook, music, social cuts
-
-- Cuts: `full` (1920x1080) and two cuts of the `short` script, `linkedin` (1080x1440) and `instagram` (1080x1920). The one-minute and reel cuts are gone; the `minute` and `reel` scripts went with them.
-- Look: a dark ground (`#1E2026`) with ink `#F2F3F5`, grey `#9A9CA3` and blue `#4DA3FF`; the caption pill is `#2B2D33`; the mark is the white tile. The white glow is replaced by a slow blue light behind the phone that swells at each chapter start, and the phone has a thin rim light. Contrast on the ground: ink 14.7:1, grey 5.9:1, blue 6.2:1; on the pill ink 12.4:1, blue 5.2:1, grey 5.0:1.
-- Hook: the first line of each script opens on a dark room, a laptop glowing on a TV stand far across it, and one continuous move in to the phone rising into frame. No cut.
-- Beats: one per script line, written from the new scripts. A feature is on screen when the voice names it.
-- End card: the mark (still moving), "Edgepad", "Free & open source.", the GitHub button, then "Your laptop, from anywhere in the room." landing last.
-- Music: an original bed per script (`music.py`), mixed under the voice at `data-volume="0.16"`.
-- Still true: no latency figure anywhere; nothing renders locally.
+- The phone's UI is the app's drawing code ported to canvas. Never screenshots, never invented UI.
+- Nothing renders locally. Every voice, music, sound and render step runs in the `video` job of .github/workflows/ci.yml.
+- No latency, speed or performance figure anywhere, and no ping on any Stats screen. The game's speedometer has no digits.
+- No real game, studio, car brand, track or HUD. No real person's name, song, playlist, macro or file.
+- Edgepad 6 is named for screen mirroring and remote access with no date and no further description.
