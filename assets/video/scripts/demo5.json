@@ -3,7 +3,7 @@
   "title": "Edgepad 5: the demo",
   "aspect": "16x9",
   "gap": 0.6,
-  "holds": { "2": 0.4, "9": 2.0, "22": 1.0 },
+  "holds": { "2": 0.4, "9": 2.0, "22": 3.0 },
   "poster_line": 9,
   "duck_hold": 9,
   "chapters": [

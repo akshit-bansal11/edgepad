@@ -913,3 +913,22 @@
     ctx.restore();
   };
 })();
+
+// The laptop's own screen shown on the phone (the film's picture of screen mirroring, which Edgepad 6 will bring; it is no
+// app screen): the same EP.laptopScreen, fitted 16 : 10 into the phone on black.
+// o: kind (default 'desktop') and screen (that kind's o), drawn at o.t (film time, default lt); a 0..1 fades the picture in.
+(function () {
+  EP.screens.mirror = (ctx, w, h, pal, lt, o = {}) => {
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, w, h);
+    const rw = Math.min(w, h * 1.6), rh = rw / 1.6;
+    ctx.save();
+    ctx.globalAlpha *= o.a ?? 1;
+    ctx.translate((w - rw) / 2, (h - rh) / 2);
+    ctx.beginPath();
+    ctx.rect(0, 0, rw, rh);
+    ctx.clip();
+    EP.laptopScreen(ctx, rw, rh, o.t ?? lt, o.kind || 'desktop', o.screen || {});
+    ctx.restore();
+  };
+})();

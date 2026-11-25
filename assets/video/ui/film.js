@@ -83,6 +83,12 @@
   };
   EP.LAPS = LAPS;
 
+  // D.tilt's Track: a move's value is degrees (yaw) or {yaw, pitch}; at() always returns {yaw, pitch}.
+  class TiltTrack extends EP.Track {
+    to(t0, t1, v) {
+      return super.to(t0, t1, typeof v === 'number' ? { yaw: v, pitch: 0 } : { yaw: 0, pitch: 0, ...v });
+    }
+  }
   // The camera's Track: a move eases x, y and r in-out and the scale in-out with a 3% overshoot of its span (MOTION.md
   // "Camera presets"), settling by the move's end. A pure function of t, like Track.at.
   const OVERSHOOT = 0.03;
@@ -176,8 +182,10 @@
     // D.room (0 far .. 1 gone, as before) with D.roomFx.tv / .beam (0..1) and .lamp (1 normal .. 0.6 dimmed) Tracks; the
     //   laptop is drawn on the stand while D.room < 1 and eases into the D.lap pose as D.room runs 0.5 .. 1 (alpha too).
     //   D.dolly Track 0..1: the room and laptop scale 1 .. 1.06 about the page centre (roomWide's dolly-in).
-    // D.hand Track 0..1: the soft hand behind the phone. D.tilt Track degrees (+-10): M-TILT, the phone skewed horizontally
-    //   with a 4% width change. D.glint Track 0..1: a faint blurred shape on the laptop's screen and the phone's.
+    // D.hand Track 0..1: the soft hand behind the phone. D.tilt Track: M-TILT, a true 3D tilt of the whole phone with perspective.
+    //   D.tilt.to(t0, t1, v) takes degrees (yaw) or {yaw, pitch}; yaw turns about the phone's vertical axis (positive: right
+    //   edge toward the viewer), pitch about its horizontal axis (positive: top edge toward the viewer). At 0 the phone is
+    //   drawn flat as usual; tilted, the hand fades out. D.tilt.at(t) is {yaw, pitch}. D.glint Track 0..1: a faint blurred shape on the laptop's screen and the phone's.
     //   D.sleep Track 0..1: the "Sleep when this ends" chip on the phone's media block.
     // D.ident(t0, {x, y, size}, o): EP.ident drawn from t0, centred on (x, y) (default the phone's centre at t0, size
     //   F.end.mark), with EP.ident's o (loop, a) and o.until (film time it fades out over 0.3 s; it holds otherwise).
@@ -211,7 +219,7 @@
     lapT: new Track({ ...LAPS.off }),
     lapScreens: [{ t: -1, kind: 'desktop', o: {} }],
     hand: new Track(0),
-    tilt: new Track(0),
+    tilt: new TiltTrack({ yaw: 0, pitch: 0 }),
     glint: new Track(0),
     sleep: new Track(0),
     idents: [],
@@ -472,23 +480,98 @@
   }
   function drawPhone(ctx, t) {
     const cam = D.cam.at(t);
-    const turn = D.turn.at(t);
-    const pal = EP.palette(D.theme.at(t));
-    const hand = D.hand.at(t);
+    const tilt = D.tilt.at(t);
+    const mag = Math.max(Math.abs(tilt.yaw), Math.abs(tilt.pitch));
+    // The hand does not tilt with the phone: it fades out over the first 3 degrees.
+    const hand = D.hand.at(t) * (1 - seg(mag, 0, 3));
     if (hand > 0.003) EP.hand(ctx, { ...cam, a: hand });
+    if (mag > 0.01) return drawTilted(ctx, t, cam, tilt);
     ctx.save();
     ctx.translate(cam.x, cam.y);
     ctx.scale(cam.s, cam.s);
     ctx.rotate((cam.r * Math.PI) / 180);
-    // M-TILT: about the vertical axis, drawn as a horizontal skew of tan(angle) and 4% off the width at 10 degrees.
-    const tilt = D.tilt.at(t);
-    if (Math.abs(tilt) > 0.01) ctx.transform(1 - (0.04 * Math.abs(tilt)) / 10, 0, Math.tan((tilt * Math.PI) / 180), 1, 0, 0);
     ctx.translate(-207, -434);
+    phoneBody(ctx, t, cam.s);
+    ctx.restore();
+  }
+  // M-TILT: the phone drawn flat on a cached offscreen canvas (its shadow included), then painted as a perspective mesh of
+  // 10 x 20 cells, two affine triangles each. Yaw turns it about its vertical axis (positive: right edge toward the viewer),
+  // pitch about its horizontal axis (positive: top edge toward the viewer), then the camera distance is 2.2 phone heights.
+  const MESH = [10, 20];
+  let tiltCv = null;
+  function drawTilted(ctx, t, cam, tilt) {
+    const pw = 414 * cam.s, ph = 868 * cam.s, m = Math.ceil(130 * cam.s); // m holds the shadow: blur 70, offset 30
+    const cw = Math.ceil(pw + 2 * m), ch = Math.ceil(ph + 2 * m);
+    if (!tiltCv || tiltCv.width < cw || tiltCv.height < ch) tiltCv = Object.assign(document.createElement('canvas'), { width: cw, height: ch });
+    const oc = tiltCv.getContext('2d');
+    oc.setTransform(1, 0, 0, 1, 0, 0);
+    oc.clearRect(0, 0, tiltCv.width, tiltCv.height);
+    oc.translate(m, m);
+    oc.scale(cam.s, cam.s);
+    phoneBody(oc, t, cam.s);
+    const yaw = (tilt.yaw * Math.PI) / 180, pitch = (tilt.pitch * Math.PI) / 180;
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+    const dist = 2.2 * ph;
+    const [nx, ny] = MESH;
+    const src = [], dst = [];
+    for (let j = 0; j <= ny; j++) {
+      for (let i = 0; i <= nx; i++) {
+        const u = (i / nx) * cw, v = (j / ny) * ch;
+        const X = u - m - pw / 2, Y = v - m - ph / 2;
+        const z1 = -X * sy, x1 = X * cy;
+        const y2 = Y * cp - z1 * sp, z2 = Y * sp + z1 * cp;
+        const f = dist / Math.max(dist + z2, 1e-3);
+        src.push([u, v]);
+        dst.push([x1 * f, y2 * f]);
+      }
+    }
+    ctx.save();
+    ctx.translate(cam.x, cam.y);
+    ctx.rotate((cam.r * Math.PI) / 180);
+    const at = (i, j) => j * (nx + 1) + i;
+    const tri = (a, b, c) => {
+      const [s0, s1, s2] = [src[a], src[b], src[c]], [d0, d1, d2] = [dst[a], dst[b], dst[c]];
+      const u1x = s1[0] - s0[0], u1y = s1[1] - s0[1], u2x = s2[0] - s0[0], u2y = s2[1] - s0[1];
+      const det = u1x * u2y - u2x * u1y;
+      if (Math.abs(det) < 1e-9) return;
+      const w1x = d1[0] - d0[0], w1y = d1[1] - d0[1], w2x = d2[0] - d0[0], w2y = d2[1] - d0[1];
+      if (Math.abs(w1x * w2y - w2x * w1y) < 1e-6) return;
+      const A = (w1x * u2y - w2x * u1y) / det, C = (w2x * u1x - w1x * u2x) / det;
+      const B = (w1y * u2y - w2y * u1y) / det, Dd = (w2y * u1x - w1y * u2x) / det;
+      const gx = (d0[0] + d1[0] + d2[0]) / 3, gy = (d0[1] + d1[1] + d2[1]) / 3;
+      ctx.save();
+      ctx.beginPath();
+      [d0, d1, d2].forEach(([x, y], k) => {
+        const l = Math.hypot(x - gx, y - gy) || 1;
+        const px = x + (0.5 * (x - gx)) / l, py = y + (0.5 * (y - gy)) / l;
+        if (k === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.closePath();
+      ctx.clip();
+      ctx.transform(A, B, C, Dd, d0[0] - A * s0[0] - C * s0[1], d0[1] - B * s0[0] - Dd * s0[1]);
+      const x0 = Math.max(0, Math.min(s0[0], s1[0], s2[0]) - 2), y0 = Math.max(0, Math.min(s0[1], s1[1], s2[1]) - 2);
+      const x1 = Math.min(cw, Math.max(s0[0], s1[0], s2[0]) + 2), y1 = Math.min(ch, Math.max(s0[1], s1[1], s2[1]) + 2);
+      ctx.drawImage(tiltCv, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
+      ctx.restore();
+    };
+    for (let j = 0; j < ny; j++) {
+      for (let i = 0; i < nx; i++) {
+        tri(at(i, j), at(i + 1, j), at(i, j + 1));
+        tri(at(i + 1, j), at(i + 1, j + 1), at(i, j + 1));
+      }
+    }
+    ctx.restore();
+  }
+  // The phone's own drawing in dp, origin at the top-left of its 414 x 868 body; `s` is the page scale (shadow sizes are in page px).
+  function phoneBody(ctx, t, s) {
+    const turn = D.turn.at(t);
+    const pal = EP.palette(D.theme.at(t));
     // Shadow under the body: black, deep and long, for a ground this dark.
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.6)';
-    ctx.shadowBlur = 70 * cam.s;
-    ctx.shadowOffsetY = 30 * cam.s;
+    ctx.shadowBlur = 70 * s;
+    ctx.shadowOffsetY = 30 * s;
     fillRR(ctx, 0, 0, 414, 868, 58, '#0B0B0E');
     ctx.restore();
     // Side keys on the right edge, then the frame, with a thin rim light on the edge that faces the glow.
@@ -546,7 +629,6 @@
     ctx.beginPath();
     ctx.arc(205.5, 28.5, 2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
   }
 
   // ---- the light behind the phone: slow, soft and blue, swelling at each chapter start. A pure function of t. ----

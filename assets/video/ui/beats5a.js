@@ -110,28 +110,33 @@
   };
 
   // ---- 3: Meet Edgepad ----
-  // The ident grows out of the phone on "This" and hands off to the top-left dial at the line's end; a glide on "trackpad", three 120 ms
-  // flashes (keyboard, gamepad, back to the surface) on their words (upright, as 390 x 844 renderers: the keyboard at 60%, the gamepad
-  // preset as it is), and with o.os three dark OS chips rising under "Windows · Mac · Linux". The laptop fades out for the line: in 16:9
+  // The ident grows out of the phone on "This" and hands off to the top-left dial at the line's end; a glide on "trackpad", then the phone itself
+  // turns sideways on "keyboard" and "gamepad" and back upright on "remote", and with o.os three dark OS chips rising under "Windows · Mac · Linux". The laptop fades out for the line: in 16:9
   // the chips take its place under the sub-lines, in the tall cuts the ident takes its band.
   const meet = (L, D, o) => {
     const t0 = L.t0, tp = L.w('trackpad'), kb = L.w('keyboard'), gp = L.w('gamepad'), rm = L.w('remote');
     // 9:16 and 3:4 (no laptop): the ident sits over the phone's top, under the headline; 9:16's phone is lowered to make room.
     const wide916 = EP.F.head.y === 262;
-    if (!tall()) D.move(t0, { ...EP.CAM.hero, s: EP.CAM.hero.s * 1.02 }, L.t1 - t0);
-    else D.move(t0 - 0.1, wide916 ? { x: 540, y: 1100, s: 1.1, r: 0 } : 'hero', 0.9);
+    const upright = !tall() ? EP.CAM.hero : wide916 ? { x: 540, y: 1100, s: 1.1, r: 0 } : EP.CAM.hero;
+    // Where the sideways phone sits for the keyboard and the gamepad: 16:9 right of the headline and sub-lines (they wrap at 800 px
+    // from x 150), the tall cuts centred under the ident.
+    const sideways = !tall() ? { x: 1450, y: 540, s: 0.85, r: -90 } : wide916 ? { x: 540, y: 1150, s: 1.1, r: -90 } : EP.CAM.land;
+    D.move(t0 - 0.1, upright, 0.9);
     D.hand.to(t0, t0 + 0.4, 0);
     D.lap(t0 - 0.1, { ...P('rest'), a: 0 }, 0.4);
     D.ident(t0, !tall() ? { x: EP.F.head.x + 110, y: 120, size: 220 } : wide916 ? { x: 540, y: 490, size: 220 } : { x: 540, y: 290, size: 200 });
     D.handoff(L.t1 - 0.25, 'VOL');
     D.screen(t0 - 0.1, 'surface');
     D.touch([[tp - 0.05, 160, 380], [tp + 0.25, 210, 420], [tp + 0.5, 250, 470]]);
-    // The app forces these two sideways: the phone turns for each flash in 120 ms and back for the surface.
-    D.turn.to(kb, kb + 0.12, 1);
-    D.turn.to(rm, rm + 0.12, 0);
-    D.screen(kb, 'keyboard', { demo: false }, null, true, 0.12);
-    D.screen(gp, 'gamepad', {}, null, true, 0.12);
-    D.screen(rm, 'surface', {}, null, false, 0.12);
+    // The app shows these two sideways, so the phone itself turns (0.4 s, landing on the word) for the keyboard, stays turned as the
+    // keyboard cross-fades (0.3 s) to the gamepad, and turns back upright (0.4 s, landing on "remote"). The hand is gone by then.
+    D.turn.to(kb - 0.4, kb, 1);
+    D.move(kb - 0.4, sideways, 0.4);
+    D.screen(kb - 0.4, 'keyboard', { demo: false }, null, true, 0.3);
+    D.screen(gp - 0.15, 'gamepad', {}, null, true, 0.3);
+    D.turn.to(rm - 0.4, rm, 0);
+    D.move(rm - 0.4, upright, 0.4);
+    D.screen(rm - 0.3, 'surface', {}, null, false, 0.3);
     if (o.os) {
       const items = [{ name: 'Windows', at: L.w('windows') }, { name: 'macOS', at: L.w('mac') }, { name: 'Linux', at: L.w('linux') }];
       D.card(L.w('windows') - 0.2, L.t1 + 0.2, C.rows(items, null, true), EP.F.band);

@@ -144,24 +144,29 @@
   // Where the file and the folder sit on the laptop's desktop, as fractions of its 1280 x 800 screen (laptop.js FILE_AT, FOLDER_AT).
   const AIR_FILE = { x: 790 / 1280, y: 250 / 800 };
   const AIR_FOLDER = { x: 600 / 1280, y: 250 / 800 };
-  // The phone tilts +-10 degrees from `tilt` in a few eased swings, the pointer on the laptop following with a 120 ms lag; on `hold` Left
-  // is held, the phone tilts the file across to the folder, and Left is released. T: s (screen starts), tilt, hold, end (the line's end).
+  // D.tilt is {yaw, pitch} in degrees (a plain number is a yaw): yaw is the phone turning about its vertical axis, pitch its nose up.
+  const ang = (v) => (typeof v === 'number' ? { yaw: v, pitch: 0 } : v);
+  // The phone is aimed like a hand aims it: from `tilt`, four uneven eased moves in yaw (+-12) and pitch (+-8) that settle level on the
+  // file by `hold`; the pointer on the laptop follows both axes with a 120 ms lag (yaw across, pitch up and down). On `hold` Left is
+  // held, a yaw of -12 carries the file to the folder, and Left is released. T: s (screen starts), tilt, hold, end (the line's end).
   function airAct(D, T) {
     const { s, tilt, hold, end } = T;
-    D.tilt.to(tilt, tilt + 0.4, 10);
-    D.tilt.to(tilt + 0.4, tilt + 0.85, -10);
-    D.tilt.to(tilt + 0.85, Math.max(tilt + 1.1, hold - 0.05), 0);
+    const span = Math.max(0.9, hold - 0.05 - tilt);
+    for (const [a, b, yaw, pitch] of [[0, 0.3, 8, -5], [0.3, 0.62, -12, 5], [0.62, 0.82, 4, 8], [0.82, 1, 0, 0]]) D.tilt.to(tilt + a * span, tilt + b * span, { yaw, pitch });
     const d0 = hold + 0.25, d1 = Math.min(hold + 1.05, end - 0.55), rel = d1 + 0.1;
-    D.tilt.to(d0, d1, -10);
-    D.tilt.to(d1 + 0.15, d1 + 0.5, 0);
+    D.tilt.to(d0, d1, { yaw: -12, pitch: 0 });
+    D.tilt.to(d1 + 0.15, d1 + 0.5, { yaw: 0, pitch: 0 });
     const held = (t) => ramp(t, hold, hold + 0.16) * (1 - ramp(t, rel, rel + 0.16));
     D.screen(s, 'air', (t) => ({ on: ramp(t, s + 0.1, s + 0.5), left: held(t) }));
     D.lapScreen(s, 'desktop', (t) => {
-      const tn = D.tilt.at(t - 0.12) / 10, home = D.tilt.at(hold - 0.12) / 10, reach = AIR_FILE.x - AIR_FOLDER.x;
+      const q = ang(D.tilt.at(t - 0.12)), home = ang(D.tilt.at(hold - 0.12)), reach = AIR_FILE.x - AIR_FOLDER.x;
+      const dyaw = q.yaw - home.yaw, dpitch = q.pitch - home.pitch;
       // Before Left is held the pointer sways about the file and settles on it; after, the lagged tilt carries it to the folder.
-      const x = t < hold ? lerp(AIR_FILE.x + tn * reach, AIR_FILE.x, ramp(t, hold - 0.4, hold - 0.05)) : AIR_FILE.x + (tn - home) * reach;
-      const k = t < hold ? 0 : t > d1 + 0.12 ? 1 : clamp(-(tn - home));
-      return { pointer: { x, y: AIR_FILE.y }, drag: { k, held: held(t) } };
+      const sway = { x: AIR_FILE.x + (q.yaw / 12) * reach, y: AIR_FILE.y - (q.pitch / 8) * 0.1 };
+      const x = t < hold ? lerp(sway.x, AIR_FILE.x, ramp(t, hold - 0.4, hold - 0.05)) : AIR_FILE.x + (dyaw / 12) * reach;
+      const y = t < hold ? lerp(sway.y, AIR_FILE.y, ramp(t, hold - 0.4, hold - 0.05)) : AIR_FILE.y - (dpitch / 8) * 0.1;
+      const k = t < hold ? 0 : t > d1 + 0.12 ? 1 : clamp(-dyaw / 12);
+      return { pointer: { x, y }, drag: { k, held: held(t) } };
     });
   }
 
@@ -179,11 +184,120 @@
     const r = EP.LAPS.rest, h = r.w / 1.6, p = ASIDE[lay()];
     D.line(line[0], line[1], { x: r.x + r.w / 2 + 20, y: r.y + h * 0.59 + 8 }, { x: p.x, y: p.y - 434 * p.s });
   }
-  // Facing each other, and the unresolved shape glinting on both screens: it rises at `at` and holds to the end of the hold.
-  function glintAct(L, D, at) {
-    stage(L, D, phoneAt('hero'));
-    D.glint.to(at - 0.1, at + 0.6, 1);
-    D.glint.to(L.next - 0.5, L.next - 0.1, 0);
+  // ---- Edgepad 6: two concept pictures, not screens of it ----
+  const { GREY } = EP.TOK;
+  const LAND169 = { x: 1420, y: 790, s: 0.9, r: -90 }; // 16:9: the sideways phone at the right
+  // The far scene's geometry per layout, in page px: the small laptop's pose, the phone's camera, the house round the laptop, and the
+  // arc from the laptop to the phone's top (control point between). The tall cuts keep it right of the headline's text.
+  const far = () => {
+    const l = lay();
+    if (l === '169') return { lap: { x: 300, y: 700, w: 300 }, phone: { x: 1640, y: 700, s: 0.66, r: 0 }, house: { x0: 100, x1: 500, eaves: 575, apex: 510, base: 850 }, to: 1480, arc: [[470, 640], [985, 360], [1503, 600]] };
+    const c = EP.CAM.lapPhone, top = c.y - 434 * c.s, end = [800 + 100 * c.s, top];
+    if (l === '916') return { lap: { x: 270, y: 520, w: 360 }, phone: { ...c, x: 800 }, house: { x0: 72, x1: 468, eaves: 380, apex: 300, base: 720 }, to: 1000, arc: [[460, 560], [1000, 640], end] };
+    return { lap: { x: 250, y: 330, w: 340 }, phone: { ...c, x: 800 }, house: { x0: 72, x1: 428, eaves: 190, apex: 120, base: 520 }, to: 1000, arc: [[420, 330], [980, 430], end] };
+  };
+  // The distance made visible (a D.card painter in page px): a line-drawn house round the far laptop and none round the phone, a dashed
+  // ground with tick marks between them, and a long arc drawn on from `r` with a pulse travelling along it.
+  const distance = (g, r) => (ctx, t, a) => {
+    ctx.save();
+    ctx.globalAlpha *= a;
+    ctx.lineCap = ctx.lineJoin = 'round';
+    const h = g.house, mid = (h.x0 + h.x1) / 2;
+    ctx.strokeStyle = GREY;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(h.x0, h.base);
+    ctx.lineTo(h.x0, h.eaves);
+    ctx.lineTo(mid, h.apex);
+    ctx.lineTo(h.x1, h.eaves);
+    ctx.lineTo(h.x1, h.base);
+    ctx.stroke();
+    ctx.lineWidth = 3;
+    ctx.setLineDash([14, 12]);
+    ctx.beginPath();
+    ctx.moveTo(h.x0, h.base);
+    ctx.lineTo(g.to, h.base);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    for (let i = 1; i <= 5; i++) {
+      const x = lerp(h.x1, g.to, i / 6);
+      ctx.beginPath();
+      ctx.moveTo(x, h.base - 10);
+      ctx.lineTo(x, h.base + 10);
+      ctx.stroke();
+    }
+    const [p0, c0, p1] = g.arc;
+    const at = (u) => [(1 - u) * (1 - u) * p0[0] + 2 * (1 - u) * u * c0[0] + u * u * p1[0], (1 - u) * (1 - u) * p0[1] + 2 * (1 - u) * u * c0[1] + u * u * p1[1]];
+    const grow = ramp(t, r + 0.1, r + 0.8);
+    ctx.strokeStyle = BLUE;
+    ctx.globalAlpha *= 0.7;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    for (let i = 0; i <= 40; i++) {
+      const [x, y] = at((i / 40) * grow);
+      if (i) ctx.lineTo(x, y);
+      else ctx.moveTo(x, y);
+    }
+    ctx.stroke();
+    if (grow >= 1) {
+      const [x, y] = at((((t - r - 0.8) / 1.8) % 1 + 1) % 1);
+      const g2 = ctx.createRadialGradient(x, y, 0, x, y, 26);
+      g2.addColorStop(0, BLUE);
+      g2.addColorStop(1, 'rgba(77,163,255,0)');
+      ctx.globalAlpha = a;
+      ctx.fillStyle = g2;
+      ctx.beginPath();
+      ctx.arc(x, y, 26, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = INK;
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  };
+  // Edgepad 6, in two pictures that fill the line and its hold (it ends 0.3 s before the next line).
+  // 1. Screen mirroring, from `m`: the phone turns sideways and shows the laptop's own picture, the same function of t handed to both
+  //    (the pointer moves identically, a window opens), and a line links them. 2. Remote access, from `r` (never before `m` + 2.2 s): the
+  //    phone turns upright and moves to one side, the laptop shrinks far on the other, a house is drawn round the laptop, a dashed ground
+  //    with ticks and a long arc with a travelling pulse between them; the phone glides a finger and the far pointer follows it.
+  function futureAct(L, D, m, r) {
+    const end = L.next - 0.3, g = far(), land = EP.F.tall ? 'lapLand' : LAND169;
+    const lead0 = m - 0.52 - (L.t0 - 0.3);
+    if (lead0 >= 0.6) stage(L, D, phoneAt('hero'), LAP(), Math.min(0.9, lead0 - 0.05));
+    else D.lap(L.t0 - 0.3, LAP(), 0.9);
+    D.screen(L.t0 - 0.3, 'surface');
+    const mirrored = (t) => {
+      const tau = Math.max(0, t - m), k = ramp(t, m, m + 0.5);
+      return { pointer: { x: 0.5 + 0.28 * k * Math.sin(1.7 * tau), y: 0.5 + 0.2 * k * Math.sin(1.1 * tau + 0.8) }, terminal: ramp(t, m + 0.6, m + 1.0) };
+    };
+    D.lapScreen(L.t0 - 0.3, 'desktop', mirrored);
+    D.move(m - 0.52, land, 0.52);
+    D.turn.to(m - 0.52, m - 0.12, 1);
+    D.screen(m - 0.5, 'mirror', (t) => ({ kind: 'desktop', screen: mirrored(t), t, a: ramp(t, m - 0.1, m + 0.3) }), [[m - 0.5, 0]], true);
+    if (EP.F.tall) {
+      const c = EP.CAM.lapLand, rest = EP.LAPS.rest;
+      D.line(m + 0.2, r - 0.1, { x: rest.x + rest.w / 2 + 20, y: rest.y + (rest.w / 1.6) * 0.59 + 8 }, { x: c.x + 434 * c.s - 30, y: c.y - 207 * c.s });
+    } else D.line(m + 0.2, r - 0.1);
+    D.turn.to(r - 0.5, r - 0.1, 0);
+    D.move(r - 0.5, g.phone, 0.9);
+    D.lap(r - 0.5, g.lap, 0.9);
+    D.screen(r - 0.4, 'surface');
+    const pads = [[120, 360], [270, 330], [190, 520], [280, 610], [140, 480]];
+    const glides = [];
+    for (let t0 = r + 0.3, i = 0; t0 + 0.8 < end; t0 += 1.0, i++) glides.push({ t0, t1: t0 + 0.8, a: pads[i % pads.length], b: pads[(i + 1) % pads.length] });
+    for (const q of glides) D.touch([[q.t0, ...q.a], [q.t1, ...q.b]]);
+    // The far pointer is the finger's place on the pad, 120 ms behind it.
+    D.lapScreen(r - 0.2, 'desktop', (t) => {
+      let p = pads[0];
+      for (const q of glides) {
+        if (t - 0.12 < q.t0) break;
+        const k = ramp(t - 0.12, q.t0, q.t1);
+        p = [lerp(q.a[0], q.b[0], k), lerp(q.a[1], q.b[1], k)];
+      }
+      return { pointer: { x: p[0] / 390, y: (p[1] - 120) / 560 } };
+    });
+    D.card(r - 0.2, end, distance(g, r), { x: 0, y: 0, s: 1 });
   }
   // The end card: the camera moves to 'end' and the laptop leaves.
   const endAct = (L, D) => {
@@ -301,13 +415,12 @@
       ]);
     },
   };
-  // 22: phone and laptop face each other; the unresolved shape glints on both on "mirroring" and holds through the silence.
+  // 22: mirroring from "mirroring" (at least 2.2 s), then remote access from "remote" (or 2.2 s after mirroring starts) to the hold's end.
   demo[22] = {
     h: 'Coming in *Edgepad 6.*', s: ['Screen *mirroring*@mirroring', 'Remote *access*@remote'], lap: true,
     act: (L, D) => {
-      D.screen(L.t0 - 0.3, 'surface');
-      D.lapScreen(L.t0 - 0.3, 'desktop');
-      glintAct(L, D, L.w('mirroring'));
+      const m = L.w('mirroring');
+      futureAct(L, D, m, Math.max(L.w('remote'), m + 2.2));
     },
   };
   demo[23] = { end: true, act: endAct };
@@ -381,13 +494,13 @@
       ]);
     },
   };
-  // 12: as demo 22 (STORYBOARD.md gives this line no headline, so it takes that one).
+  // 12: as demo 22, mirroring from "screen" (held to at least 0.2 s into the line so the phone's turn starts within 0.4 s of it).
+  // STORYBOARD.md gives this line no headline, so it takes demo 22's.
   reel[12] = {
     h: 'Coming in *Edgepad 6.*@screen', lap: true, // "coming" is only said mid-line
     act: (L, D) => {
-      D.screen(L.t0 - 0.3, 'surface');
-      D.lapScreen(L.t0 - 0.3, 'desktop');
-      glintAct(L, D, L.w('mirroring'));
+      const m = Math.max(L.w('screen'), L.t0 + 0.2);
+      futureAct(L, D, m, Math.max(L.w('remote'), m + 2.2));
     },
   };
   reel[13] = { end: true, act: endAct };
