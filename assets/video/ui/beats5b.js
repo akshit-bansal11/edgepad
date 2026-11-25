@@ -12,20 +12,28 @@
   // ---- where the phone, the laptop and the cards stand, per layout (read when an act runs, once EP.F is set) ----
   // 16:9 keeps the phone on the right and the laptop back left; the tall cuts stack them (laptop above, phone below the headline).
   const lay = () => (!EP.F.tall ? '169' : EP.F.cap.cy > 1500 ? '916' : '34');
-  const ASIDE = { '169': { x: 1350, y: 910, s: 0.5, r: 0 }, '916': { x: 900, y: 1440, s: 0.46, r: 0 }, '34': { x: 900, y: 1118, s: 0.48, r: 0 } }; // stepped aside
+  const ASIDE = { '169': { x: 1350, y: 910, s: 0.5, r: 0 }, '916': { x: 900, y: 1415, s: 0.46, r: 0 }, '34': { x: 900, y: 1118, s: 0.48, r: 0 } }; // stepped aside
   const SIDE = { x: 1560, y: 700, s: 0.8, r: 0 }; // 16:9 only: small at the right of a centred laptop
-  const CARDS = () => ({ '169': EP.F.talk, '916': { x: 72, y: 1260, s: 0.62 }, '34': { x: 72, y: 975, s: 0.55 } })[lay()];
-  const phoneAt = (name) => (EP.F.tall ? 'lapPhone' : name);
+  // 16:9 only: the phone's foot pushed in so the transfer card (centre 3, 370 dp from the phone's centre) sits mid-right at 1.7 px per dp.
+  const FOOT169 = { x: 1435, y: 71, s: 1.7, r: 0 };
+  const CARDS = () => ({ '169': EP.F.talk, '916': { x: 72, y: 1175, s: 0.84 }, '34': { x: 72, y: 890, s: 0.78 } })[lay()];
+  // The phone's camera: `name` in 16:9, the film.js lap* preset `tall` in the tall cuts.
+  const phoneAt = (name, tall = 'lapPhone') => (EP.F.tall ? tall : name);
   // 'rest' is too low for the caption pill with a headline above it, so 16:9 takes a slightly smaller, higher pose.
   const LAP = () => (EP.F.tall ? EP.LAPS.rest : { ...EP.LAPS.rest, x: 600, y: 708, w: 580 });
   const LAP_CENTRE = () => (EP.F.tall ? EP.LAPS.rest : { ...EP.LAPS.rest, x: 960, y: 620, w: 780 });
 
   // An act's opening state: the phone upright at `cam`, the laptop at `lap`, both arriving as the line begins.
-  const stage = (L, D, cam, lap = LAP()) => {
+  const stage = (L, D, cam, lap = LAP(), dur = 0.9) => {
     const t = L.t0 - 0.3;
-    D.move(t, cam, 0.9);
+    D.move(t, cam, dur);
     D.turn.to(t, t + 0.6, 0);
-    D.lap(t, lap, 0.9);
+    D.lap(t, lap, dur);
+  };
+  // A camera move that ends on film time `end`, starting no earlier than `from` and lasting at least 0.52 s.
+  const camTo = (D, end, cam, from) => {
+    const t = Math.max(end - 0.9, from);
+    D.move(t, cam, Math.max(0.52, end - t));
   };
   // Screen anchors that hold the screen's own clock at 0 until `lt` seconds before `at`, then run it in step: its `lt` lands on `at`.
   const lead = (s, at, lt) => [[s, 0], [Math.max(s + 0.02, at - lt), 0], [at, lt]];
@@ -160,8 +168,10 @@
   // ---- Straight talk: plain dark cards and the line from the phone to the laptop ----
   const cards = (items) => EP.cards.rows(items, null, true);
   // The phone steps aside, the laptop stays up at its pose, the cards sit at CARDS(). `line` (t0, t1) draws the phone-laptop line.
+  // 16:9 takes a smaller laptop here, so the two-line sub of line 21 clears it by 32 px.
+  const LAP_TALK = () => (EP.F.tall ? LAP() : { ...EP.LAPS.rest, x: 600, y: 735, w: 520 });
   function talkAct(L, D, items, line) {
-    stage(L, D, ASIDE[lay()]);
+    stage(L, D, ASIDE[lay()], LAP_TALK());
     D.card(L.t0, L.next - 0.05, cards(items), CARDS());
     if (line) D.line(line[0], line[1]);
   }
@@ -194,7 +204,9 @@
   demo[14] = {
     h: 'Send *files.*', s: ['Either *way*@either', 'Up to *2 GB* each@two', '*Pause* any time@pause'], lap: true,
     act: (L, D) => {
-      stage(L, D, phoneAt('wide'));
+      // The camera pushes in on the phone's foot (the card) and the laptop grows for its toast, both landing by "either"; the next act pulls back.
+      const settle = Math.min(1.4, Math.max(0.52, L.w('either') - (L.t0 - 0.3)));
+      stage(L, D, EP.F.tall ? 'lapFoot' : FOOT169, EP.F.tall ? LAP() : { ...EP.LAPS.rest, x: 540, y: 630, w: 760 }, settle);
       const a = L.t0 - 0.05, one = Math.max(L.w('two'), a + 0.8), watch = Math.max(L.w('watch'), one + 0.8), pause = Math.max(L.w('pause'), watch + 0.3);
       const f3 = L.next - 0.4, f2 = f3 - 0.35, resume = Math.max(pause + 0.45, Math.min(pause + 0.7, f2 - 0.3));
       const T = { s: L.t0 - 0.3, a, one, watch, pause, resume, f2, f3 };
@@ -228,7 +240,8 @@
       stage(L, D, phoneAt('hero'));
       devAct(D, { s: L.t0 - 0.3, swipe: L.t0 - 0.1, press: L.w('tap') });
       const open = L.w('opens');
-      D.lapScreen(L.t0 - 0.3, 'browser-pr', (t) => ({ open: ramp(t, open - 0.15, open + 0.35) }));
+      D.lapScreen(L.t0 - 0.3, 'editor');
+      D.lapScreen(open - 0.2, 'browser-pr', (t) => ({ open: ramp(t, open - 0.2, open + 0.4) }));
     },
   };
   // 18: the Air mouse, the phone tilting, the pointer following, Left held and a file dragged to a folder.
@@ -241,10 +254,10 @@
   };
   // 19: a film's credits roll on a centred laptop, the countdown card on "sleep", then black; the phone's chip is on.
   demo[19] = {
-    h: 'Sleep when it *ends.*', lap: true,
+    h: 'Sleep when it *ends.*@falling', lap: true, // the words of this headline are not spoken until the end of the line
     act: (L, D) => {
       const s = L.t0 - 0.3, sleep = L.w('sleep');
-      stage(L, D, EP.F.tall ? 'lapPhone' : SIDE, LAP_CENTRE());
+      stage(L, D, phoneAt(SIDE), LAP_CENTRE());
       D.roomFx.lamp.to(L.t0 - 0.2, L.t0 + 0.9, 0.6);
       D.screen(s, 'surface');
       D.sleep.to(L.t0, L.t0 + 0.5, 1);
@@ -307,7 +320,11 @@
       const T = xferSpan(file - 0.25, file - 0.1, mac - 0.4);
       xferAct(D, T);
       D.lapScreen(s, 'notes', (t) => ({ ...notes(t), toast: toastAt(T)(t) }));
+      // The camera follows the phone's work: the foot for the card, the head for the deck, the whole phone for the shape.
+      camTo(D, file, phoneAt('wide', 'lapFoot'), L.t0 + 0.5);
+      camTo(D, mac, phoneAt('wide', 'lapHead'), T.f3 + 0.3);
       const web = mac + 0.4, surf = Math.max(shape - 0.45, web + 0.6);
+      camTo(D, shape, phoneAt('wide', 'lapPhone'), web + 0.6);
       macrosAct(D, { s: mac - 0.3, apps: mac + 0.05, web, surf, draw: Math.max(shape - 0.2, surf + 0.1), end: dr + 0.2, runs: dr + 0.4 });
     },
   };
@@ -315,7 +332,7 @@
   reel[8] = {
     h: '*Air* mouse.', lap: true,
     act: (L, D) => {
-      stage(L, D, phoneAt('hero'));
+      stage(L, D, phoneAt('hero', 'lapFoot'));
       airAct(D, { s: L.t0 - 0.3, tilt: L.w('tilt'), hold: L.w('hold'), end: L.next });
     },
   };
@@ -323,17 +340,17 @@
   reel[9] = {
     h: 'For *developers.*', lap: true,
     act: (L, D) => {
-      stage(L, D, phoneAt('hero'));
+      stage(L, D, phoneAt('hero', 'lapHead'));
       const tap = L.w('developers'), swipe = L.w('pull') - 0.1;
       const press = Math.max(L.w('requests') + 0.1, swipe + 0.7), open = Math.max(L.w('glance') - 0.2, press + 0.5);
       devAct(D, { s: L.t0 - 0.3, tap, hub: Math.max(L.w('your') - 0.15, tap + 0.5), fill: L.w('limits') - 0.1, sess: L.w('sessions'), swipe, press });
       D.lapScreen(L.t0 - 0.3, 'editor');
-      D.lapScreen(open - 0.45, 'browser-pr', (t) => ({ open: ramp(t, open - 0.1, open + 0.4) }));
+      D.lapScreen(open - 0.2, 'browser-pr', (t) => ({ open: ramp(t, open - 0.2, open + 0.4) }));
     },
   };
   // 10: the platforms and the connections as plain cards, and the line from the phone to the laptop on "bluetooth".
   reel[10] = {
-    h: 'No account. No *server.*', lap: true,
+    h: 'No account. No *server.*@windows', lap: true, // spoken only at the line's end
     act: (L, D) => {
       D.screen(L.t0 - 0.3, 'surface');
       D.lapScreen(L.t0 - 0.3, 'desktop');
@@ -362,7 +379,7 @@
   };
   // 12: as demo 22 (STORYBOARD.md gives this line no headline, so it takes that one).
   reel[12] = {
-    h: 'Coming in *Edgepad 6.*', lap: true,
+    h: 'Coming in *Edgepad 6.*@screen', lap: true, // "coming" is only said mid-line
     act: (L, D) => {
       D.screen(L.t0 - 0.3, 'surface');
       D.lapScreen(L.t0 - 0.3, 'desktop');

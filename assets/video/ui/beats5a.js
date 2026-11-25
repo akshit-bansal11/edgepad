@@ -24,7 +24,7 @@
   const cam = (plain, lap) => (tall() ? lap : plain);
   const SIDE = () => cam('landRight', 'lapLand');
   const PUSH = () => cam({ x: 1360, y: 575, s: 1.12, r: -90 }, 'lapLand');
-  const UP = () => cam({ x: 1500, y: 610, s: 1.0, r: 0 }, 'lapPhone');
+  const UP = () => cam({ x: 1500, y: 610, s: 1.0, r: 0 }, 'lapFoot');
   // A beat whose headline takes the top layout in 16:9 (a sideways phone, or the laptop big below it); the tall cuts use `lap` instead.
   const top = (b) => Object.defineProperty(b, 'lay', { get: () => (EP.F.tall ? undefined : 'top'), enumerable: true });
 
@@ -122,12 +122,15 @@
     else D.move(t0 - 0.1, wide916 ? { x: 540, y: 1100, s: 1.1, r: 0 } : 'hero', 0.9);
     D.hand.to(t0, t0 + 0.4, 0);
     D.lap(t0 - 0.1, { ...P('rest'), a: 0 }, 0.4);
-    D.ident(t0, !tall() ? { x: EP.F.head.x + 130, y: 132, size: 260 } : wide916 ? { x: 540, y: 490, size: 220 } : { x: 540, y: 290, size: 200 });
+    D.ident(t0, !tall() ? { x: EP.F.head.x + 110, y: 120, size: 220 } : wide916 ? { x: 540, y: 490, size: 220 } : { x: 540, y: 290, size: 200 });
     D.handoff(L.t1 - 0.25, 'VOL');
     D.screen(t0 - 0.1, 'surface');
     D.touch([[tp - 0.05, 160, 380], [tp + 0.25, 210, 420], [tp + 0.5, 250, 470]]);
-    D.screen(kb, 'keyboard', { from: 60, to: 60, demo: false }, null, false, 0.12);
-    D.screen(gp, 'gamepad', {}, null, false, 0.12);
+    // The app forces these two sideways: the phone turns for each flash in 120 ms and back for the surface.
+    D.turn.to(kb, kb + 0.12, 1);
+    D.turn.to(rm, rm + 0.12, 0);
+    D.screen(kb, 'keyboard', { demo: false }, null, true, 0.12);
+    D.screen(gp, 'gamepad', {}, null, true, 0.12);
     D.screen(rm, 'surface', {}, null, false, 0.12);
     if (o.os) {
       const items = [{ name: 'Windows', at: L.w('windows') }, { name: 'macOS', at: L.w('mac') }, { name: 'Linux', at: L.w('linux') }];
@@ -417,12 +420,12 @@
       const lt = EP.warp(t, entry.anchors), k = ease(seg(lt, 2.2, 3.4));
       return {
         slide: 1,
-        region: lt >= 1.9 && lt < 4.0 ? { x0: 0.2, y0: 0.25, x1: lerp(0.22, 0.78, k), y1: lerp(0.28, 0.72, k) } : null,
+        region: lt >= 1.9 && t < o.ph ? { x0: 0.2, y0: 0.25, x1: lerp(0.22, 0.78, k), y1: lerp(0.28, 0.72, k) } : null,
         flash: Math.max(0, 1 - Math.abs(t - (o.full + 0.04)) / 0.04),
         rec: ease(seg(t, o.rec, o.rec + 0.2)),
       };
     });
-    D.fly(o.ph - 0.1, 'laptop', 'phone', thumb);
+    D.fly(o.ph, 'laptop', 'phone', thumb);
   };
   DEMO[11] = top({
     h: 'Present from *anywhere.*',
@@ -442,8 +445,8 @@
     lap: true,
     act: (L, D) => {
       const ss = L.w('screenshots'), rec = L.w('recordings');
-      present(L, D, { start: L.t0 - 0.3, next: L.w('presenter') + 0.3, l0: L.w('laser'), l1: ss - 0.5 });
-      capture(L, D, { t0: ss - 0.5, region: ss, full: rec - 0.25, rec, ph: L.w('phone') });
+      present(L, D, { start: L.t0 - 0.3, next: L.w('presenter') + 0.3, l0: L.w('laser'), l1: ss - 1.3 });
+      capture(L, D, { t0: ss - 1.3, region: ss - 0.7, full: ss, rec, ph: L.w('phone') });
     },
   };
 })();

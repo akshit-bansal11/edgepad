@@ -27,7 +27,7 @@
   // lap: where a headline starts on a beat flagged `lap` (the laptop band is shown): 169 moves up above the laptop, the
   // tall cuts drop below it. end.mark is the ident mark's size on the end card.
   const F = {
-    '169': { head: { x: 150, y: 250, size: 110, max: 800 }, top: { x: 360, y: 42, size: 96, max: 1300 }, sub: { size: 56, gap: 52, min: 488 }, topSub: 44, cap: { cx: 550, cy: 990, size: 44 }, card: { x: 150, y: 640, s: 1 }, end: { y: 80, close: 56, w: 1000, mark: 360 }, lap: { y: 130 }, band: null, scrim: null },
+    '169': { head: { x: 150, y: 250, size: 110, max: 800 }, top: { x: 360, y: 42, size: 96, max: 1300 }, sub: { size: 56, gap: 52, min: 488 }, topSub: 44, cap: { cx: 550, cy: 990, size: 44 }, card: { x: 150, y: 640, s: 1 }, end: { y: 80, close: 56, w: 1000, mark: 300 }, lap: { y: 130 }, band: null, scrim: null },
     '916': { head: HEAD916, top: HEAD916, sub: { size: 50, gap: 36, min: 0 }, topSub: 50, cap: { cx: 540, cy: 1664, size: 44 }, card: { x: 90, y: 1130, s: 0.8 }, end: { y: 230, close: 54, w: 920, mark: 300 }, lap: { y: 950 }, tall: true, band: { x: 80, y: 512, s: 1 }, scrim: { solid: 520, to: 800 } },
     '34': { head: HEAD34, top: HEAD34, sub: { size: 42, gap: 28, min: 0 }, topSub: 42, cap: { cx: 540, cy: 1372, size: 40 }, card: { x: 60, y: 960, s: 0.72 }, end: { y: 70, close: 50, w: 936, mark: 220 }, lap: { y: 700 }, tall: true, band: { x: 72, y: 372, s: 1 }, scrim: { solid: 400, to: 670 } },
   }[LAY];
@@ -36,7 +36,7 @@
 
   // Camera presets: the phone's centre in page pixels, its scale in pixels per dp, and its turn in degrees.
   // The lap* presets are for beats with the laptop band up: in the tall cuts the phone (lapPhone upright, lapLand sideways) and
-  // its corners (lapTl .. lapBl) sit below the headline, where the band's scrim leaves them clear; in 16:9 they are the plain ones.
+  // its corners (lapTl .. lapBl), its foot above the caption pill (lapFoot) and its head (lapHead) sit below the headline, where the band's scrim leaves them clear; in 16:9 they are the plain ones.
   // roomWide and talk keep the phone off the page (the room, or the plain cards, are the picture). raceSplit is the sideways
   // phone (set D.turn to 1) lower right (169) or below the laptop band (tall). split169 shows the phone's top-left corner.
   const CAMS = {
@@ -46,23 +46,23 @@
       top: { x: 1483, y: 942, s: 1.68, r: 0 }, media: { x: 1320, y: 410, s: 1.45, r: 0 }, settings: { x: 1300, y: 700, s: 1.55, r: 0 },
       land: { x: 1040, y: 615, s: 1.55, r: -90 }, landRight: { x: 1330, y: 560, s: 1.0, r: -90 }, end: { x: 1350, y: 545, s: 0.845, r: 0 }, wide: { x: 1300, y: 548, s: 1.0, r: 0 },
       roomWide: { x: 1300, y: 1700, s: 1.08, r: 0 }, raceSplit: { x: 1440, y: 820, s: 0.95, r: -90 }, split169: { x: 1449, y: 864, s: 1.3, r: 0 }, talk: { x: 1300, y: 1700, s: 1.08, r: 0 },
-      lapPhone: { x: 1300, y: 548, s: 1.08, r: 0 }, lapLand: { x: 1440, y: 820, s: 0.95, r: -90 }, lapTl: { x: 1515, y: 1047, s: 1.79, r: 0 }, lapTr: { x: 1160, y: 1047, s: 1.79, r: 0 }, lapBr: { x: 1200, y: 40, s: 1.79, r: 0 }, lapBl: { x: 1515, y: 40, s: 1.79, r: 0 },
+      lapPhone: { x: 1300, y: 548, s: 1.08, r: 0 }, lapLand: { x: 1440, y: 820, s: 0.95, r: -90 }, lapTl: { x: 1515, y: 1047, s: 1.79, r: 0 }, lapTr: { x: 1160, y: 1047, s: 1.79, r: 0 }, lapBr: { x: 1200, y: 40, s: 1.79, r: 0 }, lapBl: { x: 1515, y: 40, s: 1.79, r: 0 }, lapFoot: { x: 1300, y: 548, s: 1.08, r: 0 }, lapHead: { x: 1300, y: 548, s: 1.08, r: 0 },
     },
     '916': {
       off: { x: 540, y: 2500, s: 1.15, r: 0 }, right: { x: 540, y: 1085, s: 1.1, r: 0 }, hero: { x: 540, y: 1085, s: 1.1, r: 0 },
       tl: { x: 820, y: 1430, s: 2.0, r: 0 }, tr: { x: 260, y: 1430, s: 2.0, r: 0 }, br: { x: 300, y: 740, s: 2.0, r: 0 }, bl: { x: 780, y: 740, s: 2.0, r: 0 },
       top: { x: 540, y: 1500, s: 1.7, r: 0 }, media: { x: 540, y: 1000, s: 1.6, r: 0 }, settings: { x: 540, y: 1085, s: 1.1, r: 0 },
-      land: { x: 540, y: 1150, s: 1.18, r: -90 }, landRight: { x: 540, y: 1200, s: 1.1, r: -90 }, end: { x: 540, y: 1240, s: 0.76, r: 0 }, wide: { x: 540, y: 1085, s: 1.1, r: 0 },
+      land: { x: 540, y: 1150, s: 1.18, r: -90 }, landRight: { x: 540, y: 1200, s: 1.1, r: -90 }, end: { x: 540, y: 1330, s: 0.62, r: 0 }, wide: { x: 540, y: 1085, s: 1.1, r: 0 },
       roomWide: { x: 540, y: 2500, s: 1.15, r: 0 }, raceSplit: { x: 540, y: 1450, s: 0.8, r: -90 }, split169: { x: 379, y: 1564, s: 1.3, r: 0 }, talk: { x: 540, y: 2500, s: 1.15, r: 0 },
-      lapPhone: { x: 540, y: 1544, s: 0.85, r: 0 }, lapLand: { x: 540, y: 1400, s: 1.0, r: -90 }, lapTl: { x: 640, y: 1889, s: 1.6, r: 0 }, lapTr: { x: 440, y: 1889, s: 1.6, r: 0 }, lapBr: { x: 440, y: 896, s: 1.6, r: 0 }, lapBl: { x: 640, y: 896, s: 1.6, r: 0 },
+      lapPhone: { x: 540, y: 1544, s: 0.85, r: 0 }, lapLand: { x: 540, y: 1400, s: 1.0, r: -90 }, lapTl: { x: 640, y: 1889, s: 1.6, r: 0 }, lapTr: { x: 440, y: 1889, s: 1.6, r: 0 }, lapBr: { x: 440, y: 896, s: 1.6, r: 0 }, lapBl: { x: 640, y: 896, s: 1.6, r: 0 }, lapFoot: { x: 540, y: 1047, s: 1.25, r: 0 }, lapHead: { x: 540, y: 1732, s: 1.25, r: 0 },
     },
     '34': {
       off: { x: 540, y: 1900, s: 0.9, r: 0 }, right: { x: 540, y: 880, s: 0.9, r: 0 }, hero: { x: 540, y: 885, s: 0.92, r: 0 },
       tl: { x: 511, y: 1081, s: 1.5, r: 0 }, tr: { x: 570, y: 1081, s: 1.5, r: 0 }, br: { x: 570, y: 479, s: 1.5, r: 0 }, bl: { x: 511, y: 479, s: 1.5, r: 0 },
       top: { x: 540, y: 1031, s: 1.5, r: 0 }, media: { x: 540, y: 573, s: 1.3, r: 0 }, settings: { x: 540, y: 885, s: 0.92, r: 0 },
-      land: { x: 540, y: 900, s: 0.98, r: -90 }, landRight: { x: 540, y: 900, s: 0.9, r: -90 }, end: { x: 540, y: 1040, s: 0.62, r: 0 }, wide: { x: 540, y: 885, s: 0.92, r: 0 },
+      land: { x: 540, y: 900, s: 0.98, r: -90 }, landRight: { x: 540, y: 900, s: 0.9, r: -90 }, end: { x: 540, y: 1075, s: 0.58, r: 0 }, wide: { x: 540, y: 885, s: 0.92, r: 0 },
       roomWide: { x: 540, y: 1900, s: 0.9, r: 0 }, raceSplit: { x: 540, y: 1150, s: 0.62, r: -90 }, split169: { x: 328, y: 1257, s: 1.1, r: 0 }, talk: { x: 540, y: 1900, s: 0.9, r: 0 },
-      lapPhone: { x: 540, y: 1168, s: 0.64, r: 0 }, lapLand: { x: 540, y: 1100, s: 0.95, r: -90 }, lapTl: { x: 640, y: 1468, s: 1.3, r: 0 }, lapTr: { x: 440, y: 1468, s: 1.3, r: 0 }, lapBr: { x: 440, y: 756, s: 1.3, r: 0 }, lapBl: { x: 640, y: 756, s: 1.3, r: 0 },
+      lapPhone: { x: 540, y: 1168, s: 0.64, r: 0 }, lapLand: { x: 540, y: 1100, s: 0.95, r: -90 }, lapTl: { x: 640, y: 1468, s: 1.3, r: 0 }, lapTr: { x: 440, y: 1468, s: 1.3, r: 0 }, lapBr: { x: 440, y: 756, s: 1.3, r: 0 }, lapBl: { x: 640, y: 756, s: 1.3, r: 0 }, lapFoot: { x: 540, y: 886, s: 1.0, r: 0 }, lapHead: { x: 540, y: 1338, s: 1.0, r: 0 },
     },
   };
   const CAM = CAMS[LAY];
