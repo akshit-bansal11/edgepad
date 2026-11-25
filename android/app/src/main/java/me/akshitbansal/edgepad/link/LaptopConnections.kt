@@ -17,6 +17,7 @@ interface Scheduler {
     ): () -> Unit
 }
 
+/** The real [Scheduler]: time since boot, which a wall-clock change cannot move, and the main looper. */
 class MainScheduler : Scheduler {
     private val handler = Handler(Looper.getMainLooper())
 

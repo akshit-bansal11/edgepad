@@ -3,26 +3,37 @@ namespace Edgepad.Protocol;
 /// <summary>One message on the wire. Type bytes and payload layouts live in <see cref="FrameCodec"/>.</summary>
 internal abstract record Frame;
 
+/// <summary>HELLO, phone to laptop: opens a session at the phone's protocol version.</summary>
 internal sealed record Hello(byte Version) : Frame;
 
+/// <summary>HELLO_ACK, laptop to phone: accepts the session; on a version mismatch it carries the laptop's version, then closes.</summary>
 internal sealed record HelloAck(byte Version) : Frame;
 
+/// <summary>MOVE: moves the pointer by this many laptop pixels, before the OS's acceleration.</summary>
 internal sealed record Move(short Dx, short Dy) : Frame;
 
+/// <summary>BUTTON: presses or releases a mouse button, 0 left, 1 right, 2 middle.</summary>
 internal sealed record PointerButton(byte Id, bool Down) : Frame;
 
+/// <summary>SCROLL: wheel units, 120 to a notch; a positive <paramref name="Dy"/> is the wheel turned forward.</summary>
 internal sealed record Scroll(short Dx, short Dy) : Frame;
 
+/// <summary>ZOOM: Ctrl+wheel units, as a pinch on the pad sends them.</summary>
 internal sealed record Zoom(short Delta) : Frame;
 
+/// <summary>ACTION: runs one action of <see cref="ActionId"/>, the table in <c>protocol/actions.txt</c>.</summary>
 internal sealed record RunAction(byte Id) : Frame;
 
+/// <summary>SET: sets a control (volume, brightness, a dial) to 0..100; the laptop drops anything above 100.</summary>
 internal sealed record SetValue(byte Control, byte Value) : Frame;
 
+/// <summary>PING, phone to laptop: the phone's clock in nanoseconds, echoed back in a <see cref="Pong"/>.</summary>
 internal sealed record Ping(long Time) : Frame;
 
+/// <summary>PONG, laptop to phone: a <see cref="Ping"/>'s time echoed, for the round-trip readout.</summary>
 internal sealed record Pong(long Time) : Frame;
 
+/// <summary>STATE, laptop to phone: a control's current value. Flags bit 0 is muted for an audio control, playing for media.</summary>
 internal sealed record StateReport(byte Control, byte Value, byte Flags) : Frame;
 
 /// <summary>Text, of a <see cref="TextKind"/>: what is playing, the app, the timeline, or characters to type. At most 255 UTF-8 bytes.</summary>

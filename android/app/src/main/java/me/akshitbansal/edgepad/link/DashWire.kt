@@ -180,6 +180,10 @@ data class PermAsk(
     val text: String,
 )
 
+/**
+ * Which list of the GitHub page a BLOB GITHUB line belongs to, by its one-letter [char] on the wire: R is pull
+ * requests waiting on the user's review, M the user's own, N the notification count.
+ */
 enum class GithubSection(
     val char: Char,
 ) {

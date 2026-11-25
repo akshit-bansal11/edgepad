@@ -119,6 +119,7 @@ internal fun promoted(
     keys: Set<String>,
 ): List<SavedLaptop> = list.sortedByDescending { it.isIn(keys) }
 
+/** [list] without the laptops [keys] name, as Forget leaves it. */
 internal fun forgotten(
     list: List<SavedLaptop>,
     keys: Set<String>,

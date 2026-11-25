@@ -21,6 +21,7 @@ import java.util.Locale
 /** What the card's title says, from the snapshot alone. */
 enum class CardTitle { RUNNING_SEND, RUNNING_RECEIVE, DONE_ALL, DONE_SOME, FAILED_ONE, FAILED_MANY }
 
+/** Which title the transfer card shows for [s]: running one way, or how the batch ended. */
 internal fun titleKind(s: XferSnapshot): CardTitle =
     when {
         s.phase != XferPhase.FINISHED -> if (s.sending) CardTitle.RUNNING_SEND else CardTitle.RUNNING_RECEIVE
@@ -84,6 +85,7 @@ internal fun sizesOf(
 /** Whether the figures start with "file 2 of 5": a batch of several files, one of them begun. */
 internal fun showsCount(s: XferSnapshot) = s.total > 1 && s.index > 0
 
+/** Which of the card's buttons show for [s]: Pause or Resume and Stop while it runs, Retry once a send has failures. */
 internal fun buttonsOf(s: XferSnapshot): CardButtons {
     val running = s.phase != XferPhase.FINISHED
     return CardButtons(running, running && s.paused, running, !running && s.sending && s.failed.isNotEmpty())

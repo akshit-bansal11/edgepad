@@ -15,6 +15,7 @@ sealed interface KeyOut {
     object None : KeyOut
 }
 
+/** How a key behaves when pressed: sends its code, latches as a sticky modifier, or is the Fn key. */
 enum class KeyRole { NORMAL, MODIFIER, FN }
 
 /**
@@ -34,12 +35,15 @@ data class Cap(
     val oneShot: Boolean = false,
 ) : Item
 
+/** Empty space in a row, [units] key widths wide: the gap between key blocks, or the room under a tall key. */
 data class Gap(
     val units: Float,
 ) : Item
 
+/** One place in a keyboard row: a [Cap] or a [Gap]. */
 sealed interface Item
 
+/** The keyboard sizes the phone offers, named for the share of a full keyboard's keys each keeps, as laptops are. */
 enum class KeyboardSize(
     val percent: Int,
 ) {
@@ -51,8 +55,16 @@ enum class KeyboardSize(
     SIXTY(60),
 }
 
+/**
+ * The Function keys setting, like a laptop's Fn lock: [WITH_FN] reaches a [Cap.swappable] key's second side by holding
+ * Fn, [DIRECT] sends that side with no Fn and needs Fn for the first.
+ */
 enum class FnMode { WITH_FN, DIRECT }
 
+/**
+ * A keyboard of one [size]: its [rows] top to bottom, and [width], how many key units wide the board is, which the
+ * screen fits to its own width.
+ */
 class Layout(
     val size: KeyboardSize,
     val width: Float,
@@ -125,6 +137,7 @@ private const val WIDTH_75 = 16f
 private const val WIDTH_65 = 16f
 private const val WIDTH_60 = 15f
 
+/** The rows of keys for [size]. */
 fun layoutFor(size: KeyboardSize): Layout =
     when (size) {
         KeyboardSize.FULL -> full()

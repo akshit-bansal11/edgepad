@@ -301,6 +301,10 @@ const LIMIT_VARIANT: Record<Limit["kind"], "default" | "outline" | "solid"> = {
   accepted: "outline",
 };
 
+/**
+ * The reference sections that close /docs: decisions, limits, history, and the licence
+ * and credits.
+ */
 export function ReferenceSections() {
   return (
     <>

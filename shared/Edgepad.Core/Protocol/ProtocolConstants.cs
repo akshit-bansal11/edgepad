@@ -1,5 +1,6 @@
 namespace Edgepad.Protocol;
 
+/// <summary>The numbers both halves of the link must agree on before a frame is read; the phone holds the same ones.</summary>
 internal static class ProtocolConstants
 {
     /// <summary>

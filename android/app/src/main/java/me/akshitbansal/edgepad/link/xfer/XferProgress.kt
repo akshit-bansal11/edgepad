@@ -54,6 +54,7 @@ data class XferFailed(
     val why: XferFailure,
 )
 
+/** Whether a batch has not started, is moving, or has ended, however it ended. */
 enum class XferPhase { IDLE, RUNNING, FINISHED }
 
 /**

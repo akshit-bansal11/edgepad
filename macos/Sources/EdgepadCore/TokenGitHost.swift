@@ -202,6 +202,8 @@ protocol TokenGitSpec {
     func read(_ get: GitGet, api: URL) async -> GitRead
 }
 
+/// The common case: no account name needed, a fixed API root, a `user` endpoint, and the token in a header rather
+/// than the address.
 extension TokenGitSpec {
     var requiresUser: Bool { false }
     var apiIsFixed: Bool { true }

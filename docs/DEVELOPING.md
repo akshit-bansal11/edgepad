@@ -24,6 +24,8 @@ The repository is a monorepo:
 | `docs/` | Architecture and protocol. |
 | `site/` | The website: a landing page at the root, the documentation at `/docs`. Next.js; its own gate, not part of `check.ps1`. |
 
+Each app, the shared core and `protocol/` has a README of its own with a map of its folders: [android](../android/README.md), [windows](../windows/README.md), [linux](../linux/README.md), [macos](../macos/README.md), [shared/Edgepad.Core](../shared/Edgepad.Core/README.md) and [protocol](../protocol/README.md).
+
 ### Prerequisites
 
 Either half can be worked on alone, so install only what the part you are changing needs.

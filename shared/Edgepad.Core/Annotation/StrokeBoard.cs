@@ -15,6 +15,7 @@ internal enum BoardMode
     Sign,
 }
 
+/// <summary>What a stroke draws. Pen and Highlighter keep every point; Line, Arrow, Rectangle and Ellipse keep two.</summary>
 internal enum StrokeTool
 {
     Pen,

@@ -49,6 +49,7 @@ public protocol InputSink: AnyObject {
     func releaseAll()
 }
 
+/// An audio level as the phone shows it: 0 to 100, and whether it is muted.
 public struct Level: Equatable {
     public let percent: Int
     public let muted: Bool
@@ -125,6 +126,7 @@ public protocol ClipboardSurface: AnyObject {
     func write(_ content: ClipboardContent) -> Bool
 }
 
+/// Content that needs no re-encode is sent as `read` gave it.
 extension ClipboardSurface {
     public func encode(_ content: ClipboardContent) -> ClipboardContent? {
         content

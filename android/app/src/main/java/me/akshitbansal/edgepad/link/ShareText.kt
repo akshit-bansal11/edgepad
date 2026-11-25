@@ -89,6 +89,7 @@ internal sealed interface SharedText {
     data object TooLong : SharedText
 }
 
+/** What a share of [text] from another app becomes: nothing to send, too long for a clipboard frame, or its UTF-8 bytes. */
 internal fun sharedText(text: CharSequence?): SharedText {
     if (text == null || text.isBlank()) return SharedText.Blank
     val bytes = text.toString().toByteArray()

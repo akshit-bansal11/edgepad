@@ -9,6 +9,7 @@ public enum BoardMode: Equatable {
     case sign
 }
 
+/// What a stroke draws, the twin of the laptop core's StrokeTool: pen and highlighter keep every point, the shapes two.
 public enum StrokeTool: Int, CaseIterable {
     case pen
     case highlighter

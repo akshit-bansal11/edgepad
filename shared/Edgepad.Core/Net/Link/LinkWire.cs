@@ -263,15 +263,19 @@ internal static class LinkWire
     }
 }
 
+/// <summary>A phone's opening message on a network link, decoded by <see cref="LinkWire.DecodeRequest"/>.</summary>
 internal abstract record LinkRequest;
 
+/// <summary>Asks only who this laptop is: it gets its id, protocol version and name, and the link then closes.</summary>
 internal sealed record InfoRequest : LinkRequest;
 
+/// <summary>A request in a link version this laptop does not speak; the rest of it is not read.</summary>
 internal sealed record UnsupportedRequest(byte Version) : LinkRequest;
 
 /// <summary>A pairing request; <c>NameField</c> is the name as sent, length byte included, for the transcript.</summary>
 internal sealed record PairRequest(byte[] PhoneId, string Name, byte[] NameField, byte[] Commit) : LinkRequest;
 
+/// <summary>A phone already paired here reconnecting: its id, and the key and nonce for a fresh session key.</summary>
 internal sealed record ResumeRequest(byte[] PhoneId, byte[] PublicKey, byte[] Nonce) : LinkRequest;
 
 /// <summary>A laptop's reply as a phone decodes it; fields a mode does not carry are empty.</summary>

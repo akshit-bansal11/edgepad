@@ -8,6 +8,7 @@ using Edgepad.Updates;
 
 namespace Edgepad.Platform;
 
+/// <summary>How installing a downloaded update went.</summary>
 internal enum UpdateOutcome
 {
     /// <summary>The new program replaced the old one and was started; its second-launch path ends this copy.</summary>

@@ -23,7 +23,9 @@ object HubPages {
 /** What the speed strip of the Network page shows for the laptop's last [SpeedResult]. */
 enum class StripKind { IDLE, RUNNING, FAILED, STOPPED, DONE }
 
+/** Pure choices behind the Network page's speed strip, kept off the View so they can be tested. */
 object SpeedStrip {
+    /** Which face the strip shows; a capped test counts as done. */
     fun kind(speed: SpeedResult?): StripKind =
         when (speed?.state) {
             null -> StripKind.IDLE

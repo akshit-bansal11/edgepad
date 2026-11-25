@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.protocol
 
 import java.util.UUID
 
+/** The numbers both halves of the link must agree on before a frame is read; the laptops hold the same ones. */
 object ProtocolConstants {
     /**
      * Bumped only when the wire format changes in a way an older build cannot survive. Both apps refuse

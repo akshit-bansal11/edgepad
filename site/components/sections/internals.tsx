@@ -62,6 +62,10 @@ function IdTable({
   );
 }
 
+/**
+ * The developer docs' internals: the split, transport, architecture, threads, the wire
+ * protocol tables built from `protocol`, actions and security.
+ */
 export function InternalsSections({ protocol }: { protocol: ProtocolTables }) {
   return (
     <>

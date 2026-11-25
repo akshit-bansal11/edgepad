@@ -173,8 +173,10 @@ internal sealed class PairingLimiter(Func<long>? clock = null)
     private readonly record struct HostStreak(int Count, long RefusedUntil);
 }
 
+/// <summary>How one pairing attempt ended, which decides whether it counts toward the lock.</summary>
 internal enum PairingOutcome
 {
+    /// <summary>The phone proved the code and is now trusted.</summary>
     Paired,
 
     /// <summary>Counts toward the lock: a wrong code, a commitment that does not open, a bad confirmation.</summary>
