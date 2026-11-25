@@ -3,6 +3,9 @@
   "title": "Edgepad 5: the demo",
   "aspect": "16x9",
   "gap": 0.6,
+  "holds": { "2": 0.4, "9": 2.0, "22": 1.0 },
+  "poster_line": 9,
+  "duck_hold": 9,
   "chapters": [
     { "title": "Hook", "energy": 0.35, "lines": [
       "Your laptop's on the TV. Or the projector. Or across the room, running the show.",

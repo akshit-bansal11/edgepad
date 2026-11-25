@@ -27,6 +27,8 @@ a model.
 In the job: `pip install "earshot @ git+https://github.com/Leonxlnx/earshot"` into the existing venv (PyPI's `earshot`
 is a different project). Pin it to the commit current on the day of the build, and write the commit SHA in this file.
 
+Pinned commit: `7a7f7c5c70d4a763a1eca4b3666af7c77e313f97` (also `PIN` in sfx.py).
+
 A new script, `assets/video/sfx.py`, runs each request below with `--seed 0` and writes `out/sfx/<id>.wav`. It then
 lays every cue at its time from timing.json (cue times are keyed to words, like beats.js: `@word`) into
 `out/<script>/sfx.mp3`. Each composition carries it as `<audio id="sfx">` on track 2.
@@ -81,3 +83,16 @@ Mixing rules:
 - Duck all effects by 6 dB while the voice speaks, except taps and keys.
 - The finished mix must not clip: check the job's loudness reading for the full mix, and keep the true peak at or
   below -1 dBTP.
+
+## As built (sfx.py)
+
+- Cues live in `scripts/<id>.cues.json`; the format is documented at the top of `sfx.py`. The storyboard's `glide` is the
+  `swipe` cue. `engine-far` is laid at +6 dB over its table level, under `room-tone`.
+- `--n 6` takes are alternated in order. The engine is one 12 s render resampled by 0.8 / 1.0 / 1.25 (earshot's `--pitch`
+  is not used). earshot's wavs are decoded and resampled to 44.1 kHz stereo by ffmpeg, not numpy.
+- Race bed: a Python mirror of GAME.md's input table (ROWS in `sfx.py` mirrors `ui/game.js` EP.game.ROWS). Rows ease over
+  200 ms starting at each row's time. Engine trimmed 8 dB under the other effects. Boost at 4.4 s, four lamp whooshes
+  evenly over 4.5 to 5.5 s. After the hold the bed falls 1.5 s to -18 dB and runs to the end of line 10 (demo5), or stops
+  with the hold (reel5).
+- A cue keyed to a word is moved 80 ms after that word's start (every word counts as stressed), except taps and keys.
+- `room-tone` on demo5 line 19 is laid at -6 dB under the line ("drops" read as lowered, not stopped).

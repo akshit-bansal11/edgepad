@@ -2,6 +2,8 @@
   "id": "reel5",
   "title": "Edgepad 5 in ninety seconds",
   "gap": 0.9,
+  "holds": { "1": 1.5, "5": 3.0, "9": 1.0, "12": 1.5 },
+  "fit": { "under": 88, "holds": { "5": 5.0 }, "over": 98, "gap": 0.7 },
   "chapters": [
     { "title": "Hook", "energy": 0.4, "lines": [
       "Your laptop's across the room. Your phone is in your hand.",
