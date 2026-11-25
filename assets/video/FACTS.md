@@ -46,8 +46,8 @@ Confirm or cut it before the build.
 
 ## Not claimed, on purpose
 
-- A drag-anywhere keyboard canvas. UG:234 mentions one, but the code has only Size, Function keys and Keyboard text
-  size (K screens/KeyboardSettingsScreen.kt:17–53). That UG line is a docs drift item.
+- A drag-anywhere keyboard canvas. The keyboard has six fixed sizes only: Size, Function keys and Keyboard text size
+  (K screens/KeyboardSettingsScreen.kt:17–53). The user guide said otherwise until PR #89 corrected it.
 - Script or keystroke macros.
 - AI limits for Gemini CLI or OpenCode (sessions only).
 - A virtual controller on the Mac (keyboard mode only, UG:217).
