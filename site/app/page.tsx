@@ -454,7 +454,7 @@ export default function Page() {
         {/* The demo */}
         <section id="demo" className={SECTION}>
           <Heading
-            eyebrow="Demo, 2:40"
+            eyebrow="Demo, 2:35"
             title="Every feature, in under three minutes."
           />
           <Reveal className="mt-10">
