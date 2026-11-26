@@ -66,4 +66,4 @@ follows; keep doing that. K = android/app/src/main/java/me/akshitbansal/edgepad/
 | V3 | beats.js: new `BEATS.demo5` and `BEATS.reel5`, one entry per line, in STORYBOARD.md's order |
 | V4 | sfx.py (SOUND.md) and an `<audio id="sfx">` track 2 in each composition |
 | V5 | The `video` job (.github/workflows/ci.yml 384–530): install earshot into the venv, then run voice.py, music.py and sfx.py for demo5 and reel5. Stamp data-duration from out/demo5 and out/reel5. Render demo5, instagram5 and linkedin5 at 30 fps with `--video-bitrate 20M`, plus the covers. Make contact sheets for all three. Upload the `edgepad-video` and `edgepad-video-sheets` artifacts |
-| V6 | Keep the 4.0 compositions and scripts until the PR that ships the new film. That PR removes them from the job's render list, so the job renders only the 5.x cuts |
+| V6 | Done: the job renders only the 5.x cuts, and the 4.0 compositions, scripts and beats were deleted on 2026-11-26 |

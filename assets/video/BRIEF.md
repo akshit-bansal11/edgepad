@@ -14,8 +14,8 @@ voice: en-US-AndrewMultilingualNeural (edge-tts), one take per script
 
 ## Intent
 
-Edgepad 5.1's launch film and its social cut. The 4.0 films (scripts/full.json, scripts/short.json, the compositions
-index.html and cuts/linkedin.html, cuts/instagram.html) were a careful walkthrough. This one is a product film: fewer
+Edgepad 5.1's launch film and its social cut. The 4.0 films (removed on 2026-11-26) were a careful
+walkthrough. This one is a product film: fewer
 words on screen, bigger moves, more of the laptop's own screen, and every 5.x feature worth a second shown working.
 It keeps the 4.0 machinery (voice.py, music.py, ui/film.js as the director, ui/beats.js as the per-line acts, the
 ported canvas renderers) and the 4.0 dark look, and adds three things the 4.0 film never had:
