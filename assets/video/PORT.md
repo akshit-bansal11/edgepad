@@ -62,7 +62,7 @@ follows; keep doing that. K = android/app/src/main/java/me/akshitbansal/edgepad/
 | ID | Change |
 |---|---|
 | V1 | voice.py: read an optional per-line `hold` (seconds of extra silence after the line) and an optional script-level `poster_line`. The scripts stay plain strings, so put holds in a parallel `holds` map in the script JSON: `"holds": {"9": 2.0}` |
-| V2 | New compositions: `demo5.html` (16:9, CUT id demo5, script demo5), `cuts/instagram5.html` (1080x1920, script reel5), `cuts/linkedin5.html` (1080x1440, script reel5), plus covers `cuts/thumb5-landscape.html` and `cuts/thumb5-portrait.html` |
+| V2 | New compositions: `index.html` (16:9, CUT id demo5, script demo5), `cuts/instagram5.html` (1080x1920, script reel5), `cuts/linkedin5.html` (1080x1440, script reel5), plus covers `cuts/thumb5-landscape.html` and `cuts/thumb5-portrait.html` |
 | V3 | beats.js: new `BEATS.demo5` and `BEATS.reel5`, one entry per line, in STORYBOARD.md's order |
 | V4 | sfx.py (SOUND.md) and an `<audio id="sfx">` track 2 in each composition |
 | V5 | The `video` job (.github/workflows/ci.yml 384–530): install earshot into the venv, then run voice.py, music.py and sfx.py for demo5 and reel5. Stamp data-duration from out/demo5 and out/reel5. Render demo5, instagram5 and linkedin5 at 30 fps with `--video-bitrate 20M`, plus the covers. Make contact sheets for all three. Upload the `edgepad-video` and `edgepad-video-sheets` artifacts |
