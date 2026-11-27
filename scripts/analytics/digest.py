@@ -23,6 +23,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from email.message import EmailMessage
+from http.client import HTTPException
 
 IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
 UA = "edgepad-analytics/1.0 (+https://github.com/akshit-bansal11/edgepad)"
@@ -42,8 +43,9 @@ def http(url: str, *, headers: dict | None = None, data: bytes | None = None, ra
             body = resp.read()
     except urllib.error.HTTPError as e:
         raise Unavailable(f"HTTP {e.code}") from None
-    except (urllib.error.URLError, TimeoutError) as e:
-        raise Unavailable(f"network: {getattr(e, 'reason', e)}") from None
+    except (OSError, HTTPException) as e:
+        # URLError, timeouts, resets mid-body and TLS errors are all OSError; IncompleteRead is HTTPException.
+        raise Unavailable(f"network: {getattr(e, 'reason', e) or type(e).__name__}") from None
     if raw:
         return body.decode("utf-8", "replace")
     try:
@@ -110,18 +112,21 @@ def read_github(repo: str) -> list[tuple[str, dict]]:
             clones = http(f"{base}/clones", headers=h)
             refs = http(f"{base}/popular/referrers", headers=h)
             yday = (dt.datetime.now(dt.timezone.utc).date() - dt.timedelta(days=1)).isoformat()
-            day = next((v for v in views.get("views", []) if v["timestamp"].startswith(yday)), {})
+            day = next((v for v in views.get("views", []) if v["timestamp"].startswith(yday)), None)
             traffic = {
                 "views, last 14 days": views.get("count", 0),
                 "unique visitors, last 14 days": views.get("uniques", 0),
-                "views yesterday (UTC)": day.get("count", 0),
                 "clones, last 14 days": clones.get("count", 0),
             }
+            if day is not None:  # GitHub's traffic lags; a day it has not counted yet is unknown, not 0
+                traffic["views yesterday (UTC)"] = day.get("count", 0)
             for ref in refs[:6]:
                 traffic[f"from {ref['referrer']}, 14 days"] = ref["count"]
             sections.append(("GitHub traffic", traffic))
         except Unavailable as e:
             sections.append(("GitHub traffic", {"_error": str(e)}))
+        except (KeyError, IndexError, TypeError, ValueError, AttributeError) as e:
+            sections.append(("GitHub traffic", {"_error": f"unexpected response ({type(e).__name__})"}))
     else:
         sections.append(("GitHub traffic", {"_error": "add secret GH_TRAFFIC_TOKEN to see views and referrers"}))
     return sections
@@ -287,13 +292,19 @@ def build(config: dict, prev: dict, today: dt.date):
             sections.append((name, "", metrics))
     except Unavailable as e:
         sections.append(("GitHub", "", {"_error": str(e)}))
+    except (KeyError, IndexError, TypeError, ValueError, AttributeError) as e:
+        sections.append(("GitHub", "", {"_error": f"unexpected response ({type(e).__name__})"}))
 
     manual, upcoming = [], []
     for post in config.get("post", []):
         name, kind, url = post["name"], post["kind"], post.get("url", "")
         live = post.get("live_from")
-        if live and dt.date.fromisoformat(live) > today:
-            upcoming.append(f"{name}: {dt.date.fromisoformat(live):%d %b %Y}")
+        if isinstance(live, str) and live:
+            live = dt.date.fromisoformat(live)  # a bare TOML date is already a date
+        if isinstance(live, dt.datetime):
+            live = live.date()
+        if live and live > today:
+            upcoming.append(f"{name}: {live:%d %b %Y}")
         elif not url:
             upcoming.append(f"{name}: link not added yet" + (" (should be live now)" if live else ""))
         elif kind == "manual":
@@ -303,7 +314,7 @@ def build(config: dict, prev: dict, today: dt.date):
                 metrics = READERS[kind](url)
             except Unavailable as e:
                 metrics = {"_error": str(e)}
-            except (KeyError, IndexError, TypeError, ValueError) as e:
+            except (KeyError, IndexError, TypeError, ValueError, AttributeError) as e:
                 metrics = {"_error": f"unexpected response ({type(e).__name__})"}
             sections.append((name, url, metrics))
 
@@ -386,15 +397,22 @@ def main() -> None:
         config = tomllib.load(f)
     prev = {}
     if args.state_in and os.path.exists(args.state_in):
-        with open(args.state_in, encoding="utf-8") as f:
-            prev = json.load(f)
+        try:
+            with open(args.state_in, encoding="utf-8") as f:
+                prev = json.load(f)
+        except ValueError:
+            print("previous state is unreadable; this mail will have no changes", file=sys.stderr)
+        if not isinstance(prev, dict):
+            prev = {}
     today = dt.datetime.now(IST).date()
 
     sections, manual, upcoming, state, old, prev_date = build(config, prev, today)
     subject, text, body_html = render(sections, manual, upcoming, old, prev_date, today)
 
+    # Only a dry run writes the run summary: on a public repo anyone can read it, and the traffic
+    # figures are otherwise visible to repo admins only.
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
-    if summary:
+    if summary and args.dry_run:
         with open(summary, "a", encoding="utf-8") as f:
             f.write(f"```\n{text}\n```\n")
     if args.dry_run:
