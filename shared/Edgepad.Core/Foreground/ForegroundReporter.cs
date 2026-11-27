@@ -11,6 +11,7 @@ internal sealed class ForegroundReporter : IDisposable
     private readonly IForegroundApp source;
     private readonly Action<string> send;
     private readonly Action<TimeSpan, Action> later;
+    private readonly ForegroundKind? kind;
     private readonly Lock gate = new();
     private IDisposable? watch;
     private string? pending;
@@ -20,11 +21,13 @@ internal sealed class ForegroundReporter : IDisposable
     private int generation;
 
     /// <param name="later">Runs the action once after the delay, on any thread. Not inline: the reporter holds its lock when it asks.</param>
-    public ForegroundReporter(IForegroundApp source, Action<string> send, Action<TimeSpan, Action>? later = null)
+    /// <param name="kind">Told the token of every app reported, and started and stopped with the watch.</param>
+    public ForegroundReporter(IForegroundApp source, Action<string> send, Action<TimeSpan, Action>? later = null, ForegroundKind? kind = null)
     {
         this.source = source;
         this.send = send;
         this.later = later ?? Later;
+        this.kind = kind;
     }
 
     /// <summary>True starts watching and sends the current app at once; false stops. Either again is a no-op.</summary>
@@ -44,6 +47,7 @@ internal sealed class ForegroundReporter : IDisposable
             var stopped = watch;
             watch = null;
             stopped?.Dispose();
+            kind?.Stop();
             watching = value;
             if (!value)
             {
@@ -52,6 +56,8 @@ internal sealed class ForegroundReporter : IDisposable
             }
 
             Log.Write("foreground watch on");
+            kind?.Reset();
+            kind?.Start();
             try
             {
                 watch = source.Watch(Changed);
@@ -137,6 +143,8 @@ internal sealed class ForegroundReporter : IDisposable
         {
             // A lost report costs nothing: the next change is sent afresh.
         }
+
+        kind?.SetForeground(text.Split('/')[0]);
     }
 
     private static void Later(TimeSpan delay, Action action) =>
