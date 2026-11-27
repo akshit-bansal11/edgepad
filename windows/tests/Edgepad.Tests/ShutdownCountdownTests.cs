@@ -33,4 +33,11 @@ public sealed class ShutdownCountdownTests
         now += 120_000;
         Assert.False(clock.Poll());
     }
+
+    [Theory]
+    [InlineData(250L, 250L, false)]
+    [InlineData(4_000L, 250L, false)]
+    [InlineData(30_000L, 250L, true)]
+    public void ATickClockJumpPastTheAwakeOneIsASleep(long tick, long awake, bool slept) =>
+        Assert.Equal(slept, ShutdownCountdown.Slept(tick, awake));
 }

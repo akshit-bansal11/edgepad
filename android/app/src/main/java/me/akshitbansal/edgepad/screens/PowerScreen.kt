@@ -2,6 +2,7 @@ package me.akshitbansal.edgepad.screens
 
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.TextView
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
@@ -15,8 +16,9 @@ import me.akshitbansal.edgepad.protocol.PowerStateToken
  * shut down by starting the laptop's own 60 s countdown. There is no confirmation: the countdown is the undo, and
  * while one runs the page says so and offers Cancel. Each row is drawn only for what the laptop named. The seconds
  * tick on a loop this view owns, started when it is attached and stopped when it is not, so nothing runs while
- * another page is showing. [onRedraw] is handed the function that redraws the page, for the activity to call when the
- * laptop's state or features change, since rebuilding would throw the scroll position back to the top.
+ * another page is showing. A tick changes only the seconds text: rebuilding the rows would cancel a tap on Cancel
+ * that spans it, and move TalkBack's focus. [onRedraw] is handed the function that redraws the page, for the activity
+ * to call when the laptop's state or features change, since rebuilding would throw the scroll position back to the top.
  */
 object PowerScreen {
     private const val TICK_MS = 1000L
@@ -31,9 +33,10 @@ object PowerScreen {
         onRedraw: (redraw: () -> Unit) -> Unit,
     ): View {
         val body = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
+        var countdown: TextView? = null
         val redraw = {
             body.removeAllViews()
-            Column(ui, body).fill(ui, features(), power(), laptopName(), send)
+            countdown = Column(ui, body).fill(ui, features(), power(), laptopName(), send)
         }
         redraw()
         val page =
@@ -44,7 +47,9 @@ object PowerScreen {
         val ticker =
             object : Runnable {
                 override fun run() {
-                    if (power() != null) redraw()
+                    val up = power()
+                    val line = countdown
+                    if (up != null && line != null) line.text = countdownText(ui, up, laptopName())
                     page.postDelayed(this, TICK_MS)
                 }
             }
@@ -69,12 +74,10 @@ object PowerScreen {
         power: PowerState?,
         laptopName: String,
         send: (ActionId) -> Unit,
-    ) {
-        if (power != null) {
-            val line =
-                if (power.kind == PowerStateToken.RESTART) R.string.power_restarting else R.string.power_shutting_down
-            val left = power.secondsLeft(PowerState.now())
-            add(ui.secondary(ui.string(line, laptopName, left), Type.BODY, ui.palette.ink))
+    ): TextView? {
+        val countdown = power?.let { ui.secondary(countdownText(ui, it, laptopName), Type.BODY, ui.palette.ink) }
+        if (countdown != null) {
+            add(countdown)
             add(ui.button(ui.string(R.string.power_cancel), Ui.Style.OUTLINED) { send(ActionId.POWER_CANCEL) }, Space.M)
         }
         card(if (power != null) Space.XL else 0f) {
@@ -98,6 +101,17 @@ object PowerScreen {
                 if (shutDown) action(ui, R.string.power_shut_down) { send(ActionId.SHUT_DOWN) }
             }
         }
+        return countdown
+    }
+
+    private fun countdownText(
+        ui: Ui,
+        power: PowerState,
+        laptopName: String,
+    ): String {
+        val line =
+            if (power.kind == PowerStateToken.RESTART) R.string.power_restarting else R.string.power_shutting_down
+        return ui.string(line, laptopName, power.secondsLeft(PowerState.now()))
     }
 
     private fun Column.action(

@@ -1,9 +1,9 @@
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 using Edgepad.Power;
 using Edgepad.Protocol;
 using Edgepad.Ui;
-using Microsoft.Win32;
 
 namespace Edgepad.Dispatch;
 
@@ -42,7 +42,7 @@ internal sealed class CountdownClock(int seconds, Func<long> nowMs)
 /// ceiling) on a thread of its own, because the caller is the session's thread. One for the whole app: a session
 /// ending never takes it down, and a phone that reconnects reads <see cref="Pending"/>.
 /// </summary>
-internal sealed class ShutdownCountdown : Form
+internal sealed partial class ShutdownCountdown : Form
 {
     private static readonly Lock Gate = new();
     private static readonly CompositeFormat RestartText = CompositeFormat.Parse(Strings.Power_RestartText);
@@ -57,6 +57,8 @@ internal sealed class ShutdownCountdown : Form
     private readonly Button cancel = new() { Text = Strings.Power_Cancel, AutoSize = true, DialogResult = DialogResult.Cancel };
     private readonly System.Windows.Forms.Timer tick = new() { Interval = 250 };
     private bool reachedZero;
+    private long lastTick = Environment.TickCount64;
+    private long lastAwake = AwakeMs();
 
     private ShutdownCountdown(PowerKind kind, CountdownClock clock)
     {
@@ -82,7 +84,6 @@ internal sealed class ShutdownCountdown : Form
         ShowSeconds();
         tick.Tick += (_, _) => Step();
         tick.Start();
-        SystemEvents.PowerModeChanged += OnPowerModeChanged;
     }
 
     /// <summary>The countdown that is up, and its whole seconds left; null when none is.</summary>
@@ -137,26 +138,25 @@ internal sealed class ShutdownCountdown : Form
 
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
-        SystemEvents.PowerModeChanged -= OnPowerModeChanged;
         tick.Dispose();
         clock.Cancel();
         base.OnFormClosed(e);
     }
 
     /// <summary>
-    /// The tick clock keeps counting while the laptop sleeps, so without this it would fire right after waking. A resume
-    /// gives the owner the whole window again, and tells the phone.
+    /// The tick clock keeps counting while the laptop sleeps and the awake clock does not, so a gap of seconds between
+    /// the two since the last tick was a sleep. Checked inside the tick, before the clock is polled: a resume event can
+    /// arrive after the first tick on waking, and that tick would already see zero.
     /// </summary>
-    private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs e)
-    {
-        if (e.Mode != PowerModes.Resume)
-        {
-            return;
-        }
+    internal static bool Slept(long tickDeltaMs, long awakeDeltaMs) => tickDeltaMs - awakeDeltaMs >= 5_000;
 
-        clock.Restart();
-        WindowsPower.Report($"{(kind == PowerKind.Restart ? PowerStateToken.Restart : PowerStateToken.ShutDown)}/{PowerControl.CountdownSeconds}");
-    }
+    /// <summary>Milliseconds awake. QueryUnbiasedInterruptTime leaves out sleep and hibernation.</summary>
+    private static long AwakeMs() =>
+        QueryUnbiasedInterruptTime(out var hundredNs) ? (long)(hundredNs / 10_000) : Environment.TickCount64;
+
+    [LibraryImport("kernel32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool QueryUnbiasedInterruptTime(out ulong unbiasedTime);
 
     private static void Run(PowerKind kind, CountdownClock clock, Action<bool> ended)
     {
@@ -196,6 +196,18 @@ internal sealed class ShutdownCountdown : Form
             Close();
             return;
         }
+
+        // A wake gives the owner the whole window again, and tells the phone.
+        var nowTick = Environment.TickCount64;
+        var nowAwake = AwakeMs();
+        if (Slept(nowTick - lastTick, nowAwake - lastAwake))
+        {
+            clock.Restart();
+            WindowsPower.Report($"{(kind == PowerKind.Restart ? PowerStateToken.Restart : PowerStateToken.ShutDown)}/{PowerControl.CountdownSeconds}");
+        }
+
+        lastTick = nowTick;
+        lastAwake = nowAwake;
 
         if (clock.Poll())
         {

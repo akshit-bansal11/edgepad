@@ -12,6 +12,9 @@ final class MacPower: PowerPlatform {
     private var counting: (kind: PowerKind, deadline: Date)?
     /// Main thread only: the alert's window while it is up.
     private var alertWindow: NSWindow?
+    /// Main thread only: the two clocks at the countdown's last tick, to tell a sleep from a slow tick.
+    private var lastWall = Date()
+    private var lastUptime: TimeInterval = 0
     /// Under `gate`: a cancel was asked for. From then on the countdown can never restart or shut down, even when the
     /// alert is still under a trust prompt and cannot close yet; the phone is told "cancelled" at once.
     private var cancelled = false
@@ -100,7 +103,7 @@ final class MacPower: PowerPlatform {
     /// Modal, so it cannot be missed. A one second timer in the common modes (which include the modal one) ticks the
     /// text down and stops the loop at zero. The answer is the loop's own: `.stop` is the expiry, anything else
     /// (Cancel, a cancel from the phone, the window closed) is a cancel. The deadline is the one in `counting`, which a
-    /// wake from sleep moves back to the full time, because the clock kept counting while the Mac slept.
+    /// sleep moves back to the full time, because the wall clock kept counting while the Mac slept.
     private func show(_ kind: PowerKind, seconds: Int, ended: (Bool) -> Void) {
         let alert = NSAlert()
         let what = kind == .restart ? "restart" : "shut down"
@@ -109,7 +112,19 @@ final class MacPower: PowerPlatform {
         alert.informativeText = "You asked your phone to \(what) this Mac. Press Cancel to stop it."
         alert.addButton(withTitle: "Cancel")
         alertWindow = alert.window
+        lastWall = Date()
+        lastUptime = ProcessInfo.processInfo.systemUptime
         let timer = Timer(timeInterval: 1, repeats: true) { [self] _ in
+            // Checked here, before the seconds are read: a wake notification can land after this tick, which would
+            // already see zero. Uptime stops while the Mac sleeps and the wall clock does not.
+            let wall = Date()
+            let uptime = ProcessInfo.processInfo.systemUptime
+            if wall.timeIntervalSince(lastWall) - (uptime - lastUptime) >= 5 {
+                gate.withLock { counting?.deadline = wall.addingTimeInterval(TimeInterval(seconds)) }
+                PowerControl.countdownRestarted()
+            }
+            lastWall = wall
+            lastUptime = uptime
             let left = pending?.secondsLeft ?? 0
             alert.messageText = Self.message(what, left)
             if gate.withLock({ cancelled }) {
@@ -119,17 +134,9 @@ final class MacPower: PowerPlatform {
             }
         }
         RunLoop.main.add(timer, forMode: .common)
-        let wake = NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
-        ) { [self] _ in
-            gate.withLock { counting?.deadline = Date().addingTimeInterval(TimeInterval(seconds)) }
-            alert.messageText = Self.message(what, seconds)
-            PowerControl.countdownRestarted()
-        }
         NSApp.activate(ignoringOtherApps: true)
         let answer = alert.runModal()
         timer.invalidate()
-        NSWorkspace.shared.notificationCenter.removeObserver(wake)
         alert.window.orderOut(nil)
         alertWindow = nil
         // Expiry with a cancel already asked for ends as a cancel, so the phone's "" was true.
