@@ -309,6 +309,8 @@ public final class Session {
         power?.changed = nil
         dispatcher.media?.changed = nil
         dispatcher.endAction = nil
+        // Only the callback: a countdown already up keeps running, and a phone that reconnects is told of it.
+        dispatcher.power?.stateChanged = nil
         // The overlay goes with the session: a phone that vanishes mid-drawing must leave no layer on the screen.
         dispatcher.annotation?.end()
         dispatcher.capture?.end()
@@ -641,6 +643,12 @@ public final class Session {
                     self?.send(.text(kind: TextKind.endAction.rawValue, value: token))
                 })
         }
+        if let control = dispatcher.power {
+            features += PowerControl.features(control.caps)
+            control.stateChanged = { [weak self] state in
+                self?.send(.text(kind: TextKind.powerState.rawValue, value: state))
+            }
+        }
         // Every media source reports its changes, with or without the end action.
         dispatcher.media?.changed = { [weak self] in self?.sendMedia() }
         baseFeatures = features
@@ -657,6 +665,9 @@ public final class Session {
             dispatcher.gitOpen = { [weak link] wire in link?.openGit(wire) ?? false }
         }
         send(.text(kind: TextKind.features.rawValue, value: features.joined(separator: "/")))
+        if let state = dispatcher.power?.currentState(), !state.isEmpty {
+            send(.text(kind: TextKind.powerState.rawValue, value: state))
+        }
         if let link = dashboard, !isEnded {
             let unavailable = link.unavailable()
             if !unavailable.isEmpty {

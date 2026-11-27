@@ -347,3 +347,48 @@ final class FakeForeground: ForegroundSource {
         onChange?(text)
     }
 }
+
+/// A power platform that records what it was asked and lets a test end the countdown by hand.
+final class FakePowerPlatform: PowerPlatform {
+    var caps: PowerCaps = [.sleep, .hibernate, .restart, .shutDown]
+    private(set) var slept = 0
+    private(set) var hibernated = 0
+    private(set) var executed: [PowerKind] = []
+    private(set) var started: [PowerKind] = []
+    var pending: (kind: PowerKind, secondsLeft: Int)?
+    private var ended: ((Bool) -> Void)?
+
+    func sleep() -> Bool {
+        slept += 1
+        return true
+    }
+
+    func hibernate() -> Bool {
+        hibernated += 1
+        return true
+    }
+
+    func startCountdown(_ kind: PowerKind, seconds: Int, ended: @escaping (Bool) -> Void) -> Bool {
+        started.append(kind)
+        pending = (kind, seconds)
+        self.ended = ended
+        return true
+    }
+
+    func cancelCountdown() {
+        finish(false)
+    }
+
+    func execute(_ kind: PowerKind) -> Bool {
+        executed.append(kind)
+        return true
+    }
+
+    /// The countdown reaching zero (true) or the window closing (false).
+    func finish(_ fired: Bool) {
+        guard let ended else { return }
+        self.ended = nil
+        pending = nil
+        ended(fired)
+    }
+}
