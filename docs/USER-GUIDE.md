@@ -168,7 +168,7 @@ The phone shows a card with the file name, "2 of 5", a progress bar with percent
 
 #### App profiles
 
-**Settings › App profiles › Switch dials and gestures by app.** On by default; a turned-off setting stays off. The laptop tells the phone which app is in front, only while this is on.
+**Settings › Surface › App profiles › Switch dials and gestures by app** (also the surface's gear). On by default; a turned-off setting stays off. The laptop tells the phone which app is in front, only while this is on.
 
 **Automatic** switches the dials to the kind of app in front: media, timeline or browser. The laptop sends only that kind, never a window title. Your own app profiles win over Automatic. On the Mac, media is detected only for Music and Spotify. Linux only under X11; not on a Wayland session.
 
