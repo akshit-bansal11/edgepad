@@ -16,8 +16,8 @@ import me.akshitbansal.edgepad.Settings
 /**
  * The app's settings, one page in five groups: Connection (the laptops and how Edgepad stays connected to them),
  * Screens (a row for each page that has settings of its own: the surface, the controls, the keyboard, the gamepad, the
- * macros, the presenter and capture), Appearance, Help and about, and Advanced. A setting here and the same setting on a
- * feature's own screen or sheet edit the same stored value. Opened from the Devices list's gear and from the last row
+ * macros, the presenter and capture), Appearance, Help and about, and Advanced. A setting here and the same setting on
+ * a feature's own screen or sheet edit the same stored value. Opened from the Devices list's gear and from the last row
  * of the surface's settings. Every change is saved as it is made. Sideways, the groups sit in two columns.
  */
 object SettingsScreen {
