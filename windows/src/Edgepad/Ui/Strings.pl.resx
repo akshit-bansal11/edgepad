@@ -509,13 +509,19 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Update_MajorWarning" xml:space="preserve">
     <value>To duże wydanie. Zaktualizuj Edgepad także na telefonie, bo inaczej odrzucą się nawzajem. Zainstalować teraz?</value>
   </data>
-  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+  <data name="Power_RestartTitle" xml:space="preserve">
+    <value>Ponowne uruchamianie</value>
+  </data>
+  <data name="Power_RestartText" xml:space="preserve">
+    <value>Ten laptop uruchomi się ponownie za {0} s.</value>
+  </data>
+  <data name="Power_ShutdownTitle" xml:space="preserve">
     <value>Zamykanie systemu</value>
   </data>
-  <data name="EndAction_ShutdownText" xml:space="preserve">
-    <value>Odtwarzanie się skończyło. Ten laptop wyłączy się za {0} s.</value>
+  <data name="Power_ShutdownText" xml:space="preserve">
+    <value>Ten laptop wyłączy się za {0} s.</value>
   </data>
-  <data name="EndAction_Cancel" xml:space="preserve">
+  <data name="Power_Cancel" xml:space="preserve">
     <value>Anuluj</value>
   </data>
   <data name="Menu_SendFile" xml:space="preserve">
