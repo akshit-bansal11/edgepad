@@ -59,10 +59,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Title, body and claude-tldr.yml's triage only: any other comment can come from anyone, even on the
-          # owner's issue.
+          # Title, body and claude-tldr.yml's triage only (its comments start **TL;DR:**; this workflow's own
+          # notices do not): any other comment can come from anyone, even on the owner's issue.
           gh issue view "$NUMBER" --repo "$GITHUB_REPOSITORY" --json title,body,comments \
-            --jq '[.comments[] | select(.author.login == "github-actions") | .body] as $t
+            --jq '[.comments[] | select(.author.login == "github-actions" and (.body | contains("**TL;DR:**"))) | .body] as $t
               | "# " + .title + "\n\n" + (.body // "")
               + (if ($t | length) > 0 then "\n\n## Triage and plan by claude-tldr.yml\n" + ($t | map("\n---\n" + .) | join("")) else "" end)' \
             > ./.issue.txt
