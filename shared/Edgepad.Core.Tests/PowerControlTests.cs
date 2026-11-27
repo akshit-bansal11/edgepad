@@ -69,6 +69,20 @@ public sealed class PowerControlTests
     }
 
     [Fact]
+    public void ACountdownFromAnEarlierSessionBlocksSleepAndAnotherStart()
+    {
+        // A new session's PowerControl, while the countdown an earlier one started is still on screen.
+        platform.Pending = (PowerKind.ShutDown, 40);
+
+        Assert.False(control.Run(ActionId.Sleep));
+        Assert.False(control.Run(ActionId.Hibernate));
+        Assert.True(control.Run(ActionId.Restart));
+        Assert.Equal(0, platform.Slept);
+        Assert.Equal(0, platform.Started);
+        Assert.Empty(states);
+    }
+
+    [Fact]
     public void CurrentStateIsThePendingCountdown()
     {
         Assert.Equal("", control.CurrentState());

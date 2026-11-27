@@ -90,13 +90,22 @@ internal sealed class PowerControl(IPowerPlatform platform, Action<string> state
     private static string State(PowerKind kind, int seconds) =>
         $"{(kind == PowerKind.Restart ? PowerStateToken.Restart : PowerStateToken.ShutDown)}/{seconds}";
 
-    /// <summary>Sleep during a countdown would let it run out in the sleep, so both are refused while one is pending.</summary>
+    /// <summary>
+    /// Sleep during a countdown would let it run out in the sleep, so both are refused while one is pending. The
+    /// platform's countdown is one for the app and outlives the session (and so this object) that started it, so it is
+    /// asked too, not only this object's own flag.
+    /// </summary>
     private bool IsCounting()
     {
         lock (gate)
         {
-            return counting;
+            if (counting)
+            {
+                return true;
+            }
         }
+
+        return platform.Pending is not null;
     }
 
     private bool Start(PowerKind kind, PowerCaps cap)
@@ -104,6 +113,12 @@ internal sealed class PowerControl(IPowerPlatform platform, Action<string> state
         if (!platform.Caps.HasFlag(cap))
         {
             return false;
+        }
+
+        // A countdown an earlier session started is still up: accepted, and nothing changes.
+        if (platform.Pending is not null)
+        {
+            return true;
         }
 
         lock (gate)
