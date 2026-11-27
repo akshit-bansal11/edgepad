@@ -62,8 +62,9 @@ jobs:
           # Title, body and claude-tldr.yml's triage only: any other comment can come from anyone, even on the
           # owner's issue.
           gh issue view "$NUMBER" --repo "$GITHUB_REPOSITORY" --json title,body,comments \
-            --jq '"# " + .title + "\n\n" + (.body // "") + "\n\n## Triage and plan by claude-tldr.yml\n"
-              + ([.comments[] | select(.author.login == "github-actions") | "\n---\n" + .body] | join(""))' \
+            --jq '[.comments[] | select(.author.login == "github-actions") | .body] as $t
+              | "# " + .title + "\n\n" + (.body // "")
+              + (if ($t | length) > 0 then "\n\n## Triage and plan by claude-tldr.yml\n" + ($t | map("\n---\n" + .) | join("")) else "" end)' \
             > ./.issue.txt
           echo ".issue.txt" >> .git/info/exclude
 
@@ -156,7 +157,7 @@ jobs:
           # A usage limit, an outage or the turn limit would otherwise end with no PR and nothing on the issue.
           gh issue comment "$NUMBER" --repo "$GITHUB_REPOSITORY" --body "Claude could not finish this one, so no \
           pull request was opened (see the [run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)). \
-          To try again, remove the claude-fix label and add it back."
+          To try again, add the claude-fix label (remove it first if it is already on)."
           exit 1
 
   outside:
