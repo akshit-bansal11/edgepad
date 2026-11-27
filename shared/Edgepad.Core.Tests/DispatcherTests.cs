@@ -36,7 +36,7 @@ public sealed class DispatcherTests : IDisposable
 
     [Theory]
     [InlineData(0)]
-    [InlineData(7)]
+    [InlineData(19)]
     [InlineData(120)]
     [InlineData(255)]
     public void AnUnknownActionIsDropped(byte id)
