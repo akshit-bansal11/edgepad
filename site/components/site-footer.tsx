@@ -4,6 +4,14 @@ import { REPO } from "@/lib/nav";
 const LINK =
   "press text-dim hover:text-foreground flex min-h-11 items-center rounded-lg transition-colors";
 
+const FEATURED = [
+  { name: "Aura++", href: "https://auraplusplus.com/projects/edgepad" },
+  {
+    name: "ScrollLaunch",
+    href: "https://www.scrolllaunch.com/products/edgepad?ref=badge",
+  },
+];
+
 /** Shared by the landing page and the documentation page. */
 export function SiteFooter() {
   return (
@@ -42,6 +50,21 @@ export function SiteFooter() {
             Back to top
           </a>
         </div>
+      </div>
+      {/* Launch directories look for a link back in this page's HTML. */}
+      <div className="text-dim mx-auto flex max-w-[90rem] flex-wrap items-center gap-x-5 px-4 pb-8 text-[0.9375rem] md:px-6">
+        <span>Featured on</span>
+        {FEATURED.map(({ name, href }) => (
+          <a
+            key={name}
+            href={href}
+            target="_blank"
+            rel="noreferrer noopener"
+            className={LINK}
+          >
+            {name}
+          </a>
+        ))}
       </div>
     </footer>
   );
