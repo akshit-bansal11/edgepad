@@ -1,8 +1,8 @@
 name: Claude TL;DR
 
 # Every new issue and pull request gets one comment from Claude: what it is, what is wrong or missing, and what
-# to do next, so the owner can implement, fix or close it without reading it all first. Line-by-line review of a
-# PR's code stays with claude-review.yml.
+# to do next, so the owner can implement, fix or close it without reading it all first. A PR from a branch of this
+# repo gets a summary only, at once: claude-review.yml reviews it line by line after its CI has finished.
 #
 # pull_request_target, not pull_request: a PR from a fork gets no secrets under pull_request, so most outside PRs
 # would never be summarised. pull_request_target runs this file as it is on main and checks out main, never the
@@ -32,15 +32,14 @@ permissions:
 jobs:
   tldr:
     # Bots (Dependabot and the like) say what they are in their own titles; a summary would only add noise.
-    # A PR from a branch of this repo gets the full claude-review.yml instead, so only forks are summarised here.
-    if: >-
-      github.event.sender.type != 'Bot' &&
-      (github.event_name == 'issues' || github.event.pull_request.head.repo.full_name != github.repository)
+    if: github.event.sender.type != 'Bot'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
       KIND: ${{ github.event_name == 'issues' && 'issue' || 'pr' }}
+      # A PR from a branch of this repo: summary only, since the full review follows once CI is done.
+      INTERNAL: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
       - name: Check out main (never the PR's code)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -81,8 +80,11 @@ jobs:
             2. Read .github/claude-review.md: what the repo is, and how to hunt for bugs.
             3. Look at the code on main in this checkout where it helps you judge (Read, Grep, Glob). For an issue,
                check whether it is already fixed in the code or already reported (.tldr/issues.json), and find the
-               code it is about: is the claim true as the code stands? For a PR, look for bugs, anything that would
-               fail CI, missing tests, security problems, and changes outside what the PR says it does.
+               code it is about: is the claim true as the code stands? ${{ env.INTERNAL == 'true' && 'For this PR,
+               summarise only: what it changes and why, and what to check on a device. Do not hunt for bugs; the
+               full review runs once CI has finished. Leave out "What''s wrong or missing".' || 'For a PR, look for
+               bugs, anything that would fail CI, missing tests, security problems, and changes outside what the PR
+               says it does.' }}
             4. Write the comment to .tldr/comment.md (a later step posts it), in this shape, plain words:
 
                **TL;DR:** one or two sentences.
