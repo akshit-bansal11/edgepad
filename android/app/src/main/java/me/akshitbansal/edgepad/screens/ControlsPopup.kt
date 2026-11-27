@@ -114,6 +114,9 @@ class ControlsPopup(
 
         /** Developer: the AI and Git pages. Drawn only with Developer mode on. */
         DEVELOPER(R.string.dev_title, StencilIcon.Kind.DEVELOPER),
+
+        /** Power: lock, sleep, hibernate, restart and shut down. Always drawn, for the page names what it can do. */
+        POWER(R.string.controls_power, StencilIcon.Kind.POWER),
     }
 
     private var dialog: AlertDialog? = null

@@ -151,6 +151,7 @@ import me.akshitbansal.edgepad.screens.PairCodeScreen
 import me.akshitbansal.edgepad.screens.PermissionSheet
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.PinScreen
+import me.akshitbansal.edgepad.screens.PowerScreen
 import me.akshitbansal.edgepad.screens.PresenterScreen
 import me.akshitbansal.edgepad.screens.ProfilesScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
@@ -259,6 +260,7 @@ class MainActivity :
         PRESENTER,
         SYSTEM,
         DEVELOPER,
+        POWER,
         KEYBOARD,
         GAMEPAD,
         MACROS,
@@ -349,8 +351,8 @@ class MainActivity :
     private var aiScreen: AiScreen? = null
     private var gitScreen: GitScreen? = null
 
-    /** Redraws the Settings page's "when this ends" row; set while that page shows. */
-    private var endRedraw: (() -> Unit)? = null
+    /** Redraws the Power page; set while that page shows. */
+    private var powerRedraw: (() -> Unit)? = null
 
     /** The surface's Hide dials switch, kept here because the surface is rebuilt and the switch is on Dials. */
     private var dialsHidden = false
@@ -1222,7 +1224,7 @@ class MainActivity :
         networkScreen = null
         aiScreen = null
         gitScreen = null
-        endRedraw = null
+        powerRedraw = null
         controls = null
         handler.removeCallbacks(ticker)
         if (next == Screen.PAIRING) startScan() else stopScan()
@@ -1330,14 +1332,6 @@ class MainActivity :
                         ),
                         developer = developerOn(),
                         developerEditable = connected,
-                        end =
-                            SettingsScreen.End(
-                                offered = connected && Feature.END_ACTION in state.features,
-                                armed = { state.endAction },
-                                hasTimeline = { state.duration > 0 },
-                                send = { action -> manager.send(action.frame()) },
-                                onRedraw = { redraw -> endRedraw = redraw },
-                            ),
                     )
                 }
 
@@ -1556,6 +1550,18 @@ class MainActivity :
                         onAdd = { app -> send(TextKind.APP_ADD.frame(app.token)) },
                         onRefresh = ::refreshApps,
                     ) { navigateBack() }.also { appList = it }.view
+                }
+
+                Screen.POWER -> {
+                    PowerScreen.build(
+                        ui,
+                        features = { state.features },
+                        power = { state.power },
+                        laptopName = ::hubLaptopName,
+                        send = { action -> manager.send(action.frame()) },
+                        onBack = { navigateBack() },
+                        onRedraw = { redraw -> powerRedraw = redraw },
+                    )
                 }
 
                 Screen.SYSTEM -> {
@@ -1858,7 +1864,7 @@ class MainActivity :
 
             // These are opened from the Controls popup over the surface, so back returns to it.
             Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE, Screen.PRESENTER,
-            Screen.SYSTEM, Screen.DEVELOPER,
+            Screen.SYSTEM, Screen.DEVELOPER, Screen.POWER,
             -> {
                 goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
                 // AND-A-32: back lands where the user came from, so the popup opens again over the surface.
@@ -2164,6 +2170,7 @@ class MainActivity :
                     ControlsPopup.Target.PRESENTER -> goTo(Screen.PRESENTER)
                     ControlsPopup.Target.SYSTEM -> goTo(Screen.SYSTEM)
                     ControlsPopup.Target.DEVELOPER -> goTo(Screen.DEVELOPER)
+                    ControlsPopup.Target.POWER -> goTo(Screen.POWER)
                 }
             }.also { it.show(owner, controlsCapture(), controlsAnnotate()) }
         sheets.add("controls") { controls?.dismiss() }
@@ -3109,12 +3116,12 @@ class MainActivity :
         if (sized) controls?.refresh(controlsCapture(), controlsAnnotate())
         if (frame is Frame.Text &&
             (
-                frame.kind == TextKind.END_ACTION.id ||
+                frame.kind == TextKind.POWER_STATE.id ||
                     frame.kind == TextKind.UNAVAILABLE.id ||
                     frame.kind == TextKind.FEATURES.id
             )
         ) {
-            endRedraw?.invoke()
+            powerRedraw?.invoke()
         }
         if (frame is Frame.Text && frame.kind == TextKind.SCREEN_SIZE.id) {
             annotate?.refresh()
@@ -3493,6 +3500,7 @@ class MainActivity :
                 Screen.PRESENTER,
                 Screen.SYSTEM,
                 Screen.DEVELOPER,
+                Screen.POWER,
             )
 
         /** What a laptop names when it can answer DASH_WATCH: one of these, or the phone never sends it. */
