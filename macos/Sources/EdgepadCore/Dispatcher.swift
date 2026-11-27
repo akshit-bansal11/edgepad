@@ -74,8 +74,8 @@ public final class Dispatcher {
     /// What a fired end action does to this Mac: sleep, or the shutdown countdown. Nil sends END_* to the drop path.
     public var endPerform: ((EndKind) -> Bool)?
 
-    /// Sleep, hibernate, restart and shut down, with the restart and shut down countdown. Set by the app per connection;
-    /// without one, those ids are dropped and counted and the features are not listed.
+    /// Sleep, hibernate, restart and shut down, with the restart and shut down countdown. Set by the app per
+    /// connection; without one, those ids are dropped and counted and the features are not listed.
     public var power: PowerControl?
 
     /// Armed by END_SLEEP and END_SHUTDOWN, disarmed by END_CANCEL. Set by the session once it has a link to write its
