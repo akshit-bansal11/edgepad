@@ -32,7 +32,7 @@ internal sealed class LinuxPower : IPowerPlatform
     /// Asked, with the 60 s cancellable window, instead of restarting or powering off at once. The Shell sets it. With
     /// none (no UI), a restart or shut down is refused: it never happens without the countdown.
     /// </summary>
-    internal static event Action<PowerKind, int, Action<bool>>? CountdownRequested;
+    internal static event Func<PowerKind, int, Action<bool>, bool>? CountdownRequested;
 
     // Whichever session is current hears the countdown's state, not only the one that started it.
     private static Action<string>? listener;
@@ -116,8 +116,7 @@ internal sealed class LinuxPower : IPowerPlatform
             return false;
         }
 
-        show(kind, seconds, ended);
-        return true;
+        return show(kind, seconds, ended);
     }
 
     public void CancelCountdown() => ShutdownCountdown.Cancel();

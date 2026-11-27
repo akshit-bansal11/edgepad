@@ -59,4 +59,19 @@ public sealed class AppKindsTests
         kind.SetForeground("chrome.exe");
         Assert.Equal(["browser", "media", "browser", "browser"], sent);
     }
+
+    [Fact]
+    public void ResetKeepsThePlayingAppAndResendsTheKind()
+    {
+        List<string> sent = [];
+        var kind = new ForegroundKind("windows", (token, source) => token == source, sent.Add);
+        kind.Start();
+        kind.SetPlaying("chrome.exe");
+        kind.SetForeground("chrome.exe");
+        Assert.Equal(["media"], sent);
+
+        kind.Reset();
+        kind.SetForeground("chrome.exe");
+        Assert.Equal(["media", "media"], sent);
+    }
 }

@@ -22,16 +22,28 @@ internal static class ShutdownCountdown
     // What is counting, for a phone that reconnects; set and cleared on the UI thread, read from any.
     private static volatile Running? running;
 
+    // 1 from an accepted Show until its window has closed, so a second Show is refused at once, from any thread.
+    private static int claimed;
+
     /// <summary>The countdown that is up, with the seconds left, or null.</summary>
     public static (PowerKind Kind, int SecondsLeft)? Pending =>
         running is { } now ? (now.Kind, SecondsLeft(now.DeadlineMs, Environment.TickCount64)) : null;
 
     /// <summary>
-    /// Puts the countdown up, once. <paramref name="ended"/> is called exactly once, off the UI thread: true when the
-    /// time ran out, false when it was cancelled or could not be shown. From any thread.
+    /// Puts the countdown up, once. False, with <paramref name="ended"/> never called, when one is already up or on its
+    /// way: the first countdown stays the only one. Otherwise <paramref name="ended"/> is called exactly once, off the UI
+    /// thread: true when the time ran out, false when it was cancelled or could not be shown. From any thread.
     /// </summary>
-    public static void Show(PowerKind kind, int seconds, Action<bool> ended) =>
+    public static bool Show(PowerKind kind, int seconds, Action<bool> ended)
+    {
+        if (Interlocked.CompareExchange(ref claimed, 1, 0) != 0)
+        {
+            return false;
+        }
+
         Dispatcher.UIThread.Post(() => Open(kind, seconds, ended));
+        return true;
+    }
 
     /// <summary>Closes the window, which cancels. Nothing when none is up. From any thread.</summary>
     public static void Cancel() => Dispatcher.UIThread.Post(() => open?.Close());
@@ -47,12 +59,6 @@ internal static class ShutdownCountdown
 
     private static void Open(PowerKind kind, int seconds, Action<bool> ended)
     {
-        if (open is not null)
-        {
-            _ = Task.Run(() => ended(false));
-            return;
-        }
-
         var look = Look.Current;
         var deadline = Environment.TickCount64 + (seconds * 1000L);
         var text = look.Text(Message(kind, seconds), 14);
@@ -100,6 +106,7 @@ internal static class ShutdownCountdown
             timer.Stop();
             open = null;
             running = null;
+            Volatile.Write(ref claimed, 0);
 
             // Off the UI thread: the restart or shut down call waits on the bus.
             _ = Task.Run(() => ended(due));
@@ -118,6 +125,7 @@ internal static class ShutdownCountdown
             Log.Write($"Could not open the shutdown countdown, so the laptop stays on: {e.Message}");
             open = null;
             running = null;
+            Volatile.Write(ref claimed, 0);
             timer.Stop();
             _ = Task.Run(() => ended(false));
         }

@@ -10,9 +10,11 @@ import Foundation
 final class MacPower: PowerPlatform {
     private let gate = NSLock()
     private var counting: (kind: PowerKind, deadline: Date)?
-    /// Main thread only: the alert's window while it is up, and whether a cancel waits for it to be on top.
+    /// Main thread only: the alert's window while it is up.
     private var alertWindow: NSWindow?
-    private var cancelRequested = false
+    /// Under `gate`: a cancel was asked for. From then on the countdown can never restart or shut down, even when the
+    /// alert is still under a trust prompt and cannot close yet; the phone is told "cancelled" at once.
+    private var cancelled = false
 
     /// Restart and shut down are offered only when System Events would take our Apple Events without asking, so a
     /// countdown that ends in nothing is never offered. HW: verify on device.
@@ -56,6 +58,7 @@ final class MacPower: PowerPlatform {
         let started = gate.withLock {
             guard counting == nil else { return false }
             counting = (kind, Date().addingTimeInterval(TimeInterval(seconds)))
+            cancelled = false
             return true
         }
         guard started else { return false }
@@ -66,8 +69,13 @@ final class MacPower: PowerPlatform {
     }
 
     func cancelCountdown() {
+        let counted = gate.withLock {
+            guard counting != nil else { return false }
+            cancelled = true
+            return true
+        }
+        guard counted else { return }
         DispatchQueue.main.async { [self] in
-            cancelRequested = true
             endIfOnTop(NSApp.abortModal)
         }
     }
@@ -81,6 +89,7 @@ final class MacPower: PowerPlatform {
     }
 
     func execute(_ kind: PowerKind) -> Bool {
+        guard !gate.withLock({ cancelled }) else { return false }
         let verb = kind == .restart ? "restart" : "shut down"
         DispatchQueue.global(qos: .utility).async {
             _ = NowPlayingHub.osascript(["tell application \"System Events\" to \(verb)"])
@@ -100,11 +109,10 @@ final class MacPower: PowerPlatform {
         alert.informativeText = "You asked your phone to \(what) this Mac. Press Cancel to stop it."
         alert.addButton(withTitle: "Cancel")
         alertWindow = alert.window
-        cancelRequested = false
         let timer = Timer(timeInterval: 1, repeats: true) { [self] _ in
             let left = pending?.secondsLeft ?? 0
             alert.messageText = Self.message(what, left)
-            if cancelRequested {
+            if gate.withLock({ cancelled }) {
                 endIfOnTop(NSApp.abortModal)
             } else if left == 0 {
                 endIfOnTop(NSApp.stopModal)
@@ -124,8 +132,12 @@ final class MacPower: PowerPlatform {
         NSWorkspace.shared.notificationCenter.removeObserver(wake)
         alert.window.orderOut(nil)
         alertWindow = nil
-        gate.withLock { counting = nil }
-        ended(answer == .stop)
+        // Expiry with a cancel already asked for ends as a cancel, so the phone's "" was true.
+        let fired = gate.withLock {
+            counting = nil
+            return answer == .stop && !cancelled
+        }
+        ended(fired)
     }
 
     private static func message(_ what: String, _ seconds: Int) -> String {

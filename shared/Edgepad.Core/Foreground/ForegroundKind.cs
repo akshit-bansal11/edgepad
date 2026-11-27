@@ -29,13 +29,15 @@ internal sealed class ForegroundKind(string os, Func<string, string, bool> sameP
         }
     }
 
-    /// <summary>Forgets the token, the player and what was sent, so the next kind is news again.</summary>
+    /// <summary>
+    /// Forgets the token and what was sent, so the next kind is news again. The playing app stays: the OS only reports a
+    /// change, so a watch that restarts would never be told again what already plays.
+    /// </summary>
     public void Reset()
     {
         lock (gate)
         {
             token = "";
-            source = null;
             last = "";
         }
     }
