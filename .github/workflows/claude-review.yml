@@ -206,7 +206,7 @@ jobs:
             say so. Read surrounding code in the checkout, not only the diff: a bug is often in what the change
             forgot to update.
 
-            ${{ steps.rounds.outputs.may_fix == 'true' && 'Then FIX every real problem you found by editing the files. Fix only real problems in this change, not style. Do not commit or push; a later step does. If a fix needs a build to be sure, still make it and say so.' || 'This PR has had three rounds of review fixes already. Do NOT edit anything; only report.' }}
+            ${{ steps.rounds.outputs.may_fix == 'true' && 'Then FIX every real problem you found by editing the files. Fix only real problems in this change, not style. Do not commit or push; a later step does. If a fix needs a build to be sure, still make it and say which fix in one line.' || 'This PR has had three rounds of review fixes already. Do NOT edit anything; only report.' }}
 
             Then give your result as the structured output:
             - verdict: "pass" if no real problem remains unfixed, otherwise "fail".

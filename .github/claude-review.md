@@ -65,3 +65,13 @@ changed function or type, do these before you list anything:
 6. **Promises**: no latency number written anywhere; no claim in copy that the code does not do.
 
 Skip style opinions that no linter enforces.
+
+## What CI already runs, so you don't
+
+Every PR runs the real tools: `site.yml` runs Biome, ESLint, `tsc` and the Next build; `ci.yml` runs ktlint, Android
+lint, `dotnet format`, the analyzers, swift-format and every test suite. Their results gate the merge. So:
+
+- Don't hand-check formatting, whitespace, import order or line length. Keep to the CI traps listed above, which
+  are listed because they are easy to miss in a diff; beyond them, leave formatting to the tools.
+- Don't spend turns simulating a build or a linter, and don't write "I couldn't run X" or "not verified" lines.
+  That nothing runs here is a given. Mention a tool only when you have a specific reason to expect it to fail.
