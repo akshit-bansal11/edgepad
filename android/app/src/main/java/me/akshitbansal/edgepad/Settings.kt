@@ -3,9 +3,9 @@ package me.akshitbansal.edgepad
 import android.content.Context
 import android.content.SharedPreferences
 import me.akshitbansal.edgepad.link.migrateSaved
-import me.akshitbansal.edgepad.screens.FnMode
 import me.akshitbansal.edgepad.screens.ControlsIconSize
 import me.akshitbansal.edgepad.screens.ControlsPlan
+import me.akshitbansal.edgepad.screens.FnMode
 import me.akshitbansal.edgepad.screens.KeyboardSize
 import me.akshitbansal.edgepad.surface.CornerSlots
 import me.akshitbansal.edgepad.surface.DialKind

@@ -8,14 +8,15 @@ namespace Edgepad.Tests;
 public sealed class LinuxPowerTests
 {
     [Theory]
-    [InlineData(PowerCaps.Sleep, "Suspend", "CanSuspend")]
-    [InlineData(PowerCaps.Hibernate, "Hibernate", "CanHibernate")]
-    [InlineData(PowerCaps.Restart, "Reboot", "CanReboot")]
-    [InlineData(PowerCaps.ShutDown, "PowerOff", "CanPowerOff")]
-    public void EachPowerActionMapsToItsLogindMethodAndQuery(PowerCaps cap, string method, string query)
+    [InlineData((int)PowerCaps.Sleep, "Suspend", "CanSuspend")]
+    [InlineData((int)PowerCaps.Hibernate, "Hibernate", "CanHibernate")]
+    [InlineData((int)PowerCaps.Restart, "Reboot", "CanReboot")]
+    [InlineData((int)PowerCaps.ShutDown, "PowerOff", "CanPowerOff")]
+    public void EachPowerActionMapsToItsLogindMethodAndQuery(int cap, string method, string query)
     {
-        Assert.Equal(method, LinuxPower.MethodFor(cap));
-        Assert.Equal(query, LinuxPower.CanFor(cap));
+        // An int, because a public test method cannot take the internal PowerCaps (CS0051).
+        Assert.Equal(method, LinuxPower.MethodFor((PowerCaps)cap));
+        Assert.Equal(query, LinuxPower.CanFor((PowerCaps)cap));
     }
 
     [Theory]

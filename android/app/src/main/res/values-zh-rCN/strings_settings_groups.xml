@@ -12,7 +12,6 @@
   <string name="settings_advanced">高级</string>
   <string name="settings_laptops_none">未连接</string>
   <plurals name="settings_laptops_summary">
-    <item quantity="one">已连接 %1$d 台</item>
     <item quantity="other">已连接 %1$d 台</item>
   </plurals>
 </resources>

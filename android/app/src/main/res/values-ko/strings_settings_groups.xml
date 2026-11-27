@@ -12,7 +12,6 @@
   <string name="settings_advanced">고급</string>
   <string name="settings_laptops_none">연결 없음</string>
   <plurals name="settings_laptops_summary">
-    <item quantity="one">%1$d대 연결됨</item>
     <item quantity="other">%1$d대 연결됨</item>
   </plurals>
 </resources>

@@ -279,11 +279,12 @@ object ProfilesScreen {
             ui.bar(ui.string(R.string.profiles_title), onBack, backLabel = ui.string(R.string.settings_surface_title)),
         ) {
             card {
-                val toggle = ui.toggle(ui.string(R.string.profiles_toggle), on && supported) {
-                    masterOn = it
-                    setOn(it)
-                    render()
-                }
+                val toggle =
+                    ui.toggle(ui.string(R.string.profiles_toggle), on && supported) {
+                        masterOn = it
+                        setOn(it)
+                        render()
+                    }
                 toggle.isEnabled = supported
                 add(toggle)
             }

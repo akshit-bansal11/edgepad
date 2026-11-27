@@ -3,11 +3,9 @@
   <string name="profiles_summary_off">オフ</string>
   <string name="profiles_summary_auto">自動</string>
   <plurals name="profiles_summary_apps">
-    <item quantity="one">%1$d個のアプリ</item>
     <item quantity="other">%1$d個のアプリ</item>
   </plurals>
   <plurals name="widgets_summary">
-    <item quantity="one">%1$d個がオン</item>
     <item quantity="other">%1$d個がオン</item>
   </plurals>
 </resources>

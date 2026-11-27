@@ -3,11 +3,9 @@
   <string name="profiles_summary_off">关</string>
   <string name="profiles_summary_auto">自动</string>
   <plurals name="profiles_summary_apps">
-    <item quantity="one">%1$d 个应用</item>
     <item quantity="other">%1$d 个应用</item>
   </plurals>
   <plurals name="widgets_summary">
-    <item quantity="one">已开启 %1$d 个</item>
     <item quantity="other">已开启 %1$d 个</item>
   </plurals>
 </resources>
