@@ -189,7 +189,7 @@ None of this has run on a Linux laptop with a phone. Each item names what decide
 
 **Which app is in front.** On an X11 session Edgepad can tell the phone which app is in front, for per-app profiles, only while the phone has that turned on. A Wayland session cannot see other windows' focus, so nothing is sent and the phone's profiles stay on their default.
 
-**Sleep or shut down when the media ends.** Through logind. Shutdown shows a 60 second countdown window you can cancel; it never shuts down without it.
+**Power.** Lock, sleep, hibernate, restart and shut down go through logind. The phone's Power page offers only what logind says this user can do without a password (its `Can*` answer of `yes`; a `challenge` answer is not offered). Restart and shut down show a 60 second countdown window you can cancel on the phone or the laptop; they never run without it. Unverified on real laptops.
 
 **Languages.** The tray, first-run window, Security, pairing, trust, PIN and macro dialogs, and the notices follow `LC_ALL`, `LC_MESSAGES` or `LANG` in the same 14 languages as the other apps, plus English. Arabic lays dialogs out right to left. A language Edgepad has no translation for shows English. Check: start with `LANG=de_DE.UTF-8 edgepad`.
 

@@ -16,7 +16,7 @@ The library the Windows and Linux laptop apps share: everything that has the sam
 | `Capture/` | Finding a capture the OS tool saved, to send it to the phone. |
 | `Dashboard/` | The phone's dashboard: system stats, AI agent usage and spend, and the Git hosts with their sign-ins. |
 | `Hooks/` | The local channel agent plugins talk to the app over, and the permission broker that lets the phone answer an agent's approval. |
-| `Media/`, `Power/`, `Foreground/`, `Notify/` | Cleaning media titles and the end-of-media action, batteries, the app in front, and the laptop notifications forwarded to the phone, with their rate limit. |
+| `Media/`, `Power/`, `Foreground/`, `Notify/` | Cleaning media titles, `PowerControl` (the Power actions and their 60 second countdown), batteries, `AppKinds` and `ForegroundKind` (the kind of app in front: media, timeline or browser, never a window title), and the laptop notifications forwarded to the phone, with their rate limit. |
 | `Updates/` | The update check, the decision, the download and its signature check. |
 | `Log.cs`, `Localised.cs` | The log file, and filling localised strings. `CoreStrings.*.resx` hold the shared UI words in every language. |
 

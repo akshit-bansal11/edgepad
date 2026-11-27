@@ -106,7 +106,9 @@ The phone asks on its own keypad, so no keyboard app sees the digits; it never s
 
 ### Controls, annotate, sign and capture
 
-**Controls** on the surface opens a popup with the heading **Controls** and, beside it, the edit pencil. Its top row is Controls, Type, Lock, Settings. The tiles are Keyboard, Gamepad, Macros, Annotate, Capture, Clipboard, Presenter, Send a file, Stats and, with Developer mode on (Settings › Developer) and a tool connected on the laptop, Developer, which holds the AI and Git pages. Under them are chips: Edit, Hide dials and media, Black out when idle, Air mouse, Floating dials and Sleep when this ends. A laptop shows only what it can do, so a phone shows no Annotate tile when the laptop does not offer it. Each one is described below.
+**Controls** on the surface opens a popup with the heading **Controls** and, beside it, the edit pencil. Its top row is Controls, Type, Lock, Settings. The tiles are Keyboard, Gamepad, Macros, Annotate, Capture, Clipboard, Presenter, Send a file, Power, Stats and, with Developer mode on (Settings › Developer) and a tool connected on the laptop, Developer, which holds the AI and Git pages. Under them are chips: Edit, Hide dials and media, Black out when idle, Air mouse and Floating dials. A laptop shows only what it can do, so a phone shows no Annotate tile when the laptop does not offer it, and no Power option the laptop cannot run. Each one is described below.
+
+The popup is larger than before. Its **gear** opens **Controls settings**, with three settings: **Icon size** (Small, Medium or Large), **Show labels** (on or off) and **Controls per page** (2 to 12, 9 by default). More tiles than fit on one page are split across pages, with dots under the grid.
 
 #### Annotate and sign
 
@@ -148,9 +150,13 @@ The phone shows a card with the file name, "2 of 5", a progress bar with percent
 
 **Controls › Floating dials** shows the dials over other apps. It asks for Android's "draw over other apps" permission and needs a connected laptop and **Stay connected**.
 
-#### Sleep when this ends
+#### Power
 
-In the Controls popup while something plays: **Sleep the laptop** or **Shut the laptop down** when it ends, **Cancel** to disarm. It needs a media end time. Shutdown shows a 60 second cancellable countdown on the laptop. Windows, Mac and Linux.
+**Controls › Power** acts on the laptop: **Lock**, **Sleep**, **Hibernate**, **Restart** and **Shut down**. Restart and Shut down start a 60 second countdown; **Cancel** stops it on the phone or on the laptop. Each laptop shows only what it can do:
+
+- **Windows:** Hibernate only when hibernation is on.
+- **Mac:** no Hibernate.
+- **Linux:** only what logind allows without a password.
 
 #### Stats
 
@@ -162,7 +168,11 @@ In the Controls popup while something plays: **Sleep the laptop** or **Shut the 
 
 #### App profiles
 
-**Settings › App profiles › Switch dials and gestures by app.** The laptop tells the phone which app is in front, only while this is on, and the name is not stored on the laptop. Off by default. Windows, Mac and Linux on X11; not on a Linux Wayland session.
+**Settings › App profiles › Switch dials and gestures by app.** On by default; a turned-off setting stays off. The laptop tells the phone which app is in front, only while this is on.
+
+**Automatic** switches the dials to the kind of app in front: media, timeline or browser. The laptop sends only that kind, never a window title. Your own app profiles win over Automatic. On the Mac, media is detected only for Music and Spotify. Linux only under X11; not on a Wayland session.
+
+**Add the app in front** in the profiles list works even when no profile exists yet.
 
 #### Laptop notifications
 
@@ -228,21 +238,20 @@ If the phone says the laptop hung up before the handshake (an older phone app sh
 
 ### Settings
 
-Settings is in sections, in this order. Each screen also keeps its own gear for what only applies to it.
+Settings holds only app-wide settings, in five groups. Each screen's own settings live on that screen's page, reached from its gear or from the Screens group.
 
-1. **Surface** (also the surface's gear): Corners and Split corners, Trackpad (the gesture map, pointer and scroll speed, natural scrolling and on-screen hints, which are off by default), Shapes (every stroke you have drawn, with what it runs), Dial feel (slide sensitivity, dial length and height, haptic ticks, snapping to round numbers, with a live preview), Media layout, Control colour, Widgets and Look (a colour, gradient or image behind the surface, and a grid, dots or checker over it).
-2. **Keyboard**: its own gear. Size picks one of six fixed boards (100, 96, 80, 75, 65 and 60%; 75% by default), Function keys picks "With Fn" or "Direct", and Keyboard text size sets the key labels. The keys themselves cannot be moved.
-3. **Gamepad**: the same kind of canvas.
-4. **Macros**.
-5. **Presenter**: Laser size and Show trail.
-6. **Capture & Annotate**: the pen colour, width and opacity (also on the toolbar).
-7. **Clipboard & files**.
-8. **Developer**.
-9. **Devices & connection**.
-10. **App appearance**.
-11. **Language**: the app's 15 languages on Android 13 and later; older phones follow the system language.
-12. **Help**.
-13. **About and updates**: updates, and what the phone sends (only the update check and an update you choose), with a link to What Edgepad uses.
+1. **Connection**: Laptops, Reconnect automatically, Stay connected in the background, Share clipboard and Show laptop notifications.
+2. **Screens**: Surface, Controls, Keyboard, Gamepad, Macros, Presenter and Capture & annotate. Each opens that screen's settings.
+   - **Surface** (also the surface's gear), in three groups. **Dials**: Corners and Split corners, App profiles, Dial feel, Floating dials and Hide dials and media. **Trackpad**: the gesture map, pointer and scroll speed, natural scrolling, Air mouse (with its sensitivity and dead zone) and on-screen hints, which are off by default; Shapes (every stroke you have drawn, with what it runs). **Surface**: Widgets, Media layout, Look (a colour, gradient or image behind the surface, and a grid, dots or checker over it) and Black out when idle.
+   - **Dial feel**: slide sensitivity, dial length and height, haptic ticks and snapping to round numbers, with a live preview.
+   - **Keyboard**: its own gear. Size picks one of six fixed boards (100, 96, 80, 75, 65 and 60%; 75% by default), Function keys picks "With Fn" or "Direct", and Keyboard text size sets the key labels. The keys themselves cannot be moved.
+   - **Gamepad**: the same kind of canvas.
+   - **Presenter**: Laser size and Show trail.
+   - **Capture & annotate**: To phone, and the pen colour, width and opacity (also on the toolbar).
+   - **Controls**: Icon size, Show labels and Controls per page.
+3. **Appearance**: Theme, Orientation and Language. Language is the app's 15 languages on Android 13 and later; older phones follow the system language.
+4. **Help & about**: Guide, Documentation, Updates, Check for updates daily and What Edgepad uses, with licences and the version. Updates shows what the phone sends (only the update check and an update you choose).
+5. **Advanced**: Developer mode.
 
 ## How it works, in more words
 

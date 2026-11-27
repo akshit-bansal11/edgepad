@@ -120,9 +120,9 @@ const FEATURES: { title: string; Icon: LucideIcon; body: string }[] = [
     body: "Keep the dials over other apps on the phone. Needs Android’s draw-over-apps permission and Stay connected.",
   },
   {
-    title: "Sleep when this ends",
+    title: "Power",
     Icon: Moon,
-    body: "Sleep or shut down the laptop when the current video or track ends. Shut down shows a 60 second countdown you can cancel. Windows, Mac and Linux.",
+    body: "Lock, sleep, hibernate, restart or shut down the laptop from the Controls popup. Restart and shut down wait 60 seconds, and you can cancel on the phone or the laptop. Each laptop shows only what it can do.",
   },
   {
     title: "Quick Settings tile",

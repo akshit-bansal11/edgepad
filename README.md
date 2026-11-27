@@ -76,7 +76,7 @@ It is for the times the laptop is across the room rather than under your hands: 
 
 - **Stats.** Controls > Stats shows System and Network pages for each laptop and for the phone.
 - **Trackpad widgets.** Clock, weather, system and network drawn behind the trackpad.
-- **Sleep when this ends.** Sleep or shut down the laptop when the current video or track ends.
+- **Power.** Lock, sleep, hibernate, restart or shut down the laptop from the Controls popup. Restart and shut down wait 60 seconds, cancellable on the phone or the laptop. Each laptop shows only what it can do.
 - **Quick Settings tile** and play/pause and volume buttons in the stay-connected notification.
 - **Laptop notifications.** Off by default; Linux only for now.
 
