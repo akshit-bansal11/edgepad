@@ -88,8 +88,11 @@ class Settings(
         get() = prefs.getString(KEY_SHAPES, "").orEmpty()
         set(value) = prefs.edit().putString(KEY_SHAPES, value).apply()
 
-    /** Whether the laptop is asked which app is in front, so the dials and gestures can follow it. */
-    var profilesOn by flag("profilesOn", false)
+    /**
+     * Whether the laptop is asked which app is in front, so the dials and gestures can follow it. On by default since
+     * 5.2.0, so automatic profiles work without setup (owner, 2026-11-27); a stored "off" is kept.
+     */
+    var profilesOn by flag("profilesOn", true)
 
     /** Whether the dials follow the kind of app in front when it has no profile of its own; needs [profilesOn]. */
     var autoProfiles by flag("autoProfiles", true)
