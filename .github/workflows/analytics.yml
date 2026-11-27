@@ -1,0 +1,80 @@
+name: Analytics digest
+
+# Mails the owner a morning digest: GitHub numbers plus every post in scripts/analytics/posts.toml.
+# Runs on GitHub's free minutes and uses no Claude usage. Yesterday's numbers travel between runs as
+# the analytics-state artifact, so each figure can show its change since the last mail.
+#
+# Secrets (only the two Gmail ones are required; each missing optional one shows as "unavailable"):
+#   GMAIL_USER, GMAIL_APP_PASSWORD   sender account and its app password; MAIL_TO overrides the recipient
+#   GH_TRAFFIC_TOKEN                 fine-grained PAT, this repo only, Administration: read (views, referrers)
+#   YOUTUBE_API_KEY                  Google Cloud API key with YouTube Data API v3 enabled
+#   DEV_API_KEY                      dev.to/settings/extensions, adds article views
+#   REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET   a Reddit "script" app, if Reddit blocks the public JSON
+#   PRODUCTHUNT_TOKEN                developer token from producthunt.com/v2/oauth/applications
+on:
+  schedule:
+    # 01:17 UTC is 06:47 IST. Scheduled runs often start late, so this lands around 7 AM.
+    - cron: '17 1 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Show the digest in the run summary instead of mailing it
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read # to fetch the previous run's state artifact
+
+concurrency:
+  group: analytics
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/analytics
+
+      - name: Fetch yesterday's numbers
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          id=$(gh api "repos/$REPO/actions/artifacts?name=analytics-state&per_page=20" \
+            --jq '[.artifacts[] | select(.expired | not)][0].id // empty')
+          if [ -n "$id" ]; then
+            gh api "repos/$REPO/actions/artifacts/$id/zip" > prev.zip
+            unzip -o prev.zip -d prev
+          else
+            echo "No earlier state; this mail will have no changes."
+          fi
+
+      - name: Build and send the digest
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TRAFFIC_TOKEN: ${{ secrets.GH_TRAFFIC_TOKEN }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          DEV_API_KEY: ${{ secrets.DEV_API_KEY }}
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          PRODUCTHUNT_TOKEN: ${{ secrets.PRODUCTHUNT_TOKEN }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          DRY_RUN: ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: |
+          python3 scripts/analytics/digest.py --config scripts/analytics/posts.toml \
+            --state-in prev/state.json --state-out state.json $DRY_RUN
+
+      # A dry run still saves state, so it would swallow a day's changes; only real sends keep it.
+      - if: ${{ !inputs.dry_run }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: analytics-state
+          path: state.json
+          retention-days: 30

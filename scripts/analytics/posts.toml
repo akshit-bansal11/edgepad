@@ -1,0 +1,208 @@
+# Every place Edgepad has been posted or will be, read by digest.py each morning.
+#
+# kind      how the numbers are read
+#   youtube    YouTube Data API (secret YOUTUBE_API_KEY)
+#   reddit     the post's .json; OAuth when REDDIT_CLIENT_ID/REDDIT_CLIENT_SECRET are set
+#   dev        DEV API; views only with DEV_API_KEY
+#   hn         Hacker News item API (url = news.ycombinator.com/item?id=...)
+#   producthunt Product Hunt API (secret PRODUCTHUNT_TOKEN), else the page
+#   hashnode   Hashnode GraphQL API
+#   page       best effort: reads schema.org counters off the page, if it publishes any
+#   manual     no workable API; the mail lists the link so it can be checked by hand
+#
+# live_from  "YYYY-MM-DD". Before that day the post is listed under Upcoming, not read.
+# url = ""   not posted yet, or the link is still missing: listed under Upcoming.
+
+[[post]]
+name = "YouTube film"
+kind = "youtube"
+url = "https://youtu.be/qZ9U370H7f0"
+
+[[post]]
+name = "YouTube Short"
+kind = "youtube"
+url = ""
+
+[[post]]
+name = "DEV article"
+kind = "dev"
+url = ""
+
+[[post]]
+name = "XDA thread"
+kind = "page"
+url = ""
+
+[[post]]
+name = "Peerlist project"
+kind = "page"
+url = ""
+
+[[post]]
+name = "AlternativeTo"
+kind = "page"
+url = ""
+
+[[post]]
+name = "r/androidapps"
+kind = "reddit"
+url = ""
+
+[[post]]
+name = "r/ClaudeAI"
+kind = "reddit"
+url = ""
+
+[[post]]
+name = "r/htpc"
+kind = "reddit"
+url = ""
+
+[[post]]
+name = "r/opensource"
+kind = "reddit"
+url = ""
+
+[[post]]
+name = "r/coolgithubprojects"
+kind = "reddit"
+url = ""
+
+[[post]]
+name = "r/SoftwareandApps"
+kind = "reddit"
+url = ""
+
+[[post]]
+name = "r/windowsapps"
+kind = "reddit"
+url = ""
+
+[[post]]
+name = "r/SideProject"
+kind = "reddit"
+url = ""
+
+[[post]]
+name = "r/droidappshowcase"
+kind = "reddit"
+url = ""
+
+[[post]]
+name = "Instagram"
+kind = "manual"
+url = ""
+
+[[post]]
+name = "LinkedIn"
+kind = "manual"
+url = ""
+
+[[post]]
+name = "TryLaunch"
+kind = "page"
+url = ""
+live_from = "2026-11-30"
+
+[[post]]
+name = "Show HN"
+kind = "hn"
+url = ""
+live_from = "2026-12-01"
+
+[[post]]
+name = "Product Hunt"
+kind = "producthunt"
+url = ""
+live_from = "2026-12-08"
+
+[[post]]
+name = "TinyLaunch"
+kind = "page"
+url = ""
+live_from = "2027-01-04"
+
+[[post]]
+name = "Better Launch"
+kind = "page"
+url = ""
+live_from = "2027-01-11"
+
+[[post]]
+name = "ScrollLaunch"
+kind = "page"
+url = ""
+live_from = "2027-03-15"
+
+[[post]]
+name = "Uneed"
+kind = "page"
+url = ""
+live_from = "2027-07-11"
+
+[[post]]
+name = "MakerHunt"
+kind = "page"
+url = ""
+live_from = "2027-11-08"
+
+[[post]]
+name = "DevHunt"
+kind = "page"
+url = ""
+live_from = "2031-11-18"
+
+[[post]]
+name = "SideProjectors"
+kind = "page"
+url = ""
+
+[[post]]
+name = "Hashnode"
+kind = "hashnode"
+url = ""
+
+[[post]]
+name = "Aura++"
+kind = "page"
+url = ""
+
+[[post]]
+name = "Launching Next"
+kind = "page"
+url = ""
+
+[[post]]
+name = "Idea Kiln"
+kind = "page"
+url = ""
+
+[[post]]
+name = "Altern"
+kind = "page"
+url = ""
+
+[[post]]
+name = "ShowBuild"
+kind = "page"
+url = ""
+
+[[post]]
+name = "EarlyHunt"
+kind = "page"
+url = ""
+
+[[post]]
+name = "Fazier"
+kind = "page"
+url = ""
+
+[[post]]
+name = "DailyPings"
+kind = "page"
+url = ""
+
+[[post]]
+name = "Smol Launch"
+kind = "page"
+url = ""
