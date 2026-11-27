@@ -3,11 +3,11 @@ name: Claude Review
 # Every pull request gets a check named claude-review on its head commit, which branch protection on main waits for.
 #
 # Ours (a branch of this repo, opened by the owner, or by github-actions[bot] on a claude/issue-* branch that
-# claude-issue.yml made from the owner's issue) gets the full treatment: Claude reviews the whole change against
-# .github/claude-review.md and fixes what it finds. A plain step squashes the fixes into one "fix(review): round N"
-# commit and pushes it with GITHUB_TOKEN. A GITHUB_TOKEN push starts no pull_request workflow, so that step then
-# dispatches ci.yml and this workflow on the branch; their ci-ok and claude-review checks land on the new head commit.
-# After three rounds it only reports. The check fails while real problems remain.
+# claude-issue.yml made from the owner's issue) gets the full review. It first waits for this commit's CI (runner
+# minutes only), then Claude reviews the change against .github/claude-review.md with CI's results and the log of
+# each failed job in hand. It edits nothing: each problem is posted as an inline comment on its line, with a
+# one-click GitHub suggestion where the fix is a local replacement. The check fails while problems remain; a new
+# push reviews again.
 #
 # Not ours (a fork, claude/outside-*, a pr-N branch from claude.yml, Dependabot): not reviewed here. claude-tldr.yml
 # summarises forks, and these merge only on the owner's word. The check passes so the owner can still merge them.
@@ -18,10 +18,10 @@ name: Claude Review
 # verdict already posted for the head commit.
 #
 # Usage: a draft, or a change of only images, media, fonts or lockfiles, passes without a review. Opus reviews only
-# the first round of a change of 300+ lines or one touching the wire format; the rest is Sonnet.
+# a change of 300+ lines or one touching the wire format; the rest is Sonnet.
 #
-# Claude sees the PR title, body and the owner's comments only, pre-fetched into .review/pr.md. It has no gh, no
-# shell beyond git diff/log/show/status, and is denied the runner's secrets folders, .git config and .github/.
+# Claude sees the PR title, body and the owner's comments only, pre-fetched into .review/pr.md. It has Read, Grep and
+# Glob only: no shell, no gh, no edits, and is denied the runner's secrets folders and .git config.
 #
 # Run it by hand: gh workflow run claude-review.yml --ref <pr-branch> -f pr=<number>
 
@@ -40,16 +40,18 @@ concurrency:
   group: claude-review-${{ github.event.pull_request.number || inputs.pr }}
   cancel-in-progress: ${{ !contains(fromJSON('["labeled","unlabeled"]'), github.event.action) || github.event.label.name == 'review-skipped' }}
 
+# Read-only on code: nothing here pushes. Actions read is for the failed jobs' logs.
 permissions:
-  contents: write
+  contents: read
   pull-requests: write
   issues: write
-  actions: write
+  actions: read
+  checks: read
 
 jobs:
   claude-review:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 150
     steps:
       - name: Find the pull request and decide what to do (no AI in this step)
         id: pr
@@ -146,7 +148,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Count fix rounds and fetch the PR's text (no AI in this step)
+      - name: Pick the model and fetch the PR's text (no AI in this step)
         if: steps.pr.outputs.mode == 'review'
         id: rounds
         env:
@@ -157,19 +159,15 @@ jobs:
         run: |
           g() { git -c core.hooksPath=/dev/null -c core.fsmonitor=false -c core.pager=cat "$@"; }
           g fetch -q origin "$BASE_REF"
-          n=$(g log "origin/$BASE_REF..HEAD" --format=%s | grep -c '^fix(review): round ' || true)
-          echo "n=$n" >> "$GITHUB_OUTPUT"
-          if [ "$n" -ge 3 ]; then echo "may_fix=false" >> "$GITHUB_OUTPUT"; else echo "may_fix=true" >> "$GITHUB_OUTPUT"; fi
-          # To keep the owner's Max usage light, Opus reads only a first review of a big or wire-format change.
-          # Everything else, including each re-review after a fix round, is Sonnet (about half the usage).
+          # To keep the owner's Max usage light, Opus reads only a big or wire-format change; the rest is Sonnet.
           lines=$(g diff --numstat "origin/$BASE_REF...HEAD" | awk '$1 != "-" { t += $1 + $2 } END { print t + 0 }')
-          if [ "$n" -eq 0 ] && { [ "$lines" -ge 300 ] || ! g diff --quiet "origin/$BASE_REF...HEAD" -- protocol docs/PROTOCOL.md; }; then
+          if [ "$lines" -ge 300 ] || ! g diff --quiet "origin/$BASE_REF...HEAD" -- protocol docs/PROTOCOL.md; then
             model=claude-opus-5-5
           else
             model=claude-sonnet-5-5
           fi
           echo "model=$model" >> "$GITHUB_OUTPUT"
-          echo "Changed lines: $lines, fix rounds so far: $n, model: $model"
+          echo "Changed lines: $lines, model: $model"
           mkdir -p .review
           printf '.review/\n.claude-pr/\n' >> .git/info/exclude
           # Claude gets no git at all (git diff --output= could write .git/config). It reads these files instead.
@@ -181,7 +179,53 @@ jobs:
             | jq -r --arg o "$OWNER" '"# " + .title + "\n\n" + (.body // "") + "\n\n## Comments by the owner\n"
                 + ([.comments[] | select(.author.login == $o) | "\n---\n" + .body] | join(""))' > .review/pr.md
 
-      - name: Claude reviews (and fixes)
+      - name: Wait for CI on this commit and collect what failed (no AI in this step)
+        if: steps.pr.outputs.mode == 'review'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.pr.outputs.sha }}
+        run: |
+          # The review reads CI's results instead of guessing at them, so it waits here first. This loop costs
+          # runner minutes only, no Claude usage. ci-ok is ci.yml's final gate; until it exists, CI has not been
+          # queued yet (just after a push, or when claude-issue.yml dispatches both on a new branch).
+          checks() {
+            gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/check-runs?per_page=100" --paginate \
+              | jq -s '[.[].check_runs[] | select(.name != "claude-review")] | group_by(.name) | map(max_by(.id))'
+          }
+          deadline=$((SECONDS + 3000))
+          waited=true
+          while :; do
+            checks > "$RUNNER_TEMP/checks.json" || echo '[]' > "$RUNNER_TEMP/checks.json"
+            if jq -e 'any(.[]; .name == "ci-ok") and all(.[]; .status == "completed")' "$RUNNER_TEMP/checks.json" > /dev/null; then
+              break
+            fi
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "::warning::CI had not finished after 50 minutes; reviewing without its results."
+              waited=false
+              break
+            fi
+            sleep 30
+          done
+          {
+            echo "# CI on this commit"
+            [ "$waited" = true ] || echo "CI had not finished after 50 minutes; these results are partial."
+            jq -r '.[] | "- \(.name): \(.conclusion // .status)"' "$RUNNER_TEMP/checks.json"
+          } > .review/ci.md
+          # The tail of each failed Actions job's log, which is where the error is. Others (Vercel) link out.
+          jq -r '.[] | select((.conclusion // "") | IN("success","skipped","neutral","") | not)
+            | [.name, (.details_url // "")] | @tsv' "$RUNNER_TEMP/checks.json" |
+          while IFS=$'\t' read -r name url; do
+            job=$(printf '%s' "$url" | sed -n 's#.*/actions/runs/[0-9]*/job/\([0-9]*\).*#\1#p')
+            [ -n "$job" ] || continue
+            [ "$name" = ci-ok ] && continue
+            printf '\n## %s (failed): last 120 log lines\n\n```\n' "$name"
+            gh api "repos/$GITHUB_REPOSITORY/actions/jobs/$job/logs" 2>/dev/null | tail -n 120 | cut -c1-400 || true
+            printf '```\n'
+          done | head -c 60000 >> .review/ci.md
+          cat .review/ci.md | head -n 40
+
+
+      - name: Claude reviews and suggests fixes
         if: steps.pr.outputs.mode == 'review'
         id: claude
         uses: anthropics/claude-code-action@acfe7992852970efb4fee683d63d628e3e52df67 # v1.0.286
@@ -192,8 +236,8 @@ jobs:
           github_token: ${{ github.token }}
           # A dispatched run's actor, and the author of a claude/issue-* PR, is github-actions[bot].
           allowed_bots: 'github-actions'
-          # Claude runs no command at all here (it reads prepared files). Left on, this would swap files of a
-          # bot-authored PR for main's, and the fix commit would stage the swap.
+          # Claude runs no command and edits nothing here (it reads prepared files). Left on, this would swap files
+          # of a bot-authored PR for main's, and Claude would review the wrong code.
           restrict_untrusted_prs: 'false'
           prompt: |
             Review pull request ${{ github.repository }}#${{ steps.pr.outputs.number }} (branch
@@ -202,100 +246,109 @@ jobs:
 
             .review/pr.md holds the PR's title, description and the owner's comments. The change is in
             .review/diff.patch, with .review/stat.txt (files and line counts) and .review/log.txt (its commits).
+            .review/ci.md holds this commit's CI results, with the log tail of each failed job. If a check
+            failed, find why. A failure this change caused is a real problem like any other. A failure this
+            change could not have caused (an outage, a flaky runner), say so and do not count it against the
+            verdict.
             Read stat.txt first; on a very large change, read the riskiest files fully and sample the rest, and
             say so. Read surrounding code in the checkout, not only the diff: a bug is often in what the change
             forgot to update.
 
-            ${{ steps.rounds.outputs.may_fix == 'true' && 'Then FIX every real problem you found by editing the files. Fix only real problems in this change, not style. Do not commit or push; a later step does. If a fix needs a build to be sure, still make it and say so.' || 'This PR has had three rounds of review fixes already. Do NOT edit anything; only report.' }}
-
-            Then give your result as the structured output:
-            - verdict: "pass" if no real problem remains unfixed, otherwise "fail".
-            - summary: a short TL;DR for the owner: what the PR does, what you found, what you fixed, what is
-              left. Plain words, under 250 words, markdown, file:line where useful.
+            You edit nothing. You suggest: the owner applies fixes with one click from your inline comments.
+            Give your result as the structured output:
+            - verdict: "pass" if no real problem was found, otherwise "fail".
+            - summary: a short TL;DR for the owner: what the PR does, what you found, what is left. Plain words,
+              under 250 words, markdown. Do not repeat each finding in full; they are posted on their lines.
+            - findings: one per real problem, at most 15, most severe first. Each has path (repo-relative), line
+              (a line number in the new version of the file, and inside one of the diff's + or context lines,
+              or GitHub cannot attach it), optional start_line (for a fix over several lines, the first line;
+              line is then the last), body (the problem and why, in a sentence or two), and optional suggestion
+              (the exact replacement text for lines start_line..line, or line alone, with indentation kept, and
+              no code fence). Leave suggestion out when the fix is not a local replacement; say what to do in
+              body instead.
           claude_args: >-
             --model ${{ steps.rounds.outputs.model }}
-            --max-turns 120
+            --max-turns 80
             --permission-mode default
-            --allowedTools "Read,Grep,Glob${{ steps.rounds.outputs.may_fix == 'true' && ',Edit(./**),Write(./**)' || '' }}"
-            --disallowedTools "Bash,WebFetch,WebSearch,Edit(//tmp/**),Write(//tmp/**),Edit(//home/runner/.*/**),Write(//home/runner/.*/**),Edit(//home/runner/work/_temp/**),Write(//home/runner/work/_temp/**),Read(//proc/**),Read(//tmp/**),Read(//etc/**),Read(//run/**),Read(//home/runner/work/_temp/**),Read(//home/runner/.*/**),Read(./.git/config),Read(**/.env*),Edit(./.git/**),Write(./.git/**),Edit(./.github/**),Write(./.github/**)"
-            --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["pass","fail"]},"summary":{"type":"string"}},"required":["verdict","summary"]}'
+            --allowedTools "Read,Grep,Glob"
+            --disallowedTools "Bash,Edit,Write,NotebookEdit,WebFetch,WebSearch,Read(//proc/**),Read(//tmp/**),Read(//etc/**),Read(//run/**),Read(//home/runner/work/_temp/**),Read(//home/runner/.*/**),Read(./.git/config),Read(**/.env*)"
+            --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["pass","fail"]},"summary":{"type":"string"},"findings":{"type":"array","items":{"type":"object","properties":{"path":{"type":"string"},"line":{"type":"integer"},"start_line":{"type":"integer"},"body":{"type":"string"},"suggestion":{"type":"string"}},"required":["path","line","body"]}}},"required":["verdict","summary","findings"]}'
 
-      - name: Check and push the fixes as one round (no AI in this step)
+      - name: Check and post the review (no AI in this step)
         if: steps.pr.outputs.mode == 'review' && steps.claude.outputs.structured_output != ''
-        id: push
+        id: post
         env:
           GH_TOKEN: ${{ github.token }}
           OAUTH: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           OUTPUT: ${{ steps.claude.outputs.structured_output }}
-          START: ${{ steps.pr.outputs.sha }}
-          HEAD_REF: ${{ steps.pr.outputs.head_ref }}
-          ROUNDS: ${{ steps.rounds.outputs.n }}
-          MAY_FIX: ${{ steps.rounds.outputs.may_fix }}
+          PR: ${{ steps.pr.outputs.number }}
+          SHA: ${{ steps.pr.outputs.sha }}
         run: |
-          # Before any git: .git/config is written again from scratch (the action edits it for its own git, and Claude
-          # must not be able to plant a filter, hook or helper there), no global or system config is read, and git
-          # runs with nothing it could hook. Pushes go to a URL with the token, so nothing else is needed here.
-          printf '[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = false\n\tlogallrefupdates = true\n[remote "origin"]\n\turl = https://github.com/%s\n\tfetch = +refs/heads/*:refs/remotes/origin/*\n' "$GITHUB_REPOSITORY" > .git/config
-          export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_ATTR_NOSYSTEM=1 HOME="$(mktemp -d)"
-          g() { git -c core.hooksPath=/dev/null -c core.fsmonitor=false -c core.pager=cat "$@"; }
-          verdict=$(printf '%s' "$OUTPUT" | jq -r '.verdict // ""')
+          printf '%s' "$OUTPUT" > .review/output.json
+          verdict=$(jq -r '.verdict // ""' .review/output.json)
           [ "$verdict" = pass ] || verdict=fail
-          printf '%s\n' "$(printf '%s' "$OUTPUT" | jq -r '.summary // ""')" | head -c 6000 > .review/summary.md
-          # Whatever this run did becomes one commit on top of the commit it reviewed.
-          g reset -q --soft "$START"
-          if [ "$MAY_FIX" = true ]; then g add -A; fi
-          # Everything that leaves this job, checked at once: the change and the summary.
-          { g diff --cached; cat .review/summary.md; } > .review/outgoing.txt
+          jq -r '.summary // ""' .review/output.json | head -c 6000 > .review/summary.md
+          # Each finding as a review comment; a suggestion becomes a one-click ```suggestion block.
+          jq '[(.findings // [])[:15][] | select((.path | type) == "string" and (.line | type) == "number")
+                | {path, line, side: "RIGHT", body: (.body + (if (.suggestion // "") != ""
+                    then "\n\n```suggestion\n" + .suggestion + "\n```" else "" end))}
+                  + (if (.start_line // 0) > 0 and .start_line < .line
+                     then {start_line: .start_line, start_side: "RIGHT"} else {} end)]' \
+            .review/output.json > .review/comments.json
+          # Everything that leaves this job, checked at once: the summary and every comment.
+          { cat .review/summary.md; jq -r '.[].body' .review/comments.json; } > .review/outgoing.txt
           for s in "$OAUTH" "$GH_TOKEN"; do
             [ -n "$s" ] || continue
             b=$(printf '%s' "$s" | base64 -w0)
             if grep -qF -e "$s" -e "${b%%=*}" .review/outgoing.txt; then
-              echo "::error::The change or summary holds a secret; nothing pushed or posted."; exit 1
+              echo "::error::The review holds a secret; nothing posted."; exit 1
             fi
           done
           if grep -Eq 'sk-ant-[A-Za-z0-9_-]{10,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|eyJ[A-Za-z0-9_-]{20,}\.' .review/outgoing.txt; then
-            echo "::error::The change or summary looks like it holds a token; nothing pushed or posted."; exit 1
+            echo "::error::The review looks like it holds a token; nothing posted."; exit 1
           fi
-          changed=false
-          if ! g diff --cached --quiet; then
-            # git's own pathspec, not a grep over quoted names; and no symlinks, which could point anywhere.
-            if ! g diff --cached --quiet -- .github .git; then
-              echo "::error::The fix touches .github/; not pushed."; exit 1
+          # A finding already posted word for word on the same file (an earlier push) is not posted again.
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$PR/comments" --paginate \
+            --jq '.[] | select(.user.login == "github-actions[bot]") | {path, body}' | jq -s . > .review/old.json
+          jq --slurpfile old .review/old.json '[.[] | . as $c | select(any($old[0][]; .path == $c.path and .body == $c.body) | not)]' \
+            .review/comments.json > .review/new.json
+          posted=0
+          unplaced=""
+          if [ "$(jq length .review/new.json)" -gt 0 ]; then
+            # One review holding every comment. GitHub refuses the whole review if one line is outside the diff,
+            # so on a refusal each comment is tried alone and the ones it refuses go into the summary instead.
+            if jq -n --arg sha "$SHA" --slurpfile c .review/new.json \
+                 '{commit_id: $sha, event: "COMMENT", body: "", comments: $c[0]}' \
+               | gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$PR/reviews" --input - > /dev/null 2>&1; then
+              posted=$(jq length .review/new.json)
+            else
+              for i in $(seq 0 $(( $(jq length .review/new.json) - 1 ))); do
+                if jq --arg sha "$SHA" ".[$i] + {commit_id: \$sha}" .review/new.json \
+                   | gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$PR/comments" --input - > /dev/null 2>&1; then
+                  posted=$((posted + 1))
+                else
+                  unplaced="$unplaced$(jq -r ".[$i] | \"\n- \`\" + .path + \":\" + (.line | tostring) + \"\`: \" + .body" .review/new.json)"
+                fi
+              done
             fi
-            if g diff --cached --summary | grep -q ' mode 120000 '; then
-              echo "::error::The fix adds a symlink; not pushed."; exit 1
-            fi
-            g -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-              commit -q -m "fix(review): round $((ROUNDS + 1))"
-            g push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/$HEAD_REF"
-            changed=true
           fi
-          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
-          echo "changed=$changed" >> "$GITHUB_OUTPUT"
-
-      - name: Post the summary (no AI in this step)
-        if: steps.push.outcome == 'success'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ steps.pr.outputs.number }}
-          SHA: ${{ steps.pr.outputs.sha }}
-          VERDICT: ${{ steps.push.outputs.verdict }}
-          CHANGED: ${{ steps.push.outputs.changed }}
-        run: |
           {
             echo "<!-- claude-review -->"
-            echo "<!-- claude-review: $VERDICT $SHA -->"
-            if [ "$CHANGED" = true ]; then
-              echo "**Claude review: fixed problems and pushed one round; reviewing again.**"
-            elif [ "$VERDICT" = pass ]; then
+            echo "<!-- claude-review: $verdict $SHA -->"
+            if [ "$verdict" = pass ]; then
               echo "**Claude review: pass.**"
             else
-              echo "**Claude review: problems remain.**"
+              echo "**Claude review: problems found. Suggested fixes are on their lines; apply them with \"Commit suggestion\".**"
             fi
             echo
             cat .review/summary.md
+            if [ -n "$unplaced" ]; then
+              echo
+              echo "**Findings that could not be placed on a line:**"
+              printf '%s\n' "$unplaced"
+            fi
           } > .review/review.md
-          # One comment per PR, edited on each run, so the thread does not fill with old reviews.
+          # One summary comment per PR, edited on each run, so the thread does not fill with old reviews.
           id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
             --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- claude-review -->"))) | .id' | head -n1)
           if [ -n "$id" ]; then
@@ -303,26 +356,14 @@ jobs:
           else
             gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file .review/review.md
           fi
-
-      # Last, because the run it starts shares this run's concurrency group and may cancel it.
-      - name: Start CI and the next review on the new commit (no AI in this step)
-        if: steps.push.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ steps.pr.outputs.number }}
-          HEAD_REF: ${{ steps.pr.outputs.head_ref }}
-        run: |
-          gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$HEAD_REF"
-          gh workflow run claude-review.yml --repo "$GITHUB_REPOSITORY" --ref "$HEAD_REF" -f pr="$PR"
+          echo "Posted $posted inline comments."
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
 
       - name: Pass or fail the check
         if: always() && steps.pr.outputs.mode == 'review'
         env:
-          PUSHED: ${{ steps.push.outcome }}
-          VERDICT: ${{ steps.push.outputs.verdict }}
-          CHANGED: ${{ steps.push.outputs.changed }}
+          POSTED: ${{ steps.post.outcome }}
+          VERDICT: ${{ steps.post.outputs.verdict }}
         run: |
-          [ "$PUSHED" = success ] || { echo "::error::The review did not finish or gave no result."; exit 1; }
-          # Fixes were pushed: the next run reviews them, and that run's check is the one that counts.
-          [ "$CHANGED" = true ] && exit 0
-          [ "$VERDICT" = pass ] || { echo "::error::Claude found problems that remain; see the PR comment."; exit 1; }
+          [ "$POSTED" = success ] || { echo "::error::The review did not finish or gave no result."; exit 1; }
+          [ "$VERDICT" = pass ] || { echo "::error::Claude found problems; see the suggestions on the PR."; exit 1; }
