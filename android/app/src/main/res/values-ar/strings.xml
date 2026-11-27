@@ -328,8 +328,6 @@
   <string name="settings_controls">لون عناصر التحكم</string>
   <string name="settings_surface_title">إعدادات سطح التحكم</string>
   <string name="settings_system">إعدادات النظام</string>
-  <string name="settings_help">المساعدة</string>
-  <string name="settings_about">حول التطبيق والتحديثات</string>
   <string name="keyboard_settings_title">إعدادات لوحة المفاتيح</string>
   <string name="gamepad_settings_title">إعدادات ذراع الألعاب</string>
   <string name="updates_title">التحديثات</string>

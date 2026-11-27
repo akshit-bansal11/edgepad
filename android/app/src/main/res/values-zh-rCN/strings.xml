@@ -293,8 +293,6 @@
   <string name="settings_controls">控件颜色</string>
   <string name="settings_surface_title">操控区设置</string>
   <string name="settings_system">系统设置</string>
-  <string name="settings_help">帮助</string>
-  <string name="settings_about">关于与更新</string>
   <string name="keyboard_settings_title">键盘设置</string>
   <string name="gamepad_settings_title">手柄设置</string>
   <string name="updates_title">更新</string>

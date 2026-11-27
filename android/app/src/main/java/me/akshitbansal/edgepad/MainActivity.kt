@@ -124,6 +124,7 @@ import me.akshitbansal.edgepad.screens.AppListScreen
 import me.akshitbansal.edgepad.screens.AppearanceScreen
 import me.akshitbansal.edgepad.screens.BatterySheet
 import me.akshitbansal.edgepad.screens.CaptureScreen
+import me.akshitbansal.edgepad.screens.CaptureSettingsScreen
 import me.akshitbansal.edgepad.screens.Carry
 import me.akshitbansal.edgepad.screens.ClipboardSheet
 import me.akshitbansal.edgepad.screens.ControlsPopup
@@ -154,6 +155,7 @@ import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.PinScreen
 import me.akshitbansal.edgepad.screens.PowerScreen
 import me.akshitbansal.edgepad.screens.PresenterScreen
+import me.akshitbansal.edgepad.screens.PresenterSettingsScreen
 import me.akshitbansal.edgepad.screens.ProfilesScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
@@ -258,6 +260,8 @@ class MainActivity :
         GAMEPAD_SETTINGS,
         MACRO_SETTINGS,
         CONTROLS_SETTINGS,
+        PRESENTER_SETTINGS,
+        CAPTURE_SETTINGS,
         CAPTURE,
         ANNOTATE,
         PRESENTER,
@@ -1329,21 +1333,20 @@ class MainActivity :
                             stayConnected = ::syncService,
                             notify = ::notifyChanged,
                             developer = ::developerChanged,
-                            surface = surfaceRows(from = Screen.SETTINGS),
+                            surface = { openFrom(Screen.SETTINGS, Screen.SURFACE_SETTINGS) },
+                            controls = { openFrom(Screen.SETTINGS, Screen.CONTROLS_SETTINGS) },
                             keyboard = { openFrom(Screen.SETTINGS, Screen.KEYBOARD_SETTINGS) },
                             gamepad = { openFrom(Screen.SETTINGS, Screen.GAMEPAD_SETTINGS) },
                             macros = { openFrom(Screen.SETTINGS, Screen.MACRO_SETTINGS) },
-                            capture = { toPhone ->
-                                val target = if (toPhone) CaptureTarget.PHONE else CaptureTarget.LAPTOP
-                                CaptureInbox.install(contentResolver, target)
-                                if (connected) manager.send(target.frame())
-                            },
+                            presenter = { openFrom(Screen.SETTINGS, Screen.PRESENTER_SETTINGS) },
+                            capture = { openFrom(Screen.SETTINGS, Screen.CAPTURE_SETTINGS) },
                             sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
                             },
                             back = { navigateBack() },
                         ),
+                        laptops = laptopsSummary(),
                         developer = developerOn(),
                         developerEditable = connected,
                     )
@@ -1562,6 +1565,22 @@ class MainActivity :
                     ControlsSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
+                Screen.PRESENTER_SETTINGS -> {
+                    PresenterSettingsScreen.build(ui, settings) { navigateBack() }
+                }
+
+                Screen.CAPTURE_SETTINGS -> {
+                    CaptureSettingsScreen.build(
+                        ui,
+                        settings,
+                        onToPhone = { toPhone ->
+                            val target = if (toPhone) CaptureTarget.PHONE else CaptureTarget.LAPTOP
+                            CaptureInbox.install(contentResolver, target)
+                            if (connected) manager.send(target.frame())
+                        },
+                    ) { navigateBack() }
+                }
+
                 Screen.MACRO_SETTINGS -> {
                     MacroSettingsScreen.build(ui, settings, onAddFromLaptop = addFromLaptop()) { navigateBack() }
                 }
@@ -1691,7 +1710,10 @@ class MainActivity :
                         settings,
                         state,
                         send,
-                        { goTo(Screen.SURFACE_SETTINGS) },
+                        {
+                            childFrom = null
+                            goTo(Screen.SURFACE_SETTINGS)
+                        },
                         onOpenControls = ::openControls,
                         devices = deviceSwitch,
                         batteries = liveBatteries,
@@ -1875,6 +1897,23 @@ class MainActivity :
                 goTo(childFrom ?: Screen.MACROS)
             }
 
+            // Opened from the Settings page's Screens rows only.
+            Screen.PRESENTER_SETTINGS, Screen.CAPTURE_SETTINGS -> {
+                goTo(childFrom ?: Screen.SETTINGS)
+            }
+
+            // From the Controls popup's gear it returns there; from Settings, to Settings.
+            Screen.CONTROLS_SETTINGS -> {
+                val from = childFrom
+                if (from != null) {
+                    goTo(from)
+                } else {
+                    goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
+                    // AND-A-32: back lands where the user came from, so the popup opens again over the surface.
+                    if (connected) surface?.post { openControls() }
+                }
+            }
+
             // Opened from the macros, which are only there while the link holds.
             Screen.APPS -> {
                 goTo(if (connected) Screen.MACROS else Screen.PAIRING)
@@ -1892,16 +1931,17 @@ class MainActivity :
 
             // These are opened from the Controls popup over the surface, so back returns to it.
             Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE, Screen.PRESENTER,
-            Screen.SYSTEM, Screen.DEVELOPER, Screen.POWER, Screen.CONTROLS_SETTINGS,
+            Screen.SYSTEM, Screen.DEVELOPER, Screen.POWER,
             -> {
                 goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
                 // AND-A-32: back lands where the user came from, so the popup opens again over the surface.
                 if (connected) surface?.post { openControls() }
             }
 
-            // Opened from the surface, which is only there while the link holds.
+            // From the Settings page's Surface row it goes back there; from the surface's gear, to the surface, which
+            // is only there while the link holds.
             Screen.SURFACE_SETTINGS -> {
-                goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
+                goTo(childFrom ?: if (connected) Screen.SURFACE else Screen.PAIRING)
             }
 
             // Left unanswered, so the question comes again at the next connection.
@@ -2248,6 +2288,16 @@ class MainActivity :
 
     private fun versionLine(): String =
         getString(R.string.settings_version, getString(R.string.app_version), ProtocolConstants.VERSION)
+
+    /** The Laptops row's summary: the one laptop that is connected, by name, how many when more, or that none is. */
+    private fun laptopsSummary(): String {
+        val up = manager.laptops.filter { it.connected }
+        return when (up.size) {
+            0 -> getString(R.string.settings_laptops_none)
+            1 -> up[0].name
+            else -> resources.getQuantityString(R.plurals.settings_laptops_summary, up.size, up.size)
+        }
+    }
 
     /** The surface's pages: back from any of them returns to the surface's settings, which they are opened from. */
     private fun surfaceRows() =
@@ -3491,25 +3541,23 @@ class MainActivity :
         /** The pages a row of Settings opens; the pages they open in turn are not here. */
         val settingsPages =
             setOf(
-                Screen.CORNERS,
-                Screen.GESTURES,
-                Screen.SHAPES,
-                Screen.DIAL_FEEL,
-                Screen.APPEARANCE,
-                Screen.PROFILES,
-                Screen.MEDIA_LAYOUT,
-                Screen.WIDGETS,
+                Screen.SURFACE_SETTINGS,
+                Screen.CONTROLS_SETTINGS,
                 Screen.KEYBOARD_SETTINGS,
                 Screen.GAMEPAD_SETTINGS,
                 Screen.MACRO_SETTINGS,
-                Screen.CONTROLS_SETTINGS,
+                Screen.PRESENTER_SETTINGS,
+                Screen.CAPTURE_SETTINGS,
             )
 
-        /** Where a trip out of Settings ends: arriving at any of these forgets which page it began from. */
+        /**
+         * Where a trip out of Settings ends: arriving at any of these forgets which page it began from. The surface's
+         * settings are not one: opened from Settings they keep the origin for the pages they open in turn, and the
+         * surface's gear clears it itself.
+         */
         val tripStarts =
             setOf(
                 Screen.SETTINGS,
-                Screen.SURFACE_SETTINGS,
                 Screen.SURFACE,
                 Screen.KEYBOARD,
                 Screen.GAMEPAD,

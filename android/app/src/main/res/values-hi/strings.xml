@@ -299,8 +299,6 @@
   <string name="settings_controls">कंट्रोल का रंग</string>
   <string name="settings_surface_title">कंट्रोल स्क्रीन सेटिंग्स</string>
   <string name="settings_system">सिस्टम सेटिंग्स</string>
-  <string name="settings_help">मदद</string>
-  <string name="settings_about">जानकारी और अपडेट</string>
   <string name="keyboard_settings_title">कीबोर्ड सेटिंग्स</string>
   <string name="gamepad_settings_title">गेमपैड सेटिंग्स</string>
   <string name="updates_title">अपडेट</string>

@@ -2,11 +2,19 @@
 <resources>
   <string name="settings_dials">Шкалы</string>
   <string name="settings_capture">Захват и пометки</string>
-  <string name="settings_clipboard_files">Буфер обмена и файлы</string>
-  <string name="settings_developer">Разработчик</string>
-  <string name="settings_devices">Устройства и подключение</string>
   <string name="settings_language">Язык</string>
   <string name="language_system">Как в системе</string>
   <string name="language_follows_phone">Edgepad использует язык телефона. Изменить его можно в настройках телефона.</string>
   <string name="settings_pen_colour">Цвет пера</string>
+  <string name="settings_connection">Подключение</string>
+  <string name="settings_screens">Экраны</string>
+  <string name="settings_help_about">Справка и о приложении</string>
+  <string name="settings_advanced">Дополнительно</string>
+  <string name="settings_laptops_none">Нет подключённых</string>
+  <plurals name="settings_laptops_summary">
+    <item quantity="one">Подключено: %1$d</item>
+    <item quantity="few">Подключено: %1$d</item>
+    <item quantity="many">Подключено: %1$d</item>
+    <item quantity="other">Подключено: %1$d</item>
+  </plurals>
 </resources>

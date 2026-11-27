@@ -294,8 +294,6 @@
   <string name="settings_controls">操作部の色</string>
   <string name="settings_surface_title">操作画面の設定</string>
   <string name="settings_system">システム設定</string>
-  <string name="settings_help">ヘルプ</string>
-  <string name="settings_about">情報とアップデート</string>
   <string name="keyboard_settings_title">キーボードの設定</string>
   <string name="gamepad_settings_title">ゲームパッドの設定</string>
   <string name="updates_title">アップデート</string>

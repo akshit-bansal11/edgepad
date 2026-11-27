@@ -307,8 +307,6 @@
   <string name="settings_controls">Couleur des règles</string>
   <string name="settings_surface_title">Paramètres de l’écran principal</string>
   <string name="settings_system">Paramètres système</string>
-  <string name="settings_help">Aide</string>
-  <string name="settings_about">À propos et mises à jour</string>
   <string name="keyboard_settings_title">Paramètres du clavier</string>
   <string name="gamepad_settings_title">Paramètres de la manette</string>
   <string name="updates_title">Mises à jour</string>

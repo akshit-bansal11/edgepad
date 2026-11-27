@@ -43,7 +43,6 @@ import me.akshitbansal.edgepad.screens.NetworkScreen
 import me.akshitbansal.edgepad.screens.PhoneScreen
 import me.akshitbansal.edgepad.screens.RingGauge
 import me.akshitbansal.edgepad.screens.SettingsScreen
-import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
 import me.akshitbansal.edgepad.screens.SystemScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.screens.XferCardView
@@ -122,17 +121,6 @@ class GallerySamples(
                         clipboard = {},
                         stayConnected = {},
                         back = {},
-                        surface =
-                            SurfaceSettingsScreen.Rows(
-                                corners = {},
-                                gestures = {},
-                                shapes = {},
-                                dialFeel = {},
-                                mediaLayout = {},
-                                appearance = {},
-                                profiles = {},
-                                widgets = {},
-                            ),
                     ),
                 )
             }

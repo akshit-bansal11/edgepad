@@ -10,20 +10,15 @@ import android.os.Build
 import android.os.LocaleList
 import android.view.View
 import android.widget.TextView
-import me.akshitbansal.edgepad.LaserSizes
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
-import me.akshitbansal.edgepad.Space
-import me.akshitbansal.edgepad.surface.Strokes
 
 /**
- * The app's settings, one page in sections: Surface (the trackpad, dials, air mouse, widgets, media layout, look,
- * profiles and blackout), then the Keyboard, Gamepad and Macros, which open their own pages, then the
- * Presenter's laser, Capture and Annotate (including the pen), Clipboard and files, Developer, Devices and
- * connection, the app's own appearance, Language, Help, and Updates and About. A setting here and the same setting
- * on a feature's own screen or sheet edit the same stored value. The laptops themselves are on the Devices screen,
- * which the first row of Devices and connection opens. Opened from the Devices list's gear and from the last row of
- * the surface's settings. Every change is saved as it is made. Sideways, the sections sit in two columns.
+ * The app's settings, one page in five groups: Connection (the laptops and how Edgepad stays connected to them),
+ * Screens (a row for each page that has settings of its own: the surface, the controls, the keyboard, the gamepad, the
+ * macros, the presenter and capture), Appearance, Help and about, and Advanced. A setting here and the same setting on a
+ * feature's own screen or sheet edit the same stored value. Opened from the Devices list's gear and from the last row
+ * of the surface's settings. Every change is saved as it is made. Sideways, the groups sit in two columns.
  */
 object SettingsScreen {
     /** Where the rows lead. */
@@ -38,17 +33,18 @@ object SettingsScreen {
         val clipboard: () -> Unit,
         val stayConnected: () -> Unit,
         val back: () -> Unit,
-        /** The surface's own pages, the same rows its gear opens. */
-        val surface: SurfaceSettingsScreen.Rows,
         /** The notifications switch changed: on asks for the Android 13 permission, and NOTIFY is sent either way. */
         val notify: (Boolean) -> Unit = {},
         /** The Developer mode switch moved: DEVELOPER is sent to the laptop, whose FEATURES then confirm it. */
         val developer: (Boolean) -> Unit = {},
+        /** The pages under Screens, each opened from its row. */
+        val surface: () -> Unit = {},
+        val controls: () -> Unit = {},
         val keyboard: () -> Unit = {},
         val gamepad: () -> Unit = {},
         val macros: () -> Unit = {},
-        /** "To phone" changed: the capture inbox is told and the laptop hears it. */
-        val capture: (Boolean) -> Unit = {},
+        val presenter: () -> Unit = {},
+        val capture: () -> Unit = {},
     )
 
     /**
@@ -63,8 +59,9 @@ object SettingsScreen {
 
     /**
      * [backLabel] names the screen the back link returns to: Devices, the surface or the surface's settings.
-     * [developer] is developer mode as the laptop last reported it; [developerEditable] is false with no laptop
-     * connected, when the switch is dimmed, since only a laptop can change it.
+     * [laptops] is the Laptops row's summary. [developer] is developer mode as the laptop last reported it;
+     * [developerEditable] is false with no laptop connected, when the switch is dimmed, since only a laptop can
+     * change it.
      */
     fun build(
         ui: Ui,
@@ -73,6 +70,7 @@ object SettingsScreen {
         backLabel: String,
         update: Update,
         routes: Routes,
+        laptops: String? = null,
         developer: Boolean = false,
         developerEditable: Boolean = false,
     ): View =
@@ -81,68 +79,30 @@ object SettingsScreen {
             largeTitle(ui.string(R.string.settings_system))
             columns(
                 {
-                    section(ui.string(R.string.settings_surface))
-                    SurfaceSettingsScreen.rows(this, settings, routes.surface)
-
-                    section(ui.string(R.string.controls_keyboard))
-                    card { add(ui.link(ui.string(R.string.keyboard_settings_title), null, routes.keyboard)) }
-
-                    section(ui.string(R.string.controls_gamepad))
-                    card { add(ui.link(ui.string(R.string.gamepad_settings_title), null, routes.gamepad)) }
-
-                    section(ui.string(R.string.controls_macros))
-                    card { add(ui.link(ui.string(R.string.macros_settings), null, routes.macros)) }
-
-                    presenterRows(settings)
-                    captureRows(settings, routes)
-                },
-                {
-                    section(ui.string(R.string.settings_clipboard_files))
+                    section(ui.string(R.string.settings_connection))
                     card {
-                        add(
-                            ui.toggle(ui.string(R.string.clipboard_share), settings.clipboardSync) {
-                                settings.clipboardSync = it
-                                routes.clipboard()
-                            },
-                        )
-                    }
-                    footnote(ui.string(R.string.clipboard_share_caption))
-
-                    section(ui.string(R.string.settings_developer))
-                    card {
-                        val toggle =
-                            ui.toggle(ui.string(R.string.developer_mode_title), developer) { routes.developer(it) }
-                        ui.enable(toggle, developerEditable)
-                        add(toggle)
-                    }
-                    footnote(
-                        ui.string(
-                            if (developerEditable) R.string.developer_mode_hint else R.string.developer_mode_offline,
-                        ),
-                    )
-
-                    section(ui.string(R.string.settings_devices))
-                    card { add(ui.link(ui.string(R.string.pairing_title), null, routes.devices)) }
-
-                    card(Space.XL) {
+                        add(ui.link(ui.string(R.string.paired_laptops), laptops, routes.devices))
+                        hairline()
                         add(
                             ui.toggle(ui.string(R.string.reconnect_automatically), settings.reconnect) {
                                 settings.reconnect = it
                             },
                         )
-                    }
-                    footnote(ui.string(R.string.reconnect_caption))
-                    card(Space.XL) {
+                        hairline()
                         add(
                             ui.toggle(ui.string(R.string.stay_connected), settings.stayConnected) {
                                 settings.stayConnected = it
                                 routes.stayConnected()
                             },
                         )
-                    }
-                    footnote(ui.string(R.string.stay_connected_caption))
-
-                    card(Space.XL) {
+                        hairline()
+                        add(
+                            ui.toggle(ui.string(R.string.clipboard_share), settings.clipboardSync) {
+                                settings.clipboardSync = it
+                                routes.clipboard()
+                            },
+                        )
+                        hairline()
                         add(
                             ui.toggle(ui.string(R.string.notify_setting), settings.notifyForward) {
                                 settings.notifyForward = it
@@ -150,8 +110,29 @@ object SettingsScreen {
                             },
                         )
                     }
+                    footnote(ui.string(R.string.reconnect_caption))
+                    footnote(ui.string(R.string.stay_connected_caption))
+                    footnote(ui.string(R.string.clipboard_share_caption))
                     footnote(ui.string(R.string.notify_setting_hint))
 
+                    section(ui.string(R.string.settings_screens))
+                    card {
+                        add(ui.link(ui.string(R.string.settings_surface), null, routes.surface))
+                        hairline()
+                        add(ui.link(ui.string(R.string.controls_title), null, routes.controls))
+                        hairline()
+                        add(ui.link(ui.string(R.string.controls_keyboard), null, routes.keyboard))
+                        hairline()
+                        add(ui.link(ui.string(R.string.controls_gamepad), null, routes.gamepad))
+                        hairline()
+                        add(ui.link(ui.string(R.string.controls_macros), null, routes.macros))
+                        hairline()
+                        add(ui.link(ui.string(R.string.controls_presenter), null, routes.presenter))
+                        hairline()
+                        add(ui.link(ui.string(R.string.settings_capture), null, routes.capture))
+                    }
+                },
+                {
                     section(ui.string(R.string.settings_appearance))
                     card {
                         val themes =
@@ -177,11 +158,13 @@ object SettingsScreen {
                                 ui.segmented(held, if (settings.landscape) 1 else 0) { i -> routes.sideways(i == 1) },
                             ),
                         )
+                        languageRow()
+                    }
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                        footnote(ui.string(R.string.language_follows_phone))
                     }
 
-                    languageRows()
-
-                    section(ui.string(R.string.settings_help))
+                    section(ui.string(R.string.settings_help_about))
                     card {
                         add(ui.link(ui.string(R.string.guide_title), null, routes.guide))
                         hairline()
@@ -193,10 +176,7 @@ object SettingsScreen {
                                 routes.documentation,
                             ),
                         )
-                    }
-
-                    section(ui.string(R.string.settings_about))
-                    card {
+                        hairline()
                         add(
                             ui.link(
                                 ui.string(R.string.updates_title),
@@ -218,122 +198,56 @@ object SettingsScreen {
                     }
                     footnote(version)
                     footnote(ui.string(R.string.about_sends))
-                },
-            )
-        }
 
-    /** The Presenter's laser, as its own sheet sets it: size and trail, the same two stored values. */
-    private fun Column.presenterRows(settings: Settings) {
-        section(ui.string(R.string.controls_presenter))
-        card {
-            val sizes =
-                listOf(
-                    ui.string(R.string.presenter_size_small),
-                    ui.string(R.string.presenter_size_medium),
-                    ui.string(R.string.presenter_size_large),
-                )
-            add(
-                ui.segmentedField(
-                    ui.string(R.string.presenter_size_label),
-                    ui.segmented(sizes, LaserSizes.ALL.indexOf(settings.laserSize)) { i ->
-                        settings.laserSize = LaserSizes.ALL[i]
-                    },
-                ),
-            )
-            hairline()
-            add(
-                ui.toggle(ui.string(R.string.presenter_laser_trail), settings.laserTrail) {
-                    settings.laserTrail = it
+                    section(ui.string(R.string.settings_advanced))
+                    card {
+                        val toggle =
+                            ui.toggle(ui.string(R.string.developer_mode_title), developer) { routes.developer(it) }
+                        ui.enable(toggle, developerEditable)
+                        add(toggle)
+                    }
+                    footnote(
+                        ui.string(
+                            if (developerEditable) R.string.developer_mode_hint else R.string.developer_mode_offline,
+                        ),
+                    )
                 },
             )
         }
-    }
 
     /**
-     * Capture to the phone, and the pen the Annotate toolbar draws with: its colour, width and opacity, the same three
-     * stored values the toolbar's own controls edit. Each is read when Annotate opens, so a change here shows there.
+     * The app's language: one row, in the Appearance card, naming the current one in its own words, opening a list of
+     * every language in its own name, with System default first. From Android 13 the system keeps the choice per app
+     * and rebuilds the activity; the link survives that. Before it the system has no per-app language, so there is no
+     * row, and a line under the card says the app follows the phone.
      */
-    private fun Column.captureRows(
-        settings: Settings,
-        routes: Routes,
-    ) {
-        section(ui.string(R.string.settings_capture))
-        card {
-            add(
-                ui.toggle(ui.string(R.string.capture_to_phone), settings.captureToPhone) {
-                    settings.captureToPhone = it
-                    routes.capture(it)
-                },
-            )
-        }
-        card(Space.XL) {
-            add(
-                ColorPicker.build(
-                    ui,
-                    ui.string(R.string.settings_pen_colour),
-                    ColorPicker.OPAQUE or settings.penRgb,
-                    editable = true,
-                ) { colour -> settings.penRgb = colour and ColorPicker.RGB },
-            )
-            hairline()
-            add(
-                ui.slider(
-                    ui.string(R.string.annotate_width),
-                    Strokes.WIDTH_STEPS,
-                    Strokes.widthStep(settings.penWidth),
-                    { step -> ui.string(R.string.annotate_width_value, step + 1) },
-                ) { step -> settings.penWidth = Strokes.widthAt(step) },
-            )
-            hairline()
-            add(
-                ui.slider(
-                    ui.string(R.string.annotate_opacity),
-                    Strokes.OPACITY_STEPS,
-                    Strokes.opacityStep(settings.penOpacity),
-                    { step -> ui.string(R.string.percent_value, Strokes.opacityAt(step)) },
-                ) { step -> settings.penOpacity = Strokes.opacityAt(step) },
-            )
-        }
-    }
-
-    /**
-     * The app's language: one row naming the current one in its own words, opening a list of every language in its own
-     * name, with System default first. From Android 13 the system keeps the choice per app and rebuilds the activity;
-     * the link survives that. Before it the system has no per-app language, so the row is replaced by a line saying the
-     * app follows the phone.
-     */
-    private fun Column.languageRows() {
-        section(ui.string(R.string.settings_language))
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            footnote(ui.string(R.string.language_follows_phone))
-            return
-        }
+    private fun Column.languageRow() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         val manager = ui.context.getSystemService(LocaleManager::class.java)
         val current = manager.applicationLocales
         val chosen = if (current.isEmpty) null else AppLanguages.match(current[0].toLanguageTag())
         val system = ui.string(R.string.language_system)
         val names = (listOf(system) + AppLanguages.all.map { it.name }).toTypedArray()
         val checked = if (chosen == null) 0 else AppLanguages.all.indexOf(chosen) + 1
-        card {
-            lateinit var row: View
-            row =
-                ui.link(ui.string(R.string.settings_language), chosen?.name ?: system, {
-                    AlertDialog
-                        .Builder(ui.context)
-                        .setTitle(ui.string(R.string.settings_language))
-                        .setSingleChoiceItems(names, checked) { dialog, i ->
-                            // Closed first: setting the language rebuilds the activity under the dialog.
-                            dialog.dismiss()
-                            manager.applicationLocales =
-                                if (i == 0) {
-                                    LocaleList.getEmptyLocaleList()
-                                } else {
-                                    LocaleList.forLanguageTags(AppLanguages.all[i - 1].tag)
-                                }
-                        }.showOver(row)
-                })
-            add(row)
-        }
+        hairline()
+        lateinit var row: View
+        row =
+            ui.link(ui.string(R.string.settings_language), chosen?.name ?: system, {
+                AlertDialog
+                    .Builder(ui.context)
+                    .setTitle(ui.string(R.string.settings_language))
+                    .setSingleChoiceItems(names, checked) { dialog, i ->
+                        // Closed first: setting the language rebuilds the activity under the dialog.
+                        dialog.dismiss()
+                        manager.applicationLocales =
+                            if (i == 0) {
+                                LocaleList.getEmptyLocaleList()
+                            } else {
+                                LocaleList.forLanguageTags(AppLanguages.all[i - 1].tag)
+                            }
+                    }.showOver(row)
+            })
+        add(row)
     }
 
     /**

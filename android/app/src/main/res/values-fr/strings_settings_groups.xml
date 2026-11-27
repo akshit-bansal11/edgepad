@@ -2,11 +2,18 @@
 <resources>
   <string name="settings_dials">Règles</string>
   <string name="settings_capture">Capture et annotation</string>
-  <string name="settings_clipboard_files">Presse-papiers et fichiers</string>
-  <string name="settings_developer">Développeur</string>
-  <string name="settings_devices">Appareils et connexion</string>
   <string name="settings_language">Langue</string>
   <string name="language_system">Langue du système</string>
   <string name="language_follows_phone">Edgepad utilise la langue du téléphone. Elle se change dans les réglages du téléphone.</string>
   <string name="settings_pen_colour">Couleur du stylo</string>
+  <string name="settings_connection">Connexion</string>
+  <string name="settings_screens">Écrans</string>
+  <string name="settings_help_about">Aide et à propos</string>
+  <string name="settings_advanced">Avancé</string>
+  <string name="settings_laptops_none">Aucun connecté</string>
+  <plurals name="settings_laptops_summary">
+    <item quantity="one">%1$d connecté</item>
+    <item quantity="many">%1$d de connectés</item>
+    <item quantity="other">%1$d connectés</item>
+  </plurals>
 </resources>

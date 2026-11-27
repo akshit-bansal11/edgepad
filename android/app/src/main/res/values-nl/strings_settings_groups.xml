@@ -2,11 +2,17 @@
 <resources>
   <string name="settings_dials">Regelaars</string>
   <string name="settings_capture">Vastleggen en annoteren</string>
-  <string name="settings_clipboard_files">Klembord en bestanden</string>
-  <string name="settings_developer">Ontwikkelaar</string>
-  <string name="settings_devices">Apparaten en verbinding</string>
   <string name="settings_language">Taal</string>
   <string name="language_system">Systeemstandaard</string>
   <string name="language_follows_phone">Edgepad gebruikt de taal van de telefoon. Wijzig die in de instellingen van de telefoon.</string>
   <string name="settings_pen_colour">Penkleur</string>
+  <string name="settings_connection">Verbinding</string>
+  <string name="settings_screens">Schermen</string>
+  <string name="settings_help_about">Help en info</string>
+  <string name="settings_advanced">Geavanceerd</string>
+  <string name="settings_laptops_none">Geen verbonden</string>
+  <plurals name="settings_laptops_summary">
+    <item quantity="one">%1$d verbonden</item>
+    <item quantity="other">%1$d verbonden</item>
+  </plurals>
 </resources>

@@ -299,8 +299,6 @@
   <string name="settings_controls">Reglerfarbe</string>
   <string name="settings_surface_title">Einstellungen der Steuerfläche</string>
   <string name="settings_system">Systemeinstellungen</string>
-  <string name="settings_help">Hilfe</string>
-  <string name="settings_about">Info und Updates</string>
   <string name="keyboard_settings_title">Tastatureinstellungen</string>
   <string name="gamepad_settings_title">Gamepad-Einstellungen</string>
   <string name="updates_title">Updates</string>

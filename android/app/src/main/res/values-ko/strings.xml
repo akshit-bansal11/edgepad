@@ -284,8 +284,6 @@
   <string name="settings_controls">컨트롤 색상</string>
   <string name="settings_surface_title">조작 화면 설정</string>
   <string name="settings_system">시스템 설정</string>
-  <string name="settings_help">도움말</string>
-  <string name="settings_about">정보 및 업데이트</string>
   <string name="keyboard_settings_title">키보드 설정</string>
   <string name="gamepad_settings_title">게임패드 설정</string>
   <string name="updates_title">업데이트</string>

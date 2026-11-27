@@ -2,11 +2,18 @@
 <resources>
   <string name="settings_dials">Réguas</string>
   <string name="settings_capture">Captura e anotação</string>
-  <string name="settings_clipboard_files">Área de transferência e arquivos</string>
-  <string name="settings_developer">Desenvolvedor</string>
-  <string name="settings_devices">Dispositivos e conexão</string>
   <string name="settings_language">Idioma</string>
   <string name="language_system">Padrão do sistema</string>
   <string name="language_follows_phone">O Edgepad usa o idioma do celular. Altere-o nas configurações do celular.</string>
   <string name="settings_pen_colour">Cor da caneta</string>
+  <string name="settings_connection">Conexão</string>
+  <string name="settings_screens">Telas</string>
+  <string name="settings_help_about">Ajuda e sobre</string>
+  <string name="settings_advanced">Avançado</string>
+  <string name="settings_laptops_none">Nenhum conectado</string>
+  <plurals name="settings_laptops_summary">
+    <item quantity="one">%1$d conectado</item>
+    <item quantity="many">%1$d de conectados</item>
+    <item quantity="other">%1$d conectados</item>
+  </plurals>
 </resources>

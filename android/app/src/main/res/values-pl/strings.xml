@@ -314,8 +314,6 @@
   <string name="settings_controls">Kolor elementów sterujących</string>
   <string name="settings_surface_title">Ustawienia powierzchni sterowania</string>
   <string name="settings_system">Ustawienia systemu</string>
-  <string name="settings_help">Pomoc</string>
-  <string name="settings_about">Informacje i aktualizacje</string>
   <string name="keyboard_settings_title">Ustawienia klawiatury</string>
   <string name="gamepad_settings_title">Ustawienia gamepada</string>
   <string name="updates_title">Aktualizacje</string>

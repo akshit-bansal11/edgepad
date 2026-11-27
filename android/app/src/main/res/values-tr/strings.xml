@@ -296,8 +296,6 @@
   <string name="settings_controls">Kontrol rengi</string>
   <string name="settings_surface_title">Kumanda alanı ayarları</string>
   <string name="settings_system">Sistem ayarları</string>
-  <string name="settings_help">Yardım</string>
-  <string name="settings_about">Hakkında ve güncellemeler</string>
   <string name="keyboard_settings_title">Klavye ayarları</string>
   <string name="gamepad_settings_title">Oyun kumandası ayarları</string>
   <string name="updates_title">Güncellemeler</string>

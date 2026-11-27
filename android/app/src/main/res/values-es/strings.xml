@@ -307,8 +307,6 @@
   <string name="settings_controls">Color de los controles</string>
   <string name="settings_surface_title">Configuración de la superficie</string>
   <string name="settings_system">Configuración del sistema</string>
-  <string name="settings_help">Ayuda</string>
-  <string name="settings_about">Acerca de y actualizaciones</string>
   <string name="keyboard_settings_title">Configuración del teclado</string>
   <string name="gamepad_settings_title">Configuración del gamepad</string>
   <string name="updates_title">Actualizaciones</string>

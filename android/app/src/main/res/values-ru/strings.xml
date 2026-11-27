@@ -314,8 +314,6 @@
   <string name="settings_controls">Цвет элементов</string>
   <string name="settings_surface_title">Настройки пульта</string>
   <string name="settings_system">Системные настройки</string>
-  <string name="settings_help">Справка</string>
-  <string name="settings_about">О приложении и обновления</string>
   <string name="keyboard_settings_title">Настройки клавиатуры</string>
   <string name="gamepad_settings_title">Настройки геймпада</string>
   <string name="updates_title">Обновления</string>
