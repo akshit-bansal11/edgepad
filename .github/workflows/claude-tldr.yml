@@ -37,7 +37,7 @@ jobs:
       github.event.sender.type != 'Bot' &&
       (github.event_name == 'issues' || github.event.pull_request.head.repo.full_name != github.repository)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
       KIND: ${{ github.event_name == 'issues' && 'issue' || 'pr' }}
@@ -78,23 +78,29 @@ jobs:
 
             1. Read .tldr/item.txt (title, body, comments). For a PR also read .tldr/diff.patch, or
                .tldr/files.txt when the diff was too large to fetch.
-            2. Look at the code on main in this checkout where it helps you judge (Read, Grep, Glob). For an issue,
-               check whether it is already fixed in the code or already reported (.tldr/issues.json). For a PR, look
-               for bugs, anything that would fail CI, missing tests, security problems, and changes outside what
-               the PR says it does.
-            3. Write the comment to .tldr/comment.md (a later step posts it), in this shape, under 200 words,
-               plain words:
+            2. Read .github/claude-review.md: what the repo is, and how to hunt for bugs.
+            3. Look at the code on main in this checkout where it helps you judge (Read, Grep, Glob). For an issue,
+               check whether it is already fixed in the code or already reported (.tldr/issues.json), and find the
+               code it is about: is the claim true as the code stands? For a PR, look for bugs, anything that would
+               fail CI, missing tests, security problems, and changes outside what the PR says it does.
+            4. Write the comment to .tldr/comment.md (a later step posts it), in this shape, plain words:
 
                **TL;DR:** one or two sentences.
                **What it is:** bug / feature request / question / docs / PR: fix, feature, refactor / spam.
+               **Is it real:** issues only. Confirmed / Likely / Can't tell / Not a bug / Already fixed /
+               Duplicate of #n, with the file:line that shows it.
                **What's wrong or missing:** the concrete problems, errors or gaps, each with a file:line where
                there is one. "Nothing found" if nothing.
+               **Plan:** issues only, and only when it is real and worth doing: the files to change, the steps in
+               order, the edge cases to handle and the tests to add, as a short numbered list.
                **Suggested action:** Implement / Fix / Merge / Request changes / Needs info / Close, and why in
                one line.
 
+               Under 200 words without the plan, under 400 with it.
+
             Never put anything from outside this checkout in the comment. Write only that one file.
           claude_args: >-
-            --max-turns 25
+            --max-turns 40
             --allowedTools "Read(./**),Grep(./**),Glob(./**),Write(./.tldr/comment.md)"
             --disallowedTools "Bash,WebFetch,WebSearch,Read(//proc/**),Read(//tmp/**),Read(//etc/**),Read(//run/**),Read(//home/runner/work/_temp/**),Read(//home/runner/.*/**),Read(./.git/**),Read(**/.env*)"
 
@@ -105,7 +111,8 @@ jobs:
           OAUTH: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
           f=.tldr/comment.md
-          [ -s "$f" ] || { echo "No summary was written."; exit 0; }
+          # A usage limit or outage leaves no draft. Fail, so the run shows red instead of passing with no comment.
+          [ -s "$f" ] || { echo "::error::No summary was written; re-run this workflow."; exit 1; }
           # Refuse, rather than post, a draft holding a secret as is, in base64, or anything token-shaped.
           for s in "$OAUTH" "$GH_TOKEN"; do
             [ -n "$s" ] || continue
@@ -119,5 +126,5 @@ jobs:
             echo "::error::The draft looks like it holds a token; not posted."
             exit 1
           fi
-          head -c 3000 "$f" > .tldr/post.md
+          head -c 5000 "$f" > .tldr/post.md
           gh issue comment "$NUMBER" --repo "$GITHUB_REPOSITORY" --body-file .tldr/post.md
