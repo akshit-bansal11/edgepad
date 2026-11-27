@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.link
 
+import android.os.SystemClock
 import me.akshitbansal.edgepad.protocol.PowerStateToken
 
 /**
@@ -20,8 +21,8 @@ data class PowerState(
     companion object {
         private const val MS = 1000L
 
-        /** A clock that only moves forward, in milliseconds. */
-        fun now(): Long = System.nanoTime() / 1_000_000L
+        /** A clock that only moves forward, in milliseconds, and keeps counting in deep sleep. */
+        fun now(): Long = SystemClock.elapsedRealtime()
 
         /** `kind/seconds`. Null for empty text, a kind this build does not know, or seconds that are not a number. */
         fun parse(

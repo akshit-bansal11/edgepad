@@ -39,7 +39,10 @@ enum class OpenState(
  * where in it. The activity keeps one per laptop, so a control surface built later (reopened, rotated,
  * themed) starts from what the laptop last said instead of from zero. Touched on the UI thread only.
  */
-class LaptopState {
+class LaptopState(
+    /** Milliseconds since boot, deep sleep included; a test passes a fake. */
+    private val clock: () -> Long = PowerState::now,
+) {
     private val levels = HashMap<ControlId, Int>()
     private val flags = HashMap<ControlId, Boolean>()
 
@@ -355,7 +358,7 @@ class LaptopState {
                     TextKind.MACRO_CAP -> macroCap = cap(frame.text) ?: return false
                     TextKind.CAPTURE_STATE -> captureState = CaptureStateToken.of(frame.text)
                     TextKind.UNAVAILABLE -> unavailable = unavailable(frame.text)
-                    TextKind.POWER_STATE -> power = PowerState.parse(frame.text, PowerState.now())
+                    TextKind.POWER_STATE -> power = PowerState.parse(frame.text, clock())
                     TextKind.NOW_PLAYING_FULL -> nowPlayingFull = frame.text
                     TextKind.FOREGROUND_APP -> foreground = ForegroundApp.parse(frame.text)
                     TextKind.FOREGROUND_KIND -> foregroundKind = AppKindToken.of(frame.text)

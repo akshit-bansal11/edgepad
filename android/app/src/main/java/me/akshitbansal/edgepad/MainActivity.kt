@@ -22,6 +22,7 @@ import android.provider.DocumentsContract
 import android.provider.Settings.Global
 import android.text.InputType
 import android.util.Log
+import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -153,6 +154,7 @@ import me.akshitbansal.edgepad.screens.PairCodeScreen
 import me.akshitbansal.edgepad.screens.PermissionSheet
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.PinScreen
+import me.akshitbansal.edgepad.screens.PowerBanner
 import me.akshitbansal.edgepad.screens.PowerScreen
 import me.akshitbansal.edgepad.screens.PresenterScreen
 import me.akshitbansal.edgepad.screens.PresenterSettingsScreen
@@ -422,6 +424,25 @@ class MainActivity :
     /** Holds the screen on show and, for the length of a carry, the one leaving. */
     private val stage by lazy { FrameLayout(this) }
 
+    /** The armed restart or shut down, on every screen the phone shows while connected. */
+    private val powerBanner by lazy { PowerBanner(ui) { manager.send(ActionId.POWER_CANCEL.frame()) } }
+
+    /** The stage with the power banner over it; the banner is outside the stage so a screen change never removes it. */
+    private val root by lazy {
+        FrameLayout(this).apply {
+            addView(stage)
+            val params =
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    Gravity.TOP,
+                )
+            params.marginStart = ui.dp(Space.PAGE)
+            params.marginEnd = ui.dp(Space.PAGE)
+            addView(powerBanner.view, params)
+        }
+    }
+
     /** True while [navigateBack] runs its synchronous [goTo], so the change plays in reverse. */
     private var backing = false
     private lateinit var gamepads: GamepadStore
@@ -652,6 +673,7 @@ class MainActivity :
         super.onStart()
         handler.removeCallbacks(linger)
         started = true
+        refreshPowerBanner()
         clipboard.bridge.start()
         manager.reconnect = settings.reconnect
         // This also starts a lost laptop's retries at once, which is what the reconnect screen wants.
@@ -702,6 +724,8 @@ class MainActivity :
         started = false
         Transfers.progress.removeListener(cardListener)
         xferCard?.hide()
+        // Nothing ticks while the app is out of sight; onStart draws it again.
+        powerBanner.update(null, "")
         UpdateJob.onChange = null
         clipboard.bridge.stop()
         releaseHeldInput()
@@ -965,6 +989,12 @@ class MainActivity :
 
     /** The name the hubs' chip shows: the laptop's own, else the one it was paired under. */
     private fun hubLaptopName(): String = state.laptopName?.takeIf { it.isNotEmpty() } ?: selected?.name.orEmpty()
+
+    /** Shows the armed countdown over any screen but the Power page, which has its own, and only while connected. */
+    private fun refreshPowerBanner() {
+        val armed = state.power.takeIf { started && connected && screen != Screen.POWER }
+        powerBanner.update(armed, hubLaptopName())
+    }
 
     /** A hub page came to rest: the laptop is told to send that page's data and no other. */
     private fun hubPage(page: Int) {
@@ -1763,7 +1793,8 @@ class MainActivity :
         next: Screen,
     ) {
         Carry.cancel()
-        if (stage.parent == null) setContentView(stage)
+        if (root.parent == null) setContentView(root)
+        refreshPowerBanner()
         // A secret screen never animates in or out: a carry would keep the PIN or code drawn while FLAG_SECURE flips.
         if (next == previous || previous in secure || next in secure) {
             stage.removeAllViews()
@@ -3203,6 +3234,7 @@ class MainActivity :
             )
         ) {
             powerRedraw?.invoke()
+            refreshPowerBanner()
         }
         if (frame is Frame.Text && frame.kind == TextKind.SCREEN_SIZE.id) {
             annotate?.refresh()

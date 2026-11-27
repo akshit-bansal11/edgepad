@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.screens
 
+import android.content.Context
 import android.graphics.drawable.Drawable
 import android.view.Gravity
 import android.view.MotionEvent
@@ -229,6 +230,9 @@ class DeckPage(
 internal class DeckPageHolder(
     ui: Ui,
 ) : LinearLayout(ui.context) {
+    /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
+    constructor(context: Context) : this(Ui(context))
+
     val deck = Deck(ui, this)
 
     init {

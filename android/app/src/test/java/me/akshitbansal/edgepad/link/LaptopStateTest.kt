@@ -21,7 +21,7 @@ import org.junit.Test
 import java.util.Base64
 
 class LaptopStateTest {
-    private val state = LaptopState()
+    private val state = LaptopState(clock = { 1_000L })
 
     @Test
     fun keepsTheLatestLevelAndFlagPerControl() {
