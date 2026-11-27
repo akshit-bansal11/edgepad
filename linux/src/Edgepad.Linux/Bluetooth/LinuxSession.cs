@@ -41,6 +41,7 @@ internal sealed class LinuxSession : IDisposable
     private readonly Func<LinuxSession, LinuxSession?> liveFor;
     private int disposed;
     private Action<bool>? inputState;
+    private Action<string?>? playingObserver;
     private PowerSource? powerSource;
     private PowerReporter? power;
     private ForegroundReporter? foreground;
@@ -251,8 +252,32 @@ internal sealed class LinuxSession : IDisposable
             dashboard?.Start();
 
             // TEXT 21: the app in front, from CONTROL 11. Wayland cannot see it, so the control stays unset there and is dropped and counted.
-            foreground = new ForegroundReporter(new LinuxForeground(), text => frames.Send(new Text((byte)TextKind.ForegroundApp, text)));
-            dispatcher.ForegroundWatch = LinuxForeground.Offered ? foreground.Watch : null;
+            // TEXT 40, the kind of app in front, rides on the same watch: the token in front, and what MPRIS says plays.
+            var kind = new ForegroundKind("linux", MprisMap.SameLinux, text => frames.Send(new Text((byte)TextKind.ForegroundKind, text)));
+            var reporter = new ForegroundReporter(
+                new LinuxForeground(),
+                text => frames.Send(new Text((byte)TextKind.ForegroundApp, text)),
+                kind: kind);
+            foreground = reporter;
+
+            void WatchForeground(bool on)
+            {
+                reporter.Watch(on);
+                if (playingObserver is { } old)
+                {
+                    StateReporter.MediaPlaying -= old;
+                    playingObserver = null;
+                }
+
+                if (on)
+                {
+                    playingObserver = kind.SetPlaying;
+                    StateReporter.MediaPlaying += playingObserver;
+                    kind.SetPlaying(StateReporter.PlayingApp);
+                }
+            }
+
+            dispatcher.ForegroundWatch = LinuxForeground.Offered ? WatchForeground : null;
 
             // TEXT 19/20: the batteries every 60 s, the default output every 3 s, each sent only when it changed. The
             // reporter reads on its own timers, so a slow UPower or sound tool never holds up this read loop.
@@ -330,6 +355,11 @@ internal sealed class LinuxSession : IDisposable
                 if (inputState is { } handler)
                 {
                     UinputAccess.Changed -= handler;
+                }
+
+                if (playingObserver is { } observer)
+                {
+                    StateReporter.MediaPlaying -= observer;
                 }
 
                 // Held input first: a reporter that is slow to stop must never leave keys down. The reporter no

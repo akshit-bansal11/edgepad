@@ -128,6 +128,16 @@ internal static class MprisMap
         return name.Length == 0 ? name : char.ToUpperInvariant(name[0]) + name[1..];
     }
 
+    /// <summary>
+    /// Whether a foreground token (the lower-cased WM_CLASS class, "firefox" or "chromium-browser") and a playing app's name
+    /// ("Firefox", "Chromium") are the same app: equal ignoring case, or the token is the name and a "-suffix".
+    /// </summary>
+    // HW: verify on device (WM_CLASS against the MPRIS bus name of Firefox, Chromium, Spotify and VLC).
+    public static bool SameLinux(string token, string appName) =>
+        appName.Length > 0
+        && (string.Equals(token, appName, StringComparison.OrdinalIgnoreCase)
+            || token.StartsWith(appName + "-", StringComparison.OrdinalIgnoreCase));
+
     /// <summary>The track's <c>mpris:trackid</c> for SetPosition, or null when there is none to seek in.</summary>
     public static string? TrackId(PlayerSnapshot player) =>
         player.Metadata.TryGetValue("mpris:trackid", out var id) && id is string path && path.Length > 0 && path != NoTrack ? path : null;

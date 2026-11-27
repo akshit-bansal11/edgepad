@@ -18,6 +18,17 @@ public sealed class MprisTests
     public void OnlyAMissingPlayerOrMethodFallsBackToTheKey(bool answered, string? refusal, bool handled) =>
         Assert.Equal(handled, Mpris.Handled(answered, refusal));
 
+    [Theory]
+    [InlineData("spotify", "Spotify", true)]
+    [InlineData("firefox", "Firefox", true)]
+    [InlineData("Firefox", "firefox", true)]
+    [InlineData("chromium-browser", "Chromium", true)]
+    [InlineData("chromium", "Firefox", false)]
+    [InlineData("vlc", "", false)]
+    [InlineData("firefoxy", "Firefox", false)]
+    public void AForegroundTokenMatchesThePlayingAppByNameOrNameAndSuffix(string token, string appName, bool same) =>
+        Assert.Equal(same, MprisMap.SameLinux(token, appName));
+
     [Fact]
     public void TitleArtistPositionAndLengthBecomeTheMediaState()
     {

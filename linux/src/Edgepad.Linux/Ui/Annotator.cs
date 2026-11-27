@@ -61,7 +61,7 @@ internal sealed class Annotator : IDisposable
     /// The TEXT 9 tokens for a laptop that can, or cannot, show the overlay and see macro apps' windows. Capture is
     /// always offered.
     /// </summary>
-    internal static string Features(bool annotate, bool running = false, bool clipboard = false, bool apps = false, bool notify = false, PowerCaps power = PowerCaps.None, bool foreground = false)
+    internal static string Features(bool annotate, bool running = false, bool clipboard = false, bool apps = false, bool notify = false, PowerCaps power = PowerCaps.None, bool foreground = false, bool appKind = false)
     {
         var features = annotate ? $"{Feature.Annotate}/{Feature.Capture}" : Feature.Capture;
         features = running ? $"{features}/{Feature.Running}" : features;
@@ -69,7 +69,8 @@ internal sealed class Annotator : IDisposable
         features = apps ? $"{features}/{Feature.Apps}" : features;
         features = notify ? $"{features}/{Feature.Notify}" : features;
         features = power != PowerCaps.None ? $"{features}/{PowerControl.Features(power)}" : features;
-        return foreground ? $"{features}/{Feature.Foreground}" : features;
+        features = foreground ? $"{features}/{Feature.Foreground}" : features;
+        return appKind ? $"{features}/{Feature.AppKind}" : features;
     }
 
     /// <summary>Tells every connected phone the features again, after the clipboard switch moved.</summary>
@@ -337,7 +338,7 @@ internal sealed class Annotator : IDisposable
             return;
         }
 
-        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning, ClipboardSetting.Enabled, apps: true, notify: NotifySetting.Enabled && !NotificationMonitor.Refused, power: LinuxPower.Shared.Caps, foreground: LinuxForeground.Offered)));
+        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning, ClipboardSetting.Enabled, apps: true, notify: NotifySetting.Enabled && !NotificationMonitor.Refused, power: LinuxPower.Shared.Caps, foreground: LinuxForeground.Offered, appKind: LinuxForeground.Offered)));
         sink(new Text((byte)TextKind.Unavailable, Unavailable(uiDecided, annotating, inputBlocked)));
         if (primary is { } screen)
         {

@@ -45,11 +45,28 @@ internal sealed class StateReporter : IDisposable
     private int? lastBrightness;
     private MediaState? lastMedia;
     private string? lastTimeline;
+    private string? lastPlaying;
+    private bool playingSent;
     private string lastFull = "";
     private string? lastRates;
     private int lastRate = -1;
     private string? lastIconKey;
     private readonly BlobSender blobs;
+
+    private static volatile string? playingApp;
+
+    /// <summary>
+    /// Raised on the polling thread with the name of the app that plays (null when none does), only when it changes. Static
+    /// because the media is the laptop's, not one session's: a listener is whichever session is watching.
+    /// </summary>
+    internal static event Action<string?>? MediaPlaying;
+
+    /// <summary>The app that plays now, null when none does; what <see cref="MediaPlaying"/> last said.</summary>
+    internal static string? PlayingApp
+    {
+        get => playingApp;
+        private set => playingApp = value;
+    }
 
     /// <param name="lastInputMs">When the phone last sent input, in <see cref="Environment.TickCount64"/> milliseconds.</param>
     public StateReporter(Audio speakers, Audio microphone, Backlight backlight, Mpris mpris, MacroStore macros, LinuxDisplayModes displayModes, Action<Frame> send, Func<long> lastInputMs)
@@ -176,6 +193,16 @@ internal sealed class StateReporter : IDisposable
     private void PollMedia()
     {
         var media = mpris.Poll();
+
+        // The app that plays, for the kind of app in front; raised only when it changes, and the latest kept for a watch that starts later.
+        var playing = media.Playing && media.Bus.Length > 0 ? MprisMap.AppName(media.Bus) : null;
+        if (!playingSent || playing != lastPlaying)
+        {
+            playingSent = true;
+            lastPlaying = playing;
+            PlayingApp = playing;
+            MediaPlaying?.Invoke(playing);
+        }
         // The uncleaned line goes first, only while it differs from TEXT 0; empty puts the phone back on TEXT 0.
         var full = FullFor(media);
         if (full != lastFull)
