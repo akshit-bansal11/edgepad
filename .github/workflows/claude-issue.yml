@@ -8,7 +8,7 @@ name: Claude Issue Fix
 # owner: the owner's issue. Claude edits files (no commit, push or gh), and a plain step pushes claude/issue-<n> and
 # opens the PR with GITHUB_TOKEN. That starts no pull_request workflow, so the same step dispatches ci.yml and
 # claude-review.yml on the branch; their ci-ok and claude-review checks land on the branch's head commit. The review
-# fixes what it finds, and the session merges once both are green.
+# waits for CI and suggests fixes on the PR; the owner merges once both are green.
 #
 # outside: anyone else's issue, once the owner labels it claude-fix, is still hostile text. Claude gets no command
 # line and no GitHub access: it reads the issue from a file and edits files in the checkout, nothing else (no

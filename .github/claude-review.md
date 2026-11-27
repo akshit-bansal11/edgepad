@@ -34,7 +34,7 @@ changed function or type, do these before you list anything:
   clock change; unit mix-ups (ms vs s, px vs dp, bytes vs chars); integer overflow and float rounding; number and
   date formatting in another locale; a protocol frame from an older or newer version.
 - **Then check your own findings.** For each one, find the line that proves it and the input that triggers it.
-  If you cannot name both, drop it or say plainly it is a suspicion. If you fix something, review the fix the same
+  If you cannot name both, drop it or say plainly it is a suspicion. Review each fix you write or suggest the same
   way: a fix that adds a new bug is worse than a reported problem.
 
 ## Look for, in order
