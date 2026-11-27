@@ -76,6 +76,7 @@ internal sealed class Session(
     private string lastTimeline = "";
     // What the phone holds as TEXT 26: the uncleaned title, or empty when the cleaned one is the whole line.
     private string lastFull = "";
+    private ForegroundKind? appKind;
     // The media icon: the sender it goes through, the key of the last picture asked for, and which run may still send (latest wins).
     private BlobSender? blobSender;
     private string lastIconKey = "";
@@ -354,7 +355,10 @@ internal sealed class Session(
         }
 
         // Which app is in front, only once the phone sets CONTROL 11; until then no hook exists. The app is never logged.
-        var front = new ForegroundReporter(foreground, text => Guarded(() => Send(new Text((byte)TextKind.ForegroundApp, text))));
+        // TEXT 40, the kind of app in front, rides on the same watch: the token in front, and what the media session says plays.
+        var kind = new ForegroundKind("windows", SameWindows, text => Guarded(() => Send(new Text((byte)TextKind.ForegroundKind, text))));
+        appKind = kind;
+        var front = new ForegroundReporter(foreground, text => Guarded(() => Send(new Text((byte)TextKind.ForegroundApp, text))), kind: kind);
         Keep(front);
         dispatcher.ForegroundWatch = front.Watch;
 
@@ -400,7 +404,7 @@ internal sealed class Session(
         var powerControl = new PowerControl(power, text => Guarded(() => Send(new Text((byte)TextKind.PowerState, text))));
         dispatcher.Power = powerControl;
 
-        List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps, Feature.Foreground, PowerControl.Features(power.Caps)];
+        List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps, Feature.Foreground, Feature.AppKind, PowerControl.Features(power.Caps)];
         if (open is not null)
         {
             features.Add(Feature.Running);
@@ -667,6 +671,13 @@ internal sealed class Session(
     private void SendBrightness(int level) =>
         Send(new StateReport((byte)ControlId.Brightness, (byte)Math.Clamp(level, 0, 100), 0));
 
+    /// <summary>Whether the foreground token ("spotify.exe") names the program of the playing session's AUMID, ignoring case.</summary>
+    internal static bool SameWindows(string token, string aumid)
+    {
+        var name = token.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? token[..^4] : token;
+        return name.Equals(MediaSessions.Executable(aumid), StringComparison.OrdinalIgnoreCase);
+    }
+
     private void SendMedia(MediaState state)
     {
         // Text only when it changes; the position every time, since it is what moves.
@@ -698,6 +709,9 @@ internal sealed class Session(
         }
 
         lastMedia = state;
+
+        // HW: verify on device (the AUMID Chrome reports is assumed to name chrome.exe)
+        appKind?.SetPlaying(state.Playing && state.NowPlaying.Length > 0 ? state.Aumid : null);
         SendMediaIcon(state);
         Send(new StateReport((byte)ControlId.MediaPosition, (byte)state.PositionPercent, state.Playing ? PlayingFlag : (byte)0));
     }
