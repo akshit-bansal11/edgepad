@@ -100,6 +100,7 @@ jobs:
 
             Never put anything from outside this checkout in the comment. Write only that one file.
           claude_args: >-
+            --model claude-sonnet-5-5
             --max-turns 40
             --allowedTools "Read(./**),Grep(./**),Glob(./**),Write(./.tldr/comment.md)"
             --disallowedTools "Bash,WebFetch,WebSearch,Read(//proc/**),Read(//tmp/**),Read(//etc/**),Read(//run/**),Read(//home/runner/work/_temp/**),Read(//home/runner/.*/**),Read(./.git/**),Read(**/.env*)"
