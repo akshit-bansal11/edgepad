@@ -42,6 +42,7 @@ internal sealed class LinuxSession : IDisposable
     private int disposed;
     private Action<bool>? inputState;
     private Action<string?>? playingObserver;
+    private Action<string>? sendPower;
     private PowerSource? powerSource;
     private PowerReporter? power;
     private ForegroundReporter? foreground;
@@ -184,19 +185,20 @@ internal sealed class LinuxSession : IDisposable
 
             // TEXT 39 and the power controls: only what logind allows is offered (the same Caps gate the feature tokens). A
             // countdown a dropped session left running is told to this phone, so it can cancel it.
-            var control = new PowerControl(
-                LinuxPower.Shared,
-                state =>
+            // The countdown outlives the session that started it, so its state goes to whichever session is current.
+            sendPower = state =>
+            {
+                try
                 {
-                    try
-                    {
-                        frames.Send(new Text((byte)TextKind.PowerState, state));
-                    }
-                    catch (Exception e) when (e is IOException or ObjectDisposedException)
-                    {
-                        // This session's socket is gone; the read loop ends it.
-                    }
-                });
+                    frames.Send(new Text((byte)TextKind.PowerState, state));
+                }
+                catch (Exception e) when (e is IOException or ObjectDisposedException)
+                {
+                    // This session's socket is gone; the read loop ends it.
+                }
+            };
+            LinuxPower.Listen(sendPower);
+            var control = new PowerControl(LinuxPower.Shared, LinuxPower.Report);
             dispatcher.Power = control;
             if (control.CurrentState() is { Length: > 0 } counting)
             {
@@ -352,6 +354,11 @@ internal sealed class LinuxSession : IDisposable
             // told the session ended whatever happens before it.
             try
             {
+                if (sendPower is { } powerListener)
+                {
+                    LinuxPower.Unlisten(powerListener);
+                }
+
                 if (inputState is { } handler)
                 {
                     UinputAccess.Changed -= handler;

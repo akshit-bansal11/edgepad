@@ -22,6 +22,9 @@ internal sealed class LinuxPower : IPowerPlatform
     // Only a yes is kept: a bus that was not up yet is asked again the next time.
     private volatile PowerCaps known;
 
+    // True once logind has answered every Can* query this session.
+    private bool asked;
+
     /// <summary>The one instance of this process.</summary>
     internal static LinuxPower Shared { get; } = new();
 
@@ -31,21 +34,49 @@ internal sealed class LinuxPower : IPowerPlatform
     /// </summary>
     internal static event Action<PowerKind, int, Action<bool>>? CountdownRequested;
 
+    // Whichever session is current hears the countdown's state, not only the one that started it.
+    private static Action<string>? listener;
+
     public PowerCaps Caps
     {
         get
         {
+            // Asked once per session start (Listen clears the answer), so a "no" is not re-asked on every action; a bus
+            // that did not answer is asked again.
+            if (Volatile.Read(ref asked))
+            {
+                return known;
+            }
+
+            var answered = true;
             foreach (var cap in All)
             {
-                if (!known.HasFlag(cap) && Allowed(Ask(CanFor(cap))))
+                var answer = Ask(CanFor(cap));
+                answered &= answer is not null;
+                if (Allowed(answer))
                 {
                     known |= cap;
                 }
             }
 
+            Volatile.Write(ref asked, answered);
             return known;
         }
     }
+
+    /// <summary>A session calls this on start: it becomes the one told the countdown state, and logind is asked afresh.</summary>
+    internal static void Listen(Action<string> send)
+    {
+        Volatile.Write(ref listener, send);
+        Shared.known = PowerCaps.None;
+        Volatile.Write(ref Shared.asked, false);
+    }
+
+    /// <summary>Clears the listener only if it is still <c>send</c>, so a session ending after its successor started leaves the successor's.</summary>
+    internal static void Unlisten(Action<string> send) => Interlocked.CompareExchange(ref listener, null, send);
+
+    /// <summary>Tells the current session, if any, the countdown state.</summary>
+    internal static void Report(string state) => Volatile.Read(ref listener)?.Invoke(state);
 
     public (PowerKind Kind, int SecondsLeft)? Pending => ShutdownCountdown.Pending;
 

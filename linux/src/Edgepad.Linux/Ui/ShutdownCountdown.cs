@@ -1,7 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using Edgepad.Platform;
 using Edgepad.Power;
+using Edgepad.Protocol;
 
 namespace Edgepad.Ui;
 
@@ -37,6 +39,9 @@ internal static class ShutdownCountdown
     /// <summary>Whole seconds left, rounded up, never below zero.</summary>
     internal static int SecondsLeft(long deadlineMs, long nowMs) => (int)Math.Max(0, (deadlineMs - nowMs + 999) / 1000);
 
+    /// <summary>True when the wall clock ran at least 5 s ahead of the monotonic one across a tick: the laptop was suspended.</summary>
+    internal static bool Slept(long monoDeltaMs, long wallDeltaMs) => wallDeltaMs - monoDeltaMs >= 5_000;
+
     internal static string Message(PowerKind kind, int seconds) =>
         Say.Format(kind == PowerKind.Restart ? LinuxStrings.Power_RestartText : LinuxStrings.Power_ShutDownText, seconds);
 
@@ -64,9 +69,24 @@ internal static class ShutdownCountdown
 
         var timer = new DispatcherTimer { Interval = Tick };
         var due = false;
+        var lastMono = Environment.TickCount64;
+        var lastWall = DateTime.UtcNow;
         timer.Tick += (_, _) =>
         {
-            var left = SecondsLeft(deadline, Environment.TickCount64);
+            // TickCount64 stops while the laptop is suspended and the wall clock does not, so a gap between them is a
+            // suspend (a lid close): the owner gets the full minute again after waking.
+            var mono = Environment.TickCount64;
+            var wall = DateTime.UtcNow;
+            if (Slept(mono - lastMono, (long)(wall - lastWall).TotalMilliseconds))
+            {
+                deadline = mono + (seconds * 1000L);
+                running = new Running(kind, deadline);
+                LinuxPower.Report($"{(kind == PowerKind.Restart ? PowerStateToken.Restart : PowerStateToken.ShutDown)}/{seconds}");
+            }
+
+            lastMono = mono;
+            lastWall = wall;
+            var left = SecondsLeft(deadline, mono);
             text.Text = Message(kind, left);
             if (left == 0 && !due)
             {
