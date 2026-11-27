@@ -1,7 +1,6 @@
 using System.Globalization;
 using Edgepad.Blob;
 using Edgepad.Macros;
-using Edgepad.Media;
 using Edgepad.Net;
 using Edgepad.Protocol;
 
@@ -51,12 +50,6 @@ internal sealed class StateReporter : IDisposable
     private int lastRate = -1;
     private string? lastIconKey;
     private readonly BlobSender blobs;
-
-    /// <summary>
-    /// Raised on the polling thread with each look at the media, for the end-of-media action. Static because the media is
-    /// the laptop's, not one session's: a listener is whichever session is live.
-    /// </summary>
-    internal static event Action<MediaSnapshot>? MediaObserved;
 
     /// <param name="lastInputMs">When the phone last sent input, in <see cref="Environment.TickCount64"/> milliseconds.</param>
     public StateReporter(Audio speakers, Audio microphone, Backlight backlight, Mpris mpris, MacroStore macros, LinuxDisplayModes displayModes, Action<Frame> send, Func<long> lastInputMs)
@@ -183,8 +176,6 @@ internal sealed class StateReporter : IDisposable
     private void PollMedia()
     {
         var media = mpris.Poll();
-        MediaObserved?.Invoke(new MediaSnapshot(media.Full, media.Playing, media.PositionSeconds, media.DurationSeconds));
-
         // The uncleaned line goes first, only while it differs from TEXT 0; empty puts the phone back on TEXT 0.
         var full = FullFor(media);
         if (full != lastFull)

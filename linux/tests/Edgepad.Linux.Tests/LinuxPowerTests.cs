@@ -1,5 +1,5 @@
-using Edgepad.Media;
 using Edgepad.Platform;
+using Edgepad.Power;
 using Edgepad.Ui;
 using Xunit;
 
@@ -8,30 +8,39 @@ namespace Edgepad.Tests;
 public sealed class LinuxPowerTests
 {
     [Theory]
-    [InlineData(0, "Suspend")]
-    [InlineData(1, "PowerOff")]
-    public void EachKindMapsToItsLogindMethod(int kind, string method) =>
-        Assert.Equal(method, LinuxPower.MethodFor((EndKind)kind));
+    [InlineData(PowerCaps.Sleep, "Suspend", "CanSuspend")]
+    [InlineData(PowerCaps.Hibernate, "Hibernate", "CanHibernate")]
+    [InlineData(PowerCaps.Restart, "Reboot", "CanReboot")]
+    [InlineData(PowerCaps.ShutDown, "PowerOff", "CanPowerOff")]
+    public void EachPowerActionMapsToItsLogindMethodAndQuery(PowerCaps cap, string method, string query)
+    {
+        Assert.Equal(method, LinuxPower.MethodFor(cap));
+        Assert.Equal(query, LinuxPower.CanFor(cap));
+    }
 
     [Theory]
     [InlineData("yes", true)]
-    [InlineData("challenge", true)]
+    [InlineData("challenge", false)]
     [InlineData("na", false)]
     [InlineData("no", false)]
     [InlineData("", false)]
     [InlineData(null, false)]
-    public void OnlyAYesOrAChallengeMeansLogindCan(string? answer, bool allowed) =>
+    public void OnlyAnExactYesMeansLogindCan(string? answer, bool allowed) =>
         Assert.Equal(allowed, LinuxPower.Allowed(answer));
 
     [Fact]
-    public void AShutdownWithNoCountdownWindowIsRefused() =>
-        Assert.False(LinuxPower.Perform(EndKind.Shutdown));
+    public void ARestartWithNoCountdownWindowIsRefused() =>
+        Assert.False(LinuxPower.Shared.StartCountdown(PowerKind.Restart, 60, _ => { }));
 
     [Fact]
-    public void TheEndActionTokenIsOfferedOnlyWhenAsked()
+    public void EachCapabilityBecomesItsFeatureToken()
     {
-        Assert.DoesNotContain("endaction", Annotator.Features(annotate: true));
-        Assert.EndsWith("/endaction", Annotator.Features(annotate: true, endAction: true), StringComparison.Ordinal);
+        Assert.DoesNotContain("sleep", Annotator.Features(annotate: true));
+        Assert.EndsWith(
+            "/sleep/hibernate/restart/shutdown",
+            Annotator.Features(annotate: true, power: PowerCaps.Sleep | PowerCaps.Hibernate | PowerCaps.Restart | PowerCaps.ShutDown),
+            StringComparison.Ordinal);
+        Assert.Equal("capture/sleep/shutdown", Annotator.Features(annotate: false, power: PowerCaps.Sleep | PowerCaps.ShutDown));
     }
 }
 

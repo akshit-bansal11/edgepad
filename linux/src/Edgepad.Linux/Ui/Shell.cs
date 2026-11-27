@@ -97,7 +97,7 @@ internal sealed class Shell : IDisposable
         this.paired = paired;
         this.identity = identity;
         this.version = version;
-        LinuxPower.ShutdownRequested += ShutdownCountdown.Show;
+        LinuxPower.CountdownRequested += ShutdownCountdown.Show;
         // However the question ends, the status line stops asking for the code.
         pairing = PairingPrompt.OnUiThread(
             phone =>
@@ -142,7 +142,7 @@ internal sealed class Shell : IDisposable
     /// <summary>Stops the network server if <see cref="StopNetwork"/> has not already; Program calls that earlier, before the server goes.</summary>
     public void Dispose()
     {
-        LinuxPower.ShutdownRequested -= ShutdownCountdown.Show;
+        LinuxPower.CountdownRequested -= ShutdownCountdown.Show;
         updateTimer?.Dispose();
         network?.Dispose();
     }
