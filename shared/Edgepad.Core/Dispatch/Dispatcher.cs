@@ -5,6 +5,7 @@ using Edgepad.Blob;
 using Edgepad.Capture;
 using Edgepad.Macros;
 using Edgepad.Media;
+using Edgepad.Power;
 using Edgepad.Protocol;
 using Edgepad.Transfer;
 
@@ -112,6 +113,12 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     /// EndSleep, EndShutdown and EndCancel are dropped and counted, as on a laptop too old to know them.
     /// </summary>
     public EndAction? EndAction { get; set; }
+
+    /// <summary>
+    /// Sleeps, hibernates, restarts or shuts the laptop down on the phone's request. Set by the session, like <see cref="EndAction"/>;
+    /// without one, Sleep, Hibernate, Restart, ShutDown and PowerCancel are dropped and counted.
+    /// </summary>
+    public PowerControl? Power { get; set; }
 
     /// <summary>
     /// Where "recording" and "idle" go when the phone starts or cancels a recording. Best effort and only that: a recording
@@ -255,6 +262,7 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
             ActionId.EndSleep => Arm(EndKind.Sleep),
             ActionId.EndShutdown => Arm(EndKind.Shutdown),
             ActionId.EndCancel => Disarm(),
+            ActionId.Sleep or ActionId.Hibernate or ActionId.Restart or ActionId.ShutDown or ActionId.PowerCancel => Power?.Run(action) ?? false,
             ActionId.PadAttach => Answer(platform.AttachPad()),
             ActionId.PadDetach => Answer(platform.DetachPad()),
             // The capture lists its folders before the shortcut is pressed, so the press can be told apart from them.

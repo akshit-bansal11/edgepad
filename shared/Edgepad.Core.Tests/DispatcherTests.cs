@@ -5,6 +5,7 @@ using Edgepad.Dispatch;
 using Edgepad.Macros;
 using Edgepad.Media;
 using Edgepad.Net;
+using Edgepad.Power;
 using Edgepad.Protocol;
 using Xunit;
 using static System.FormattableString;
@@ -290,6 +291,37 @@ public sealed class DispatcherTests : IDisposable
         dispatcher.Handle(new RunAction((byte)ActionId.EndCancel));
 
         Assert.Equal(3, dispatcher.Dropped);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void ThePowerIdsReachPowerAndNeverThePlatform()
+    {
+        var fake = new PowerControlTests.FakePower();
+        List<string> states = [];
+        dispatcher.Power = new PowerControl(fake, states.Add);
+
+        dispatcher.Handle(new RunAction((byte)ActionId.Sleep));
+        dispatcher.Handle(new RunAction((byte)ActionId.Hibernate));
+        dispatcher.Handle(new RunAction((byte)ActionId.Restart));
+        dispatcher.Handle(new RunAction((byte)ActionId.PowerCancel));
+        dispatcher.Handle(new RunAction((byte)ActionId.ShutDown));
+
+        Assert.Equal(0, dispatcher.Dropped);
+        Assert.Equal(1, fake.Slept);
+        Assert.Equal(["restart/60", "", "shutdown/60"], states);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
+    public void WithNoPowerTheFivePowerIdsAreDropped()
+    {
+        foreach (var id in new[] { ActionId.Sleep, ActionId.Hibernate, ActionId.Restart, ActionId.ShutDown, ActionId.PowerCancel })
+        {
+            dispatcher.Handle(new RunAction((byte)id));
+        }
+
+        Assert.Equal(5, dispatcher.Dropped);
         Assert.Empty(platform.Calls);
     }
 
