@@ -47,6 +47,7 @@ import me.akshitbansal.edgepad.link.CaptureInbox
 import me.akshitbansal.edgepad.link.ClipboardShare
 import me.akshitbansal.edgepad.link.DashMask
 import me.akshitbansal.edgepad.link.Discovery
+import me.akshitbansal.edgepad.link.ForegroundWatchPolicy
 import me.akshitbansal.edgepad.link.Found
 import me.akshitbansal.edgepad.link.GitHost
 import me.akshitbansal.edgepad.link.HostPort
@@ -376,6 +377,9 @@ class MainActivity :
 
     /** True from FOREGROUND_WATCH 1 until the 0 that answers it; the laptop forgets it when the session ends. */
     private var watchingForeground = false
+
+    /** The app in front when the Profiles screen was last built, so a different one rebuilds it. */
+    private var profilesBuiltFor: String? = null
 
     /** The laptop's app list while it is the screen, so a new list or a finished icon can be handed to it. */
     private var appList: AppListScreen? = null
@@ -904,8 +908,13 @@ class MainActivity :
      */
     private fun syncForegroundWatch() {
         val want =
-            connected && settings.profilesOn && Feature.FOREGROUND in state.features &&
-                Profiles(settings.profiles).all.isNotEmpty()
+            ForegroundWatchPolicy.wanted(
+                connected = connected,
+                offered = Feature.FOREGROUND in state.features,
+                profilesOn = settings.profilesOn,
+                hasProfiles = Profiles(settings.profiles).all.isNotEmpty(),
+                onProfilesScreen = screen == Screen.PROFILES,
+            )
         if (want == watchingForeground) return
         watchingForeground = want
         manager.send(ControlId.FOREGROUND_WATCH.set(if (want) 1 else 0))
@@ -976,6 +985,8 @@ class MainActivity :
 
     /** The app in front changed: the surface is rebuilt only when that gives another profile than the one drawn. */
     private fun followForeground() {
+        // The Profiles screen names the app in front, so it is drawn again when that changes.
+        if (screen == Screen.PROFILES && state.foreground?.token != profilesBuiltFor) goTo(Screen.PROFILES)
         val next = frontProfile()
         if (next == settings.activeProfile) return
         settings.activeProfile = next
@@ -1187,6 +1198,8 @@ class MainActivity :
         // A page opened from Settings goes back there; clearing it at the pages that start a trip of their own.
         if (next in tripStarts) childFrom = null
         screen = next
+        // The laptop reports the app in front while the Profiles screen is open, even before there is a profile.
+        if ((previous == Screen.PROFILES) != (next == Screen.PROFILES)) syncForegroundWatch()
         // The bars on a page opened from a row of Settings say so; deeper pages keep their own labels.
         val fromSettings = childFrom == Screen.SETTINGS && next in settingsPages
         ui.backOverride = if (fromSettings) getString(R.string.settings_title) else null
@@ -1357,6 +1370,7 @@ class MainActivity :
                 }
 
                 Screen.PROFILES -> {
+                    profilesBuiltFor = state.foreground?.token
                     ProfilesScreen.build(
                         ui,
                         on = settings.profilesOn,
