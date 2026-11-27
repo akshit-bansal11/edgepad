@@ -1355,9 +1355,16 @@ class MainActivity :
                         settings,
                         getString(R.string.settings_surface),
                         SurfaceSettingsScreen.Routes(
-                            rows = surfaceRows(from = null),
-                            system = ::openSettings,
+                            rows = surfaceRows(),
+                            system = if (childFrom == Screen.SETTINGS) null else ::openSettings,
                             back = { navigateBack() },
+                            dialsHidden = dialsHidden,
+                            onHideDials = { on ->
+                                dialsHidden = on
+                                surface?.setDialsHidden(on)
+                            },
+                            laptopConnected = { connected },
+                            onFloatingChanged = ::syncFloating,
                         ),
                     )
                 }
@@ -1443,17 +1450,7 @@ class MainActivity :
                 }
 
                 Screen.DIAL_FEEL -> {
-                    DialFeelScreen.build(
-                        ui,
-                        settings,
-                        dialsHidden,
-                        onHideDials = { on ->
-                            dialsHidden = on
-                            surface?.setDialsHidden(on)
-                        },
-                        laptopConnected = { connected },
-                        onFloatingChanged = ::syncFloating,
-                    ) { navigateBack() }
+                    DialFeelScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.APPEARANCE -> {
@@ -1842,7 +1839,7 @@ class MainActivity :
             Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.MEDIA_LAYOUT,
             Screen.SHAPES, Screen.PROFILES, Screen.WIDGETS,
             -> {
-                goTo(childFrom ?: Screen.SURFACE_SETTINGS)
+                goTo(Screen.SURFACE_SETTINGS)
             }
 
             Screen.WIDGET_LAYOUT -> {
@@ -2252,17 +2249,17 @@ class MainActivity :
     private fun versionLine(): String =
         getString(R.string.settings_version, getString(R.string.app_version), ProtocolConstants.VERSION)
 
-    /** The surface's pages: from Settings back returns there, from the surface's own settings to those. */
-    private fun surfaceRows(from: Screen?) =
+    /** The surface's pages: back from any of them returns to the surface's settings, which they are opened from. */
+    private fun surfaceRows() =
         SurfaceSettingsScreen.Rows(
-            corners = { openFrom(from, Screen.CORNERS) },
-            gestures = { openFrom(from, Screen.GESTURES) },
-            shapes = { openFrom(from, Screen.SHAPES) },
-            dialFeel = { openFrom(from, Screen.DIAL_FEEL) },
-            mediaLayout = { openFrom(from, Screen.MEDIA_LAYOUT) },
-            appearance = { openFrom(from, Screen.APPEARANCE) },
-            profiles = { openFrom(from, Screen.PROFILES) },
-            widgets = { openFrom(from, Screen.WIDGETS) },
+            corners = { goTo(Screen.CORNERS) },
+            gestures = { goTo(Screen.GESTURES) },
+            shapes = { goTo(Screen.SHAPES) },
+            dialFeel = { goTo(Screen.DIAL_FEEL) },
+            mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
+            appearance = { goTo(Screen.APPEARANCE) },
+            profiles = { goTo(Screen.PROFILES) },
+            widgets = { goTo(Screen.WIDGETS) },
         )
 
     private fun openFrom(

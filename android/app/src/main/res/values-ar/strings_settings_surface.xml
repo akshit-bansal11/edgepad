@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="profiles_summary_off">متوقف</string>
+  <string name="profiles_summary_auto">تلقائي</string>
+  <plurals name="profiles_summary_apps">
+    <item quantity="zero">%1$d تطبيق</item>
+    <item quantity="one">تطبيق واحد</item>
+    <item quantity="two">تطبيقان</item>
+    <item quantity="few">%1$d تطبيقات</item>
+    <item quantity="many">%1$d تطبيقًا</item>
+    <item quantity="other">%1$d تطبيق</item>
+  </plurals>
+  <plurals name="widgets_summary">
+    <item quantity="zero">%1$d قيد التشغيل</item>
+    <item quantity="one">%1$d قيد التشغيل</item>
+    <item quantity="two">%1$d قيد التشغيل</item>
+    <item quantity="few">%1$d قيد التشغيل</item>
+    <item quantity="many">%1$d قيد التشغيل</item>
+    <item quantity="other">%1$d قيد التشغيل</item>
+  </plurals>
+</resources>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="profiles_summary_off">Выкл.</string>
+  <string name="profiles_summary_auto">Автоматически</string>
+  <plurals name="profiles_summary_apps">
+    <item quantity="one">%1$d приложение</item>
+    <item quantity="few">%1$d приложения</item>
+    <item quantity="many">%1$d приложений</item>
+    <item quantity="other">%1$d приложения</item>
+  </plurals>
+  <plurals name="widgets_summary">
+    <item quantity="one">Включено: %1$d</item>
+    <item quantity="few">Включено: %1$d</item>
+    <item quantity="many">Включено: %1$d</item>
+    <item quantity="other">Включено: %1$d</item>
+  </plurals>
+</resources>

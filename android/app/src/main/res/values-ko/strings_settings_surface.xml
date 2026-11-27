@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="profiles_summary_off">꺼짐</string>
+  <string name="profiles_summary_auto">자동</string>
+  <plurals name="profiles_summary_apps">
+    <item quantity="one">앱 %1$d개</item>
+    <item quantity="other">앱 %1$d개</item>
+  </plurals>
+  <plurals name="widgets_summary">
+    <item quantity="one">%1$d개 켜짐</item>
+    <item quantity="other">%1$d개 켜짐</item>
+  </plurals>
+</resources>
