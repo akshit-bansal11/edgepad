@@ -17,6 +17,9 @@ name: Claude Review
 # the owner or the session can use it. Removing the label runs a full review. Any other label change reuses the
 # verdict already posted for the head commit.
 #
+# Usage: a draft, or a change of only images, media, fonts or lockfiles, passes without a review. Opus reviews only
+# the first round of a change of 300+ lines or one touching the wire format; the rest is Sonnet.
+#
 # Claude sees the PR title, body and the owner's comments only, pre-fetched into .review/pr.md. It has no gh, no
 # shell beyond git diff/log/show/status, and is denied the runner's secrets folders, .git config and .github/.
 #
@@ -81,8 +84,18 @@ jobs:
               *) if [ "$author" = "$OWNER" ]; then ours=true; fi ;;
             esac
           fi
+          # Images, video, fonts and lockfiles only: nothing for a reviewer to read. (Lockfiles are Dependabot's.)
+          assets_only=false
+          if gh api "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --paginate --jq '.[].filename' > "$RUNNER_TEMP/files.txt" &&
+            [ -s "$RUNNER_TEMP/files.txt" ] &&
+            ! grep -Eiv '\.(png|jpe?g|gif|webp|ico|icns|mp4|webm|mov|mp3|wav|ttf|otf|woff2?)$|(^|/)(package-lock\.json|gradle\.lockfile)$' "$RUNNER_TEMP/files.txt" > /dev/null; then
+            assets_only=true
+          fi
           if [ "$(f .state)" != open ]; then mode=closed
           elif [ "$(f 'any(.labels[]; .name == "review-skipped")')" = true ]; then mode=skipped
+          # A draft is still moving; marking it ready for review starts the full review.
+          elif [ "$(f .draft)" = true ]; then mode=draft
+          elif [ "$assets_only" = true ]; then mode=assets
           elif [ "$ours" != true ]; then mode=not-ours
           elif { [ "$ACTION" = labeled ] || [ "$ACTION" = unlabeled ]; } && [ "$LABEL" != review-skipped ]; then mode=reuse
           else mode=review
@@ -97,7 +110,7 @@ jobs:
           echo "Mode: $mode"
 
       - name: Pass without a review
-        if: steps.pr.outputs.mode == 'skipped' || steps.pr.outputs.mode == 'not-ours' || steps.pr.outputs.mode == 'closed'
+        if: contains(fromJSON('["skipped","not-ours","closed","draft","assets"]'), steps.pr.outputs.mode)
         env:
           MODE: ${{ steps.pr.outputs.mode }}
         run: |
@@ -105,6 +118,8 @@ jobs:
             skipped) echo "::notice::review-skipped label: passing without a Claude review. Remove the label to review." ;;
             not-ours) echo "::notice::Not reviewed here: summarised by claude-tldr.yml if it is a fork, merged only on the owner's word." ;;
             closed) echo "::notice::The pull request is closed." ;;
+            draft) echo "::notice::Draft: not reviewed yet. Marking it ready for review starts the review." ;;
+            assets) echo "::notice::Only images, media, fonts or lockfiles changed: nothing to review." ;;
           esac
 
       - name: Reuse the verdict posted for this commit (no AI in this step)
@@ -145,6 +160,16 @@ jobs:
           n=$(g log "origin/$BASE_REF..HEAD" --format=%s | grep -c '^fix(review): round ' || true)
           echo "n=$n" >> "$GITHUB_OUTPUT"
           if [ "$n" -ge 3 ]; then echo "may_fix=false" >> "$GITHUB_OUTPUT"; else echo "may_fix=true" >> "$GITHUB_OUTPUT"; fi
+          # To keep the owner's Max usage light, Opus reads only a first review of a big or wire-format change.
+          # Everything else, including each re-review after a fix round, is Sonnet (about half the usage).
+          lines=$(g diff --numstat "origin/$BASE_REF...HEAD" | awk '$1 != "-" { t += $1 + $2 } END { print t + 0 }')
+          if [ "$n" -eq 0 ] && { [ "$lines" -ge 300 ] || ! g diff --quiet "origin/$BASE_REF...HEAD" -- protocol docs/PROTOCOL.md; }; then
+            model=claude-opus-5-5
+          else
+            model=claude-sonnet-5-5
+          fi
+          echo "model=$model" >> "$GITHUB_OUTPUT"
+          echo "Changed lines: $lines, fix rounds so far: $n, model: $model"
           mkdir -p .review
           printf '.review/\n.claude-pr/\n' >> .git/info/exclude
           # Claude gets no git at all (git diff --output= could write .git/config). It reads these files instead.
@@ -188,6 +213,7 @@ jobs:
             - summary: a short TL;DR for the owner: what the PR does, what you found, what you fixed, what is
               left. Plain words, under 250 words, markdown, file:line where useful.
           claude_args: >-
+            --model ${{ steps.rounds.outputs.model }}
             --max-turns 120
             --permission-mode default
             --allowedTools "Read,Grep,Glob${{ steps.rounds.outputs.may_fix == 'true' && ',Edit(./**),Write(./**)' || '' }}"
