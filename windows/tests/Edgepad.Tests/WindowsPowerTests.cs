@@ -9,6 +9,24 @@ public sealed class WindowsPowerTests
     private const PowerCaps Always = PowerCaps.Restart | PowerCaps.ShutDown;
 
     [Fact]
+    public void TheCountdownReportsToTheCurrentSessionOnly()
+    {
+        List<string> first = [];
+        List<string> second = [];
+        Action<string> a = first.Add;
+        Action<string> b = second.Add;
+        WindowsPower.Listen(a);
+        WindowsPower.Listen(b);
+        WindowsPower.Unlisten(a);
+        WindowsPower.Report("");
+        WindowsPower.Unlisten(b);
+        WindowsPower.Report("ignored");
+
+        Assert.Empty(first);
+        Assert.Equal("", Assert.Single(second));
+    }
+
+    [Fact]
     public void S3OnlySleepsButCannotHibernate() =>
         Assert.Equal(Always | PowerCaps.Sleep, WindowsPower.CapsFrom(s1: false, s2: false, s3: true, s4: false, hiberFile: false, aoac: false));
 

@@ -16,6 +16,8 @@ internal sealed partial class WindowsPower : IPowerPlatform
     private const nint ScMonitorPower = 0xF170;
     private const nint MonitorOff = 2;
 
+    private static Action<string>? listener;
+
     private readonly bool suspend;
 
     public WindowsPower()
@@ -33,6 +35,18 @@ internal sealed partial class WindowsPower : IPowerPlatform
     }
 
     public PowerCaps Caps { get; }
+
+    /// <summary>
+    /// The countdown outlives the session that started it, so its state goes to whichever session is current, not to the one
+    /// whose <see cref="PowerControl"/> started it. A session calls this on start and <see cref="Unlisten"/> on end.
+    /// </summary>
+    public static void Listen(Action<string> send) => Volatile.Write(ref listener, send);
+
+    /// <summary>Clears the listener only if it is still <c>send</c>, so a session ending after its successor started leaves the successor's.</summary>
+    public static void Unlisten(Action<string> send) => Interlocked.CompareExchange(ref listener, null, send);
+
+    /// <summary>Tells the current session, if any, the countdown state.</summary>
+    public static void Report(string state) => Volatile.Read(ref listener)?.Invoke(state);
 
     public (PowerKind Kind, int SecondsLeft)? Pending => ShutdownCountdown.Pending;
 

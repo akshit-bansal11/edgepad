@@ -401,7 +401,10 @@ internal sealed class Session(
         // Sleep, hibernate, restart and shut down (ACTIONs 7 to 11), named only for what this laptop can do. The countdown
         // window is one for the app, so a phone that reconnects mid-countdown is told it below.
         var power = new WindowsPower();
-        var powerControl = new PowerControl(power, text => Guarded(() => Send(new Text((byte)TextKind.PowerState, text))));
+        Action<string> sendPower = text => Guarded(() => Send(new Text((byte)TextKind.PowerState, text)));
+        WindowsPower.Listen(sendPower);
+        Keep(new Subscription(() => WindowsPower.Unlisten(sendPower)));
+        var powerControl = new PowerControl(power, WindowsPower.Report);
         dispatcher.Power = powerControl;
 
         List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps, Feature.Foreground, Feature.AppKind, PowerControl.Features(power.Caps)];
