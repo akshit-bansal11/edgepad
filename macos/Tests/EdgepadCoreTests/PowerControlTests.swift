@@ -65,6 +65,46 @@ final class PowerControlTests: XCTestCase {
         XCTAssertEqual(heard, [""])
     }
 
+    func testSleepAndHibernateAreRefusedWhileACountdownIsPending() {
+        XCTAssertTrue(control.run(.restart))
+        XCTAssertFalse(control.run(.sleep))
+        XCTAssertFalse(control.run(.hibernate))
+        XCTAssertEqual(platform.slept + platform.hibernated, 0)
+
+        platform.finish(false)
+        XCTAssertTrue(control.run(.sleep))
+        XCTAssertEqual(platform.slept, 1)
+    }
+
+    func testTheEndOfACountdownReachesTheSessionThatListensNow() {
+        XCTAssertTrue(control.run(.restart))
+        control.stateChanged = nil
+
+        let next = PowerControl(platform: platform)
+        var heard: [String] = []
+        next.stateChanged = { heard.append($0) }
+        platform.finish(false)
+        XCTAssertEqual(heard, [""])
+        XCTAssertEqual(states, ["restart/60"])
+    }
+
+    func testAnEndedSessionOnlyLetsGoOfItsOwnListener() {
+        XCTAssertTrue(control.run(.restart))
+        let next = PowerControl(platform: platform)
+        var heard: [String] = []
+        next.stateChanged = { heard.append($0) }
+        control.stateChanged = nil
+
+        platform.finish(false)
+        XCTAssertEqual(heard, [""])
+    }
+
+    func testARestartedCountdownIsReportedAgainEvenWithTheSameSeconds() {
+        XCTAssertTrue(control.run(.restart))
+        PowerControl.countdownRestarted()
+        XCTAssertEqual(states, ["restart/60", "restart/60"])
+    }
+
     func testFeaturesComeInAFixedOrder() {
         XCTAssertEqual(
             PowerControl.features([.shutDown, .sleep, .restart, .hibernate]),

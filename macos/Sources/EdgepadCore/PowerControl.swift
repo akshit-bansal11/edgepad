@@ -47,6 +47,28 @@ public protocol PowerPlatform: AnyObject {
 public final class PowerControl {
     public static let countdownSeconds = 60
 
+    /// One listener for the whole process, like Windows' `WindowsPower.Listen/Unlisten`.
+    private final class Listener: @unchecked Sendable {
+        private let lock = NSLock()
+        private weak var control: PowerControl?
+
+        func set(_ new: PowerControl) {
+            lock.withLock { control = new }
+        }
+
+        func clear(_ old: PowerControl) {
+            lock.withLock {
+                if control === old { control = nil }
+            }
+        }
+
+        func get() -> PowerControl? {
+            lock.withLock { control }
+        }
+    }
+
+    private static let current = Listener()
+
     private let platform: PowerPlatform
     private let gate = NSLock()
     private var reported: String
@@ -62,17 +84,32 @@ public final class PowerControl {
     /// Where a state change goes. Set by the session once it has a link to write to; nil when it ends.
     public var stateChanged: ((String) -> Void)? {
         get { gate.withLock { callback } }
-        set { gate.withLock { callback = newValue } }
+        set {
+            gate.withLock { callback = newValue }
+            // The newest session is the one a countdown's end is told to; a session going away only lets go of its own.
+            if newValue != nil {
+                Self.current.set(self)
+            } else {
+                Self.current.clear(self)
+            }
+        }
     }
 
-    /// False, so the frame is dropped and counted, when this computer lacks the capability. A restart or shut down
-    /// while one is counting down is accepted and changes nothing.
+    /// The restart seconds changed under a running countdown (the Mac woke): tells the current session, bypassing the
+    /// "unchanged" filter because the same text now means a fresh 60 s.
+    public static func countdownRestarted() {
+        current.get()?.report(force: true)
+    }
+
+    /// False, so the frame is dropped and counted, when this computer lacks the capability, or for a sleep while a
+    /// countdown is pending (its clock would fire the moment the Mac woke). A restart or shut down while one is
+    /// counting down is accepted and changes nothing.
     public func run(_ action: ActionId) -> Bool {
         switch action {
         case .sleep:
-            return platform.caps.contains(.sleep) && platform.sleep()
+            return platform.pending == nil && platform.caps.contains(.sleep) && platform.sleep()
         case .hibernate:
-            return platform.caps.contains(.hibernate) && platform.hibernate()
+            return platform.pending == nil && platform.caps.contains(.hibernate) && platform.hibernate()
         case .restart:
             return countdown(.restart, needs: .restart)
         case .shutDown:
@@ -107,8 +144,9 @@ public final class PowerControl {
         if platform.pending != nil { return true }
         let seconds = PowerControl.countdownSeconds
         // The platform and the kind are captured, never self: the countdown must still finish if this session is gone.
-        let started = platform.startCountdown(kind, seconds: seconds) { [platform, weak self] fired in
-            self?.report("")
+        // The end goes to whichever session is listening now, which may be a phone that reconnected since.
+        let started = platform.startCountdown(kind, seconds: seconds) { [platform] fired in
+            Self.current.get()?.report("")
             if fired { _ = platform.execute(kind) }
         }
         guard started else { return false }
@@ -117,12 +155,18 @@ public final class PowerControl {
     }
 
     private func report(_ state: String) {
+        report(state, force: false)
+    }
+
+    /// With `force`, sends the platform's current state even when it equals the last one sent.
+    private func report(_ state: String? = nil, force: Bool) {
+        let text = state ?? Self.state(platform.pending)
         let send: ((String) -> Void)? = gate.withLock {
-            guard reported != state else { return nil }
-            reported = state
+            guard force || reported != text else { return nil }
+            reported = text
             return callback
         }
-        send?(state)
+        send?(text)
     }
 
     private static func state(_ pending: (kind: PowerKind, secondsLeft: Int)?) -> String {
