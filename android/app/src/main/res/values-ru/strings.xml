@@ -461,6 +461,15 @@
   <string name="capture_send_failed">Ноутбуку не удалось отправить файл. Он остался на ноутбуке.</string>
   <string name="controls_annotate">Пометки</string>
   <string name="controls_power">Питание</string>
+  <string name="controls_settings_title">Настройки управления</string>
+  <string name="controls_icon_size">Размер значков</string>
+  <string name="controls_size_small">Маленький</string>
+  <string name="controls_size_medium">Средний</string>
+  <string name="controls_size_large">Большой</string>
+  <string name="controls_show_labels">Показывать подписи</string>
+  <string name="controls_per_page">Плиток на странице</string>
+  <string name="controls_per_page_value">%1$d</string>
+  <string name="controls_settings_open">Настройки управления</string>
   <string name="power_lock">Заблокировать</string>
   <string name="power_sleep">Спящий режим</string>
   <string name="power_hibernate">Гибернация</string>

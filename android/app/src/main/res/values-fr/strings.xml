@@ -454,6 +454,15 @@
   <string name="capture_send_failed">L’ordinateur n’a pas pu envoyer la capture. Elle est toujours sur l’ordinateur.</string>
   <string name="controls_annotate">Annoter</string>
   <string name="controls_power">Alimentation</string>
+  <string name="controls_settings_title">Réglages des commandes</string>
+  <string name="controls_icon_size">Taille des icônes</string>
+  <string name="controls_size_small">Petite</string>
+  <string name="controls_size_medium">Moyenne</string>
+  <string name="controls_size_large">Grande</string>
+  <string name="controls_show_labels">Afficher les libellés</string>
+  <string name="controls_per_page">Commandes par page</string>
+  <string name="controls_per_page_value">%1$d</string>
+  <string name="controls_settings_open">Réglages des commandes</string>
   <string name="power_lock">Verrouiller</string>
   <string name="power_sleep">Veille</string>
   <string name="power_hibernate">Hibernation</string>

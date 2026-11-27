@@ -454,6 +454,15 @@
   <string name="capture_send_failed">O notebook não conseguiu enviar a captura. Ela continua no notebook.</string>
   <string name="controls_annotate">Anotar</string>
   <string name="controls_power">Energia</string>
+  <string name="controls_settings_title">Configurações dos controles</string>
+  <string name="controls_icon_size">Tamanho dos ícones</string>
+  <string name="controls_size_small">Pequeno</string>
+  <string name="controls_size_medium">Médio</string>
+  <string name="controls_size_large">Grande</string>
+  <string name="controls_show_labels">Mostrar rótulos</string>
+  <string name="controls_per_page">Controles por página</string>
+  <string name="controls_per_page_value">%1$d</string>
+  <string name="controls_settings_open">Configurações dos controles</string>
   <string name="power_lock">Bloquear</string>
   <string name="power_sleep">Suspender</string>
   <string name="power_hibernate">Hibernar</string>

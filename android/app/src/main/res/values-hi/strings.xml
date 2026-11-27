@@ -446,6 +446,15 @@
   <string name="capture_send_failed">लैपटॉप कैप्चर नहीं भेज सका। वह अब भी लैपटॉप पर है।</string>
   <string name="controls_annotate">एनोटेट</string>
   <string name="controls_power">पावर</string>
+  <string name="controls_settings_title">नियंत्रण सेटिंग</string>
+  <string name="controls_icon_size">आइकन का आकार</string>
+  <string name="controls_size_small">छोटा</string>
+  <string name="controls_size_medium">मध्यम</string>
+  <string name="controls_size_large">बड़ा</string>
+  <string name="controls_show_labels">लेबल दिखाएँ</string>
+  <string name="controls_per_page">प्रति पेज नियंत्रण</string>
+  <string name="controls_per_page_value">%1$d</string>
+  <string name="controls_settings_open">नियंत्रण सेटिंग</string>
   <string name="power_lock">लॉक</string>
   <string name="power_sleep">स्लीप</string>
   <string name="power_hibernate">हाइबरनेट</string>

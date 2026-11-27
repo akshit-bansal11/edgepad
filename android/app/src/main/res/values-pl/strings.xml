@@ -462,6 +462,15 @@
   <string name="capture_send_failed">Laptop nie mógł wysłać pliku. Nadal jest na laptopie.</string>
   <string name="controls_annotate">Adnotacje</string>
   <string name="controls_power">Zasilanie</string>
+  <string name="controls_settings_title">Ustawienia sterowania</string>
+  <string name="controls_icon_size">Rozmiar ikon</string>
+  <string name="controls_size_small">Mały</string>
+  <string name="controls_size_medium">Średni</string>
+  <string name="controls_size_large">Duży</string>
+  <string name="controls_show_labels">Pokaż etykiety</string>
+  <string name="controls_per_page">Kafelki na stronę</string>
+  <string name="controls_per_page_value">%1$d</string>
+  <string name="controls_settings_open">Ustawienia sterowania</string>
   <string name="power_lock">Zablokuj</string>
   <string name="power_sleep">Uśpij</string>
   <string name="power_hibernate">Hibernuj</string>

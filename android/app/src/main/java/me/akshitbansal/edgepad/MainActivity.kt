@@ -127,6 +127,7 @@ import me.akshitbansal.edgepad.screens.CaptureScreen
 import me.akshitbansal.edgepad.screens.Carry
 import me.akshitbansal.edgepad.screens.ClipboardSheet
 import me.akshitbansal.edgepad.screens.ControlsPopup
+import me.akshitbansal.edgepad.screens.ControlsSettingsScreen
 import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DataUsesScreen
 import me.akshitbansal.edgepad.screens.DeveloperHub
@@ -256,6 +257,7 @@ class MainActivity :
         KEYBOARD_SETTINGS,
         GAMEPAD_SETTINGS,
         MACRO_SETTINGS,
+        CONTROLS_SETTINGS,
         CAPTURE,
         ANNOTATE,
         PRESENTER,
@@ -1559,6 +1561,10 @@ class MainActivity :
                     ) { navigateBack() }.also { macros = it }.view
                 }
 
+                Screen.CONTROLS_SETTINGS -> {
+                    ControlsSettingsScreen.build(ui, settings) { navigateBack() }
+                }
+
                 Screen.MACRO_SETTINGS -> {
                     MacroSettingsScreen.build(ui, settings, onAddFromLaptop = addFromLaptop()) { navigateBack() }
                 }
@@ -1889,7 +1895,7 @@ class MainActivity :
 
             // These are opened from the Controls popup over the surface, so back returns to it.
             Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE, Screen.PRESENTER,
-            Screen.SYSTEM, Screen.DEVELOPER, Screen.POWER,
+            Screen.SYSTEM, Screen.DEVELOPER, Screen.POWER, Screen.CONTROLS_SETTINGS,
             -> {
                 goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
                 // AND-A-32: back lands where the user came from, so the popup opens again over the surface.
@@ -2184,6 +2190,7 @@ class MainActivity :
                 developer = ::developerOn,
                 laptopConnected = { connected },
                 onSendFile = ::pickFile,
+                onSettings = { goTo(Screen.CONTROLS_SETTINGS) },
             ) { target ->
                 when (target) {
                     ControlsPopup.Target.KEYBOARD -> goTo(Screen.KEYBOARD)
@@ -3498,6 +3505,7 @@ class MainActivity :
                 Screen.KEYBOARD_SETTINGS,
                 Screen.GAMEPAD_SETTINGS,
                 Screen.MACRO_SETTINGS,
+                Screen.CONTROLS_SETTINGS,
             )
 
         /** Where a trip out of Settings ends: arriving at any of these forgets which page it began from. */

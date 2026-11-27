@@ -459,6 +459,15 @@
   <string name="capture_send_failed">The laptop could not send the capture. It is still on the laptop.</string>
   <string name="controls_annotate">Annotate</string>
   <string name="controls_power">Power</string>
+  <string name="controls_settings_title">Controls settings</string>
+  <string name="controls_icon_size">Icon size</string>
+  <string name="controls_size_small">Small</string>
+  <string name="controls_size_medium">Medium</string>
+  <string name="controls_size_large">Large</string>
+  <string name="controls_show_labels">Show labels</string>
+  <string name="controls_per_page">Controls per page</string>
+  <string name="controls_per_page_value">%1$d</string>
+  <string name="controls_settings_open">Controls settings</string>
   <string name="power_lock">Lock</string>
   <string name="power_sleep">Sleep</string>
   <string name="power_hibernate">Hibernate</string>

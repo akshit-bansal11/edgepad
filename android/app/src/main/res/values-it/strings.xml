@@ -455,6 +455,15 @@
   <string name="capture_send_failed">Il portatile non è riuscito a inviare la cattura. È ancora sul portatile.</string>
   <string name="controls_annotate">Annota</string>
   <string name="controls_power">Alimentazione</string>
+  <string name="controls_settings_title">Impostazioni dei controlli</string>
+  <string name="controls_icon_size">Dimensione delle icone</string>
+  <string name="controls_size_small">Piccola</string>
+  <string name="controls_size_medium">Media</string>
+  <string name="controls_size_large">Grande</string>
+  <string name="controls_show_labels">Mostra le etichette</string>
+  <string name="controls_per_page">Controlli per pagina</string>
+  <string name="controls_per_page_value">%1$d</string>
+  <string name="controls_settings_open">Impostazioni dei controlli</string>
   <string name="power_lock">Blocca</string>
   <string name="power_sleep">Sospendi</string>
   <string name="power_hibernate">Iberna</string>

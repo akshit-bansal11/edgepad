@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import me.akshitbansal.edgepad.link.migrateSaved
 import me.akshitbansal.edgepad.screens.FnMode
+import me.akshitbansal.edgepad.screens.ControlsIconSize
+import me.akshitbansal.edgepad.screens.ControlsPlan
 import me.akshitbansal.edgepad.screens.KeyboardSize
 import me.akshitbansal.edgepad.surface.CornerSlots
 import me.akshitbansal.edgepad.surface.DialKind
@@ -400,6 +402,21 @@ class Settings(
         prefs.edit().putString("deck.$deck.hidden", keys.joinToString("\n")).apply()
     }
 
+    /** How large the Controls popup's tiles are drawn. */
+    var controlsIconSize: ControlsIconSize
+        get() = enum(KEY_CONTROLS_ICON_SIZE, ControlsIconSize.MEDIUM)
+        set(value) = prefs.edit().putString(KEY_CONTROLS_ICON_SIZE, value.name).apply()
+
+    /** Whether the Controls popup's tiles carry their names. */
+    var controlsLabels by flag("controlsLabels", true)
+
+    /** How many tiles one page of the Controls popup shows; the rest continue on more pages. */
+    var controlsPerPage: Int
+        get() = prefs.getInt(KEY_CONTROLS_PER_PAGE, ControlsPlan.DEFAULT_PER_PAGE).coerceIn(ControlsPlan.PER_PAGE)
+        set(value) {
+            prefs.edit().putInt(KEY_CONTROLS_PER_PAGE, value.coerceIn(ControlsPlan.PER_PAGE)).apply()
+        }
+
     /** How many macros one page of the macro screen shows; the rest of the laptop's continue on the next page. */
     var macrosPerPage: Int
         get() = prefs.getInt(KEY_MACROS_PER_PAGE, MAX_MACROS_PER_PAGE).coerceIn(PER_PAGE_RANGE)
@@ -686,6 +703,8 @@ class Settings(
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"
         private const val KEY_MACROS_PER_PAGE = "macrosPerPage"
+        private const val KEY_CONTROLS_ICON_SIZE = "controlsIconSize"
+        private const val KEY_CONTROLS_PER_PAGE = "controlsPerPage"
         private const val KEY_MACRO_ROWS = "macroRows"
         private const val KEY_MACRO_ICON_ZOOM = "macroIconZoom"
         private const val KEY_DIAL_LENGTH = "dialLength"

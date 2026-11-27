@@ -443,6 +443,15 @@
   <string name="capture_send_failed">ノートPCがキャプチャを送信できませんでした。ノートPCにはそのまま残っています。</string>
   <string name="controls_annotate">書き込み</string>
   <string name="controls_power">電源</string>
+  <string name="controls_settings_title">コントロールの設定</string>
+  <string name="controls_icon_size">アイコンのサイズ</string>
+  <string name="controls_size_small">小</string>
+  <string name="controls_size_medium">中</string>
+  <string name="controls_size_large">大</string>
+  <string name="controls_show_labels">ラベルを表示</string>
+  <string name="controls_per_page">1ページあたりのコントロール数</string>
+  <string name="controls_per_page_value">%1$d</string>
+  <string name="controls_settings_open">コントロールの設定</string>
   <string name="power_lock">ロック</string>
   <string name="power_sleep">スリープ</string>
   <string name="power_hibernate">休止状態</string>

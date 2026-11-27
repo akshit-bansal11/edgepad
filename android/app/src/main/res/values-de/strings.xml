@@ -445,6 +445,15 @@
   <string name="capture_send_failed">Der Laptop konnte die Aufnahme nicht senden. Sie liegt weiterhin auf dem Laptop.</string>
   <string name="controls_annotate">Zeichnen</string>
   <string name="controls_power">Ein/Aus</string>
+  <string name="controls_settings_title">Steuerungseinstellungen</string>
+  <string name="controls_icon_size">Symbolgröße</string>
+  <string name="controls_size_small">Klein</string>
+  <string name="controls_size_medium">Mittel</string>
+  <string name="controls_size_large">Groß</string>
+  <string name="controls_show_labels">Beschriftungen anzeigen</string>
+  <string name="controls_per_page">Kacheln pro Seite</string>
+  <string name="controls_per_page_value">%1$d</string>
+  <string name="controls_settings_open">Steuerungseinstellungen</string>
   <string name="power_lock">Sperren</string>
   <string name="power_sleep">Standby</string>
   <string name="power_hibernate">Ruhezustand</string>

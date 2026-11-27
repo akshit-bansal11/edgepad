@@ -441,6 +441,15 @@
   <string name="capture_send_failed">Bilgisayar yakalamayı gönderemedi. Hâlâ bilgisayarda duruyor.</string>
   <string name="controls_annotate">Çizim</string>
   <string name="controls_power">Güç</string>
+  <string name="controls_settings_title">Denetim ayarları</string>
+  <string name="controls_icon_size">Simge boyutu</string>
+  <string name="controls_size_small">Küçük</string>
+  <string name="controls_size_medium">Orta</string>
+  <string name="controls_size_large">Büyük</string>
+  <string name="controls_show_labels">Etiketleri göster</string>
+  <string name="controls_per_page">Sayfa başına denetim</string>
+  <string name="controls_per_page_value">%1$d</string>
+  <string name="controls_settings_open">Denetim ayarları</string>
   <string name="power_lock">Kilitle</string>
   <string name="power_sleep">Uyut</string>
   <string name="power_hibernate">Hazırda beklet</string>
