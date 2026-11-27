@@ -46,6 +46,18 @@ class IdsFixtureTest {
     }
 
     @Test
+    fun powerStateAndAppKindTokensMatchTheSharedTable() {
+        assertEquals(
+            rows("POWER_STATE_TOKEN").associate { it[2] to it[1] },
+            PowerStateToken.entries.associate { it.name to it.token },
+        )
+        assertEquals(
+            rows("APP_KIND_TOKEN").associate { it[2] to it[1] },
+            AppKindToken.entries.associate { it.name to it.token },
+        )
+    }
+
+    @Test
     fun providerRowsAgreeWithTheAgentAndFeatureTokens() {
         val providers = rows("PROVIDER")
         val aiIds = providers.filter { it[2] == "ai" }.map { it[1] }

@@ -1,23 +1,22 @@
 package me.akshitbansal.edgepad.screens
 
-import android.hardware.Sensor
-import android.hardware.SensorManager
 import android.view.View
-import android.widget.Toast
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
-import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.surface.Perimeter
+import me.akshitbansal.edgepad.surface.Profiles
 import me.akshitbansal.edgepad.surface.Shapes
+import me.akshitbansal.edgepad.surface.SurfaceWidget
 import kotlin.math.roundToInt
 
 /**
- * The surface's own settings, behind its gear and, as the same rows, under Surface on the app's Settings page: corners,
- * gestures, shapes, dial feel, media layout and what the surface is drawn in. The last row leads on to the app's
- * settings. The keyboard, the gamepad and the macros each keep theirs behind their own gear.
+ * The surface's own settings, behind its gear and, as its row under Screens, from the app's Settings page. Three
+ * groups: Dials (corners, app profiles, dial feel, floating and hiding), Trackpad (the trackpad and its shapes) and
+ * Surface (widgets, media layout, look, blackout). The last row leads on to the app's settings, unless this page was
+ * opened from there. The keyboard, the gamepad and the macros each keep theirs behind their own gear.
  */
 object SurfaceSettingsScreen {
-    /** Where the rows lead; shared by this page and the Surface section of the app's Settings. */
+    /** Where the rows lead. */
     class Rows(
         val corners: () -> Unit,
         val gestures: () -> Unit,
@@ -29,19 +28,22 @@ object SurfaceSettingsScreen {
         val widgets: () -> Unit,
     )
 
-    /** Where this page's own rows lead: the shared [rows], the app's settings and back. */
+    /**
+     * Where this page's own rows lead: the shared [rows], the app's settings ([system], null when this page was opened
+     * from there) and back. [dialsHidden] and [onHideDials] are the surface's switch, which the activity keeps across
+     * rebuilds; [laptopConnected] and [onFloatingChanged] are what the floating dials need and what follows a change.
+     */
     class Routes(
         val rows: Rows,
-        val system: () -> Unit,
+        val system: (() -> Unit)?,
         val back: () -> Unit,
+        val dialsHidden: Boolean,
+        val onHideDials: (Boolean) -> Unit,
+        val laptopConnected: () -> Boolean,
+        val onFloatingChanged: () -> Unit,
     )
 
     private const val NO_DIAL = "—"
-    private const val PERCENT = 100
-
-    private val sensitivityRange =
-        StepRange(Settings.MIN_AIR_SENSITIVITY, Settings.MAX_AIR_SENSITIVITY, 0.1f)
-    private val deadZoneRange = StepRange(Settings.MIN_AIR_DEAD_ZONE, Settings.MAX_AIR_DEAD_ZONE, 0.01f)
 
     fun build(
         ui: Ui,
@@ -52,103 +54,75 @@ object SurfaceSettingsScreen {
         // The nav bar draws no title: the large title under it is the screen's name, and says so to a screen reader.
         ui.page(ui.bar("", routes.back, backLabel = backLabel)) {
             largeTitle(ui.string(R.string.settings_surface_title))
-            rows(this, settings, routes.rows)
-            systemSettings(routes.system)
-        }
+            val rows = routes.rows
+            section(ui.string(R.string.settings_dials))
+            card {
+                add(ui.link(ui.string(R.string.corners_title), cornersSummary(ui, settings), rows.corners))
+                hairline()
+                add(ui.link(ui.string(R.string.settings_profiles), profilesSummary(ui, settings), rows.profiles))
+                hairline()
+                val feel = ui.string(R.string.feel_summary, settings.sensitivity, settings.dialLength.roundToInt())
+                add(ui.link(ui.string(R.string.dial_feel_title), feel, rows.dialFeel))
+                hairline()
+                add(DialFeelScreen.floatingToggle(ui, settings, routes.laptopConnected, routes.onFloatingChanged))
+                hairline()
+                add(ui.toggle(ui.string(R.string.controls_hide_dials), routes.dialsHidden) { routes.onHideDials(it) })
+            }
+            footnote(ui.string(R.string.floating_caption))
 
-    /**
-     * Every surface setting, from Trackpad to Black out when idle: the trackpad and its gestures, the dials (corners,
-     * shapes, feel), the air mouse, widgets, media layout, the surface's look, profiles and blackout.
-     */
-    fun rows(
-        column: Column,
-        settings: Settings,
-        routes: Rows,
-    ) = column.surfaceRows(settings, routes)
+            section(ui.string(R.string.gestures_title))
+            card {
+                val pointer = ui.string(R.string.multiplier_value, settings.pointerSpeed)
+                add(ui.link(ui.string(R.string.gestures_title), pointer, rows.gestures))
+                hairline()
+                add(ui.link(ui.string(R.string.shapes_title), shapesSummary(ui, settings), rows.shapes))
+            }
 
-    private fun Column.surfaceRows(
-        settings: Settings,
-        routes: Rows,
-    ) {
-        card {
-            add(ui.link(ui.string(R.string.gestures_title), null, routes.gestures))
-        }
-        section(ui.string(R.string.settings_dials))
-        card {
-            add(ui.link(ui.string(R.string.corners_title), cornersSummary(ui, settings), routes.corners))
-            hairline()
-            add(ui.link(ui.string(R.string.shapes_title), shapesSummary(ui, settings), routes.shapes))
-            hairline()
-            val feel = ui.string(R.string.feel_summary, settings.sensitivity, settings.dialLength.roundToInt())
-            add(ui.link(ui.string(R.string.dial_feel_title), feel, routes.dialFeel))
-        }
-        // Owner, 2026-11-20: moved here from the Controls popup. Turning it on says how to use it; without a
-        // gyroscope the switch is dimmed and says that instead.
-        val sensors = ui.context.getSystemService(SensorManager::class.java)
-        val gyroscope = sensors?.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-        val air = ui.toggle(ui.string(R.string.controls_air_mouse), settings.airMouse && gyroscope != null) { }
-        card(Space.XL) { add(air) }
-        val tuning =
-            card(Space.L) {
-                add(
-                    ui.slider(
-                        ui.string(R.string.air_sensitivity),
-                        sensitivityRange.steps,
-                        sensitivityRange.stepOf(settings.airSensitivity),
-                        { step -> ui.string(R.string.multiplier_value, sensitivityRange.valueAt(step)) },
-                    ) { step -> settings.airSensitivity = sensitivityRange.valueAt(step) },
-                )
+            section(ui.string(R.string.settings_surface))
+            card {
+                add(ui.link(ui.string(R.string.widgets_title), widgetsSummary(ui, settings), rows.widgets))
+                hairline()
+                add(ui.link(ui.string(R.string.media_layout_title), null, rows.mediaLayout))
                 hairline()
                 add(
-                    ui.slider(
-                        ui.string(R.string.air_dead_zone),
-                        deadZoneRange.steps,
-                        deadZoneRange.stepOf(settings.airDeadZone),
-                        { step ->
-                            ui.string(R.string.percent_value, (deadZoneRange.valueAt(step) * PERCENT).roundToInt())
-                        },
-                    ) { step -> settings.airDeadZone = deadZoneRange.valueAt(step) },
+                    ui.link(
+                        ui.string(R.string.appearance_title),
+                        AppearanceScreen.summary(ui, settings),
+                        rows.appearance,
+                    ),
+                )
+                hairline()
+                // Issue #56. The surface reads the setting again when it takes the focus back.
+                add(
+                    ui.toggle(ui.string(R.string.controls_blackout), settings.blackout) {
+                        settings.blackout = it
+                    },
                 )
             }
-        val caption = footnote(ui.string(R.string.air_caption))
-        val tune = { on: Boolean ->
-            val state = if (on) View.VISIBLE else View.GONE
-            tuning.visibility = state
-            caption.visibility = state
+            routes.system?.let { systemSettings(it) }
         }
-        tune(settings.airMouse && gyroscope != null)
-        if (gyroscope == null) {
-            ui.enable(air, false)
-            air.stateDescription = ui.string(R.string.air_no_sensor)
-        } else {
-            air.setOnCheckedChangeListener { _, on ->
-                settings.airMouse = on
-                tune(on)
-                if (on) Toast.makeText(ui.context, R.string.air_how, Toast.LENGTH_LONG).show()
-            }
+
+    /** Off, the number of apps with a profile of their own, or Automatic when only the kinds of app are followed. */
+    private fun profilesSummary(
+        ui: Ui,
+        settings: Settings,
+    ): String {
+        if (!settings.profilesOn) return ui.string(R.string.profiles_summary_off)
+        val apps = Profiles(settings.profiles).all.size
+        return when {
+            apps > 0 -> ui.context.resources.getQuantityString(R.plurals.profiles_summary_apps, apps, apps)
+            settings.autoProfiles -> ui.string(R.string.profiles_summary_auto)
+            else -> ui.string(R.string.profiles_summary_off)
         }
-        card(Space.XL) { add(ui.link(ui.string(R.string.widgets_title), null, routes.widgets)) }
-        card(Space.XL) {
-            add(ui.link(ui.string(R.string.media_layout_title), null, routes.mediaLayout))
-            hairline()
-            add(
-                ui.link(
-                    ui.string(R.string.appearance_title),
-                    AppearanceScreen.summary(ui, settings),
-                    routes.appearance,
-                ),
-            )
-            hairline()
-            add(ui.link(ui.string(R.string.settings_profiles), null, routes.profiles))
-        }
-        // Issue #56. The surface reads the setting again when it takes the focus back.
-        card(Space.XL) {
-            add(
-                ui.toggle(ui.string(R.string.controls_blackout), settings.blackout) {
-                    settings.blackout = it
-                },
-            )
-        }
+    }
+
+    /** How many widgets are drawn behind the trackpad. */
+    private fun widgetsSummary(
+        ui: Ui,
+        settings: Settings,
+    ): String {
+        val count = SurfaceWidget.entries.count { settings.widgetOn(it) }
+        return ui.context.resources.getQuantityString(R.plurals.widgets_summary, count, count)
     }
 
     /**

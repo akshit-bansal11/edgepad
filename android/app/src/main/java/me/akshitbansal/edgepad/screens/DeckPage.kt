@@ -1,5 +1,6 @@
 package me.akshitbansal.edgepad.screens
 
+import android.content.Context
 import android.graphics.drawable.Drawable
 import android.view.Gravity
 import android.view.MotionEvent
@@ -61,18 +62,6 @@ class DeckPage(
     /** The page showing, and the deck of each page once there are two or more. */
     private var page = 0
     private val pageDecks = ArrayList<Deck>()
-
-    /** One page of the pager: a deck of its own, which sees every touch before its tiles do, like the grid below. */
-    private inner class PageHolder : LinearLayout(ui.context) {
-        val deck = Deck(ui, this)
-
-        init {
-            orientation = LinearLayout.VERTICAL
-        }
-
-        override fun dispatchTouchEvent(event: MotionEvent): Boolean =
-            deck.touch(event) || super.dispatchTouchEvent(event)
-    }
 
     val view: View =
         ui.page(bar) {
@@ -191,34 +180,22 @@ class DeckPage(
         // ponytail: a tile cannot be dragged onto another page; edge-hover paging would need the pager to scroll
         // under a held tile. Within a page it moves as on a single one, and the pager is held still meanwhile.
         deck.clear()
-        val dots = PageDots(ui, pages.size)
-        val pager =
-            Pager(ui.context) { at ->
-                page = at
-                dots.select(at)
+        page =
+            drawPager(ui, holder, across, pages, page, { page = it }) { pageHolder, range ->
+                pageDecks.add(pageHolder.deck)
+                pageHolder.deck.render(
+                    across,
+                    down - ui.dp(Space.XL),
+                    ordered.slice(range),
+                    labels,
+                    onMove = { from, to -> moved(range.first + from, range.first + to) },
+                    onTap = onTap,
+                    slots = per,
+                    rows = rows,
+                    onClose = onClose,
+                    iconZoom = settings.macroIconZoom,
+                )
             }
-        pages.forEach { range ->
-            val pageHolder = PageHolder()
-            pageDecks.add(pageHolder.deck)
-            pager.row.addView(pageHolder, LinearLayout.LayoutParams(across, ViewGroup.LayoutParams.MATCH_PARENT))
-            pageHolder.deck.render(
-                across,
-                down - ui.dp(Space.XL),
-                ordered.slice(range),
-                labels,
-                onMove = { from, to -> moved(range.first + from, range.first + to) },
-                onTap = onTap,
-                slots = per,
-                rows = rows,
-                onClose = onClose,
-                iconZoom = settings.macroIconZoom,
-            )
-        }
-        holder.addView(pager, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
-        holder.addView(dots, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(Space.XL)))
-        page = page.coerceAtMost(pages.lastIndex)
-        dots.select(page)
-        pager.jumpTo(page)
     }
 
     /** The tile at display place [from] was dropped on [to]. Saved on every move, so leaving loses nothing. */
@@ -247,4 +224,61 @@ class DeckPage(
         val down = view.height - bars.top - bars.bottom - bar.height - ui.dp(Space.XL)
         return if (across > 0 && down > 0) across to down else null
     }
+}
+
+/** One page of a pager: a deck of its own, which sees every touch before its tiles do. */
+internal class DeckPageHolder(
+    ui: Ui,
+) : LinearLayout(ui.context) {
+    /** Android lint requires a (Context) constructor on every custom View; nothing inflates this one. */
+    constructor(context: Context) : this(Ui(context))
+
+    val deck = Deck(ui, this)
+
+    init {
+        orientation = VERTICAL
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean = deck.touch(event) || super.dispatchTouchEvent(event)
+}
+
+/**
+ * Two or more pages: a [Pager] of [DeckPageHolder]s, each [across] wide and filled by [fill] for its range of
+ * positions, over a row of dots, added to [holder]. The pager is [pagerHeight] tall, or takes what is left of
+ * [holder] when that is 0. Returns the page now showing: [page], kept within the pages. [onPage] is told each page a
+ * slide lands on.
+ */
+internal fun drawPager(
+    ui: Ui,
+    holder: LinearLayout,
+    across: Int,
+    pages: List<IntRange>,
+    page: Int,
+    onPage: (Int) -> Unit,
+    pagerHeight: Int = 0,
+    fill: (DeckPageHolder, IntRange) -> Unit,
+): Int {
+    val dots = PageDots(ui, pages.size)
+    val pager =
+        Pager(ui.context) { at ->
+            onPage(at)
+            dots.select(at)
+        }
+    pages.forEach { range ->
+        val pageHolder = DeckPageHolder(ui)
+        pager.row.addView(pageHolder, LinearLayout.LayoutParams(across, ViewGroup.LayoutParams.MATCH_PARENT))
+        fill(pageHolder, range)
+    }
+    val pagerParams =
+        if (pagerHeight > 0) {
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, pagerHeight)
+        } else {
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
+        }
+    holder.addView(pager, pagerParams)
+    holder.addView(dots, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(Space.XL)))
+    val shown = page.coerceAtMost(pages.lastIndex)
+    dots.select(shown)
+    pager.jumpTo(shown)
+    return shown
 }

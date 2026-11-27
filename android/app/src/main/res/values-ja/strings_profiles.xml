@@ -12,4 +12,10 @@
   <string name="profiles_delete_confirm">%1$sのプロファイルを削除しますか?</string>
   <string name="profile_default">既定と同じ</string>
   <string name="profile_custom">カスタム</string>
+  <string name="auto_profiles_title">自動プロファイル</string>
+  <string name="auto_profiles_toggle">アプリの種類でダイヤルを切り替え</string>
+  <string name="auto_profiles_caption">手前のアプリにプロファイルがない場合、ダイヤルはアプリの種類（メディア、タイムライン編集、ブラウザ）に従います。自分で作ったプロファイルが優先されます。</string>
+  <string name="auto_kind_media">メディア</string>
+  <string name="auto_kind_timeline">タイムライン</string>
+  <string name="auto_kind_browser">ブラウザ</string>
 </resources>

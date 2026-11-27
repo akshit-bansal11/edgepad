@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="profiles_summary_off">Aus</string>
+  <string name="profiles_summary_auto">Automatisch</string>
+  <plurals name="profiles_summary_apps">
+    <item quantity="one">%1$d App</item>
+    <item quantity="other">%1$d Apps</item>
+  </plurals>
+  <plurals name="widgets_summary">
+    <item quantity="one">%1$d an</item>
+    <item quantity="other">%1$d an</item>
+  </plurals>
+</resources>

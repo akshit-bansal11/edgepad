@@ -265,8 +265,8 @@ export function ProductSections() {
               body: "Dials over other apps, using Android’s draw-over-apps permission and Stay connected.",
             },
             {
-              title: "Sleep when this ends",
-              body: "Sleep or shut down the laptop when the current video or track ends. Shut down shows a 60 second countdown on the laptop that you can cancel. Windows, Mac and Linux.",
+              title: "Power",
+              body: "Lock, sleep, hibernate, restart or shut down the laptop from the Controls popup. Restart and shut down wait 60 seconds, and you can cancel on the phone or the laptop. Each laptop shows only what it can do.",
             },
             {
               title: "Quick Settings tile",
@@ -869,10 +869,10 @@ sudo ./install.sh`}
           pages) once Developer mode is on and a tool is connected. A laptop shows only
           what it can do, so a phone shows no Annotate tile when the laptop does not
           offer it, and no Capture tile when it cannot capture. Under the tiles, one row
-          of chips holds Hide dials and media, Black out when idle, Air mouse, Floating
-          dials and Sleep when this ends. The Edit chip shows every tile; tap one to
-          hide or show it, and drag to move it. Back from the keyboard, the gamepad and
-          Capture returns to Controls.
+          of chips holds Hide dials and media, Black out when idle, Air mouse and
+          Floating dials. A Power tile holds Lock, Sleep, Hibernate, Restart and Shut
+          down. The Edit chip shows every tile; tap one to hide or show it, and drag to
+          move it. Back from the keyboard, the gamepad and Capture returns to Controls.
         </P>
         <P>
           Annotate draws on the laptop&apos;s primary display, with the phone as an
@@ -971,10 +971,11 @@ sudo ./install.sh`}
           when the finger lifts. <strong>Floating dials</strong> draws the dials over
           other apps and needs Android&apos;s draw-over-apps permission and Stay
           connected. <strong>App profiles</strong> switch dials and gestures with the
-          app in front on the laptop; they are off by default and work on Windows, Mac
-          and Linux on X11. <strong>Sleep when this ends</strong> sleeps or shuts down
-          the laptop when the current video or track ends. Shut down first shows a 60
-          second countdown (Windows, Mac and Linux). The{" "}
+          app in front on the laptop; they are on by default and work on Windows, Mac
+          and Linux on X11. <strong>Automatic</strong> profiles follow the kind of app
+          in front (media, timeline or browser), and your own profiles win. The laptop
+          sends only the kind, never a window title. Controls has its own settings for
+          icon size, labels and controls per page. The{" "}
           <strong>Quick Settings tile</strong> and the Stay connected
           notification&apos;s play/pause and volume buttons are on the phone.{" "}
           <strong>Laptop notifications</strong> are off until both sides turn them on,

@@ -10,7 +10,6 @@ using Edgepad.Foreground;
 using Edgepad.Gamepad;
 using Edgepad.Injection;
 using Edgepad.Macros;
-using Edgepad.Media;
 using Edgepad.Net;
 using Edgepad.Power;
 using Edgepad.Protocol;
@@ -77,6 +76,7 @@ internal sealed class Session(
     private string lastTimeline = "";
     // What the phone holds as TEXT 26: the uncleaned title, or empty when the cleaned one is the whole line.
     private string lastFull = "";
+    private ForegroundKind? appKind;
     // The media icon: the sender it goes through, the key of the last picture asked for, and which run may still send (latest wins).
     private BlobSender? blobSender;
     private string lastIconKey = "";
@@ -355,7 +355,10 @@ internal sealed class Session(
         }
 
         // Which app is in front, only once the phone sets CONTROL 11; until then no hook exists. The app is never logged.
-        var front = new ForegroundReporter(foreground, text => Guarded(() => Send(new Text((byte)TextKind.ForegroundApp, text))));
+        // TEXT 40, the kind of app in front, rides on the same watch: the token in front, and what the media session says plays.
+        var kind = new ForegroundKind("windows", SameWindows, text => Guarded(() => Send(new Text((byte)TextKind.ForegroundKind, text))));
+        appKind = kind;
+        var front = new ForegroundReporter(foreground, text => Guarded(() => Send(new Text((byte)TextKind.ForegroundApp, text))), kind: kind);
         Keep(front);
         dispatcher.ForegroundWatch = front.Watch;
 
@@ -395,10 +398,16 @@ internal sealed class Session(
 
         // Only what this build can do: the phone hides a feature that is not named, so naming one that is
         // not there would be a button that quietly does nothing.
-        // The phone arms it (ACTIONs 60 to 62); it holds no timer, SendMedia feeds it the report this session already gets.
-        dispatcher.EndAction = new EndAction(WindowsPower.Perform, token => Guarded(() => EndActionChanged(token)));
+        // Sleep, hibernate, restart and shut down (ACTIONs 7 to 11), named only for what this laptop can do. The countdown
+        // window is one for the app, so a phone that reconnects mid-countdown is told it below.
+        var power = new WindowsPower();
+        Action<string> sendPower = text => Guarded(() => Send(new Text((byte)TextKind.PowerState, text)));
+        WindowsPower.Listen(sendPower);
+        Keep(new Subscription(() => WindowsPower.Unlisten(sendPower)));
+        var powerControl = new PowerControl(power, WindowsPower.Report);
+        dispatcher.Power = powerControl;
 
-        List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps, Feature.EndAction, Feature.Foreground];
+        List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps, Feature.Foreground, Feature.AppKind, PowerControl.Features(power.Caps)];
         if (open is not null)
         {
             features.Add(Feature.Running);
@@ -435,6 +444,12 @@ internal sealed class Session(
         if (unavailable.Count > 0)
         {
             Send(new Text((byte)TextKind.Unavailable, string.Join('/', unavailable)));
+        }
+
+        var countdown = powerControl.CurrentState();
+        if (countdown.Length > 0)
+        {
+            Send(new Text((byte)TextKind.PowerState, countdown));
         }
 
         dash?.Host.Start();
@@ -656,18 +671,15 @@ internal sealed class Session(
         }
     }
 
-    private void EndActionChanged(string token)
-    {
-        Send(new Text((byte)TextKind.EndAction, token));
-        if (token == EndActionToken.None)
-        {
-            // Disarmed by the phone (ACTION 62) or just fired; a countdown already up comes down with it.
-            WindowsPower.CancelShutdown();
-        }
-    }
-
     private void SendBrightness(int level) =>
         Send(new StateReport((byte)ControlId.Brightness, (byte)Math.Clamp(level, 0, 100), 0));
+
+    /// <summary>Whether the foreground token ("spotify.exe") names the program of the playing session's AUMID, ignoring case.</summary>
+    internal static bool SameWindows(string token, string aumid)
+    {
+        var name = token.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? token[..^4] : token;
+        return name.Equals(MediaSessions.Executable(aumid), StringComparison.OrdinalIgnoreCase);
+    }
 
     private void SendMedia(MediaState state)
     {
@@ -700,11 +712,9 @@ internal sealed class Session(
         }
 
         lastMedia = state;
-        dispatcher.EndAction?.Observe(new MediaSnapshot(
-            state.NowPlaying.Length == 0 ? "" : state.Aumid + "|" + state.NowPlayingFull,
-            state.Playing,
-            state.PositionSeconds,
-            state.DurationSeconds));
+
+        // HW: verify on device (the AUMID Chrome reports is assumed to name chrome.exe)
+        appKind?.SetPlaying(state.Playing && state.NowPlaying.Length > 0 ? state.Aumid : null);
         SendMediaIcon(state);
         Send(new StateReport((byte)ControlId.MediaPosition, (byte)state.PositionPercent, state.Playing ? PlayingFlag : (byte)0));
     }

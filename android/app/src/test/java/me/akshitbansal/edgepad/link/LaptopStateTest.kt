@@ -1,13 +1,14 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.AgentToken
+import me.akshitbansal.edgepad.protocol.AppKindToken
 import me.akshitbansal.edgepad.protocol.CaptureStateToken
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
-import me.akshitbansal.edgepad.protocol.EndActionToken
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
+import me.akshitbansal.edgepad.protocol.PowerStateToken
 import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
 import me.akshitbansal.edgepad.protocol.UnavailableReason
@@ -20,7 +21,7 @@ import org.junit.Test
 import java.util.Base64
 
 class LaptopStateTest {
-    private val state = LaptopState()
+    private val state = LaptopState(clock = { 1_000L })
 
     @Test
     fun keepsTheLatestLevelAndFlagPerControl() {
@@ -473,13 +474,13 @@ class LaptopStateTest {
         state.take(Frame.Text(TextKind.UNAVAILABLE.id, "notify:off/capture:no-tool"))
         assertEquals(UnavailableReason.OFF, state.unavailable["notify"])
         assertEquals(UnavailableReason.NO_TOOL, state.unavailable["capture"])
-        state.take(Frame.Text(TextKind.END_ACTION.id, "sleep"))
-        assertEquals(EndActionToken.SLEEP, state.endAction)
+        state.take(Frame.Text(TextKind.POWER_STATE.id, "shutdown/60"))
+        assertEquals(PowerStateToken.SHUT_DOWN, state.power?.kind)
         state.take(Frame.Text(TextKind.NOW_PLAYING_FULL.id, "Song (Remastered)"))
         assertEquals("Song (Remastered)", state.nowPlayingFull)
         state.forgetFeatures()
         assertEquals(LaptopState.MACRO_SLOTS, state.macroCap)
-        assertEquals(EndActionToken.NONE, state.endAction)
+        assertNull(state.power)
     }
 
     @Test
@@ -487,6 +488,17 @@ class LaptopStateTest {
         state.take(Frame.Text(TextKind.NOW_PLAYING_FULL.id, "Song (Remastered)"))
         state.take(Frame.Text(TextKind.NOW_PLAYING.id, "Next"))
         assertEquals("", state.nowPlayingFull)
+    }
+
+    @Test
+    fun theForegroundKindIsKeptAndForgotten() {
+        state.take(Frame.Text(TextKind.FOREGROUND_KIND.id, "timeline"))
+        assertEquals(AppKindToken.TIMELINE, state.foregroundKind)
+        state.take(Frame.Text(TextKind.FOREGROUND_KIND.id, "unheard"))
+        assertNull(state.foregroundKind)
+        state.take(Frame.Text(TextKind.FOREGROUND_KIND.id, "media"))
+        state.forgetFeatures()
+        assertNull(state.foregroundKind)
     }
 
     @Test

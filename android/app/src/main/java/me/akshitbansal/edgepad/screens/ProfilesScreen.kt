@@ -7,6 +7,8 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.link.ForegroundApp
+import me.akshitbansal.edgepad.protocol.AppKindToken
+import me.akshitbansal.edgepad.surface.AutoProfiles
 import me.akshitbansal.edgepad.surface.DialKind
 import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
@@ -40,10 +42,18 @@ object ProfilesScreen {
         setRaw: (String) -> Unit,
         current: ForegroundApp?,
         supported: Boolean,
+        autoOn: Boolean,
+        setAutoOn: (Boolean) -> Unit,
+        autoRaw: String,
+        setAutoRaw: (String) -> Unit,
+        autoSupported: Boolean,
         defaults: List<DialKind?>,
         onBack: () -> Unit,
     ): View {
         var profiles = Profiles(raw)
+        var masterOn = on
+        var auto = Profiles(autoRaw)
+        var openKind: AppKindToken? = null
         var openProfile: String? = null
         var openRow: String? = null
         val list = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
@@ -93,15 +103,17 @@ object ProfilesScreen {
         }
 
         fun Column.editor(
-            app: ForegroundApp,
+            scope: String,
             profile: Profile,
+            onChange: (Profile) -> Unit,
+            footer: Column.() -> Unit,
         ) {
             val corners = profile.corners
             val cornerChoices = listOf(same) + kinds.map { kindName(it) }
             cornerNames.forEachIndexed { corner, name ->
                 val held = corners?.get(corner)
                 pickRow(
-                    "c$corner",
+                    "$scope.c$corner",
                     ui.string(name),
                     if (corners == null) same else kindName(held),
                     cornerChoices,
@@ -109,14 +121,14 @@ object ProfilesScreen {
                 ) { pick ->
                     val next = (corners ?: defaults).toMutableList()
                     if (pick > 0) next[corner] = kinds[pick - 1]
-                    change(app, profile.copy(corners = if (pick == 0) null else next))
+                    onChange(profile.copy(corners = if (pick == 0) null else next))
                 }
             }
             val gestureChoices = listOf(same) + actions.map { ui.string(it.nameRes) }
             for (gesture in Gesture.entries) {
                 val set = profile.gestures[gesture]
                 pickRow(
-                    "g${gesture.name}",
+                    "$scope.g${gesture.name}",
                     ui.string(gesture.nameRes),
                     if (set == null) same else ui.string(set.nameRes),
                     gestureChoices,
@@ -124,32 +136,82 @@ object ProfilesScreen {
                 ) { pick ->
                     val rest = profile.gestures - gesture
                     val next = if (pick == 0) rest else rest + (gesture to actions[pick - 1])
-                    change(app, profile.copy(gestures = next))
+                    onChange(profile.copy(gestures = next))
                 }
             }
             hairline()
-            lateinit var delete: TextView
-            delete =
-                ui.button(ui.string(R.string.profiles_delete), Ui.Style.QUIET) {
-                    ui.confirm(
-                        delete,
-                        ui.string(R.string.profiles_delete),
-                        ui.string(R.string.profiles_delete_confirm, shown(app)),
-                        ui.string(R.string.profiles_delete),
-                    ) {
-                        profiles = profiles.without(app.token)
-                        setRaw(profiles.encode())
-                        openProfile = null
-                        openRow = null
-                        render()
+            footer()
+        }
+
+        fun Column.automatic() {
+            val live = masterOn && supported
+            val kindRows =
+                listOf(
+                    AppKindToken.MEDIA to R.string.auto_kind_media,
+                    AppKindToken.TIMELINE to R.string.auto_kind_timeline,
+                    AppKindToken.BROWSER to R.string.auto_kind_browser,
+                )
+            val shownKinds =
+                LinearLayout(ui.context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    alpha = if (live) 1f else DISABLED_ALPHA
+                }
+            section(ui.string(R.string.auto_profiles_title))
+            Column(ui, shownKinds).apply {
+                card {
+                    val toggle =
+                        ui.toggle(ui.string(R.string.auto_profiles_toggle), autoOn && live) {
+                            setAutoOn(it)
+                        }
+                    toggle.isEnabled = live
+                    add(toggle)
+                    kindRows.forEach { (kind, name) ->
+                        val raw = auto.forApp(kind.token) ?: AutoProfiles.default(kind)
+                        hairline()
+                        val summary =
+                            (0 until Profiles.CORNERS).joinToString(", ") { kindName(raw.corner(it, defaults[it])) }
+                        val opened = openKind == kind
+                        add(
+                            ui.field(ui.string(name), ui.secondary(summary, Type.VALUE)).apply {
+                                minimumHeight = ui.dp(Space.TOUCH)
+                                isEnabled = live
+                                ui.tappable(this) {
+                                    if (live) {
+                                        openKind = if (opened) null else kind
+                                        openRow = null
+                                        render()
+                                    }
+                                }
+                            },
+                        )
+                        if (opened && live) {
+                            editor("auto.${kind.token}", raw, { next ->
+                                auto = auto.with(kind.token, "", next)
+                                setAutoRaw(auto.encode())
+                                openRow = null
+                                render()
+                            }) {
+                                add(
+                                    ui.button(ui.string(R.string.profile_default), Ui.Style.QUIET) {
+                                        auto = auto.with(kind.token, "", AutoProfiles.default(kind))
+                                        setAutoRaw(auto.encode())
+                                        openRow = null
+                                        render()
+                                    },
+                                )
+                            }
+                        }
                     }
                 }
-            add(delete)
+            }
+            add(shownKinds)
+            footnote(ui.string(R.string.auto_profiles_caption))
         }
 
         render = {
             list.removeAllViews()
             Column(ui, list).apply {
+                if (autoSupported) automatic()
                 if (profiles.all.isEmpty()) {
                     footnote(ui.string(R.string.profiles_empty))
                 } else {
@@ -169,7 +231,27 @@ object ProfilesScreen {
                                     }
                                 },
                             )
-                            if (opened) editor(app, profile)
+                            if (opened) {
+                                editor("app", profile, { change(app, it) }) {
+                                    lateinit var delete: TextView
+                                    delete =
+                                        ui.button(ui.string(R.string.profiles_delete), Ui.Style.QUIET) {
+                                            ui.confirm(
+                                                delete,
+                                                ui.string(R.string.profiles_delete),
+                                                ui.string(R.string.profiles_delete_confirm, shown(app)),
+                                                ui.string(R.string.profiles_delete),
+                                            ) {
+                                                profiles = profiles.without(app.token)
+                                                setRaw(profiles.encode())
+                                                openProfile = null
+                                                openRow = null
+                                                render()
+                                            }
+                                        }
+                                    add(delete)
+                                }
+                            }
                         }
                     }
                 }
@@ -197,7 +279,12 @@ object ProfilesScreen {
             ui.bar(ui.string(R.string.profiles_title), onBack, backLabel = ui.string(R.string.settings_surface_title)),
         ) {
             card {
-                val toggle = ui.toggle(ui.string(R.string.profiles_toggle), on && supported) { setOn(it) }
+                val toggle =
+                    ui.toggle(ui.string(R.string.profiles_toggle), on && supported) {
+                        masterOn = it
+                        setOn(it)
+                        render()
+                    }
                 toggle.isEnabled = supported
                 add(toggle)
             }

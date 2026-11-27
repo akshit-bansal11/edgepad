@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="profiles_summary_off">Kapalı</string>
+  <string name="profiles_summary_auto">Otomatik</string>
+  <plurals name="profiles_summary_apps">
+    <item quantity="one">%1$d uygulama</item>
+    <item quantity="other">%1$d uygulama</item>
+  </plurals>
+  <plurals name="widgets_summary">
+    <item quantity="one">%1$d açık</item>
+    <item quantity="other">%1$d açık</item>
+  </plurals>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="profiles_summary_off">बंद</string>
+  <string name="profiles_summary_auto">अपने-आप</string>
+  <plurals name="profiles_summary_apps">
+    <item quantity="one">%1$d ऐप</item>
+    <item quantity="other">%1$d ऐप</item>
+  </plurals>
+  <plurals name="widgets_summary">
+    <item quantity="one">%1$d चालू</item>
+    <item quantity="other">%1$d चालू</item>
+  </plurals>
+</resources>

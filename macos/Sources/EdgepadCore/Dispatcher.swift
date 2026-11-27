@@ -65,18 +65,15 @@ public final class Dispatcher {
     public var appAddReply: ((String) -> Void)?
 
     /// What is playing, for MEDIA_POSITION. Set by the app per connection, like `capture`; without one, MEDIA_POSITION and
-    /// the end actions are dropped and counted.
+    /// it is dropped and counted.
     public var media: MediaSource?
 
     /// Where the media icon goes, on the same sender as the clipboard so the phone's one transfer is not interrupted.
     public var mediaBlobs: BlobSender?
 
-    /// What a fired end action does to this Mac: sleep, or the shutdown countdown. Nil sends END_* to the drop path.
-    public var endPerform: ((EndKind) -> Bool)?
-
-    /// Armed by END_SLEEP and END_SHUTDOWN, disarmed by END_CANCEL. Set by the session once it has a link to write its
-    /// state to, like `padStatusReply`.
-    public var endAction: EndAction?
+    /// Sleep, hibernate, restart and shut down, with the restart and shut down countdown. Set by the app per
+    /// connection; without one, those ids are dropped and counted and the features are not listed.
+    public var power: PowerControl?
 
     /// Receives the phone's files, on either socket. Set by the app per connection, like `capture`; without one,
     /// XFER_BEGIN, XFER_CHUNK and XFER_END are dropped and counted.
@@ -287,13 +284,8 @@ public final class Dispatcher {
             // Notifications: macOS has no default shortcut for it. The macro blocks are handled before this
             // switch; their cases are here only so the switch stays exhaustive.
             return false
-        case .endSleep:
-            return endAction?.arm(.sleep) ?? false
-        case .endShutdown:
-            return endAction?.arm(.shutdown) ?? false
-        case .endCancel:
-            guard let endAction else { return false }
-            endAction.cancel()
+        case .sleep, .hibernate, .restart, .shutDown, .powerCancel:
+            return power?.run(action) ?? false
         case .appsList:
             return apps?.list() ?? false
         case .appsCancel:

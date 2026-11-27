@@ -2,11 +2,16 @@
 <resources>
   <string name="settings_dials">标尺</string>
   <string name="settings_capture">截取与标注</string>
-  <string name="settings_clipboard_files">剪贴板与文件</string>
-  <string name="settings_developer">开发者</string>
-  <string name="settings_devices">设备与连接</string>
   <string name="settings_language">语言</string>
   <string name="language_system">系统默认</string>
   <string name="language_follows_phone">Edgepad 使用手机的语言。可在手机设置中更改。</string>
   <string name="settings_pen_colour">笔的颜色</string>
+  <string name="settings_connection">连接</string>
+  <string name="settings_screens">屏幕</string>
+  <string name="settings_help_about">帮助与关于</string>
+  <string name="settings_advanced">高级</string>
+  <string name="settings_laptops_none">未连接</string>
+  <plurals name="settings_laptops_summary">
+    <item quantity="other">已连接 %1$d 台</item>
+  </plurals>
 </resources>

@@ -12,4 +12,10 @@
   <string name="profiles_delete_confirm">Delete the profile for %1$s?</string>
   <string name="profile_default">Same as default</string>
   <string name="profile_custom">Customised</string>
+  <string name="auto_profiles_title">Automatic profiles</string>
+  <string name="auto_profiles_toggle">Switch dials by kind of app</string>
+  <string name="auto_profiles_caption">With no profile for the app in front, the dials follow its kind: media, timeline editor or browser. Your own profiles come first.</string>
+  <string name="auto_kind_media">Media</string>
+  <string name="auto_kind_timeline">Timeline</string>
+  <string name="auto_kind_browser">Browser</string>
 </resources>

@@ -1,10 +1,10 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.link.blob.MediaIconStore
+import me.akshitbansal.edgepad.protocol.AppKindToken
 import me.akshitbansal.edgepad.protocol.CaptureStateToken
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
-import me.akshitbansal.edgepad.protocol.EndActionToken
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.PadStatus
@@ -39,7 +39,10 @@ enum class OpenState(
  * where in it. The activity keeps one per laptop, so a control surface built later (reopened, rotated,
  * themed) starts from what the laptop last said instead of from zero. Touched on the UI thread only.
  */
-class LaptopState {
+class LaptopState(
+    /** Milliseconds since boot, deep sleep included; a test passes a fake. */
+    private val clock: () -> Long = PowerState::now,
+) {
     private val levels = HashMap<ControlId, Int>()
     private val flags = HashMap<ControlId, Boolean>()
 
@@ -122,10 +125,11 @@ class LaptopState {
         macroCap = MACRO_SLOTS
         captureState = CaptureStateToken.IDLE
         unavailable = emptyMap()
-        endAction = EndActionToken.NONE
+        power = null
         nowPlayingFull = ""
         mediaIcons.clear()
         foreground = null
+        foregroundKind = null
         forgetDashboard()
     }
 
@@ -223,6 +227,10 @@ class LaptopState {
     var foreground: ForegroundApp? = null
         private set
 
+    /** TEXT 40: the kind of app in front, or null for none or a kind this build does not know. */
+    var foregroundKind: AppKindToken? = null
+        private set
+
     /** TEXT 22: how many macro slots the laptop keeps, 1 to [MACRO_SLOTS_MAX]; [MACRO_SLOTS] until it says. */
     var macroCap = MACRO_SLOTS
         private set
@@ -235,8 +243,8 @@ class LaptopState {
     var unavailable: Map<String, UnavailableReason> = emptyMap()
         private set
 
-    /** TEXT 25: what the laptop has armed for the end of the media. */
-    var endAction = EndActionToken.NONE
+    /** TEXT 39: the restart or shut down the laptop has armed, or null for none. */
+    var power: PowerState? = null
         private set
 
     /** TEXT 26: the title line before it was cleaned for [nowPlaying]; empty when it did not differ. */
@@ -350,9 +358,10 @@ class LaptopState {
                     TextKind.MACRO_CAP -> macroCap = cap(frame.text) ?: return false
                     TextKind.CAPTURE_STATE -> captureState = CaptureStateToken.of(frame.text)
                     TextKind.UNAVAILABLE -> unavailable = unavailable(frame.text)
-                    TextKind.END_ACTION -> endAction = EndActionToken.of(frame.text)
+                    TextKind.POWER_STATE -> power = PowerState.parse(frame.text, clock())
                     TextKind.NOW_PLAYING_FULL -> nowPlayingFull = frame.text
                     TextKind.FOREGROUND_APP -> foreground = ForegroundApp.parse(frame.text)
+                    TextKind.FOREGROUND_KIND -> foregroundKind = AppKindToken.of(frame.text)
                     TextKind.STATS -> stats.push(DashWire.stats(frame.text) ?: return false)
                     TextKind.STATS_INFO -> statsInfo = DashWire.statsInfo(frame.text) ?: return false
                     TextKind.DISKS -> disks = DashWire.disks(frame.text)

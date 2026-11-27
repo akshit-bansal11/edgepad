@@ -12,4 +12,10 @@
   <string name="profiles_delete_confirm">Supprimer le profil de %1$s ?</string>
   <string name="profile_default">Comme par défaut</string>
   <string name="profile_custom">Personnalisé</string>
+  <string name="auto_profiles_title">Profils automatiques</string>
+  <string name="auto_profiles_toggle">Changer les molettes selon le type d\'app</string>
+  <string name="auto_profiles_caption">Sans profil pour l\'app au premier plan, les molettes suivent son type : média, montage ou navigateur. Vos profils ont la priorité.</string>
+  <string name="auto_kind_media">Média</string>
+  <string name="auto_kind_timeline">Montage</string>
+  <string name="auto_kind_browser">Navigateur</string>
 </resources>

@@ -4,6 +4,32 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [5.2.0] - Unreleased
+
+No wire-protocol break: the protocol stays at version 6, and the new ids are additive, so a 5.2.0 half works with a 5.1.x half. A 5.1 phone loses nothing but the removed Sleep when this ends row.
+
+### Added
+
+- **Phone: Power.** A Power page in the Controls popup acts on the laptop: **Lock**, **Sleep**, **Hibernate**, **Restart** and **Shut down**. Restart and Shut down start a 60 second countdown that you can cancel on the phone or the laptop. Each laptop shows only what it can do: Windows offers Hibernate only when hibernation is on, the Mac has no Hibernate, and Linux offers only what logind allows without a password.
+- **Automatic profiles.** The dials follow the kind of app in front: media, timeline or browser. The laptop sends only the kind, never a window title. Your own app profiles win over Automatic. On Linux only under X11; on the Mac, media is detected only for Music and Spotify.
+- **Phone: Controls settings.** A gear in the Controls popup opens a settings page for icon size (Small, Medium or Large), labels on or off, and controls per page (2 to 12), with paging when the tiles do not fit on one page. The popup is larger.
+- **Phone: Presenter and Capture settings pages**, with Laser size and Show trail on one, and To phone, pen colour, width and opacity on the other.
+
+### Changed
+
+- **Settings is regrouped.** Global Settings holds only app-wide settings: Connection, Screens, Appearance, Help & about, and Advanced. Each screen's settings live on that screen's page. Surface settings are grouped into Dials, Trackpad and Surface, and Air mouse moved to Trackpad. Nothing was removed.
+- **App profiles are on by default.** A setting you turned off stays off.
+- **Mac Automation text** now covers sleep, restart and shut down from the phone.
+
+### Removed
+
+- **Phone: Sleep when this ends.** Replaced by Power, which acts when you tap it instead of when the media ends.
+
+### Fixed
+
+- **App profiles: "Add the app in front" stayed disabled** when no profile existed yet.
+- **App profiles: the Profiles screen did not refresh** after a change.
+
 ## [5.1.0] - 2026-11-24
 
 No wire-protocol change: the protocol stays at version 6, so a 5.1.0 half works with a 5.0.x half.

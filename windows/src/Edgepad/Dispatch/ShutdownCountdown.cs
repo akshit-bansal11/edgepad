@@ -1,26 +1,32 @@
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
+using Edgepad.Power;
+using Edgepad.Protocol;
 using Edgepad.Ui;
 
 namespace Edgepad.Dispatch;
 
 /// <summary>
-/// The 60 s the owner has to cancel a shutdown. Pure arithmetic on a clock the caller supplies, so a test can
+/// The 60 s the owner has to cancel a restart or shutdown. Pure arithmetic on a clock the caller supplies, so a test can
 /// drive it: <see cref="Poll"/> returns true exactly once, when the time is up and nobody cancelled.
 /// </summary>
 internal sealed class CountdownClock(int seconds, Func<long> nowMs)
 {
-    private readonly long deadline = nowMs() + (seconds * 1000L);
+    private long deadline = nowMs() + (seconds * 1000L);
     private bool finished;
 
     /// <summary>Whole seconds left, rounded up, never below zero.</summary>
-    public int SecondsLeft => (int)Math.Max(0, (deadline - nowMs() + 999) / 1000);
+    public int SecondsLeft => (int)Math.Max(0, (Volatile.Read(ref deadline) - nowMs() + 999) / 1000);
 
     public void Cancel() => finished = true;
 
+    /// <summary>Starts the full window again, from now.</summary>
+    public void Restart() => Volatile.Write(ref deadline, nowMs() + (seconds * 1000L));
+
     public bool Poll()
     {
-        if (finished || nowMs() < deadline)
+        if (finished || nowMs() < Volatile.Read(ref deadline))
         {
             return false;
         }
@@ -31,28 +37,35 @@ internal sealed class CountdownClock(int seconds, Func<long> nowMs)
 }
 
 /// <summary>
-/// The window that counts down to a shutdown the owner armed from the phone. Topmost, Cancel is the default button
-/// and has the focus, so Enter or Space cancels. It shows at once (no animation, so inside the 300 ms reveal
-/// ceiling) on a thread of its own, because the caller is the media thread.
+/// The window that counts down to a restart or shutdown the owner armed from the phone. Topmost, Cancel is the default
+/// button and has the focus, so Enter or Space cancels. It shows at once (no animation, so inside the 300 ms reveal
+/// ceiling) on a thread of its own, because the caller is the session's thread. One for the whole app: a session
+/// ending never takes it down, and a phone that reconnects reads <see cref="Pending"/>.
 /// </summary>
-internal sealed class ShutdownCountdown : Form
+internal sealed partial class ShutdownCountdown : Form
 {
-    public const int Seconds = 60;
-
     private static readonly Lock Gate = new();
-    private static readonly CompositeFormat ShutdownText = CompositeFormat.Parse(Strings.EndAction_ShutdownText);
-    private static ShutdownCountdown? open;
+    private static readonly CompositeFormat RestartText = CompositeFormat.Parse(Strings.Power_RestartText);
+    private static readonly CompositeFormat ShutdownText = CompositeFormat.Parse(Strings.Power_ShutdownText);
+    private static (PowerKind Kind, CountdownClock Clock)? pending;
+    private static bool dismissed;
 
-    private readonly CountdownClock clock = new(Seconds, () => Environment.TickCount64);
+    private readonly CountdownClock clock;
+    private readonly PowerKind kind;
+    private readonly CompositeFormat format;
     private readonly Label text = new() { AutoSize = true, MaximumSize = new Size(360, 0), Location = new Point(16, 16) };
-    private readonly Button cancel = new() { Text = Strings.EndAction_Cancel, AutoSize = true, DialogResult = DialogResult.Cancel };
+    private readonly Button cancel = new() { Text = Strings.Power_Cancel, AutoSize = true, DialogResult = DialogResult.Cancel };
     private readonly System.Windows.Forms.Timer tick = new() { Interval = 250 };
-    private readonly Action shutDown;
+    private bool reachedZero;
+    private long lastTick = Environment.TickCount64;
+    private long lastAwake = AwakeMs();
 
-    private ShutdownCountdown(Action shutDown)
+    private ShutdownCountdown(PowerKind kind, CountdownClock clock)
     {
-        this.shutDown = shutDown;
-        Text = Strings.EndAction_ShutdownTitle;
+        this.clock = clock;
+        this.kind = kind;
+        format = kind == PowerKind.Restart ? RestartText : ShutdownText;
+        Text = kind == PowerKind.Restart ? Strings.Power_RestartTitle : Strings.Power_ShutdownTitle;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -73,61 +86,47 @@ internal sealed class ShutdownCountdown : Form
         tick.Start();
     }
 
-    /// <summary>Puts the countdown up, once; a second call while it is open does nothing.</summary>
-    public static void Show(Action shutDown)
+    /// <summary>The countdown that is up, and its whole seconds left; null when none is.</summary>
+    public static (PowerKind Kind, int SecondsLeft)? Pending
     {
-        lock (Gate)
+        get
         {
-            if (open is not null)
+            lock (Gate)
             {
-                return;
+                return pending is { } up ? (up.Kind, up.Clock.SecondsLeft) : null;
             }
-
-            var thread = new Thread(() =>
-            {
-                using var form = new ShutdownCountdown(shutDown);
-                lock (Gate)
-                {
-                    open = form;
-                }
-
-                try
-                {
-                    Application.Run(form);
-                }
-                finally
-                {
-                    lock (Gate)
-                    {
-                        open = null;
-                    }
-                }
-            })
-            { IsBackground = true, Name = "Edgepad shutdown countdown" };
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
         }
     }
 
-    /// <summary>Closes the window without shutting down (ACTION 62, or the session ending). Safe from any thread.</summary>
-    public static void Dismiss()
+    /// <summary>
+    /// Puts the countdown up. False, and nothing changes, while one is already up. <c>ended</c> is called once,
+    /// after the window has closed: true at zero, false when the owner or <see cref="Dismiss"/> cancelled it.
+    /// </summary>
+    public static bool Show(PowerKind kind, int seconds, Action<bool> ended)
     {
-        ShutdownCountdown? form;
         lock (Gate)
         {
-            form = open;
-        }
+            if (pending is not null)
+            {
+                return false;
+            }
 
-        if (form is { IsHandleCreated: true, IsDisposed: false })
+            var clock = new CountdownClock(seconds, () => Environment.TickCount64);
+            pending = (kind, clock);
+            dismissed = false;
+            var thread = new Thread(() => Run(kind, clock, ended)) { IsBackground = true, Name = "Edgepad power countdown" };
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            return true;
+        }
+    }
+
+    /// <summary>Takes the window down without restarting or shutting down (ACTION 11), within one tick. Safe from any thread.</summary>
+    public static void Dismiss()
+    {
+        lock (Gate)
         {
-            try
-            {
-                form.BeginInvoke(form.Close);
-            }
-            catch (InvalidOperationException)
-            {
-                // Closed between the check and the call: nothing left to dismiss.
-            }
+            dismissed = pending is not null;
         }
     }
 
@@ -144,16 +143,77 @@ internal sealed class ShutdownCountdown : Form
         base.OnFormClosed(e);
     }
 
+    /// <summary>
+    /// The tick clock keeps counting while the laptop sleeps and the awake clock does not, so a gap of seconds between
+    /// the two since the last tick was a sleep. Checked inside the tick, before the clock is polled: a resume event can
+    /// arrive after the first tick on waking, and that tick would already see zero.
+    /// </summary>
+    internal static bool Slept(long tickDeltaMs, long awakeDeltaMs) => tickDeltaMs - awakeDeltaMs >= 5_000;
+
+    /// <summary>Milliseconds awake. QueryUnbiasedInterruptTime leaves out sleep and hibernation.</summary>
+    private static long AwakeMs() =>
+        QueryUnbiasedInterruptTime(out var hundredNs) ? (long)(hundredNs / 10_000) : Environment.TickCount64;
+
+    [LibraryImport("kernel32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool QueryUnbiasedInterruptTime(out ulong unbiasedTime);
+
+    private static void Run(PowerKind kind, CountdownClock clock, Action<bool> ended)
+    {
+        var fired = false;
+        try
+        {
+            using var form = new ShutdownCountdown(kind, clock);
+            Application.Run(form);
+            fired = form.reachedZero;
+        }
+        finally
+        {
+            lock (Gate)
+            {
+                pending = null;
+                dismissed = false;
+            }
+
+            ended(fired);
+        }
+    }
+
     private void ShowSeconds() =>
-        text.Text = string.Format(CultureInfo.CurrentCulture, ShutdownText, clock.SecondsLeft);
+        text.Text = string.Format(CultureInfo.CurrentCulture, format, clock.SecondsLeft);
 
     private void Step()
     {
-        if (clock.Poll())
+        bool stop;
+        lock (Gate)
+        {
+            stop = dismissed;
+        }
+
+        if (stop)
         {
             tick.Stop();
             Close();
-            shutDown();
+            return;
+        }
+
+        // A wake gives the owner the whole window again, and tells the phone.
+        var nowTick = Environment.TickCount64;
+        var nowAwake = AwakeMs();
+        if (Slept(nowTick - lastTick, nowAwake - lastAwake))
+        {
+            clock.Restart();
+            WindowsPower.Report($"{(kind == PowerKind.Restart ? PowerStateToken.Restart : PowerStateToken.ShutDown)}/{PowerControl.CountdownSeconds}");
+        }
+
+        lastTick = nowTick;
+        lastAwake = nowAwake;
+
+        if (clock.Poll())
+        {
+            reachedZero = true;
+            tick.Stop();
+            Close();
             return;
         }
 

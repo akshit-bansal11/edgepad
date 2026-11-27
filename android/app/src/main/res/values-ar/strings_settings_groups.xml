@@ -2,11 +2,21 @@
 <resources>
   <string name="settings_dials">المقاييس</string>
   <string name="settings_capture">الالتقاط والرسم</string>
-  <string name="settings_clipboard_files">الحافظة والملفات</string>
-  <string name="settings_developer">المطوّر</string>
-  <string name="settings_devices">الأجهزة والاتصال</string>
   <string name="settings_language">اللغة</string>
   <string name="language_system">افتراضي النظام</string>
   <string name="language_follows_phone">يستخدم Edgepad لغة هاتفك. غيّرها من إعدادات الهاتف.</string>
   <string name="settings_pen_colour">لون القلم</string>
+  <string name="settings_connection">الاتصال</string>
+  <string name="settings_screens">الشاشات</string>
+  <string name="settings_help_about">المساعدة وحول التطبيق</string>
+  <string name="settings_advanced">متقدّم</string>
+  <string name="settings_laptops_none">لا جهاز متصل</string>
+  <plurals name="settings_laptops_summary">
+    <item quantity="zero">%1$d متصل</item>
+    <item quantity="one">جهاز واحد متصل</item>
+    <item quantity="two">جهازان متصلان</item>
+    <item quantity="few">%1$d أجهزة متصلة</item>
+    <item quantity="many">%1$d جهازًا متصلًا</item>
+    <item quantity="other">%1$d جهاز متصل</item>
+  </plurals>
 </resources>

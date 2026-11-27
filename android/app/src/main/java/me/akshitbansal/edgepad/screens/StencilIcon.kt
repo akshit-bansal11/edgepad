@@ -7,6 +7,7 @@ import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
+import android.graphics.RectF
 import android.graphics.drawable.Drawable
 
 /**
@@ -36,6 +37,7 @@ class StencilIcon(
         GITHUB,
         SEND,
         DEVELOPER,
+        POWER,
     }
 
     /** One shape: filled, or stroked at [width] (filled and stroked when [style] says so). */
@@ -270,6 +272,28 @@ class StencilIcon(
                 inkParts += Part(shape { addCircle(24f, 24f, 21f, Path.Direction.CW) })
                 holes += Part(shape { addCircle(24f, 24f, 14f, Path.Direction.CW) })
                 accentParts += Part(shape { addCircle(24f, 24f, 5f, Path.Direction.CW) })
+            }
+
+            Kind.POWER -> {
+                // A disc with the power ring cut out of it (open at the top) and the accent bar through the gap.
+                inkParts += Part(shape { addCircle(24f, 24f, 21f, Path.Direction.CW) })
+                holes +=
+                    Part(
+                        shape { arcTo(RectF(15f, 25f, 33f, 43f), 300f, 300f) },
+                        Paint.Style.STROKE,
+                        HOLE_STROKE,
+                        Paint.Cap.ROUND,
+                    )
+                accentParts +=
+                    Part(
+                        shape {
+                            moveTo(24f, 11f)
+                            rLineTo(0f, 14f)
+                        },
+                        Paint.Style.STROKE,
+                        HOLE_STROKE,
+                        Paint.Cap.ROUND,
+                    )
             }
 
             Kind.GITHUB -> {

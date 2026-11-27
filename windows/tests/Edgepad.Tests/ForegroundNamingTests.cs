@@ -13,6 +13,14 @@ public sealed class ForegroundNamingTests
         Assert.Equal(expected, ForegroundNaming.Token(path));
 
     [Theory]
+    [InlineData("spotify.exe", "Spotify.exe", true)]
+    [InlineData("chrome.exe", "Chrome", true)] // HW: verify on device
+    [InlineData("spotify.exe", "SpotifyAB.SpotifyMusic_x!Spotify", true)]
+    [InlineData("chrome.exe", "Spotify.exe", false)]
+    public void SameWindowsComparesTheTokenWithThePlayersProgram(string token, string aumid, bool expected) =>
+        Assert.Equal(expected, Bluetooth.Session.SameWindows(token, aumid));
+
+    [Theory]
     [InlineData(@"C:\apps\my app.exe")]
     [InlineData("C:\\apps\\caf\u00e9.exe")]
     [InlineData("")]

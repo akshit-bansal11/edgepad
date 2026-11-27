@@ -12,4 +12,10 @@
   <string name="profiles_delete_confirm">%1$s profili silinsin mi?</string>
   <string name="profile_default">Varsayılanla aynı</string>
   <string name="profile_custom">Özelleştirilmiş</string>
+  <string name="auto_profiles_title">Otomatik profiller</string>
+  <string name="auto_profiles_toggle">Kadranları uygulama türüne göre değiştir</string>
+  <string name="auto_profiles_caption">Öndeki uygulamanın profili yoksa kadranlar türünü izler: medya, zaman çizelgesi düzenleyici veya tarayıcı. Kendi profilleriniz önceliklidir.</string>
+  <string name="auto_kind_media">Medya</string>
+  <string name="auto_kind_timeline">Zaman çizelgesi</string>
+  <string name="auto_kind_browser">Tarayıcı</string>
 </resources>

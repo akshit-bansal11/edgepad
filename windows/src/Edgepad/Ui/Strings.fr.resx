@@ -509,13 +509,19 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Update_MajorWarning" xml:space="preserve">
     <value>C’est une version majeure. Mettez aussi Edgepad à jour sur le téléphone, sinon les deux se refuseront mutuellement. Installer maintenant ?</value>
   </data>
-  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+  <data name="Power_RestartTitle" xml:space="preserve">
+    <value>Redémarrage en cours</value>
+  </data>
+  <data name="Power_RestartText" xml:space="preserve">
+    <value>Cet ordinateur redémarre dans {0} secondes.</value>
+  </data>
+  <data name="Power_ShutdownTitle" xml:space="preserve">
     <value>Arrêt en cours</value>
   </data>
-  <data name="EndAction_ShutdownText" xml:space="preserve">
-    <value>Le média est terminé. Cet ordinateur s’éteint dans {0} secondes.</value>
+  <data name="Power_ShutdownText" xml:space="preserve">
+    <value>Cet ordinateur s’éteint dans {0} secondes.</value>
   </data>
-  <data name="EndAction_Cancel" xml:space="preserve">
+  <data name="Power_Cancel" xml:space="preserve">
     <value>Annuler</value>
   </data>
   <data name="Menu_SendFile" xml:space="preserve">

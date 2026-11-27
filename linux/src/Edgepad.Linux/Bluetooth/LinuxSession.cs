@@ -41,7 +41,8 @@ internal sealed class LinuxSession : IDisposable
     private readonly Func<LinuxSession, LinuxSession?> liveFor;
     private int disposed;
     private Action<bool>? inputState;
-    private Action<MediaSnapshot>? mediaObserver;
+    private Action<string?>? playingObserver;
+    private Action<string>? sendPower;
     private PowerSource? powerSource;
     private PowerReporter? power;
     private ForegroundReporter? foreground;
@@ -182,24 +183,26 @@ internal sealed class LinuxSession : IDisposable
             // TEXT 23, best effort: only the recordings this phone started are seen.
             dispatcher.CaptureStateReply = state => frames.Send(new Text((byte)TextKind.CaptureState, state));
 
-            // Sleep or shut down when the media ends, only where logind answers (the same test gates the feature token).
-            // Fed by the laptop's media poll; that poll is shared, so a dead socket here must not end its thread.
-            if (LinuxPower.Reachable)
+            // TEXT 39 and the power controls: only what logind allows is offered (the same Caps gate the feature tokens). A
+            // countdown a dropped session left running is told to this phone, so it can cancel it.
+            // The countdown outlives the session that started it, so its state goes to whichever session is current.
+            sendPower = state =>
             {
-                var end = new EndAction(LinuxPower.Perform, token => frames.Send(new Text((byte)TextKind.EndAction, token)));
-                dispatcher.EndAction = end;
-                mediaObserver = snapshot =>
+                try
                 {
-                    try
-                    {
-                        end.Observe(snapshot);
-                    }
-                    catch (Exception e) when (e is IOException or ObjectDisposedException)
-                    {
-                        // This session's socket is gone; the read loop ends it.
-                    }
-                };
-                StateReporter.MediaObserved += mediaObserver;
+                    frames.Send(new Text((byte)TextKind.PowerState, state));
+                }
+                catch (Exception e) when (e is IOException or ObjectDisposedException)
+                {
+                    // This session's socket is gone; the read loop ends it.
+                }
+            };
+            LinuxPower.Listen(sendPower);
+            var control = new PowerControl(LinuxPower.Shared, LinuxPower.Report);
+            dispatcher.Power = control;
+            if (control.CurrentState() is { Length: > 0 } counting)
+            {
+                frames.Send(new Text((byte)TextKind.PowerState, counting));
             }
 
             // Files, both ways, one at a time each. A part is kept when the session ends, for the next BEGIN of the same file.
@@ -251,8 +254,32 @@ internal sealed class LinuxSession : IDisposable
             dashboard?.Start();
 
             // TEXT 21: the app in front, from CONTROL 11. Wayland cannot see it, so the control stays unset there and is dropped and counted.
-            foreground = new ForegroundReporter(new LinuxForeground(), text => frames.Send(new Text((byte)TextKind.ForegroundApp, text)));
-            dispatcher.ForegroundWatch = LinuxForeground.Offered ? foreground.Watch : null;
+            // TEXT 40, the kind of app in front, rides on the same watch: the token in front, and what MPRIS says plays.
+            var kind = new ForegroundKind("linux", MprisMap.SameLinux, text => frames.Send(new Text((byte)TextKind.ForegroundKind, text)));
+            var reporter = new ForegroundReporter(
+                new LinuxForeground(),
+                text => frames.Send(new Text((byte)TextKind.ForegroundApp, text)),
+                kind: kind);
+            foreground = reporter;
+
+            void WatchForeground(bool on)
+            {
+                reporter.Watch(on);
+                if (playingObserver is { } old)
+                {
+                    StateReporter.MediaPlaying -= old;
+                    playingObserver = null;
+                }
+
+                if (on)
+                {
+                    playingObserver = kind.SetPlaying;
+                    StateReporter.MediaPlaying += playingObserver;
+                    kind.SetPlaying(StateReporter.PlayingApp);
+                }
+            }
+
+            dispatcher.ForegroundWatch = LinuxForeground.Offered ? WatchForeground : null;
 
             // TEXT 19/20: the batteries every 60 s, the default output every 3 s, each sent only when it changed. The
             // reporter reads on its own timers, so a slow UPower or sound tool never holds up this read loop.
@@ -327,14 +354,19 @@ internal sealed class LinuxSession : IDisposable
             // told the session ended whatever happens before it.
             try
             {
+                if (sendPower is { } powerListener)
+                {
+                    LinuxPower.Unlisten(powerListener);
+                }
+
                 if (inputState is { } handler)
                 {
                     UinputAccess.Changed -= handler;
                 }
 
-                if (mediaObserver is { } observer)
+                if (playingObserver is { } observer)
                 {
-                    StateReporter.MediaObserved -= observer;
+                    StateReporter.MediaPlaying -= observer;
                 }
 
                 // Held input first: a reporter that is slow to stop must never leave keys down. The reporter no

@@ -110,6 +110,18 @@ public sealed class ForegroundReporterTests
         Assert.Equal(["one/One", "one/One"], sent);
     }
 
+    [Fact]
+    public void AKnownTokenReachesTheKindSender()
+    {
+        List<string> kinds = [];
+        source.Current = App("spotify.exe");
+        using var reporter = new ForegroundReporter(source, sent.Add, (_, action) => timers.Add(action), new ForegroundKind("windows", (a, b) => a == b, kinds.Add));
+
+        reporter.Watch(true);
+
+        Assert.Equal(["media"], kinds);
+    }
+
     private sealed class FakeSource : IForegroundApp
     {
         private Action<ForegroundApp>? onChange;

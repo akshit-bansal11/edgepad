@@ -22,6 +22,7 @@ import android.provider.DocumentsContract
 import android.provider.Settings.Global
 import android.text.InputType
 import android.util.Log
+import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -47,6 +48,7 @@ import me.akshitbansal.edgepad.link.CaptureInbox
 import me.akshitbansal.edgepad.link.ClipboardShare
 import me.akshitbansal.edgepad.link.DashMask
 import me.akshitbansal.edgepad.link.Discovery
+import me.akshitbansal.edgepad.link.ForegroundWatchPolicy
 import me.akshitbansal.edgepad.link.Found
 import me.akshitbansal.edgepad.link.GitHost
 import me.akshitbansal.edgepad.link.HostPort
@@ -123,9 +125,11 @@ import me.akshitbansal.edgepad.screens.AppListScreen
 import me.akshitbansal.edgepad.screens.AppearanceScreen
 import me.akshitbansal.edgepad.screens.BatterySheet
 import me.akshitbansal.edgepad.screens.CaptureScreen
+import me.akshitbansal.edgepad.screens.CaptureSettingsScreen
 import me.akshitbansal.edgepad.screens.Carry
 import me.akshitbansal.edgepad.screens.ClipboardSheet
 import me.akshitbansal.edgepad.screens.ControlsPopup
+import me.akshitbansal.edgepad.screens.ControlsSettingsScreen
 import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DataUsesScreen
 import me.akshitbansal.edgepad.screens.DeveloperHub
@@ -150,7 +154,10 @@ import me.akshitbansal.edgepad.screens.PairCodeScreen
 import me.akshitbansal.edgepad.screens.PermissionSheet
 import me.akshitbansal.edgepad.screens.PickerScreen
 import me.akshitbansal.edgepad.screens.PinScreen
+import me.akshitbansal.edgepad.screens.PowerBanner
+import me.akshitbansal.edgepad.screens.PowerScreen
 import me.akshitbansal.edgepad.screens.PresenterScreen
+import me.akshitbansal.edgepad.screens.PresenterSettingsScreen
 import me.akshitbansal.edgepad.screens.ProfilesScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
@@ -169,6 +176,7 @@ import me.akshitbansal.edgepad.screens.hideBars
 import me.akshitbansal.edgepad.screens.onEdited
 import me.akshitbansal.edgepad.screens.openOver
 import me.akshitbansal.edgepad.screens.showOver
+import me.akshitbansal.edgepad.surface.AutoProfiles
 import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ConnectedLaptops
 import me.akshitbansal.edgepad.surface.ControlSurface
@@ -253,11 +261,15 @@ class MainActivity :
         KEYBOARD_SETTINGS,
         GAMEPAD_SETTINGS,
         MACRO_SETTINGS,
+        CONTROLS_SETTINGS,
+        PRESENTER_SETTINGS,
+        CAPTURE_SETTINGS,
         CAPTURE,
         ANNOTATE,
         PRESENTER,
         SYSTEM,
         DEVELOPER,
+        POWER,
         KEYBOARD,
         GAMEPAD,
         MACROS,
@@ -348,8 +360,8 @@ class MainActivity :
     private var aiScreen: AiScreen? = null
     private var gitScreen: GitScreen? = null
 
-    /** Redraws the Settings page's "when this ends" row; set while that page shows. */
-    private var endRedraw: (() -> Unit)? = null
+    /** Redraws the Power page; set while that page shows. */
+    private var powerRedraw: (() -> Unit)? = null
 
     /** The surface's Hide dials switch, kept here because the surface is rebuilt and the switch is on Dials. */
     private var dialsHidden = false
@@ -376,6 +388,9 @@ class MainActivity :
 
     /** True from FOREGROUND_WATCH 1 until the 0 that answers it; the laptop forgets it when the session ends. */
     private var watchingForeground = false
+
+    /** The app in front when the Profiles screen was last built, so a different one rebuilds it. */
+    private var profilesBuiltFor: String? = null
 
     /** The laptop's app list while it is the screen, so a new list or a finished icon can be handed to it. */
     private var appList: AppListScreen? = null
@@ -408,6 +423,25 @@ class MainActivity :
 
     /** Holds the screen on show and, for the length of a carry, the one leaving. */
     private val stage by lazy { FrameLayout(this) }
+
+    /** The armed restart or shut down, on every screen the phone shows while connected. */
+    private val powerBanner by lazy { PowerBanner(ui) { manager.send(ActionId.POWER_CANCEL.frame()) } }
+
+    /** The stage with the power banner over it; the banner is outside the stage so a screen change never removes it. */
+    private val root by lazy {
+        FrameLayout(this).apply {
+            addView(stage)
+            val params =
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    Gravity.TOP,
+                )
+            params.marginStart = ui.dp(Space.PAGE)
+            params.marginEnd = ui.dp(Space.PAGE)
+            addView(powerBanner.view, params)
+        }
+    }
 
     /** True while [navigateBack] runs its synchronous [goTo], so the change plays in reverse. */
     private var backing = false
@@ -639,6 +673,7 @@ class MainActivity :
         super.onStart()
         handler.removeCallbacks(linger)
         started = true
+        refreshPowerBanner()
         clipboard.bridge.start()
         manager.reconnect = settings.reconnect
         // This also starts a lost laptop's retries at once, which is what the reconnect screen wants.
@@ -689,6 +724,8 @@ class MainActivity :
         started = false
         Transfers.progress.removeListener(cardListener)
         xferCard?.hide()
+        // Nothing ticks while the app is out of sight; onStart draws it again.
+        powerBanner.update(null, "")
         UpdateJob.onChange = null
         clipboard.bridge.stop()
         releaseHeldInput()
@@ -904,8 +941,14 @@ class MainActivity :
      */
     private fun syncForegroundWatch() {
         val want =
-            connected && settings.profilesOn && Feature.FOREGROUND in state.features &&
-                Profiles(settings.profiles).all.isNotEmpty()
+            ForegroundWatchPolicy.wanted(
+                connected = connected,
+                offered = Feature.FOREGROUND in state.features,
+                profilesOn = settings.profilesOn,
+                hasProfiles = Profiles(settings.profiles).all.isNotEmpty(),
+                onProfilesScreen = screen == Screen.PROFILES,
+                automatic = automaticProfiles(),
+            )
         if (want == watchingForeground) return
         watchingForeground = want
         manager.send(ControlId.FOREGROUND_WATCH.set(if (want) 1 else 0))
@@ -947,6 +990,12 @@ class MainActivity :
     /** The name the hubs' chip shows: the laptop's own, else the one it was paired under. */
     private fun hubLaptopName(): String = state.laptopName?.takeIf { it.isNotEmpty() } ?: selected?.name.orEmpty()
 
+    /** Shows the armed countdown over any screen but the Power page, which has its own, and only while connected. */
+    private fun refreshPowerBanner() {
+        val armed = state.power.takeIf { started && connected && screen != Screen.POWER }
+        powerBanner.update(armed, hubLaptopName())
+    }
+
     /** A hub page came to rest: the laptop is told to send that page's data and no other. */
     private fun hubPage(page: Int) {
         statsPage = page
@@ -970,12 +1019,24 @@ class MainActivity :
         permNotifier.sync(permSheet.waiting, started)
     }
 
-    /** The profile of the app in front, or null when profiles are off or that app has none. */
+    /** Whether the dials may follow the kind of app in front: profiles on, automatic on, and the laptop names it. */
+    private fun automaticProfiles(): Boolean =
+        settings.profilesOn && settings.autoProfiles && Feature.APP_KIND in state.features
+
+    /** The profile that applies to the app in front, or null for the default dials. */
     private fun frontProfile(): Profile? =
-        if (settings.profilesOn) state.foreground?.let { Profiles(settings.profiles).forApp(it.token) } else null
+        AutoProfiles.resolve(
+            custom = state.foreground?.let { Profiles(settings.profiles).forApp(it.token) },
+            profilesOn = settings.profilesOn,
+            autoOn = automaticProfiles(),
+            kind = state.foregroundKind,
+            raw = settings.autoProfilesRaw,
+        )
 
     /** The app in front changed: the surface is rebuilt only when that gives another profile than the one drawn. */
     private fun followForeground() {
+        // The Profiles screen names the app in front, so it is drawn again when that changes.
+        if (screen == Screen.PROFILES && state.foreground?.token != profilesBuiltFor) goTo(Screen.PROFILES)
         val next = frontProfile()
         if (next == settings.activeProfile) return
         settings.activeProfile = next
@@ -1187,6 +1248,8 @@ class MainActivity :
         // A page opened from Settings goes back there; clearing it at the pages that start a trip of their own.
         if (next in tripStarts) childFrom = null
         screen = next
+        // The laptop reports the app in front while the Profiles screen is open, even before there is a profile.
+        if ((previous == Screen.PROFILES) != (next == Screen.PROFILES)) syncForegroundWatch()
         // The bars on a page opened from a row of Settings say so; deeper pages keep their own labels.
         val fromSettings = childFrom == Screen.SETTINGS && next in settingsPages
         ui.backOverride = if (fromSettings) getString(R.string.settings_title) else null
@@ -1209,7 +1272,7 @@ class MainActivity :
         networkScreen = null
         aiScreen = null
         gitScreen = null
-        endRedraw = null
+        powerRedraw = null
         controls = null
         handler.removeCallbacks(ticker)
         if (next == Screen.PAIRING) startScan() else stopScan()
@@ -1300,31 +1363,22 @@ class MainActivity :
                             stayConnected = ::syncService,
                             notify = ::notifyChanged,
                             developer = ::developerChanged,
-                            surface = surfaceRows(from = Screen.SETTINGS),
+                            surface = { openFrom(Screen.SETTINGS, Screen.SURFACE_SETTINGS) },
+                            controls = { openFrom(Screen.SETTINGS, Screen.CONTROLS_SETTINGS) },
                             keyboard = { openFrom(Screen.SETTINGS, Screen.KEYBOARD_SETTINGS) },
                             gamepad = { openFrom(Screen.SETTINGS, Screen.GAMEPAD_SETTINGS) },
                             macros = { openFrom(Screen.SETTINGS, Screen.MACRO_SETTINGS) },
-                            capture = { toPhone ->
-                                val target = if (toPhone) CaptureTarget.PHONE else CaptureTarget.LAPTOP
-                                CaptureInbox.install(contentResolver, target)
-                                if (connected) manager.send(target.frame())
-                            },
+                            presenter = { openFrom(Screen.SETTINGS, Screen.PRESENTER_SETTINGS) },
+                            capture = { openFrom(Screen.SETTINGS, Screen.CAPTURE_SETTINGS) },
                             sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
                             },
                             back = { navigateBack() },
                         ),
+                        laptops = laptopsSummary(),
                         developer = developerOn(),
                         developerEditable = connected,
-                        end =
-                            SettingsScreen.End(
-                                offered = connected && Feature.END_ACTION in state.features,
-                                armed = { state.endAction },
-                                hasTimeline = { state.duration > 0 },
-                                send = { action -> manager.send(action.frame()) },
-                                onRedraw = { redraw -> endRedraw = redraw },
-                            ),
                     )
                 }
 
@@ -1334,9 +1388,16 @@ class MainActivity :
                         settings,
                         getString(R.string.settings_surface),
                         SurfaceSettingsScreen.Routes(
-                            rows = surfaceRows(from = null),
-                            system = ::openSettings,
+                            rows = surfaceRows(),
+                            system = if (childFrom == Screen.SETTINGS) null else ::openSettings,
                             back = { navigateBack() },
+                            dialsHidden = dialsHidden,
+                            onHideDials = { on ->
+                                dialsHidden = on
+                                surface?.setDialsHidden(on)
+                            },
+                            laptopConnected = { connected },
+                            onFloatingChanged = ::syncFloating,
                         ),
                     )
                 }
@@ -1357,12 +1418,14 @@ class MainActivity :
                 }
 
                 Screen.PROFILES -> {
+                    profilesBuiltFor = state.foreground?.token
                     ProfilesScreen.build(
                         ui,
                         on = settings.profilesOn,
                         setOn = { on ->
                             settings.profilesOn = on
                             syncForegroundWatch()
+                            followForeground()
                         },
                         raw = settings.profiles,
                         setRaw = { text ->
@@ -1371,6 +1434,18 @@ class MainActivity :
                         },
                         current = state.foreground,
                         supported = Feature.FOREGROUND in state.features,
+                        autoOn = settings.autoProfiles,
+                        setAutoOn = { auto ->
+                            settings.autoProfiles = auto
+                            syncForegroundWatch()
+                            followForeground()
+                        },
+                        autoRaw = settings.autoProfilesRaw,
+                        setAutoRaw = { text ->
+                            settings.autoProfilesRaw = text
+                            followForeground()
+                        },
+                        autoSupported = Feature.APP_KIND in state.features,
                         defaults = (0 until Perimeter.CORNERS).map { settings.corner(it) },
                         onBack = { navigateBack() },
                     )
@@ -1408,17 +1483,7 @@ class MainActivity :
                 }
 
                 Screen.DIAL_FEEL -> {
-                    DialFeelScreen.build(
-                        ui,
-                        settings,
-                        dialsHidden,
-                        onHideDials = { on ->
-                            dialsHidden = on
-                            surface?.setDialsHidden(on)
-                        },
-                        laptopConnected = { connected },
-                        onFloatingChanged = ::syncFloating,
-                    ) { navigateBack() }
+                    DialFeelScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.APPEARANCE -> {
@@ -1526,6 +1591,26 @@ class MainActivity :
                     ) { navigateBack() }.also { macros = it }.view
                 }
 
+                Screen.CONTROLS_SETTINGS -> {
+                    ControlsSettingsScreen.build(ui, settings) { navigateBack() }
+                }
+
+                Screen.PRESENTER_SETTINGS -> {
+                    PresenterSettingsScreen.build(ui, settings) { navigateBack() }
+                }
+
+                Screen.CAPTURE_SETTINGS -> {
+                    CaptureSettingsScreen.build(
+                        ui,
+                        settings,
+                        onToPhone = { toPhone ->
+                            val target = if (toPhone) CaptureTarget.PHONE else CaptureTarget.LAPTOP
+                            CaptureInbox.install(contentResolver, target)
+                            if (connected) manager.send(target.frame())
+                        },
+                    ) { navigateBack() }
+                }
+
                 Screen.MACRO_SETTINGS -> {
                     MacroSettingsScreen.build(ui, settings, onAddFromLaptop = addFromLaptop()) { navigateBack() }
                 }
@@ -1542,6 +1627,18 @@ class MainActivity :
                         onAdd = { app -> send(TextKind.APP_ADD.frame(app.token)) },
                         onRefresh = ::refreshApps,
                     ) { navigateBack() }.also { appList = it }.view
+                }
+
+                Screen.POWER -> {
+                    PowerScreen.build(
+                        ui,
+                        features = { state.features },
+                        power = { state.power },
+                        laptopName = ::hubLaptopName,
+                        send = { action -> manager.send(action.frame()) },
+                        onBack = { navigateBack() },
+                        onRedraw = { redraw -> powerRedraw = redraw },
+                    )
                 }
 
                 Screen.SYSTEM -> {
@@ -1643,7 +1740,10 @@ class MainActivity :
                         settings,
                         state,
                         send,
-                        { goTo(Screen.SURFACE_SETTINGS) },
+                        {
+                            childFrom = null
+                            goTo(Screen.SURFACE_SETTINGS)
+                        },
                         onOpenControls = ::openControls,
                         devices = deviceSwitch,
                         batteries = liveBatteries,
@@ -1693,7 +1793,8 @@ class MainActivity :
         next: Screen,
     ) {
         Carry.cancel()
-        if (stage.parent == null) setContentView(stage)
+        if (root.parent == null) setContentView(root)
+        refreshPowerBanner()
         // A secret screen never animates in or out: a carry would keep the PIN or code drawn while FLAG_SECURE flips.
         if (next == previous || previous in secure || next in secure) {
             stage.removeAllViews()
@@ -1791,7 +1892,7 @@ class MainActivity :
             Screen.CORNERS, Screen.GESTURES, Screen.DIAL_FEEL, Screen.APPEARANCE, Screen.MEDIA_LAYOUT,
             Screen.SHAPES, Screen.PROFILES, Screen.WIDGETS,
             -> {
-                goTo(childFrom ?: Screen.SURFACE_SETTINGS)
+                goTo(Screen.SURFACE_SETTINGS)
             }
 
             Screen.WIDGET_LAYOUT -> {
@@ -1827,6 +1928,23 @@ class MainActivity :
                 goTo(childFrom ?: Screen.MACROS)
             }
 
+            // Opened from the Settings page's Screens rows only.
+            Screen.PRESENTER_SETTINGS, Screen.CAPTURE_SETTINGS -> {
+                goTo(childFrom ?: Screen.SETTINGS)
+            }
+
+            // From the Controls popup's gear it returns there; from Settings, to Settings.
+            Screen.CONTROLS_SETTINGS -> {
+                val from = childFrom
+                if (from != null) {
+                    goTo(from)
+                } else {
+                    goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
+                    // AND-A-32: back lands where the user came from, so the popup opens again over the surface.
+                    if (connected) surface?.post { openControls() }
+                }
+            }
+
             // Opened from the macros, which are only there while the link holds.
             Screen.APPS -> {
                 goTo(if (connected) Screen.MACROS else Screen.PAIRING)
@@ -1844,16 +1962,17 @@ class MainActivity :
 
             // These are opened from the Controls popup over the surface, so back returns to it.
             Screen.KEYBOARD, Screen.GAMEPAD, Screen.MACROS, Screen.CAPTURE, Screen.ANNOTATE, Screen.PRESENTER,
-            Screen.SYSTEM, Screen.DEVELOPER,
+            Screen.SYSTEM, Screen.DEVELOPER, Screen.POWER,
             -> {
                 goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
                 // AND-A-32: back lands where the user came from, so the popup opens again over the surface.
                 if (connected) surface?.post { openControls() }
             }
 
-            // Opened from the surface, which is only there while the link holds.
+            // From the Settings page's Surface row it goes back there; from the surface's gear, to the surface, which
+            // is only there while the link holds.
             Screen.SURFACE_SETTINGS -> {
-                goTo(if (connected) Screen.SURFACE else Screen.PAIRING)
+                goTo(childFrom ?: if (connected) Screen.SURFACE else Screen.PAIRING)
             }
 
             // Left unanswered, so the question comes again at the next connection.
@@ -2139,6 +2258,7 @@ class MainActivity :
                 developer = ::developerOn,
                 laptopConnected = { connected },
                 onSendFile = ::pickFile,
+                onSettings = { goTo(Screen.CONTROLS_SETTINGS) },
             ) { target ->
                 when (target) {
                     ControlsPopup.Target.KEYBOARD -> goTo(Screen.KEYBOARD)
@@ -2150,6 +2270,7 @@ class MainActivity :
                     ControlsPopup.Target.PRESENTER -> goTo(Screen.PRESENTER)
                     ControlsPopup.Target.SYSTEM -> goTo(Screen.SYSTEM)
                     ControlsPopup.Target.DEVELOPER -> goTo(Screen.DEVELOPER)
+                    ControlsPopup.Target.POWER -> goTo(Screen.POWER)
                 }
             }.also { it.show(owner, controlsCapture(), controlsAnnotate()) }
         sheets.add("controls") { controls?.dismiss() }
@@ -2199,17 +2320,27 @@ class MainActivity :
     private fun versionLine(): String =
         getString(R.string.settings_version, getString(R.string.app_version), ProtocolConstants.VERSION)
 
-    /** The surface's pages: from Settings back returns there, from the surface's own settings to those. */
-    private fun surfaceRows(from: Screen?) =
+    /** The Laptops row's summary: the one laptop that is connected, by name, how many when more, or that none is. */
+    private fun laptopsSummary(): String {
+        val up = manager.laptops.filter { it.connected }
+        return when (up.size) {
+            0 -> getString(R.string.settings_laptops_none)
+            1 -> up[0].name
+            else -> resources.getQuantityString(R.plurals.settings_laptops_summary, up.size, up.size)
+        }
+    }
+
+    /** The surface's pages: back from any of them returns to the surface's settings, which they are opened from. */
+    private fun surfaceRows() =
         SurfaceSettingsScreen.Rows(
-            corners = { openFrom(from, Screen.CORNERS) },
-            gestures = { openFrom(from, Screen.GESTURES) },
-            shapes = { openFrom(from, Screen.SHAPES) },
-            dialFeel = { openFrom(from, Screen.DIAL_FEEL) },
-            mediaLayout = { openFrom(from, Screen.MEDIA_LAYOUT) },
-            appearance = { openFrom(from, Screen.APPEARANCE) },
-            profiles = { openFrom(from, Screen.PROFILES) },
-            widgets = { openFrom(from, Screen.WIDGETS) },
+            corners = { goTo(Screen.CORNERS) },
+            gestures = { goTo(Screen.GESTURES) },
+            shapes = { goTo(Screen.SHAPES) },
+            dialFeel = { goTo(Screen.DIAL_FEEL) },
+            mediaLayout = { goTo(Screen.MEDIA_LAYOUT) },
+            appearance = { goTo(Screen.APPEARANCE) },
+            profiles = { goTo(Screen.PROFILES) },
+            widgets = { goTo(Screen.WIDGETS) },
         )
 
     private fun openFrom(
@@ -3077,7 +3208,9 @@ class MainActivity :
         if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) developerReported()
         if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) syncDashWatch()
         refreshDashboard(frame)
-        if (frame is Frame.Text && frame.kind == TextKind.FOREGROUND_APP.id) followForeground()
+        val frontId = TextKind.FOREGROUND_APP.id
+        val kindId = TextKind.FOREGROUND_KIND.id
+        if (frame is Frame.Text && (frame.kind == frontId || frame.kind == kindId)) followForeground()
         surface?.stateChanged()
         floating?.takeIf { it.isShown }?.stateChanged()
         // Capture is drawn from the features the laptop named, which it sends once after the handshake: one that
@@ -3095,12 +3228,13 @@ class MainActivity :
         if (sized) controls?.refresh(controlsCapture(), controlsAnnotate())
         if (frame is Frame.Text &&
             (
-                frame.kind == TextKind.END_ACTION.id ||
+                frame.kind == TextKind.POWER_STATE.id ||
                     frame.kind == TextKind.UNAVAILABLE.id ||
                     frame.kind == TextKind.FEATURES.id
             )
         ) {
-            endRedraw?.invoke()
+            powerRedraw?.invoke()
+            refreshPowerBanner()
         }
         if (frame is Frame.Text && frame.kind == TextKind.SCREEN_SIZE.id) {
             annotate?.refresh()
@@ -3439,24 +3573,23 @@ class MainActivity :
         /** The pages a row of Settings opens; the pages they open in turn are not here. */
         val settingsPages =
             setOf(
-                Screen.CORNERS,
-                Screen.GESTURES,
-                Screen.SHAPES,
-                Screen.DIAL_FEEL,
-                Screen.APPEARANCE,
-                Screen.PROFILES,
-                Screen.MEDIA_LAYOUT,
-                Screen.WIDGETS,
+                Screen.SURFACE_SETTINGS,
+                Screen.CONTROLS_SETTINGS,
                 Screen.KEYBOARD_SETTINGS,
                 Screen.GAMEPAD_SETTINGS,
                 Screen.MACRO_SETTINGS,
+                Screen.PRESENTER_SETTINGS,
+                Screen.CAPTURE_SETTINGS,
             )
 
-        /** Where a trip out of Settings ends: arriving at any of these forgets which page it began from. */
+        /**
+         * Where a trip out of Settings ends: arriving at any of these forgets which page it began from. The surface's
+         * settings are not one: opened from Settings they keep the origin for the pages they open in turn, and the
+         * surface's gear clears it itself.
+         */
         val tripStarts =
             setOf(
                 Screen.SETTINGS,
-                Screen.SURFACE_SETTINGS,
                 Screen.SURFACE,
                 Screen.KEYBOARD,
                 Screen.GAMEPAD,
@@ -3479,6 +3612,7 @@ class MainActivity :
                 Screen.PRESENTER,
                 Screen.SYSTEM,
                 Screen.DEVELOPER,
+                Screen.POWER,
             )
 
         /** What a laptop names when it can answer DASH_WATCH: one of these, or the phone never sends it. */

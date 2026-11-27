@@ -187,13 +187,25 @@ TEXT 22 15 = 41 16 02 31 35
 TEXT 23 recording = 41 17 09 72 65 63 6f 72 64 69 6e 67
 # TEXT 24 UNAVAILABLE: "annotate:unsupported" is 20 bytes, the "/" 1, "capture:no-tool" 15, so the length is 36 = 0x24.
 TEXT 24 annotate:unsupported/capture:no-tool = 41 18 24 61 6e 6e 6f 74 61 74 65 3a 75 6e 73 75 70 70 6f 72 74 65 64 2f 63 61 70 74 75 72 65 3a 6e 6f 2d 74 6f 6f 6c
-# TEXT 25 END_ACTION: "sleep" is 5 bytes.
-TEXT 25 sleep = 41 19 05 73 6c 65 65 70
+# TEXT 25 END_ACTION retired in 5.2.0, never reuse.
 # TEXT 26 NOW_PLAYING_FULL, multi-byte: "Caf" 3, the e-acute 2 (c3 a9), and two 3-byte CJK characters, so the length is 11 = 0x0b.
 TEXT 26 Café日本 = 41 1a 0b 43 61 66 c3 a9 e6 97 a5 e6 9c ac
-# END_SLEEP and END_CANCEL, RUN_ACTION's shape.
-ACTION 60 = 20 3c
-ACTION 62 = 20 3e
+# ACTION 60 to 62 (END_*) retired in 5.2.0, never reuse.
+# ACTION 7 SLEEP .. 11 POWER_CANCEL, RUN_ACTION's shape: 0x20, then the id.
+ACTION 7 = 20 07
+ACTION 8 = 20 08
+ACTION 9 = 20 09
+ACTION 10 = 20 0a
+ACTION 11 = 20 0b
+# TEXT 9 FEATURES with the power names: "sleep/restart" is 5 + 1 + 7 = 13 bytes = 0x0d.
+TEXT 9 sleep/restart = 41 09 0d 73 6c 65 65 70 2f 72 65 73 74 61 72 74
+# TEXT 39 POWER_STATE, laptop to phone: "restart/60" is 10 bytes (0x0a), "shutdown/45" is 11 (0x0b), empty means none.
+TEXT 39 restart/60 = 41 27 0a 72 65 73 74 61 72 74 2f 36 30
+TEXT 39 shutdown/45 = 41 27 0b 73 68 75 74 64 6f 77 6e 2f 34 35
+TEXT 39 = 41 27 00
+# TEXT 40 FOREGROUND_KIND, laptop to phone: "media" is 5 bytes, "browser" 7.
+TEXT 40 media = 41 28 05 6d 65 64 69 61
+TEXT 40 browser = 41 28 07 62 72 6f 77 73 65 72
 # SET_VALUE 10 NOTIFY on.
 SET 10 1 = 21 0a 01
 # Protocol 6: the second socket of a transfer, and its frames. All numbers little-endian.

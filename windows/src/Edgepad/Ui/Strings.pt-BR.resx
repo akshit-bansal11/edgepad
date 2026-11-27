@@ -509,13 +509,19 @@ Os celulares confiáveis foram esquecidos, mas não foi possível redefinir o PI
   <data name="Update_MajorWarning" xml:space="preserve">
     <value>Esta é uma versão principal. Atualize o Edgepad também no celular, ou um vai recusar o outro. Instalar agora?</value>
   </data>
-  <data name="EndAction_ShutdownTitle" xml:space="preserve">
+  <data name="Power_RestartTitle" xml:space="preserve">
+    <value>Reiniciando</value>
+  </data>
+  <data name="Power_RestartText" xml:space="preserve">
+    <value>Este notebook reinicia em {0} segundos.</value>
+  </data>
+  <data name="Power_ShutdownTitle" xml:space="preserve">
     <value>Desligando</value>
   </data>
-  <data name="EndAction_ShutdownText" xml:space="preserve">
-    <value>A mídia terminou. Este notebook desliga em {0} segundos.</value>
+  <data name="Power_ShutdownText" xml:space="preserve">
+    <value>Este notebook desliga em {0} segundos.</value>
   </data>
-  <data name="EndAction_Cancel" xml:space="preserve">
+  <data name="Power_Cancel" xml:space="preserve">
     <value>Cancelar</value>
   </data>
   <data name="Menu_SendFile" xml:space="preserve">

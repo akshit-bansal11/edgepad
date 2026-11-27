@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="profiles_summary_off">Desativado</string>
+  <string name="profiles_summary_auto">Automático</string>
+  <plurals name="profiles_summary_apps">
+    <item quantity="one">%1$d app</item>
+    <item quantity="many">%1$d de apps</item>
+    <item quantity="other">%1$d apps</item>
+  </plurals>
+  <plurals name="widgets_summary">
+    <item quantity="one">%1$d ativo</item>
+    <item quantity="many">%1$d de ativos</item>
+    <item quantity="other">%1$d ativos</item>
+  </plurals>
+</resources>

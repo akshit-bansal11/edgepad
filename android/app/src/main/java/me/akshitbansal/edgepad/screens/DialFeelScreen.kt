@@ -35,18 +35,9 @@ object DialFeelScreen {
     private val lengthRange = StepRange(Settings.MIN_DIAL_LENGTH, Settings.MAX_DIAL_LENGTH, 10f)
     private val heightRange = StepRange(Settings.MIN_DIAL_HEIGHT, Settings.MAX_DIAL_HEIGHT, 0.1f)
 
-    /**
-     * Owner, 2026-11-20: Hide dials and Floating dials moved here from the Controls popup. [dialsHidden] and
-     * [onHideDials] are the surface's switch, which the activity keeps across rebuilds; [laptopConnected] and
-     * [onFloatingChanged] are what the floating dials need and what follows a change.
-     */
     fun build(
         ui: Ui,
         settings: Settings,
-        dialsHidden: Boolean,
-        onHideDials: (Boolean) -> Unit,
-        laptopConnected: () -> Boolean,
-        onFloatingChanged: () -> Unit,
         onBack: () -> Unit,
     ): View {
         val placed = placedDials(settings)
@@ -63,12 +54,6 @@ object DialFeelScreen {
         ) {
             columns(
                 {
-                    card(Space.L) {
-                        add(ui.toggle(ui.string(R.string.controls_hide_dials), dialsHidden) { onHideDials(it) })
-                        hairline()
-                        add(floatingToggle(ui, settings, laptopConnected, onFloatingChanged))
-                    }
-                    footnote(ui.string(R.string.floating_caption))
                     card(Space.L) {
                         add(
                             ui.slider(
@@ -132,9 +117,9 @@ object DialFeelScreen {
     /**
      * The floating dials need a connected laptop, Stay connected (the service keeps the process) and the permission to
      * draw over other apps. Missing one, the switch stays off and says which; the permission is asked for from this
-     * tap only.
+     * tap only. Shown on the surface's settings, with the footnote that says what it needs.
      */
-    private fun floatingToggle(
+    internal fun floatingToggle(
         ui: Ui,
         settings: Settings,
         laptopConnected: () -> Boolean,

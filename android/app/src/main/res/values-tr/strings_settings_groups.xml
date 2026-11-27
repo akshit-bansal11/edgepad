@@ -2,11 +2,17 @@
 <resources>
   <string name="settings_dials">Kadranlar</string>
   <string name="settings_capture">Ekran yakalama ve çizim</string>
-  <string name="settings_clipboard_files">Pano ve dosyalar</string>
-  <string name="settings_developer">Geliştirici</string>
-  <string name="settings_devices">Cihazlar ve bağlantı</string>
   <string name="settings_language">Dil</string>
   <string name="language_system">Sistem varsayılanı</string>
   <string name="language_follows_phone">Edgepad telefonun dilini kullanır. Dili telefonun ayarlarından değiştirebilirsin.</string>
   <string name="settings_pen_colour">Kalem rengi</string>
+  <string name="settings_connection">Bağlantı</string>
+  <string name="settings_screens">Ekranlar</string>
+  <string name="settings_help_about">Yardım ve hakkında</string>
+  <string name="settings_advanced">Gelişmiş</string>
+  <string name="settings_laptops_none">Bağlı değil</string>
+  <plurals name="settings_laptops_summary">
+    <item quantity="one">%1$d bağlı</item>
+    <item quantity="other">%1$d bağlı</item>
+  </plurals>
 </resources>

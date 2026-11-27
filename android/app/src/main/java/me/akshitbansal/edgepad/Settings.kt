@@ -3,6 +3,8 @@ package me.akshitbansal.edgepad
 import android.content.Context
 import android.content.SharedPreferences
 import me.akshitbansal.edgepad.link.migrateSaved
+import me.akshitbansal.edgepad.screens.ControlsIconSize
+import me.akshitbansal.edgepad.screens.ControlsPlan
 import me.akshitbansal.edgepad.screens.FnMode
 import me.akshitbansal.edgepad.screens.KeyboardSize
 import me.akshitbansal.edgepad.surface.CornerSlots
@@ -86,8 +88,19 @@ class Settings(
         get() = prefs.getString(KEY_SHAPES, "").orEmpty()
         set(value) = prefs.edit().putString(KEY_SHAPES, value).apply()
 
-    /** Whether the laptop is asked which app is in front, so the dials and gestures can follow it. */
-    var profilesOn by flag("profilesOn", false)
+    /**
+     * Whether the laptop is asked which app is in front, so the dials and gestures can follow it. On by default since
+     * 5.2.0, so automatic profiles work without setup (owner, 2026-11-27); a stored "off" is kept.
+     */
+    var profilesOn by flag("profilesOn", true)
+
+    /** Whether the dials follow the kind of app in front when it has no profile of its own; needs [profilesOn]. */
+    var autoProfiles by flag("autoProfiles", true)
+
+    /** The automatic profiles in the text [me.akshitbansal.edgepad.surface.Profiles] encodes, keyed by kind token. */
+    var autoProfilesRaw: String
+        get() = prefs.getString(KEY_AUTO_PROFILES, "").orEmpty()
+        set(value) = prefs.edit().putString(KEY_AUTO_PROFILES, value).apply()
 
     /** The per-app profiles in the text [me.akshitbansal.edgepad.surface.Profiles] encodes, as [shapes] is. */
     var profiles: String
@@ -392,6 +405,21 @@ class Settings(
         prefs.edit().putString("deck.$deck.hidden", keys.joinToString("\n")).apply()
     }
 
+    /** How large the Controls popup's tiles are drawn. */
+    var controlsIconSize: ControlsIconSize
+        get() = enum(KEY_CONTROLS_ICON_SIZE, ControlsIconSize.MEDIUM)
+        set(value) = prefs.edit().putString(KEY_CONTROLS_ICON_SIZE, value.name).apply()
+
+    /** Whether the Controls popup's tiles carry their names. */
+    var controlsLabels by flag("controlsLabels", true)
+
+    /** How many tiles one page of the Controls popup shows; the rest continue on more pages. */
+    var controlsPerPage: Int
+        get() = prefs.getInt(KEY_CONTROLS_PER_PAGE, ControlsPlan.DEFAULT_PER_PAGE).coerceIn(ControlsPlan.PER_PAGE)
+        set(value) {
+            prefs.edit().putInt(KEY_CONTROLS_PER_PAGE, value.coerceIn(ControlsPlan.PER_PAGE)).apply()
+        }
+
     /** How many macros one page of the macro screen shows; the rest of the laptop's continue on the next page. */
     var macrosPerPage: Int
         get() = prefs.getInt(KEY_MACROS_PER_PAGE, MAX_MACROS_PER_PAGE).coerceIn(PER_PAGE_RANGE)
@@ -667,6 +695,7 @@ class Settings(
         private const val KEY_SAVED_LAPTOPS = "savedLaptops"
         private const val KEY_SHAPES = "shapes"
         private const val KEY_PROFILES = "profiles"
+        private const val KEY_AUTO_PROFILES = "autoProfilesRaw"
         private const val KEY_LAST_UPDATE_CHECK = "lastUpdateCheck"
         private const val KEY_LATEST_VERSION = "latestVersion"
         private const val KEY_SEEN_VERSION = "seenVersion"
@@ -677,6 +706,8 @@ class Settings(
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"
         private const val KEY_MACROS_PER_PAGE = "macrosPerPage"
+        private const val KEY_CONTROLS_ICON_SIZE = "controlsIconSize"
+        private const val KEY_CONTROLS_PER_PAGE = "controlsPerPage"
         private const val KEY_MACRO_ROWS = "macroRows"
         private const val KEY_MACRO_ICON_ZOOM = "macroIconZoom"
         private const val KEY_DIAL_LENGTH = "dialLength"

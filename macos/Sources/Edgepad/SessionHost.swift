@@ -37,6 +37,7 @@ final class SessionHost {
     /// What Music and Spotify are playing, for every connection: always listening, so a phone that connects mid-song is
     /// told at once. Each connection holds its own view of it.
     private let nowPlaying = NowPlayingHub()
+    private let macPower = MacPower()
 
     /// One pasteboard for every connection, polled on the timer below. The sessions' clipboards are held weakly: a
     /// session that ended has already stopped its own.
@@ -236,7 +237,8 @@ final class SessionHost {
         fileSender.pausedChanged = { [weak self] held in self?.onTransferHeld?(held) }
         dispatcher.transfers = fileReceiver
         dispatcher.sending = fileSender
-        dispatcher.endPerform = MacEndPower.perform
+        // One platform object for the app, so a countdown already up outlives the phone that started it.
+        dispatcher.power = PowerControl(platform: macPower)
         let ask = askTrust
         let status = onStatus
         // Made only once the phone is live, so a connection still in its handshake is never counted as a phone.

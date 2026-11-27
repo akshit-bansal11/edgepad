@@ -5,6 +5,7 @@ using Edgepad.Dispatch;
 using Edgepad.Macros;
 using Edgepad.Media;
 using Edgepad.Net;
+using Edgepad.Power;
 using Edgepad.Protocol;
 using Xunit;
 using static System.FormattableString;
@@ -35,7 +36,7 @@ public sealed class DispatcherTests : IDisposable
 
     [Theory]
     [InlineData(0)]
-    [InlineData(7)]
+    [InlineData(19)]
     [InlineData(120)]
     [InlineData(255)]
     public void AnUnknownActionIsDropped(byte id)
@@ -259,37 +260,33 @@ public sealed class DispatcherTests : IDisposable
     }
 
     [Fact]
-    public void TheEndActionIdsReachTheEndActionAndNeverThePlatform()
+    public void ThePowerIdsReachPowerAndNeverThePlatform()
     {
-        List<EndKind> done = [];
+        var fake = new PowerControlTests.FakePower();
         List<string> states = [];
-        dispatcher.EndAction = new EndAction(
-            kind =>
-            {
-                done.Add(kind);
-                return true;
-            },
-            states.Add);
-        dispatcher.EndAction.Observe(new MediaSnapshot("a", true, 10, 200));
+        dispatcher.Power = new PowerControl(fake, states.Add);
 
-        dispatcher.Handle(new RunAction((byte)ActionId.EndSleep));
-        dispatcher.Handle(new RunAction((byte)ActionId.EndShutdown));
-        dispatcher.Handle(new RunAction((byte)ActionId.EndCancel));
+        dispatcher.Handle(new RunAction((byte)ActionId.Sleep));
+        dispatcher.Handle(new RunAction((byte)ActionId.Hibernate));
+        dispatcher.Handle(new RunAction((byte)ActionId.Restart));
+        dispatcher.Handle(new RunAction((byte)ActionId.PowerCancel));
+        dispatcher.Handle(new RunAction((byte)ActionId.ShutDown));
 
         Assert.Equal(0, dispatcher.Dropped);
-        Assert.Equal(["sleep", "shutdown", "none"], states);
-        Assert.Empty(done);
+        Assert.Equal(1, fake.Slept);
+        Assert.Equal(["restart/60", "", "shutdown/60"], states);
         Assert.Empty(platform.Calls);
     }
 
     [Fact]
-    public void WithNoEndActionTheEndIdsAreDropped()
+    public void WithNoPowerTheFivePowerIdsAreDropped()
     {
-        dispatcher.Handle(new RunAction((byte)ActionId.EndSleep));
-        dispatcher.Handle(new RunAction((byte)ActionId.EndShutdown));
-        dispatcher.Handle(new RunAction((byte)ActionId.EndCancel));
+        foreach (var id in new[] { ActionId.Sleep, ActionId.Hibernate, ActionId.Restart, ActionId.ShutDown, ActionId.PowerCancel })
+        {
+            dispatcher.Handle(new RunAction((byte)id));
+        }
 
-        Assert.Equal(3, dispatcher.Dropped);
+        Assert.Equal(5, dispatcher.Dropped);
         Assert.Empty(platform.Calls);
     }
 
