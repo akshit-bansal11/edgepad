@@ -21,6 +21,13 @@ ACTION 3 NEXT_TRACK
 ACTION 4 PREVIOUS_TRACK
 ACTION 5 MIC_MUTE_TOGGLE
 ACTION 6 LOCK
+# Power, phone to laptop: the phone asks and the laptop decides. SLEEP and HIBERNATE act at once. RESTART and SHUT_DOWN start a
+# 60 s cancellable countdown on the laptop (TEXT 39); POWER_CANCEL stops it. A laptop that cannot do one drops the id and counts it.
+ACTION 7 SLEEP
+ACTION 8 HIBERNATE
+ACTION 9 RESTART
+ACTION 10 SHUT_DOWN
+ACTION 11 POWER_CANCEL
 ACTION 20 TASK_VIEW
 ACTION 21 SHOW_DESKTOP
 ACTION 22 SEARCH
@@ -269,6 +276,13 @@ TEXT 37 SPEED_RESULT
 # lines): where the read-only GitHub App is installed, a constant of the laptop. A stale revision, an index out of range, a host that is not connected, an address that
 # is not https, or any other shape is dropped and counted.
 TEXT 38 GIT_OPEN
+# Laptop to phone: the power countdown, as one POWER_STATE_TOKEN and the seconds left ("restart 60", "shutdown 45"), or empty for none.
+# Sent on arm, on cancel and on expiry only, never per second: the phone counts down locally. The countdown keeps running if the
+# phone disconnects, and a reconnecting phone is told once with the seconds left.
+TEXT 39 POWER_STATE
+# Laptop to phone: what kind of app is in front, as one APP_KIND_TOKEN, or empty for none. Sent on change, only while CONTROL 11 is 1.
+# Never a title. A laptop that cannot classify sends nothing.
+TEXT 40 FOREGROUND_KIND
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -334,6 +348,13 @@ FEATURE bitbucket BITBUCKET
 FEATURE gitee GITEE
 # Developer mode is on. Every AI tool and git host above is named only while it is.
 FEATURE developer DEVELOPER
+# Power. Each is named only when this laptop can really do it: SLEEP, HIBERNATE, RESTART (with POWER_CANCEL) and SHUT_DOWN.
+FEATURE sleep SLEEP
+FEATURE hibernate HIBERNATE
+FEATURE restart RESTART
+FEATURE shutdown SHUT_DOWN
+# The laptop can classify the app in front, in TEXT 40, once CONTROL 11 is 1.
+FEATURE appkind APP_KIND
 
 # The whole vocabulary of TEXT kind 13's second field, as "<token on the wire> <the name both apps call it>". The phone
 # uses it only to word hints that differ by OS; an unknown token reads as no OS known.
@@ -430,6 +451,15 @@ LIMIT_WINDOW ~ NAMED_PREFIX
 END_ACTION_TOKEN none NONE
 END_ACTION_TOKEN sleep SLEEP
 END_ACTION_TOKEN shutdown SHUTDOWN
+
+# The whole vocabulary of TEXT kind 39's first field, same shape.
+POWER_STATE_TOKEN restart RESTART
+POWER_STATE_TOKEN shutdown SHUT_DOWN
+
+# The whole vocabulary of TEXT kind 40, same shape. Which app is which kind lives in app-kinds.txt.
+APP_KIND_TOKEN media MEDIA
+APP_KIND_TOKEN timeline TIMELINE
+APP_KIND_TOKEN browser BROWSER
 
 # The whole vocabulary of TEXT kind 23, same shape. An unknown token reads as IDLE.
 CAPTURE_STATE_TOKEN idle IDLE

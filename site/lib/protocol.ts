@@ -235,6 +235,16 @@ const ACTION_DOCS: Record<string, string> = {
   PREVIOUS_TRACK: "Media previous key.",
   MIC_MUTE_TOGGLE: "Toggles the default microphone’s mute.",
   LOCK: "LockWorkStation. Win+L cannot be injected.",
+  SLEEP:
+    "Puts the laptop to sleep at once. The phone offers it only for a laptop that names sleep.",
+  HIBERNATE:
+    "Hibernates the laptop at once. The phone offers it only for a laptop that names hibernate.",
+  RESTART:
+    "Starts a 60 second cancellable restart countdown, reported as TEXT 39. The phone offers it only for a laptop that names restart.",
+  SHUT_DOWN:
+    "Starts a 60 second cancellable shutdown countdown, reported as TEXT 39. The phone offers it only for a laptop that names shutdown.",
+  POWER_CANCEL:
+    "Cancels a running restart or shutdown countdown. The laptop answers with an empty TEXT 39.",
   TASK_VIEW: "Win+Tab.",
   SHOW_DESKTOP: "Win+D.",
   SEARCH: "Win+S.",
@@ -377,6 +387,10 @@ const TEXT_DOCS: Record<string, string> = {
     "Estimated spend at API list prices as agent/measuredAtMin/tokToday/centsToday/tok7d/cents7d/tok30d/cents30d/unpriced joined by a bar. Today, the last 7 days and the last 30 days. Tokens are uncached input plus output. Laptop to phone.",
   WEATHER:
     "The weather as tempTenthsC/wmoCode/city. Empty means none. Laptop to phone.",
+  POWER_STATE:
+    "The power countdown as restart or shutdown and the seconds left, such as restart 60, or empty for none. Sent on arm, cancel and expiry only, never per second: the phone counts down locally. It keeps running if the phone disconnects, and a reconnecting phone is told once. Laptop to phone.",
+  FOREGROUND_KIND:
+    "What kind of app is in front, as media, timeline or browser, or empty for none. Sent on change, only while CONTROL 11 is 1, and never a title. A laptop that cannot classify sends nothing. Laptop to phone.",
 };
 
 const PAD_BUTTON_DOCS: Record<string, string> = {
@@ -427,6 +441,14 @@ const FEATURE_DOCS: Record<string, string> = {
     "The laptop can show the annotation overlay and a signing surface. The phone shows an Annotate tile only for a laptop that names this.",
   CAPTURE:
     "The laptop can start its own screenshot and screen-recording tools. The phone shows a Capture tile only for a laptop that names this.",
+  SLEEP: "The laptop can sleep on request (ACTION 7).",
+  HIBERNATE: "The laptop can hibernate on request (ACTION 8).",
+  RESTART:
+    "The laptop can restart after a cancellable countdown (ACTION 9 and 11).",
+  SHUT_DOWN:
+    "The laptop can shut down after a cancellable countdown (ACTION 10 and 11).",
+  APP_KIND:
+    "The laptop can say what kind of app is in front, in TEXT 40, once CONTROL 11 is 1.",
 };
 
 const SIGN_STATUS_DOCS: Record<string, string> = {

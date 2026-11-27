@@ -39,6 +39,8 @@ final class IdsFixtureTests: XCTestCase {
             "BLOB_KIND",
             "UNAVAILABLE_REASON",
             "END_ACTION_TOKEN",
+            "POWER_STATE_TOKEN",
+            "APP_KIND_TOKEN",
             "CAPTURE_STATE_TOKEN",
             "HANDSHAKE",
             "AGENT",
@@ -78,6 +80,30 @@ final class IdsFixtureTests: XCTestCase {
             uniqueKeysWithValues: Feature.allCases.map { ($0.rawValue, normalised(String(describing: $0))) })
 
         XCTAssertEqual(table, enumTable)
+    }
+
+    func testPowerStateAndAppKindTokensMatchTheSharedTable() throws {
+        var power: [String: String] = [:]
+        for parts in try rows("POWER_STATE_TOKEN") {
+            power[parts[1]] = normalised(parts[2])
+        }
+        XCTAssertEqual(
+            power,
+            Dictionary(
+                uniqueKeysWithValues: PowerStateToken.allCases.map {
+                    ($0.rawValue, normalised(String(describing: $0)))
+                }))
+
+        var kinds: [String: String] = [:]
+        for parts in try rows("APP_KIND_TOKEN") {
+            kinds[parts[1]] = normalised(parts[2])
+        }
+        XCTAssertEqual(
+            kinds,
+            Dictionary(
+                uniqueKeysWithValues: AppKindToken.allCases.map {
+                    ($0.rawValue, normalised(String(describing: $0)))
+                }))
     }
 
     func testDevProvidersMatchTheSharedTable() throws {

@@ -10,6 +10,17 @@ enum class ActionId(
     PREVIOUS_TRACK(4),
     MIC_MUTE_TOGGLE(5),
     LOCK(6),
+
+    /**
+     * Power, phone to laptop: the phone asks and the laptop decides. SLEEP and HIBERNATE act at once; RESTART and SHUT_DOWN start a
+     * 60 s cancellable countdown, reported as [TextKind.POWER_STATE], and POWER_CANCEL stops it. Offered only for a laptop that sent
+     * the matching [Feature].
+     */
+    SLEEP(7),
+    HIBERNATE(8),
+    RESTART(9),
+    SHUT_DOWN(10),
+    POWER_CANCEL(11),
     TASK_VIEW(20),
     SHOW_DESKTOP(21),
     SEARCH(22),
@@ -340,6 +351,12 @@ enum class TextKind(
 
     /** Phone to laptop: exactly "host/listRevision/index", a place in the [BlobKind.GIT] page the phone shows. Never an address. */
     GIT_OPEN(38),
+
+    /** Laptop to phone: the power countdown, a [PowerStateToken] and the seconds left ("restart 60"), or empty for none. Sent on arm, cancel and expiry only; the phone counts down locally. */
+    POWER_STATE(39),
+
+    /** Laptop to phone: what kind of app is in front, one [AppKindToken], or empty for none. Sent on change, only while [ControlId.FOREGROUND_WATCH] is 1. Never a title. */
+    FOREGROUND_KIND(40),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -474,6 +491,21 @@ enum class Feature(
 
     /** The laptop has a Gitee token. */
     GITEE("gitee"),
+
+    /** The laptop can sleep on request, [ActionId.SLEEP]. */
+    SLEEP("sleep"),
+
+    /** The laptop can hibernate on request, [ActionId.HIBERNATE]. */
+    HIBERNATE("hibernate"),
+
+    /** The laptop can restart after a countdown, [ActionId.RESTART] and [ActionId.POWER_CANCEL]. */
+    RESTART("restart"),
+
+    /** The laptop can shut down after a countdown, [ActionId.SHUT_DOWN] and [ActionId.POWER_CANCEL]. */
+    SHUT_DOWN("shutdown"),
+
+    /** The laptop can classify the app in front, in [TextKind.FOREGROUND_KIND]. */
+    APP_KIND("appkind"),
     ;
 
     companion object {
@@ -798,6 +830,35 @@ enum class EndActionToken(
     companion object {
         /** An unknown token reads as [NONE]: nothing is shown as armed that the phone cannot name. */
         fun of(token: String): EndActionToken = entries.firstOrNull { it.token == token } ?: NONE
+    }
+}
+
+/** The whole vocabulary of [TextKind.POWER_STATE]'s first field. Mirrors protocol/actions.txt. */
+enum class PowerStateToken(
+    val token: String,
+) {
+    RESTART("restart"),
+    SHUT_DOWN("shutdown"),
+    ;
+
+    companion object {
+        /** Null for a token this build does not know: no countdown is shown that the phone cannot name. */
+        fun of(token: String): PowerStateToken? = entries.firstOrNull { it.token == token }
+    }
+}
+
+/** The whole vocabulary of [TextKind.FOREGROUND_KIND]. Mirrors protocol/actions.txt. */
+enum class AppKindToken(
+    val token: String,
+) {
+    MEDIA("media"),
+    TIMELINE("timeline"),
+    BROWSER("browser"),
+    ;
+
+    companion object {
+        /** Null for a token this build does not know: the app in front then has no kind. */
+        fun of(token: String): AppKindToken? = entries.firstOrNull { it.token == token }
     }
 }
 

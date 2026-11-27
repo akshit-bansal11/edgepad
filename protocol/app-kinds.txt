@@ -1,0 +1,72 @@
+# Which app in front is which kind of app, for TEXT 40 FOREGROUND_KIND. Read by the laptop apps, never sent over the phone link:
+# only the kind token (APP_KIND_TOKEN in actions.txt) crosses it, never a title.
+#
+# Format:  APP_KIND <kind> <os> <token>
+# kind is an APP_KIND_TOKEN; os is windows, linux or macos. The token is exactly what that OS's foreground reporter emits for
+# the app, matched case-insensitively: Windows the exe file name with .exe, Linux the WM_CLASS class (X11 only), macOS the
+# bundle id. A token has only A-Za-z0-9._-, so an exe name with a space (Adobe Premiere Pro.exe, Ableton Live 12 Suite.exe,
+# Adobe After Effects) can never be emitted and is left out.
+# Order of the check: this table, then a playing media session, then a browser. macOS follows only Music and Spotify, so a
+# browser in front is "browser" there, never "media".
+# A row not seen on a real device ends in "# unverified"; the owner reviews them.
+
+# media
+APP_KIND media windows spotify.exe # unverified
+APP_KIND media windows itunes.exe # unverified
+APP_KIND media windows applemusic.exe # unverified
+APP_KIND media windows vlc.exe # unverified
+APP_KIND media windows foobar2000.exe # unverified
+APP_KIND media windows musicbee.exe # unverified
+APP_KIND media windows wmplayer.exe # unverified
+APP_KIND media windows mpv.exe # unverified
+APP_KIND media linux spotify # unverified
+APP_KIND media linux vlc # unverified
+APP_KIND media linux mpv # unverified
+APP_KIND media macos com.spotify.client # unverified
+APP_KIND media macos com.apple.Music # unverified
+APP_KIND media macos com.apple.iTunes # unverified
+APP_KIND media macos org.videolan.vlc # unverified
+
+# timeline
+APP_KIND timeline windows blender.exe # unverified
+APP_KIND timeline windows afterfx.exe # unverified
+APP_KIND timeline windows resolve.exe # unverified
+APP_KIND timeline windows audacity.exe # unverified
+APP_KIND timeline windows fl64.exe # unverified
+APP_KIND timeline windows shotcut.exe # unverified
+APP_KIND timeline windows kdenlive.exe # unverified
+APP_KIND timeline linux blender # unverified
+APP_KIND timeline linux kdenlive # unverified
+APP_KIND timeline linux shotcut # unverified
+APP_KIND timeline linux audacity # unverified
+APP_KIND timeline linux resolve # unverified
+APP_KIND timeline macos org.blenderfoundation.blender # unverified
+APP_KIND timeline macos com.blackmagic-design.DaVinciResolve # unverified
+APP_KIND timeline macos org.audacityteam.audacity # unverified
+APP_KIND timeline macos com.apple.FinalCut # unverified
+APP_KIND timeline macos com.apple.logic10 # unverified
+APP_KIND timeline macos com.ableton.live # unverified
+
+# browser
+APP_KIND browser windows chrome.exe # unverified
+APP_KIND browser windows msedge.exe # unverified
+APP_KIND browser windows firefox.exe # unverified
+APP_KIND browser windows brave.exe # unverified
+APP_KIND browser windows opera.exe # unverified
+APP_KIND browser windows vivaldi.exe # unverified
+APP_KIND browser windows arc.exe # unverified
+APP_KIND browser linux google-chrome # unverified
+APP_KIND browser linux chromium # unverified
+APP_KIND browser linux firefox # unverified
+APP_KIND browser linux brave-browser # unverified
+APP_KIND browser linux opera # unverified
+APP_KIND browser linux vivaldi-stable # unverified
+APP_KIND browser linux microsoft-edge # unverified
+APP_KIND browser macos com.google.Chrome # unverified
+APP_KIND browser macos com.microsoft.edgemac # unverified
+APP_KIND browser macos org.mozilla.firefox # unverified
+APP_KIND browser macos com.brave.Browser # unverified
+APP_KIND browser macos com.operasoftware.Opera # unverified
+APP_KIND browser macos com.vivaldi.Vivaldi # unverified
+APP_KIND browser macos com.apple.Safari # unverified
+APP_KIND browser macos company.thebrowser.Browser # unverified

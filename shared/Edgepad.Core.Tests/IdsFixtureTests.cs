@@ -80,9 +80,34 @@ public sealed partial class IdsFixtureTests
             ["GITEA"] = Feature.Gitea,
             ["BITBUCKET"] = Feature.Bitbucket,
             ["GITEE"] = Feature.Gitee,
+            ["SLEEP"] = Feature.Sleep,
+            ["HIBERNATE"] = Feature.Hibernate,
+            ["RESTART"] = Feature.Restart,
+            ["SHUT_DOWN"] = Feature.ShutDown,
+            ["APP_KIND"] = Feature.AppKind,
         };
 
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void PowerStateAndAppKindTokensMatchTheSharedTable()
+    {
+        Assert.Equal(
+            new SortedDictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["RESTART"] = PowerStateToken.Restart,
+                ["SHUT_DOWN"] = PowerStateToken.ShutDown,
+            },
+            Tokens("POWER_STATE_TOKEN"));
+        Assert.Equal(
+            new SortedDictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["MEDIA"] = AppKindToken.Media,
+                ["TIMELINE"] = AppKindToken.Timeline,
+                ["BROWSER"] = AppKindToken.Browser,
+            },
+            Tokens("APP_KIND_TOKEN"));
     }
 
     [Fact]

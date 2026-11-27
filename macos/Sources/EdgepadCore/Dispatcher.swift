@@ -287,6 +287,9 @@ public final class Dispatcher {
             // Notifications: macOS has no default shortcut for it. The macro blocks are handled before this
             // switch; their cases are here only so the switch stays exhaustive.
             return false
+        case .sleep, .hibernate, .restart, .shutDown, .powerCancel:
+            // Placeholder until power is wired here: dropped and counted.
+            return false
         case .endSleep:
             return endAction?.arm(.sleep) ?? false
         case .endShutdown:

@@ -6,6 +6,13 @@ public enum ActionId: UInt8, CaseIterable {
     case previousTrack = 4
     case micMuteToggle = 5
     case lock = 6
+    /// Power, phone to computer: the phone asks and the computer decides. `sleep` and `hibernate` act at once; `restart` and
+    /// `shutDown` start a 60 s cancellable countdown, reported as `TextKind.powerState`, and `powerCancel` stops it.
+    case sleep = 7
+    case hibernate = 8
+    case restart = 9
+    case shutDown = 10
+    case powerCancel = 11
     case taskView = 20
     case showDesktop = 21
     case search = 22
@@ -197,6 +204,12 @@ public enum TextKind: UInt8, CaseIterable {
     case speedResult = 37
     /// Phone to computer: exactly "host/listRevision/index", a place in the `BlobKind.git` page the phone shows. Never an address.
     case gitOpen = 38
+    /// Computer to phone: the power countdown, a `PowerStateToken` and the seconds left ("restart 60"), or empty for none.
+    /// Sent on arm, cancel and expiry only; the phone counts down locally.
+    case powerState = 39
+    /// Computer to phone: what kind of app is in front, one `AppKindToken`, or empty for none. Sent on change, only while
+    /// `ControlId.foregroundWatch` is 1. Never a title.
+    case foregroundKind = 40
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
@@ -223,6 +236,11 @@ public enum Feature: String, CaseIterable {
     case gitea = "gitea"
     case bitbucket = "bitbucket"
     case gitee = "gitee"
+    case sleep = "sleep"
+    case hibernate = "hibernate"
+    case restart = "restart"
+    case shutDown = "shutdown"
+    case appKind = "appkind"
 }
 
 /// The first field of a `TextKind.netInfo`: a token the phone matches on, never prose. The raw value is literally the
@@ -421,6 +439,17 @@ public enum EndActionToken: String, CaseIterable {
     case none = "none"
     case sleep = "sleep"
     case shutdown = "shutdown"
+}
+/// The whole vocabulary of `TextKind.powerState`'s first field. The raw value is literally the bytes that cross the wire.
+public enum PowerStateToken: String, CaseIterable {
+    case restart = "restart"
+    case shutDown = "shutdown"
+}
+/// The whole vocabulary of `TextKind.foregroundKind`. The raw value is literally the bytes that cross the wire.
+public enum AppKindToken: String, CaseIterable {
+    case media = "media"
+    case timeline = "timeline"
+    case browser = "browser"
 }
 
 /// The whole vocabulary of `TextKind.captureState`. The raw value is literally the bytes that cross the wire.

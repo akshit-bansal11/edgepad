@@ -9,6 +9,17 @@ internal enum ActionId : byte
     PreviousTrack = 4,
     MicMuteToggle = 5,
     Lock = 6,
+
+    /// <summary>
+    /// Power, phone to laptop: the phone asks and this laptop decides. <see cref="Sleep"/> and <see cref="Hibernate"/> act at once;
+    /// <see cref="Restart"/> and <see cref="ShutDown"/> start a 60 s cancellable countdown, reported as <see cref="TextKind.PowerState"/>,
+    /// and <see cref="PowerCancel"/> stops it. A laptop that cannot do one drops the id and counts it.
+    /// </summary>
+    Sleep = 7,
+    Hibernate = 8,
+    Restart = 9,
+    ShutDown = 10,
+    PowerCancel = 11,
     TaskView = 20,
     ShowDesktop = 21,
     Search = 22,
@@ -296,6 +307,19 @@ internal enum TextKind : byte
     /// https address it fetched itself for that revision and index, in the default browser; anything else is dropped and counted.
     /// </summary>
     GitOpen = 38,
+
+    /// <summary>
+    /// Laptop to phone: the power countdown, one <see cref="PowerStateToken"/> and the seconds left ("restart 60"), or empty for none.
+    /// Sent on arm, cancel and expiry only, never per second: the phone counts down locally. The countdown keeps running if the phone
+    /// disconnects, and a reconnecting phone is told once with the seconds left.
+    /// </summary>
+    PowerState = 39,
+
+    /// <summary>
+    /// Laptop to phone: what kind of app is in front, one <see cref="AppKindToken"/>, or empty for none. Sent on change, only while
+    /// <see cref="ControlId.ForegroundWatch"/> is 1. Never a title. A laptop that cannot classify sends nothing.
+    /// </summary>
+    ForegroundKind = 40,
 }
 
 /// <summary>
@@ -422,6 +446,21 @@ internal static class Feature
 
     /// <summary>This laptop has a Gitee token, as <see cref="GitHub"/> is for GitHub.</summary>
     public const string Gitee = "gitee";
+
+    /// <summary>This laptop can sleep on request, <see cref="ActionId.Sleep"/>.</summary>
+    public const string Sleep = "sleep";
+
+    /// <summary>This laptop can hibernate on request, <see cref="ActionId.Hibernate"/>.</summary>
+    public const string Hibernate = "hibernate";
+
+    /// <summary>This laptop can restart after a countdown, <see cref="ActionId.Restart"/> and <see cref="ActionId.PowerCancel"/>.</summary>
+    public const string Restart = "restart";
+
+    /// <summary>This laptop can shut down after a countdown, <see cref="ActionId.ShutDown"/> and <see cref="ActionId.PowerCancel"/>.</summary>
+    public const string ShutDown = "shutdown";
+
+    /// <summary>This laptop can classify the app in front, in <see cref="TextKind.ForegroundKind"/>, once <see cref="ControlId.ForegroundWatch"/> is 1.</summary>
+    public const string AppKind = "appkind";
 }
 
 /// <summary>The first field of a <see cref="TextKind.NetInfo"/>. Tokens, never prose. Mirrors docs/PROTOCOL.md.</summary>
@@ -793,6 +832,21 @@ internal static class EndActionToken
     public const string None = "none";
     public const string Sleep = "sleep";
     public const string Shutdown = "shutdown";
+}
+
+/// <summary>The whole vocabulary of <see cref="TextKind.PowerState"/>'s first field. Mirrors protocol/actions.txt.</summary>
+internal static class PowerStateToken
+{
+    public const string Restart = "restart";
+    public const string ShutDown = "shutdown";
+}
+
+/// <summary>The whole vocabulary of <see cref="TextKind.ForegroundKind"/>. Mirrors protocol/actions.txt.</summary>
+internal static class AppKindToken
+{
+    public const string Media = "media";
+    public const string Timeline = "timeline";
+    public const string Browser = "browser";
 }
 
 /// <summary>The whole vocabulary of <see cref="TextKind.CaptureState"/>. Mirrors protocol/actions.txt.</summary>
