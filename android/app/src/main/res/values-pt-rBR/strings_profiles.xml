@@ -12,4 +12,10 @@
   <string name="profiles_delete_confirm">Excluir o perfil de %1$s?</string>
   <string name="profile_default">Igual ao padrão</string>
   <string name="profile_custom">Personalizado</string>
+  <string name="auto_profiles_title">Perfis automáticos</string>
+  <string name="auto_profiles_toggle">Trocar os seletores pelo tipo de app</string>
+  <string name="auto_profiles_caption">Se o app em primeiro plano não tem perfil, os seletores seguem o tipo dele: mídia, editor de linha do tempo ou navegador. Seus perfis têm prioridade.</string>
+  <string name="auto_kind_media">Mídia</string>
+  <string name="auto_kind_timeline">Linha do tempo</string>
+  <string name="auto_kind_browser">Navegador</string>
 </resources>

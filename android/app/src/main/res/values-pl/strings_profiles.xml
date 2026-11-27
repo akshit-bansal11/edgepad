@@ -12,4 +12,10 @@
   <string name="profiles_delete_confirm">Usunąć profil aplikacji %1$s?</string>
   <string name="profile_default">Jak domyślny</string>
   <string name="profile_custom">Własny</string>
+  <string name="auto_profiles_title">Profile automatyczne</string>
+  <string name="auto_profiles_toggle">Przełączaj pokrętła według rodzaju aplikacji</string>
+  <string name="auto_profiles_caption">Gdy aplikacja na wierzchu nie ma profilu, pokrętła dopasowują się do jej rodzaju: multimedia, edytor osi czasu lub przeglądarka. Twoje profile mają pierwszeństwo.</string>
+  <string name="auto_kind_media">Multimedia</string>
+  <string name="auto_kind_timeline">Oś czasu</string>
+  <string name="auto_kind_browser">Przeglądarka</string>
 </resources>

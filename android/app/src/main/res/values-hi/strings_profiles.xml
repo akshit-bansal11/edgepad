@@ -12,4 +12,10 @@
   <string name="profiles_delete_confirm">%1$s की प्रोफ़ाइल हटाएँ?</string>
   <string name="profile_default">डिफ़ॉल्ट जैसा</string>
   <string name="profile_custom">कस्टमाइज़ किया गया</string>
+  <string name="auto_profiles_title">स्वचालित प्रोफ़ाइल</string>
+  <string name="auto_profiles_toggle">ऐप के प्रकार के अनुसार डायल बदलें</string>
+  <string name="auto_profiles_caption">आगे वाले ऐप की प्रोफ़ाइल न हो तो डायल उसके प्रकार के अनुसार चलते हैं: मीडिया, टाइमलाइन एडिटर या ब्राउज़र। आपकी अपनी प्रोफ़ाइल पहले लागू होती हैं।</string>
+  <string name="auto_kind_media">मीडिया</string>
+  <string name="auto_kind_timeline">टाइमलाइन</string>
+  <string name="auto_kind_browser">ब्राउज़र</string>
 </resources>

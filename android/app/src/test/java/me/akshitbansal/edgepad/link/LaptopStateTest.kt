@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.protocol.AgentToken
+import me.akshitbansal.edgepad.protocol.AppKindToken
 import me.akshitbansal.edgepad.protocol.CaptureStateToken
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
@@ -487,6 +488,17 @@ class LaptopStateTest {
         state.take(Frame.Text(TextKind.NOW_PLAYING_FULL.id, "Song (Remastered)"))
         state.take(Frame.Text(TextKind.NOW_PLAYING.id, "Next"))
         assertEquals("", state.nowPlayingFull)
+    }
+
+    @Test
+    fun theForegroundKindIsKeptAndForgotten() {
+        state.take(Frame.Text(TextKind.FOREGROUND_KIND.id, "timeline"))
+        assertEquals(AppKindToken.TIMELINE, state.foregroundKind)
+        state.take(Frame.Text(TextKind.FOREGROUND_KIND.id, "unheard"))
+        assertNull(state.foregroundKind)
+        state.take(Frame.Text(TextKind.FOREGROUND_KIND.id, "media"))
+        state.forgetFeatures()
+        assertNull(state.foregroundKind)
     }
 
     @Test

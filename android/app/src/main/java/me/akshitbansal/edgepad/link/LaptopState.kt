@@ -1,6 +1,7 @@
 package me.akshitbansal.edgepad.link
 
 import me.akshitbansal.edgepad.link.blob.MediaIconStore
+import me.akshitbansal.edgepad.protocol.AppKindToken
 import me.akshitbansal.edgepad.protocol.CaptureStateToken
 import me.akshitbansal.edgepad.protocol.ControlId
 import me.akshitbansal.edgepad.protocol.DeviceOs
@@ -125,6 +126,7 @@ class LaptopState {
         nowPlayingFull = ""
         mediaIcons.clear()
         foreground = null
+        foregroundKind = null
         forgetDashboard()
     }
 
@@ -220,6 +222,10 @@ class LaptopState {
 
     /** TEXT 21: the app in front, or null while the laptop has said nothing or sent an empty or malformed one. */
     var foreground: ForegroundApp? = null
+        private set
+
+    /** TEXT 40: the kind of app in front, or null for none or a kind this build does not know. */
+    var foregroundKind: AppKindToken? = null
         private set
 
     /** TEXT 22: how many macro slots the laptop keeps, 1 to [MACRO_SLOTS_MAX]; [MACRO_SLOTS] until it says. */
@@ -352,6 +358,7 @@ class LaptopState {
                     TextKind.POWER_STATE -> power = PowerState.parse(frame.text, PowerState.now())
                     TextKind.NOW_PLAYING_FULL -> nowPlayingFull = frame.text
                     TextKind.FOREGROUND_APP -> foreground = ForegroundApp.parse(frame.text)
+                    TextKind.FOREGROUND_KIND -> foregroundKind = AppKindToken.of(frame.text)
                     TextKind.STATS -> stats.push(DashWire.stats(frame.text) ?: return false)
                     TextKind.STATS_INFO -> statsInfo = DashWire.statsInfo(frame.text) ?: return false
                     TextKind.DISKS -> disks = DashWire.disks(frame.text)

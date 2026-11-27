@@ -89,6 +89,14 @@ class Settings(
     /** Whether the laptop is asked which app is in front, so the dials and gestures can follow it. */
     var profilesOn by flag("profilesOn", false)
 
+    /** Whether the dials follow the kind of app in front when it has no profile of its own; needs [profilesOn]. */
+    var autoProfiles by flag("autoProfiles", true)
+
+    /** The automatic profiles in the text [me.akshitbansal.edgepad.surface.Profiles] encodes, keyed by kind token. */
+    var autoProfilesRaw: String
+        get() = prefs.getString(KEY_AUTO_PROFILES, "").orEmpty()
+        set(value) = prefs.edit().putString(KEY_AUTO_PROFILES, value).apply()
+
     /** The per-app profiles in the text [me.akshitbansal.edgepad.surface.Profiles] encodes, as [shapes] is. */
     var profiles: String
         get() = prefs.getString(KEY_PROFILES, "").orEmpty()
@@ -667,6 +675,7 @@ class Settings(
         private const val KEY_SAVED_LAPTOPS = "savedLaptops"
         private const val KEY_SHAPES = "shapes"
         private const val KEY_PROFILES = "profiles"
+        private const val KEY_AUTO_PROFILES = "autoProfilesRaw"
         private const val KEY_LAST_UPDATE_CHECK = "lastUpdateCheck"
         private const val KEY_LATEST_VERSION = "latestVersion"
         private const val KEY_SEEN_VERSION = "seenVersion"

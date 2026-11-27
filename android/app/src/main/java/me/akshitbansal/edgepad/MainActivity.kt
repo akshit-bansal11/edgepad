@@ -171,6 +171,7 @@ import me.akshitbansal.edgepad.screens.hideBars
 import me.akshitbansal.edgepad.screens.onEdited
 import me.akshitbansal.edgepad.screens.openOver
 import me.akshitbansal.edgepad.screens.showOver
+import me.akshitbansal.edgepad.surface.AutoProfiles
 import me.akshitbansal.edgepad.surface.BackgroundImage
 import me.akshitbansal.edgepad.surface.ConnectedLaptops
 import me.akshitbansal.edgepad.surface.ControlSurface
@@ -916,6 +917,7 @@ class MainActivity :
                 profilesOn = settings.profilesOn,
                 hasProfiles = Profiles(settings.profiles).all.isNotEmpty(),
                 onProfilesScreen = screen == Screen.PROFILES,
+                automatic = automaticProfiles(),
             )
         if (want == watchingForeground) return
         watchingForeground = want
@@ -981,9 +983,19 @@ class MainActivity :
         permNotifier.sync(permSheet.waiting, started)
     }
 
-    /** The profile of the app in front, or null when profiles are off or that app has none. */
+    /** Whether the dials may follow the kind of app in front: profiles on, automatic on, and the laptop names it. */
+    private fun automaticProfiles(): Boolean =
+        settings.profilesOn && settings.autoProfiles && Feature.APP_KIND in state.features
+
+    /** The profile that applies to the app in front, or null for the default dials. */
     private fun frontProfile(): Profile? =
-        if (settings.profilesOn) state.foreground?.let { Profiles(settings.profiles).forApp(it.token) } else null
+        AutoProfiles.resolve(
+            custom = state.foreground?.let { Profiles(settings.profiles).forApp(it.token) },
+            profilesOn = settings.profilesOn,
+            autoOn = automaticProfiles(),
+            kind = state.foregroundKind,
+            raw = settings.autoProfilesRaw,
+        )
 
     /** The app in front changed: the surface is rebuilt only when that gives another profile than the one drawn. */
     private fun followForeground() {
@@ -1371,6 +1383,7 @@ class MainActivity :
                         setOn = { on ->
                             settings.profilesOn = on
                             syncForegroundWatch()
+                            followForeground()
                         },
                         raw = settings.profiles,
                         setRaw = { text ->
@@ -1379,6 +1392,18 @@ class MainActivity :
                         },
                         current = state.foreground,
                         supported = Feature.FOREGROUND in state.features,
+                        autoOn = settings.autoProfiles,
+                        setAutoOn = { auto ->
+                            settings.autoProfiles = auto
+                            syncForegroundWatch()
+                            followForeground()
+                        },
+                        autoRaw = settings.autoProfilesRaw,
+                        setAutoRaw = { text ->
+                            settings.autoProfilesRaw = text
+                            followForeground()
+                        },
+                        autoSupported = Feature.APP_KIND in state.features,
                         defaults = (0 until Perimeter.CORNERS).map { settings.corner(it) },
                         onBack = { navigateBack() },
                     )
@@ -3098,7 +3123,9 @@ class MainActivity :
         if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) developerReported()
         if (frame is Frame.Text && frame.kind == TextKind.FEATURES.id) syncDashWatch()
         refreshDashboard(frame)
-        if (frame is Frame.Text && frame.kind == TextKind.FOREGROUND_APP.id) followForeground()
+        val frontId = TextKind.FOREGROUND_APP.id
+        val kindId = TextKind.FOREGROUND_KIND.id
+        if (frame is Frame.Text && (frame.kind == frontId || frame.kind == kindId)) followForeground()
         surface?.stateChanged()
         floating?.takeIf { it.isShown }?.stateChanged()
         // Capture is drawn from the features the laptop named, which it sends once after the handshake: one that
