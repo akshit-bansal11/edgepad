@@ -4,7 +4,7 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
-## [5.2.0] - Unreleased
+## [5.2.0] - 2026-11-27
 
 No wire-protocol break: the protocol stays at version 6, and the new ids are additive, so a 5.2.0 half works with a 5.1.x half. A 5.1 phone loses nothing but the removed Sleep when this ends row.
 
