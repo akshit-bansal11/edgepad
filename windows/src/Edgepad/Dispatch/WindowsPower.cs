@@ -95,7 +95,7 @@ internal sealed partial class WindowsPower : IPowerPlatform
         try
         {
             // HW: verify on device
-            using var _ = Process.Start(new ProcessStartInfo("shutdown.exe", kind == PowerKind.Restart ? "/r /t 0" : "/s /t 0") { CreateNoWindow = true, UseShellExecute = false });
+            using var _ = Process.Start(new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "shutdown.exe"), kind == PowerKind.Restart ? "/r /t 0" : "/s /t 0") { CreateNoWindow = true, UseShellExecute = false });
             return true;
         }
         catch (System.ComponentModel.Win32Exception ex)

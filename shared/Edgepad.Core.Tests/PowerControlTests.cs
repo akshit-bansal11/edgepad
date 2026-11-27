@@ -55,6 +55,20 @@ public sealed class PowerControlTests
     }
 
     [Fact]
+    public void SleepAndHibernateAreRefusedWhileACountdownIsPending()
+    {
+        control.Run(ActionId.Restart);
+
+        Assert.False(control.Run(ActionId.Sleep));
+        Assert.False(control.Run(ActionId.Hibernate));
+        Assert.Equal(0, platform.Slept);
+
+        control.Run(ActionId.PowerCancel);
+
+        Assert.True(control.Run(ActionId.Sleep));
+    }
+
+    [Fact]
     public void CurrentStateIsThePendingCountdown()
     {
         Assert.Equal("", control.CurrentState());

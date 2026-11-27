@@ -1,7 +1,9 @@
 using System.Globalization;
 using System.Text;
 using Edgepad.Power;
+using Edgepad.Protocol;
 using Edgepad.Ui;
+using Microsoft.Win32;
 
 namespace Edgepad.Dispatch;
 
@@ -11,17 +13,20 @@ namespace Edgepad.Dispatch;
 /// </summary>
 internal sealed class CountdownClock(int seconds, Func<long> nowMs)
 {
-    private readonly long deadline = nowMs() + (seconds * 1000L);
+    private long deadline = nowMs() + (seconds * 1000L);
     private bool finished;
 
     /// <summary>Whole seconds left, rounded up, never below zero.</summary>
-    public int SecondsLeft => (int)Math.Max(0, (deadline - nowMs() + 999) / 1000);
+    public int SecondsLeft => (int)Math.Max(0, (Volatile.Read(ref deadline) - nowMs() + 999) / 1000);
 
     public void Cancel() => finished = true;
 
+    /// <summary>Starts the full window again, from now.</summary>
+    public void Restart() => Volatile.Write(ref deadline, nowMs() + (seconds * 1000L));
+
     public bool Poll()
     {
-        if (finished || nowMs() < deadline)
+        if (finished || nowMs() < Volatile.Read(ref deadline))
         {
             return false;
         }
@@ -46,6 +51,7 @@ internal sealed class ShutdownCountdown : Form
     private static bool dismissed;
 
     private readonly CountdownClock clock;
+    private readonly PowerKind kind;
     private readonly CompositeFormat format;
     private readonly Label text = new() { AutoSize = true, MaximumSize = new Size(360, 0), Location = new Point(16, 16) };
     private readonly Button cancel = new() { Text = Strings.Power_Cancel, AutoSize = true, DialogResult = DialogResult.Cancel };
@@ -55,6 +61,7 @@ internal sealed class ShutdownCountdown : Form
     private ShutdownCountdown(PowerKind kind, CountdownClock clock)
     {
         this.clock = clock;
+        this.kind = kind;
         format = kind == PowerKind.Restart ? RestartText : ShutdownText;
         Text = kind == PowerKind.Restart ? Strings.Power_RestartTitle : Strings.Power_ShutdownTitle;
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -75,6 +82,7 @@ internal sealed class ShutdownCountdown : Form
         ShowSeconds();
         tick.Tick += (_, _) => Step();
         tick.Start();
+        SystemEvents.PowerModeChanged += OnPowerModeChanged;
     }
 
     /// <summary>The countdown that is up, and its whole seconds left; null when none is.</summary>
@@ -129,9 +137,25 @@ internal sealed class ShutdownCountdown : Form
 
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
+        SystemEvents.PowerModeChanged -= OnPowerModeChanged;
         tick.Dispose();
         clock.Cancel();
         base.OnFormClosed(e);
+    }
+
+    /// <summary>
+    /// The tick clock keeps counting while the laptop sleeps, so without this it would fire right after waking. A resume
+    /// gives the owner the whole window again, and tells the phone.
+    /// </summary>
+    private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs e)
+    {
+        if (e.Mode != PowerModes.Resume)
+        {
+            return;
+        }
+
+        clock.Restart();
+        WindowsPower.Report($"{(kind == PowerKind.Restart ? PowerStateToken.Restart : PowerStateToken.ShutDown)}/{PowerControl.CountdownSeconds}");
     }
 
     private static void Run(PowerKind kind, CountdownClock clock, Action<bool> ended)

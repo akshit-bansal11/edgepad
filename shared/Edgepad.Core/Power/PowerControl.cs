@@ -57,8 +57,8 @@ internal sealed class PowerControl(IPowerPlatform platform, Action<string> state
     public bool Run(ActionId action) =>
         action switch
         {
-            ActionId.Sleep => platform.Caps.HasFlag(PowerCaps.Sleep) && platform.Sleep(),
-            ActionId.Hibernate => platform.Caps.HasFlag(PowerCaps.Hibernate) && platform.Hibernate(),
+            ActionId.Sleep => platform.Caps.HasFlag(PowerCaps.Sleep) && !IsCounting() && platform.Sleep(),
+            ActionId.Hibernate => platform.Caps.HasFlag(PowerCaps.Hibernate) && !IsCounting() && platform.Hibernate(),
             ActionId.Restart => Start(PowerKind.Restart, PowerCaps.Restart),
             ActionId.ShutDown => Start(PowerKind.ShutDown, PowerCaps.ShutDown),
             ActionId.PowerCancel => Cancel(),
@@ -89,6 +89,15 @@ internal sealed class PowerControl(IPowerPlatform platform, Action<string> state
 
     private static string State(PowerKind kind, int seconds) =>
         $"{(kind == PowerKind.Restart ? PowerStateToken.Restart : PowerStateToken.ShutDown)}/{seconds}";
+
+    /// <summary>Sleep during a countdown would let it run out in the sleep, so both are refused while one is pending.</summary>
+    private bool IsCounting()
+    {
+        lock (gate)
+        {
+            return counting;
+        }
+    }
 
     private bool Start(PowerKind kind, PowerCaps cap)
     {
