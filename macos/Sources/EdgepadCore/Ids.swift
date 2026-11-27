@@ -204,7 +204,7 @@ public enum TextKind: UInt8, CaseIterable {
     case speedResult = 37
     /// Phone to computer: exactly "host/listRevision/index", a place in the `BlobKind.git` page the phone shows. Never an address.
     case gitOpen = 38
-    /// Computer to phone: the power countdown, a `PowerStateToken` and the seconds left ("restart 60"), or empty for none.
+    /// Computer to phone: the power countdown, a `PowerStateToken` and the seconds left ("restart/60"), or empty for none.
     /// Sent on arm, cancel and expiry only; the phone counts down locally.
     case powerState = 39
     /// Computer to phone: what kind of app is in front, one `AppKindToken`, or empty for none. Sent on change, only while

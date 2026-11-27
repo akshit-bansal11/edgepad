@@ -276,7 +276,7 @@ TEXT 37 SPEED_RESULT
 # lines): where the read-only GitHub App is installed, a constant of the laptop. A stale revision, an index out of range, a host that is not connected, an address that
 # is not https, or any other shape is dropped and counted.
 TEXT 38 GIT_OPEN
-# Laptop to phone: the power countdown, as one POWER_STATE_TOKEN and the seconds left ("restart 60", "shutdown 45"), or empty for none.
+# Laptop to phone: the power countdown, as one POWER_STATE_TOKEN and the seconds left ("restart/60", "shutdown/45"), or empty for none.
 # Sent on arm, on cancel and on expiry only, never per second: the phone counts down locally. The countdown keeps running if the
 # phone disconnects, and a reconnecting phone is told once with the seconds left.
 TEXT 39 POWER_STATE

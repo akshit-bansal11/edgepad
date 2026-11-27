@@ -388,7 +388,7 @@ const TEXT_DOCS: Record<string, string> = {
   WEATHER:
     "The weather as tempTenthsC/wmoCode/city. Empty means none. Laptop to phone.",
   POWER_STATE:
-    "The power countdown as restart or shutdown and the seconds left, such as restart 60, or empty for none. Sent on arm, cancel and expiry only, never per second: the phone counts down locally. It keeps running if the phone disconnects, and a reconnecting phone is told once. Laptop to phone.",
+    "The power countdown as restart or shutdown and the seconds left, such as restart/60, or empty for none. Sent on arm, cancel and expiry only, never per second: the phone counts down locally. It keeps running if the phone disconnects, and a reconnecting phone is told once. Laptop to phone.",
   FOREGROUND_KIND:
     "What kind of app is in front, as media, timeline or browser, or empty for none. Sent on change, only while CONTROL 11 is 1, and never a title. A laptop that cannot classify sends nothing. Laptop to phone.",
 };

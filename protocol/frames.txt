@@ -202,8 +202,9 @@ ACTION 10 = 20 0a
 ACTION 11 = 20 0b
 # TEXT 9 FEATURES with the power names: "sleep/restart" is 5 + 1 + 7 = 13 bytes = 0x0d.
 TEXT 9 sleep/restart = 41 09 0d 73 6c 65 65 70 2f 72 65 73 74 61 72 74
-# TEXT 39 POWER_STATE, laptop to phone: "restart 60" is 10 bytes (0x0a), "shutdown 45" is 11 (0x0b), empty means none.
-# "restart 60" = 41 27 0a 72 65 73 74 61 72 74 20 36 30 and "shutdown 45" = 41 27 0b 73 68 75 74 64 6f 77 6e 20 34 35 have a space, which the three fixture parsers split on, so they are not runnable lines.
+# TEXT 39 POWER_STATE, laptop to phone: "restart/60" is 10 bytes (0x0a), "shutdown/45" is 11 (0x0b), empty means none.
+TEXT 39 restart/60 = 41 27 0a 72 65 73 74 61 72 74 2f 36 30
+TEXT 39 shutdown/45 = 41 27 0b 73 68 75 74 64 6f 77 6e 2f 34 35
 TEXT 39 = 41 27 00
 # TEXT 40 FOREGROUND_KIND, laptop to phone: "media" is 5 bytes, "browser" 7.
 TEXT 40 media = 41 28 05 6d 65 64 69 61

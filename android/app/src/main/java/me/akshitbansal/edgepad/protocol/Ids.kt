@@ -352,7 +352,7 @@ enum class TextKind(
     /** Phone to laptop: exactly "host/listRevision/index", a place in the [BlobKind.GIT] page the phone shows. Never an address. */
     GIT_OPEN(38),
 
-    /** Laptop to phone: the power countdown, a [PowerStateToken] and the seconds left ("restart 60"), or empty for none. Sent on arm, cancel and expiry only; the phone counts down locally. */
+    /** Laptop to phone: the power countdown, a [PowerStateToken] and the seconds left ("restart/60"), or empty for none. Sent on arm, cancel and expiry only; the phone counts down locally. */
     POWER_STATE(39),
 
     /** Laptop to phone: what kind of app is in front, one [AppKindToken], or empty for none. Sent on change, only while [ControlId.FOREGROUND_WATCH] is 1. Never a title. */

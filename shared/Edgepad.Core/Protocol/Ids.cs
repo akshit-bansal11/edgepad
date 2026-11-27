@@ -309,7 +309,7 @@ internal enum TextKind : byte
     GitOpen = 38,
 
     /// <summary>
-    /// Laptop to phone: the power countdown, one <see cref="PowerStateToken"/> and the seconds left ("restart 60"), or empty for none.
+    /// Laptop to phone: the power countdown, one <see cref="PowerStateToken"/> and the seconds left ("restart/60"), or empty for none.
     /// Sent on arm, cancel and expiry only, never per second: the phone counts down locally. The countdown keeps running if the phone
     /// disconnects, and a reconnecting phone is told once with the seconds left.
     /// </summary>
