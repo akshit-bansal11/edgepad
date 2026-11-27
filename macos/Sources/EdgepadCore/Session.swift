@@ -112,6 +112,8 @@ public final class Session {
     private var macroWatch: MacroWatch?
     /// The app-in-front subscription, alive only while the phone asks to hear it; `end()` lets go of it.
     private var foregroundWatch: ForegroundWatch?
+    /// The kind of the app in front, alive only while the foreground watch is on.
+    private var appKind: ForegroundKind?
     /// The media texts and state last sent, so the phone hears only a change. The icon is sent once per app.
     private var lastMedia: (nowPlaying: String, full: String, app: String, timeline: String)?
     private var lastMediaState: [UInt8]?
@@ -278,6 +280,7 @@ public final class Session {
             lastMediaState = state
             send(.state(control: ControlId.mediaPosition.rawValue, value: state[0], flags: state[1]))
         }
+        appKind?.setPlaying(Session.playingBundle(info))
         dispatcher.endAction?.observe(
             MediaSnapshot(
                 identity: info.identity, playing: info.playing, positionSeconds: info.positionSeconds,
@@ -304,6 +307,8 @@ public final class Session {
         dispatcher.foregroundWatch = nil
         foregroundWatch?.cancel()
         foregroundWatch = nil
+        appKind?.stop()
+        appKind = nil
         macroWatch?.cancel()
         macroWatch = nil
         power?.changed = nil
@@ -630,6 +635,7 @@ public final class Session {
         }
         if dispatcher.foreground?.available == true {
             features.append(Feature.foreground.rawValue)
+            features.append(Feature.appKind.rawValue)
             dispatcher.foregroundWatch = { [weak self] on in self?.watchForeground(on) }
         }
         if dispatcher.clipboard?.isAllowed == true {
@@ -710,11 +716,30 @@ public final class Session {
     private func watchForeground(_ on: Bool) {
         foregroundWatch?.cancel()
         foregroundWatch = nil
+        appKind?.stop()
+        appKind = nil
         guard on, !isEnded, let source = dispatcher.foreground else { return }
+        let kind = ForegroundKind(
+            samePlayer: { $0.caseInsensitiveCompare($1) == .orderedSame },
+            send: { [weak self] text in
+                guard let self, !self.isEnded else { return }
+                self.send(.text(kind: TextKind.foregroundKind.rawValue, value: text))
+            })
+        appKind = kind
+        // What already plays counts from the first report, not from the next media change.
+        if let info = dispatcher.media?.read() { kind.setPlaying(Session.playingBundle(info)) }
+        kind.start()
         foregroundWatch = source.watch { [weak self] app in
             guard let self, !self.isEnded else { return }
             self.send(.text(kind: TextKind.foregroundApp.rawValue, value: app))
+            // The part before the slash is the token; "" when nothing is known.
+            kind.setForeground(String(app.prefix { $0 != "/" }))
         }
+    }
+
+    /// The bundle id of the player that is playing, or nil when nothing plays or the app is not one this Mac follows.
+    private static func playingBundle(_ info: MediaInfo) -> String? {
+        info.playing ? PlayerApp(rawValue: info.app)?.bundleId : nil
     }
 
     /// The phone's macro grid opened or closed. Each opening hears the state afresh, whatever was last sent: at once

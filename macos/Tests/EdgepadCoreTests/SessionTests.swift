@@ -776,7 +776,7 @@ final class SessionTests: XCTestCase {
         _ = connectedSession()
 
         XCTAssertTrue(
-            transport.frames().contains(.text(kind: TextKind.features.rawValue, value: "capture/foreground")))
+            transport.frames().contains(.text(kind: TextKind.features.rawValue, value: "capture/foreground/appkind")))
         XCTAssertEqual(source.watches, 0)
         XCTAssertEqual(foregroundTexts(), [])
     }
@@ -801,6 +801,46 @@ final class SessionTests: XCTestCase {
         XCTAssertEqual(foregroundTexts().count, 2)
         XCTAssertEqual(source.cancels, 1)
         XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    private func kindTexts() -> [String] {
+        transport.frames().compactMap { frame -> String? in
+            guard case .text(let kind, let value) = frame, kind == TextKind.foregroundKind.rawValue else { return nil }
+            return value
+        }
+    }
+
+    func testAPlayingSpotifyInFrontIsMediaOnceAndChromeIsABrowser() {
+        let source = FakeForeground()
+        let media = FakeMedia()
+        media.info = MediaInfo(
+            title: "Song", artist: "", app: "Spotify", identity: "Spotify|Song", playing: true, positionSeconds: 10,
+            durationSeconds: 120)
+        dispatcher.foreground = source
+        dispatcher.media = media
+        let session = connectedSession()
+        setForeground(session, 1)
+        XCTAssertEqual(kindTexts(), [])
+
+        source.change(to: "com.spotify.client/Spotify")
+        media.changed?()
+        XCTAssertEqual(kindTexts(), ["media"])
+
+        source.change(to: "com.google.Chrome/Chrome")
+        XCTAssertEqual(kindTexts(), ["media", "browser"])
+        XCTAssertEqual(dispatcher.dropped, 0)
+    }
+
+    func testTheKindIsNotSentOnceTheWatchIsOff() {
+        let source = FakeForeground()
+        dispatcher.foreground = source
+        let session = connectedSession()
+        setForeground(session, 1)
+        setForeground(session, 0)
+
+        source.change(to: "com.google.Chrome/Chrome")
+
+        XCTAssertEqual(kindTexts(), [])
     }
 
     func testTheSessionsEndCancelsTheForegroundWatch() {
