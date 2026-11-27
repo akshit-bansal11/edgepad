@@ -434,8 +434,7 @@ const FEATURE_DOCS: Record<string, string> = {
     "The laptop can start its own screenshot and screen-recording tools. The phone shows a Capture tile only for a laptop that names this.",
   SLEEP: "The laptop can sleep on request (ACTION 7).",
   HIBERNATE: "The laptop can hibernate on request (ACTION 8).",
-  RESTART:
-    "The laptop can restart after a cancellable countdown (ACTION 9 and 11).",
+  RESTART: "The laptop can restart after a cancellable countdown (ACTION 9 and 11).",
   SHUT_DOWN:
     "The laptop can shut down after a cancellable countdown (ACTION 10 and 11).",
   APP_KIND:

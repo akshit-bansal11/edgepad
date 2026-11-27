@@ -871,9 +871,8 @@ sudo ./install.sh`}
           offer it, and no Capture tile when it cannot capture. Under the tiles, one row
           of chips holds Hide dials and media, Black out when idle, Air mouse and
           Floating dials. A Power tile holds Lock, Sleep, Hibernate, Restart and Shut
-          down. The Edit chip shows every tile; tap one to
-          hide or show it, and drag to move it. Back from the keyboard, the gamepad and
-          Capture returns to Controls.
+          down. The Edit chip shows every tile; tap one to hide or show it, and drag to
+          move it. Back from the keyboard, the gamepad and Capture returns to Controls.
         </P>
         <P>
           Annotate draws on the laptop&apos;s primary display, with the phone as an
@@ -974,9 +973,9 @@ sudo ./install.sh`}
           connected. <strong>App profiles</strong> switch dials and gestures with the
           app in front on the laptop; they are on by default and work on Windows, Mac
           and Linux on X11. <strong>Automatic</strong> profiles follow the kind of app
-          in front (media, timeline or browser), and your own profiles win. The
-          laptop sends only the kind, never a window title. Controls has its own
-          settings for icon size, labels and controls per page. The{" "}
+          in front (media, timeline or browser), and your own profiles win. The laptop
+          sends only the kind, never a window title. Controls has its own settings for
+          icon size, labels and controls per page. The{" "}
           <strong>Quick Settings tile</strong> and the Stay connected
           notification&apos;s play/pause and volume buttons are on the phone.{" "}
           <strong>Laptop notifications</strong> are off until both sides turn them on,
