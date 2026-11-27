@@ -109,13 +109,7 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     public Action<string>? AppAddReply { get; set; }
 
     /// <summary>
-    /// Sleeps or shuts the laptop down when the media ends. Set by the session, like <see cref="Capture"/>; without one,
-    /// EndSleep, EndShutdown and EndCancel are dropped and counted, as on a laptop too old to know them.
-    /// </summary>
-    public EndAction? EndAction { get; set; }
-
-    /// <summary>
-    /// Sleeps, hibernates, restarts or shuts the laptop down on the phone's request. Set by the session, like <see cref="EndAction"/>;
+    /// Sleeps, hibernates, restarts or shuts the laptop down on the phone's request. Set by the session, like <see cref="Capture"/>;
     /// without one, Sleep, Hibernate, Restart, ShutDown and PowerCancel are dropped and counted.
     /// </summary>
     public PowerControl? Power { get; set; }
@@ -259,9 +253,6 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     private bool Perform(ActionId action) =>
         action switch
         {
-            ActionId.EndSleep => Arm(EndKind.Sleep),
-            ActionId.EndShutdown => Arm(EndKind.Shutdown),
-            ActionId.EndCancel => Disarm(),
             ActionId.Sleep or ActionId.Hibernate or ActionId.Restart or ActionId.ShutDown or ActionId.PowerCancel => Power?.Run(action) ?? false,
             ActionId.PadAttach => Answer(platform.AttachPad()),
             ActionId.PadDetach => Answer(platform.DetachPad()),
@@ -275,19 +266,6 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
             ActionId.AppsCancel => Apps?.Cancel() ?? false,
             _ => platform.Run(action),
         };
-
-    private bool Arm(EndKind kind) => EndAction?.Arm(kind) ?? false;
-
-    private bool Disarm()
-    {
-        if (EndAction is not { } end)
-        {
-            return false;
-        }
-
-        end.Cancel();
-        return true;
-    }
 
     /// <summary>Runs after the action was handled, so a recording that never started is never reported.</summary>
     private void NoteCaptureState(ActionId action)

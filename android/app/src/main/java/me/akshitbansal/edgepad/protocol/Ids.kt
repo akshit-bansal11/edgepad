@@ -105,13 +105,7 @@ enum class ActionId(
     MACROS_WATCH(58),
     MACROS_UNWATCH(59),
 
-    /**
-     * Arm the laptop to sleep or shut down when the current media ends (END_SLEEP, END_SHUTDOWN), or disarm it (END_CANCEL).
-     * The laptop reports the armed state as [TextKind.END_ACTION]. Offered only for a laptop that sent [Feature.END_ACTION].
-     */
-    END_SLEEP(60),
-    END_SHUTDOWN(61),
-    END_CANCEL(62),
+    // 60 to 62 retired in 5.2.0, never reuse: a 5.1 phone would shut a laptop down at once.
 
     /**
      * The first of 32 macro slots, 64..95; slot n is `MACRO_BASE + n`. The phone sends the index and never
@@ -310,8 +304,7 @@ enum class TextKind(
     /** Laptop to phone: "feature:reason" entries joined by "/", reason an [UnavailableReason] token. Empty means none. */
     UNAVAILABLE(24),
 
-    /** Laptop to phone: what END_SLEEP armed, as one [EndActionToken]. Sent on change. */
-    END_ACTION(25),
+    // 25 retired in 5.2.0, never reuse.
 
     /** Laptop to phone: the title line before it is cleaned for [NOW_PLAYING], sent only when it differs from that text. */
     NOW_PLAYING_FULL(26),
@@ -443,9 +436,6 @@ enum class Feature(
 
     /** The laptop can tell which macro apps are running, in [TextKind.MACRO_OPEN]. */
     RUNNING("running"),
-
-    /** The laptop answers [ActionId.END_SLEEP], [ActionId.END_SHUTDOWN] and [ActionId.END_CANCEL]. */
-    END_ACTION("endaction"),
 
     /** The laptop can forward its notifications once [ControlId.NOTIFY] is 1. */
     NOTIFY("notify"),
@@ -815,21 +805,6 @@ enum class UnavailableReason(
     companion object {
         /** An unknown token reads as [UNSUPPORTED]: the feature is off either way. */
         fun of(token: String): UnavailableReason = entries.firstOrNull { it.token == token } ?: UNSUPPORTED
-    }
-}
-
-/** The whole vocabulary of [TextKind.END_ACTION]. Mirrors protocol/actions.txt. */
-enum class EndActionToken(
-    val token: String,
-) {
-    NONE("none"),
-    SLEEP("sleep"),
-    SHUTDOWN("shutdown"),
-    ;
-
-    companion object {
-        /** An unknown token reads as [NONE]: nothing is shown as armed that the phone cannot name. */
-        fun of(token: String): EndActionToken = entries.firstOrNull { it.token == token } ?: NONE
     }
 }
 

@@ -281,10 +281,6 @@ public final class Session {
             send(.state(control: ControlId.mediaPosition.rawValue, value: state[0], flags: state[1]))
         }
         appKind?.setPlaying(Session.playingBundle(info))
-        dispatcher.endAction?.observe(
-            MediaSnapshot(
-                identity: info.identity, playing: info.playing, positionSeconds: info.positionSeconds,
-                durationSeconds: info.durationSeconds))
         sendMediaIcon(info, from: source)
     }
 
@@ -313,7 +309,6 @@ public final class Session {
         macroWatch = nil
         power?.changed = nil
         dispatcher.media?.changed = nil
-        dispatcher.endAction = nil
         // Only the callback: a countdown already up keeps running, and a phone that reconnects is told of it.
         dispatcher.power?.stateChanged = nil
         // The overlay goes with the session: a phone that vanishes mid-drawing must leave no layer on the screen.
@@ -641,21 +636,13 @@ public final class Session {
         if dispatcher.clipboard?.isAllowed == true {
             features.append(Feature.clipboard.rawValue)
         }
-        if dispatcher.media != nil, let perform = dispatcher.endPerform {
-            features.append(Feature.endAction.rawValue)
-            dispatcher.endAction = EndAction(
-                perform: perform,
-                stateChanged: { [weak self] token in
-                    self?.send(.text(kind: TextKind.endAction.rawValue, value: token))
-                })
-        }
         if let control = dispatcher.power {
             features += PowerControl.features(control.caps)
             control.stateChanged = { [weak self] state in
                 self?.send(.text(kind: TextKind.powerState.rawValue, value: state))
             }
         }
-        // Every media source reports its changes, with or without the end action.
+        // Every media source reports its changes.
         dispatcher.media?.changed = { [weak self] in self?.sendMedia() }
         baseFeatures = features
         // Only for a session still live: one that already ended never disposes a link made now, and the phone would

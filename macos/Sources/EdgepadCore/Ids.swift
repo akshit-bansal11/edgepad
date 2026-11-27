@@ -67,11 +67,7 @@ public enum ActionId: UInt8, CaseIterable {
     /// which reports `TextKind.macroOpen` on change only, and `macrosUnwatch` stops it. Forgotten when the session ends.
     case macrosWatch = 58
     case macrosUnwatch = 59
-    /// Arm this computer to sleep or shut down when the current media ends (`endSleep`, `endShutdown`), or disarm it
-    /// (`endCancel`). It reports the armed state as `TextKind.endAction`. Offered only for a computer that sent `Feature.endAction`.
-    case endSleep = 60
-    case endShutdown = 61
-    case endCancel = 62
+    // 60 to 62 retired in 5.2.0, never reuse: a 5.1 phone would shut a computer down at once.
     /// The first of 32 macro slots, 64 to 95; slot n is `macroBase + n`. The phone sends the index and never
     /// what it launches: this computer's own list decides that, which is the whole security model.
     case macroBase = 64
@@ -176,8 +172,7 @@ public enum TextKind: UInt8, CaseIterable {
     case captureState = 23
     /// Computer to phone: "feature:reason" entries joined by "/", reason an `UnavailableReason` token. Empty means none.
     case unavailable = 24
-    /// Computer to phone: what `endSleep` armed, as one `EndActionToken`. Sent on change.
-    case endAction = 25
+    // 25 retired in 5.2.0, never reuse.
     /// Computer to phone: the title line before it is cleaned for `nowPlaying`, sent only when it differs from that text.
     case nowPlayingFull = 26
     /// Computer to phone: "cpu/ram/gpu/vram/down/up/ping/loss/ctemp/gtemp/gpower", -1 unknown. Once a second while `ControlId.dashWatch` has bit 0 or 1.
@@ -220,7 +215,6 @@ public enum Feature: String, CaseIterable {
     case clipboard = "clipboard"
     case apps = "apps"
     case running = "running"
-    case endAction = "endaction"
     case notify = "notify"
     case foreground = "foreground"
     case stats = "stats"
@@ -434,12 +428,6 @@ public enum UnavailableReason: String, CaseIterable {
     case noPermission = "no-permission"
 }
 
-/// The whole vocabulary of `TextKind.endAction`. The raw value is literally the bytes that cross the wire.
-public enum EndActionToken: String, CaseIterable {
-    case none = "none"
-    case sleep = "sleep"
-    case shutdown = "shutdown"
-}
 /// The whole vocabulary of `TextKind.powerState`'s first field. The raw value is literally the bytes that cross the wire.
 public enum PowerStateToken: String, CaseIterable {
     case restart = "restart"

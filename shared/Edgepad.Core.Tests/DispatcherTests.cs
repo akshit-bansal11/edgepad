@@ -260,41 +260,6 @@ public sealed class DispatcherTests : IDisposable
     }
 
     [Fact]
-    public void TheEndActionIdsReachTheEndActionAndNeverThePlatform()
-    {
-        List<EndKind> done = [];
-        List<string> states = [];
-        dispatcher.EndAction = new EndAction(
-            kind =>
-            {
-                done.Add(kind);
-                return true;
-            },
-            states.Add);
-        dispatcher.EndAction.Observe(new MediaSnapshot("a", true, 10, 200));
-
-        dispatcher.Handle(new RunAction((byte)ActionId.EndSleep));
-        dispatcher.Handle(new RunAction((byte)ActionId.EndShutdown));
-        dispatcher.Handle(new RunAction((byte)ActionId.EndCancel));
-
-        Assert.Equal(0, dispatcher.Dropped);
-        Assert.Equal(["sleep", "shutdown", "none"], states);
-        Assert.Empty(done);
-        Assert.Empty(platform.Calls);
-    }
-
-    [Fact]
-    public void WithNoEndActionTheEndIdsAreDropped()
-    {
-        dispatcher.Handle(new RunAction((byte)ActionId.EndSleep));
-        dispatcher.Handle(new RunAction((byte)ActionId.EndShutdown));
-        dispatcher.Handle(new RunAction((byte)ActionId.EndCancel));
-
-        Assert.Equal(3, dispatcher.Dropped);
-        Assert.Empty(platform.Calls);
-    }
-
-    [Fact]
     public void ThePowerIdsReachPowerAndNeverThePlatform()
     {
         var fake = new PowerControlTests.FakePower();

@@ -1508,7 +1508,7 @@ final class SessionTests: XCTestCase {
     private func mediaTexts() -> [Frame] {
         transport.frames().filter {
             if case .text(let kind, _) = $0 {
-                let media: [TextKind] = [.nowPlaying, .nowPlayingFull, .app, .timeline, .endAction]
+                let media: [TextKind] = [.nowPlaying, .nowPlayingFull, .app, .timeline]
                 return media.map(\.rawValue).contains(kind)
             }
             return false
@@ -1553,35 +1553,12 @@ final class SessionTests: XCTestCase {
         XCTAssertEqual(media.iconApps, ["Music"])
     }
 
-    func testTheEndActionIsOfferedArmedAndReportedWhenThereIsAMediaSourceAndAnEndPerformer() {
-        let media = FakeMedia()
-        media.info = MediaInfo(
-            title: "Song", artist: "", app: "Music", identity: "Music|Song", playing: true, positionSeconds: 10,
-            durationSeconds: 120)
-        dispatcher.media = media
-        dispatcher.endPerform = { _ in true }
-        let session = connectedSession()
-
-        XCTAssertTrue(
-            transport.frames().contains(
-                .text(kind: TextKind.features.rawValue, value: "capture/endaction")))
-        dispatcher.handle(.runAction(id: ActionId.endSleep.rawValue))
-        XCTAssertEqual(transport.frames().last, .text(kind: TextKind.endAction.rawValue, value: "sleep"))
-        dispatcher.handle(.runAction(id: ActionId.endCancel.rawValue))
-        XCTAssertEqual(transport.frames().last, .text(kind: TextKind.endAction.rawValue, value: "none"))
-        XCTAssertEqual(dispatcher.dropped, 0)
-
-        session.end()
-        XCTAssertNil(media.changed)
-    }
-
-    func testTheEndActionsAndSeekAreDroppedWithNoMediaSource() {
+    func testSeekIsDroppedWithNoMediaSource() {
         _ = connectedSession()
 
-        dispatcher.handle(.runAction(id: ActionId.endShutdown.rawValue))
         dispatcher.handle(.setValue(control: ControlId.mediaPosition.rawValue, value: 50))
 
-        XCTAssertEqual(dispatcher.dropped, 2)
+        XCTAssertEqual(dispatcher.dropped, 1)
     }
 
     func testNoLogLineHoldsTheDigits() {

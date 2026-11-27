@@ -296,11 +296,6 @@ const ACTION_DOCS: Record<string, string> = {
     "The next stroke is a laser dot that follows the finger and leaves nothing behind. Never stored. The phone offers it only for a laptop that names annotate.",
   TOOL_LASER_TRAIL:
     "The next stroke is a laser dot with a short red trail behind it. Never stored. Both lasers take their size from PEN_WIDTH: the dot's radius is 0.06% of the screen's height per step, so 20 is 1.2%.",
-  END_SLEEP:
-    "Arms the laptop to sleep when the current media ends. The laptop reports what is armed as TEXT 25.",
-  END_SHUTDOWN:
-    "Arms the laptop to shut down when the current media ends. The laptop reports what is armed as TEXT 25.",
-  END_CANCEL: "Disarms the end-of-media action.",
   MACRO_BASE:
     "The first of 32 reserved macro slots (ids 64-95). Slot n runs as MACRO_BASE + n. The phone sends the index; the laptop’s own list decides what it opens.",
 };
@@ -363,8 +358,6 @@ const TEXT_DOCS: Record<string, string> = {
     "Whether the laptop is recording the screen, as idle or recording. Best effort: a laptop that cannot tell sends nothing. Laptop to phone.",
   UNAVAILABLE:
     "The features the laptop cannot offer right now and why, as feature:reason entries joined by a slash. A reason is one of unsupported, off, no-tool or no-permission; an unknown one reads as unsupported. Laptop to phone.",
-  END_ACTION:
-    "What the end-of-media action is armed to do, as none, sleep or shutdown. Sent on change. Laptop to phone.",
   NOW_PLAYING_FULL:
     "The title line of what is playing before it is cleaned for TEXT 0, sent only when it differs from TEXT 0. Laptop to phone.",
   PEN_RGB:
@@ -422,8 +415,6 @@ const PAD_STATUS_DOCS: Record<string, string> = {
 };
 
 const FEATURE_DOCS: Record<string, string> = {
-  END_ACTION:
-    "The laptop answers ACTION 60 to 62, sleep or shut down when the media ends.",
   NOTIFY: "The laptop can forward its notifications once CONTROL 10 is 1.",
   FOREGROUND:
     "The laptop can say which app is in front, in TEXT 21, once CONTROL 11 is 1. A Linux Wayland session cannot.",

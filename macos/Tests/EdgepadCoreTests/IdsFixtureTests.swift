@@ -38,7 +38,6 @@ final class IdsFixtureTests: XCTestCase {
             "OUTPUT_KIND",
             "BLOB_KIND",
             "UNAVAILABLE_REASON",
-            "END_ACTION_TOKEN",
             "POWER_STATE_TOKEN",
             "APP_KIND_TOKEN",
             "CAPTURE_STATE_TOKEN",

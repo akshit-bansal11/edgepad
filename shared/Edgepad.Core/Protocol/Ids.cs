@@ -109,14 +109,7 @@ internal enum ActionId : byte
     MacrosWatch = 58,
     MacrosUnwatch = 59,
 
-    /// <summary>
-    /// Phone to laptop: arm this laptop to sleep or shut down when the current media ends (EndSleep, EndShutdown), or disarm it
-    /// (EndCancel). This laptop reports the armed state as <see cref="TextKind.EndAction"/>. The phone offers them only for a
-    /// laptop that sent <see cref="Feature.EndAction"/>, and a laptop too old to know the ids drops and counts them.
-    /// </summary>
-    EndSleep = 60,
-    EndShutdown = 61,
-    EndCancel = 62,
+    // 60 to 62 retired in 5.2.0, never reuse: a 5.1 phone would shut a laptop down at once.
 
     /// <summary>
     /// The first of 32 macro slots, 64..95; slot n is <c>MacroBase + n</c>. The phone sends the index and
@@ -246,8 +239,7 @@ internal enum TextKind : byte
     /// </summary>
     Unavailable = 24,
 
-    /// <summary>Laptop to phone: what <see cref="ActionId.EndSleep"/> armed, as one <see cref="EndActionToken"/>. Sent on change.</summary>
-    EndAction = 25,
+    // 25 retired in 5.2.0, never reuse.
 
     /// <summary>
     /// Laptop to phone: the title line of what is playing before it is cleaned for <see cref="NowPlaying"/>. Sent only when it
@@ -398,9 +390,6 @@ internal static class Feature
 
     /// <summary>This laptop can tell which macro apps are running, in <see cref="TextKind.MacroOpen"/>.</summary>
     public const string Running = "running";
-
-    /// <summary>This laptop answers <see cref="ActionId.EndSleep"/>, <see cref="ActionId.EndShutdown"/> and <see cref="ActionId.EndCancel"/>.</summary>
-    public const string EndAction = "endaction";
 
     /// <summary>This laptop can forward its notifications once <see cref="ControlId.Notify"/> is 1.</summary>
     public const string Notify = "notify";
@@ -824,14 +813,6 @@ internal static class UnavailableReason
     public const string Off = "off";
     public const string NoTool = "no-tool";
     public const string NoPermission = "no-permission";
-}
-
-/// <summary>The whole vocabulary of <see cref="TextKind.EndAction"/>. Mirrors protocol/actions.txt.</summary>
-internal static class EndActionToken
-{
-    public const string None = "none";
-    public const string Sleep = "sleep";
-    public const string Shutdown = "shutdown";
 }
 
 /// <summary>The whole vocabulary of <see cref="TextKind.PowerState"/>'s first field. Mirrors protocol/actions.txt.</summary>
