@@ -293,6 +293,10 @@ Edgepad is free and stays free. If it is useful to you and you would like to say
 
 A star, a bug report or telling someone about it helps as much.
 
+## Featured on
+
+[Aura++](https://auraplusplus.com/projects/edgepad) · [ScrollLaunch](https://www.scrolllaunch.com/products/edgepad?ref=badge)
+
 ## License
 
 [MIT](LICENSE).

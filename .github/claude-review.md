@@ -1,8 +1,8 @@
 # How Claude reviews an Edgepad pull request
 
-Read by `.github/workflows/claude-review.yml` and `claude-issue.yml`. Edgepad has real daily users: a bug that
-reaches a release reaches them. Nothing compiles in this job; CI builds and tests every half. Your job is to
-catch what CI cannot, and what would make CI fail, before a human has to.
+Read by `.github/workflows/claude-review.yml`, `claude-issue.yml` and `claude-tldr.yml`. Edgepad has real daily
+users: a bug that reaches a release reaches them. Nothing compiles in this job; CI builds and tests every half.
+Your job is to catch what CI cannot, and what would make CI fail, before a human has to.
 
 ## What the repo is
 
@@ -12,6 +12,30 @@ catch what CI cannot, and what would make CI fail, before a human has to.
 - `protocol/` and `docs/PROTOCOL.md`: the wire format. Golden vectors in `protocol/*.txt` are read by the C#,
   Kotlin and Swift tests; a change to a frame must change all three codecs, the vectors and the doc together.
 - `plugins/`: the Claude Code / Codex hooks. `site/`: the website (Next.js).
+
+## How to hunt
+
+A skim of the diff finds typos. The bugs that reach users hide in what the change did not touch. For each
+changed function or type, do these before you list anything:
+
+- **Trace it out.** Find every caller and every place that reads what it writes. A new parameter, return value,
+  enum case or field is a bug wherever one of those still assumes the old shape.
+- **Name the implicit state machine.** Most Edgepad code is one: connected / connecting / lost / reconnecting,
+  paired or not, foreground or background, a mode flag, a "busy" boolean, a cached value plus its "loaded" flag.
+  Write down its states and which events move it between them. Then ask: which transition did this change add or
+  break? Can it reach a state with no way out? Is a flag set on one path and not cleared on the error, cancel or
+  timeout path? Can the same event arrive twice, or out of order?
+- **Walk every exit.** Each early return, `catch`, `finally`, cancellation and timeout: what is left half-done,
+  still subscribed, still locked, or still holding a socket, file, timer or wake lock?
+- **Ask "what if it runs twice, or at once?"** Re-entrancy, a callback after the screen or window closed, a
+  reply for a request already timed out, two threads or coroutines touching the same field, an Android lifecycle
+  restart (rotation, process death) mid-action, a retry that is not idempotent.
+- **Feed it the boundaries.** 0, 1, max, negative, empty, null, unknown, very large; time going backwards or a
+  clock change; unit mix-ups (ms vs s, px vs dp, bytes vs chars); integer overflow and float rounding; number and
+  date formatting in another locale; a protocol frame from an older or newer version.
+- **Then check your own findings.** For each one, find the line that proves it and the input that triggers it.
+  If you cannot name both, drop it or say plainly it is a suspicion. If you fix something, review the fix the same
+  way: a fix that adds a new bug is worse than a reported problem.
 
 ## Look for, in order
 
