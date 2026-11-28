@@ -111,6 +111,9 @@
   <data name="Menu_UpdateAvailable" xml:space="preserve">
     <value>Güncelleme var: {0}</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>Sürüm sayfasını aç</value>
+  </data>
   <data name="Menu_Later" xml:space="preserve">
     <value>Sonra</value>
   </data>

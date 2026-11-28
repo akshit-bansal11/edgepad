@@ -111,6 +111,9 @@
   <data name="Menu_UpdateAvailable" xml:space="preserve">
     <value>업데이트 가능: {0}</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>릴리스 페이지 열기</value>
+  </data>
   <data name="Menu_Later" xml:space="preserve">
     <value>나중에</value>
   </data>

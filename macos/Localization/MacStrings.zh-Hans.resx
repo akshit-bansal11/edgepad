@@ -111,6 +111,9 @@
   <data name="Menu_UpdateAvailable" xml:space="preserve">
     <value>有可用更新：{0}</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>打开发布页面</value>
+  </data>
   <data name="Menu_Later" xml:space="preserve">
     <value>稍后</value>
   </data>

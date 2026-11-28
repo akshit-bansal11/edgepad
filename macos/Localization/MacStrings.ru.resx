@@ -111,6 +111,9 @@
   <data name="Menu_UpdateAvailable" xml:space="preserve">
     <value>Доступно обновление: {0}</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>Открыть страницу релиза</value>
+  </data>
   <data name="Menu_Later" xml:space="preserve">
     <value>Позже</value>
   </data>

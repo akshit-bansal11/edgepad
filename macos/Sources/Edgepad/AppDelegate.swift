@@ -410,15 +410,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menuSeen = true
         menu.addItem(statusRow())
         if let version = newerVersion, updateChoice.shouldShow(version, now: Date()) {
-            if updater.installing || (UpdateKey.isSet && MacUpdater.canReplaceSelf()) {
-                menu.addItem(updateRow(version))
-            } else {
-                menu.addItem(
-                    item(
-                        tr("Menu_UpdateAvailable", "Update available: %1$@", "\(version)"), #selector(openRelease)))
-                menu.addItem(item(tr("Menu_Later", "Later"), #selector(updateLater)))
-                menu.addItem(item(tr("Menu_Skip", "Skip this version"), #selector(skipUpdate)))
-            }
+            menu.addItem(updateRow(version))
         }
         // Newer macOS tracks event posting separately from the Accessibility trust, under the
         // same pane. Either one missing means input goes nowhere.
@@ -484,12 +476,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     /// One row: "Update available" with Install, Later and Skip inside it. While an install runs the row reads the
-    /// download progress and the three are dimmed.
+    /// download progress and the three are dimmed. An app that cannot replace itself gets "Open the release page"
+    /// in place of Install.
     private func updateRow(_ version: Version) -> NSMenuItem {
         let busy = updater.installing
+        let canInstall = busy || (UpdateKey.isSet && MacUpdater.canReplaceSelf())
         let submenu = NSMenu()
+        let first: (String, Selector) =
+            canInstall
+            ? (tr("Menu_Install", "Install Edgepad %1$@", "\(version)"), #selector(installUpdate))
+            : (tr("Menu_UpdateOpenPage", "Open the release page"), #selector(openRelease))
         let rows: [(String, Selector)] = [
-            (tr("Menu_Install", "Install Edgepad %1$@", "\(version)"), #selector(installUpdate)),
+            first,
             (tr("Menu_Later", "Later"), #selector(updateLater)),
             (tr("Menu_Skip", "Skip this version"), #selector(skipUpdate)),
         ]

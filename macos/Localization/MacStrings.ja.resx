@@ -111,6 +111,9 @@
   <data name="Menu_UpdateAvailable" xml:space="preserve">
     <value>アップデートあり：{0}</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>リリースページを開く</value>
+  </data>
   <data name="Menu_Later" xml:space="preserve">
     <value>後で</value>
   </data>

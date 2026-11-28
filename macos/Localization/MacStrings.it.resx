@@ -111,6 +111,9 @@
   <data name="Menu_UpdateAvailable" xml:space="preserve">
     <value>Aggiornamento disponibile: {0}</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>Apri la pagina della versione</value>
+  </data>
   <data name="Menu_Later" xml:space="preserve">
     <value>Più tardi</value>
   </data>
