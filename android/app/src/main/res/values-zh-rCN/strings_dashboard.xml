@@ -3,9 +3,7 @@
   <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). Counts go through %1$d, except the Git page (plurals). -->
   <string name="controls_dash_off">在笔记本电脑的 Edgepad 菜单中开启。</string>
   <string name="widgets_title">小组件</string>
-  <string name="widgets_hint">显示在触控板后面。触摸会穿透。</string>
   <string name="developer_mode_title">开发者模式</string>
-  <string name="developer_mode_hint">在这部手机和笔记本电脑上显示 Claude Code、Codex 和 GitHub。关闭后会保留你的连接。</string>
   <string name="developer_mode_offline">连接笔记本电脑后才能更改。该设置由笔记本电脑保存。</string>
   <string name="widgets_layout_title">小组件布局</string>
   <string name="widgets_layout_hint">拖动小组件即可移动。长按可更改大小。</string>

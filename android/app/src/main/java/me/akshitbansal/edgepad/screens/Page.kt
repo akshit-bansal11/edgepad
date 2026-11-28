@@ -32,6 +32,7 @@ import android.widget.TextView
 import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.Sounds
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
@@ -55,6 +56,8 @@ private const val SEGMENT_HEIGHT_DP = 28f
 private const val SEGMENT_TEXT_PAD_DP = 6f
 private const val SEGMENT_INSET_DP = 2f
 private const val SEGMENT_PAD_DP = 14f
+private const val SEGMENT_FIT_PAD_DP = 4f
+private const val SEGMENT_MIN_SP = 9f
 
 /** What the page margins and the card's padding take off the screen's width, at the narrowest, in dp. */
 private const val SEGMENT_MARGIN_DP = 72f
@@ -65,9 +68,6 @@ private const val CHIP_DP = 32f
 private const val BACK_ICON_DP = 26f
 private const val CHECK_DP = 20f
 private const val LEAD_DP = 24f
-
-/** The largest share of the nav bar either end may take. */
-private const val END_SHARE = 0.4f
 
 // A laptop's row: the Devices list's, and the larger one that heads the Settings hub.
 private const val LAPTOP_ROW_DP = 64f
@@ -86,6 +86,10 @@ class Ui(
 ) {
     /** Names the page back leads to on every bar built, in place of the one a page gives; null leaves them as given. */
     var backOverride: CharSequence? = null
+
+    /** Names the screen being built, so [page] keeps a scroll position per screen; null remembers nothing. */
+    var pageKey: String? = null
+    private val scrolled = HashMap<String, Int>()
 
     enum class Style {
         /** The one main action on a page: an accent fill. */
@@ -150,6 +154,7 @@ class Ui(
                     ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
                 )
             }
+        remember(scroll)
         val root =
             LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
@@ -175,6 +180,32 @@ class Ui(
         return root
     }
 
+    /** Records [scroll]'s offset under [pageKey] and, once the page has laid out, puts it back where it was. */
+    private fun remember(scroll: ScrollView) {
+        val key = pageKey ?: return
+        scroll.setOnScrollChangeListener { _, _, y, _, _ -> scrolled[key] = y }
+        val saved = scrolled[key] ?: return
+        scroll.addOnLayoutChangeListener(
+            object : View.OnLayoutChangeListener {
+                override fun onLayoutChange(
+                    v: View,
+                    left: Int,
+                    top: Int,
+                    right: Int,
+                    bottom: Int,
+                    oldLeft: Int,
+                    oldTop: Int,
+                    oldRight: Int,
+                    oldBottom: Int,
+                ) {
+                    if (scroll.getChildAt(0).height == 0) return
+                    scroll.removeOnLayoutChangeListener(this)
+                    scroll.scrollTo(0, saved)
+                }
+            },
+        )
+    }
+
     /** Keeps a full-screen view clear of the system bars and the display cutout, which edge-to-edge no longer does. */
     fun padToBars(view: View) {
         view.setOnApplyWindowInsetsListener { v, insets ->
@@ -182,6 +213,17 @@ class Ui(
             v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
             insets
         }
+        // A screen rebuilt in place (Capture, on the laptop's features) joins a window whose insets were already
+        // delivered, so ask again or its title sits under the camera cutout.
+        view.addOnAttachStateChangeListener(
+            object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) {
+                    v.requestApplyInsets()
+                }
+
+                override fun onViewDetachedFromWindow(v: View) = Unit
+            },
+        )
     }
 
     /**
@@ -222,8 +264,8 @@ class Ui(
             val name =
                 text(title, Type.LABEL, palette.ink, face = Type.bold).apply {
                     isAccessibilityHeading = true
-                    maxLines = 1
-                    ellipsize = TextUtils.TruncateAt.END
+                    // Never cut short: it wraps on whole words if even alone it does not fit one line.
+                    maxLines = 2
                     gravity = Gravity.CENTER
                     visibility = if (drawn && title.isNotEmpty()) View.VISIBLE else View.GONE
                 }
@@ -252,6 +294,8 @@ class Ui(
                 },
             )
             ends = listOf(start, end)
+            // The back link's written name, which is its second child after the chevron.
+            if (onBack != null) this.label = (start.getChildAt(0) as ViewGroup).getChildAt(1)
         }
 
     /** The nav bar's back link: an accent chevron and the name of the screen it returns to. */
@@ -263,6 +307,7 @@ class Ui(
         LinearLayout(context).apply {
             gravity = Gravity.CENTER_VERTICAL
             minimumHeight = dp(Space.TOUCH)
+            minimumWidth = dp(Space.TOUCH)
             setPaddingRelative(0, 0, dp(Space.S), 0)
             addView(
                 Glyph(context, Glyph.Shape.CHEVRON_LEFT, palette.accent),
@@ -271,7 +316,7 @@ class Ui(
             addView(
                 text(label, Type.LABEL, palette.accent).apply {
                     maxLines = 1
-                    ellipsize = TextUtils.TruncateAt.END
+                    setPaddingRelative(dp(Space.XS), 0, 0, 0)
                 },
             )
             // A name that holds the words on screen, and says where Back goes, which sighted users read.
@@ -484,8 +529,11 @@ class Ui(
                     },
                 )
             }
+        // The platform's own click would play whenever the phone's touch sounds are on; the Sounds switch decides.
+        view.isSoundEffectsEnabled = false
         view.setOnClickListener {
             Carry.mark(view)
+            Sounds.click(view.context)
             onClick()
         }
     }
@@ -526,6 +574,46 @@ class Ui(
         options: List<CharSequence>,
         selected: Int,
         onSelect: (Int) -> Unit,
+    ): View = segmentedControl(options, selected, false, onSelect)
+
+    /** A [segmented] control that spans the whole width it is given, its options sharing it equally. */
+    fun segmentedFull(
+        options: List<CharSequence>,
+        selected: Int,
+        onSelect: (Int) -> Unit,
+    ): View = segmentedControl(options, selected, true, onSelect)
+
+    /**
+     * Shrinks every label of a segmented control, together, until its longest word fits a segment's [share] of
+     * width and its whole text fits two lines, so a label wraps between words and is never cut or split.
+     */
+    private fun fitLabels(
+        labels: LinearLayout,
+        options: List<CharSequence>,
+        share: Int,
+        paint: TextPaint,
+    ) {
+        val avail = share - 2 * dp(SEGMENT_FIT_PAD_DP)
+        var sp = Type.SMALL
+        while (sp > SEGMENT_MIN_SP) {
+            paint.textSize =
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.resources.displayMetrics)
+            val fits =
+                options.all { label ->
+                    val words = label.toString().split(' ')
+                    words.all { paint.measureText(it) <= avail } && paint.measureText(label.toString()) <= 1.8f * avail
+                }
+            if (fits) break
+            sp -= 0.5f
+        }
+        for (i in options.indices) (labels.getChildAt(i) as TextView).setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
+    }
+
+    private fun segmentedControl(
+        options: List<CharSequence>,
+        selected: Int,
+        stretch: Boolean,
+        onSelect: (Int) -> Unit,
     ): View {
         val inset = dp(SEGMENT_INSET_DP)
         // Every option is the width of the widest, measured in the bold face it takes when chosen, rather than
@@ -551,7 +639,9 @@ class Ui(
         // of clipping its labels. The whole control is then at least a touch target tall: the room above and
         // below the drawn track is clear, and every option's label reaches through it to take the tap.
         val lines = paint.fontMetricsInt
-        val rows = if (width < natural) 2 else 1
+        // Two rows only when the widest label cannot sit on one line in its segment, so controls whose labels
+        // fit share one height even when squeezed.
+        val rows = if (natural - 2 * dp(SEGMENT_PAD_DP) > width - 2 * dp(SEGMENT_FIT_PAD_DP)) 2 else 1
         val height = maxOf(dp(SEGMENT_HEIGHT_DP), rows * (lines.bottom - lines.top) + 2 * dp(SEGMENT_TEXT_PAD_DP))
         val touch = maxOf(dp(Space.TOUCH), height + 2 * inset)
         val slack = (touch - height) / 2 - inset
@@ -560,10 +650,17 @@ class Ui(
                 options.forEach { label ->
                     addView(
                         text(label, Type.SMALL, palette.ink).apply { gravity = Gravity.CENTER },
-                        LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT),
+                        if (stretch) {
+                            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
+                        } else {
+                            LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT)
+                        },
                     )
                 }
             }
+        if (!stretch) fitLabels(labels, options, width, paint)
+        // One option's width: fixed when the control is its natural size, measured at layout when it stretches.
+        var cell = width
         val fill =
             View(context).apply {
                 background =
@@ -588,7 +685,7 @@ class Ui(
                 option.stateDescription = if (on) string(R.string.chosen) else null
             }
             // The thumb starts at the start edge, so it slides towards the left in Arabic.
-            val x = (current * width).toFloat() * if (rtl) -1 else 1
+            val x = (current * cell).toFloat() * if (rtl) -1 else 1
             // Slid only once the control has been seen somewhere. The first placement is the control
             // appearing, and a thumb sliding in from the left on every page open would read as the choice
             // having just changed when nothing has. Animations off in system settings means it never slides.
@@ -624,12 +721,27 @@ class Ui(
             addView(fill)
             addView(
                 labels,
-                FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, touch).apply {
-                    leftMargin = inset
-                    rightMargin = inset
-                },
+                FrameLayout
+                    .LayoutParams(
+                        if (stretch) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT,
+                        touch,
+                    ).apply {
+                        leftMargin = inset
+                        rightMargin = inset
+                    },
             )
             paint(animate = false)
+            if (stretch) {
+                addOnLayoutChangeListener { _, left, _, right, _, _, _, _, _ ->
+                    val share = (right - left - 2 * inset) / options.size
+                    if (share > 0 && share != cell) {
+                        cell = share
+                        fitLabels(labels, options, share, paint)
+                        fill.layoutParams = (fill.layoutParams as FrameLayout.LayoutParams).apply { this.width = share }
+                        paint(animate = false)
+                    }
+                }
+            }
         }
     }
 
@@ -712,6 +824,28 @@ class Ui(
         text(value, Type.SMALL, palette.dim, face = Type.bold).apply {
             isAccessibilityHeading = true
             setPadding(dp(Space.CARD_PAD), dp(SECTION_TOP_DP), dp(Space.CARD_PAD), dp(Space.S))
+        }
+
+    /**
+     * A row of a [label] that keeps its own width and a [value] that takes the rest, wrapping on whole words and
+     * lined up to the end. For a value too long to share a line, where [field] would squeeze the label.
+     */
+    fun valueField(
+        label: CharSequence,
+        value: CharSequence,
+    ): LinearLayout =
+        LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = dp(Space.TOUCH)
+            setPadding(0, dp(Space.S), 0, dp(Space.S))
+            addView(text(label, Type.BODY, palette.ink))
+            addView(
+                secondary(value, Type.VALUE, palette.dim).apply {
+                    gravity = Gravity.END
+                    setPaddingRelative(dp(Space.M), 0, 0, 0)
+                },
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
+            )
         }
 
     /** A row with a plain label and [end] at the far side. */
@@ -1018,24 +1152,40 @@ private class NavBar(
     /** The title, when it is centred over the whole bar rather than set beside the mark. */
     var centred: View? = null
 
+    /** The back link's written name, hidden when it will not fit beside the title. */
+    var label: View? = null
+
     override fun onMeasure(
         widthMeasureSpec: Int,
         heightMeasureSpec: Int,
     ) {
         centred?.let { title ->
-            // Neither end takes more than 40 % of the bar, so the title keeps at least 20 % and a long back
-            // label ellipsizes. The capped width is pinned so the measure below keeps it.
-            val cap = ((MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight) * END_SHARE).toInt()
-            ends.forEach {
-                it.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
-                it.measure(MeasureSpec.makeMeasureSpec(cap, MeasureSpec.AT_MOST), heightMeasureSpec)
-                it.layoutParams.width = it.measuredWidth
+            val room = MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight
+            val gap = (resources.displayMetrics.density * Space.S).toInt()
+            val atMost = MeasureSpec.makeMeasureSpec(room, MeasureSpec.AT_MOST)
+
+            // The ends are measured at their natural width and pinned, so the measure below keeps it.
+            fun clear(): Int {
+                ends.forEach {
+                    it.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
+                    it.measure(atMost, heightMeasureSpec)
+                    it.layoutParams.width = it.measuredWidth
+                }
+                // The same room on both sides, so the title stays centred on the bar and not between its ends.
+                return (ends.maxOfOrNull { it.measuredWidth } ?: 0) + gap
             }
-            // The same room on both sides, so the title stays centred on the bar and not between its ends.
-            val clear = ends.maxOfOrNull { it.measuredWidth } ?: 0
+            title.measure(atMost, MeasureSpec.UNSPECIFIED)
+            label?.visibility = View.VISIBLE
+            var side = clear()
+            // When the back label and the title cannot both fit, the label gives way to the chevron alone. The
+            // back link keeps its full name for TalkBack.
+            if (label != null && title.measuredWidth + 2 * side > room) {
+                label?.visibility = View.GONE
+                side = clear()
+            }
             (title.layoutParams as ViewGroup.MarginLayoutParams).apply {
-                marginStart = clear
-                marginEnd = clear
+                marginStart = side
+                marginEnd = side
             }
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)

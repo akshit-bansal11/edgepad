@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">Display</string>
+  <string name="accessibility_title">Accessibility</string>
+  <string name="accessibility_sounds">Sounds</string>
+</resources>

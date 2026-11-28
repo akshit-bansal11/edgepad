@@ -6,6 +6,10 @@
   <string name="profiles_caption">켜져 있는 동안에만 노트북이 맨 앞 앱을 이 휴대전화에 알려 줍니다. 노트북에는 아무것도 저장되지 않습니다.</string>
   <string name="profiles_empty">아직 프로필이 없습니다. 노트북에서 앱을 맨 앞으로 가져온 뒤 여기에 추가하세요.</string>
   <string name="profiles_add_current">맨 앞 앱 추가</string>
+  <string name="profiles_add_open">앱 추가</string>
+  <string name="profiles_pick_loading">열린 앱을 찾는 중…</string>
+  <string name="profiles_pick_none">더 추가할 앱이 없습니다.</string>
+  <string name="profiles_pick_front">맨 앞</string>
   <string name="profiles_none_in_front">맨 앞 앱이 아직 없습니다</string>
   <string name="profiles_unsupported">이 노트북은 맨 앞 앱을 알려 줄 수 없습니다.</string>
   <string name="profiles_delete">프로필 삭제</string>
@@ -14,8 +18,9 @@
   <string name="profile_custom">사용자 지정</string>
   <string name="auto_profiles_title">자동 프로필</string>
   <string name="auto_profiles_toggle">앱 종류에 따라 다이얼 전환</string>
-  <string name="auto_profiles_caption">맨 앞 앱에 프로필이 없으면 다이얼이 앱 종류(미디어, 타임라인 편집, 브라우저)를 따릅니다. 직접 만든 프로필이 우선합니다.</string>
   <string name="auto_kind_media">미디어</string>
   <string name="auto_kind_timeline">타임라인</string>
   <string name="auto_kind_browser">브라우저</string>
+  <string name="profiles_needs_four">앱 프로필은 다이얼이 4개일 때만 쓸 수 있어요.</string>
+  <string name="profiles_split_off">다이얼이 8개일 때는 앱 프로필이 꺼져 있어요.</string>
 </resources>

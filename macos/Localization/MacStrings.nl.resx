@@ -28,7 +28,7 @@
     <value>Edgepad laat je telefoon deze Mac vinden en verbinden via wifi, als je wifi-verbindingen inschakelt.</value>
   </data>
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
-    <value>Edgepad vraagt Muziek of Spotify welk nummer speelt en spoelt erin als je op de telefoon zoekt; aan het einde van de media zet het deze Mac in de sluimerstand of uit als je dat via de telefoon vraagt.</value>
+    <value>Edgepad vraagt Muziek of Spotify welk nummer speelt en spoelt erin als je op de telefoon zoekt; aan het einde van de media zet het deze Mac in de sluimerstand of uit als je dat via de telefoon vraagt. Het vraagt ook aan Chrome, Safari en vergelijkbare browsers naar de titel en het adres van het voorste tabblad, om het logo van de dienst op de telefoon te tonen.</value>
   </data>
   <data name="Core_ConnectedOver" xml:space="preserve">
     <value>Verbonden met {0} · {1}</value>

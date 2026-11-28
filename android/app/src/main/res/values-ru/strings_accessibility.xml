@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">Экран</string>
+  <string name="accessibility_title">Специальные возможности</string>
+  <string name="accessibility_sounds">Звуки</string>
+</resources>

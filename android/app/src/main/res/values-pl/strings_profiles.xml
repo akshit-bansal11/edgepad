@@ -6,6 +6,10 @@
   <string name="profiles_caption">Laptop podaje temu telefonowi, która aplikacja jest na wierzchu, tylko gdy to jest włączone. Na laptopie nic się nie zapisuje.</string>
   <string name="profiles_empty">Brak profili. Wyświetl aplikację na laptopie i dodaj ją tutaj.</string>
   <string name="profiles_add_current">Dodaj aplikację na wierzchu</string>
+  <string name="profiles_add_open">Dodaj aplikację</string>
+  <string name="profiles_pick_loading">Szukanie otwartych aplikacji…</string>
+  <string name="profiles_pick_none">Brak kolejnych aplikacji do dodania.</string>
+  <string name="profiles_pick_front">Na wierzchu</string>
   <string name="profiles_none_in_front">Brak aplikacji na wierzchu</string>
   <string name="profiles_unsupported">Ten laptop nie potrafi podać, która aplikacja jest na wierzchu.</string>
   <string name="profiles_delete">Usuń profil</string>
@@ -14,8 +18,9 @@
   <string name="profile_custom">Własny</string>
   <string name="auto_profiles_title">Profile automatyczne</string>
   <string name="auto_profiles_toggle">Przełączaj pokrętła według rodzaju aplikacji</string>
-  <string name="auto_profiles_caption">Gdy aplikacja na wierzchu nie ma profilu, pokrętła dopasowują się do jej rodzaju: multimedia, edytor osi czasu lub przeglądarka. Twoje profile mają pierwszeństwo.</string>
   <string name="auto_kind_media">Multimedia</string>
   <string name="auto_kind_timeline">Oś czasu</string>
   <string name="auto_kind_browser">Przeglądarka</string>
+  <string name="profiles_needs_four">Profile aplikacji działają tylko przy 4 suwakach.</string>
+  <string name="profiles_split_off">Przy 8 suwakach profile aplikacji są wyłączone.</string>
 </resources>

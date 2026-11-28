@@ -6,6 +6,10 @@
   <string name="profiles_caption">オンの間だけ、ノートPCが前面のアプリをこのスマホに伝えます。ノートPCには何も保存されません。</string>
   <string name="profiles_empty">プロファイルはまだありません。ノートPCでアプリを前面に出し、ここに追加してください。</string>
   <string name="profiles_add_current">前面のアプリを追加</string>
+  <string name="profiles_add_open">アプリを追加</string>
+  <string name="profiles_pick_loading">開いているアプリを探しています…</string>
+  <string name="profiles_pick_none">追加できるアプリはもうありません。</string>
+  <string name="profiles_pick_front">前面</string>
   <string name="profiles_none_in_front">前面のアプリはまだありません</string>
   <string name="profiles_unsupported">このノートPCは前面のアプリを伝えられません。</string>
   <string name="profiles_delete">プロファイルを削除</string>
@@ -14,8 +18,9 @@
   <string name="profile_custom">カスタム</string>
   <string name="auto_profiles_title">自動プロファイル</string>
   <string name="auto_profiles_toggle">アプリの種類でダイヤルを切り替え</string>
-  <string name="auto_profiles_caption">手前のアプリにプロファイルがない場合、ダイヤルはアプリの種類（メディア、タイムライン編集、ブラウザ）に従います。自分で作ったプロファイルが優先されます。</string>
   <string name="auto_kind_media">メディア</string>
   <string name="auto_kind_timeline">タイムライン</string>
   <string name="auto_kind_browser">ブラウザ</string>
+  <string name="profiles_needs_four">アプリ別プロファイルはダイヤルが4つのときだけ使えます。</string>
+  <string name="profiles_split_off">ダイヤルが8つのときは、アプリ別プロファイルはオフです。</string>
 </resources>

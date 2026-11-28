@@ -28,6 +28,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.EditText
@@ -113,12 +114,12 @@ import me.akshitbansal.edgepad.protocol.AppAddStatus
 import me.akshitbansal.edgepad.protocol.BlobKind
 import me.akshitbansal.edgepad.protocol.CaptureTarget
 import me.akshitbansal.edgepad.protocol.ControlId
-import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
 import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
+import me.akshitbansal.edgepad.screens.AccessibilityScreen
 import me.akshitbansal.edgepad.screens.AiScreen
 import me.akshitbansal.edgepad.screens.AnnotateScreen
 import me.akshitbansal.edgepad.screens.AppListScreen
@@ -168,6 +169,7 @@ import me.akshitbansal.edgepad.screens.SheetRegistry
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
 import me.akshitbansal.edgepad.screens.SystemHub
 import me.akshitbansal.edgepad.screens.SystemScreen
+import me.akshitbansal.edgepad.screens.TipCard
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.screens.WidgetsScreen
 import me.akshitbansal.edgepad.screens.XferCard
@@ -175,6 +177,7 @@ import me.akshitbansal.edgepad.screens.fillCutout
 import me.akshitbansal.edgepad.screens.hideBars
 import me.akshitbansal.edgepad.screens.onEdited
 import me.akshitbansal.edgepad.screens.openOver
+import me.akshitbansal.edgepad.screens.openingDue
 import me.akshitbansal.edgepad.screens.showOver
 import me.akshitbansal.edgepad.surface.AutoProfiles
 import me.akshitbansal.edgepad.surface.BackgroundImage
@@ -262,8 +265,9 @@ class MainActivity :
         GAMEPAD_SETTINGS,
         MACRO_SETTINGS,
         CONTROLS_SETTINGS,
-        PRESENTER_SETTINGS,
+        ACCESSIBILITY,
         CAPTURE_SETTINGS,
+        PRESENTER_SETTINGS,
         CAPTURE,
         ANNOTATE,
         PRESENTER,
@@ -391,6 +395,9 @@ class MainActivity :
 
     /** The app in front when the Profiles screen was last built, so a different one rebuilds it. */
     private var profilesBuiltFor: String? = null
+
+    /** Whether Profiles shows the laptop's open apps; kept so the rebuild when their list lands still shows it. */
+    private var pickingProfileApp = false
 
     /** The laptop's app list while it is the screen, so a new list or a finished icon can be handed to it. */
     private var appList: AppListScreen? = null
@@ -656,14 +663,32 @@ class MainActivity :
             // Carried over, or the readout would stand blank after a rotation and then restart from one sample.
             picker.setRtt(selected?.rtt?.median() ?: Double.NaN)
         }
+        val opening = openingDue(retained != null, settings.openingVersion, getString(R.string.app_version))
+        if (opening) holdSplash()
         goTo(
             when {
-                retained == null && settings.openingVersion != getString(R.string.app_version) -> Screen.OPENING
+                opening -> Screen.OPENING
                 !settings.onboarded -> Screen.ONBOARDING
                 retained != null -> retained.screen
                 else -> Screen.PAIRING
             },
         )
+    }
+
+    /** Keeps the Android 12 launch screen up for its whole pop (760 ms, themes.xml), only on the opening's open. */
+    private fun holdSplash() {
+        val decor = window.decorView
+        val until = SystemClock.uptimeMillis() + SPLASH_MS
+        decor.viewTreeObserver.addOnPreDrawListener(
+            object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    if (SystemClock.uptimeMillis() < until) return false
+                    decor.viewTreeObserver.removeOnPreDrawListener(this)
+                    return true
+                }
+            },
+        )
+        decor.postDelayed({ decor.invalidate() }, SPLASH_MS)
     }
 
     override fun onRetainNonConfigurationInstance(): Any =
@@ -944,7 +969,7 @@ class MainActivity :
             ForegroundWatchPolicy.wanted(
                 connected = connected,
                 offered = Feature.FOREGROUND in state.features,
-                profilesOn = settings.profilesOn,
+                profilesOn = settings.profilesOn && !settings.splitCorners,
                 hasProfiles = Profiles(settings.profiles).all.isNotEmpty(),
                 onProfilesScreen = screen == Screen.PROFILES,
                 automatic = automaticProfiles(),
@@ -1021,17 +1046,21 @@ class MainActivity :
 
     /** Whether the dials may follow the kind of app in front: profiles on, automatic on, and the laptop names it. */
     private fun automaticProfiles(): Boolean =
-        settings.profilesOn && settings.autoProfiles && Feature.APP_KIND in state.features
+        settings.profilesOn && !settings.splitCorners && settings.autoProfiles && Feature.APP_KIND in state.features
 
-    /** The profile that applies to the app in front, or null for the default dials. */
+    /** The profile that applies to the app in front, or null for the default dials; always null with eight dials. */
     private fun frontProfile(): Profile? =
-        AutoProfiles.resolve(
-            custom = state.foreground?.let { Profiles(settings.profiles).forApp(it.token) },
-            profilesOn = settings.profilesOn,
-            autoOn = automaticProfiles(),
-            kind = state.foregroundKind,
-            raw = settings.autoProfilesRaw,
-        )
+        if (settings.splitCorners) {
+            null
+        } else {
+            AutoProfiles.resolve(
+                custom = state.foreground?.let { Profiles(settings.profiles).forApp(it.token) },
+                profilesOn = settings.profilesOn,
+                autoOn = automaticProfiles(),
+                kind = state.foregroundKind,
+                raw = settings.autoProfilesRaw,
+            )
+        }
 
     /** The app in front changed: the surface is rebuilt only when that gives another profile than the one drawn. */
     private fun followForeground() {
@@ -1103,6 +1132,14 @@ class MainActivity :
         state.apps.clear()
         listingApps = true
         manager.send(ActionId.APPS_LIST.frame())
+    }
+
+    /** The Profiles screen opened or closed its list of open apps; opening asks the laptop, which answers once. */
+    private fun pickProfileApp(open: Boolean) {
+        pickingProfileApp = open
+        if (!open || !connected || Feature.OPEN_APPS !in state.features) return
+        state.forgetOpenApps()
+        manager.send(ActionId.OPEN_APPS_LIST.frame())
     }
 
     /** Tells the laptop to stop sending, once per list, and not at all when there is no link to tell. */
@@ -1250,9 +1287,12 @@ class MainActivity :
         screen = next
         // The laptop reports the app in front while the Profiles screen is open, even before there is a profile.
         if ((previous == Screen.PROFILES) != (next == Screen.PROFILES)) syncForegroundWatch()
+        if (previous != Screen.PROFILES) pickingProfileApp = false
         // The bars on a page opened from a row of Settings say so; deeper pages keep their own labels.
         val fromSettings = childFrom == Screen.SETTINGS && next in settingsPages
-        ui.backOverride = if (fromSettings) getString(R.string.settings_title) else null
+        ui.backOverride = if (fromSettings) getString(R.string.settings_system) else null
+        // Each screen's list keeps its scroll position, so a trip into a sub-page and back lands where it left.
+        ui.pageKey = next.name
         statsPage = 0
         statsPhone = false
         syncDashWatch()
@@ -1306,7 +1346,7 @@ class MainActivity :
                 }
 
                 Screen.USES -> {
-                    val from = if (settings.onboarded) R.string.settings_title else R.string.app_name
+                    val from = if (settings.onboarded) R.string.settings_system else R.string.app_name
                     DataUsesScreen.build(ui, getString(from)) { navigateBack() }
                 }
 
@@ -1363,13 +1403,7 @@ class MainActivity :
                             stayConnected = ::syncService,
                             notify = ::notifyChanged,
                             developer = ::developerChanged,
-                            surface = { openFrom(Screen.SETTINGS, Screen.SURFACE_SETTINGS) },
-                            controls = { openFrom(Screen.SETTINGS, Screen.CONTROLS_SETTINGS) },
-                            keyboard = { openFrom(Screen.SETTINGS, Screen.KEYBOARD_SETTINGS) },
-                            gamepad = { openFrom(Screen.SETTINGS, Screen.GAMEPAD_SETTINGS) },
-                            macros = { openFrom(Screen.SETTINGS, Screen.MACRO_SETTINGS) },
-                            presenter = { openFrom(Screen.SETTINGS, Screen.PRESENTER_SETTINGS) },
-                            capture = { openFrom(Screen.SETTINGS, Screen.CAPTURE_SETTINGS) },
+                            accessibility = { openFrom(Screen.SETTINGS, Screen.ACCESSIBILITY) },
                             sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
@@ -1433,7 +1467,12 @@ class MainActivity :
                             syncForegroundWatch()
                         },
                         current = state.foreground,
+                        offered = Feature.OPEN_APPS in state.features,
+                        openApps = state.openApps,
+                        picking = pickingProfileApp,
+                        setPicking = ::pickProfileApp,
                         supported = Feature.FOREGROUND in state.features,
+                        split = settings.splitCorners,
                         autoOn = settings.autoProfiles,
                         setAutoOn = { auto ->
                             settings.autoProfiles = auto
@@ -1452,7 +1491,22 @@ class MainActivity :
                 }
 
                 Screen.CORNERS -> {
-                    CornersScreen.build(ui, settings, { goTo(Screen.CORNERS) }) { navigateBack() }
+                    CornersScreen.build(
+                        ui,
+                        settings,
+                        {
+                            goTo(Screen.CORNERS)
+                            syncForegroundWatch()
+                            if (settings.splitCorners && settings.profilesOn) {
+                                TipCard.notice(
+                                    stage,
+                                    null,
+                                    R.string.profiles_split_off,
+                                    gravity = Gravity.BOTTOM or Gravity.END,
+                                )
+                            }
+                        },
+                    ) { navigateBack() }
                 }
 
                 Screen.GESTURES -> {
@@ -1499,7 +1553,13 @@ class MainActivity :
                 }
 
                 Screen.CAPTURE -> {
-                    CaptureScreen(ui, settings, state, send) { navigateBack() }.view
+                    CaptureScreen(
+                        ui,
+                        settings,
+                        state,
+                        send,
+                        onSettings = { openFrom(Screen.CAPTURE, Screen.CAPTURE_SETTINGS) },
+                    ) { navigateBack() }.view
                 }
 
                 Screen.ANNOTATE -> {
@@ -1516,6 +1576,7 @@ class MainActivity :
                         send,
                         onLaser = ::presenterLaser,
                         screenSize = { state.screenSize },
+                        onSettings = { goTo(Screen.PRESENTER_SETTINGS) },
                     ) { navigateBack() }
                         .also { presenter = it }
                         .view
@@ -1579,7 +1640,6 @@ class MainActivity :
                         settings,
                         state.macros,
                         state.macrosHeard,
-                        state.os,
                         icon = state::macroIcon,
                         isOpen = state::isOpen,
                         labels = settings.macroLabels,
@@ -1595,8 +1655,8 @@ class MainActivity :
                     ControlsSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
-                Screen.PRESENTER_SETTINGS -> {
-                    PresenterSettingsScreen.build(ui, settings) { navigateBack() }
+                Screen.ACCESSIBILITY -> {
+                    AccessibilityScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.CAPTURE_SETTINGS -> {
@@ -1611,6 +1671,10 @@ class MainActivity :
                     ) { navigateBack() }
                 }
 
+                Screen.PRESENTER_SETTINGS -> {
+                    PresenterSettingsScreen.build(ui, settings) { navigateBack() }
+                }
+
                 Screen.MACRO_SETTINGS -> {
                     MacroSettingsScreen.build(ui, settings, onAddFromLaptop = addFromLaptop()) { navigateBack() }
                 }
@@ -1620,7 +1684,6 @@ class MainActivity :
                         ui,
                         selected?.name.orEmpty(),
                         state.apps,
-                        windows = state.os == DeviceOs.WINDOWS,
                         macroNames = { state.macros },
                         macroCap = { state.macroCap },
                         // Only the token goes: the laptop looks up what it stands for in the list it made.
@@ -1928,8 +1991,12 @@ class MainActivity :
                 goTo(childFrom ?: Screen.MACROS)
             }
 
-            // Opened from the Settings page's Screens rows only.
-            Screen.PRESENTER_SETTINGS, Screen.CAPTURE_SETTINGS -> {
+            Screen.PRESENTER_SETTINGS -> {
+                goTo(Screen.PRESENTER)
+            }
+
+            // Accessibility opens from Settings, Capture's settings from the Capture screen's gear.
+            Screen.ACCESSIBILITY, Screen.CAPTURE_SETTINGS -> {
                 goTo(childFrom ?: Screen.SETTINGS)
             }
 
@@ -2599,10 +2666,8 @@ class MainActivity :
         picker.showDevices(
             rows.map { row -> PickerScreen.Device(row, row.laptops.any { it === selected }) },
             connected,
-            settings.reconnect,
             hidden = paired.size - laptops.size,
             showingAll = showAllDevices,
-            staysConnected = settings.stayConnected,
         )
         when (hint) {
             // First, because Wi-Fi and USB laptops cannot be found without it.
@@ -3211,6 +3276,8 @@ class MainActivity :
         val frontId = TextKind.FOREGROUND_APP.id
         val kindId = TextKind.FOREGROUND_KIND.id
         if (frame is Frame.Text && (frame.kind == frontId || frame.kind == kindId)) followForeground()
+        val openedId = TextKind.OPEN_APPS.id
+        if (screen == Screen.PROFILES && frame is Frame.Text && frame.kind == openedId) goTo(Screen.PROFILES)
         surface?.stateChanged()
         floating?.takeIf { it.isShown }?.stateChanged()
         // Capture is drawn from the features the laptop named, which it sends once after the handshake: one that
@@ -3524,6 +3591,9 @@ class MainActivity :
     private companion object {
         const val GITHUB_URL = "https://github.com/akshit-bansal11/edgepad"
 
+        /** The launch screen's pop, android:windowSplashScreenAnimationDuration in themes.xml. */
+        const val SPLASH_MS = 760L
+
         /** Screens that show a secret (the PIN, a pairing code): FLAG_SECURE, and never carried. */
         val secure = setOf(Screen.PIN, Screen.PAIR_CODE)
 
@@ -3571,16 +3641,7 @@ class MainActivity :
         val settingsOfControls = setOf(Screen.KEYBOARD_SETTINGS, Screen.GAMEPAD_SETTINGS, Screen.MACRO_SETTINGS)
 
         /** The pages a row of Settings opens; the pages they open in turn are not here. */
-        val settingsPages =
-            setOf(
-                Screen.SURFACE_SETTINGS,
-                Screen.CONTROLS_SETTINGS,
-                Screen.KEYBOARD_SETTINGS,
-                Screen.GAMEPAD_SETTINGS,
-                Screen.MACRO_SETTINGS,
-                Screen.PRESENTER_SETTINGS,
-                Screen.CAPTURE_SETTINGS,
-            )
+        val settingsPages = setOf(Screen.ACCESSIBILITY)
 
         /**
          * Where a trip out of Settings ends: arriving at any of these forgets which page it began from. The surface's

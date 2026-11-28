@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">Ekran</string>
+  <string name="accessibility_title">Erişilebilirlik</string>
+  <string name="accessibility_sounds">Sesler</string>
+</resources>

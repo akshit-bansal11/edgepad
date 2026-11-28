@@ -20,10 +20,6 @@
   <string name="device_connect">연결</string>
   <string name="connect_via">%1$s로 %2$s 연결</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">저장된 노트북은 Edgepad를 열 때 연결돼요. 연결을 해제하면 노트북을 다시 탭하기 전까지 자동 연결되지 않아요.</string>
-  <string name="devices_stay_note">앱을 나가도 연결이 유지돼요. 알림에서 연결을 해제할 수 있어요.</string>
-  <string name="devices_legend_off">노트북을 탭해서 연결하세요.</string>
-  <string name="devices_multi_hint">노트북을 여러 대 동시에 연결할 수 있어요. 컨트롤로 조작하는 노트북에는 제어 중이라고 표시돼요. 바꾸려면 제어하기를 탭하세요.</string>
   <string name="add_by_address">주소로 추가</string>
   <string name="address_connect">연결</string>
   <string name="address_looking">노트북 찾는 중 (%1$s)…</string>
@@ -34,7 +30,6 @@
   <string name="local_network_needed">Wi-Fi와 USB로 노트북을 찾으려면 Edgepad에 근처 기기 권한이 필요해요.</string>
   <string name="allow_local_network">근처 기기 허용</string>
   <string name="open_controls">컨트롤 열기</string>
-  <string name="open_controls_hint">노트북에 연결하면 컨트롤을 열 수 있어요.</string>
   <string name="open_bluetooth_settings">블루투스 설정</string>
   <string name="bluetooth_tap_off">블루투스가 꺼져 있어요. 켜서 이 노트북에 연결하세요.</string>
   <string name="refresh">목록 새로고침</string>
@@ -48,9 +43,7 @@
   <string name="local_network_reason">Wi-Fi와 USB로 노트북을 찾기 위해 Edgepad가 근처 기기 권한을 요청하고 네트워크의 주소를 확인해요. 주소로 추가하면 이 검색을 거치지 않아도 돼요.</string>
   <string name="no_paired">노트북을 찾을 수 없어요. 노트북에서 Edgepad를 열고 블루투스 설정에서 페어링하세요. Wi-Fi나 USB로 연결하려면 노트북의 Edgepad 메뉴에서 Wi-Fi 및 USB 연결을 켜세요. USB는 이 휴대전화에서 USB 테더링도 켜야 해요.</string>
   <string name="no_laptop_paired">이 휴대전화와 페어링된 기기 중 컴퓨터로 표시된 기기가 없어요. 노트북이 페어링되어 있다면 모든 기기를 표시하세요.</string>
-  <plurals name="show_all_paired">
-    <item quantity="other">페어링된 모든 기기 표시 (%1$d개 더)</item>
-  </plurals>
+  <string name="show_all_paired">모두 보기</string>
   <string name="show_laptops_only">컴퓨터만 표시</string>
   <string name="allow_permission">근처 기기 허용</string>
   <string name="open_app_settings">Android 권한 열기</string>
@@ -122,9 +115,7 @@
   <string name="forget_laptop_title">%1$s의 등록을 해제할까요?</string>
   <string name="forget_laptop_body">이 목록에서 삭제되고 페어링 코드도 지워져요. Android의 블루투스 페어링은 그대로 남으니, 블루투스 설정에서 삭제하세요.</string>
   <string name="reconnect_automatically">자동으로 다시 연결</string>
-  <string name="reconnect_caption">Edgepad를 열 때 저장된 노트북에 연결하고, 연결이 끊기면 다시 시도해요.</string>
   <string name="stay_connected">백그라운드에서 연결 유지</string>
-  <string name="stay_connected_caption">Edgepad를 최소화해도 노트북 연결을 유지하고, 연결을 해제할 수 있는 알림을 표시해요. 끄면 앱을 나간 뒤 곧 연결이 해제돼요.</string>
   <string name="link_channel">연결</string>
   <string name="link_notice">%1$s에 연결됨</string>
   <plurals name="link_notice_more">
@@ -145,11 +136,10 @@
   <string name="corner_bottom_left">왼쪽 아래</string>
   <string name="corner_off">끔</string>
   <string name="corner_split">모서리 나누기</string>
-  <string name="corner_split_caption">모서리마다 다이얼을 두 개씩, 맞닿은 가장자리에 하나씩 놓아요. 모두 합쳐 최대 8개예요.</string>
-  <string name="corner_edge_left">왼쪽 가장자리</string>
-  <string name="corner_edge_top">위쪽 가장자리</string>
-  <string name="corner_edge_right">오른쪽 가장자리</string>
-  <string name="corner_edge_bottom">아래쪽 가장자리</string>
+  <string name="corner_edge_left">왼쪽</string>
+  <string name="corner_edge_top">위쪽</string>
+  <string name="corner_edge_right">오른쪽</string>
+  <string name="corner_edge_bottom">아래쪽</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">다이얼 8개, 나눔</string>
   <string name="media_layout_title">미디어 레이아웃</string>
@@ -261,7 +251,6 @@
     <item quantity="other">도형 %1$d개</item>
   </plurals>
   <string name="shapes_none">아직 없음</string>
-  <string name="shapes_footnote">트랙패드에 두 손가락을 대고 선이 실선으로 바뀔 때까지 멈춰 있다가(햅틱 피드백이 켜져 있으면 진동도 느껴져요), 한 손가락을 떼고 다른 손가락으로 그리세요.</string>
   <string name="shapes_empty_title">아직 도형이 없어요</string>
   <string name="shapes_empty_body">여기에서 도형을 그리고 실행할 동작을 지정하세요. 트랙패드에서는 선이 실선으로 바뀔 때까지 두 손가락을 멈춰 둔 뒤, 한 손가락을 떼고 다른 손가락으로 그리세요.</string>
   <string name="shapes_add">도형 그리기</string>
@@ -321,11 +310,8 @@
   <string name="color_hex">16진수 색상</string>
   <string name="dial_feel_title">다이얼 조작감</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
-  <string name="dial_preview_caption">미리보기. 시계 방향으로 올라가요.</string>
-  <string name="gestures_footnote">제스처를 탭해서 동작을 바꾸세요. 손가락 한두 개 동작은 고정이에요. 한 개는 이동, 탭하면 클릭, 잠시 멈췄다가 움직이면 드래그이고, 두 개는 드래그하면 스크롤, 핀치하면 확대/축소, 탭하면 오른쪽 클릭이에요.</string>
   <string name="dial_feel_each">다이얼별</string>
   <string name="dial_feel_shared">공통</string>
-  <string name="dial_feel_each_caption">모서리에 놓은 다이얼만 표시돼요. 공통을 벗어나게 설정하면 그 다이얼만의 속도를 줄 수 있어요. 공통은 슬라이드 감도를 따라가요.</string>
   <string name="appearance_title">모양</string>
   <string name="appearance_preview">미리보기</string>
   <string name="background_preview_description">조작 화면 배경 미리보기</string>
@@ -391,7 +377,6 @@
 
   <string name="controls_title">컨트롤</string>
   <string name="controls_edit">편집</string>
-  <string name="controls_edit_hint">항목을 탭하면 숨기거나 표시합니다. 길게 누른 채 끌면 옮길 수 있습니다.</string>
   <string name="controls_hidden">숨김</string>
   <string name="controls_all_hidden">모든 항목이 숨겨져 있습니다. 편집을 탭하면 다시 표시할 수 있습니다.</string>
   <string name="controls_toggle_tile">%1$s 숨기기 또는 표시</string>
@@ -427,9 +412,7 @@
   <string name="controls_power">전원</string>
   <string name="controls_settings_title">컨트롤 설정</string>
   <string name="controls_icon_size">아이콘 크기</string>
-  <string name="controls_size_small">작게</string>
-  <string name="controls_size_medium">보통</string>
-  <string name="controls_size_large">크게</string>
+  <string name="controls_icon_size_value">%1$d%%</string>
   <string name="controls_show_labels">라벨 표시</string>
   <string name="controls_per_page">페이지당 컨트롤 수</string>
   <string name="controls_per_page_value">%1$d</string>
@@ -484,10 +467,8 @@
   <string name="macros_close">%1$s 닫기</string>
   <string name="macros_settings">매크로 설정</string>
   <string name="macros_labels">매크로 이름</string>
-  <string name="macros_labels_caption">그림 아래에 표시되는 이름이에요. 그림이 없는 매크로는 항상 이름이 표시돼요.</string>
   <string name="macros_icons_title">아이콘</string>
   <string name="macros_icon_size">아이콘 크기</string>
-  <string name="macros_icon_size_caption">버튼에서 그림이 차지하는 비율이에요. 그림은 원래 픽셀보다 늘리지 않아서 선명하게 유지돼요. 노트북이 더 큰 그림을 보내기 전까지는 큰 버튼에서 작게 보일 수 있어요.</string>
   <string name="macros_move_earlier">앞으로 이동</string>
   <string name="macros_move_later">뒤로 이동</string>
   <string name="macros_moved">%2$d개 중 %1$d번째로 이동했어요</string>
@@ -496,13 +477,9 @@
   <string name="macros_layout_auto">자동</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">행: %1$d, 열: %2$d</string>
-  <string name="macros_layout_caption">앞의 숫자는 행, 뒤의 숫자는 열이에요. 자동은 버튼이 가장 커지는 배치를 골라요.</string>
   <string name="macros_per_page">화면당 매크로 수</string>
-  <string name="macros_per_page_caption">한 페이지에 표시할 매크로 수예요. 나머지는 손가락을 옆으로 밀어 넘기는 다음 페이지에 이어져요. 매크로를 길게 누른 채 드래그하면 같은 페이지 안에서 옮길 수 있어요. 열려 있는 매크로를 길게 누르면 X 표시가 나타나요. X 표시를 탭하면 앱이 닫혀요.</string>
   <string name="macros_page_of">%2$d페이지 중 %1$d페이지</string>
   <string name="macros_empty_title">아직 매크로가 없어요</string>
-  <string name="macros_empty_body">노트북 알림 영역에 있는 Edgepad 메뉴의 ‘매크로…’에서 추가하세요. 노트북이 목록을 보내면 바로 여기에 표시돼요.</string>
-  <string name="macros_empty_body_mac">Mac 메뉴 막대에 있는 Edgepad 메뉴의 ‘매크로…’에서 추가하세요. Mac이 목록을 보내면 바로 여기에 표시돼요.</string>
   <string name="macros_loading">매크로 불러오는 중…</string>
 
   <string name="apps_add_from_laptop">노트북에서 추가</string>
@@ -512,7 +489,6 @@
   <string name="apps_loading">%1$s에서 앱을 찾는 중…</string>
   <string name="apps_none">%1$s에 표시할 앱이 없어요.</string>
   <string name="apps_no_match">검색과 일치하는 앱이 없어요.</string>
-  <string name="apps_windows_hint">목록에 없나요? 노트북의 시작 메뉴에 앱을 추가한 뒤 새로고침하세요.</string>
   <string name="apps_confirm_title">%2$s에 %1$s 추가할까요?</string>
   <string name="apps_confirm_body">노트북에서 이 앱을 여는 매크로가 만들어져요.</string>
   <string name="apps_confirm_action">추가</string>
@@ -522,9 +498,6 @@
   <string name="apps_row_added">추가됨</string>
   <string name="apps_row_added_description">%1$s, 이미 추가됨</string>
   <string name="apps_row_full">매크로 가득 참</string>
-  <plurals name="apps_full_note">
-    <item quantity="other">이 노트북에는 매크로를 최대 %1$d개까지 둘 수 있는데 이미 가득 찼어요. 하나를 삭제한 뒤 추가하세요.</item>
-  </plurals>
   <string name="apps_added">추가했어요. 이제 매크로에 있어요.</string>
   <string name="apps_full">노트북에 매크로를 더 둘 수 없어요. 먼저 하나를 삭제하세요.</string>
   <string name="apps_duplicate">이미 매크로로 추가된 앱이에요.</string>
@@ -589,5 +562,5 @@
   <string name="xfer_channel">파일 전송</string>
   <string name="notify_channel">노트북 알림</string>
   <string name="notify_setting">노트북 알림 표시</string>
-  <string name="notify_setting_hint">노트북의 Edgepad 메뉴에서도 같은 스위치를 켜야 합니다.</string>
+  <string name="notify_setting_hint">노트북 알림은 노트북의 Edgepad 메뉴에서도 같은 스위치를 켜야 합니다.</string>
 </resources>

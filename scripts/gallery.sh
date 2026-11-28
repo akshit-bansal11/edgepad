@@ -6,7 +6,7 @@ set -eu
 
 out="${1:-.}/shots"
 mkdir -p "$out"
-screens="surface controls keyboard media-layout widget-layout gamepad-layout rings presenter-sheet xfer-run xfer-paused stats-system stats-system-phone stats-network stats-network-phone ai-two ai-four git data-uses settings settings-capture"
+screens="surface controls controls-4 controls-12 stencil-icons keyboard media-layout widget-layout gamepad-layout rings presenter-sheet xfer-run xfer-paused stats-system stats-system-phone stats-network stats-network-phone ai-two ai-four git data-uses look corners-4 corners-8 shape-pick settings capture-settings accessibility dial-feel-off dial-feel-on profiles-4 profiles-8 profiles-picker corners-notice"
 
 adb shell wm size 945x2100
 adb shell wm density 420

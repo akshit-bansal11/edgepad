@@ -29,6 +29,25 @@ object CornerSlots {
      * inherited half, null for the other half, which starts empty.
      */
     fun fallbackFor(slot: Int): Int? = corner(slot).takeIf { inheritedSlot(it) == slot }
+
+    /**
+     * The eight slots for the first switch to split corners: each corner's dial stays in its inherited half, and
+     * the four other halves take the first dials of [all], in its order, that no corner holds. A half left over
+     * when [all] runs out stays empty.
+     */
+    fun <T : Any> seed(
+        corners: List<T?>,
+        all: List<T>,
+    ): List<T?> {
+        val unused = all.filter { it !in corners }.iterator()
+        return List(corners.size * 2) { slot ->
+            when {
+                fallbackFor(slot) != null -> corners[corner(slot)]
+                unused.hasNext() -> unused.next()
+                else -> null
+            }
+        }
+    }
 }
 
 /**

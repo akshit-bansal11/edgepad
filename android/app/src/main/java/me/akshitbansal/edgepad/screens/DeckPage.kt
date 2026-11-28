@@ -6,6 +6,7 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.view.WindowInsets
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.R
@@ -263,6 +264,10 @@ internal fun drawPager(
         Pager(ui.context) { at ->
             onPage(at)
             dots.select(at)
+        }.apply {
+            // The holder above lets a held tile draw past its edges, which would also show the next page's edge.
+            outlineProvider = ViewOutlineProvider.BOUNDS
+            clipToOutline = true
         }
     pages.forEach { range ->
         val pageHolder = DeckPageHolder(ui)

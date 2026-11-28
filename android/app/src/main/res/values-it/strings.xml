@@ -21,10 +21,6 @@
   <string name="device_connect">Connetti</string>
   <string name="connect_via">Connetti %2$s tramite %1$s</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">I portatili memorizzati si connettono all’apertura di Edgepad. Dopo Disconnetti, non lo fanno più finché non tocchi di nuovo il portatile.</string>
-  <string name="devices_stay_note">Resta connesso anche quando esci. Per disconnetterti, usa la notifica.</string>
-  <string name="devices_legend_off">Tocca un portatile per connetterti.</string>
-  <string name="devices_multi_hint">Puoi connettere più portatili insieme. Quello attivo è il portatile che stai comandando con i controlli; tocca Rendi attivo per cambiare.</string>
   <string name="add_by_address">Aggiungi tramite indirizzo</string>
   <string name="address_connect">Connetti</string>
   <string name="address_looking">Ricerca di un portatile all’indirizzo %1$s…</string>
@@ -35,7 +31,6 @@
   <string name="local_network_needed">Edgepad ha bisogno dell’autorizzazione Dispositivi nelle vicinanze per trovare i portatili sulla tua rete Wi-Fi e via USB.</string>
   <string name="allow_local_network">Consenti Dispositivi nelle vicinanze</string>
   <string name="open_controls">Apri i controlli</string>
-  <string name="open_controls_hint">Connettiti a un portatile per aprire i controlli.</string>
   <string name="open_bluetooth_settings">Impostazioni Bluetooth</string>
   <string name="bluetooth_tap_off">Il Bluetooth è spento. Accendilo per connetterti a questo portatile.</string>
   <string name="refresh">Aggiorna l’elenco</string>
@@ -49,11 +44,7 @@
   <string name="local_network_reason">Per trovare i portatili sul tuo Wi-Fi e via USB, Edgepad richiede Dispositivi nelle vicinanze e controlla gli indirizzi della tua rete. Con Aggiungi tramite indirizzo questa ricerca non serve.</string>
   <string name="no_paired">Nessun portatile trovato. Apri Edgepad sul portatile e associalo nelle impostazioni Bluetooth. Per il Wi-Fi o l’USB, attiva Connessioni Wi-Fi e USB nel menu di Edgepad sul portatile; per l’USB attiva anche qui il tethering USB.</string>
   <string name="no_laptop_paired">Nessuno dei dispositivi associati a questo telefono risulta un computer. Se il tuo portatile è associato, mostra tutti i dispositivi.</string>
-  <plurals name="show_all_paired">
-    <item quantity="one">Mostra tutti i dispositivi associati (%1$d in più)</item>
-    <item quantity="many">Mostra tutti i dispositivi associati (%1$d in più)</item>
-    <item quantity="other">Mostra tutti i dispositivi associati (%1$d in più)</item>
-  </plurals>
+  <string name="show_all_paired">Mostra tutto</string>
   <string name="show_laptops_only">Mostra solo i computer</string>
   <string name="allow_permission">Consenti Dispositivi nelle vicinanze</string>
   <string name="open_app_settings">Apri autorizzazioni Android</string>
@@ -136,9 +127,7 @@
   <string name="forget_laptop_title">Dimenticare %1$s?</string>
   <string name="forget_laptop_body">Viene rimosso da questo elenco e il suo codice di associazione viene eliminato. L’associazione Bluetooth di Android resta; rimuovila nelle impostazioni Bluetooth.</string>
   <string name="reconnect_automatically">Riconnetti automaticamente</string>
-  <string name="reconnect_caption">Connette i portatili memorizzati all’apertura di Edgepad e riprova quando una connessione cade.</string>
   <string name="stay_connected">Resta connesso in background</string>
-  <string name="stay_connected_caption">Mantiene connessi i tuoi portatili mentre Edgepad è ridotto a icona, con una notifica per disconnettere. Se è disattivato, si disconnettono poco dopo che esci dall’app.</string>
   <string name="link_channel">Connessione</string>
   <string name="link_notice">Connesso a %1$s</string>
   <plurals name="link_notice_more">
@@ -161,11 +150,10 @@
   <string name="corner_bottom_left">In basso a sinistra</string>
   <string name="corner_off">Disattivato</string>
   <string name="corner_split">Angoli divisi</string>
-  <string name="corner_split_caption">Dà a ogni angolo due righelli, uno per lato. Fino a otto in tutto.</string>
-  <string name="corner_edge_left">lato sinistro</string>
-  <string name="corner_edge_top">lato superiore</string>
-  <string name="corner_edge_right">lato destro</string>
-  <string name="corner_edge_bottom">lato inferiore</string>
+  <string name="corner_edge_left">sinistra</string>
+  <string name="corner_edge_top">alto</string>
+  <string name="corner_edge_right">destra</string>
+  <string name="corner_edge_bottom">basso</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 righelli, divisi</string>
   <string name="media_layout_title">Layout dei media</string>
@@ -283,7 +271,6 @@
     <item quantity="other">%1$d disegnate</item>
   </plurals>
   <string name="shapes_none">Ancora nessuna</string>
-  <string name="shapes_footnote">Tieni ferme due dita sul touchpad finché la linea non diventa continua (se il feedback aptico è attivo senti anche un tic), poi sollevane uno e disegna con l’altro.</string>
   <string name="shapes_empty_title">Ancora nessuna forma</string>
   <string name="shapes_empty_body">Disegnane una qui e assegnale qualcosa da eseguire. Sul touchpad, tieni ferme due dita finché la linea non diventa continua, poi sollevane uno e disegnala con l’altro.</string>
   <string name="shapes_add">Disegna una forma</string>
@@ -344,11 +331,8 @@
   <string name="color_hex">Colore esadecimale</string>
   <string name="dial_feel_title">Comportamento dei righelli</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
-  <string name="dial_preview_caption">Anteprima. In senso orario aumenta.</string>
-  <string name="gestures_footnote">Tocca un gesto per cambiarne l’azione. Con uno e due dita i gesti sono fissi: muovi per spostare il puntatore, tocca per fare clic, tieni fermo un attimo e poi muovi per trascinare; con due dita trascina per scorrere, pizzica per ingrandire, tocca per il clic destro.</string>
   <string name="dial_feel_each">Ogni righello</string>
   <string name="dial_feel_shared">Condiviso</string>
-  <string name="dial_feel_each_caption">Sono elencati solo i righelli presenti in un angolo. Togline uno da Condiviso per dargli una velocità tutta sua. Condiviso segue la sensibilità di scorrimento.</string>
   <string name="appearance_title">Aspetto</string>
   <string name="appearance_preview">Anteprima</string>
   <string name="background_preview_description">Anteprima dello sfondo dell’area di controllo</string>
@@ -419,7 +403,6 @@
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controlli</string>
   <string name="controls_edit">Modifica</string>
-  <string name="controls_edit_hint">Tocca un riquadro per nasconderlo o mostrarlo. Tienilo premuto e trascinalo per spostarlo.</string>
   <string name="controls_hidden">Nascosto</string>
   <string name="controls_all_hidden">Tutti i riquadri sono nascosti. Tocca Modifica per mostrarli di nuovo.</string>
   <string name="controls_toggle_tile">Nascondi o mostra %1$s</string>
@@ -455,9 +438,7 @@
   <string name="controls_power">Alimentazione</string>
   <string name="controls_settings_title">Impostazioni dei controlli</string>
   <string name="controls_icon_size">Dimensione delle icone</string>
-  <string name="controls_size_small">Piccola</string>
-  <string name="controls_size_medium">Media</string>
-  <string name="controls_size_large">Grande</string>
+  <string name="controls_icon_size_value">%1$d%%</string>
   <string name="controls_show_labels">Mostra le etichette</string>
   <string name="controls_per_page">Controlli per pagina</string>
   <string name="controls_per_page_value">%1$d</string>
@@ -512,10 +493,8 @@
   <string name="macros_close">Chiudi %1$s</string>
   <string name="macros_settings">Impostazioni delle macro</string>
   <string name="macros_labels">Etichette delle macro</string>
-  <string name="macros_labels_caption">Nomi sotto le immagini. Una macro senza immagine mostra sempre il suo nome.</string>
   <string name="macros_icons_title">Icone</string>
   <string name="macros_icon_size">Dimensione delle icone</string>
-  <string name="macros_icon_size_caption">Quanto spazio di ogni pulsante occupa l’immagine. Le immagini non vengono mai ingrandite oltre i loro pixel, così restano nitide. Su un pulsante grande possono risultare piccole finché il portatile non ne invia di più grandi.</string>
   <string name="macros_move_earlier">Sposta prima</string>
   <string name="macros_move_later">Sposta dopo</string>
   <string name="macros_moved">Spostata alla posizione %1$d di %2$d</string>
@@ -524,13 +503,9 @@
   <string name="macros_layout_auto">Auto</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">Righe: %1$d, colonne: %2$d</string>
-  <string name="macros_layout_caption">Il primo numero indica le righe, il secondo le colonne. Auto sceglie la soluzione che rende i pulsanti più grandi.</string>
   <string name="macros_per_page">Macro sullo schermo</string>
-  <string name="macros_per_page_caption">Quante macro mostra una pagina. Le altre proseguono nelle pagine successive, a cui si arriva facendo scorrere un dito di lato. Tieni premuta una macro, poi trascinala per spostarla all’interno della sua pagina. Tieni premuta una macro aperta per mostrare una croce, poi tocca la croce per chiudere l’app.</string>
   <string name="macros_page_of">Pagina %1$d di %2$d</string>
   <string name="macros_empty_title">Ancora nessuna macro</string>
-  <string name="macros_empty_body">Aggiungile dal menu Macro… di Edgepad nell’area di notifica sul portatile. Compaiono qui non appena invia l’elenco.</string>
-  <string name="macros_empty_body_mac">Aggiungile dal menu Macro… di Edgepad nella barra dei menu del Mac. Compaiono qui non appena invia l’elenco.</string>
   <string name="macros_loading">Caricamento delle macro…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
@@ -541,7 +516,6 @@
   <string name="apps_loading">Ricerca di app su %1$s…</string>
   <string name="apps_none">%1$s non ha elencato app.</string>
   <string name="apps_no_match">Nessuna app corrisponde alla ricerca.</string>
-  <string name="apps_windows_hint">Non è nell’elenco? Aggiungi l’app al menu Start del portatile, poi aggiorna.</string>
   <string name="apps_confirm_title">Aggiungere %1$s a %2$s?</string>
   <string name="apps_confirm_body">Diventa una macro che apre questa app sul portatile.</string>
   <string name="apps_confirm_action">Aggiungi</string>
@@ -551,11 +525,6 @@
   <string name="apps_row_added">Aggiunta</string>
   <string name="apps_row_added_description">%1$s, già aggiunta</string>
   <string name="apps_row_full">Macro al completo</string>
-  <plurals name="apps_full_note">
-    <item quantity="one">Questo portatile può contenere fino a %1$d macro e le ha tutte. Eliminane una per aggiungerne un’altra.</item>
-    <item quantity="many">Questo portatile può contenere fino a %1$d di macro e le ha tutte. Eliminane una per aggiungerne un’altra.</item>
-    <item quantity="other">Questo portatile può contenere fino a %1$d macro e le ha tutte. Eliminane una per aggiungerne un’altra.</item>
-  </plurals>
   <string name="apps_added">Aggiunta. Ora è tra le macro.</string>
   <string name="apps_full">Il portatile non può contenere altre macro. Rimuovine prima una.</string>
   <string name="apps_duplicate">Quell’app è già una macro.</string>
@@ -634,5 +603,5 @@
   <string name="xfer_channel">Trasferimenti di file</string>
   <string name="notify_channel">Notifiche del portatile</string>
   <string name="notify_setting">Mostra le notifiche del portatile</string>
-  <string name="notify_setting_hint">Richiede lo stesso interruttore attivo nel menu Edgepad del portatile.</string>
+  <string name="notify_setting_hint">Le notifiche del portatile richiedono lo stesso interruttore attivo nel menu Edgepad del portatile.</string>
 </resources>

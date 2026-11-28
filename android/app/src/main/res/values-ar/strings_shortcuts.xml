@@ -9,7 +9,6 @@
   <string name="controls_presenter">العرض التقديمي</string>
   <string name="clip_history_title">الحافظة</string>
   <string name="clip_history_empty">لم يُنسخ شيء بعد</string>
-  <string name="clip_history_empty_hint">تظهر هنا النسخات من الحاسوب ومن هذا الهاتف عند تفعيل مشاركة الحافظة.</string>
   <string name="clip_history_from_laptop">من الحاسوب</string>
   <string name="clip_history_from_phone">من هذا الهاتف</string>
   <string name="clip_history_just_now">الآن</string>

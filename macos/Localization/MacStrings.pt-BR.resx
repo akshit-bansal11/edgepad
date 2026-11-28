@@ -28,7 +28,7 @@
     <value>O Edgepad deixa seu celular encontrar este Mac e se conectar por Wi-Fi, quando você ativa as conexões Wi-Fi.</value>
   </data>
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
-    <value>O Edgepad pergunta ao Música ou ao Spotify qual faixa está tocando e avança ou volta nela quando você desliza no celular; também suspende ou desliga este Mac no fim da mídia, se você pedir pelo celular.</value>
+    <value>O Edgepad pergunta ao Música ou ao Spotify qual faixa está tocando e avança ou volta nela quando você desliza no celular; também suspende ou desliga este Mac no fim da mídia, se você pedir pelo celular. Também pergunta ao Chrome, ao Safari e a navegadores semelhantes o título e o endereço da aba da frente, para mostrar o logotipo do serviço no celular.</value>
   </data>
   <data name="Core_ConnectedOver" xml:space="preserve">
     <value>Conectado a {0} · {1}</value>

@@ -201,6 +201,7 @@ class LaptopConnections(
         laptop.kind = kind
         laptop.reconnecting = false
         laptop.replacing = replacing
+        laptop.handedTo = null
         if (tapped) laptop.attempts = 0
         if (selected == null || (select && laptop !== selected)) change(laptop)
         open(laptop, target)
@@ -368,18 +369,27 @@ class LaptopConnections(
         closure: LaptopLink.Closure,
     ) {
         stopPinger(laptop)
+        // The laptop may let go of the old link as the new one comes in: that is the switch, not a drop.
+        val successor = all.firstOrNull { it !== laptop && laptop.id in it.replacing && it.link != null }
+        val quiet =
+            closeReaction(closure.cause == LaptopLink.Cause.ENDED, link.wasConnected, successor != null) ==
+                CloseReaction.QUIET
+        if (successor != null && quiet && laptop === selected) change(successor)
+        // Let go with no one's say-so: the switch may still fail, and then this record must get itself back.
+        laptop.handedTo = successor?.id.takeIf { quiet && closure.cause != LaptopLink.Cause.ENDED }
         laptop.link = null
         // A switch that failed must not end the old record's link at some later connect.
+        val handed = laptop.replacing
         laptop.replacing = emptyList()
         laptop.state.forgetMacroOpen()
         laptop.state.forgetInputBlocked()
         laptop.state.forgetPower()
         clearAsking(laptop)
-        laptop.failed = closure.cause != LaptopLink.Cause.ENDED
+        laptop.failed = !quiet
         laptop.lastCause = closure.cause.takeIf { laptop.failed }
         when {
-            // A link ended on purpose starts the next one with a full set of attempts.
-            closure.cause == LaptopLink.Cause.ENDED -> {
+            // A link ended on purpose, or handed over to its replacement, restarts with a full set of attempts.
+            quiet -> {
                 laptop.attempts = 0
                 laptop.reconnecting = false
             }
@@ -390,13 +400,7 @@ class LaptopConnections(
             }
 
             // It was working and dropped on its own: try to get it back.
-            link.wasConnected -> {
-                val now = scheduler.now()
-                laptop.lostAt = now
-                if (now - laptop.connectedAt >= STABLE_LINK_MS) laptop.attempts = 0 else laptop.attempts++
-                laptop.reconnecting = true
-                scheduleRetry(laptop, RETRY_DELAY_MS)
-            }
+            link.wasConnected -> reconnectAfterLoss(laptop)
 
             laptop.reconnecting -> {
                 laptop.attempts++
@@ -409,9 +413,28 @@ class LaptopConnections(
                 attemptIn(laptop, QUICK_RETRY_MS)
             }
         }
+        // A switch that failed gives back the record it was to replace, if that one dropped meanwhile.
+        for (id in handed) {
+            val old = find(id)?.takeIf { it.handedTo == laptop.id && it.link == null } ?: continue
+            old.handedTo = null
+            if (quiet) continue
+            old.failed = true
+            old.lastCause = LaptopLink.Cause.LOST
+            reconnectAfterLoss(old)
+            if (laptop === selected) change(old)
+        }
         // Before the event, so a laptop that failed for good is reported as one no longer on screen.
         if (laptop.failed && laptop.idle) moveOn(laptop)
         events.onClosed(laptop, closure)
+    }
+
+    /** A working link dropped on its own: try to get it back. */
+    private fun reconnectAfterLoss(laptop: Laptop) {
+        val now = scheduler.now()
+        laptop.lostAt = now
+        if (now - laptop.connectedAt >= STABLE_LINK_MS) laptop.attempts = 0 else laptop.attempts++
+        laptop.reconnecting = true
+        scheduleRetry(laptop, RETRY_DELAY_MS)
     }
 
     private fun refreshRetries() {
@@ -498,6 +521,7 @@ class LaptopConnections(
             // A switch of transport: this record takes the selection from the one it replaces, which then ends.
             val old = laptop.replacing
             laptop.replacing = emptyList()
+            for (id in old) find(id)?.handedTo = null
             val chosen = selected
             if (chosen != null && chosen.id in old) change(laptop)
             for (id in old) if (id != laptop.id) disconnect(id)

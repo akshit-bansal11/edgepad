@@ -117,7 +117,7 @@
     <item>Nécessaire pour saisir, cliquer et appuyer sur des touches pour le téléphone. macOS le demande, et Edgepad prévient le téléphone lorsqu’il manque.</item>
     <item>Pour écouter le téléphone que vous avez associé à ce Mac.</item>
     <item>Pour que le téléphone trouve ce Mac en Wi-Fi, lorsque vous activez les connexions Wi-Fi.</item>
-    <item>Pour demander à Music ou Spotify ce qui est en lecture et pour le contrôler, et pour mettre en veille, redémarrer ou éteindre ce Mac lorsque vous le demandez depuis le téléphone.</item>
+    <item>Pour demander à Music ou Spotify ce qui est en lecture et pour le contrôler, et pour mettre en veille, redémarrer ou éteindre ce Mac lorsque vous le demandez depuis le téléphone. Il lit aussi l’adresse et le titre de l’onglet au premier plan du navigateur pour choisir le logo du service ; seul le nom du service est envoyé au téléphone.</item>
     <item>Bureau, Documents et Téléchargements, pour trouver une capture ou un enregistrement que vous avez demandé de recevoir sur le téléphone.</item>
     <item>Alertes pour un téléphone qui demande l’association et pour une nouvelle version ; Démarrer à la connexion est un élément de connexion ordinaire. Les jetons de connexion vont dans votre Keychain.</item>
     <item>Surveillance de la saisie et Enregistrement de l’écran. Les captures utilisent les raccourcis propres à macOS.</item>

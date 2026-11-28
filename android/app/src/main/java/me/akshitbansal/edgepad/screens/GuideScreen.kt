@@ -134,7 +134,7 @@ object GuideScreen {
                         ui.string(R.string.guide_title),
                         onBack,
                         modes,
-                        backLabel = ui.string(R.string.settings_title),
+                        backLabel = ui.string(R.string.settings_system),
                     )
                 }
             val page =

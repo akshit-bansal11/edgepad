@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +18,7 @@ import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.surface.GestureAction
 import me.akshitbansal.edgepad.surface.PadMode
 import me.akshitbansal.edgepad.surface.Shape
+import me.akshitbansal.edgepad.surface.ShapeGroup
 import me.akshitbansal.edgepad.surface.ShapeTarget
 import me.akshitbansal.edgepad.surface.Shapes
 import me.akshitbansal.edgepad.surface.TrackpadRecognizer
@@ -40,12 +42,14 @@ object ShapeDrawScreen {
         macros: List<String>,
         onSaved: () -> Unit,
         onBack: () -> Unit,
+        stroke: FloatArray? = null,
     ): View {
         val existing = Shapes.decode(settings.shapes).orEmpty()
         val targets = vocabulary(macros)
         val root = FrameLayout(ui.context).apply { setBackgroundColor(ui.palette.background) }
-        var drawn: FloatArray? = null
+        var drawn: FloatArray? = stroke
         var chosen: ShapeTarget? = null
+        var group: ShapeGroup? = null
 
         // One function for both steps, picked between by whether a stroke has been accepted yet. Only the
         // two steps call it: going back to redraw needs a fresh canvas, and accepting a stroke needs the
@@ -80,6 +84,7 @@ object ShapeDrawScreen {
             }
             val redraw = {
                 drawn = null
+                group = null
                 render()
             }
             val (row, arm) =
@@ -89,33 +94,75 @@ object ShapeDrawScreen {
                         onSaved()
                     }
                 }
-            // Back from the list returns to the canvas, so the link is named for it rather than for Shapes.
+            val open = group
+            // Back from the list returns to the canvas, so the link is named for it rather than for Shapes. Back
+            // from one group returns to the groups.
             val bar =
-                ui.bar(
-                    ui.string(R.string.shapes_target_title),
-                    redraw,
-                    backLabel = ui.string(R.string.shapes_draw_back),
-                )
+                if (open == null) {
+                    ui.bar(
+                        ui.string(R.string.shapes_target_title),
+                        redraw,
+                        backLabel = ui.string(R.string.shapes_draw_back),
+                    )
+                } else {
+                    ui.bar(
+                        ui.string(open.nameRes),
+                        {
+                            group = null
+                            render()
+                        },
+                        backLabel = ui.string(R.string.shapes_target_title),
+                    )
+                }
+            // Redraw and Save are pinned below the scrolling list, so they are reachable without scrolling.
             root.addView(
-                ui.page(bar) {
+                ui.page(bar, footer = { add(row, Space.S) }) {
                     card(Space.M) {
-                        add(
-                            ui.choices(
-                                targets.map { ShapesScreen.targetName(ui, it, macros) },
-                                targets.indexOfFirst { it == chosen },
-                            ) { i ->
-                                chosen = targets[i]
-                                arm(true)
-                            },
-                        )
+                        if (open == null) {
+                            groups(ui, targets, chosen, macros) {
+                                group = it
+                                render()
+                            }
+                        } else {
+                            val inGroup = targets.filter { ShapeGroup.of(it) == open }
+                            add(
+                                ui.choices(
+                                    inGroup.map { ShapesScreen.targetName(ui, it, macros) },
+                                    inGroup.indexOfFirst { it == chosen },
+                                ) { i ->
+                                    chosen = inGroup[i]
+                                    arm(true)
+                                },
+                            )
+                        }
                     }
-                    add(row, Space.XL)
                 },
             )
         }
 
         render()
         return root
+    }
+
+    /**
+     * The sub-menus of what a shape can run, one link row each with a hairline between. A group's row names the
+     * target chosen from it, so coming back to the groups shows where the choice is. A group with nothing in it,
+     * such as Macros before the laptop has sent a list and the slot count is unknown, is not offered.
+     */
+    private fun Column.groups(
+        ui: Ui,
+        targets: List<ShapeTarget>,
+        chosen: ShapeTarget?,
+        macros: List<String>,
+        onOpen: (ShapeGroup) -> Unit,
+    ) {
+        val shown = ShapeGroup.entries.filter { g -> targets.any { ShapeGroup.of(it) == g } }
+        shown.forEachIndexed { i, g ->
+            if (i > 0) hairline()
+            val pick = chosen?.takeIf { ShapeGroup.of(it) == g }
+            val summary = pick?.let { ShapesScreen.targetName(ui, it, macros) }
+            add(ui.link(ui.string(g.nameRes), summary, onOpen = { onOpen(g) }))
+        }
     }
 
     /**
@@ -163,16 +210,15 @@ object ShapeDrawScreen {
         arm(ready)
         val row =
             LinearLayout(ui.context).apply {
+                gravity = Gravity.END
                 addView(
                     ui.button(ui.string(R.string.shapes_redraw), Ui.Style.OUTLINED, onRedraw),
-                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
+                    LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT),
                 )
-                addView(
-                    save,
-                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                        marginStart = ui.dp(Space.S)
-                    },
-                )
+                val gap =
+                    LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                gap.marginStart = ui.dp(Space.S)
+                addView(save, gap)
             }
         return row to arm
     }

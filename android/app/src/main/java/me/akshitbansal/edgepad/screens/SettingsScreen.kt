@@ -14,9 +14,9 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 
 /**
- * The app's settings, one page in five groups: Connection (the laptops and how Edgepad stays connected to them),
- * Screens (a row for each page that has settings of its own: the surface, the controls, the keyboard, the gamepad, the
- * macros, the presenter and capture), Appearance, Help and about, and Advanced. A setting here and the same setting on
+ * The app's settings, one page in four groups: Connection (the laptops and how Edgepad stays connected to them),
+ * Appearance (with the Accessibility row), Help and about, and Advanced. Each screen's own settings are opened from
+ * that screen. A setting here and the same setting on
  * a feature's own screen or sheet edit the same stored value. Opened from the Devices list's gear and from the last row
  * of the surface's settings. Every change is saved as it is made. Sideways, the groups sit in two columns.
  */
@@ -37,14 +37,8 @@ object SettingsScreen {
         val notify: (Boolean) -> Unit = {},
         /** The Developer mode switch moved: DEVELOPER is sent to the laptop, whose FEATURES then confirm it. */
         val developer: (Boolean) -> Unit = {},
-        /** The pages under Screens, each opened from its row. */
-        val surface: () -> Unit = {},
-        val controls: () -> Unit = {},
-        val keyboard: () -> Unit = {},
-        val gamepad: () -> Unit = {},
-        val macros: () -> Unit = {},
-        val presenter: () -> Unit = {},
-        val capture: () -> Unit = {},
+        /** The Accessibility page, opened from its row. */
+        val accessibility: () -> Unit = {},
     )
 
     /**
@@ -102,7 +96,9 @@ object SettingsScreen {
                                 routes.clipboard()
                             },
                         )
-                        hairline()
+                    }
+                    footnote(ui.string(R.string.clipboard_share_caption))
+                    card(Space.L) {
                         add(
                             ui.toggle(ui.string(R.string.notify_setting), settings.notifyForward) {
                                 settings.notifyForward = it
@@ -110,27 +106,7 @@ object SettingsScreen {
                             },
                         )
                     }
-                    footnote(ui.string(R.string.reconnect_caption))
-                    footnote(ui.string(R.string.stay_connected_caption))
-                    footnote(ui.string(R.string.clipboard_share_caption))
                     footnote(ui.string(R.string.notify_setting_hint))
-
-                    section(ui.string(R.string.settings_screens))
-                    card {
-                        add(ui.link(ui.string(R.string.settings_surface), null, routes.surface))
-                        hairline()
-                        add(ui.link(ui.string(R.string.controls_title), null, routes.controls))
-                        hairline()
-                        add(ui.link(ui.string(R.string.controls_keyboard), null, routes.keyboard))
-                        hairline()
-                        add(ui.link(ui.string(R.string.controls_gamepad), null, routes.gamepad))
-                        hairline()
-                        add(ui.link(ui.string(R.string.controls_macros), null, routes.macros))
-                        hairline()
-                        add(ui.link(ui.string(R.string.controls_presenter), null, routes.presenter))
-                        hairline()
-                        add(ui.link(ui.string(R.string.settings_capture), null, routes.capture))
-                    }
                 },
                 {
                     section(ui.string(R.string.settings_appearance))
@@ -159,6 +135,8 @@ object SettingsScreen {
                             ),
                         )
                         languageRow()
+                        hairline()
+                        add(ui.link(ui.string(R.string.accessibility_title), null, routes.accessibility))
                     }
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
                         footnote(ui.string(R.string.language_follows_phone))
@@ -206,11 +184,7 @@ object SettingsScreen {
                         ui.enable(toggle, developerEditable)
                         add(toggle)
                     }
-                    footnote(
-                        ui.string(
-                            if (developerEditable) R.string.developer_mode_hint else R.string.developer_mode_offline,
-                        ),
-                    )
+                    if (!developerEditable) footnote(ui.string(R.string.developer_mode_offline))
                 },
             )
         }

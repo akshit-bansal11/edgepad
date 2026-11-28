@@ -9,7 +9,6 @@
   <string name="controls_presenter">Presentator</string>
   <string name="clip_history_title">Klembord</string>
   <string name="clip_history_empty">Nog niets gekopieerd</string>
-  <string name="clip_history_empty_hint">Kopieën van de laptop en van deze telefoon verschijnen hier zolang Klembord delen aan staat.</string>
   <string name="clip_history_from_laptop">Van de laptop</string>
   <string name="clip_history_from_phone">Van deze telefoon</string>
   <string name="clip_history_just_now">Zojuist</string>

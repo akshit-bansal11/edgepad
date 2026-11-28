@@ -61,6 +61,26 @@ public sealed class MprisTests
         }
     }
 
+    [Theory]
+    [InlineData("https://www.primevideo.com/detail/x", "Stream", "Prime Video")]
+    [InlineData("", "Stranger Things | Netflix", "Netflix")]
+    [InlineData("https://example.org/page", "Instagram", "Instagram")]
+    [InlineData("https://example.org/page", "Some video", "Firefox")]
+    public void ABrowserIsNamedAfterItsPageOrItsTitle(string url, string title, string app)
+    {
+        var metadata = new Dictionary<string, object?> { ["xesam:title"] = title };
+        if (url.Length > 0)
+        {
+            metadata["xesam:url"] = url;
+        }
+
+        Assert.Equal(app, MprisMap.ToState(Player(Firefox, "Playing", 0, metadata)).App);
+    }
+
+    [Fact]
+    public void APlayerThatIsNotABrowserKeepsItsName() =>
+        Assert.Equal("Vlc", MprisMap.ToState(Player(Vlc, "Playing", 0, new Dictionary<string, object?> { ["xesam:title"] = "Netflix" })).App);
+
     [Fact]
     public void NoLengthMeansNoTimelineAndNoPercent()
     {

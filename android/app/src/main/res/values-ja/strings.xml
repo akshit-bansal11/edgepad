@@ -22,10 +22,6 @@
   <string name="device_connect">接続</string>
   <string name="connect_via">%2$sに%1$sで接続</string>
   <string name="device_rtt">%1$.0fms</string>
-  <string name="devices_legend">登録済みのノートPCには、Edgepadを開くと自動で接続します。「切断」すると、そのノートPCをもう一度タップするまで接続しません。</string>
-  <string name="devices_stay_note">アプリを離れても接続は続きます。切断するには、通知から操作してください。</string>
-  <string name="devices_legend_off">ノートPCをタップして接続します。</string>
-  <string name="devices_multi_hint">複数のノートPCに同時に接続できます。コントロールで操作しているのが「操作中」のノートPCです。切り替えるには「操作先にする」をタップします。</string>
   <string name="add_by_address">アドレスで追加</string>
   <string name="address_connect">接続</string>
   <string name="address_looking">%1$sのノートPCを探しています…</string>
@@ -36,7 +32,6 @@
   <string name="local_network_needed">Wi-FiやUSBでノートPCを見つけるには、Edgepadに「付近のデバイス」の許可が必要です。</string>
   <string name="allow_local_network">付近のデバイスを許可</string>
   <string name="open_controls">コントロールを開く</string>
-  <string name="open_controls_hint">コントロールを開くには、ノートPCに接続してください。</string>
   <string name="open_bluetooth_settings">Bluetooth設定</string>
   <string name="bluetooth_tap_off">Bluetoothがオフです。このノートPCに接続するには、オンにしてください。</string>
   <string name="refresh">リストを更新</string>
@@ -50,9 +45,7 @@
   <string name="local_network_reason">Wi-FiやUSBでノートPCを見つけるため、Edgepadは「付近のデバイス」の許可を求め、ネットワーク上のアドレスを確認します。「アドレスで追加」なら、この検索は不要です。</string>
   <string name="no_paired">ノートPCが見つかりません。ノートPCでEdgepadを開き、Bluetooth設定でペアリングしてください。Wi-FiやUSBで接続するには、ノートPCのEdgepadメニューで「Wi-FiおよびUSB接続」をオンにします。USBの場合は、このスマホでUSBテザリングもオンにしてください。</string>
   <string name="no_laptop_paired">このスマホとペアリング済みのデバイスに、パソコンと名乗るものはありません。ノートPCをペアリング済みの場合は、すべて表示してください。</string>
-  <plurals name="show_all_paired">
-    <item quantity="other">ペアリング済みのデバイスをすべて表示（ほか%1$d件）</item>
-  </plurals>
+  <string name="show_all_paired">すべて表示</string>
   <string name="show_laptops_only">パソコンのみ表示</string>
   <string name="allow_permission">付近のデバイスを許可</string>
   <string name="open_app_settings">Androidの権限を開く</string>
@@ -129,9 +122,7 @@
   <string name="forget_laptop_title">%1$sの登録を解除しますか？</string>
   <string name="forget_laptop_body">このリストから外れ、ペアリングコードも消去されます。AndroidのBluetoothペアリングは残るため、Bluetooth設定で削除してください。</string>
   <string name="reconnect_automatically">自動で再接続</string>
-  <string name="reconnect_caption">Edgepadを開くと登録済みのノートPCに接続し、接続が切れたときは再試行します。</string>
   <string name="stay_connected">バックグラウンドでも接続を維持</string>
-  <string name="stay_connected_caption">Edgepadを最小化している間もノートPCとの接続を維持し、切断用の通知を表示します。オフにすると、アプリを離れてしばらくすると切断されます。</string>
   <string name="link_channel">接続</string>
   <string name="link_notice">%1$sに接続中</string>
   <plurals name="link_notice_more">
@@ -152,7 +143,6 @@
   <string name="corner_bottom_left">左下</string>
   <string name="corner_off">オフ</string>
   <string name="corner_split">コーナーを分割</string>
-  <string name="corner_split_caption">各コーナーにダイヤルを2つずつ、つながる辺に1つずつ割り当てます。合計で最大8つです。</string>
   <string name="corner_edge_left">左端</string>
   <string name="corner_edge_top">上端</string>
   <string name="corner_edge_right">右端</string>
@@ -270,7 +260,6 @@
     <item quantity="other">%1$d件</item>
   </plurals>
   <string name="shapes_none">まだありません</string>
-  <string name="shapes_footnote">トラックパッドに2本指を置いて止め、線が実線に変わるまで待ち（触覚フィードバックがオンなら振動も伝わります）、1本を離してもう1本で描きます。</string>
   <string name="shapes_empty_title">まだ図形がありません</string>
   <string name="shapes_empty_body">ここで図形を描いて、実行する操作を割り当てます。トラックパッドでは、線が実線に変わるまで2本指を止めて置いてから、1本を離してもう1本で描いてください。</string>
   <string name="shapes_add">図形を描く</string>
@@ -331,11 +320,8 @@
   <string name="color_hex">16進カラー</string>
   <string name="dial_feel_title">ダイヤルの操作感</string>
   <string name="feel_summary">×%1$.1f · %2$ddp</string>
-  <string name="dial_preview_caption">プレビュー。時計回りで上がります。</string>
-  <string name="gestures_footnote">ジェスチャーをタップすると、操作を変更できます。1本指と2本指は固定です。1本指は移動、タップでクリック、少し止めてから動かすとドラッグ。2本指はドラッグでスクロール、ピンチでズーム、タップで右クリックです。</string>
   <string name="dial_feel_each">個別</string>
   <string name="dial_feel_shared">共通</string>
-  <string name="dial_feel_each_caption">コーナーに割り当てたダイヤルだけが表示されます。「共通」以外にすると、そのダイヤルだけ別の速さにできます。「共通」はスライド感度に従います。</string>
   <string name="appearance_title">外観</string>
   <string name="appearance_preview">プレビュー</string>
   <string name="background_preview_description">操作画面の背景のプレビュー</string>
@@ -407,7 +393,6 @@
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">コントロール</string>
   <string name="controls_edit">編集</string>
-  <string name="controls_edit_hint">タイルをタップすると表示/非表示を切り替えます。長押ししてドラッグすると移動できます。</string>
   <string name="controls_hidden">非表示</string>
   <string name="controls_all_hidden">すべてのタイルが非表示です。「編集」をタップすると再表示できます。</string>
   <string name="controls_toggle_tile">%1$s の表示/非表示を切り替え</string>
@@ -443,9 +428,7 @@
   <string name="controls_power">電源</string>
   <string name="controls_settings_title">コントロールの設定</string>
   <string name="controls_icon_size">アイコンのサイズ</string>
-  <string name="controls_size_small">小</string>
-  <string name="controls_size_medium">中</string>
-  <string name="controls_size_large">大</string>
+  <string name="controls_icon_size_value">%1$d%%</string>
   <string name="controls_show_labels">ラベルを表示</string>
   <string name="controls_per_page">1ページあたりのコントロール数</string>
   <string name="controls_per_page_value">%1$d</string>
@@ -500,10 +483,8 @@
   <string name="macros_close">%1$sを閉じる</string>
   <string name="macros_settings">マクロの設定</string>
   <string name="macros_labels">マクロのラベル</string>
-  <string name="macros_labels_caption">画像の下に表示する名前です。画像のないマクロには、常に名前が表示されます。</string>
   <string name="macros_icons_title">アイコン</string>
   <string name="macros_icon_size">アイコンのサイズ</string>
-  <string name="macros_icon_size_caption">ボタンの中で画像が占める大きさです。画像は元のピクセル数以上には拡大しないため、鮮明なまま表示されます。ボタンが大きいと、ノートPCがより大きな画像を送るまで小さく見えることがあります。</string>
   <string name="macros_move_earlier">前へ移動</string>
   <string name="macros_move_later">後ろへ移動</string>
   <string name="macros_moved">%2$d個中%1$d番目に移動しました</string>
@@ -512,13 +493,9 @@
   <string name="macros_layout_auto">自動</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">行：%1$d、列：%2$d</string>
-  <string name="macros_layout_caption">最初の数字が行数、2番目が列数です。「自動」は、ボタンが最も大きくなる配置を選びます。</string>
   <string name="macros_per_page">画面に表示するマクロ数</string>
-  <string name="macros_per_page_caption">1ページに表示するマクロの数です。残りは次のページに続き、指を横にスライドして移動します。マクロを長押ししてドラッグすると、ページ内で並べ替えられます。開いているマクロを長押しすると×が表示されます。×をタップするとアプリを閉じます。</string>
   <string name="macros_page_of">ページ %1$d / %2$d</string>
   <string name="macros_empty_title">まだマクロがありません</string>
-  <string name="macros_empty_body">ノートPCのタスクトレイにあるEdgepadメニューの「マクロ…」から追加します。ノートPCが一覧を送信すると、すぐここに表示されます。</string>
-  <string name="macros_empty_body_mac">MacのメニューバーにあるEdgepadメニューの「マクロ…」から追加します。Macが一覧を送信すると、すぐここに表示されます。</string>
   <string name="macros_loading">マクロを読み込み中…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
@@ -529,7 +506,6 @@
   <string name="apps_loading">%1$sのアプリを探しています…</string>
   <string name="apps_none">%1$sの一覧にアプリはありません。</string>
   <string name="apps_no_match">検索に一致するアプリはありません。</string>
-  <string name="apps_windows_hint">一覧にない場合は、ノートPCでそのアプリをスタートメニューに追加してから、更新してください。</string>
   <string name="apps_confirm_title">%1$sを%2$sに追加しますか？</string>
   <string name="apps_confirm_body">ノートPCでこのアプリを開くマクロになります。</string>
   <string name="apps_confirm_action">追加</string>
@@ -539,9 +515,6 @@
   <string name="apps_row_added">追加済み</string>
   <string name="apps_row_added_description">%1$s、追加済み</string>
   <string name="apps_row_full">マクロがいっぱい</string>
-  <plurals name="apps_full_note">
-    <item quantity="other">このノートPCに登録できるマクロは最大%1$d個で、すでに上限です。1つ削除すると、追加できます。</item>
-  </plurals>
   <string name="apps_added">追加しました。マクロに入っています。</string>
   <string name="apps_full">ノートPCにはこれ以上マクロを登録できません。先に1つ削除してください。</string>
   <string name="apps_duplicate">そのアプリはすでにマクロになっています。</string>
@@ -606,5 +579,5 @@
   <string name="xfer_channel">ファイル転送</string>
   <string name="notify_channel">ノートPCの通知</string>
   <string name="notify_setting">ノートPCの通知を表示</string>
-  <string name="notify_setting_hint">ノートPCのEdgepadメニューでも同じスイッチをオンにする必要があります。</string>
+  <string name="notify_setting_hint">ノートPCの通知には、ノートPCのEdgepadメニューでも同じスイッチをオンにする必要があります。</string>
 </resources>

@@ -86,7 +86,7 @@ internal sealed class LinuxMacroWindows(Func<string, string?> environment, Func<
         ? []
         : [.. desktop.Windows.Where(window => WindowMatch.Belongs(program, window.Image, window.Classes))];
 
-    private static WindowProgram? Program(Macro macro) => WindowMatch.Program(
+    internal static WindowProgram? Program(Macro macro) => WindowMatch.Program(
         macro.Target,
         LinuxLauncher.Classify,
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),

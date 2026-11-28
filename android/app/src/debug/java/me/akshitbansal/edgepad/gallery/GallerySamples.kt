@@ -1,19 +1,21 @@
 package me.akshitbansal.edgepad.gallery
 
 import android.content.Context
-import android.graphics.Rect
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.LaserSizes
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
+import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.BatteryHealth
 import me.akshitbansal.edgepad.link.ByteRatio
+import me.akshitbansal.edgepad.link.ForegroundApp
 import me.akshitbansal.edgepad.link.GitWire
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.link.NetBand
@@ -28,10 +30,16 @@ import me.akshitbansal.edgepad.link.xfer.XferSnapshot
 import me.akshitbansal.edgepad.protocol.BatteryKind
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.TextKind
+import me.akshitbansal.edgepad.screens.AccessibilityScreen
 import me.akshitbansal.edgepad.screens.AiScreen
+import me.akshitbansal.edgepad.screens.AppearanceScreen
+import me.akshitbansal.edgepad.screens.CaptureSettingsScreen
+import me.akshitbansal.edgepad.screens.ControlsPlan
 import me.akshitbansal.edgepad.screens.ControlsPopup
+import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DataUsesScreen
 import me.akshitbansal.edgepad.screens.DeviceChip
+import me.akshitbansal.edgepad.screens.DialFeelScreen
 import me.akshitbansal.edgepad.screens.FnMode
 import me.akshitbansal.edgepad.screens.GamepadLayoutScreen
 import me.akshitbansal.edgepad.screens.GitScreen
@@ -41,9 +49,13 @@ import me.akshitbansal.edgepad.screens.LaserSheet
 import me.akshitbansal.edgepad.screens.MediaLayoutScreen
 import me.akshitbansal.edgepad.screens.NetworkScreen
 import me.akshitbansal.edgepad.screens.PhoneScreen
+import me.akshitbansal.edgepad.screens.ProfilesScreen
 import me.akshitbansal.edgepad.screens.RingGauge
 import me.akshitbansal.edgepad.screens.SettingsScreen
+import me.akshitbansal.edgepad.screens.ShapeDrawScreen
+import me.akshitbansal.edgepad.screens.StencilIcon
 import me.akshitbansal.edgepad.screens.SystemScreen
+import me.akshitbansal.edgepad.screens.TipCard
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.screens.XferCardView
 import me.akshitbansal.edgepad.screens.hubBar
@@ -52,6 +64,10 @@ import me.akshitbansal.edgepad.surface.BatteryGroups
 import me.akshitbansal.edgepad.surface.BatteryRow
 import me.akshitbansal.edgepad.surface.BatterySource
 import me.akshitbansal.edgepad.surface.ControlSurface
+import me.akshitbansal.edgepad.surface.DialKind
+import me.akshitbansal.edgepad.surface.Perimeter
+import me.akshitbansal.edgepad.surface.Profile
+import me.akshitbansal.edgepad.surface.Profiles
 import me.akshitbansal.edgepad.surface.SurfaceWidget
 
 /** The sample state behind each gallery screen name. A new screen adds one case to [build]. */
@@ -102,8 +118,8 @@ class GallerySamples(
                 GitScreen(ui, { gitLaptop }, devBar(R.string.dev_git)) {}.view
             }
 
-            // The app's Settings, top to bottom; "settings-capture" is the same page scrolled to Capture & Annotate.
-            "settings", "settings-capture" -> {
+            // The app's Settings, top to bottom.
+            "settings" -> {
                 SettingsScreen.build(
                     ui,
                     settings,
@@ -127,6 +143,61 @@ class GallerySamples(
 
             "data-uses" -> {
                 DataUsesScreen.build(ui, ui.string(R.string.settings_title)) {}
+            }
+
+            "look" -> {
+                AppearanceScreen.build(ui, settings, {}, {})
+            }
+
+            // The Corners page with four dials and with eight: a phone outline marks where each row's dial sits.
+            "corners-4", "corners-8" -> {
+                settings.splitCorners = name == "corners-8"
+                if (settings.splitCorners) settings.seedSlotsOnce()
+                CornersScreen.build(ui, settings, {}) {}
+            }
+
+            "shape-pick" -> {
+                // A stroke already drawn, so the screen opens on the list of what it can run.
+                val stroke = floatArrayOf(-0.3f, -0.3f, 0f, 0.3f, 0.3f, -0.3f)
+                ShapeDrawScreen.build(ui, settings, emptyList(), {}, {}, stroke)
+            }
+
+            "accessibility" -> {
+                AccessibilityScreen.build(ui, settings) {}
+            }
+
+            // The page Capture & Annotate's settings cog opens.
+            "capture-settings" -> {
+                CaptureSettingsScreen.build(ui, settings, {}) {}
+            }
+
+            // Dial feel with the per-dial speeds hidden and shown.
+            "dial-feel-off", "dial-feel-on" -> {
+                settings.splitCorners = false
+                settings.eachDialSpeed = name == "dial-feel-on"
+                DialFeelScreen.build(ui, settings) {}
+            }
+
+            // App profiles: four dials with one profile open, eight dials (the master switch dimmed), and the picker.
+            "profiles-4", "profiles-8", "profiles-picker" -> {
+                profiles(name)
+            }
+
+            // The notice the bottom right shows when eight dials turn app profiles off.
+            "corners-notice" -> {
+                settings.splitCorners = true
+                settings.seedSlotsOnce()
+                val host = FrameLayout(context)
+                host.addView(CornersScreen.build(ui, settings, {}) {})
+                host.post {
+                    TipCard.notice(
+                        host,
+                        null,
+                        R.string.profiles_split_off,
+                        gravity = Gravity.BOTTOM or Gravity.END,
+                    )
+                }
+                host
             }
 
             "keyboard" -> {
@@ -165,9 +236,22 @@ class GallerySamples(
                 blank()
             }
 
-            // The Controls popup opens over the surface it grows from (see showControls).
-            "surface", "controls" -> {
+            // The Controls popup opens over the surface it grows from (see showControls): 4 or 12 to a page.
+            "surface", "controls", "controls-4", "controls-12" -> {
+                // Set each time: preferences outlive a run, and a shot must not depend on the last.
+                val perPage = name.substringAfter("controls-", "").toIntOrNull()
+                settings.controlsPerPage = perPage ?: ControlsPlan.DEFAULT_PER_PAGE
+                settings.controlsIconPercent = ControlsPlan.DEFAULT_ICON_PERCENT
+                settings.splitCorners = false
+                for (widget in listOf(SurfaceWidget.CLOCK, SurfaceWidget.WEATHER, SurfaceWidget.SYSTEM)) {
+                    settings.setWidgetOn(widget, false)
+                }
                 ControlSurface(context, settings, LaptopState(), {}, {}, {}, batteries = chargingLaptopAndPhone)
+            }
+
+            // The thirteen Controls icons, large, as the popup draws them on its own background.
+            "stencil-icons" -> {
+                stencils()
             }
 
             else -> {
@@ -336,6 +420,39 @@ class GallerySamples(
     /** An empty page in the app's background: the answer to an unknown name. */
     fun blank(): View = FrameLayout(context).apply { setBackgroundColor(ui.palette.background) }
 
+    /** Every [StencilIcon.Kind] large with its name, on the popup's own background, for the owner to approve. */
+    private fun stencils(): View {
+        val side = ui.dp(STENCIL_DP)
+        val pad = ui.dp(Space.M)
+        val perRow = if (ui.landscape) STENCIL_ROW_SIDEWAYS else STENCIL_ROW_UPRIGHT
+        return LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            setBackgroundColor(ui.palette.popover)
+            for (kinds in StencilIcon.Kind.entries.chunked(perRow)) {
+                addView(
+                    LinearLayout(context).apply {
+                        gravity = Gravity.CENTER
+                        for (kind in kinds) {
+                            addView(
+                                LinearLayout(context).apply {
+                                    orientation = LinearLayout.VERTICAL
+                                    gravity = Gravity.CENTER_HORIZONTAL
+                                    setPadding(pad, pad, pad, pad)
+                                    val picture = StencilIcon(kind, ui.palette.ink, ui.palette.accent)
+                                    addView(ImageView(context).apply { setImageDrawable(picture) }, side, side)
+                                    val label = ui.text(kind.name.lowercase(), Type.SMALL, ui.palette.dim)
+                                    label.gravity = Gravity.CENTER_HORIZONTAL
+                                    addView(label)
+                                },
+                            )
+                        }
+                    },
+                )
+            }
+        }
+    }
+
     /** Opens the layout editor's options panel by tapping its options button inside [root]. */
     fun openOptions(root: View) {
         val found = ArrayList<View>()
@@ -344,12 +461,52 @@ class GallerySamples(
         found.firstOrNull()?.performClick()
     }
 
-    /** Scrolls the Settings page in [root] to its Capture & Annotate section, so the pen rows are in the shot. */
-    fun showCaptureSection(root: View) {
+    /** App profiles over fake apps: Chrome and Spotify are set, and the picker offers three more. */
+    private fun profiles(name: String): View {
+        settings.splitCorners = name == "profiles-8"
+        val chrome = ForegroundApp("chrome.exe", "Chrome")
+        val dials = listOf(DialKind.SCROLL, DialKind.TABS, DialKind.ZOOM, DialKind.VOLUME)
+        val base = Profiles().with(chrome.token, chrome.name, Profile(corners = dials))
+        val saved = if (name == "profiles-picker") base else base.with("spotify.exe", "Spotify", Profile())
+        val others =
+            listOf(
+                ForegroundApp("notepad.exe", "Notepad"),
+                ForegroundApp("photos.exe", "Photos"),
+                ForegroundApp("terminal.exe", "Terminal"),
+            )
+        return ProfilesScreen.build(
+            ui,
+            on = true,
+            setOn = {},
+            raw = saved.encode(),
+            setRaw = {},
+            current = chrome,
+            offered = true,
+            openApps = others,
+            picking = name == "profiles-picker",
+            setPicking = {},
+            supported = true,
+            split = settings.splitCorners,
+            autoOn = true,
+            setAutoOn = {},
+            autoRaw = "",
+            setAutoRaw = {},
+            autoSupported = true,
+            defaults = (0 until Perimeter.CORNERS).map { settings.corner(it) },
+            onBack = {},
+        )
+    }
+
+    /** Taps the row whose text is [text] inside [root]: the first clickable parent of the text. */
+    fun tapText(
+        root: View,
+        text: String,
+    ) {
         val found = ArrayList<View>()
-        root.findViewsWithText(found, context.getString(R.string.settings_capture), View.FIND_VIEWS_WITH_TEXT)
-        val heading = found.firstOrNull() ?: return
-        heading.requestRectangleOnScreen(Rect(0, 0, heading.width, root.height / 2), true)
+        root.findViewsWithText(found, text, View.FIND_VIEWS_WITH_TEXT)
+        var at: View? = found.firstOrNull()
+        while (at != null && !at.isClickable) at = at.parent as? View
+        at?.performClick()
     }
 
     /** Opens the Presenter's laser sheet over [owner] with Medium chosen and a 16:9 laptop. */
@@ -364,6 +521,9 @@ class GallerySamples(
     }
 
     private companion object {
+        const val STENCIL_DP = 72f
+        const val STENCIL_ROW_SIDEWAYS = 7
+        const val STENCIL_ROW_UPRIGHT = 3
         const val SAMPLE_LAPTOP = "Akshit's M42"
         const val SAMPLE_RTT_MS = 6
         const val MS_PER_MIN = 60_000L

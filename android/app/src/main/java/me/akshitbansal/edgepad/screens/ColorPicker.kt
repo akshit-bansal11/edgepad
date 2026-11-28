@@ -156,6 +156,8 @@ object ColorPicker {
             addView(
                 HorizontalScrollView(ui.context).apply {
                     isHorizontalScrollBarEnabled = false
+                    isHorizontalFadingEdgeEnabled = true
+                    setFadingEdgeLength(ui.dp(Space.XL))
                     setPadding(0, 0, 0, ui.dp(Space.M))
                     addView(strip)
                 },

@@ -21,10 +21,6 @@
   <string name="device_connect">Connecter</string>
   <string name="connect_via">Connecter %2$s par %1$s</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">Les ordinateurs enregistrés se connectent à l’ouverture d’Edgepad. Si vous en déconnectez un, il ne se reconnecte que lorsque vous le appuyez sur à nouveau.</string>
-  <string name="devices_stay_note">Toujours connecté quand vous quittez l’appli. Déconnectez-vous depuis la notification.</string>
-  <string name="devices_legend_off">Appuyez sur un ordinateur pour vous y connecter.</string>
-  <string name="devices_multi_hint">Connectez plusieurs ordinateurs à la fois. L’ordinateur actif est celui que les commandes pilotent ; appuyez sur Activer pour en changer.</string>
   <string name="add_by_address">Ajouter par adresse</string>
   <string name="address_connect">Connecter</string>
   <string name="address_looking">Recherche d’un ordinateur à l’adresse %1$s…</string>
@@ -35,7 +31,6 @@
   <string name="local_network_needed">Edgepad a besoin de l’autorisation « Appareils à proximité » pour trouver les ordinateurs sur votre Wi-Fi et par USB.</string>
   <string name="allow_local_network">Autoriser « Appareils à proximité »</string>
   <string name="open_controls">Ouvrir les commandes</string>
-  <string name="open_controls_hint">Connectez-vous à un ordinateur pour ouvrir les commandes.</string>
   <string name="open_bluetooth_settings">Paramètres Bluetooth</string>
   <string name="bluetooth_tap_off">Le Bluetooth est désactivé. Activez-le pour vous connecter à cet ordinateur.</string>
   <string name="refresh">Actualiser la liste</string>
@@ -49,11 +44,7 @@
   <string name="local_network_reason">Pour trouver les ordinateurs sur votre Wi-Fi et par USB, Edgepad demande l’autorisation « Appareils à proximité » et vérifie les adresses de votre réseau. Ajouter par adresse évite cette recherche.</string>
   <string name="no_paired">Aucun ordinateur trouvé. Ouvrez Edgepad sur votre ordinateur et associez-le dans les paramètres Bluetooth. Pour le Wi-Fi ou l’USB, activez les connexions Wi-Fi et USB dans le menu d’Edgepad sur l’ordinateur ; pour l’USB, activez aussi le partage de connexion par USB ici.</string>
   <string name="no_laptop_paired">Aucun des appareils associés à ce téléphone ne se déclare comme un ordinateur. Si votre ordinateur est associé, affichez-les tous.</string>
-  <plurals name="show_all_paired">
-    <item quantity="one">Afficher tous les appareils associés (%1$d de plus)</item>
-    <item quantity="many">Afficher tous les appareils associés (%1$d de plus)</item>
-    <item quantity="other">Afficher tous les appareils associés (%1$d de plus)</item>
-  </plurals>
+  <string name="show_all_paired">Tout afficher</string>
   <string name="show_laptops_only">Afficher uniquement les ordinateurs</string>
   <string name="allow_permission">Autoriser « Appareils à proximité »</string>
   <string name="open_app_settings">Ouvrir les autorisations Android</string>
@@ -136,9 +127,7 @@
   <string name="forget_laptop_title">Oublier %1$s ?</string>
   <string name="forget_laptop_body">Il disparaît de cette liste et son code d’association est supprimé. L’association Bluetooth d’Android reste en place ; supprimez-la dans les paramètres Bluetooth.</string>
   <string name="reconnect_automatically">Reconnexion automatique</string>
-  <string name="reconnect_caption">Connecte les ordinateurs enregistrés à l’ouverture d’Edgepad, et réessaie quand une connexion tombe.</string>
   <string name="stay_connected">Rester connecté en arrière-plan</string>
-  <string name="stay_connected_caption">Garde vos ordinateurs connectés quand Edgepad est réduit, avec une notification pour les déconnecter. Désactivé, ils se déconnectent peu après que vous avez quitté l’appli.</string>
   <string name="link_channel">Connexion</string>
   <string name="link_notice">Connecté à %1$s</string>
   <plurals name="link_notice_more">
@@ -161,11 +150,10 @@
   <string name="corner_bottom_left">En bas à gauche</string>
   <string name="corner_off">Désactivé</string>
   <string name="corner_split">Coins doubles</string>
-  <string name="corner_split_caption">Donne deux règles à chaque coin, une sur chaque bord. Huit au maximum.</string>
-  <string name="corner_edge_left">bord gauche</string>
-  <string name="corner_edge_top">bord supérieur</string>
-  <string name="corner_edge_right">bord droit</string>
-  <string name="corner_edge_bottom">bord inférieur</string>
+  <string name="corner_edge_left">gauche</string>
+  <string name="corner_edge_top">haut</string>
+  <string name="corner_edge_right">droite</string>
+  <string name="corner_edge_bottom">bas</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 règles, coins doubles</string>
   <string name="media_layout_title">Disposition du média</string>
@@ -283,7 +271,6 @@
     <item quantity="other">%1$d dessinées</item>
   </plurals>
   <string name="shapes_none">Aucune pour l’instant</string>
-  <string name="shapes_footnote">Maintenez deux doigts immobiles sur le pavé tactile jusqu’à ce que le trait devienne plein (vous sentez aussi une vibration si le retour haptique est activé), puis levez-en un et dessinez avec l’autre.</string>
   <string name="shapes_empty_title">Aucune forme</string>
   <string name="shapes_empty_body">Dessinez-en une ici et donnez-lui une action à lancer. Sur le pavé tactile, maintenez deux doigts immobiles jusqu’à ce que le trait devienne plein, puis levez-en un et dessinez-la avec l’autre.</string>
   <string name="shapes_add">Dessiner une forme</string>
@@ -344,11 +331,8 @@
   <string name="color_hex">Couleur hexadécimale</string>
   <string name="dial_feel_title">Comportement des règles</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
-  <string name="dial_preview_caption">Aperçu. Le sens horaire augmente.</string>
-  <string name="gestures_footnote">Appuyez sur un geste pour changer son action. Un et deux doigts sont fixes : déplacer, appuyer pour cliquer, maintenir immobile un instant puis déplacer pour faire glisser ; à deux doigts, glisser pour faire défiler, pincer pour zoomer, appuyer pour faire un clic droit.</string>
   <string name="dial_feel_each">Chaque règle</string>
   <string name="dial_feel_shared">Commun</string>
-  <string name="dial_feel_each_caption">Seules les règles placées dans un coin sont listées. Sortez-en une de Commun pour lui donner sa propre vitesse. Commun suit la sensibilité du glissement.</string>
   <string name="appearance_title">Aspect</string>
   <string name="appearance_preview">Aperçu</string>
   <string name="background_preview_description">Aperçu de l’arrière-plan de l’écran principal</string>
@@ -418,7 +402,6 @@
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Commandes</string>
   <string name="controls_edit">Modifier</string>
-  <string name="controls_edit_hint">Touchez une tuile pour la masquer ou l’afficher. Maintenez-la et faites-la glisser pour la déplacer.</string>
   <string name="controls_hidden">Masquée</string>
   <string name="controls_all_hidden">Toutes les tuiles sont masquées. Touchez Modifier pour les afficher à nouveau.</string>
   <string name="controls_toggle_tile">Masquer ou afficher %1$s</string>
@@ -454,9 +437,7 @@
   <string name="controls_power">Alimentation</string>
   <string name="controls_settings_title">Réglages des commandes</string>
   <string name="controls_icon_size">Taille des icônes</string>
-  <string name="controls_size_small">Petite</string>
-  <string name="controls_size_medium">Moyenne</string>
-  <string name="controls_size_large">Grande</string>
+  <string name="controls_icon_size_value">%1$d%%</string>
   <string name="controls_show_labels">Afficher les libellés</string>
   <string name="controls_per_page">Commandes par page</string>
   <string name="controls_per_page_value">%1$d</string>
@@ -511,10 +492,8 @@
   <string name="macros_close">Fermer %1$s</string>
   <string name="macros_settings">Paramètres des macros</string>
   <string name="macros_labels">Noms des macros</string>
-  <string name="macros_labels_caption">Les noms sous les images. Une macro sans image affiche toujours son nom.</string>
   <string name="macros_icons_title">Icônes</string>
   <string name="macros_icon_size">Taille des icônes</string>
-  <string name="macros_icon_size_caption">La part du bouton que remplit l’image. Les images ne sont jamais agrandies au-delà de leurs pixels, elles restent donc nettes. Elles peuvent paraître petites sur un grand bouton tant que l’ordinateur n’en envoie pas de plus grandes.</string>
   <string name="macros_move_earlier">Déplacer avant</string>
   <string name="macros_move_later">Déplacer après</string>
   <string name="macros_moved">Déplacée en position %1$d sur %2$d</string>
@@ -523,13 +502,9 @@
   <string name="macros_layout_auto">Auto</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">Lignes : %1$d, colonnes : %2$d</string>
-  <string name="macros_layout_caption">Le premier nombre est le nombre de lignes, le second celui de colonnes. Auto choisit ce qui donne les plus gros boutons.</string>
   <string name="macros_per_page">Macros à l’écran</string>
-  <string name="macros_per_page_caption">Nombre de macros affichées par page. Les autres continuent sur d’autres pages, auxquelles on accède en glissant le doigt sur le côté. Maintenez une macro, puis faites-la glisser pour la déplacer dans sa page. Maintenez une macro ouverte pour afficher une croix, puis touchez la croix pour fermer l’application.</string>
   <string name="macros_page_of">Page %1$d sur %2$d</string>
   <string name="macros_empty_title">Aucune macro</string>
-  <string name="macros_empty_body">Ajoutez-en depuis le menu Macros… d’Edgepad, dans la zone de notification de l’ordinateur. Elles apparaissent ici dès qu’il envoie la liste.</string>
-  <string name="macros_empty_body_mac">Ajoutez-en depuis le menu Macros… d’Edgepad, dans la barre des menus du Mac. Elles apparaissent ici dès qu’il envoie la liste.</string>
   <string name="macros_loading">Chargement des macros…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
@@ -540,7 +515,6 @@
   <string name="apps_loading">Recherche d’applis sur %1$s…</string>
   <string name="apps_none">%1$s n’a listé aucune appli.</string>
   <string name="apps_no_match">Aucune appli ne correspond à cette recherche.</string>
-  <string name="apps_windows_hint">Elle n’est pas dans la liste ? Ajoutez l’appli au menu Démarrer de l’ordinateur, puis actualisez.</string>
   <string name="apps_confirm_title">Ajouter %1$s à %2$s ?</string>
   <string name="apps_confirm_body">Elle devient une macro qui ouvre cette appli sur l’ordinateur.</string>
   <string name="apps_confirm_action">Ajouter</string>
@@ -550,11 +524,6 @@
   <string name="apps_row_added">Ajoutée</string>
   <string name="apps_row_added_description">%1$s, déjà ajoutée</string>
   <string name="apps_row_full">Limite atteinte</string>
-  <plurals name="apps_full_note">
-    <item quantity="one">Cet ordinateur peut contenir jusqu’à %1$d macro, et la limite est atteinte. Supprimez-en une pour en ajouter une autre.</item>
-    <item quantity="many">Cet ordinateur peut contenir jusqu’à %1$d de macros, et la limite est atteinte. Supprimez-en une pour en ajouter une autre.</item>
-    <item quantity="other">Cet ordinateur peut contenir jusqu’à %1$d macros, et la limite est atteinte. Supprimez-en une pour en ajouter une autre.</item>
-  </plurals>
   <string name="apps_added">Ajoutée. Elle fait maintenant partie des macros.</string>
   <string name="apps_full">L’ordinateur ne peut plus contenir de macros. Supprimez-en une d’abord.</string>
   <string name="apps_duplicate">Cette appli est déjà une macro.</string>
@@ -633,5 +602,5 @@
   <string name="xfer_channel">Transferts de fichiers</string>
   <string name="notify_channel">Notifications de l’ordinateur</string>
   <string name="notify_setting">Afficher les notifications de l’ordinateur</string>
-  <string name="notify_setting_hint">Nécessite le même réglage activé dans le menu Edgepad de l’ordinateur.</string>
+  <string name="notify_setting_hint">Les notifications de l’ordinateur nécessitent le même réglage activé dans le menu Edgepad de l’ordinateur.</string>
 </resources>

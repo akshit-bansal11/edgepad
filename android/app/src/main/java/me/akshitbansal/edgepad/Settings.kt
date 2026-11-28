@@ -3,7 +3,6 @@ package me.akshitbansal.edgepad
 import android.content.Context
 import android.content.SharedPreferences
 import me.akshitbansal.edgepad.link.migrateSaved
-import me.akshitbansal.edgepad.screens.ControlsIconSize
 import me.akshitbansal.edgepad.screens.ControlsPlan
 import me.akshitbansal.edgepad.screens.FnMode
 import me.akshitbansal.edgepad.screens.KeyboardSize
@@ -13,6 +12,7 @@ import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
 import me.akshitbansal.edgepad.surface.MediaPiece
 import me.akshitbansal.edgepad.surface.NO_DIAL
+import me.akshitbansal.edgepad.surface.Perimeter
 import me.akshitbansal.edgepad.surface.Profile
 import me.akshitbansal.edgepad.surface.Strokes
 import me.akshitbansal.edgepad.surface.SurfaceWidget
@@ -137,6 +137,13 @@ class Settings(
     var stayConnected by flag("stayConnected", false)
 
     var haptics by flag("haptics", true)
+
+    /** A system click on taps and a tick on dial steps (the Accessibility page); [Sounds.on] mirrors it. */
+    var sounds by flag("sounds", false)
+
+    init {
+        Sounds.on = sounds
+    }
 
     /** Share the clipboard with the selected laptop, when it offers to. Each laptop's own switch must be on too. */
     var clipboardSync by flag("clipboardSync", false)
@@ -379,6 +386,25 @@ class Settings(
     }
 
     /**
+     * Before the first switch to eight dials: stores the eight slots [CornerSlots.seed] gives, so the four dials
+     * already placed stay and the four new edges hold the first unused dials. Never again once any slot is stored,
+     * so each layout comes back as it was left, and a phone already in eight dials keeps what it has.
+     */
+    fun seedSlotsOnce() {
+        if (prefs.all.keys.any { it.startsWith("slot.") }) return
+        val seeded = CornerSlots.seed((0 until Perimeter.CORNERS).map { corner(it) }, DialKind.entries)
+        seeded.forEachIndexed { slot, kind -> setSlot(slot, kind) }
+    }
+
+    /**
+     * Whether Dial feel lists a speed for each dial. Until it is stored, on when any dial already has a speed of its
+     * own. Off only hides the list; the stored speeds stay.
+     */
+    var eachDialSpeed: Boolean
+        get() = prefs.getBoolean(KEY_EACH_DIAL_SPEED, DialKind.entries.any { hasOwnSensitivity(it) })
+        set(value) = prefs.edit().putBoolean(KEY_EACH_DIAL_SPEED, value).apply()
+
+    /**
      * The order a deck ([deck] names which) shows its tiles in, as the keys DeckLayout.keys gives them.
      * Joined by newlines: a macro's name cannot hold a control character, so no key can hold one.
      */
@@ -405,10 +431,26 @@ class Settings(
         prefs.edit().putString("deck.$deck.hidden", keys.joinToString("\n")).apply()
     }
 
-    /** How large the Controls popup's tiles are drawn. */
-    var controlsIconSize: ControlsIconSize
-        get() = enum(KEY_CONTROLS_ICON_SIZE, ControlsIconSize.MEDIUM)
-        set(value) = prefs.edit().putString(KEY_CONTROLS_ICON_SIZE, value.name).apply()
+    /**
+     * How much of a Controls tile its picture fills, in percent. Before the slider the size was Small, Medium or
+     * Large under [KEY_CONTROLS_ICON_SIZE]; a choice made then reads as 40, 50 or 65, until a new one is stored.
+     */
+    var controlsIconPercent: Int
+        get() = prefs.getInt(KEY_CONTROLS_ICON_PERCENT, legacyIconPercent()).coerceIn(ControlsPlan.ICON_PERCENT)
+        set(value) {
+            prefs
+                .edit()
+                .putInt(KEY_CONTROLS_ICON_PERCENT, value.coerceIn(ControlsPlan.ICON_PERCENT))
+                .remove(KEY_CONTROLS_ICON_SIZE)
+                .apply()
+        }
+
+    private fun legacyIconPercent(): Int =
+        when (prefs.getString(KEY_CONTROLS_ICON_SIZE, null)) {
+            "SMALL" -> LEGACY_SMALL_PERCENT
+            "LARGE" -> LEGACY_LARGE_PERCENT
+            else -> ControlsPlan.DEFAULT_ICON_PERCENT
+        }
 
     /** Whether the Controls popup's tiles carry their names. */
     var controlsLabels by flag("controlsLabels", true)
@@ -703,10 +745,14 @@ class Settings(
         private const val KEY_SENSITIVITY = "sensitivity"
         private const val KEY_AIR_SENSITIVITY = "airSensitivity"
         private const val KEY_AIR_DEAD_ZONE = "airDeadZone"
+        private const val KEY_EACH_DIAL_SPEED = "eachDialSpeed"
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"
         private const val KEY_MACROS_PER_PAGE = "macrosPerPage"
         private const val KEY_CONTROLS_ICON_SIZE = "controlsIconSize"
+        private const val KEY_CONTROLS_ICON_PERCENT = "controlsIconPercent"
+        private const val LEGACY_SMALL_PERCENT = 40
+        private const val LEGACY_LARGE_PERCENT = 65
         private const val KEY_CONTROLS_PER_PAGE = "controlsPerPage"
         private const val KEY_MACRO_ROWS = "macroRows"
         private const val KEY_MACRO_ICON_ZOOM = "macroIconZoom"

@@ -21,6 +21,13 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
+/** True on a fresh start (not a rotation) whose version has not had its opening yet. Outside the object: no Android. */
+fun openingDue(
+    rotated: Boolean,
+    shownVersion: String,
+    version: String,
+): Boolean = !rotated && shownVersion != version
+
 /**
  * The opening screen, shown on the first launch and once after each update: the logo playing its pop over the
  * trackpad's thin grid, the name, the version, a link to the project and a line saying a tap goes on. It never

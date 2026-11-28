@@ -105,30 +105,21 @@ object GestureScreen {
                             },
                         )
                     }
-                    airMouse(ui, settings)
                     add(first)
                 },
                 {
                     rest.forEach { add(it) }
-                    footnote(ui.string(R.string.gestures_footnote))
-                    card(Space.XL) {
-                        add(
-                            ui.toggle(ui.string(R.string.gesture_hints), settings.hints) {
-                                settings.hints = it
-                                if (it) settings.hintsSeen = 0
-                            },
-                        )
-                    }
                 },
             )
         }
     }
 
     /**
-     * Owner, 2026-11-20: moved here from the Controls popup. Turning it on says how to use it; without a gyroscope the
-     * switch is dimmed and says that instead. Sensitivity and dead zone show only while it is on.
+     * Owner, 2026-11-20: moved here from the Controls popup; shown on the Accessibility page since 5.2.2. Turning it
+     * on says how to use it; without a gyroscope the switch is dimmed and says that instead. Sensitivity and dead zone
+     * show only while it is on.
      */
-    private fun Column.airMouse(
+    fun Column.airMouse(
         ui: Ui,
         settings: Settings,
     ) {

@@ -81,103 +81,7 @@ class AppLogo(
             null
         }
 
-    private fun resource(app: String): Int? {
-        val name = app.trim().lowercase()
-        return when {
-            name.isEmpty() -> {
-                null
-            }
-
-            "spotify" in name -> {
-                R.raw.logo_spotify
-            }
-
-            "youtube music" in name -> {
-                R.raw.logo_youtube_music
-            }
-
-            "youtube" in name -> {
-                R.raw.logo_youtube
-            }
-
-            "netflix" in name -> {
-                R.raw.logo_netflix
-            }
-
-            "prime" in name -> {
-                pick(R.raw.logo_prime_video_light, R.raw.logo_prime_video_dark)
-            }
-
-            "apple music" in name || "itunes" in name -> {
-                R.raw.logo_apple_music
-            }
-
-            "apple tv+" in name || "apple tv plus" in name -> {
-                pick(
-                    R.raw.logo_apple_tv_plus_light,
-                    R.raw.logo_apple_tv_plus_dark,
-                )
-            }
-
-            "apple tv" in name || "tv.apple" in name -> {
-                pick(R.raw.logo_apple_tv_light, R.raw.logo_apple_tv_dark)
-            }
-
-            "disney" in name -> {
-                R.raw.logo_disney_plus
-            }
-
-            "hbo" in name || "max" == name -> {
-                R.raw.logo_hbo_max
-            }
-
-            "hulu" in name -> {
-                R.raw.logo_hulu
-            }
-
-            "crunchyroll" in name -> {
-                R.raw.logo_crunchyroll
-            }
-
-            "paramount" in name -> {
-                R.raw.logo_paramount
-            }
-
-            "peacock" in name -> {
-                pick(R.raw.logo_peacock_light, R.raw.logo_peacock_dark)
-            }
-
-            "sky" in name -> {
-                R.raw.logo_sky
-            }
-
-            "facebook" in name -> {
-                R.raw.logo_facebook
-            }
-
-            "instagram" in name -> {
-                R.raw.logo_instagram
-            }
-
-            "linkedin" in name -> {
-                R.raw.logo_linkedin
-            }
-
-            "twitter" in name || name == "x" -> {
-                R.raw.logo_twitter
-            }
-
-            else -> {
-                null
-            }
-        }
-    }
-
-    /** The files are named for the theme they are drawn on: the dark one on a dark theme, the light one on a light theme. */
-    private fun pick(
-        light: Int,
-        dark: Int,
-    ): Int = if (this.dark) dark else light
+    private fun resource(app: String): Int? = logoResource(app, dark)
 
     private companion object {
         const val TAG = "Edgepad"
@@ -194,3 +98,108 @@ internal fun <T : Any> pickIcon(
     byApp: T?,
     artwork: T?,
 ): T? = bundled ?: byApp ?: artwork
+
+/**
+ * The bundled logo for the name the laptop sends as the media app (a service from protocol/media-services.txt, or an
+ * app name), or null for the plain music symbol. A logo that comes in a dark and a light version picks the one made
+ * for the theme: the dark one on a dark theme, the light one on a light theme.
+ */
+internal fun logoResource(
+    app: String,
+    dark: Boolean,
+): Int? {
+    fun pick(
+        light: Int,
+        onDark: Int,
+    ): Int = if (dark) onDark else light
+
+    val name = app.trim().lowercase()
+    return when {
+        name.isEmpty() -> {
+            null
+        }
+
+        "spotify" in name -> {
+            R.raw.logo_spotify
+        }
+
+        "youtube music" in name -> {
+            R.raw.logo_youtube_music
+        }
+
+        "youtube" in name -> {
+            R.raw.logo_youtube
+        }
+
+        "netflix" in name -> {
+            R.raw.logo_netflix
+        }
+
+        "prime" in name -> {
+            pick(R.raw.logo_prime_video_light, R.raw.logo_prime_video_dark)
+        }
+
+        "apple music" in name || "itunes" in name -> {
+            R.raw.logo_apple_music
+        }
+
+        "apple tv+" in name || "apple tv plus" in name -> {
+            pick(
+                R.raw.logo_apple_tv_plus_light,
+                R.raw.logo_apple_tv_plus_dark,
+            )
+        }
+
+        "apple tv" in name || "tv.apple" in name -> {
+            pick(R.raw.logo_apple_tv_light, R.raw.logo_apple_tv_dark)
+        }
+
+        "disney" in name -> {
+            R.raw.logo_disney_plus
+        }
+
+        "hbo" in name || "max" == name -> {
+            R.raw.logo_hbo_max
+        }
+
+        "hulu" in name -> {
+            R.raw.logo_hulu
+        }
+
+        "crunchyroll" in name -> {
+            R.raw.logo_crunchyroll
+        }
+
+        "paramount" in name -> {
+            R.raw.logo_paramount
+        }
+
+        "peacock" in name -> {
+            pick(R.raw.logo_peacock_light, R.raw.logo_peacock_dark)
+        }
+
+        "sky" in name -> {
+            R.raw.logo_sky
+        }
+
+        "facebook" in name -> {
+            R.raw.logo_facebook
+        }
+
+        "instagram" in name -> {
+            R.raw.logo_instagram
+        }
+
+        "linkedin" in name -> {
+            R.raw.logo_linkedin
+        }
+
+        "twitter" in name || name == "x" -> {
+            R.raw.logo_twitter
+        }
+
+        else -> {
+            null
+        }
+    }
+}

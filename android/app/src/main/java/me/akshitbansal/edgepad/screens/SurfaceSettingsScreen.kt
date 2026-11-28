@@ -78,7 +78,7 @@ object SurfaceSettingsScreen {
                 add(ui.link(ui.string(R.string.shapes_title), shapesSummary(ui, settings), rows.shapes))
             }
 
-            section(ui.string(R.string.settings_surface))
+            section(ui.string(R.string.settings_display))
             card {
                 add(ui.link(ui.string(R.string.widgets_title), widgetsSummary(ui, settings), rows.widgets))
                 hairline()

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">화면</string>
+  <string name="accessibility_title">접근성</string>
+  <string name="accessibility_sounds">소리</string>
+</resources>

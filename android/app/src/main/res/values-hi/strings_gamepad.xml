@@ -6,7 +6,6 @@
   <string name="gamepad_preset_platformer">प्लेटफ़ॉर्मर</string>
   <string name="gamepad_preset_racing">रेसिंग</string>
   <string name="gamepad_preset_shooter">शूटर</string>
-  <string name="gamepad_layout_hint">खिसकाने के लिए खींचें। किसी कंट्रोल का मेन्यू खोलने के लिए उसे दबाए रखें।</string>
   <string name="gamepad_layout_section">लेआउट</string>
   <string name="gamepad_description">लैपटॉप के लिए गेम कंट्रोलर। बटन और ट्रिगर पर डबल-टैप हो सकता है; स्टिक और D-पैड के लिए छूना ज़रूरी है।</string>
   <string name="gamepad_node_dpad">D-पैड</string>

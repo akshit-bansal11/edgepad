@@ -78,7 +78,7 @@ Edgepad never writes to a Git host: a built-in gate refuses every request that i
 - *Accessibility*: to type, click and press keys for the phone. macOS asks.
 - *Bluetooth*: to listen for the phone you paired.
 - *Local Network*: so the phone can find the Mac over Wi-Fi, when you turn on Wi-Fi connections.
-- *Automation*: to ask Music or Spotify what is playing and to move it, and to sleep, restart or shut down the Mac from the phone's Power page.
+- *Automation*: to ask Music or Spotify what is playing and to move it, to read the front tab’s title and address in Chrome, Safari and similar browsers so the phone can show the service’s logo (only the service’s name is sent to the phone, never the title or address), and to sleep, restart or shut down the Mac from the phone's Power page.
 - *Files and folders*: Desktop, Documents and Downloads, to find a screenshot or recording you asked to receive on the phone.
 - *Notifications and login item*: alerts for a phone asking to pair and for a new version; Start at login is a normal login item. Sign-in tokens go in your Keychain.
 - Not requested: Input Monitoring and Screen Recording. Captures use macOS's own shortcuts.

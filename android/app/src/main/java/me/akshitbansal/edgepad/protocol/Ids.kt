@@ -107,6 +107,9 @@ enum class ActionId(
 
     // 60 to 62 retired in 5.2.0, never reuse: a 5.1 phone would shut a laptop down at once.
 
+    /** Adding an app profile: asks the laptop for the apps open on it, answered by one [TextKind.OPEN_APPS]. Only for a laptop that sent [Feature.OPEN_APPS]. */
+    OPEN_APPS_LIST(63),
+
     /**
      * The first of 32 macro slots, 64..95; slot n is `MACRO_BASE + n`. The phone sends the index and never
      * what it launches — the laptop's own list decides that, which is the whole security model here.
@@ -350,6 +353,9 @@ enum class TextKind(
 
     /** Laptop to phone: what kind of app is in front, one [AppKindToken], or empty for none. Sent on change, only while [ControlId.FOREGROUND_WATCH] is 1. Never a title. */
     FOREGROUND_KIND(40),
+
+    /** Laptop to phone, the answer to [ActionId.OPEN_APPS_LIST]: lines "token TAB name", the token what [FOREGROUND_APP] reports, at most 40. */
+    OPEN_APPS(41),
     ;
 
     fun frame(text: String): Frame = Frame.Text(id, text)
@@ -496,6 +502,9 @@ enum class Feature(
 
     /** The laptop can classify the app in front, in [TextKind.FOREGROUND_KIND]. */
     APP_KIND("appkind"),
+
+    /** The laptop answers [ActionId.OPEN_APPS_LIST] with [TextKind.OPEN_APPS]. */
+    OPEN_APPS("openapps"),
     ;
 
     companion object {

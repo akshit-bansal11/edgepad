@@ -40,6 +40,5 @@ object SharingScreen {
                     },
                 )
             }
-            footnote(ui.string(R.string.stay_connected_caption))
         }
 }

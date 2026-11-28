@@ -6,6 +6,10 @@
   <string name="profiles_caption">Il portatile dice a questo telefono quale app è in primo piano, solo finché è attivo. Sul portatile non resta nulla.</string>
   <string name="profiles_empty">Ancora nessun profilo. Porta un’app in primo piano sul portatile, poi aggiungila qui.</string>
   <string name="profiles_add_current">Aggiungi l’app in primo piano</string>
+  <string name="profiles_add_open">Aggiungi un’app</string>
+  <string name="profiles_pick_loading">Ricerca delle app aperte…</string>
+  <string name="profiles_pick_none">Nessun’altra app da aggiungere.</string>
+  <string name="profiles_pick_front">In primo piano</string>
   <string name="profiles_none_in_front">Nessuna app in primo piano</string>
   <string name="profiles_unsupported">Questo portatile non può dire quale app è in primo piano.</string>
   <string name="profiles_delete">Elimina profilo</string>
@@ -14,8 +18,9 @@
   <string name="profile_custom">Personalizzato</string>
   <string name="auto_profiles_title">Profili automatici</string>
   <string name="auto_profiles_toggle">Cambia le manopole in base al tipo di app</string>
-  <string name="auto_profiles_caption">Se l\'app in primo piano non ha un profilo, le manopole seguono il suo tipo: media, editor di timeline o browser. I tuoi profili hanno la precedenza.</string>
   <string name="auto_kind_media">Media</string>
   <string name="auto_kind_timeline">Timeline</string>
   <string name="auto_kind_browser">Browser</string>
+  <string name="profiles_needs_four">I profili app funzionano solo con 4 righelli.</string>
+  <string name="profiles_split_off">Con 8 righelli i profili app sono disattivati.</string>
 </resources>

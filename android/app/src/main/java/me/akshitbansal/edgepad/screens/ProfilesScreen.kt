@@ -41,7 +41,12 @@ object ProfilesScreen {
         raw: String,
         setRaw: (String) -> Unit,
         current: ForegroundApp?,
+        offered: Boolean,
+        openApps: List<ForegroundApp>?,
+        picking: Boolean,
+        setPicking: (Boolean) -> Unit,
         supported: Boolean,
+        split: Boolean,
         autoOn: Boolean,
         setAutoOn: (Boolean) -> Unit,
         autoRaw: String,
@@ -56,6 +61,7 @@ object ProfilesScreen {
         var openKind: AppKindToken? = null
         var openProfile: String? = null
         var openRow: String? = null
+        var picker = picking
         val list = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
         val kinds = listOf<DialKind?>(null) + DialKind.entries
         val actions = GestureAction.entries
@@ -127,9 +133,11 @@ object ProfilesScreen {
             val gestureChoices = listOf(same) + actions.map { ui.string(it.nameRes) }
             for (gesture in Gesture.entries) {
                 val set = profile.gestures[gesture]
+                val count = gesture.fingers
+                val fingers = ui.context.resources.getQuantityString(R.plurals.gestures_fingers, count, count)
                 pickRow(
                     "$scope.g${gesture.name}",
-                    ui.string(gesture.nameRes),
+                    "$fingers · ${ui.string(gesture.nameRes)}",
                     if (set == null) same else ui.string(set.nameRes),
                     gestureChoices,
                     if (set == null) 0 else 1 + actions.indexOf(set),
@@ -144,7 +152,7 @@ object ProfilesScreen {
         }
 
         fun Column.automatic() {
-            val live = masterOn && supported
+            val live = masterOn && supported && !split
             val kindRows =
                 listOf(
                     AppKindToken.MEDIA to R.string.auto_kind_media,
@@ -172,8 +180,7 @@ object ProfilesScreen {
                             (0 until Profiles.CORNERS).joinToString(", ") { kindName(raw.corner(it, defaults[it])) }
                         val opened = openKind == kind
                         add(
-                            ui.field(ui.string(name), ui.secondary(summary, Type.VALUE)).apply {
-                                minimumHeight = ui.dp(Space.TOUCH)
+                            ui.valueField(ui.string(name), summary).apply {
                                 isEnabled = live
                                 ui.tappable(this) {
                                     if (live) {
@@ -205,13 +212,54 @@ object ProfilesScreen {
                 }
             }
             add(shownKinds)
-            footnote(ui.string(R.string.auto_profiles_caption))
+        }
+
+        fun addProfile(app: ForegroundApp) {
+            if (profiles.forApp(app.token) == null) {
+                profiles = profiles.with(app.token, app.name, Profile())
+                setRaw(profiles.encode())
+            }
+            openProfile = app.token
+            openRow = null
+        }
+
+        fun Column.pickList() {
+            if (openApps == null) {
+                footnote(ui.string(R.string.profiles_pick_loading))
+                return
+            }
+            val rows =
+                (listOfNotNull(current) + openApps)
+                    .distinctBy { it.token }
+                    .filter { profiles.forApp(it.token) == null }
+            if (rows.isEmpty()) {
+                footnote(ui.string(R.string.profiles_pick_none))
+                return
+            }
+            card(Space.M) {
+                rows.forEachIndexed { i, app ->
+                    if (i > 0) hairline()
+                    val front = app.token == current?.token
+                    val end = if (front) ui.secondary(ui.string(R.string.profiles_pick_front), Type.VALUE) else null
+                    add(
+                        ui.field(shown(app), end).apply {
+                            minimumHeight = ui.dp(Space.TOUCH)
+                            ui.tappable(this) {
+                                addProfile(app)
+                                picker = false
+                                setPicking(false)
+                                render()
+                            }
+                        },
+                    )
+                }
+            }
         }
 
         render = {
             list.removeAllViews()
             Column(ui, list).apply {
-                if (autoSupported) automatic()
+                section(ui.string(R.string.profiles_title))
                 if (profiles.all.isEmpty()) {
                     footnote(ui.string(R.string.profiles_empty))
                 } else {
@@ -220,7 +268,8 @@ object ProfilesScreen {
                             if (i > 0) hairline()
                             val opened = app.token == openProfile
                             val state = if (profile.isDefault) R.string.profile_default else R.string.profile_custom
-                            val end = ui.secondary(ui.string(state), Type.VALUE)
+                            val tint = if (opened) ui.palette.accent else ui.palette.dim
+                            val end = ui.secondary(ui.string(state), Type.VALUE, tint)
                             add(
                                 ui.field(shown(app), end).apply {
                                     minimumHeight = ui.dp(Space.TOUCH)
@@ -256,22 +305,29 @@ object ProfilesScreen {
                     }
                 }
                 val none = current == null
-                val label = if (none) R.string.profiles_none_in_front else R.string.profiles_add_current
+                val label =
+                    when {
+                        offered -> R.string.profiles_add_open
+                        none -> R.string.profiles_none_in_front
+                        else -> R.string.profiles_add_current
+                    }
+                val blocked = split || (none && !offered)
                 val addButton =
                     ui.button(ui.string(label), Ui.Style.OUTLINED) {
-                        if (current != null) {
-                            if (profiles.forApp(current.token) == null) {
-                                profiles = profiles.with(current.token, current.name, Profile())
-                                setRaw(profiles.encode())
-                            }
-                            openProfile = current.token
-                            openRow = null
+                        if (offered) {
+                            picker = !picker
+                            setPicking(picker)
+                            render()
+                        } else if (current != null) {
+                            addProfile(current)
                             render()
                         }
                     }
-                addButton.isEnabled = !none
-                addButton.alpha = if (none) DISABLED_ALPHA else 1f
+                addButton.isEnabled = !blocked
+                addButton.alpha = if (blocked) DISABLED_ALPHA else 1f
                 add(addButton, Space.XL)
+                if (offered && picker && !split) pickList()
+                if (autoSupported) automatic()
             }
         }
         render()
@@ -280,16 +336,22 @@ object ProfilesScreen {
         ) {
             card {
                 val toggle =
-                    ui.toggle(ui.string(R.string.profiles_toggle), on && supported) {
+                    ui.toggle(ui.string(R.string.profiles_toggle), on && supported && !split) {
                         masterOn = it
                         setOn(it)
                         render()
                     }
-                toggle.isEnabled = supported
+                toggle.isEnabled = supported && !split
+                toggle.alpha = if (split) DISABLED_ALPHA else 1f
                 add(toggle)
             }
-            footnote(ui.string(if (supported) R.string.profiles_caption else R.string.profiles_unsupported))
-            section(ui.string(R.string.profiles_title))
+            val caption =
+                when {
+                    split -> R.string.profiles_needs_four
+                    supported -> R.string.profiles_caption
+                    else -> R.string.profiles_unsupported
+                }
+            footnote(ui.string(caption))
             add(list)
         }
     }

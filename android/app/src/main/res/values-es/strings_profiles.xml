@@ -6,6 +6,10 @@
   <string name="profiles_caption">El portátil le dice a este teléfono qué app está al frente, solo mientras esto esté activado. No se guarda nada en el portátil.</string>
   <string name="profiles_empty">Aún no hay perfiles. Trae una app al frente en el portátil y añádela aquí.</string>
   <string name="profiles_add_current">Añadir la app al frente</string>
+  <string name="profiles_add_open">Añadir una app</string>
+  <string name="profiles_pick_loading">Buscando apps abiertas…</string>
+  <string name="profiles_pick_none">No hay más apps que añadir.</string>
+  <string name="profiles_pick_front">Al frente</string>
   <string name="profiles_none_in_front">Aún no hay app al frente</string>
   <string name="profiles_unsupported">Este portátil no puede decir qué app está al frente.</string>
   <string name="profiles_delete">Eliminar perfil</string>
@@ -14,8 +18,9 @@
   <string name="profile_custom">Personalizado</string>
   <string name="auto_profiles_title">Perfiles automáticos</string>
   <string name="auto_profiles_toggle">Cambiar diales según el tipo de app</string>
-  <string name="auto_profiles_caption">Si la app en primer plano no tiene perfil, los diales siguen su tipo: multimedia, editor de línea de tiempo o navegador. Tus perfiles tienen prioridad.</string>
   <string name="auto_kind_media">Multimedia</string>
   <string name="auto_kind_timeline">Línea de tiempo</string>
   <string name="auto_kind_browser">Navegador</string>
+  <string name="profiles_needs_four">Los perfiles de apps solo funcionan con 4 reglas.</string>
+  <string name="profiles_split_off">Con 8 reglas, los perfiles de apps están desactivados.</string>
 </resources>

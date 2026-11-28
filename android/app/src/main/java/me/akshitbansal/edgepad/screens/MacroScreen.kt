@@ -12,7 +12,6 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
-import me.akshitbansal.edgepad.protocol.DeviceOs
 
 /** The largest picture accepted from the laptop, which sends at most the 512px this phone can ask for. */
 private const val MAX_ICON_PX = 512
@@ -56,7 +55,6 @@ class MacroScreen(
     settings: Settings,
     names: List<String>,
     heard: Boolean,
-    private val os: DeviceOs?,
     private val icon: (Int) -> ByteArray?,
     private val isOpen: (Int) -> Boolean,
     labels: Boolean,
@@ -137,8 +135,6 @@ class MacroScreen(
             val title = if (heard) R.string.macros_empty_title else R.string.macros_loading
             headline(ui.string(title), Type.TITLE, Space.L).gravity = Gravity.CENTER
             if (!heard) return@apply
-            val words = if (os == DeviceOs.MACOS) R.string.macros_empty_body_mac else R.string.macros_empty_body
-            body(ui.string(words), Space.S).gravity = Gravity.CENTER
             // Only for a laptop that lists its apps; the one thing here that fills the grid from this side.
             onAddFromLaptop?.let { open ->
                 add(ui.button(ui.string(R.string.apps_add_from_laptop), Ui.Style.FILLED, open), Space.XL)

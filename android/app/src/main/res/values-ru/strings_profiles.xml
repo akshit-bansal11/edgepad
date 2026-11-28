@@ -6,6 +6,10 @@
   <string name="profiles_caption">Ноутбук сообщает этому телефону, какое приложение на переднем плане, только пока это включено. На ноутбуке ничего не хранится.</string>
   <string name="profiles_empty">Профилей пока нет. Выведите приложение на передний план на ноутбуке и добавьте его здесь.</string>
   <string name="profiles_add_current">Добавить приложение на переднем плане</string>
+  <string name="profiles_add_open">Добавить приложение</string>
+  <string name="profiles_pick_loading">Ищем открытые приложения…</string>
+  <string name="profiles_pick_none">Больше нет приложений для добавления.</string>
+  <string name="profiles_pick_front">На переднем плане</string>
   <string name="profiles_none_in_front">Пока нет приложения на переднем плане</string>
   <string name="profiles_unsupported">Этот ноутбук не может сообщить, какое приложение на переднем плане.</string>
   <string name="profiles_delete">Удалить профиль</string>
@@ -14,8 +18,9 @@
   <string name="profile_custom">Свой</string>
   <string name="auto_profiles_title">Автоматические профили</string>
   <string name="auto_profiles_toggle">Переключать диски по типу приложения</string>
-  <string name="auto_profiles_caption">Если у приложения на переднем плане нет профиля, диски следуют его типу: медиа, редактор таймлайна или браузер. Ваши профили главнее.</string>
   <string name="auto_kind_media">Медиа</string>
   <string name="auto_kind_timeline">Таймлайн</string>
   <string name="auto_kind_browser">Браузер</string>
+  <string name="profiles_needs_four">Профили приложений работают только с 4 шкалами.</string>
+  <string name="profiles_split_off">При 8 шкалах профили приложений выключены.</string>
 </resources>

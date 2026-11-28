@@ -21,10 +21,6 @@
   <string name="device_connect">Verbinden</string>
   <string name="connect_via">%2$s über %1$s verbinden</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">Gemerkte Laptops verbinden sich, sobald Edgepad startet. Nach „Trennen“ passiert das erst wieder, wenn du den Laptop antippst.</string>
-  <string name="devices_stay_note">Bleibt verbunden, wenn du die App verlässt. Trennen kannst du in der Benachrichtigung.</string>
-  <string name="devices_legend_off">Tippe auf einen Laptop, um ihn zu verbinden.</string>
-  <string name="devices_multi_hint">Du kannst mehrere Laptops gleichzeitig verbinden. Die Regler steuern den aktiven Laptop; mit „Aktivieren“ wechselst du.</string>
   <string name="add_by_address">Per Adresse hinzufügen</string>
   <string name="address_connect">Verbinden</string>
   <string name="address_looking">Suche Laptop unter %1$s…</string>
@@ -35,7 +31,6 @@
   <string name="local_network_needed">Edgepad braucht die Berechtigung „Geräte in der Nähe“, um Laptops in deinem WLAN und per USB zu finden.</string>
   <string name="allow_local_network">Geräte in der Nähe erlauben</string>
   <string name="open_controls">Steuerung öffnen</string>
-  <string name="open_controls_hint">Verbinde einen Laptop, um die Steuerung zu öffnen.</string>
   <string name="open_bluetooth_settings">Bluetooth-Einstellungen</string>
   <string name="bluetooth_tap_off">Bluetooth ist aus. Schalte es ein, um dich mit diesem Laptop zu verbinden.</string>
   <string name="refresh">Liste aktualisieren</string>
@@ -49,10 +44,7 @@
   <string name="local_network_reason">Um Laptops in deinem WLAN und per USB zu finden, braucht Edgepad „Geräte in der Nähe“ und prüft die Adressen in deinem Netzwerk. „Per Adresse hinzufügen“ spart diese Suche.</string>
   <string name="no_paired">Keine Laptops gefunden. Öffne Edgepad auf deinem Laptop und koppel ihn in den Bluetooth-Einstellungen. Für WLAN oder USB schalte im Edgepad-Menü auf dem Laptop „WLAN- und USB-Verbindungen“ ein; für USB brauchst du hier außerdem USB-Tethering.</string>
   <string name="no_laptop_paired">Keines der mit diesem Handy gekoppelten Geräte meldet sich als Computer. Ist dein Laptop gekoppelt, zeig alle an.</string>
-  <plurals name="show_all_paired">
-    <item quantity="one">Alle gekoppelten Geräte zeigen (%1$d weiteres)</item>
-    <item quantity="other">Alle gekoppelten Geräte zeigen (%1$d weitere)</item>
-  </plurals>
+  <string name="show_all_paired">Alle zeigen</string>
   <string name="show_laptops_only">Nur Computer zeigen</string>
   <string name="allow_permission">Geräte in der Nähe erlauben</string>
   <string name="open_app_settings">Android-Berechtigungen öffnen</string>
@@ -131,9 +123,7 @@
   <string name="forget_laptop_title">%1$s vergessen?</string>
   <string name="forget_laptop_body">Der Laptop verschwindet aus dieser Liste, und sein Kopplungscode wird gelöscht. Die Bluetooth-Kopplung von Android bleibt bestehen; entferne sie in den Bluetooth-Einstellungen.</string>
   <string name="reconnect_automatically">Automatisch verbinden</string>
-  <string name="reconnect_caption">Verbindet gemerkte Laptops, sobald Edgepad startet, und versucht es erneut, wenn eine Verbindung abbricht.</string>
   <string name="stay_connected">Im Hintergrund verbunden bleiben</string>
-  <string name="stay_connected_caption">Hält deine Laptops verbunden, solange Edgepad minimiert ist; über eine Benachrichtigung kannst du trennen. Ist das aus, trennen sie kurz nach dem Verlassen der App.</string>
   <string name="link_channel">Verbindung</string>
   <string name="link_notice">Verbunden mit %1$s</string>
   <plurals name="link_notice_more">
@@ -155,11 +145,10 @@
   <string name="corner_bottom_left">Unten links</string>
   <string name="corner_off">Aus</string>
   <string name="corner_split">Ecken teilen</string>
-  <string name="corner_split_caption">Gibt jeder Ecke zwei Regler, einen an jeder Kante. Bis zu acht insgesamt.</string>
-  <string name="corner_edge_left">linke Kante</string>
-  <string name="corner_edge_top">obere Kante</string>
-  <string name="corner_edge_right">rechte Kante</string>
-  <string name="corner_edge_bottom">untere Kante</string>
+  <string name="corner_edge_left">links</string>
+  <string name="corner_edge_top">oben</string>
+  <string name="corner_edge_right">rechts</string>
+  <string name="corner_edge_bottom">unten</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 Regler, geteilt</string>
   <string name="media_layout_title">Medienanordnung</string>
@@ -275,7 +264,6 @@
     <item quantity="other">%1$d gezeichnet</item>
   </plurals>
   <string name="shapes_none">Noch keine</string>
-  <string name="shapes_footnote">Halte zwei Finger still auf dem Touchpad, bis die Linie durchgezogen ist (bei eingeschaltetem haptischem Feedback spürst du ein Ticken), hebe dann einen an und zeichne mit dem anderen.</string>
   <string name="shapes_empty_title">Noch keine Formen</string>
   <string name="shapes_empty_body">Zeichne hier eine Form und lege fest, was sie auslöst. Halte auf dem Touchpad zwei Finger still, bis die Linie durchgezogen ist, hebe dann einen an und zeichne sie mit dem anderen.</string>
   <string name="shapes_add">Form zeichnen</string>
@@ -336,11 +324,8 @@
   <string name="color_hex">Hex-Farbe</string>
   <string name="dial_feel_title">Reglergefühl</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
-  <string name="dial_preview_caption">Vorschau. Im Uhrzeigersinn erhöht.</string>
-  <string name="gestures_footnote">Tippe auf eine Geste, um ihre Aktion zu ändern. Die Aktionen für einen und zwei Finger sind fest: bewegen, tippen zum Klicken, kurz still halten und dann bewegen zum Ziehen; mit zwei Fingern wischen zum Scrollen, spreizen zum Zoomen, tippen für Rechtsklick.</string>
   <string name="dial_feel_each">Einzeln</string>
   <string name="dial_feel_shared">Gemeinsam</string>
-  <string name="dial_feel_each_caption">Es werden nur Regler in einer Ecke angezeigt. Stelle einen von „Gemeinsam“ um, damit er eine eigene Geschwindigkeit bekommt. „Gemeinsam“ folgt der Wischempfindlichkeit.</string>
   <string name="appearance_title">Look</string>
   <string name="appearance_preview">Vorschau</string>
   <string name="background_preview_description">Vorschau des Hintergrunds der Steuerfläche</string>
@@ -409,7 +394,6 @@
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Steuerung</string>
   <string name="controls_edit">Bearbeiten</string>
-  <string name="controls_edit_hint">Tippe auf eine Kachel, um sie aus- oder einzublenden. Halte sie gedrückt und ziehe sie, um sie zu verschieben.</string>
   <string name="controls_hidden">Ausgeblendet</string>
   <string name="controls_all_hidden">Alle Kacheln sind ausgeblendet. Tippe auf Bearbeiten, um sie wieder anzuzeigen.</string>
   <string name="controls_toggle_tile">%1$s aus- oder einblenden</string>
@@ -445,9 +429,7 @@
   <string name="controls_power">Ein/Aus</string>
   <string name="controls_settings_title">Steuerungseinstellungen</string>
   <string name="controls_icon_size">Symbolgröße</string>
-  <string name="controls_size_small">Klein</string>
-  <string name="controls_size_medium">Mittel</string>
-  <string name="controls_size_large">Groß</string>
+  <string name="controls_icon_size_value">%1$d%%</string>
   <string name="controls_show_labels">Beschriftungen anzeigen</string>
   <string name="controls_per_page">Kacheln pro Seite</string>
   <string name="controls_per_page_value">%1$d</string>
@@ -502,10 +484,8 @@
   <string name="macros_close">%1$s schließen</string>
   <string name="macros_settings">Makro-Einstellungen</string>
   <string name="macros_labels">Makrobeschriftungen</string>
-  <string name="macros_labels_caption">Namen unter den Bildern. Ein Makro ohne Bild zeigt immer seinen Namen.</string>
   <string name="macros_icons_title">Symbole</string>
   <string name="macros_icon_size">Symbolgröße</string>
-  <string name="macros_icon_size_caption">Wie viel von jeder Taste das Bild ausfüllt. Bilder werden nie über ihre eigenen Pixel hinaus gedehnt und bleiben so scharf. Auf einer großen Taste wirken sie evtl. klein, bis der Laptop größere sendet.</string>
   <string name="macros_move_earlier">Nach vorn</string>
   <string name="macros_move_later">Nach hinten</string>
   <string name="macros_moved">Verschoben an Position %1$d von %2$d</string>
@@ -514,13 +494,9 @@
   <string name="macros_layout_auto">Auto</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">Zeilen: %1$d, Spalten: %2$d</string>
-  <string name="macros_layout_caption">Die erste Zahl sind die Zeilen, die zweite die Spalten. Bei „Auto“ werden die Tasten möglichst groß.</string>
   <string name="macros_per_page">Makros pro Seite</string>
-  <string name="macros_per_page_caption">Wie viele Makros eine Seite zeigt. Die übrigen folgen auf weiteren Seiten, zu denen du seitlich wischst. Halte ein Makro gedrückt und zieh es, um es auf seiner Seite zu verschieben. Halte ein geöffnetes Makro gedrückt, damit ein Kreuz erscheint, und tippe dann auf das Kreuz, um die App zu schließen.</string>
   <string name="macros_page_of">Seite %1$d von %2$d</string>
   <string name="macros_empty_title">Noch keine Makros</string>
-  <string name="macros_empty_body">Füge sie im Edgepad-Menü „Makros…“ im Infobereich des Laptops hinzu. Sie erscheinen hier, sobald der Laptop die Liste sendet.</string>
-  <string name="macros_empty_body_mac">Füge sie im Edgepad-Menü „Makros…“ in der Menüleiste des Mac hinzu. Sie erscheinen hier, sobald er die Liste sendet.</string>
   <string name="macros_loading">Lade Makros…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
@@ -531,7 +507,6 @@
   <string name="apps_loading">Suche Apps auf %1$s…</string>
   <string name="apps_none">%1$s hat keine Apps aufgelistet.</string>
   <string name="apps_no_match">Keine App passt zu dieser Suche.</string>
-  <string name="apps_windows_hint">Nicht in der Liste? Füge die App im Startmenü des Laptops hinzu und aktualisiere dann die Liste.</string>
   <string name="apps_confirm_title">%1$s zu %2$s hinzufügen?</string>
   <string name="apps_confirm_body">Es wird ein Makro, das diese App auf dem Laptop öffnet.</string>
   <string name="apps_confirm_action">Hinzufügen</string>
@@ -541,10 +516,6 @@
   <string name="apps_row_added">Hinzugefügt</string>
   <string name="apps_row_added_description">%1$s, bereits hinzugefügt</string>
   <string name="apps_row_full">Makros voll</string>
-  <plurals name="apps_full_note">
-    <item quantity="one">Dieser Laptop fasst höchstens %1$d Makro und hat bereits so viele. Lösche eines, um ein weiteres hinzuzufügen.</item>
-    <item quantity="other">Dieser Laptop fasst höchstens %1$d Makros und hat bereits so viele. Lösche eines, um ein weiteres hinzuzufügen.</item>
-  </plurals>
   <string name="apps_added">Hinzugefügt. Es ist jetzt bei den Makros.</string>
   <string name="apps_full">Der Laptop kann keine weiteren Makros aufnehmen. Entferne zuerst eines.</string>
   <string name="apps_duplicate">Diese App ist bereits ein Makro.</string>
@@ -616,5 +587,5 @@
   <string name="xfer_channel">Dateiübertragungen</string>
   <string name="notify_channel">Laptop-Benachrichtigungen</string>
   <string name="notify_setting">Laptop-Benachrichtigungen anzeigen</string>
-  <string name="notify_setting_hint">Der gleiche Schalter muss im Edgepad-Menü des Laptops eingeschaltet sein.</string>
+  <string name="notify_setting_hint">Laptop-Benachrichtigungen brauchen denselben Schalter im Edgepad-Menü des Laptops.</string>
 </resources>

@@ -50,14 +50,11 @@ object MacroSettingsScreen {
                     },
                 )
             }
-            footnote(ui.string(R.string.macros_per_page_caption))
             section(ui.string(R.string.macros_layout))
             card { add(layout) }
-            footnote(ui.string(R.string.macros_layout_caption))
             card {
                 add(ui.toggle(ui.string(R.string.macros_labels), settings.macroLabels) { settings.macroLabels = it })
             }
-            footnote(ui.string(R.string.macros_labels_caption))
             section(ui.string(R.string.macros_icons_title))
             card {
                 add(
@@ -69,7 +66,6 @@ object MacroSettingsScreen {
                     ) { step -> settings.macroIconZoom = zoomRange.valueAt(step) },
                 )
             }
-            footnote(ui.string(R.string.macros_icon_size_caption))
         }
     }
 

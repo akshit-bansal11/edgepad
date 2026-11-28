@@ -7,7 +7,6 @@
   <string name="language_follows_phone">Edgepad は端末の言語を使います。言語は端末の設定で変更できます。</string>
   <string name="settings_pen_colour">ペンの色</string>
   <string name="settings_connection">接続</string>
-  <string name="settings_screens">画面</string>
   <string name="settings_help_about">ヘルプと情報</string>
   <string name="settings_advanced">詳細</string>
   <string name="settings_laptops_none">接続なし</string>

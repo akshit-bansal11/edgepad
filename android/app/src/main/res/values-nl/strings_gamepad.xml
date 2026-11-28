@@ -6,7 +6,6 @@
   <string name="gamepad_preset_platformer">Platformer</string>
   <string name="gamepad_preset_racing">Racen</string>
   <string name="gamepad_preset_shooter">Shooter</string>
-  <string name="gamepad_layout_hint">Sleep om te verplaatsen. Houd een element ingedrukt voor het menu.</string>
   <string name="gamepad_layout_section">Indelingen</string>
   <string name="gamepad_description">Gamecontroller voor de laptop. Knoppen en triggers kun je dubbeltikken; sticks en D-pad werken alleen met aanraking.</string>
   <string name="gamepad_node_dpad">D-pad</string>

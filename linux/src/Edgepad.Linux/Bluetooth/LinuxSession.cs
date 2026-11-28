@@ -307,6 +307,11 @@ internal sealed class LinuxSession : IDisposable
             // The apps the phone may pick from: a pick is a token into a list built here, never a path from the phone.
             dispatcher.Apps = new AppPicker(new DesktopEntryCatalog(), macros(), sender, ended.Token);
             dispatcher.AppAddReply = status => frames.Send(new Text((byte)TextKind.AppAddStatus, status));
+            dispatcher.OpenApps = () =>
+            {
+                frames.Send(new Text((byte)TextKind.OpenApps, LinuxOpenApps.Body(macros().Macros)));
+                return true;
+            };
 
             // A vanished peer holds the blocked read for minutes; Dispose from the timer's thread closes the link and wakes it.
             using var silence = new SilenceWatch(SilenceWatch.PhoneSilence, () => { Log.Write($"Session with {Address} ended: no frame for 30 s"); Dispose(); }, every: TimeSpan.FromSeconds(5));

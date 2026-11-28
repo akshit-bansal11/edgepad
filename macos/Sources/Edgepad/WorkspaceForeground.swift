@@ -42,3 +42,21 @@ final class WorkspaceForeground: ForegroundSource {
         }
     }
 }
+
+extension WorkspaceForeground {
+    /// The regular apps running now, the one in front first, then the `.app` bundles the macros point at, each as a TEXT 21
+    /// payload with the bundle id as the token, as `watch` reports it. Asked once per phone request; nothing runs between.
+    func openApps(macroTargets: [String]) -> [String] {
+        let front = NSWorkspace.shared.frontmostApplication
+        let running = NSWorkspace.shared.runningApplications
+            .filter { $0.activationPolicy == .regular }
+            .sorted { $0 == front && $1 != front }
+            .map { ForegroundApp.encode(token: $0.bundleIdentifier ?? "", name: $0.localizedName) }
+        let installed = macroTargets.filter { $0.hasSuffix(".app") }.map { path in
+            ForegroundApp.encode(
+                token: Bundle(path: path)?.bundleIdentifier ?? "",
+                name: ((path as NSString).lastPathComponent as NSString).deletingPathExtension)
+        }
+        return running + installed
+    }
+}

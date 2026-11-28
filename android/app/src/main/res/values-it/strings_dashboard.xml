@@ -3,9 +3,7 @@
   <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). Counts go through %1$d, except the Git page (plurals). -->
   <string name="controls_dash_off">Attivalo nel menu Edgepad sul tuo laptop.</string>
   <string name="widgets_title">Widget</string>
-  <string name="widgets_hint">Disegnati dietro il trackpad. I tocchi passano attraverso.</string>
   <string name="developer_mode_title">Modalità sviluppatore</string>
-  <string name="developer_mode_hint">Mostra Claude Code, Codex e GitHub su questo telefono e sul laptop. Disattivarla mantiene le tue connessioni.</string>
   <string name="developer_mode_offline">Connettiti a un laptop per cambiarla. Il laptop la ricorda.</string>
   <string name="widgets_layout_title">Disposizione widget</string>
   <string name="widgets_layout_hint">Trascina un widget per spostarlo. Tienilo premuto per cambiarne la dimensione.</string>

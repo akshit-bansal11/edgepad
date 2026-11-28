@@ -21,10 +21,6 @@
   <string name="device_connect">اتصال</string>
   <string name="connect_via">الاتصال بـ %2$s عبر %1$s</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">تتصل أجهزة اللابتوب المحفوظة عند فتح Edgepad. يوقف «قطع الاتصال» ذلك إلى أن تنقر على اللابتوب مجددًا.</string>
-  <string name="devices_stay_note">يبقى الاتصال قائمًا عند مغادرة التطبيق. اقطعه من الإشعار.</string>
-  <string name="devices_legend_off">انقر على لابتوب للاتصال به.</string>
-  <string name="devices_multi_hint">اتصل بعدة أجهزة لابتوب في آن واحد. اللابتوب النشط هو الذي تتحكم به عناصر التحكم؛ انقر «تعيين كنشط» للتبديل.</string>
   <string name="add_by_address">إضافة بالعنوان</string>
   <string name="address_connect">اتصال</string>
   <string name="address_looking">جارٍ البحث عن لابتوب على %1$s…</string>
@@ -35,7 +31,6 @@
   <string name="local_network_needed">يحتاج Edgepad إلى إذن «الأجهزة المجاورة» للعثور على أجهزة اللابتوب على شبكة Wi-Fi وعبر USB.</string>
   <string name="allow_local_network">السماح بالأجهزة المجاورة</string>
   <string name="open_controls">فتح عناصر التحكم</string>
-  <string name="open_controls_hint">اتصل بلابتوب لفتح عناصر التحكم.</string>
   <string name="open_bluetooth_settings">إعدادات بلوتوث</string>
   <string name="bluetooth_tap_off">البلوتوث متوقف. شغّله للاتصال بهذا اللابتوب.</string>
   <string name="refresh">تحديث القائمة</string>
@@ -49,14 +44,7 @@
   <string name="local_network_reason">للعثور على أجهزة اللابتوب على شبكة Wi-Fi وعبر USB، يطلب Edgepad إذن «الأجهزة المجاورة» ويفحص العناوين على شبكتك. تتيح لك «إضافة بالعنوان» تجنّب هذا البحث.</string>
   <string name="no_paired">لم يتم العثور على أي لابتوب. افتح Edgepad على اللابتوب واقرنه من إعدادات بلوتوث. للاتصال عبر Wi-Fi أو USB، فعّل اتصالات Wi-Fi وUSB من قائمة Edgepad على اللابتوب؛ وللاتصال عبر USB فعّل أيضًا التوصيل عبر USB هنا.</string>
   <string name="no_laptop_paired">لا يُعرّف أي جهاز مقترن بهذا الهاتف نفسه على أنه كمبيوتر. إذا كان اللابتوب مقترنًا، فاعرض كل الأجهزة.</string>
-  <plurals name="show_all_paired">
-    <item quantity="zero">عرض كل الأجهزة المقترنة (%1$d أخرى)</item>
-    <item quantity="one">عرض كل الأجهزة المقترنة (جهاز واحد آخر)</item>
-    <item quantity="two">عرض كل الأجهزة المقترنة (جهازان آخران)</item>
-    <item quantity="few">عرض كل الأجهزة المقترنة (%1$d أخرى)</item>
-    <item quantity="many">عرض كل الأجهزة المقترنة (%1$d أخرى)</item>
-    <item quantity="other">عرض كل الأجهزة المقترنة (%1$d أخرى)</item>
-  </plurals>
+  <string name="show_all_paired">عرض الكل</string>
   <string name="show_laptops_only">عرض أجهزة الكمبيوتر فقط</string>
   <string name="allow_permission">السماح بالأجهزة المجاورة</string>
   <string name="open_app_settings">فتح أذونات Android</string>
@@ -148,9 +136,7 @@
   <string name="forget_laptop_title">نسيان %1$s؟</string>
   <string name="forget_laptop_body">تتم إزالته من هذه القائمة وحذف رمز إقرانه. يبقى اقتران بلوتوث في Android؛ أزِله من إعدادات بلوتوث.</string>
   <string name="reconnect_automatically">إعادة الاتصال تلقائيًا</string>
-  <string name="reconnect_caption">يتصل بأجهزة اللابتوب المحفوظة عند فتح Edgepad، ويعيد المحاولة عند انقطاع الاتصال.</string>
   <string name="stay_connected">البقاء متصلًا في الخلفية</string>
-  <string name="stay_connected_caption">يُبقي أجهزة اللابتوب متصلة أثناء تصغير Edgepad، مع إشعار لقطع الاتصال. عند الإيقاف ينقطع الاتصال بعد وقت قصير من مغادرة التطبيق.</string>
   <string name="link_channel">الاتصال</string>
   <string name="link_notice">متصل بـ %1$s</string>
   <plurals name="link_notice_more">
@@ -176,11 +162,10 @@
   <string name="corner_bottom_left">أسفل اليسار</string>
   <string name="corner_off">إيقاف</string>
   <string name="corner_split">تقسيم الزوايا</string>
-  <string name="corner_split_caption">يمنح كل زاوية مقياسين، واحدًا على كل حافة. حتى ثمانية في المجموع.</string>
-  <string name="corner_edge_left">الحافة اليسرى</string>
-  <string name="corner_edge_top">الحافة العلوية</string>
-  <string name="corner_edge_right">الحافة اليمنى</string>
-  <string name="corner_edge_bottom">الحافة السفلية</string>
+  <string name="corner_edge_left">اليسرى</string>
+  <string name="corner_edge_top">العلوية</string>
+  <string name="corner_edge_right">اليمنى</string>
+  <string name="corner_edge_bottom">السفلية</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 مقاييس، مقسّمة</string>
   <string name="media_layout_title">تخطيط الوسائط</string>
@@ -304,7 +289,6 @@
     <item quantity="other">%1$d شكل مرسوم</item>
   </plurals>
   <string name="shapes_none">لا شيء بعد</string>
-  <string name="shapes_footnote">ثبّت إصبعين على لوحة اللمس إلى أن يصبح الخط متصلًا (وستشعر أيضًا بنقرة اهتزازية إذا كانت الاستجابة اللمسية مفعّلة)، ثم ارفع أحدهما وارسم بالآخر.</string>
   <string name="shapes_empty_title">لا أشكال بعد</string>
   <string name="shapes_empty_body">ارسم شكلًا هنا وحدّد ما يشغّله. على لوحة اللمس، ثبّت إصبعين إلى أن يصبح الخط متصلًا، ثم ارفع أحدهما وارسمه بالآخر.</string>
   <string name="shapes_add">رسم شكل</string>
@@ -365,11 +349,8 @@
   <string name="color_hex">لون Hex</string>
   <string name="dial_feel_title">إحساس المقياس</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
-  <string name="dial_preview_caption">معاينة. اتجاه عقارب الساعة يرفع.</string>
-  <string name="gestures_footnote">انقر إيماءة لتغيير إجرائها. إيماءات الإصبع والإصبعين ثابتة: بإصبع واحد تحرّك المؤشر، وتنقر للنقر، وتثبّته لحظة ثم تحرّكه للسحب؛ وبإصبعين تسحب للتمرير، وتقرص للتكبير، وتنقر للنقر الأيمن.</string>
   <string name="dial_feel_each">كل مقياس</string>
   <string name="dial_feel_shared">مشترك</string>
-  <string name="dial_feel_each_caption">تُعرض المقاييس الموجودة في الزوايا فقط. انقل أحدها خارج «مشترك» لتمنحه سرعة خاصة به. «مشترك» يتبع «حساسية الانزلاق».</string>
   <string name="appearance_title">المظهر</string>
   <string name="appearance_preview">معاينة</string>
   <string name="background_preview_description">معاينة خلفية سطح التحكم</string>
@@ -440,7 +421,6 @@
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">عناصر التحكم</string>
   <string name="controls_edit">تعديل</string>
-  <string name="controls_edit_hint">انقر على عنصر لإخفائه أو إظهاره. اضغط مع الاستمرار واسحبه لنقله.</string>
   <string name="controls_hidden">مخفي</string>
   <string name="controls_all_hidden">كل العناصر مخفية. انقر على تعديل لإظهارها من جديد.</string>
   <string name="controls_toggle_tile">إخفاء %1$s أو إظهاره</string>
@@ -476,9 +456,7 @@
   <string name="controls_power">الطاقة</string>
   <string name="controls_settings_title">إعدادات عناصر التحكم</string>
   <string name="controls_icon_size">حجم الأيقونات</string>
-  <string name="controls_size_small">صغير</string>
-  <string name="controls_size_medium">متوسط</string>
-  <string name="controls_size_large">كبير</string>
+  <string name="controls_icon_size_value">%1$d%%</string>
   <string name="controls_show_labels">إظهار التسميات</string>
   <string name="controls_per_page">عدد عناصر التحكم في الصفحة</string>
   <string name="controls_per_page_value">%1$d</string>
@@ -533,10 +511,8 @@
   <string name="macros_close">إغلاق %1$s</string>
   <string name="macros_settings">إعدادات الماكرو</string>
   <string name="macros_labels">تسميات الماكرو</string>
-  <string name="macros_labels_caption">أسماء تحت الصور. الماكرو الذي لا صورة له يعرض اسمه دائمًا.</string>
   <string name="macros_icons_title">الأيقونات</string>
   <string name="macros_icon_size">حجم الأيقونة</string>
-  <string name="macros_icon_size_caption">مقدار ما تملؤه الصورة من كل زر. لا تُمدَّد الصور أبعد من بكسلاتها، فتبقى حادة. وقد تبدو صغيرة على زر كبير إلى أن يرسل اللابتوب صورًا أكبر.</string>
   <string name="macros_move_earlier">نقل إلى الأمام</string>
   <string name="macros_move_later">نقل إلى الخلف</string>
   <string name="macros_moved">نُقل إلى الموضع %1$d من %2$d</string>
@@ -545,13 +521,9 @@
   <string name="macros_layout_auto">تلقائي</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">الصفوف: %1$d، الأعمدة: %2$d</string>
-  <string name="macros_layout_caption">الرقم الأول للصفوف والثاني للأعمدة. يختار «تلقائي» ما يجعل الأزرار أكبر ما يمكن.</string>
   <string name="macros_per_page">الماكرو على الشاشة</string>
-  <string name="macros_per_page_caption">عدد الماكرو في الصفحة الواحدة. يستمر الباقي في صفحات أخرى تصل إليها بتحريك إصبعك جانبيًا. اضغط مع الاستمرار على ماكرو ثم اسحبه لنقله ضمن صفحته. اضغط مع الاستمرار على ماكرو مفتوح لتظهر علامة إغلاق، ثم المس العلامة لإغلاق التطبيق.</string>
   <string name="macros_page_of">الصفحة %1$d من %2$d</string>
   <string name="macros_empty_title">لا ماكرو بعد</string>
-  <string name="macros_empty_body">أضفها من قائمة «الماكرو…» في Edgepad بمنطقة الإعلام على اللابتوب. تظهر هنا فور أن يرسل القائمة.</string>
-  <string name="macros_empty_body_mac">أضفها من قائمة «الماكرو…» في Edgepad بشريط القوائم على جهاز Mac. تظهر هنا فور أن يرسل القائمة.</string>
   <string name="macros_loading">جارٍ تحميل الماكرو…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
@@ -562,7 +534,6 @@
   <string name="apps_loading">جارٍ البحث عن تطبيقات على %1$s…</string>
   <string name="apps_none">لم يعرض %1$s أي تطبيقات.</string>
   <string name="apps_no_match">لا يوجد تطبيق يطابق هذا البحث.</string>
-  <string name="apps_windows_hint">لا تجد التطبيق في القائمة؟ أضفه إلى قائمة ابدأ على اللابتوب، ثم حدّث القائمة.</string>
   <string name="apps_confirm_title">إضافة %1$s إلى %2$s؟</string>
   <string name="apps_confirm_body">يصبح ماكرو يفتح هذا التطبيق على اللابتوب.</string>
   <string name="apps_confirm_action">إضافة</string>
@@ -572,14 +543,6 @@
   <string name="apps_row_added">مضاف</string>
   <string name="apps_row_added_description">%1$s، مضاف بالفعل</string>
   <string name="apps_row_full">اكتمل العدد</string>
-  <plurals name="apps_full_note">
-    <item quantity="zero">الحد الأقصى للماكرو على هذا اللابتوب هو %1$d، وقد وصلت إليه. احذف ماكرو لإضافة آخر.</item>
-    <item quantity="one">الحد الأقصى للماكرو على هذا اللابتوب هو %1$d، وقد وصلت إليه. احذف ماكرو لإضافة آخر.</item>
-    <item quantity="two">الحد الأقصى للماكرو على هذا اللابتوب هو %1$d، وقد وصلت إليه. احذف ماكرو لإضافة آخر.</item>
-    <item quantity="few">الحد الأقصى للماكرو على هذا اللابتوب هو %1$d، وقد وصلت إليه. احذف ماكرو لإضافة آخر.</item>
-    <item quantity="many">الحد الأقصى للماكرو على هذا اللابتوب هو %1$d، وقد وصلت إليه. احذف ماكرو لإضافة آخر.</item>
-    <item quantity="other">الحد الأقصى للماكرو على هذا اللابتوب هو %1$d، وقد وصلت إليه. احذف ماكرو لإضافة آخر.</item>
-  </plurals>
   <string name="apps_added">تمت الإضافة. أصبح ضمن الماكرو الآن.</string>
   <string name="apps_full">لا يتّسع اللابتوب لمزيد من الماكرو. أزل واحدًا أولًا.</string>
   <string name="apps_duplicate">هذا التطبيق موجود بالفعل كماكرو.</string>
@@ -679,5 +642,5 @@
   <string name="xfer_channel">نقل الملفات</string>
   <string name="notify_channel">إشعارات اللابتوب</string>
   <string name="notify_setting">عرض إشعارات اللابتوب</string>
-  <string name="notify_setting_hint">يتطلب تشغيل المفتاح نفسه في قائمة Edgepad على اللابتوب.</string>
+  <string name="notify_setting_hint">تتطلب إشعارات اللابتوب تشغيل المفتاح نفسه في قائمة Edgepad على اللابتوب.</string>
 </resources>

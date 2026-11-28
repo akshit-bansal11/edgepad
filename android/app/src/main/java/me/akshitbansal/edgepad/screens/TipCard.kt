@@ -40,21 +40,34 @@ object TipCard {
     ): Boolean {
         if (settings.tipSeen(key)) return false
         settings.setTipSeen(key)
+        notice(host, icon, text, bottomDp, startDp, endDp)
+        return true
+    }
+
+    /**
+     * Shows [text] on [host] every time it is called: the tip card for a message the screen must give again, such as
+     * what a change just turned off. [gravity] puts it at the bottom centre, or at the bottom right with
+     * `Gravity.BOTTOM or Gravity.END`. With no [icon] the card holds only the line and its close button.
+     */
+    fun notice(
+        host: FrameLayout,
+        icon: StencilIcon.Kind?,
+        text: Int,
+        bottomDp: Float = Space.L,
+        startDp: Float = Space.L,
+        endDp: Float = Space.L,
+        gravity: Int = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
+    ) {
         val ui = Ui(host.context)
         val p = ui.palette
         val card =
             LinearLayout(host.context).apply {
-                gravity = Gravity.CENTER_VERTICAL
+                this.gravity = Gravity.CENTER_VERTICAL
                 background = ui.rounded(p.popover, Space.CARD_RADIUS)
                 elevation = ui.dp(ELEVATION_DP).toFloat()
                 setPadding(ui.dp(Space.M), 0, 0, 0)
                 alpha = 0f
                 translationY = ui.dp(SLIDE_DP).toFloat()
-            }
-        val picture =
-            ImageView(host.context).apply {
-                setImageDrawable(StencilIcon(icon, p.ink, p.accent))
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             }
         val line =
             ui.text(ui.string(text), Type.SMALL, p.ink).apply {
@@ -78,15 +91,24 @@ object TipCard {
                 }
             }
         val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
-        val size = ui.dp(PICTURE_DP)
-        card.addView(picture, LinearLayout.LayoutParams(size, size))
-        card.addView(line, LinearLayout.LayoutParams(0, wrap, 1f).apply { marginStart = ui.dp(Space.M) })
+        val lineParams = LinearLayout.LayoutParams(0, wrap, 1f)
+        if (icon != null) {
+            val picture =
+                ImageView(host.context).apply {
+                    setImageDrawable(StencilIcon(icon, p.ink, p.accent))
+                    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                }
+            val size = ui.dp(PICTURE_DP)
+            card.addView(picture, LinearLayout.LayoutParams(size, size))
+            lineParams.marginStart = ui.dp(Space.M)
+        }
+        card.addView(line, lineParams)
         card.addView(close, LinearLayout.LayoutParams(ui.dp(Space.TOUCH), ui.dp(Space.TOUCH)))
         // The screen's width and not the host's, which has not been measured yet when a screen is first built.
         val room = host.resources.displayMetrics.widthPixels - ui.dp(startDp) - ui.dp(endDp)
         val at =
             FrameLayout
-                .LayoutParams(minOf(room, ui.dp(MAX_WIDTH_DP)), wrap, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL)
+                .LayoutParams(minOf(room, ui.dp(MAX_WIDTH_DP)), wrap, gravity)
                 .apply {
                     marginStart = ui.dp(startDp)
                     marginEnd = ui.dp(endDp)
@@ -99,6 +121,5 @@ object TipCard {
             .translationY(0f)
             .setDuration(Motion.REVEAL)
             .start()
-        return true
     }
 }

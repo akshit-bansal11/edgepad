@@ -4,6 +4,39 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [5.2.2] - 2026-11-28
+
+No wire-protocol break: the protocol stays at version 6. The one new id pair (the open-apps list for app profiles) is additive, so a 5.2.2 half works with a 5.2.1 half; the phone then keeps "Add the app in front".
+
+### Added
+
+- **Phone: Accessibility page** in Settings, with Sounds, Haptic feedback, Air mouse and Show gesture hints in one place. Your earlier choices carry over.
+- **Phone: Sounds**, off by default. Taps play Android's own click and each dial step plays a small tick, never faster than a steady rate. Silent mode always wins, and nothing loads while Sounds is off.
+- **Phone: a buzz and a ring when a hold kicks in**: one ring when one finger starts a drag, two when two fingers start a shape. Under reduced motion the ring does not animate.
+- **App profiles: pick from the apps open on the laptop** and your macro apps. On Linux under Wayland only macro apps are listed.
+- **Mac: the right logo for streaming in Chrome, Safari, Edge, Brave and Arc.** macOS asks once per browser whether Edgepad may read the front tab. Only the service's name reaches the phone, never the page's title or address, and Music or Spotify always comes first. If you say no, no media card is shown.
+
+### Changed
+
+- **Controls popup never scrolls.** Tiles grow or shrink to fit the controls per page, and the icon size is a slider from 30% to 80% of the tile (Small, Medium and Large carry over as 40%, 50% and 65%). The 13 icons are redrawn on one grid: white outlines with one blue detail.
+- **Settings no longer lists the screens.** Each screen's settings open from its own gear; Capture gained one.
+- **Surface settings: the inner "Surface" section is now "Display".**
+- **Corners: each row shows a small phone with the dial's spot in blue**, for 4 dials and all 8 split positions.
+- **App profiles need 4 dials.** With 8 dials they are off and a small notice says so. The 4-dial and 8-dial layouts are kept apart; the first switch to 8 fills the new dials with the first unused ones.
+- **Dial feel: per-dial speeds sit behind an "Each dial" switch**, on if any dial already had its own speed.
+- **Shapes: "What it runs" is grouped** into Mouse, Media, System, Screens and Macros. Save and Redraw stay at the bottom right.
+- **Look: one card per section**, the pattern switch spans the width, and the preview sits beside the settings when sideways and above them when upright.
+- **What Edgepad uses: sections fold**, all closed at first, and TalkBack says whether each is open.
+- **Fewer grey explanation lines** (#106). The explanations moved to the website docs, whose search now forgives typos and suggests as you type (#113). Notes on permissions and on what leaves your phone stay in the app. "Show all paired devices" is now "Show all".
+
+### Fixed
+
+- **Wrong media logo for a site in a browser**: Netflix's logo while Prime Video played, or Chrome's icon on Instagram. The laptop now reads the window that is playing, knows Instagram, Facebook, LinkedIn, X and Sky, maps desktop apps such as Prime Video for Windows, and a site with no logo shows a plain music symbol instead of the browser's icon. Windows and Linux; Mac as above.
+- **The opening animation is no longer cut short** on the first open after an update (#108).
+- **Capture's title no longer sits under the camera hole** when upright (#104).
+- **Settings keep their scroll position** when you go into a page and back (#104).
+- **Switching a laptop between Bluetooth and Wi-Fi** no longer shows Reconnecting.
+
 ## [5.2.1] - 2026-11-28
 
 No wire-protocol change: the protocol stays at version 6, and only the laptop apps change. A 5.2.0 phone works with a 5.2.1 laptop.

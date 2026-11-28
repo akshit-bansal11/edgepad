@@ -112,6 +112,10 @@ internal sealed partial class WindowsMacroWindows : IMacroWindows
     /// <summary>The app window behind the foreground window: a save prompt is owned by it, and has no place in the list.</summary>
     private static nint ForegroundRoot() => GetAncestor(GetForegroundWindow(), RootOwner);
 
+    /// <summary>The image paths of the app windows on this desktop, topmost first, each once. An elevated process, whose image cannot be read, is left out.</summary>
+    internal static List<string> OpenImages() =>
+        [.. AppWindows().Select(window => window.Image).OfType<string>().Distinct(StringComparer.OrdinalIgnoreCase)];
+
     /// <summary>The app windows on this desktop, topmost first. One pass, and one image read per process.</summary>
     private static unsafe List<AppWindow> AppWindows()
     {

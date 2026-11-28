@@ -13,72 +13,67 @@ public sealed class BrowserTitleTests
         Assert.Equal(browser, BrowserTitle.IsBrowser(executable));
 
     [Fact]
-    public void TheServiceIsReadFromTheTitle() =>
-        Assert.Equal("Netflix", BrowserTitle.Service(["Stranger Things | Netflix - Google Chrome"]));
+    public void TheWindowWithTheTrackIsThePlayingOne() =>
+        Assert.Equal(
+            "Prime Video",
+            BrowserTitle.Service(
+                ["Stranger Things | Netflix - Google Chrome", "Prime Video: The Boys - Google Chrome"],
+                "prime video: the boys"));
 
     [Fact]
-    public void TheLongerNameWinsWhenOneContainsAnother() =>
-        Assert.Equal("YouTube Music", BrowserTitle.Service(["Liked songs - YouTube Music - Google Chrome"]));
-
-    /// <summary>
-    /// The first title that names any service wins, and every visible browser window is searched — so a
-    /// name matched inside an ordinary word outranks the tab that is actually playing. "Twitches" is on
-    /// nobody's watchlist by accident; "Time complexity" would have named Plex the same way.
-    /// </summary>
-    [Fact]
-    public void AWordThatMerelyContainsAServiceNameIsNotTheService() =>
+    public void WithoutAMatchingTrackTheTopWindowIsThePlayingOne() =>
         Assert.Equal(
             "YouTube",
-            BrowserTitle.Service(
-            [
-                "Twitches (2005) - Letterboxd - Google Chrome",
-                "Some Song - YouTube - Google Chrome",
-            ]));
-
-    /// <summary>Guards the trailing lookahead: a second \b would match neither "Paramount+" nor "Disney+".</summary>
-    [Fact]
-    public void AServiceEndingInANonWordCharacterIsStillFound() =>
-        Assert.Equal("Paramount+", BrowserTitle.Service(["Yellowjackets | Paramount+ - Google Chrome"]));
+            BrowserTitle.Service(["Some Song - YouTube - Google Chrome", "Stranger Things | Netflix - Google Chrome"], "Other"));
 
     [Fact]
-    public void PlexIsReadFromTheTitle() =>
-        Assert.Equal("Plex", BrowserTitle.Service(["The Expanse | Plex - Google Chrome"]));
+    public void AnEmptyTrackReadsTheTopWindow() =>
+        Assert.Equal("Netflix", BrowserTitle.Service(["Stranger Things | Netflix - Google Chrome", "Prime Video - Chrome"], ""));
 
     [Fact]
-    public void AnUnknownTitleGivesNothing() =>
-        Assert.Null(BrowserTitle.Service(["New Tab - Google Chrome", "Inbox - Gmail"]));
+    public void AnotherWindowNamingAServiceDoesNotNameThePlayingOne() =>
+        Assert.Null(BrowserTitle.Service(["Inbox - Gmail - Google Chrome", "Stranger Things | Netflix - Google Chrome"], "Podcast"));
 
     [Fact]
-    public void TheSameAppAndTrackDoNotListTheWindowsAgain()
+    public void NoWindowsGivesNothing() => Assert.Null(BrowserTitle.Service([], "Track"));
+
+    [Fact]
+    public void TheSameAppLineAndWindowDoNotListTheWindowsAgain()
     {
         var listed = 0;
-        var cache = new BrowserTitle.Cache(_ =>
-        {
-            listed++;
-            return ["Stranger Things | Netflix - Google Chrome"];
-        });
+        var cache = new BrowserTitle.Cache(
+            _ =>
+            {
+                listed++;
+                return ["Stranger Things | Netflix - Google Chrome"];
+            },
+            () => "1|Stranger Things | Netflix - Google Chrome");
 
-        Assert.Equal("Netflix", cache.Service("chrome", "Chrome", "Stranger Things"));
-        Assert.Equal("Netflix", cache.Service("chrome", "Chrome", "Stranger Things"));
+        Assert.Equal("Netflix", cache.Service("chrome", "Chrome", "Stranger Things", "Stranger Things"));
+        Assert.Equal("Netflix", cache.Service("chrome", "Chrome", "Stranger Things", "Stranger Things"));
         Assert.Equal(1, listed);
     }
 
     [Fact]
-    public void ANewAppOrTrackListsTheWindowsAgain()
+    public void ANewLineOrAFrontWindowListsTheWindowsAgain()
     {
+        var front = "1|Stranger Things | Netflix - Google Chrome";
         var titles = "Stranger Things | Netflix - Google Chrome";
         var listed = 0;
-        var cache = new BrowserTitle.Cache(_ =>
-        {
-            listed++;
-            return [titles];
-        });
-        _ = cache.Service("chrome", "Chrome", "Stranger Things");
+        var cache = new BrowserTitle.Cache(
+            _ =>
+            {
+                listed++;
+                return [titles];
+            },
+            () => front);
+        _ = cache.Service("chrome", "Chrome", "Stranger Things", "Stranger Things");
 
         titles = "Some Song - YouTube - Google Chrome";
-        Assert.Equal("YouTube", cache.Service("msedge", "MSEdge", "Stranger Things"));
-        titles = "Liked songs - YouTube Music - Google Chrome";
-        Assert.Equal("YouTube Music", cache.Service("msedge", "MSEdge", "Some Song"));
+        Assert.Equal("YouTube", cache.Service("msedge", "MSEdge", "Stranger Things", "Stranger Things"));
+        titles = "Prime Video: The Boys - Google Chrome";
+        front = "1|Prime Video: The Boys - Google Chrome";
+        Assert.Equal("Prime Video", cache.Service("msedge", "MSEdge", "Stranger Things", "Stranger Things"));
         Assert.Equal(3, listed);
     }
 }

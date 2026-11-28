@@ -25,11 +25,9 @@ import me.akshitbansal.edgepad.link.LaptopState
  *
  * It draws [catalog], which the link fills: [listChanged] when a new list lands and [iconArrived] for each picture
  * after it, since the pictures follow the list and a row is drawn without one until its own arrives. The rows are built
- * once a list and a search only hides the ones it does not match, so typing never builds a view. On a Windows laptop,
- * which lists the Start menu and nothing else, the page says how to get another app onto that list.
+ * once a list and a search only hides the ones it does not match, so typing never builds a view.
  *
  * @param catalog The selected laptop's list. Read on the main thread only, like everything here.
- * @param windows True for a Windows laptop, the only kind whose list a person can add to from the laptop.
  * @param onAdd The person said yes to adding this app.
  * @param onRefresh Asks the laptop for its list again.
  */
@@ -37,7 +35,6 @@ class AppListScreen(
     private val ui: Ui,
     private val laptopName: String,
     private val catalog: AppCatalogState,
-    private val windows: Boolean,
     /** AND-B-35: the macro names the laptop last sent, so the rows of apps already added can say so. */
     private val macroNames: () -> List<String>,
     /** TEXT 22: how many macros the laptop keeps; [LaptopState.MACRO_SLOTS] until it says. */
@@ -60,8 +57,6 @@ class AppListScreen(
     private val addedNow = mutableSetOf<String>()
     private lateinit var list: LinearLayout
     private lateinit var message: TextView
-    private lateinit var hint: TextView
-    private lateinit var fullNote: TextView
 
     val view: View =
         ui.page(
@@ -75,8 +70,6 @@ class AppListScreen(
             card { add(searchField()) }
             list = card(Space.M) {}
             message = body("", Space.L).apply { gravity = Gravity.CENTER }
-            fullNote = footnote("")
-            hint = footnote(ui.string(R.string.apps_windows_hint))
         }
 
     init {
@@ -91,8 +84,6 @@ class AppListScreen(
         // AND-B: the laptop keeps at most MACRO_SLOTS macros (IMacroRunner.MaxMacros), so a full list adds no more.
         val cap = macroCap()
         val full = names.count { it.isNotEmpty() } >= cap
-        fullNote.text = ui.context.resources.getQuantityString(R.plurals.apps_full_note, cap, cap)
-        fullNote.visibility = if (full && catalog.loaded) View.VISIBLE else View.GONE
         rows = catalog.apps.map { row(it, it.name.lowercase() in have || it.token in addedNow, full) }
         rows.forEach { list.addView(it.view) }
         // UX-D15: until the list lands, rows the size of the real ones hold its place.
@@ -131,8 +122,6 @@ class AppListScreen(
             }
         message.text = words
         message.visibility = if (words.isEmpty()) View.GONE else View.VISIBLE
-        // Said once a list is in and not while it is awaited: it answers "where is my app", not "is it coming".
-        hint.visibility = if (windows && catalog.loaded) View.VISIBLE else View.GONE
     }
 
     private fun row(

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">显示</string>
+  <string name="accessibility_title">无障碍</string>
+  <string name="accessibility_sounds">声音</string>
+</resources>

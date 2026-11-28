@@ -6,6 +6,10 @@
   <string name="profiles_caption">लैपटॉप इस फ़ोन को बताता है कि कौन सा ऐप आगे है, केवल तभी जब यह चालू हो। लैपटॉप पर कुछ सहेजा नहीं जाता।</string>
   <string name="profiles_empty">अभी कोई प्रोफ़ाइल नहीं। लैपटॉप पर कोई ऐप आगे लाएँ, फिर उसे यहाँ जोड़ें।</string>
   <string name="profiles_add_current">आगे वाला ऐप जोड़ें</string>
+  <string name="profiles_add_open">ऐप जोड़ें</string>
+  <string name="profiles_pick_loading">खुले ऐप खोज रहे हैं…</string>
+  <string name="profiles_pick_none">जोड़ने के लिए और ऐप नहीं हैं।</string>
+  <string name="profiles_pick_front">आगे</string>
   <string name="profiles_none_in_front">अभी कोई ऐप आगे नहीं है</string>
   <string name="profiles_unsupported">यह लैपटॉप नहीं बता सकता कि कौन सा ऐप आगे है।</string>
   <string name="profiles_delete">प्रोफ़ाइल हटाएँ</string>
@@ -14,8 +18,9 @@
   <string name="profile_custom">कस्टमाइज़ किया गया</string>
   <string name="auto_profiles_title">स्वचालित प्रोफ़ाइल</string>
   <string name="auto_profiles_toggle">ऐप के प्रकार के अनुसार डायल बदलें</string>
-  <string name="auto_profiles_caption">आगे वाले ऐप की प्रोफ़ाइल न हो तो डायल उसके प्रकार के अनुसार चलते हैं: मीडिया, टाइमलाइन एडिटर या ब्राउज़र। आपकी अपनी प्रोफ़ाइल पहले लागू होती हैं।</string>
   <string name="auto_kind_media">मीडिया</string>
   <string name="auto_kind_timeline">टाइमलाइन</string>
   <string name="auto_kind_browser">ब्राउज़र</string>
+  <string name="profiles_needs_four">ऐप प्रोफ़ाइल सिर्फ़ 4 डायल के साथ काम करती हैं।</string>
+  <string name="profiles_split_off">8 डायल के साथ ऐप प्रोफ़ाइल बंद रहती हैं।</string>
 </resources>

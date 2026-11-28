@@ -54,6 +54,7 @@ class PresenterScreen(
     private val send: (Frame) -> Unit,
     private val onLaser: (Boolean) -> Unit,
     private val screenSize: () -> Pair<Int, Int>?,
+    private val onSettings: () -> Unit,
     onBack: () -> Unit,
 ) {
     private val canvas = AnnotateCanvas(ui.context, Strokes(), screenSize, send, laser = true)
@@ -66,7 +67,7 @@ class PresenterScreen(
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(ui.palette.background)
             ui.padToBars(this)
-            val options = ui.icon(Glyph.Shape.OPTIONS, ui.string(R.string.presenter_settings)) { openSettings() }
+            val options = ui.icon(Glyph.Shape.OPTIONS, ui.string(R.string.presenter_settings)) { onSettings() }
             addView(
                 ui.bar(
                     ui.string(R.string.presenter_title),
@@ -149,14 +150,5 @@ class PresenterScreen(
     fun sendLaser() {
         send(ControlId.PEN_WIDTH.set(settings.laserSize))
         send(laserTool(settings.laserTrail).frame())
-    }
-
-    /** The laser sheet: a laptop-scale preview, the three sizes and the trail. */
-    private fun openSettings() {
-        LaserSheet(ui, settings, screenSize) {
-            canvas.laserSize = settings.laserSize
-            canvas.laserTrail = settings.laserTrail
-            sendLaser()
-        }.show(view)
     }
 }

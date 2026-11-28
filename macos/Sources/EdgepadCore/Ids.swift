@@ -63,6 +63,8 @@ public enum ActionId: UInt8, CaseIterable {
     /// blob and then a `BlobKind.appIcon` blob each, and `appsCancel` stops that list and its icons.
     case appsList = 56
     case appsCancel = 57
+    /// Adding an app profile: asks this computer for the apps open on it, answered by one `TextKind.openApps`.
+    case openAppsList = 63
     /// The macro grid is open and wants to know which macro apps are running: `macrosWatch` starts this computer's survey,
     /// which reports `TextKind.macroOpen` on change only, and `macrosUnwatch` stops it. Forgotten when the session ends.
     case macrosWatch = 58
@@ -205,6 +207,8 @@ public enum TextKind: UInt8, CaseIterable {
     /// Computer to phone: what kind of app is in front, one `AppKindToken`, or empty for none. Sent on change, only while
     /// `ControlId.foregroundWatch` is 1. Never a title.
     case foregroundKind = 40
+    /// Computer to phone, the answer to `ActionId.openAppsList`: lines "token TAB name", the token what `foregroundApp` reports, at most 40.
+    case openApps = 41
 }
 
 /// The whole vocabulary of `TextKind.features`: tokens the phone matches on, never prose. The raw value is
@@ -235,6 +239,7 @@ public enum Feature: String, CaseIterable {
     case restart = "restart"
     case shutDown = "shutdown"
     case appKind = "appkind"
+    case openApps = "openapps"
 }
 
 /// The first field of a `TextKind.netInfo`: a token the phone matches on, never prose. The raw value is literally the

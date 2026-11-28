@@ -6,6 +6,10 @@
   <string name="profiles_caption">Der Laptop meldet diesem Handy die vorderste App, nur solange dies an ist. Auf dem Laptop wird nichts gespeichert.</string>
   <string name="profiles_empty">Noch keine Profile. Hole auf dem Laptop eine App nach vorn und füge sie hier hinzu.</string>
   <string name="profiles_add_current">Vorderste App hinzufügen</string>
+  <string name="profiles_add_open">App hinzufügen</string>
+  <string name="profiles_pick_loading">Suche nach geöffneten Apps…</string>
+  <string name="profiles_pick_none">Keine weiteren Apps zum Hinzufügen.</string>
+  <string name="profiles_pick_front">Im Vordergrund</string>
   <string name="profiles_none_in_front">Noch keine App im Vordergrund</string>
   <string name="profiles_unsupported">Dieser Laptop kann die vorderste App nicht melden.</string>
   <string name="profiles_delete">Profil löschen</string>
@@ -14,8 +18,9 @@
   <string name="profile_custom">Angepasst</string>
   <string name="auto_profiles_title">Automatische Profile</string>
   <string name="auto_profiles_toggle">Regler nach App-Art wechseln</string>
-  <string name="auto_profiles_caption">Hat die vorderste App kein Profil, richten sich die Regler nach ihrer Art: Medien, Schnitt oder Browser. Eigene Profile haben Vorrang.</string>
   <string name="auto_kind_media">Medien</string>
   <string name="auto_kind_timeline">Schnitt</string>
   <string name="auto_kind_browser">Browser</string>
+  <string name="profiles_needs_four">App-Profile funktionieren nur mit 4 Reglern.</string>
+  <string name="profiles_split_off">Mit 8 Reglern sind App-Profile aus.</string>
 </resources>

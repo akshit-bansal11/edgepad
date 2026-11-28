@@ -48,6 +48,7 @@ class CaptureScreen(
     private val settings: Settings,
     private val state: LaptopState,
     private val send: (Frame) -> Unit,
+    onSettings: () -> Unit,
     onBack: () -> Unit,
 ) {
     private val available = Feature.CAPTURE in state.features
@@ -90,6 +91,7 @@ class CaptureScreen(
                     ui.string(R.string.controls_capture),
                     onBack,
                     destination(),
+                    ui.icon(Glyph.Shape.GEAR, ui.string(R.string.settings_capture), onSettings),
                     backLabel = ui.string(R.string.back_to_surface),
                 ),
             )

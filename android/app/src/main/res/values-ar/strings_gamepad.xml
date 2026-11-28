@@ -6,7 +6,6 @@
   <string name="gamepad_preset_platformer">منصات</string>
   <string name="gamepad_preset_racing">سباق</string>
   <string name="gamepad_preset_shooter">تصويب</string>
-  <string name="gamepad_layout_hint">اسحب للنقل. اضغط مع الاستمرار على عنصر تحكم لفتح قائمته.</string>
   <string name="gamepad_layout_section">التخطيطات</string>
   <string name="gamepad_description">ذراع ألعاب للابتوب. يمكن النقر مرتين على الأزرار والمحفزات؛ أما العصي وأسهم الاتجاه فتحتاج إلى اللمس.</string>
   <string name="gamepad_node_dpad">أسهم الاتجاه</string>

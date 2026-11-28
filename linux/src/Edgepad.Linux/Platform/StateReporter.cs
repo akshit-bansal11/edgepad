@@ -242,7 +242,8 @@ internal sealed class StateReporter : IDisposable
 
     /// <summary>
     /// BLOB 4, once per followed player, and for a browser once per artwork. Nothing to do with no player. The
-    /// artwork is a local file or nothing, never a download; a browser without one shows its own icon.
+    /// artwork is a local file or nothing, never a download; a browser without one sends nothing, so the phone draws
+    /// the service's logo or its plain symbol, never the browser's own icon.
     /// </summary>
     private void SendIcon(MediaState media)
     {
@@ -267,7 +268,7 @@ internal sealed class StateReporter : IDisposable
             path = art;
             label = "artwork";
         }
-        else if (mpris.DesktopEntry(media.Bus) is { Length: > 0 } entry)
+        else if (!browser && mpris.DesktopEntry(media.Bus) is { Length: > 0 } entry)
         {
             var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var dirs = DesktopIcons.DataDirs(

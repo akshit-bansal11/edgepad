@@ -28,7 +28,7 @@
     <value>开启 Wi-Fi 连接后，Edgepad 会让手机找到这台 Mac 并通过 Wi-Fi 连接。</value>
   </data>
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
-    <value>Edgepad 会询问“音乐”或 Spotify 当前播放的歌曲，并在你于手机上拖动进度时跳转；媒体结束时，如果你在手机上要求，它会让这台 Mac 睡眠或关机。</value>
+    <value>Edgepad 会询问“音乐”或 Spotify 当前播放的歌曲，并在你于手机上拖动进度时跳转；媒体结束时，如果你在手机上要求，它会让这台 Mac 睡眠或关机。它还会询问 Chrome、Safari 等浏览器最前面标签页的标题和地址，以便在手机上显示该服务的徽标。</value>
   </data>
   <data name="Core_ConnectedOver" xml:space="preserve">
     <value>已连接到 {0} · {1}</value>

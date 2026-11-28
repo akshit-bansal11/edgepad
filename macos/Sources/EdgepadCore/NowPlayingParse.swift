@@ -65,3 +65,16 @@ public enum NowPlayingParse {
         return Int(value)
     }
 }
+
+extension PlayerApp {
+    /// The player a name this Mac sent the phone stands for: its own name, or the service name it was given
+    /// ("Apple Music" for Music).
+    public init?(sent name: String) {
+        guard
+            let app = PlayerApp.allCases.first(where: {
+                $0.rawValue == name || MediaServices.name(bundleId: $0.bundleId) == name
+            })
+        else { return nil }
+        self = app
+    }
+}

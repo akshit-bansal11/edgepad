@@ -3,9 +3,7 @@
   <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). Counts go through %1$d, except the Git page (plurals). -->
   <string name="controls_dash_off">ノートパソコンの Edgepad メニューでオンにしてください。</string>
   <string name="widgets_title">ウィジェット</string>
-  <string name="widgets_hint">トラックパッドの後ろに表示されます。タッチは通り抜けます。</string>
   <string name="developer_mode_title">開発者モード</string>
-  <string name="developer_mode_hint">このスマートフォンとノートパソコンに Claude Code、Codex、GitHub を表示します。オフにしても接続は保持されます。</string>
   <string name="developer_mode_offline">変更するにはノートパソコンに接続してください。設定はノートパソコンが保持します。</string>
   <string name="widgets_layout_title">ウィジェットの配置</string>
   <string name="widgets_layout_hint">ウィジェットをドラッグして移動します。長押しでサイズを変更します。</string>

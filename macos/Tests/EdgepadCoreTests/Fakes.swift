@@ -342,6 +342,8 @@ final class FakeForeground: ForegroundSource {
         }
     }
 
+    func openApps(macroTargets: [String]) -> [String] { ["fake.app/Fake"] }
+
     /// A change as the platform would report it; nothing happens once the watch is cancelled.
     func change(to text: String) {
         onChange?(text)
