@@ -22,7 +22,7 @@ internal enum UpdateOutcome
 /// </summary>
 internal static class WindowsUpdater
 {
-    public static async Task<UpdateOutcome> InstallAsync(Version version, string runningPath, CancellationToken ct)
+    public static async Task<UpdateOutcome> InstallAsync(Version version, string runningPath, IProgress<int>? progress, CancellationToken ct)
     {
         string? partial = null;
         try
@@ -55,7 +55,7 @@ internal static class WindowsUpdater
             partial = target + ".download";
 
             var actual = await UpdateDownload.DownloadAsync(
-                UpdateCheck.AssetUrl(version, UpdateCheck.ExeName(version)), target, UpdateDownload.MaxAssetBytes, null, null, ct);
+                UpdateCheck.AssetUrl(version, UpdateCheck.ExeName(version)), target, UpdateDownload.MaxAssetBytes, progress, null, ct);
             if (actual is null)
             {
                 return UpdateOutcome.Failed;

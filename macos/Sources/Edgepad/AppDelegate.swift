@@ -61,6 +61,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var updatedNotice: String?
     private var newerVersion: Version?
     private let updater = MacUpdater()
+    private weak var updateParent: NSMenuItem?
+    /// Percent of the update downloaded so far, for a menu that opens mid-download. Main thread only.
+    private var updatePercent = 0
     private let updateChoice = UpdateChoice(
         path: (FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?.path
             ?? NSHomeDirectory() + "/Library/Application Support") + "/Edgepad/update-choice.txt")
@@ -407,19 +410,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menuSeen = true
         menu.addItem(statusRow())
         if let version = newerVersion, updateChoice.shouldShow(version, now: Date()) {
-            if updater.installing {
-                menu.addItem(disabled(tr("Menu_Installing", "Installing Edgepad %1$@…", "\(version)")))
-            } else {
-                let canInstall = UpdateKey.isSet && MacUpdater.canReplaceSelf()
-                menu.addItem(
-                    canInstall
-                        ? item(tr("Menu_Install", "Install Edgepad %1$@", "\(version)"), #selector(installUpdate))
-                        : item(
-                            tr("Menu_UpdateAvailable", "Update available: %1$@", "\(version)"),
-                            #selector(openRelease)))
-                menu.addItem(item(tr("Menu_Later", "Later"), #selector(updateLater)))
-                menu.addItem(item(tr("Menu_Skip", "Skip this version"), #selector(skipUpdate)))
-            }
+            menu.addItem(updateRow(version))
         }
         // Newer macOS tracks event posting separately from the Accessibility trust, under the
         // same pane. Either one missing means input goes nowhere.
@@ -482,6 +473,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(quit)
         // On the next turn: the menu is open now, and the question is a modal alert.
         DispatchQueue.main.async { [weak self] in self?.askFirstRunIfDue() }
+    }
+
+    /// One row: "Update available" with Install, Later and Skip inside it. While an install runs the row reads the
+    /// download progress and the three are dimmed. An app that cannot replace itself gets "Open the release page"
+    /// in place of Install.
+    private func updateRow(_ version: Version) -> NSMenuItem {
+        let busy = updater.installing
+        let canInstall = busy || (UpdateKey.isSet && MacUpdater.canReplaceSelf())
+        let submenu = NSMenu()
+        let first: (String, Selector) =
+            canInstall
+            ? (tr("Menu_Install", "Install Edgepad %1$@", "\(version)"), #selector(installUpdate))
+            : (tr("Menu_UpdateOpenPage", "Open the release page"), #selector(openRelease))
+        let rows: [(String, Selector)] = [
+            first,
+            (tr("Menu_Later", "Later"), #selector(updateLater)),
+            (tr("Menu_Skip", "Skip this version"), #selector(skipUpdate)),
+        ]
+        for (title, action) in rows { submenu.addItem(busy ? disabled(title) : item(title, action)) }
+        let parent = group(
+            busy ? downloadingTitle(version) : tr("Menu_UpdateAvailable", "Update available: %1$@", "\(version)"),
+            submenu)
+        updateParent = busy ? parent : nil
+        return parent
+    }
+
+    private func downloadingTitle(_ version: Version) -> String {
+        tr("Menu_Downloading", "Downloading %1$@… %2$@%%", "\(version)", "\(updatePercent)")
     }
 
     /// The status in full-strength text: a disabled row is dimmed, and this is the line the owner came to read.
@@ -584,11 +603,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             openRelease()
             return
         }
-        updater.install(version) { [weak self] failure in
-            guard let failure else { return }
-            self?.notifier?.post(
-                id: "update", title: tr("Note_NotUpdated", "Edgepad was not updated"), body: failure)
-        }
+        updatePercent = 0
+        updater.install(
+            version,
+            progress: { [weak self] value in
+                guard let self else { return }
+                self.updatePercent = value
+                self.updateParent?.title = self.downloadingTitle(version)
+            },
+            done: { [weak self] failure in
+                guard let failure else { return }
+                self?.notifier?.post(
+                    id: "update", title: tr("Note_NotUpdated", "Edgepad was not updated"), body: failure)
+            }
+        )
     }
 
     @objc private func openRelease() {

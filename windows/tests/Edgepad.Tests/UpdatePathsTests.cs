@@ -55,7 +55,7 @@ public sealed class UpdatePathsTests
             return;
         }
 
-        var outcome = await WindowsUpdater.InstallAsync(new Version(9, 9, 9), Self, TestContext.Current.CancellationToken);
+        var outcome = await WindowsUpdater.InstallAsync(new Version(9, 9, 9), Self, null, TestContext.Current.CancellationToken);
         Assert.Equal(UpdateOutcome.Failed, outcome);
     }
 }

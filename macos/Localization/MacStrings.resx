@@ -108,14 +108,17 @@
   <data name="App_PermissionSteps" xml:space="preserve">
     <value>System Settings › Privacy &amp; Security › Device Control and Data Access › + › Edgepad</value>
   </data>
-  <data name="Menu_Installing" xml:space="preserve">
-    <value>Installing Edgepad {0}…</value>
+  <data name="Menu_Downloading" xml:space="preserve">
+    <value>Downloading {0}… {1}%</value>
   </data>
   <data name="Menu_Install" xml:space="preserve">
     <value>Install Edgepad {0}</value>
   </data>
   <data name="Menu_UpdateAvailable" xml:space="preserve">
     <value>Update available: {0}</value>
+  </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>Open the release page</value>
   </data>
   <data name="Menu_Later" xml:space="preserve">
     <value>Later</value>
