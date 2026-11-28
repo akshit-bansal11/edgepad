@@ -58,6 +58,8 @@ internal sealed class Tray : IDisposable
     private readonly NativeMenuItem installRow = new(LinuxStrings.Common_Install) { IsVisible = false };
     private readonly NativeMenuItem laterRow = new(LinuxStrings.Menu_UpdateLater) { IsVisible = false };
     private readonly NativeMenuItem skipRow = new(LinuxStrings.Menu_UpdateSkip) { IsVisible = false };
+    private readonly NativeMenu updateMenu = new();
+    private bool installable;
     private readonly NativeMenuItem problemRow = new("") { IsEnabled = false, IsVisible = false };
     private readonly NativeMenuItem networkRow = Toggle(LinuxStrings.Menu_Network);
     private readonly NativeMenuItem clipboardRow = Toggle(LinuxStrings.Menu_ShareClipboard);
@@ -81,8 +83,18 @@ internal sealed class Tray : IDisposable
     {
         this.hooks = hooks;
 
-        updateRow.Click += (_, _) => Safe(() => OpenWithDesktop(UpdateCheck.LatestUrl, LinuxStrings.What_ReleasePage), "Update available");
-        installRow.Click += (_, _) => Safe(hooks.InstallUpdate, "Install update");
+        // The update row opens Install (or, when this copy cannot install itself, the release page), Later and Skip.
+        installRow.Click += (_, _) =>
+        {
+            if (installable)
+            {
+                Safe(hooks.InstallUpdate, "Install update");
+            }
+            else
+            {
+                Safe(() => OpenWithDesktop(UpdateCheck.LatestUrl, LinuxStrings.What_ReleasePage), "Open the release page");
+            }
+        };
         laterRow.Click += (_, _) => Safe(hooks.LaterUpdate, "Later");
         skipRow.Click += (_, _) => Safe(hooks.SkipUpdate, "Skip this version");
         networkRow.Click += (_, _) => Safe(hooks.ToggleNetwork, "Wi-Fi and USB connections");
@@ -105,15 +117,18 @@ internal sealed class Tray : IDisposable
         var exit = new NativeMenuItem(LinuxStrings.Menu_Quit);
         exit.Click += (_, _) => Safe(hooks.Quit, "Quit");
 
+        updateMenu.Add(installRow);
+        updateMenu.Add(laterRow);
+        updateMenu.Add(skipRow);
+
+        updateRow.Menu = updateMenu;
+
         var integrationsGroup = Group(LinuxStrings.Menu_Group_Integrations, integrationsRow, developerRow, developerIntegrationsRow);
         integrationsGroup.IsVisible = LinuxDashboard.Shared is not null;
 
         var menu = new NativeMenu();
         menu.Add(statusRow);
         menu.Add(updateRow);
-        menu.Add(installRow);
-        menu.Add(laterRow);
-        menu.Add(skipRow);
         menu.Add(problemRow);
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(sendRow);
@@ -154,11 +169,23 @@ internal sealed class Tray : IDisposable
     public void SetUpdate(string version, bool canInstall)
     {
         updateRow.Header = Say.Format(LinuxStrings.Menu_UpdateVersion, version);
-        installRow.Header = Say.Format(LinuxStrings.Menu_UpdateInstall, version);
+        installable = canInstall;
+        installRow.Header = canInstall ? Say.Format(LinuxStrings.Menu_UpdateInstall, version) : LinuxStrings.Menu_UpdateOpenPage;
         updateRow.IsVisible = true;
-        installRow.IsVisible = canInstall;
+        installRow.IsVisible = true;
         laterRow.IsVisible = true;
         skipRow.IsVisible = true;
+    }
+
+    /// <summary>While an install runs the update row names the download and its percent and the rows under it are off; after, they come back.</summary>
+    public void SetInstallProgress(string version, int percent, bool busy)
+    {
+        updateRow.Header = busy
+            ? Say.Format(LinuxStrings.Menu_UpdateDownloading, version, percent)
+            : Say.Format(LinuxStrings.Menu_UpdateVersion, version);
+        installRow.IsEnabled = !busy;
+        laterRow.IsEnabled = !busy;
+        skipRow.IsEnabled = !busy;
     }
 
     /// <summary>Hides the update rows: the owner chose Later or Skip, or the install began.</summary>

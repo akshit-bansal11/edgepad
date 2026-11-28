@@ -102,14 +102,17 @@
   <data name="App_PermissionSteps" xml:space="preserve">
     <value>Sistem Ayarları › Gizlilik ve Güvenlik › Aygıt Denetimi ve Veri Erişimi › + › Edgepad</value>
   </data>
-  <data name="Menu_Installing" xml:space="preserve">
-    <value>Edgepad {0} yükleniyor…</value>
+  <data name="Menu_Downloading" xml:space="preserve">
+    <value>{0} indiriliyor… {1}%</value>
   </data>
   <data name="Menu_Install" xml:space="preserve">
     <value>Edgepad {0} sürümünü yükle</value>
   </data>
   <data name="Menu_UpdateAvailable" xml:space="preserve">
     <value>Güncelleme var: {0}</value>
+  </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>Sürüm sayfasını aç</value>
   </data>
   <data name="Menu_Later" xml:space="preserve">
     <value>Sonra</value>

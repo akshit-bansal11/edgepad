@@ -102,14 +102,17 @@
   <data name="App_PermissionSteps" xml:space="preserve">
     <value>Systeeminstellingen › Privacy en beveiliging › Apparaatbediening en gegevenstoegang › + › Edgepad</value>
   </data>
-  <data name="Menu_Installing" xml:space="preserve">
-    <value>Edgepad {0} wordt geïnstalleerd…</value>
+  <data name="Menu_Downloading" xml:space="preserve">
+    <value>{0} wordt gedownload… {1}%</value>
   </data>
   <data name="Menu_Install" xml:space="preserve">
     <value>Edgepad {0} installeren</value>
   </data>
   <data name="Menu_UpdateAvailable" xml:space="preserve">
     <value>Update beschikbaar: {0}</value>
+  </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>Open de releasepagina</value>
   </data>
   <data name="Menu_Later" xml:space="preserve">
     <value>Later</value>

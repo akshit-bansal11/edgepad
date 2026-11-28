@@ -23,6 +23,7 @@ internal sealed class SendPipe : IDisposable
 
     private readonly Action<IReadOnlyList<string>, int> onPaths;
     private readonly CancellationTokenSource stop = new();
+    private int disposed;
 
     public SendPipe(Action<IReadOnlyList<string>, int> onPaths)
     {
@@ -231,6 +232,12 @@ internal sealed class SendPipe : IDisposable
 
     public void Dispose()
     {
+        // A second call (shutdown reaches this twice on the update hand-over) would cancel a disposed source and throw.
+        if (Interlocked.Exchange(ref disposed, 1) != 0)
+        {
+            return;
+        }
+
         stop.Cancel();
         stop.Dispose();
     }

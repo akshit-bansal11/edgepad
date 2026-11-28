@@ -8,6 +8,8 @@ public enum UpdateDownload {
     public static let maxSumsBytes = 64 * 1024
     public static let maxSignatureBytes = 1024
     public static let maxAssetBytes = 200 * 1024 * 1024
+    /// The longest the whole install, download included, may take.
+    public static let assetTimeout: TimeInterval = 20 * 60
 
     private static let maxRedirects = 5
     private static let chunkBytes = 81920
@@ -38,7 +40,7 @@ public enum UpdateDownload {
     ) async -> Data? {
         let temp = destPath + ".download"
         do {
-            let (bytes, announced) = try await open(url, maxBytes: maxBytes, timeout: 20 * 60, session: session)
+            let (bytes, announced) = try await open(url, maxBytes: maxBytes, timeout: assetTimeout, session: session)
             guard FileManager.default.createFile(atPath: temp, contents: nil) else {
                 throw DownloadError.refused("The file could not be created.")
             }
@@ -133,5 +135,31 @@ public enum UpdateDownload {
             return (bytes, http.expectedContentLength)
         }
         throw DownloadError.refused("Too many redirects.")
+    }
+}
+
+extension UpdateDownload {
+    private enum Raced<T: Sendable>: Sendable {
+        case finished(T)
+        case expired
+    }
+
+    /// Runs `work` and returns its result, or nil when it has not finished after `seconds`; the work is then
+    /// cancelled. A stalled body read never ends by itself, so the deadline has to wrap the whole job.
+    public static func withDeadline<T: Sendable>(
+        _ seconds: TimeInterval, _ work: @escaping @Sendable () async -> T
+    ) async -> T? {
+        let winner = await withTaskGroup(of: Raced<T>.self) { group -> Raced<T> in
+            group.addTask { .finished(await work()) }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                return .expired
+            }
+            let first = await group.next() ?? .expired
+            group.cancelAll()
+            return first
+        }
+        if case .finished(let value) = winner { return value }
+        return nil
     }
 }

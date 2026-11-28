@@ -48,6 +48,12 @@
   <data name="Menu_UpdateInstall" xml:space="preserve">
     <value>Edgepad {0} sürümünü yükle</value>
   </data>
+  <data name="Menu_UpdateDownloading" xml:space="preserve">
+    <value>{0} indiriliyor… {1}%</value>
+  </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>Sürüm sayfasını aç</value>
+  </data>
   <data name="Menu_UpdateLater" xml:space="preserve">
     <value>Sonra</value>
   </data>
