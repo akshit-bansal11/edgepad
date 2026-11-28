@@ -192,7 +192,7 @@ class GallerySamples(
                 host.post {
                     TipCard.notice(
                         host,
-                        StencilIcon.Kind.SYSTEM,
+                        StencilIcon.Kind.POWER,
                         R.string.profiles_split_off,
                         gravity = Gravity.BOTTOM or Gravity.END,
                     )
@@ -242,6 +242,10 @@ class GallerySamples(
                 val perPage = name.substringAfter("controls-", "").toIntOrNull()
                 settings.controlsPerPage = perPage ?: ControlsPlan.DEFAULT_PER_PAGE
                 settings.controlsIconPercent = ControlsPlan.DEFAULT_ICON_PERCENT
+                settings.splitCorners = false
+                for (widget in listOf(SurfaceWidget.CLOCK, SurfaceWidget.WEATHER, SurfaceWidget.SYSTEM)) {
+                    settings.setWidgetOn(widget, false)
+                }
                 ControlSurface(context, settings, LaptopState(), {}, {}, {}, batteries = chargingLaptopAndPhone)
             }
 
