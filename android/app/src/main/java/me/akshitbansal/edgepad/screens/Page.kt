@@ -182,6 +182,17 @@ class Ui(
             v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
             insets
         }
+        // A screen rebuilt in place (Capture, on the laptop's features) joins a window whose insets were already
+        // delivered, so ask again or its title sits under the camera cutout.
+        view.addOnAttachStateChangeListener(
+            object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) {
+                    v.requestApplyInsets()
+                }
+
+                override fun onViewDetachedFromWindow(v: View) = Unit
+            },
+        )
     }
 
     /**
