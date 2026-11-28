@@ -62,6 +62,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var newerVersion: Version?
     private let updater = MacUpdater()
     private weak var updateParent: NSMenuItem?
+    /// Percent of the update downloaded so far, for a menu that opens mid-download. Main thread only.
+    private var updatePercent = 0
     private let updateChoice = UpdateChoice(
         path: (FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?.path
             ?? NSHomeDirectory() + "/Library/Application Support") + "/Edgepad/update-choice.txt")
@@ -500,7 +502,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func downloadingTitle(_ version: Version) -> String {
-        tr("Menu_Downloading", "Downloading %1$@… %2$@%%", "\(version)", "\(updater.percent)")
+        tr("Menu_Downloading", "Downloading %1$@… %2$@%%", "\(version)", "\(updatePercent)")
     }
 
     /// The status in full-strength text: a disabled row is dimmed, and this is the line the owner came to read.
@@ -603,10 +605,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             openRelease()
             return
         }
+        updatePercent = 0
         updater.install(
             version,
-            progress: { [weak self] _ in
+            progress: { [weak self] value in
                 guard let self else { return }
+                self.updatePercent = value
                 self.updateParent?.title = self.downloadingTitle(version)
             },
             done: { [weak self] failure in
