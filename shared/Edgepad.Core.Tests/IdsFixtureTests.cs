@@ -84,6 +84,7 @@ public sealed partial class IdsFixtureTests
             ["RESTART"] = Feature.Restart,
             ["SHUT_DOWN"] = Feature.ShutDown,
             ["APP_KIND"] = Feature.AppKind,
+            ["OPEN_APPS"] = Feature.OpenApps,
         };
 
         Assert.Equal(expected, actual);

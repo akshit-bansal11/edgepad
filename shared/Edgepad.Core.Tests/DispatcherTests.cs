@@ -98,6 +98,25 @@ public sealed class DispatcherTests : IDisposable
     }
 
     [Fact]
+    public void TheOpenAppsAskIsDroppedWithoutAnAnswererAndAnsweredWithOne()
+    {
+        dispatcher.Handle(new RunAction((byte)ActionId.OpenAppsList));
+        Assert.Equal(1, dispatcher.Dropped);
+
+        var asked = 0;
+        dispatcher.OpenApps = () =>
+        {
+            asked++;
+            return true;
+        };
+        dispatcher.Handle(new RunAction((byte)ActionId.OpenAppsList));
+
+        Assert.Equal(1, asked);
+        Assert.Equal(1, dispatcher.Dropped);
+        Assert.Empty(platform.Calls);
+    }
+
+    [Fact]
     public void APickFromTheListAddsWhatThisLaptopOfferedAndAnswers()
     {
         var store = TempStore();

@@ -144,7 +144,7 @@ internal sealed partial class WindowsForeground(SynchronizationContext ui) : IFo
         }
     }
 
-    private static string? Description(string path)
+    internal static string? Description(string path)
     {
         try
         {
@@ -181,4 +181,16 @@ internal static class ForegroundNaming
     /// <summary>The file's own description, else its name without the extension.</summary>
     public static string Name(string path, string? description) =>
         string.IsNullOrWhiteSpace(description) ? Path.GetFileNameWithoutExtension(path) : description.Trim();
+}
+
+/// <summary>The apps for TEXT OPEN_APPS: the visible app windows, then the macros' programs, each named as the foreground reporter names it.</summary>
+internal static class WindowsOpenApps
+{
+    public static string Body(IReadOnlyList<Macro> macros) =>
+        OpenApps.Build(
+            WindowsMacroWindows.OpenImages().Select(App),
+            macros.Select(macro => MacroTarget.Program(macro.Target, File.Exists, ShortcutTarget.Resolve, macro.Arguments)).OfType<string>().Select(App));
+
+    private static ForegroundApp App(string path) =>
+        ForegroundApp.Clean(ForegroundNaming.Token(path), ForegroundNaming.Name(path, WindowsForeground.Description(path)));
 }

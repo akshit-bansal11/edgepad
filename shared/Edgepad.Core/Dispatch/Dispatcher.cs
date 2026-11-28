@@ -109,6 +109,12 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
     public Action<string>? AppAddReply { get; set; }
 
     /// <summary>
+    /// Answers OPEN_APPS_LIST with one TEXT OPEN_APPS and says whether it could. Set by the session; without one, the action is
+    /// dropped and counted.
+    /// </summary>
+    public Func<bool>? OpenApps { get; set; }
+
+    /// <summary>
     /// Sleeps, hibernates, restarts or shuts the laptop down on the phone's request. Set by the session, like <see cref="Capture"/>;
     /// without one, Sleep, Hibernate, Restart, ShutDown and PowerCancel are dropped and counted.
     /// </summary>
@@ -264,6 +270,7 @@ internal sealed class Dispatcher(IPlatform platform, IMacroRunner macros)
             ActionId.MacrosUnwatch => Watch(false),
             ActionId.AppsList => Apps?.List() ?? false,
             ActionId.AppsCancel => Apps?.Cancel() ?? false,
+            ActionId.OpenAppsList => OpenApps?.Invoke() ?? false,
             _ => platform.Run(action),
         };
 

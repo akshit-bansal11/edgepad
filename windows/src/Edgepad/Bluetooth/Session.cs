@@ -376,6 +376,11 @@ internal sealed class Session(
         // The Start menu apps the phone may pick from. A pick is a token into the list built here, and the owner is told
         // when one lands, since it is the one macro that appears without anyone typing it on the laptop.
         dispatcher.Apps = new AppPicker(new StartMenuCatalog(), macros, blobs, ended.Token);
+        dispatcher.OpenApps = () =>
+        {
+            Guarded(() => Send(new Text((byte)TextKind.OpenApps, WindowsOpenApps.Body(macros.Macros))));
+            return true;
+        };
         dispatcher.AppAddReply = status =>
         {
             Send(new Text((byte)TextKind.AppAddStatus, status));
@@ -407,7 +412,7 @@ internal sealed class Session(
         var powerControl = new PowerControl(power, WindowsPower.Report);
         dispatcher.Power = powerControl;
 
-        List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps, Feature.Foreground, Feature.AppKind, PowerControl.Features(power.Caps)];
+        List<string> features = [Feature.Annotate, Feature.Capture, Feature.Apps, Feature.Foreground, Feature.AppKind, Feature.OpenApps, PowerControl.Features(power.Caps)];
         if (open is not null)
         {
             features.Add(Feature.Running);
