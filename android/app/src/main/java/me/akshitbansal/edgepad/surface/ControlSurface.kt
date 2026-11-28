@@ -11,6 +11,7 @@ import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.SystemClock
+import android.provider.Settings.Global
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -407,6 +408,13 @@ class ControlSurface(
 
     /** What the surface last saw of [TrackpadRecognizer.held]; the tick fires on the change, not on the state. */
     private var holdTicked = false
+
+    /** The ring a hold leaves under the finger (#104): rings drawn (0 for none), where, since when, and still. */
+    private var burstRings = 0
+    private var burstX = 0f
+    private var burstY = 0f
+    private var burstAt = 0L
+    private var burstStill = false
     private val holdBox = RectF()
     private val holdDue =
         Runnable {
@@ -996,6 +1004,7 @@ class ControlSurface(
         fill.color = ink
         for (i in 0 until fingerCount) canvas.drawCircle(fingerXs[i], fingerYs[i], dp(FINGER_DP) / 2, fill)
         if (fingerCount == 1) drawHold(canvas)
+        drawBurst(canvas)
     }
 
     /**
@@ -1411,7 +1420,41 @@ class ControlSurface(
         drawingShape = trackpad.shaping
         if (trackpad.held == holdTicked) return
         holdTicked = trackpad.held
-        if (holdTicked) haptic()
+        if (!holdTicked) return
+        haptic()
+        startBurst()
+    }
+
+    /**
+     * #104: one ring where a held finger has gripped the button, two where two fingers have armed a stroke. The ring
+     * fades over [Motion.REVEAL]; with animations off at the system it shows whole for that long, then goes.
+     */
+    private fun startBurst() {
+        if (fingerCount == 0) return
+        val two = trackpad.shaping && fingerCount >= 2
+        burstRings = if (two) 2 else 1
+        burstX = if (two) (fingerXs[0] + fingerXs[1]) / 2 else fingerXs[0]
+        burstY = if (two) (fingerYs[0] + fingerYs[1]) / 2 else fingerYs[0]
+        burstAt = SystemClock.uptimeMillis()
+        val scale = Global.getFloat(context.contentResolver, Global.ANIMATOR_DURATION_SCALE, 1f)
+        burstStill = scale == 0f
+    }
+
+    private fun drawBurst(canvas: Canvas) {
+        if (burstRings == 0) return
+        val age = SystemClock.uptimeMillis() - burstAt
+        if (age >= Motion.REVEAL) {
+            burstRings = 0
+            return
+        }
+        val alpha = if (burstStill) 1f else 1f - age.toFloat() / Motion.REVEAL
+        stroke.strokeWidth = dp(HOLD_RING_WIDTH_DP)
+        stroke.color = accent and RGB_MASK or ((alpha * ALPHA_OPAQUE).roundToInt() shl ALPHA_SHIFT)
+        for (ring in 0 until burstRings) {
+            canvas.drawCircle(burstX, burstY, dp(BURST_RING_DP + ring * BURST_STEP_DP), stroke)
+        }
+        stroke.strokeWidth = dp(Space.HAIR)
+        postInvalidateOnAnimation()
     }
 
     /** Asks the recogniser to settle a hold when it falls due, even if the finger sends nothing meanwhile. */
@@ -1890,6 +1933,10 @@ class ControlSurface(
         /** The hold ring (#75): radius and line, round the finger dot, clear of a fingertip's edge. */
         private const val HOLD_RING_DP = 22f
         private const val HOLD_RING_WIDTH_DP = 3f
+
+        /** The ring a hold leaves (#104): its radius, and how much wider the second ring of a stroke is. */
+        private const val BURST_RING_DP = 34f
+        private const val BURST_STEP_DP = 14f
 
         /** The share of the hold (100 ms) that passes before the ring shows, so a quick tap never flashes it. */
         private const val HOLD_RING_FROM = 0.25f
