@@ -17,13 +17,23 @@ final class MacUpdater {
             && FileManager.default.isWritableFile(atPath: bundle.deletingLastPathComponent().path)
     }
 
-    /// Runs on the main actor's behalf; `done` is called on the main queue with nil on success (the new copy has
-    /// been started and will end this one) or a short reason.
-    func install(_ version: Version, done: @escaping (String?) -> Void) {
+    /// Percent downloaded so far, for a menu that opens mid-download. Written and read on the main thread.
+    private(set) var percent = 0
+
+    /// Runs on the main actor's behalf; `progress` gets whole-percent changes and `done` gets nil on success (the
+    /// new copy has been started and will end this one) or a short reason, both on the main queue. The whole job,
+    /// download included, is stopped after `UpdateDownload.assetTimeout`.
+    func install(_ version: Version, progress: @escaping (Int) -> Void, done: @escaping (String?) -> Void) {
         guard !installing else { return }
         installing = true
+        percent = 0
         Task.detached {
-            let failure = await Self.run(version)
+            let failure = await Self.runGuarded(version) { value in
+                DispatchQueue.main.async {
+                    self.percent = value
+                    progress(value)
+                }
+            }
             await MainActor.run {
                 self.installing = false
                 done(failure)
@@ -31,7 +41,25 @@ final class MacUpdater {
         }
     }
 
-    private static func run(_ version: Version) async -> String? {
+    /// `run` with nothing allowed to escape: a thrown error and the deadline are logged and become a reason.
+    private static func runGuarded(_ version: Version, progress: @escaping (Int) -> Void) async -> String? {
+        Log.write("Installing Edgepad \(version)")
+        let outcome = await UpdateDownload.withDeadline(UpdateDownload.assetTimeout) { () -> String? in
+            do {
+                return try await run(version, progress: progress)
+            } catch {
+                Log.write("Edgepad \(version) could not be installed: \(error.localizedDescription)")
+                return "The update could not be installed."
+            }
+        }
+        guard let outcome else {
+            Log.write("Edgepad \(version): the install took longer than 20 minutes and was stopped")
+            return "The update took longer than 20 minutes and was stopped."
+        }
+        return outcome
+    }
+
+    private static func run(_ version: Version, progress: @escaping (Int) -> Void) async throws -> String? {
         guard UpdateKey.isSet, let sumsUrl = UpdateCheck.sumsUrl(version), let sigUrl = UpdateCheck.sigUrl(version),
             let assetUrl = UpdateCheck.assetUrl(version, UpdateCheck.macName(version))
         else {
@@ -53,16 +81,13 @@ final class MacUpdater {
         }
         let fm = FileManager.default
         let bundle = Bundle.main.bundleURL
-        guard
-            let work = try? fm.url(
-                for: .itemReplacementDirectory, in: .userDomainMask, appropriateFor: bundle, create: true)
-        else {
-            return "The update could not be prepared."
-        }
+        let work = try fm.url(
+            for: .itemReplacementDirectory, in: .userDomainMask, appropriateFor: bundle, create: true)
         defer { try? fm.removeItem(at: work) }
         let zip = work.appendingPathComponent(UpdateCheck.macName(version))
         guard
-            let actual = await UpdateDownload.download(assetUrl, to: zip.path, maxBytes: UpdateDownload.maxAssetBytes),
+            let actual = await UpdateDownload.download(
+                assetUrl, to: zip.path, maxBytes: UpdateDownload.maxAssetBytes, progress: progress),
             UpdateVerifier.hashesMatch(actual, expected)
         else {
             return "The update did not match its signed hash."

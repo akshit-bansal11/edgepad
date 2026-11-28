@@ -105,6 +105,9 @@
   <data name="Menu_Installing" xml:space="preserve">
     <value>Edgepad {0} wird installiert …</value>
   </data>
+  <data name="Menu_Downloading" xml:space="preserve">
+    <value>{0} wird heruntergeladen … {1}%</value>
+  </data>
   <data name="Menu_Install" xml:space="preserve">
     <value>Edgepad {0} installieren</value>
   </data>
