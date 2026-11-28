@@ -4,7 +4,7 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { type Chunk, find, loadIndex } from "@/lib/search";
+import { loadIndex, type Searcher } from "@/lib/search";
 
 type Load = "idle" | "loading" | "ready" | "unavailable";
 
@@ -18,7 +18,7 @@ export function DocsSearch() {
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
   const [load, setLoad] = useState<Load>("idle");
-  const [index, setIndex] = useState<Chunk[]>([]);
+  const [searcher, setSearcher] = useState<Searcher | null>(null);
   const [query, setQuery] = useState("");
 
   const open = () => {
@@ -35,8 +35,8 @@ export function DocsSearch() {
     if (load !== "idle") return;
     setLoad("loading");
     loadIndex().then(
-      (chunks) => {
-        setIndex(chunks);
+      (loaded) => {
+        setSearcher(loaded);
         setLoad("ready");
       },
       (error: unknown) => {
@@ -51,7 +51,7 @@ export function DocsSearch() {
     opener.current?.focus();
   };
 
-  const results = load === "ready" ? find(index, query) : [];
+  const results = searcher ? searcher.find(query) : [];
   const typed = query.trim();
   let status = "Type to search the docs";
   if (load === "loading") status = "Loading";
