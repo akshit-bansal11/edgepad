@@ -14,7 +14,7 @@ No wire-protocol break: the protocol stays at version 6. The one new id pair (th
 - **Phone: Sounds**, off by default. Taps play Android's own click and each dial step plays a small tick, never faster than a steady rate. Silent mode always wins, and nothing loads while Sounds is off.
 - **Phone: a buzz and a ring when a hold kicks in**: one ring when one finger starts a drag, two when two fingers start a shape. Under reduced motion the ring does not animate.
 - **App profiles: pick from the apps open on the laptop** and your macro apps. On Linux under Wayland only macro apps are listed.
-- **Mac: the right logo for Chrome, Safari, Edge, Brave and Arc.** macOS asks once per browser whether Edgepad may read the front tab. If you say no, no media card is shown.
+- **Mac: the right logo for streaming in Chrome, Safari, Edge, Brave and Arc.** macOS asks once per browser whether Edgepad may read the front tab. Only the service's name reaches the phone, never the page's title or address, and Music or Spotify always comes first. If you say no, no media card is shown.
 
 ### Changed
 
