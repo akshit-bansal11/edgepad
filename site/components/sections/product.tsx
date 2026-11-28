@@ -699,11 +699,11 @@ sudo ./install.sh`}
         </Table>
 
         <Note label="One and two fingers are fixed">
-          One finger: move, tap to click, hold still then move to drag. Two fingers: drag
-          to scroll, pinch to zoom, tap to right-click. As of 2.0.0 these are no longer
-          assignable: they are what a hand already expects from a trackpad, and a phone
-          that answers them differently reads as broken rather than as configured. Three
-          and four fingers stay assignable.
+          One finger: move, tap to click, hold still then move to drag. Two fingers:
+          drag to scroll, pinch to zoom, tap to right-click. As of 2.0.0 these are no
+          longer assignable: they are what a hand already expects from a trackpad, and a
+          phone that answers them differently reads as broken rather than as configured.
+          Three and four fingers stay assignable.
         </Note>
 
         <Sub>Default three- and four-finger gestures</Sub>
@@ -774,9 +774,9 @@ sudo ./install.sh`}
         <Sub>Shapes</Sub>
         <P>
           Hold two fingers still on the trackpad until the line turns solid (you also
-          feel a tick if haptic feedback is on), then lift one and draw with the
-          other. In Surface settings &gt; Shapes, draw one and give it something to run.
-          On lift the stroke is matched against the shapes drawn under{" "}
+          feel a tick if haptic feedback is on), then lift one and draw with the other.
+          In Surface settings &gt; Shapes, draw one and give it something to run. On
+          lift the stroke is matched against the shapes drawn under{" "}
           <strong>Surface settings &gt; Shapes</strong>, and the one it matches runs: a
           laptop action, a macro slot, or the pad&apos;s own focus or lock. A stroke
           that matches nothing does nothing, which is the right answer — the alternative
@@ -802,8 +802,8 @@ sudo ./install.sh`}
           off into blank buttons. A macro saved in the Windows or Mac editor while the
           phone is connected appears at once. Until the laptop has sent its list the
           screen is empty: add macros from Edgepad&apos;s Macros… menu in the tray on
-          the laptop (in the menu bar on a Mac), and they appear as soon as it sends
-          the list.
+          the laptop (in the menu bar on a Mac), and they appear as soon as it sends the
+          list.
         </P>
         <P>
           The screen shows 2 to 10 macros at a time, set with{" "}
@@ -826,9 +826,8 @@ sudo ./install.sh`}
           Linux and the Mac, so a macro can be added from the phone. Picking an app
           makes a macro that opens it on the laptop. On Windows, an app that is not in
           the list needs adding to the Start menu on the laptop first; then refresh the
-          list. An app that is already a macro shows as added, and a laptop that
-          already holds its full set of macros asks you to delete one before adding
-          another.
+          list. An app that is already a macro shows as added, and a laptop that already
+          holds its full set of macros asks you to delete one before adding another.
         </P>
 
         <Sub>Share clipboard</Sub>
@@ -894,18 +893,17 @@ sudo ./install.sh`}
         <P>
           Annotate draws on the laptop&apos;s primary display, with the phone as an
           absolute pen: a touch lands at the same place on the laptop, and it works by
-          touch only. It has a pen, a
-          highlighter, a line, an arrow, a rectangle and an ellipse in eight colours or
-          any colour you pick, at the width and opacity you set, plus Undo and Clear.
-          The Sign switch turns the same pad into a signature: nothing shows on the
-          laptop, only the pen is offered, and Save signature copies a transparent PNG
-          to the clipboard and saves it as <C>signature-yyyyMMdd-HHmmss.png</C> in an{" "}
-          <C>Edgepad</C> folder in Pictures, never over an earlier one. Clear removes
-          every stroke from the laptop screen and cannot be undone. Switching to Sign
-          discards the drawing so far and the laptop starts a fresh page; switching
-          back discards a signature that was not saved. Annotate works
-          on Windows, on the Mac and on Linux; on Linux it is best effort and in
-          testing.
+          touch only. It has a pen, a highlighter, a line, an arrow, a rectangle and an
+          ellipse in eight colours or any colour you pick, at the width and opacity you
+          set, plus Undo and Clear. The Sign switch turns the same pad into a signature:
+          nothing shows on the laptop, only the pen is offered, and Save signature
+          copies a transparent PNG to the clipboard and saves it as{" "}
+          <C>signature-yyyyMMdd-HHmmss.png</C> in an <C>Edgepad</C> folder in Pictures,
+          never over an earlier one. Clear removes every stroke from the laptop screen
+          and cannot be undone. Switching to Sign discards the drawing so far and the
+          laptop starts a fresh page; switching back discards a signature that was not
+          saved. Annotate works on Windows, on the Mac and on Linux; on Linux it is best
+          effort and in testing.
         </P>
         <P>
           Capture presses the laptop&apos;s own screenshot or recording shortcut. For a
