@@ -56,6 +56,8 @@ private const val SEGMENT_HEIGHT_DP = 28f
 private const val SEGMENT_TEXT_PAD_DP = 6f
 private const val SEGMENT_INSET_DP = 2f
 private const val SEGMENT_PAD_DP = 14f
+private const val SEGMENT_FIT_PAD_DP = 4f
+private const val SEGMENT_MIN_SP = 9f
 
 /** What the page margins and the card's padding take off the screen's width, at the narrowest, in dp. */
 private const val SEGMENT_MARGIN_DP = 72f
@@ -581,6 +583,32 @@ class Ui(
         onSelect: (Int) -> Unit,
     ): View = segmentedControl(options, selected, true, onSelect)
 
+    /**
+     * Shrinks every label of a segmented control, together, until its longest word fits a segment's [share] of
+     * width and its whole text fits two lines, so a label wraps between words and is never cut or split.
+     */
+    private fun fitLabels(
+        labels: LinearLayout,
+        options: List<CharSequence>,
+        share: Int,
+        paint: TextPaint,
+    ) {
+        val avail = share - 2 * dp(SEGMENT_FIT_PAD_DP)
+        var sp = Type.SMALL
+        while (sp > SEGMENT_MIN_SP) {
+            paint.textSize =
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.resources.displayMetrics)
+            val fits =
+                options.all { label ->
+                    val words = label.toString().split(' ')
+                    words.all { paint.measureText(it) <= avail } && paint.measureText(label.toString()) <= 1.8f * avail
+                }
+            if (fits) break
+            sp -= 0.5f
+        }
+        for (i in options.indices) (labels.getChildAt(i) as TextView).setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
+    }
+
     private fun segmentedControl(
         options: List<CharSequence>,
         selected: Int,
@@ -628,6 +656,7 @@ class Ui(
                     )
                 }
             }
+        if (!stretch) fitLabels(labels, options, width, paint)
         // One option's width: fixed when the control is its natural size, measured at layout when it stretches.
         var cell = width
         val fill =
@@ -705,6 +734,7 @@ class Ui(
                     val share = (right - left - 2 * inset) / options.size
                     if (share > 0 && share != cell) {
                         cell = share
+                        fitLabels(labels, options, share, paint)
                         fill.layoutParams = (fill.layoutParams as FrameLayout.LayoutParams).apply { this.width = share }
                         paint(animate = false)
                     }

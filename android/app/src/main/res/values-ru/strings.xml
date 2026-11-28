@@ -154,10 +154,10 @@
   <string name="corner_bottom_left">Внизу слева</string>
   <string name="corner_off">Выкл.</string>
   <string name="corner_split">Разделить углы</string>
-  <string name="corner_edge_left">левый край</string>
-  <string name="corner_edge_top">верхний край</string>
-  <string name="corner_edge_right">правый край</string>
-  <string name="corner_edge_bottom">нижний край</string>
+  <string name="corner_edge_left">левый</string>
+  <string name="corner_edge_top">верхний</string>
+  <string name="corner_edge_right">правый</string>
+  <string name="corner_edge_bottom">нижний</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 шкал, углы разделены</string>
   <string name="media_layout_title">Расположение медиа</string>
@@ -235,7 +235,7 @@
   <string name="background_theme">Тема</string>
   <string name="background_color">Цвет</string>
   <string name="background_gradient">Градиент</string>
-  <string name="background_image">Изображение</string>
+  <string name="background_image">Картинка</string>
   <string name="background_pick_image">Выбрать изображение</string>
   <string name="background_image_set">Изображение задано</string>
   <string name="background_image_none">Изображения пока нет</string>

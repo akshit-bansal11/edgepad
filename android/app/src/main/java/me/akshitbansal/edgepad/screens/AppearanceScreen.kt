@@ -191,7 +191,7 @@ object AppearanceScreen {
             val names = kinds.map { ui.string(backgroundNames.getValue(it)) }
             val details = block(ui)
             addView(
-                pills(ui, names, kinds.indexOf(settings.background)) { i ->
+                pills(ui, names, kinds.indexOf(settings.background), full = true) { i ->
                     settings.background = kinds[i]
                     preview.update()
                     backgroundRows(ui, settings, preview, onPickImage, details)
