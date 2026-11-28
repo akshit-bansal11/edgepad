@@ -12,6 +12,7 @@ import me.akshitbansal.edgepad.surface.Gesture
 import me.akshitbansal.edgepad.surface.GestureAction
 import me.akshitbansal.edgepad.surface.MediaPiece
 import me.akshitbansal.edgepad.surface.NO_DIAL
+import me.akshitbansal.edgepad.surface.Perimeter
 import me.akshitbansal.edgepad.surface.Profile
 import me.akshitbansal.edgepad.surface.Strokes
 import me.akshitbansal.edgepad.surface.SurfaceWidget
@@ -385,6 +386,25 @@ class Settings(
     }
 
     /**
+     * Before the first switch to eight dials: stores the eight slots [CornerSlots.seed] gives, so the four dials
+     * already placed stay and the four new edges hold the first unused dials. Never again once any slot is stored,
+     * so each layout comes back as it was left, and a phone already in eight dials keeps what it has.
+     */
+    fun seedSlotsOnce() {
+        if (prefs.all.keys.any { it.startsWith("slot.") }) return
+        val seeded = CornerSlots.seed((0 until Perimeter.CORNERS).map { corner(it) }, DialKind.entries)
+        seeded.forEachIndexed { slot, kind -> setSlot(slot, kind) }
+    }
+
+    /**
+     * Whether Dial feel lists a speed for each dial. Until it is stored, on when any dial already has a speed of its
+     * own. Off only hides the list; the stored speeds stay.
+     */
+    var eachDialSpeed: Boolean
+        get() = prefs.getBoolean(KEY_EACH_DIAL_SPEED, DialKind.entries.any { hasOwnSensitivity(it) })
+        set(value) = prefs.edit().putBoolean(KEY_EACH_DIAL_SPEED, value).apply()
+
+    /**
      * The order a deck ([deck] names which) shows its tiles in, as the keys DeckLayout.keys gives them.
      * Joined by newlines: a macro's name cannot hold a control character, so no key can hold one.
      */
@@ -725,6 +745,7 @@ class Settings(
         private const val KEY_SENSITIVITY = "sensitivity"
         private const val KEY_AIR_SENSITIVITY = "airSensitivity"
         private const val KEY_AIR_DEAD_ZONE = "airDeadZone"
+        private const val KEY_EACH_DIAL_SPEED = "eachDialSpeed"
         private const val KEY_POINTER_SPEED = "pointerSpeed"
         private const val KEY_SCROLL_SPEED = "scrollSpeed"
         private const val KEY_MACROS_PER_PAGE = "macrosPerPage"

@@ -6,6 +6,7 @@ import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.Switch
 import android.widget.Toast
 import me.akshitbansal.edgepad.R
@@ -98,13 +99,26 @@ object DialFeelScreen {
                     footnote(ui.string(R.string.dial_preview_caption))
                     // Only the dials that are in a corner: a slider for a dial that is nowhere changes nothing.
                     if (placed.isNotEmpty()) {
-                        section(ui.string(R.string.dial_feel_each))
-                        card {
-                            placed.forEachIndexed { i, kind ->
-                                if (i > 0) hairline()
-                                add(perDial(ui, settings, kind))
+                        // Off hides the list and nothing else: the speeds stored for each dial stay.
+                        val each = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
+                        each.visibility = if (settings.eachDialSpeed) View.VISIBLE else View.GONE
+                        Column(ui, each).apply {
+                            card {
+                                placed.forEachIndexed { i, kind ->
+                                    if (i > 0) hairline()
+                                    add(perDial(ui, settings, kind))
+                                }
                             }
                         }
+                        card {
+                            add(
+                                ui.toggle(ui.string(R.string.dial_feel_each), settings.eachDialSpeed) { on ->
+                                    settings.eachDialSpeed = on
+                                    each.visibility = if (on) View.VISIBLE else View.GONE
+                                },
+                            )
+                        }
+                        add(each)
                         footnote(ui.string(R.string.dial_feel_each_caption))
                     }
                 },
