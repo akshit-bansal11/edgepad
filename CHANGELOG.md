@@ -4,6 +4,12 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Fixed
+
+- **Laptop: updating from the tray works again.** Clicking Install could do nothing at all: the download showed no progress, had no time limit, and an unexpected error was dropped without a word. The update row now reads "Downloading … n%" while it works, gives up after 20 minutes, and says so when an update could not be installed. Windows, Linux and Mac.
+- **Laptop: one update menu.** Install, Later and Skip this version sit in one submenu under the update row instead of three separate rows.
+- **Windows: no error at every shutdown.** Closing Edgepad no longer logs a disposed-token error, which also ran during an update's hand-over.
+
 ## [5.2.0] - Unreleased
 
 No wire-protocol break: the protocol stays at version 6, and the new ids are additive, so a 5.2.0 half works with a 5.1.x half. A 5.1 phone loses nothing but the removed Sleep when this ends row.
