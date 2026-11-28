@@ -117,7 +117,7 @@
     <item>Potrzebne do pisania, klikania i naciskania klawiszy dla telefonu. macOS pyta, a Edgepad informuje telefon, gdy brakuje uprawnienia.</item>
     <item>Aby nasłuchiwać telefonu sparowanego z tym Makiem.</item>
     <item>Aby telefon mógł znaleźć ten Mac przez Wi-Fi, gdy włączysz połączenia Wi-Fi.</item>
-    <item>Aby zapytać Muzykę lub Spotify, co jest odtwarzane, i nimi sterować, oraz by uśpić, ponownie uruchomić lub wyłączyć ten Mac, gdy poprosisz o to z telefonu.</item>
+    <item>Aby zapytać Muzykę lub Spotify, co jest odtwarzane, i nimi sterować, oraz by uśpić, ponownie uruchomić lub wyłączyć ten Mac, gdy poprosisz o to z telefonu. Odczytuje też adres i tytuł przedniej karty przeglądarki, aby wybrać logo usługi; do telefonu trafia tylko nazwa usługi.</item>
     <item>Pulpit, Dokumenty i Pobrane, aby znaleźć zrzut ekranu lub nagranie, które poprosiłeś o odebranie na telefonie.</item>
     <item>Alerty o telefonie prośbącym o parowanie i o nowej wersji; Uruchamiaj przy logowaniu to zwykły element logowania. Tokeny logowania są w Twoim Keychain.</item>
     <item>Monitorowanie wejścia i Nagrywanie ekranu. Przechwytywanie używa skrótów systemowych macOS.</item>

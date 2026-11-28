@@ -120,7 +120,7 @@
     <item>Needed to type, click and press keys for the phone. macOS asks, and Edgepad tells the phone when it is missing.</item>
     <item>To listen for the phone you paired with this Mac.</item>
     <item>To let the phone find this Mac over Wi-Fi, when you turn on Wi-Fi connections.</item>
-    <item>To ask Music or Spotify what is playing and to move it, and to sleep, restart or shut down this Mac when you ask from the phone.</item>
+    <item>To ask Music or Spotify what is playing and to move it, and to sleep, restart or shut down this Mac when you ask from the phone. It also reads the front browser tab’s address and title to pick the service’s logo; only the service’s name is sent to the phone.</item>
     <item>Desktop, Documents and Downloads, to find a screenshot or recording you asked to receive on the phone.</item>
     <item>Alerts for a phone asking to pair and for a new version; Start at login is a normal login item. Sign-in tokens go in your Keychain.</item>
     <item>Input Monitoring and Screen Recording. Captures use macOS’s own shortcuts.</item>
