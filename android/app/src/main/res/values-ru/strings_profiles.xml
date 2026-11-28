@@ -22,5 +22,5 @@
   <string name="auto_kind_timeline">Таймлайн</string>
   <string name="auto_kind_browser">Браузер</string>
   <string name="profiles_needs_four">Профили приложений работают только с 4 шкалами.</string>
-  <string name="profiles_split_off">При 8 шкалах профили приложений отключаются.</string>
+  <string name="profiles_split_off">При 8 шкалах профили приложений выключены.</string>
 </resources>

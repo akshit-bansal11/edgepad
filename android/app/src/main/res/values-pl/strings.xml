@@ -616,5 +616,5 @@
   <string name="xfer_channel">Przesyłanie plików</string>
   <string name="notify_channel">Powiadomienia z laptopa</string>
   <string name="notify_setting">Pokazuj powiadomienia z laptopa</string>
-  <string name="notify_setting_hint">Wymaga włączenia tego samego przełącznika w menu Edgepad na laptopie.</string>
+  <string name="notify_setting_hint">Powiadomienia z laptopa wymagają włączenia tego samego przełącznika w menu Edgepad na laptopie.</string>
 </resources>

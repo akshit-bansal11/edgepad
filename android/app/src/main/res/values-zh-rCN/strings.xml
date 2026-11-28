@@ -576,5 +576,5 @@
   <string name="xfer_channel">文件传输</string>
   <string name="notify_channel">笔记本通知</string>
   <string name="notify_setting">显示笔记本通知</string>
-  <string name="notify_setting_hint">需要在笔记本的 Edgepad 菜单中打开同一开关。</string>
+  <string name="notify_setting_hint">笔记本通知需要在笔记本的 Edgepad 菜单中打开同一开关。</string>
 </resources>

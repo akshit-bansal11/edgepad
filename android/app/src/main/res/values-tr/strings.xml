@@ -583,5 +583,5 @@
   <string name="xfer_channel">Dosya aktarımları</string>
   <string name="notify_channel">Dizüstü bildirimleri</string>
   <string name="notify_setting">Dizüstü bildirimlerini göster</string>
-  <string name="notify_setting_hint">Dizüstündeki Edgepad menüsünde de aynı anahtarın açık olması gerekir.</string>
+  <string name="notify_setting_hint">Dizüstü bildirimleri için dizüstündeki Edgepad menüsünde de aynı anahtarın açık olması gerekir.</string>
 </resources>

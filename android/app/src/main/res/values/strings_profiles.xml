@@ -22,5 +22,5 @@
   <string name="auto_kind_timeline">Timeline</string>
   <string name="auto_kind_browser">Browser</string>
   <string name="profiles_needs_four">App profiles work only with 4 dials.</string>
-  <string name="profiles_split_off">8 dials turns app profiles off.</string>
+  <string name="profiles_split_off">With 8 dials, app profiles are off.</string>
 </resources>

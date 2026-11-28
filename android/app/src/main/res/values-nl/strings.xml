@@ -588,5 +588,5 @@
   <string name="xfer_channel">Bestandsoverdrachten</string>
   <string name="notify_channel">Laptopmeldingen</string>
   <string name="notify_setting">Laptopmeldingen tonen</string>
-  <string name="notify_setting_hint">Dezelfde schakelaar moet aan staan in het Edgepad-menu van de laptop.</string>
+  <string name="notify_setting_hint">Laptopmeldingen hebben dezelfde schakelaar nodig in het Edgepad-menu van de laptop.</string>
 </resources>

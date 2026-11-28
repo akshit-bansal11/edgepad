@@ -22,5 +22,5 @@
   <string name="auto_kind_timeline">타임라인</string>
   <string name="auto_kind_browser">브라우저</string>
   <string name="profiles_needs_four">앱 프로필은 다이얼이 4개일 때만 쓸 수 있어요.</string>
-  <string name="profiles_split_off">다이얼을 8개로 바꾸면 앱 프로필이 꺼져요.</string>
+  <string name="profiles_split_off">다이얼이 8개일 때는 앱 프로필이 꺼져 있어요.</string>
 </resources>

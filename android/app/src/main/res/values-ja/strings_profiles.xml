@@ -22,5 +22,5 @@
   <string name="auto_kind_timeline">タイムライン</string>
   <string name="auto_kind_browser">ブラウザ</string>
   <string name="profiles_needs_four">アプリ別プロファイルはダイヤルが4つのときだけ使えます。</string>
-  <string name="profiles_split_off">ダイヤルを8つにすると、アプリ別プロファイルはオフになります。</string>
+  <string name="profiles_split_off">ダイヤルが8つのときは、アプリ別プロファイルはオフです。</string>
 </resources>

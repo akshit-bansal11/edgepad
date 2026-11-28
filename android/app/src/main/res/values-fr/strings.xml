@@ -602,5 +602,5 @@
   <string name="xfer_channel">Transferts de fichiers</string>
   <string name="notify_channel">Notifications de l’ordinateur</string>
   <string name="notify_setting">Afficher les notifications de l’ordinateur</string>
-  <string name="notify_setting_hint">Nécessite le même réglage activé dans le menu Edgepad de l’ordinateur.</string>
+  <string name="notify_setting_hint">Les notifications de l’ordinateur nécessitent le même réglage activé dans le menu Edgepad de l’ordinateur.</string>
 </resources>

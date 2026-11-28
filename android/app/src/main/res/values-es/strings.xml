@@ -604,5 +604,5 @@
   <string name="xfer_channel">Transferencias de archivos</string>
   <string name="notify_channel">Notificaciones del portátil</string>
   <string name="notify_setting">Mostrar notificaciones del portátil</string>
-  <string name="notify_setting_hint">Requiere activar el mismo interruptor en el menú de Edgepad del portátil.</string>
+  <string name="notify_setting_hint">Las notificaciones del portátil necesitan el mismo interruptor activado en el menú de Edgepad del portátil.</string>
 </resources>

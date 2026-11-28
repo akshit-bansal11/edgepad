@@ -602,5 +602,5 @@
   <string name="xfer_channel">File transfers</string>
   <string name="notify_channel">Laptop notifications</string>
   <string name="notify_setting">Show laptop notifications</string>
-  <string name="notify_setting_hint">Needs the same switch turned on in the laptop’s Edgepad menu.</string>
+  <string name="notify_setting_hint">Laptop notifications need the same switch turned on in the laptop’s Edgepad menu.</string>
 </resources>

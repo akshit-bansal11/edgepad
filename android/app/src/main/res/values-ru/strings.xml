@@ -615,5 +615,5 @@
   <string name="xfer_channel">Передача файлов</string>
   <string name="notify_channel">Уведомления ноутбука</string>
   <string name="notify_setting">Показывать уведомления ноутбука</string>
-  <string name="notify_setting_hint">Тот же переключатель должен быть включён в меню Edgepad на ноутбуке.</string>
+  <string name="notify_setting_hint">Уведомления ноутбука требуют, чтобы тот же переключатель был включён в меню Edgepad на ноутбуке.</string>
 </resources>

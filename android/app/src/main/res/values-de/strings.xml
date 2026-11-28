@@ -587,5 +587,5 @@
   <string name="xfer_channel">Dateiübertragungen</string>
   <string name="notify_channel">Laptop-Benachrichtigungen</string>
   <string name="notify_setting">Laptop-Benachrichtigungen anzeigen</string>
-  <string name="notify_setting_hint">Der gleiche Schalter muss im Edgepad-Menü des Laptops eingeschaltet sein.</string>
+  <string name="notify_setting_hint">Laptop-Benachrichtigungen brauchen denselben Schalter im Edgepad-Menü des Laptops.</string>
 </resources>

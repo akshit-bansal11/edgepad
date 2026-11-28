@@ -22,5 +22,5 @@
   <string name="auto_kind_timeline">Línea de tiempo</string>
   <string name="auto_kind_browser">Navegador</string>
   <string name="profiles_needs_four">Los perfiles de apps solo funcionan con 4 reglas.</string>
-  <string name="profiles_split_off">Con 8 reglas, los perfiles de apps se desactivan.</string>
+  <string name="profiles_split_off">Con 8 reglas, los perfiles de apps están desactivados.</string>
 </resources>

@@ -22,5 +22,5 @@
   <string name="auto_kind_timeline">الخط الزمني</string>
   <string name="auto_kind_browser">المتصفح</string>
   <string name="profiles_needs_four">تعمل ملفات التطبيقات مع 4 مقاييس فقط.</string>
-  <string name="profiles_split_off">استخدام 8 مقاييس يوقف ملفات التطبيقات.</string>
+  <string name="profiles_split_off">عند استخدام 8 مقاييس، تكون ملفات التطبيقات متوقفة.</string>
 </resources>

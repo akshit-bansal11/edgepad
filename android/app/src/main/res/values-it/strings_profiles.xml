@@ -22,5 +22,5 @@
   <string name="auto_kind_timeline">Timeline</string>
   <string name="auto_kind_browser">Browser</string>
   <string name="profiles_needs_four">I profili app funzionano solo con 4 righelli.</string>
-  <string name="profiles_split_off">Con 8 righelli i profili app si disattivano.</string>
+  <string name="profiles_split_off">Con 8 righelli i profili app sono disattivati.</string>
 </resources>

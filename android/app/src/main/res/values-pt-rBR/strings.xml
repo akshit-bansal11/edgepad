@@ -602,5 +602,5 @@
   <string name="xfer_channel">Transferências de arquivos</string>
   <string name="notify_channel">Notificações do notebook</string>
   <string name="notify_setting">Mostrar notificações do notebook</string>
-  <string name="notify_setting_hint">Requer a mesma chave ativada no menu do Edgepad no notebook.</string>
+  <string name="notify_setting_hint">As notificações do notebook exigem a mesma chave ativada no menu do Edgepad no notebook.</string>
 </resources>

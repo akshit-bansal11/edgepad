@@ -642,5 +642,5 @@
   <string name="xfer_channel">نقل الملفات</string>
   <string name="notify_channel">إشعارات اللابتوب</string>
   <string name="notify_setting">عرض إشعارات اللابتوب</string>
-  <string name="notify_setting_hint">يتطلب تشغيل المفتاح نفسه في قائمة Edgepad على اللابتوب.</string>
+  <string name="notify_setting_hint">تتطلب إشعارات اللابتوب تشغيل المفتاح نفسه في قائمة Edgepad على اللابتوب.</string>
 </resources>

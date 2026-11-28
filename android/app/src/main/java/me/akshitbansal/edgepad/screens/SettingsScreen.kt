@@ -96,7 +96,9 @@ object SettingsScreen {
                                 routes.clipboard()
                             },
                         )
-                        hairline()
+                    }
+                    footnote(ui.string(R.string.clipboard_share_caption))
+                    card(Space.L) {
                         add(
                             ui.toggle(ui.string(R.string.notify_setting), settings.notifyForward) {
                                 settings.notifyForward = it
@@ -104,7 +106,6 @@ object SettingsScreen {
                             },
                         )
                     }
-                    footnote(ui.string(R.string.clipboard_share_caption))
                     footnote(ui.string(R.string.notify_setting_hint))
                 },
                 {

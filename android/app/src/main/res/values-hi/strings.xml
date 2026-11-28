@@ -588,5 +588,5 @@
   <string name="xfer_channel">फ़ाइल ट्रांसफ़र</string>
   <string name="notify_channel">लैपटॉप सूचनाएँ</string>
   <string name="notify_setting">लैपटॉप सूचनाएँ दिखाएँ</string>
-  <string name="notify_setting_hint">लैपटॉप के Edgepad मेनू में यही स्विच चालू होना चाहिए।</string>
+  <string name="notify_setting_hint">लैपटॉप की सूचनाओं के लिए लैपटॉप के Edgepad मेनू में यही स्विच चालू होना चाहिए।</string>
 </resources>

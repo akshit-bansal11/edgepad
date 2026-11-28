@@ -579,5 +579,5 @@
   <string name="xfer_channel">ファイル転送</string>
   <string name="notify_channel">ノートPCの通知</string>
   <string name="notify_setting">ノートPCの通知を表示</string>
-  <string name="notify_setting_hint">ノートPCのEdgepadメニューでも同じスイッチをオンにする必要があります。</string>
+  <string name="notify_setting_hint">ノートPCの通知には、ノートPCのEdgepadメニューでも同じスイッチをオンにする必要があります。</string>
 </resources>

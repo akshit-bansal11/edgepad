@@ -22,5 +22,5 @@
   <string name="auto_kind_timeline">时间线</string>
   <string name="auto_kind_browser">浏览器</string>
   <string name="profiles_needs_four">应用配置只能在 4 个标尺时使用。</string>
-  <string name="profiles_split_off">改用 8 个标尺后，应用配置会关闭。</string>
+  <string name="profiles_split_off">使用 8 个标尺时，应用配置处于关闭状态。</string>
 </resources>

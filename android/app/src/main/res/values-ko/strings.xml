@@ -562,5 +562,5 @@
   <string name="xfer_channel">파일 전송</string>
   <string name="notify_channel">노트북 알림</string>
   <string name="notify_setting">노트북 알림 표시</string>
-  <string name="notify_setting_hint">노트북의 Edgepad 메뉴에서도 같은 스위치를 켜야 합니다.</string>
+  <string name="notify_setting_hint">노트북 알림은 노트북의 Edgepad 메뉴에서도 같은 스위치를 켜야 합니다.</string>
 </resources>
