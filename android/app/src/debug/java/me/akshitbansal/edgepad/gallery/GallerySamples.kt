@@ -437,7 +437,9 @@ class GallerySamples(
                                     setPadding(pad, pad, pad, pad)
                                     val picture = StencilIcon(kind, ui.palette.ink, ui.palette.accent)
                                     addView(ImageView(context).apply { setImageDrawable(picture) }, side, side)
-                                    addView(ui.text(kind.name.lowercase(), Type.SMALL, ui.palette.dim).apply { gravity = Gravity.CENTER_HORIZONTAL })
+                                    val label = ui.text(kind.name.lowercase(), Type.SMALL, ui.palette.dim)
+                                    label.gravity = Gravity.CENTER_HORIZONTAL
+                                    addView(label)
                                 },
                             )
                         }
