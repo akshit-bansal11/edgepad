@@ -297,6 +297,7 @@
   <string name="shape_target_lock_pad">Touchpad vergrendelen</string>
 
   <string name="settings_surface">Bedieningsvlak</string>
+  <string name="settings_display">Weergave</string>
   <string name="settings_controls">Kleur van bediening</string>
   <string name="settings_surface_title">Instellingen voor bedieningsvlak</string>
   <string name="settings_system">Systeeminstellingen</string>
