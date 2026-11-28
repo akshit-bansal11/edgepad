@@ -1,0 +1,41 @@
+# Which service is playing, for the media card's logo. Read by the three laptop apps and the phone's tests; never sent
+# over the link as a table: the laptop sends only the service's name, in the place it sends the media app's name, and
+# the phone draws its bundled logo for that name.
+#
+# Format:  SERVICE <name>|<match>[,<match>...]
+# name   exactly what the laptop sends; the phone's AppLogo must have a logo for every name below unless the row ends in
+#        "# no logo", and then the phone shows its plain music/video symbol.
+# match  title:<words>  the words stand as their own word in a browser tab or window title, case-insensitive: nothing
+#                       that is a letter or digit right before or right after ("Plex" is never read out of "complexity").
+#        host:<host>    the page's address is this host or a sub-domain of it (macOS and Linux read the address).
+#        app:<token>    a media session's app id or exe name holds this, case-insensitive (desktop apps, not browsers).
+#
+# Rows are tried in order and the first match wins, so a longer name comes before a shorter one it contains
+# ("YouTube Music" before "YouTube", "Apple TV+" before "Apple TV"). A browser with no matching row shows the plain symbol,
+# never the browser's own icon. A row not seen on a real device ends in "# unverified"; the owner reviews them.
+
+SERVICE YouTube Music|title:YouTube Music,host:music.youtube.com # unverified
+SERVICE Apple Music|title:Apple Music,host:music.apple.com,app:applemusic,app:itunes # unverified
+SERVICE Apple TV+|title:Apple TV+ # unverified
+SERVICE Apple TV|title:Apple TV,host:tv.apple.com,app:appletv # unverified
+SERVICE Prime Video|title:Prime Video,host:primevideo.com,app:primevideo,app:amazonvideo # unverified
+SERVICE HBO Max|title:HBO Max,host:max.com,host:hbomax.com # unverified
+SERVICE Paramount+|title:Paramount+,host:paramountplus.com # unverified
+SERVICE Disney+|title:Disney+,host:disneyplus.com,app:disney # unverified
+SERVICE Netflix|title:Netflix,host:netflix.com,app:netflix # unverified
+SERVICE YouTube|title:YouTube,host:youtube.com,host:youtu.be # unverified
+SERVICE Spotify|title:Spotify,host:spotify.com,app:spotify # unverified
+SERVICE Hulu|title:Hulu,host:hulu.com,app:hulu # unverified
+SERVICE Crunchyroll|title:Crunchyroll,host:crunchyroll.com,app:crunchyroll # unverified
+SERVICE Peacock|title:Peacock,host:peacocktv.com # unverified
+SERVICE Instagram|title:Instagram,host:instagram.com,app:instagram # unverified
+SERVICE Facebook|title:Facebook,host:facebook.com,app:facebook # unverified
+SERVICE LinkedIn|title:LinkedIn,host:linkedin.com # unverified
+SERVICE X|title:Twitter,host:x.com,host:twitter.com # unverified
+SERVICE Sky|title:Sky Go,title:NOW TV,host:sky.com # unverified
+SERVICE SoundCloud|title:SoundCloud,host:soundcloud.com # no logo # unverified
+SERVICE Twitch|title:Twitch,host:twitch.tv # no logo # unverified
+SERVICE Plex|title:Plex,host:plex.tv,app:plex # no logo # unverified
+SERVICE JioHotstar|title:JioHotstar,title:Hotstar,host:hotstar.com # no logo # unverified
+SERVICE JioCinema|title:JioCinema,host:jiocinema.com # no logo # unverified
+SERVICE SonyLIV|title:SonyLIV,host:sonyliv.com # no logo # unverified
