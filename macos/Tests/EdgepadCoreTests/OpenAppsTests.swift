@@ -4,7 +4,11 @@ import XCTest
 
 final class OpenAppsTests: XCTestCase {
     func testOpenAppsComeFirstThenMacroAppsNotAlreadyListed() {
-        let body = OpenApps.body(["com.apple.Notes/Notes", "com.spotify.client/Spotify", "com.spotify.client/Spotify again"])
+        let body = OpenApps.body([
+            "com.apple.Notes/Notes",
+            "com.spotify.client/Spotify",
+            "com.spotify.client/Spotify again",
+        ])
 
         XCTAssertEqual(body, "com.apple.Notes\tNotes\ncom.spotify.client\tSpotify")
     }
