@@ -293,6 +293,7 @@
   <string name="shape_target_lock_pad">Dokunmatik yüzeyi kilitle</string>
 
   <string name="settings_surface">Kumanda alanı</string>
+  <string name="settings_display">Görüntü</string>
   <string name="settings_controls">Kontrol rengi</string>
   <string name="settings_surface_title">Kumanda alanı ayarları</string>
   <string name="settings_system">Sistem ayarları</string>

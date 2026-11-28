@@ -304,6 +304,7 @@
   <string name="shape_target_lock_pad">Bloquear o touchpad</string>
 
   <string name="settings_surface">Superfície</string>
+  <string name="settings_display">Exibição</string>
   <string name="settings_controls">Cor dos controles</string>
   <string name="settings_surface_title">Configurações da superfície</string>
   <string name="settings_system">Configurações do sistema</string>

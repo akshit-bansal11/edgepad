@@ -311,6 +311,7 @@
   <string name="shape_target_lock_pad">Заблокировать тачпад</string>
 
   <string name="settings_surface">Пульт</string>
+  <string name="settings_display">Отображение</string>
   <string name="settings_controls">Цвет элементов</string>
   <string name="settings_surface_title">Настройки пульта</string>
   <string name="settings_system">Системные настройки</string>

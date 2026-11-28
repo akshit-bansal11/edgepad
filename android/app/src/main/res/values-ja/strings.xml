@@ -291,6 +291,7 @@
   <string name="shape_target_lock_pad">パッドをロック</string>
 
   <string name="settings_surface">操作画面</string>
+  <string name="settings_display">表示</string>
   <string name="settings_controls">操作部の色</string>
   <string name="settings_surface_title">操作画面の設定</string>
   <string name="settings_system">システム設定</string>
