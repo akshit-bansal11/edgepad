@@ -5,17 +5,15 @@ namespace Edgepad.Tests;
 
 public sealed class LinuxOpenAppsTests
 {
-    [Fact]
-    public void WindowsAreListedNewestFirstByTheirLowerCasedClassThenMacroProgramsNotAlreadyThere()
-    {
-        var body = LinuxOpenApps.Body(
-            [["inst", "Firefox"], ["inst", "Code"], ["inst", "My App"]],
-            ["code", "Spotify"]);
+    private static readonly IReadOnlyList<string>[] Windows = [["inst", "Firefox"], ["inst", "Code"], ["inst", "My App"]];
+    private static readonly string[] Macros = ["code", "Spotify"];
+    private static readonly string[] Spotify = ["Spotify"];
 
-        Assert.Equal("code\tCode\nfirefox\tFirefox\nspotify\tSpotify", body);
-    }
+    [Fact]
+    public void WindowsAreListedNewestFirstByTheirLowerCasedClassThenMacroProgramsNotAlreadyThere() =>
+        Assert.Equal("code\tCode\nfirefox\tFirefox\nspotify\tSpotify", LinuxOpenApps.Body(Windows, Macros));
 
     [Fact]
     public void WithoutAnyWindowsOnlyTheMacroProgramsAreSent() =>
-        Assert.Equal("spotify\tSpotify", LinuxOpenApps.Body([], ["Spotify"]));
+        Assert.Equal("spotify\tSpotify", LinuxOpenApps.Body([], Spotify));
 }
