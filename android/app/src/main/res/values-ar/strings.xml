@@ -325,6 +325,7 @@
   <string name="shape_target_lock_pad">قفل لوحة اللمس</string>
 
   <string name="settings_surface">سطح التحكم</string>
+  <string name="settings_display">العرض</string>
   <string name="settings_controls">لون عناصر التحكم</string>
   <string name="settings_surface_title">إعدادات سطح التحكم</string>
   <string name="settings_system">إعدادات النظام</string>

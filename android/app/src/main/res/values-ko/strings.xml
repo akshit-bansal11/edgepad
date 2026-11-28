@@ -281,6 +281,7 @@
   <string name="shape_target_lock_pad">트랙패드 잠금</string>
 
   <string name="settings_surface">조작 화면</string>
+  <string name="settings_display">디스플레이</string>
   <string name="settings_controls">컨트롤 색상</string>
   <string name="settings_surface_title">조작 화면 설정</string>
   <string name="settings_system">시스템 설정</string>
