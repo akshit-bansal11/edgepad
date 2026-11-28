@@ -133,9 +133,11 @@ object ProfilesScreen {
             val gestureChoices = listOf(same) + actions.map { ui.string(it.nameRes) }
             for (gesture in Gesture.entries) {
                 val set = profile.gestures[gesture]
+                val count = gesture.fingers
+                val fingers = ui.context.resources.getQuantityString(R.plurals.gestures_fingers, count, count)
                 pickRow(
                     "$scope.g${gesture.name}",
-                    ui.string(gesture.nameRes),
+                    "$fingers · ${ui.string(gesture.nameRes)}",
                     if (set == null) same else ui.string(set.nameRes),
                     gestureChoices,
                     if (set == null) 0 else 1 + actions.indexOf(set),
@@ -234,7 +236,7 @@ object ProfilesScreen {
                 footnote(ui.string(R.string.profiles_pick_none))
                 return
             }
-            card {
+            card(Space.M) {
                 rows.forEachIndexed { i, app ->
                     if (i > 0) hairline()
                     val front = app.token == current?.token

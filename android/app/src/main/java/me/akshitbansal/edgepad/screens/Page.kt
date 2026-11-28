@@ -69,8 +69,6 @@ private const val BACK_ICON_DP = 26f
 private const val CHECK_DP = 20f
 private const val LEAD_DP = 24f
 
-/** The largest share of the nav bar either end may take. */
-
 // A laptop's row: the Devices list's, and the larger one that heads the Settings hub.
 private const val LAPTOP_ROW_DP = 64f
 private const val LAPTOP_ROW_LARGE_DP = 72f
@@ -641,7 +639,9 @@ class Ui(
         // of clipping its labels. The whole control is then at least a touch target tall: the room above and
         // below the drawn track is clear, and every option's label reaches through it to take the tap.
         val lines = paint.fontMetricsInt
-        val rows = if (width < natural) 2 else 1
+        // Two rows only when the widest label cannot sit on one line in its segment, so controls whose labels
+        // fit share one height even when squeezed.
+        val rows = if (natural - 2 * dp(SEGMENT_PAD_DP) > width - 2 * dp(SEGMENT_FIT_PAD_DP)) 2 else 1
         val height = maxOf(dp(SEGMENT_HEIGHT_DP), rows * (lines.bottom - lines.top) + 2 * dp(SEGMENT_TEXT_PAD_DP))
         val touch = maxOf(dp(Space.TOUCH), height + 2 * inset)
         val slack = (touch - height) / 2 - inset

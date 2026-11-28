@@ -15,7 +15,7 @@ object AccessibilityScreen {
         settings: Settings,
         onBack: () -> Unit,
     ): View =
-        ui.page(ui.bar("", onBack, backLabel = ui.string(R.string.settings_title))) {
+        ui.page(ui.bar("", onBack, backLabel = ui.string(R.string.settings_system))) {
             largeTitle(ui.string(R.string.accessibility_title))
             card {
                 add(
