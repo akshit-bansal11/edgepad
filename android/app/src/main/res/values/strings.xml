@@ -346,6 +346,7 @@
   <string name="dial_preview_caption">Preview. Clockwise raises.</string>
   <string name="gestures_footnote">Tap a gesture to change its action. One and two fingers are fixed: move, tap to click, hold still then move to drag; two fingers drag to scroll, pinch to zoom, tap to right-click.</string>
   <string name="dial_feel_each">Each dial</string>
+  <string name="dial_feel_each_switch">Set each dial\'s speed</string>
   <string name="dial_feel_shared">Shared</string>
   <string name="dial_feel_each_caption">Only the dials in a corner are listed. Move one off Shared to give it a speed of its own. Shared follows slide sensitivity.</string>
   <string name="appearance_title">Look</string>

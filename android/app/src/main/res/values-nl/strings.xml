@@ -340,6 +340,7 @@
   <string name="dial_preview_caption">Voorbeeld. Met de klok mee gaat het omhoog.</string>
   <string name="gestures_footnote">Tik op een gebaar om de actie te wijzigen. Gebaren met één en twee vingers liggen vast: bewegen, tikken om te klikken, even stilhouden en dan bewegen om te slepen; met twee vingers slepen om te scrollen, knijpen om te zoomen, tikken voor rechtsklik.</string>
   <string name="dial_feel_each">Elke regelaar</string>
+  <string name="dial_feel_each_switch">Snelheid per regelaar instellen</string>
   <string name="dial_feel_shared">Gedeeld</string>
   <string name="dial_feel_each_caption">Alleen de regelaars in een hoek staan in de lijst. Haal een regelaar uit Gedeeld om hem een eigen snelheid te geven. Gedeeld volgt de gevoeligheid van schuiven.</string>
   <string name="appearance_title">Uiterlijk</string>

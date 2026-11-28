@@ -339,6 +339,7 @@
   <string name="dial_preview_caption">प्रीव्यू। घड़ी की दिशा में घुमाने से बढ़ता है।</string>
   <string name="gestures_footnote">किसी जेस्चर का काम बदलने के लिए उस पर टैप करें। एक और दो उंगलियों वाले जेस्चर तय हैं: एक उंगली से पॉइंटर हिलाएं, क्लिक के लिए टैप करें, ड्रैग के लिए उंगली को एक पल स्थिर रखकर हिलाएं; दो उंगलियों से स्क्रॉल के लिए खींचें, ज़ूम के लिए पिंच करें, राइट क्लिक के लिए टैप करें।</string>
   <string name="dial_feel_each">हर डायल</string>
+  <string name="dial_feel_each_switch">हर डायल की स्पीड तय करें</string>
   <string name="dial_feel_shared">साझा</string>
   <string name="dial_feel_each_caption">सिर्फ़ कोनों में लगे डायल दिखते हैं। किसी की अपनी स्पीड रखने के लिए उसे “साझा” से हटाएं। “साझा” स्लाइड की संवेदनशीलता के हिसाब से चलता है।</string>
   <string name="appearance_title">रूप</string>

@@ -334,6 +334,7 @@
   <string name="dial_preview_caption">プレビュー。時計回りで上がります。</string>
   <string name="gestures_footnote">ジェスチャーをタップすると、操作を変更できます。1本指と2本指は固定です。1本指は移動、タップでクリック、少し止めてから動かすとドラッグ。2本指はドラッグでスクロール、ピンチでズーム、タップで右クリックです。</string>
   <string name="dial_feel_each">個別</string>
+  <string name="dial_feel_each_switch">ダイヤルごとに速さを設定</string>
   <string name="dial_feel_shared">共通</string>
   <string name="dial_feel_each_caption">コーナーに割り当てたダイヤルだけが表示されます。「共通」以外にすると、そのダイヤルだけ別の速さにできます。「共通」はスライド感度に従います。</string>
   <string name="appearance_title">外観</string>

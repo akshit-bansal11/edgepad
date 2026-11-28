@@ -100,14 +100,27 @@ object DialFeelScreen {
                     footnote(ui.string(R.string.dial_preview_caption))
                     // Only the dials that are in a corner: a slider for a dial that is nowhere changes nothing.
                     if (placed.isNotEmpty()) {
+                        // Off hides the list and nothing more: the speeds already saved stay as they are. It starts on
+                        // when a dial in a corner has a speed of its own, so that speed is never out of sight.
+                        val own = placed.any { settings.hasOwnSensitivity(it) }
                         section(ui.string(R.string.dial_feel_each))
+                        val hideable = mutableListOf<View>()
                         card {
-                            placed.forEachIndexed { i, kind ->
-                                if (i > 0) hairline()
-                                add(perDial(ui, settings, kind))
-                            }
+                            add(
+                                ui.toggle(ui.string(R.string.dial_feel_each_switch), own) { on ->
+                                    hideable.forEach { it.visibility = if (on) View.VISIBLE else View.GONE }
+                                },
+                            )
                         }
-                        footnote(ui.string(R.string.dial_feel_each_caption))
+                        hideable +=
+                            card(Space.L) {
+                                placed.forEachIndexed { i, kind ->
+                                    if (i > 0) hairline()
+                                    add(perDial(ui, settings, kind))
+                                }
+                            }
+                        hideable += footnote(ui.string(R.string.dial_feel_each_caption))
+                        if (!own) hideable.forEach { it.visibility = View.GONE }
                     }
                 },
             )

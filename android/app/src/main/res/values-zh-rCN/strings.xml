@@ -333,6 +333,7 @@
   <string name="dial_preview_caption">预览。顺时针调高。</string>
   <string name="gestures_footnote">点按某个手势即可更改其操作。单指和双指的手势是固定的：单指移动，轻点为单击，按住不动片刻后移动为拖动；双指拖动为滚动，捏合为缩放，轻点为右键单击。</string>
   <string name="dial_feel_each">逐个设置</string>
+  <string name="dial_feel_each_switch">单独设置每个标尺的速度</string>
   <string name="dial_feel_shared">统一</string>
   <string name="dial_feel_each_caption">只列出已放在边角上的标尺。将某个标尺移出“统一”，即可单独设置其速度。“统一”跟随滑动灵敏度。</string>
   <string name="appearance_title">外观</string>

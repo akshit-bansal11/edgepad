@@ -354,6 +354,7 @@
   <string name="dial_preview_caption">Podgląd. Ruch zgodny ze wskazówkami zegara zwiększa wartość.</string>
   <string name="gestures_footnote">Stuknij gest, aby zmienić jego działanie. Gesty jednym i dwoma palcami są stałe: jeden palec przesuwa wskaźnik, stuknięcie klika, przytrzymanie palca bez ruchu, a potem przesunięcie przeciąga; dwa palce: przesuwanie przewija, szczypnięcie powiększa, stuknięcie to kliknięcie prawym przyciskiem.</string>
   <string name="dial_feel_each">Każdy suwak</string>
+  <string name="dial_feel_each_switch">Ustaw szybkość każdego suwaka</string>
   <string name="dial_feel_shared">Wspólne</string>
   <string name="dial_feel_each_caption">Na liście są tylko suwaki w rogach. Przełącz suwak z „Wspólne” na własne ustawienie, aby miał własną szybkość. „Wspólne” zależy od czułości przesuwania.</string>
   <string name="appearance_title">Wygląd</string>

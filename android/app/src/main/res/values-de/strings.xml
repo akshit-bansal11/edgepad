@@ -339,6 +339,7 @@
   <string name="dial_preview_caption">Vorschau. Im Uhrzeigersinn erhöht.</string>
   <string name="gestures_footnote">Tippe auf eine Geste, um ihre Aktion zu ändern. Die Aktionen für einen und zwei Finger sind fest: bewegen, tippen zum Klicken, kurz still halten und dann bewegen zum Ziehen; mit zwei Fingern wischen zum Scrollen, spreizen zum Zoomen, tippen für Rechtsklick.</string>
   <string name="dial_feel_each">Einzeln</string>
+  <string name="dial_feel_each_switch">Tempo je Regler festlegen</string>
   <string name="dial_feel_shared">Gemeinsam</string>
   <string name="dial_feel_each_caption">Es werden nur Regler in einer Ecke angezeigt. Stelle einen von „Gemeinsam“ um, damit er eine eigene Geschwindigkeit bekommt. „Gemeinsam“ folgt der Wischempfindlichkeit.</string>
   <string name="appearance_title">Look</string>

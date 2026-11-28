@@ -347,6 +347,7 @@
   <string name="dial_preview_caption">Prévia. No sentido horário, aumenta.</string>
   <string name="gestures_footnote">Toque em um gesto para mudar a ação dele. Um e dois dedos são fixos: mover, tocar para clicar, segurar parado por um instante e mover para arrastar; com dois dedos, arrastar para rolar, pinçar para dar zoom e tocar para clicar com o botão direito.</string>
   <string name="dial_feel_each">Cada régua</string>
+  <string name="dial_feel_each_switch">Definir a velocidade de cada régua</string>
   <string name="dial_feel_shared">Compartilhada</string>
   <string name="dial_feel_each_caption">Só as réguas em um canto aparecem na lista. Tire uma de Compartilhada para dar a ela uma velocidade própria. Compartilhada segue a sensibilidade do deslize.</string>
   <string name="appearance_title">Visual</string>

@@ -324,6 +324,7 @@
   <string name="dial_preview_caption">미리보기. 시계 방향으로 올라가요.</string>
   <string name="gestures_footnote">제스처를 탭해서 동작을 바꾸세요. 손가락 한두 개 동작은 고정이에요. 한 개는 이동, 탭하면 클릭, 잠시 멈췄다가 움직이면 드래그이고, 두 개는 드래그하면 스크롤, 핀치하면 확대/축소, 탭하면 오른쪽 클릭이에요.</string>
   <string name="dial_feel_each">다이얼별</string>
+  <string name="dial_feel_each_switch">다이얼마다 속도 설정</string>
   <string name="dial_feel_shared">공통</string>
   <string name="dial_feel_each_caption">모서리에 놓은 다이얼만 표시돼요. 공통을 벗어나게 설정하면 그 다이얼만의 속도를 줄 수 있어요. 공통은 슬라이드 감도를 따라가요.</string>
   <string name="appearance_title">모양</string>

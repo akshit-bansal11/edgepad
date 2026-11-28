@@ -336,6 +336,7 @@
   <string name="dial_preview_caption">Önizleme. Saat yönü artırır.</string>
   <string name="gestures_footnote">Eylemini değiştirmek için bir harekete dokunun. Bir ve iki parmakla yapılanlar sabittir: işaretçiyi taşıma, tıklamak için dokunma, sürüklemek için bir an sabit tutup hareket ettirme; iki parmakla kaydırmak için sürükleme, yakınlaştırmak için sıkıştırma, sağ tık için dokunma.</string>
   <string name="dial_feel_each">Her kadran</string>
+  <string name="dial_feel_each_switch">Her kadranın hızını ayarla</string>
   <string name="dial_feel_shared">Ortak</string>
   <string name="dial_feel_each_caption">Yalnızca bir köşedeki kadranlar listelenir. Bir kadrana kendi hızını vermek için Ortak’tan çıkarın. Ortak, sürükleme duyarlılığını izler.</string>
   <string name="appearance_title">Görünüm</string>

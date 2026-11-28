@@ -368,6 +368,7 @@
   <string name="dial_preview_caption">معاينة. اتجاه عقارب الساعة يرفع.</string>
   <string name="gestures_footnote">انقر إيماءة لتغيير إجرائها. إيماءات الإصبع والإصبعين ثابتة: بإصبع واحد تحرّك المؤشر، وتنقر للنقر، وتثبّته لحظة ثم تحرّكه للسحب؛ وبإصبعين تسحب للتمرير، وتقرص للتكبير، وتنقر للنقر الأيمن.</string>
   <string name="dial_feel_each">كل مقياس</string>
+  <string name="dial_feel_each_switch">تعيين سرعة كل مقياس</string>
   <string name="dial_feel_shared">مشترك</string>
   <string name="dial_feel_each_caption">تُعرض المقاييس الموجودة في الزوايا فقط. انقل أحدها خارج «مشترك» لتمنحه سرعة خاصة به. «مشترك» يتبع «حساسية الانزلاق».</string>
   <string name="appearance_title">المظهر</string>

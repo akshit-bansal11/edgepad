@@ -347,6 +347,7 @@
   <string name="dial_preview_caption">Anteprima. In senso orario aumenta.</string>
   <string name="gestures_footnote">Tocca un gesto per cambiarne l’azione. Con uno e due dita i gesti sono fissi: muovi per spostare il puntatore, tocca per fare clic, tieni fermo un attimo e poi muovi per trascinare; con due dita trascina per scorrere, pizzica per ingrandire, tocca per il clic destro.</string>
   <string name="dial_feel_each">Ogni righello</string>
+  <string name="dial_feel_each_switch">Imposta la velocità di ogni righello</string>
   <string name="dial_feel_shared">Condiviso</string>
   <string name="dial_feel_each_caption">Sono elencati solo i righelli presenti in un angolo. Togline uno da Condiviso per dargli una velocità tutta sua. Condiviso segue la sensibilità di scorrimento.</string>
   <string name="appearance_title">Aspetto</string>

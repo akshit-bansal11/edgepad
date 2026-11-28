@@ -347,6 +347,7 @@
   <string name="dial_preview_caption">Aperçu. Le sens horaire augmente.</string>
   <string name="gestures_footnote">Appuyez sur un geste pour changer son action. Un et deux doigts sont fixes : déplacer, appuyer pour cliquer, maintenir immobile un instant puis déplacer pour faire glisser ; à deux doigts, glisser pour faire défiler, pincer pour zoomer, appuyer pour faire un clic droit.</string>
   <string name="dial_feel_each">Chaque règle</string>
+  <string name="dial_feel_each_switch">Régler la vitesse de chaque règle</string>
   <string name="dial_feel_shared">Commun</string>
   <string name="dial_feel_each_caption">Seules les règles placées dans un coin sont listées. Sortez-en une de Commun pour lui donner sa propre vitesse. Commun suit la sensibilité du glissement.</string>
   <string name="appearance_title">Aspect</string>
