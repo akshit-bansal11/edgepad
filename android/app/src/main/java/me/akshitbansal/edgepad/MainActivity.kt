@@ -166,7 +166,6 @@ import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.SharingScreen
 import me.akshitbansal.edgepad.screens.SheetRegistry
-import me.akshitbansal.edgepad.screens.StencilIcon
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
 import me.akshitbansal.edgepad.screens.SystemHub
 import me.akshitbansal.edgepad.screens.SystemScreen
@@ -1501,7 +1500,7 @@ class MainActivity :
                             if (settings.splitCorners && settings.profilesOn) {
                                 TipCard.notice(
                                     stage,
-                                    StencilIcon.Kind.POWER,
+                                    null,
                                     R.string.profiles_split_off,
                                     gravity = Gravity.BOTTOM or Gravity.END,
                                 )

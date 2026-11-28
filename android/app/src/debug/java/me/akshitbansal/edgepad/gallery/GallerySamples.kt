@@ -192,7 +192,7 @@ class GallerySamples(
                 host.post {
                     TipCard.notice(
                         host,
-                        StencilIcon.Kind.POWER,
+                        null,
                         R.string.profiles_split_off,
                         gravity = Gravity.BOTTOM or Gravity.END,
                     )
