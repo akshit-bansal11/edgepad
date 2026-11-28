@@ -70,7 +70,6 @@ private const val CHECK_DP = 20f
 private const val LEAD_DP = 24f
 
 /** The largest share of the nav bar either end may take. */
-private const val END_SHARE = 0.4f
 
 // A laptop's row: the Devices list's, and the larger one that heads the Settings hub.
 private const val LAPTOP_ROW_DP = 64f
@@ -267,8 +266,8 @@ class Ui(
             val name =
                 text(title, Type.LABEL, palette.ink, face = Type.bold).apply {
                     isAccessibilityHeading = true
-                    maxLines = 1
-                    ellipsize = TextUtils.TruncateAt.END
+                    // Never cut short: it wraps on whole words if even alone it does not fit one line.
+                    maxLines = 2
                     gravity = Gravity.CENTER
                     visibility = if (drawn && title.isNotEmpty()) View.VISIBLE else View.GONE
                 }
@@ -297,6 +296,8 @@ class Ui(
                 },
             )
             ends = listOf(start, end)
+            // The back link's written name, which is its second child after the chevron.
+            if (onBack != null) this.label = (start.getChildAt(0) as ViewGroup).getChildAt(1)
         }
 
     /** The nav bar's back link: an accent chevron and the name of the screen it returns to. */
@@ -308,6 +309,7 @@ class Ui(
         LinearLayout(context).apply {
             gravity = Gravity.CENTER_VERTICAL
             minimumHeight = dp(Space.TOUCH)
+            minimumWidth = dp(Space.TOUCH)
             setPaddingRelative(0, 0, dp(Space.S), 0)
             addView(
                 Glyph(context, Glyph.Shape.CHEVRON_LEFT, palette.accent),
@@ -316,7 +318,7 @@ class Ui(
             addView(
                 text(label, Type.LABEL, palette.accent).apply {
                     maxLines = 1
-                    ellipsize = TextUtils.TruncateAt.END
+                    setPaddingRelative(dp(Space.XS), 0, 0, 0)
                 },
             )
             // A name that holds the words on screen, and says where Back goes, which sighted users read.
@@ -824,6 +826,28 @@ class Ui(
             setPadding(dp(Space.CARD_PAD), dp(SECTION_TOP_DP), dp(Space.CARD_PAD), dp(Space.S))
         }
 
+    /**
+     * A row of a [label] that keeps its own width and a [value] that takes the rest, wrapping on whole words and
+     * lined up to the end. For a value too long to share a line, where [field] would squeeze the label.
+     */
+    fun valueField(
+        label: CharSequence,
+        value: CharSequence,
+    ): LinearLayout =
+        LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = dp(Space.TOUCH)
+            setPadding(0, dp(Space.S), 0, dp(Space.S))
+            addView(text(label, Type.BODY, palette.ink))
+            addView(
+                secondary(value, Type.VALUE, palette.dim).apply {
+                    gravity = Gravity.END
+                    setPaddingRelative(dp(Space.M), 0, 0, 0)
+                },
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
+            )
+        }
+
     /** A row with a plain label and [end] at the far side. */
     fun field(
         label: CharSequence,
@@ -1128,24 +1152,40 @@ private class NavBar(
     /** The title, when it is centred over the whole bar rather than set beside the mark. */
     var centred: View? = null
 
+    /** The back link's written name, hidden when it will not fit beside the title. */
+    var label: View? = null
+
     override fun onMeasure(
         widthMeasureSpec: Int,
         heightMeasureSpec: Int,
     ) {
         centred?.let { title ->
-            // Neither end takes more than 40 % of the bar, so the title keeps at least 20 % and a long back
-            // label ellipsizes. The capped width is pinned so the measure below keeps it.
-            val cap = ((MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight) * END_SHARE).toInt()
-            ends.forEach {
-                it.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
-                it.measure(MeasureSpec.makeMeasureSpec(cap, MeasureSpec.AT_MOST), heightMeasureSpec)
-                it.layoutParams.width = it.measuredWidth
+            val room = MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight
+            val gap = (resources.displayMetrics.density * Space.S).toInt()
+            val atMost = MeasureSpec.makeMeasureSpec(room, MeasureSpec.AT_MOST)
+
+            // The ends are measured at their natural width and pinned, so the measure below keeps it.
+            fun clear(): Int {
+                ends.forEach {
+                    it.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
+                    it.measure(atMost, heightMeasureSpec)
+                    it.layoutParams.width = it.measuredWidth
+                }
+                // The same room on both sides, so the title stays centred on the bar and not between its ends.
+                return (ends.maxOfOrNull { it.measuredWidth } ?: 0) + gap
             }
-            // The same room on both sides, so the title stays centred on the bar and not between its ends.
-            val clear = ends.maxOfOrNull { it.measuredWidth } ?: 0
+            title.measure(atMost, MeasureSpec.UNSPECIFIED)
+            label?.visibility = View.VISIBLE
+            var side = clear()
+            // When the back label and the title cannot both fit, the label gives way to the chevron alone. The
+            // back link keeps its full name for TalkBack.
+            if (label != null && title.measuredWidth + 2 * side > room) {
+                label?.visibility = View.GONE
+                side = clear()
+            }
             (title.layoutParams as ViewGroup.MarginLayoutParams).apply {
-                marginStart = clear
-                marginEnd = clear
+                marginStart = side
+                marginEnd = side
             }
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)

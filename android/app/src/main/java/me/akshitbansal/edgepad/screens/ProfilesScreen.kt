@@ -178,8 +178,7 @@ object ProfilesScreen {
                             (0 until Profiles.CORNERS).joinToString(", ") { kindName(raw.corner(it, defaults[it])) }
                         val opened = openKind == kind
                         add(
-                            ui.field(ui.string(name), ui.secondary(summary, Type.VALUE)).apply {
-                                minimumHeight = ui.dp(Space.TOUCH)
+                            ui.valueField(ui.string(name), summary).apply {
                                 isEnabled = live
                                 ui.tappable(this) {
                                     if (live) {
@@ -258,7 +257,7 @@ object ProfilesScreen {
         render = {
             list.removeAllViews()
             Column(ui, list).apply {
-                if (autoSupported) automatic()
+                section(ui.string(R.string.profiles_title))
                 if (profiles.all.isEmpty()) {
                     footnote(ui.string(R.string.profiles_empty))
                 } else {
@@ -326,6 +325,7 @@ object ProfilesScreen {
                 addButton.alpha = if (blocked) DISABLED_ALPHA else 1f
                 add(addButton, Space.XL)
                 if (offered && picker && !split) pickList()
+                if (autoSupported) automatic()
             }
         }
         render()
@@ -350,7 +350,6 @@ object ProfilesScreen {
                     else -> R.string.profiles_unsupported
                 }
             footnote(ui.string(caption))
-            section(ui.string(R.string.profiles_title))
             add(list)
         }
     }
