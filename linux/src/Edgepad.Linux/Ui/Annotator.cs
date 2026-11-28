@@ -339,7 +339,7 @@ internal sealed class Annotator : IDisposable
             return;
         }
 
-        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning, ClipboardSetting.Enabled, apps: true, notify: NotifySetting.Enabled && !NotificationMonitor.Refused, power: LinuxPower.Shared.Caps, foreground: LinuxForeground.Offered, appKind: LinuxForeground.Offered, openApps: true)));
+        sink(new Text((byte)TextKind.Features, Features(annotating, offersRunning, ClipboardSetting.Enabled, apps: true, notify: NotifySetting.Enabled && !NotificationMonitor.Refused, power: LinuxPower.Shared.Caps, foreground: LinuxForeground.Offered, appKind: LinuxForeground.Offered, openApps: LinuxForeground.Offered)));
         sink(new Text((byte)TextKind.Unavailable, Unavailable(uiDecided, annotating, inputBlocked)));
         if (primary is { } screen)
         {
