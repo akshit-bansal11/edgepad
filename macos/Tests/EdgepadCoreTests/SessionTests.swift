@@ -776,7 +776,8 @@ final class SessionTests: XCTestCase {
         _ = connectedSession()
 
         XCTAssertTrue(
-            transport.frames().contains(.text(kind: TextKind.features.rawValue, value: "capture/foreground/appkind")))
+            transport.frames().contains(
+                .text(kind: TextKind.features.rawValue, value: "capture/foreground/appkind/openapps")))
         XCTAssertEqual(source.watches, 0)
         XCTAssertEqual(foregroundTexts(), [])
     }
