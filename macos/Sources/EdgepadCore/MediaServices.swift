@@ -32,18 +32,31 @@ public enum MediaServices {
         ("SonyLIV", ["title:SonyLIV", "host:sonyliv.com"]),
     ]
 
-    /// The service a tab is, from its page address's host and its title; nil for none.
+    /// Rows a Mac cannot tell a playing tab from a tab being read, so a browser tab never names them. By row name:
+    /// the Instagram and Facebook desktop apps are still found by their bundle id.
+    static let notStreaming: Set<String> = ["Instagram", "Facebook", "LinkedIn", "X"]
+
+    /// The service a tab is, from its page address's host and its title; nil for none. The host is checked against
+    /// every row first and the title only when the host matches none, so a youtube.com tab titled "Netflix trailer"
+    /// is YouTube.
     public static func name(host: String = "", title: String = "") -> String? {
         let host = host.lowercased()
-        return table.first { row in
+        let byHost = table.first { row in
             row.matches.contains { match in
-                if match.hasPrefix("host:") {
-                    let wanted = String(match.dropFirst(5))
-                    return host == wanted || host.hasSuffix("." + wanted)
-                }
-                return match.hasPrefix("title:") && hasWord(String(match.dropFirst(6)), in: title)
+                guard match.hasPrefix("host:") else { return false }
+                let wanted = String(match.dropFirst(5))
+                return host == wanted || host.hasSuffix("." + wanted)
             }
+        }
+        if let byHost { return byHost.name }
+        return table.first { row in
+            row.matches.contains { $0.hasPrefix("title:") && hasWord(String($0.dropFirst(6)), in: title) }
         }?.name
+    }
+
+    /// The streaming service a browser tab is, for a media card; nil for none and for a social site.
+    public static func streamingName(host: String, title: String) -> String? {
+        name(host: host, title: title).flatMap { notStreaming.contains($0) ? nil : $0 }
     }
 
     /// The service a desktop app is, from its bundle id ("com.apple.Music" is "comapplemusic" here, so a token such as

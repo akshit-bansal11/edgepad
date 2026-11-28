@@ -25,6 +25,19 @@ final class MediaServicesTests: XCTestCase {
         XCTAssertNil(MediaServices.name(title: "Time complexity"))
     }
 
+    func testTheHostBeatsATitleWordInAnEarlierRow() {
+        XCTAssertEqual(MediaServices.name(host: "www.youtube.com", title: "Netflix trailer"), "YouTube")
+        XCTAssertEqual(MediaServices.name(host: "example.org", title: "Netflix trailer"), "Netflix")
+    }
+
+    func testASocialSiteNeverNamesATab() {
+        XCTAssertEqual(MediaServices.streamingName(host: "www.netflix.com", title: ""), "Netflix")
+        for host in ["www.instagram.com", "facebook.com", "www.linkedin.com", "x.com"] {
+            XCTAssertNil(MediaServices.streamingName(host: host, title: "Netflix"), host)
+        }
+        XCTAssertEqual(MediaServices.name(bundleId: "com.burbn.instagram"), "Instagram")
+    }
+
     func testADesktopAppIsFoundByItsBundleId() {
         XCTAssertEqual(MediaServices.name(bundleId: "com.apple.Music"), "Apple Music")
         XCTAssertEqual(MediaServices.name(bundleId: "com.spotify.client"), "Spotify")

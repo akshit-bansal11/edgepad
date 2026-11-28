@@ -6,8 +6,8 @@ import Foundation
 /// polling. One for the whole app and always listening, so a phone that connects mid-song is told at once; each
 /// connection holds a `MacMediaSource` that listens to it. AppleScript is asked only for the position of a player that
 /// does not put it in its notification (Music) and to seek, each on demand and never on the main thread. A browser
-/// in front is asked for its front tab every few seconds, only while it is in front and only when no player is
-/// playing, to name the service. Everything here runs on the main thread, as `Session` requires, except the scripts,
+/// in front is asked for its front tab every few seconds, only while it is in front and only when Music and Spotify
+/// have nothing, to name a streaming service (never a social site, and never the tab's title or address). Everything here runs on the main thread, as `Session` requires, except the scripts,
 /// whose answers are handed back to it. HW-unverified: the notifications' keys are read from memory of their userInfo.
 final class NowPlayingHub {
     private struct Entry {
@@ -27,7 +27,7 @@ final class NowPlayingHub {
     private var listeners: [UUID: () -> Void] = [:]
     private var observers: [NSObjectProtocol] = []
     /// The service in the front browser's tab, with the browser it came from; nil when none is known.
-    private var tab: (bundleId: String, service: String, title: String)?
+    private var tab: (bundleId: String, service: String)?
     private var tabNextAsk: TimeInterval = 0
     private var tabAsking = false
     private let scripts = DispatchQueue(label: "me.akshitbansal.edgepad.nowplaying", qos: .utility)
@@ -62,7 +62,8 @@ final class NowPlayingHub {
             $0.report.active && NowPlayingHub.isRunning($0.report.app)
         }
         let playing = pick.first { $0.report.playing }
-        if playing == nil, let service = browserService(at: now) { return service }
+        // Music or Spotify, playing or paused, always wins: a browser tab is asked about only with neither.
+        if pick.isEmpty, let service = browserService(at: now) { return service }
         guard let entry = playing ?? pick.first else { return .none }
         let report = entry.report
         return MediaInfo(
@@ -76,7 +77,8 @@ final class NowPlayingHub {
     }
 
     /// A service card for the browser in front, from the last answer; asks for a fresh one when it is due. Playing is
-    /// not known to a browser's scripting, so a recognised service reads as playing.
+    /// not known to a browser's scripting, so a recognised service reads as playing. Never the tab's title or address:
+    /// the service's name is the card's title too, so the phone shows no blank line.
     private func browserService(at now: TimeInterval) -> MediaInfo? {
         guard let bundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
             BrowserTab.isScriptable(bundleId)
@@ -87,7 +89,7 @@ final class NowPlayingHub {
         if now >= tabNextAsk, !tabAsking { askTab(bundleId, at: now) }
         guard let tab, tab.bundleId == bundleId else { return nil }
         return MediaInfo(
-            title: tab.title, artist: "", app: tab.service, identity: "\(bundleId)|\(tab.service)|\(tab.title)",
+            title: tab.service, artist: "", app: tab.service, identity: "\(bundleId)|\(tab.service)",
             playing: true, positionSeconds: 0, durationSeconds: 0)
     }
 
@@ -100,9 +102,9 @@ final class NowPlayingHub {
                 guard let self else { return }
                 self.tabAsking = false
                 if read == nil { self.tabNextAsk = ProcessInfo.processInfo.systemUptime + NowPlayingHub.tabBackOff }
-                let service = read.flatMap { MediaServices.name(host: $0.host, title: $0.title) }
-                let next = service.flatMap { name in read.map { (bundleId: bundleId, service: name, title: $0.title) } }
-                let changed = next?.service != self.tab?.service || next?.title != self.tab?.title
+                let service = read.flatMap { MediaServices.streamingName(host: $0.host, title: $0.title) }
+                let next = service.map { (bundleId: bundleId, service: $0) }
+                let changed = next?.service != self.tab?.service
                 self.tab = next
                 if changed { self.notify() }
             }
