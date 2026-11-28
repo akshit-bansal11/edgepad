@@ -304,6 +304,7 @@
   <string name="shape_target_lock_pad">Bloquear el panel</string>
 
   <string name="settings_surface">Superficie</string>
+  <string name="settings_display">Pantalla</string>
   <string name="settings_controls">Color de los controles</string>
   <string name="settings_surface_title">Configuración de la superficie</string>
   <string name="settings_system">Configuración del sistema</string>
