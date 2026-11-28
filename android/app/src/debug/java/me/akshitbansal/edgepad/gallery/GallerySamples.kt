@@ -1,7 +1,6 @@
 package me.akshitbansal.edgepad.gallery
 
 import android.content.Context
-import android.graphics.Rect
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -29,6 +28,7 @@ import me.akshitbansal.edgepad.protocol.BatteryKind
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.TextKind
 import me.akshitbansal.edgepad.screens.AiScreen
+import me.akshitbansal.edgepad.screens.CaptureSettingsScreen
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.DataUsesScreen
 import me.akshitbansal.edgepad.screens.DeviceChip
@@ -102,8 +102,12 @@ class GallerySamples(
                 GitScreen(ui, { gitLaptop }, devBar(R.string.dev_git)) {}.view
             }
 
-            // The app's Settings, top to bottom; "settings-capture" is the same page scrolled to Capture & Annotate.
-            "settings", "settings-capture" -> {
+            "settings-capture" -> {
+                CaptureSettingsScreen.build(ui, settings, onToPhone = {}, onBack = {})
+            }
+
+            // The app's Settings, top to bottom.
+            "settings" -> {
                 SettingsScreen.build(
                     ui,
                     settings,
@@ -342,14 +346,6 @@ class GallerySamples(
         val label = context.getString(R.string.editor_options)
         root.findViewsWithText(found, label, View.FIND_VIEWS_WITH_CONTENT_DESCRIPTION)
         found.firstOrNull()?.performClick()
-    }
-
-    /** Scrolls the Settings page in [root] to its Capture & Annotate section, so the pen rows are in the shot. */
-    fun showCaptureSection(root: View) {
-        val found = ArrayList<View>()
-        root.findViewsWithText(found, context.getString(R.string.settings_capture), View.FIND_VIEWS_WITH_TEXT)
-        val heading = found.firstOrNull() ?: return
-        heading.requestRectangleOnScreen(Rect(0, 0, heading.width, root.height / 2), true)
     }
 
     /** Opens the Presenter's laser sheet over [owner] with Medium chosen and a 16:9 laptop. */

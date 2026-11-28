@@ -157,7 +157,6 @@ import me.akshitbansal.edgepad.screens.PinScreen
 import me.akshitbansal.edgepad.screens.PowerBanner
 import me.akshitbansal.edgepad.screens.PowerScreen
 import me.akshitbansal.edgepad.screens.PresenterScreen
-import me.akshitbansal.edgepad.screens.PresenterSettingsScreen
 import me.akshitbansal.edgepad.screens.ProfilesScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
@@ -262,7 +261,6 @@ class MainActivity :
         GAMEPAD_SETTINGS,
         MACRO_SETTINGS,
         CONTROLS_SETTINGS,
-        PRESENTER_SETTINGS,
         CAPTURE_SETTINGS,
         CAPTURE,
         ANNOTATE,
@@ -1363,13 +1361,6 @@ class MainActivity :
                             stayConnected = ::syncService,
                             notify = ::notifyChanged,
                             developer = ::developerChanged,
-                            surface = { openFrom(Screen.SETTINGS, Screen.SURFACE_SETTINGS) },
-                            controls = { openFrom(Screen.SETTINGS, Screen.CONTROLS_SETTINGS) },
-                            keyboard = { openFrom(Screen.SETTINGS, Screen.KEYBOARD_SETTINGS) },
-                            gamepad = { openFrom(Screen.SETTINGS, Screen.GAMEPAD_SETTINGS) },
-                            macros = { openFrom(Screen.SETTINGS, Screen.MACRO_SETTINGS) },
-                            presenter = { openFrom(Screen.SETTINGS, Screen.PRESENTER_SETTINGS) },
-                            capture = { openFrom(Screen.SETTINGS, Screen.CAPTURE_SETTINGS) },
                             sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
@@ -1499,7 +1490,9 @@ class MainActivity :
                 }
 
                 Screen.CAPTURE -> {
-                    CaptureScreen(ui, settings, state, send) { navigateBack() }.view
+                    CaptureScreen(ui, settings, state, send, onSettings = { goTo(Screen.CAPTURE_SETTINGS) }) {
+                        navigateBack()
+                    }.view
                 }
 
                 Screen.ANNOTATE -> {
@@ -1593,10 +1586,6 @@ class MainActivity :
 
                 Screen.CONTROLS_SETTINGS -> {
                     ControlsSettingsScreen.build(ui, settings) { navigateBack() }
-                }
-
-                Screen.PRESENTER_SETTINGS -> {
-                    PresenterSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.CAPTURE_SETTINGS -> {
@@ -1928,9 +1917,9 @@ class MainActivity :
                 goTo(childFrom ?: Screen.MACROS)
             }
 
-            // Opened from the Settings page's Screens rows only.
-            Screen.PRESENTER_SETTINGS, Screen.CAPTURE_SETTINGS -> {
-                goTo(childFrom ?: Screen.SETTINGS)
+            // Opened from the Capture screen's gear only.
+            Screen.CAPTURE_SETTINGS -> {
+                goTo(Screen.CAPTURE)
             }
 
             // From the Controls popup's gear it returns there; from Settings, to Settings.
@@ -2342,14 +2331,6 @@ class MainActivity :
             profiles = { goTo(Screen.PROFILES) },
             widgets = { goTo(Screen.WIDGETS) },
         )
-
-    private fun openFrom(
-        from: Screen?,
-        page: Screen,
-    ) {
-        childFrom = from
-        goTo(page)
-    }
 
     private fun openSettings() {
         if (screen != Screen.SETTINGS) settingsReturn = screen
@@ -3568,7 +3549,8 @@ class MainActivity :
             )
 
         /** The pages that need the link: with it gone they go back to Devices, as the screens they belong to do. */
-        val settingsOfControls = setOf(Screen.KEYBOARD_SETTINGS, Screen.GAMEPAD_SETTINGS, Screen.MACRO_SETTINGS)
+        val settingsOfControls =
+            setOf(Screen.KEYBOARD_SETTINGS, Screen.GAMEPAD_SETTINGS, Screen.MACRO_SETTINGS, Screen.CAPTURE_SETTINGS)
 
         /** The pages a row of Settings opens; the pages they open in turn are not here. */
         val settingsPages =
@@ -3578,8 +3560,6 @@ class MainActivity :
                 Screen.KEYBOARD_SETTINGS,
                 Screen.GAMEPAD_SETTINGS,
                 Screen.MACRO_SETTINGS,
-                Screen.PRESENTER_SETTINGS,
-                Screen.CAPTURE_SETTINGS,
             )
 
         /**

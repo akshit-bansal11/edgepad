@@ -7,7 +7,6 @@
   <string name="language_follows_phone">Edgepad는 휴대전화의 언어를 사용합니다. 언어는 휴대전화 설정에서 변경하세요.</string>
   <string name="settings_pen_colour">펜 색상</string>
   <string name="settings_connection">연결</string>
-  <string name="settings_screens">화면</string>
   <string name="settings_help_about">도움말 및 정보</string>
   <string name="settings_advanced">고급</string>
   <string name="settings_laptops_none">연결 없음</string>

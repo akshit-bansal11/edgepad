@@ -7,7 +7,7 @@ import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.surface.Strokes
 
 /**
- * Capture to the phone, and the pen the Annotate toolbar draws with: its colour, width and opacity, the same stored
+ * Opened from the Capture screen's gear. Capture to the phone, and the pen the Annotate toolbar draws with: its colour, width and opacity, the same stored
  * values the Capture chip and the toolbar's own controls edit. Each is read when Annotate opens, so a change here shows
  * there. [onToPhone] is told when "To phone" changes: the capture inbox is set up and the laptop hears it.
  */
@@ -18,7 +18,7 @@ object CaptureSettingsScreen {
         onToPhone: (Boolean) -> Unit,
         onBack: () -> Unit,
     ): View =
-        ui.page(ui.bar("", onBack, backLabel = ui.string(R.string.settings_title))) {
+        ui.page(ui.bar("", onBack, backLabel = ui.string(R.string.controls_capture))) {
             largeTitle(ui.string(R.string.settings_capture))
             card {
                 add(
