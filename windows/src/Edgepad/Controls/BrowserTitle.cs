@@ -1,6 +1,7 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
+using Edgepad.Media;
 
 namespace Edgepad.Controls;
 
@@ -17,30 +18,6 @@ internal static partial class BrowserTitle
 
     private static readonly string[] Browsers = ["chrome", "msedge", "firefox", "brave", "opera", "vivaldi"];
 
-    // Longer names first, so "YouTube Music" wins over "YouTube" and "Apple TV" over nothing at all.
-    // A name does not have to be a coined word: Patterns below requires it to stand as its own word,
-    // so "Plex" can go on this list without being read out of "complexity".
-    private static readonly string[] Services =
-    [
-        "YouTube Music", "Apple Music", "Apple TV", "Prime Video", "HBO Max", "Paramount+", "Disney+", "Netflix",
-        "YouTube", "Spotify", "Hulu", "Crunchyroll", "Peacock", "SoundCloud", "Twitch", "Plex", "JioHotstar", "Hotstar",
-        "JioCinema", "SonyLIV",
-    ];
-
-    /// <summary>
-    /// One pattern per name in <see cref="Services"/>, in the same order. A bare Contains would read
-    /// "Plex" out of "Time complexity" and "Twitch" out of "Twitches", and <see cref="Service"/> returns
-    /// on the first <em>title</em> that matches anything — so one unrelated background tab could name the
-    /// wrong service while the tab actually playing said so plainly in its own title.
-    /// <para>
-    /// The trailing <c>(?!\w)</c> is deliberately not a second <c>\b</c>. "Paramount+" and "Disney+" end
-    /// in a non-word character, which has no word boundary after it, so <c>\b…\b</c> matches neither:
-    /// it would trade one wrong label for two missing ones.
-    /// </para>
-    /// </summary>
-    private static readonly Regex[] Patterns =
-        [.. Services.Select(service => new Regex($@"\b{Regex.Escape(service)}(?!\w)", RegexOptions.IgnoreCase))];
-
     [ThreadStatic]
     private static HashSet<int>? processIds;
 
@@ -49,24 +26,25 @@ internal static partial class BrowserTitle
 
     public static bool IsBrowser(string executable) => Browsers.Contains(executable, StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>The first known service named in any of <paramref name="titles"/>, or null.</summary>
-    public static string? Service(IEnumerable<string> titles)
+    /// <summary>
+    /// The service the window that is playing names, or null. <paramref name="titles"/> are the browser's windows, top of
+    /// the z-order first. The window whose title holds <paramref name="track"/> is the one playing; with none (or no track),
+    /// the top window is. Only that one window is read: another window naming a service says nothing about what plays.
+    /// </summary>
+    public static string? Service(IReadOnlyList<string> titles, string track)
     {
-        foreach (var title in titles)
+        if (titles.Count == 0)
         {
-            for (var i = 0; i < Patterns.Length; i++)
-            {
-                if (Patterns[i].IsMatch(title))
-                {
-                    return Services[i];
-                }
-            }
+            return null;
         }
 
-        return null;
+        var playing = track.Length == 0
+            ? titles[0]
+            : titles.FirstOrDefault(title => title.Contains(track, StringComparison.OrdinalIgnoreCase)) ?? titles[0];
+        return MediaServices.FromTitle(playing);
     }
 
-    /// <summary>The titles of every visible top-level window of the processes called <paramref name="executable"/>.</summary>
+    /// <summary>The visible top-level windows of the processes called <paramref name="executable"/>, top of the z-order first (the title only).</summary>
     public static unsafe List<string> WindowTitles(string executable)
     {
         var ids = new HashSet<int>();
@@ -128,24 +106,28 @@ internal static partial class BrowserTitle
     /// process and window each time: the titles are read again only when the app or the track changes. Holds one
     /// entry. Used under MediaSessions' one-publish-at-a-time gate.
     /// </summary>
-    internal sealed class Cache(Func<string, List<string>> titles)
+    internal sealed class Cache(Func<string, List<string>> titles, Func<string> foreground)
     {
         private string? key;
         private string? service;
 
         public Cache()
-            : this(WindowTitles)
+            : this(WindowTitles, ForegroundKey)
         {
         }
 
-        /// <summary>The service named in <paramref name="executable"/>'s window titles, or null.</summary>
-        public string? Service(string executable, string appUserModelId, string track)
+        /// <summary>
+        /// The service named by the window of <paramref name="executable"/> that plays <paramref name="track"/> (the media
+        /// title), or null. Read again when the app, the line or the window in front changes, so a tab switch cannot keep
+        /// the last answer.
+        /// </summary>
+        public string? Service(string executable, string appUserModelId, string line, string track)
         {
-            var now = appUserModelId + "\n" + track;
+            var now = appUserModelId + "\n" + line + "\n" + foreground();
             if (now != key)
             {
                 key = now;
-                service = BrowserTitle.Service(titles(executable));
+                service = BrowserTitle.Service(titles(executable), track);
             }
 
             return service;
@@ -155,6 +137,24 @@ internal static partial class BrowserTitle
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static unsafe partial bool EnumWindows(delegate* unmanaged<nint, nint, int> callback, nint lParam);
+
+    /// <summary>The window in front and its title: one cheap call, and different whenever the front window or its tab changes.</summary>
+    private static unsafe string ForegroundKey()
+    {
+        var window = GetForegroundWindow();
+        var length = Math.Min(GetWindowTextLengthW(window), MaxTitleLength);
+        if (length <= 0)
+        {
+            return window.ToString(CultureInfo.InvariantCulture);
+        }
+
+        var text = stackalloc char[length + 1];
+        var copied = GetWindowTextW(window, text, length + 1);
+        return window.ToString(CultureInfo.InvariantCulture) + "|" + new string(text, 0, copied);
+    }
+
+    [LibraryImport("user32.dll")]
+    private static partial nint GetForegroundWindow();
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

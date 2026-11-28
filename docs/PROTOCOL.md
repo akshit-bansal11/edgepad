@@ -276,6 +276,8 @@ pad rather than offer a button that quietly does nothing.
 
 BLOB kind 4, MEDIA_ICON, is laptop to phone. The payload is a PNG of 64 pixels, and the label is the name of the app that is playing, or the word `artwork` when the picture is the media's own artwork (a browser's). The laptop never fetches an image from the web for it: on Windows it is the thumbnail the system media session already holds, and on Linux it is the player's `mpris:artUrl` only when that is a `file:` URL to a png or jpg under 512 KB. A phone that does not know kind 4 reads the blob to its BLOB_END and drops it, as for any unknown blob kind.
 
+In TEXT 1, a browser source is named after the service playing in it, from the table in `protocol/media-services.txt` (rows of service name and the title, host or app-id matches that name it; the first row that matches wins). The phone draws its bundled logo for that name. A browser with no recognised service keeps the browser's name and sends no app icon, so the phone shows its plain music symbol, never the browser's own icon.
+
 ## Retired ids
 
 ACTION 60 to 62, TEXT 25 and the TEXT 9 feature token that named them were retired in 5.2.0 (the sleep-when-the-media-ends feature). Never reuse them: a 5.1 phone would send 60 or 61 to a laptop that gave them another meaning and shut it down at once.

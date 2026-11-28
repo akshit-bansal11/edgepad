@@ -8,6 +8,7 @@ The wire format and every shared table as plain-text fixtures. The Kotlin, C# an
 | `actions.txt` | The action, control and TEXT kind ids, the handshake version and service id, and the other token tables. Each enum must match it exactly. |
 | `keys.txt` | The Windows virtual-key codes the phone's keyboard sends. Every laptop must map each one. |
 | `app-kinds.txt` | Which app in front is a media player, a timeline editor or a browser, per OS, as `APP_KIND <kind> <os> <token>` rows. The laptop apps read it to fill `TEXT 40`. |
+| `media-services.txt` | Which streaming service is playing, as `SERVICE <name>|<matches>` rows (title, host or app id). The laptop apps send the service name as the media app name, and the phone draws its logo. |
 | `link-vectors.txt` | The EDGL1 network link's key derivation and crypto vectors. Written by the core test `LinkVectorsOutput`; do not edit by hand. |
 | `dashboard-vectors.txt` | The dashboard's wire encoding, case by case. |
 | `hook-vectors.txt` | The local hook channel between agent plugins and the laptop app. Laptop only; it never crosses the phone link. |

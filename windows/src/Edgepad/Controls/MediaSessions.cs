@@ -230,10 +230,11 @@ internal sealed class MediaSessions : IDisposable
         var seconds = span > TimeSpan.Zero ? (int)Math.Clamp((position - timeline.StartTime).TotalSeconds, 0, span.TotalSeconds) : 0;
         var aumid = current.SourceAppUserModelId ?? "";
         var executable = Executable(aumid);
-        // A browser is named after the service in its window title, when one can be seen there.
+        // A browser is named after the service in the title of the window that plays, when one can be seen there; a
+        // desktop app (the Prime Video app) after the service its app id names.
         var app = BrowserTitle.IsBrowser(executable)
-            ? browserService.Service(executable, aumid, nowPlaying) ?? AppName(aumid)
-            : AppName(aumid);
+            ? browserService.Service(executable, aumid, nowPlaying, title) ?? AppName(aumid)
+            : MediaServices.FromApp(aumid) ?? AppName(aumid);
         return new MediaState(cleaned, app, playing, percent, seconds, (int)span.TotalSeconds, nowPlaying, aumid, properties.Thumbnail);
     }
 

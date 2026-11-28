@@ -8,7 +8,7 @@ public sealed class MediaIconTests
     [Theory]
     [InlineData(true, true, true, (int)MediaIcon.Pick.Thumbnail)]
     [InlineData(true, true, false, (int)MediaIcon.Pick.Thumbnail)]
-    [InlineData(true, false, true, (int)MediaIcon.Pick.AppIcon)]
+    [InlineData(true, false, true, (int)MediaIcon.Pick.None)]
     [InlineData(false, true, true, (int)MediaIcon.Pick.AppIcon)]
     [InlineData(false, true, false, (int)MediaIcon.Pick.None)]
     [InlineData(false, false, false, (int)MediaIcon.Pick.None)]

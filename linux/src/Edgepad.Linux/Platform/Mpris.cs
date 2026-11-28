@@ -76,7 +76,7 @@ internal static class MprisMap
         var percent = length > 0 ? (int)Math.Clamp(position * 100 / length, 0, 100) : 0;
         return new MediaState(
             FrameCodec.Truncate(nowPlaying.Trim(), MaxTextBytes),
-            AppName(player.BusName),
+            ServiceName(player, title),
             player.PlaybackStatus == "Playing",
             percent,
             length > 0 ? (int)(position / 1_000_000) : 0,
@@ -87,6 +87,23 @@ internal static class MprisMap
     }
 
     private const long MaxArtworkBytes = 512 * 1024;
+
+    /// <summary>
+    /// What the phone is told the app is. A browser is named after the service its page address (<c>xesam:url</c>) or, with
+    /// none, its title names, so the phone draws that service's logo; a browser with neither stays the browser's name, for
+    /// which the phone has no logo and shows its plain symbol. Another player keeps its bus name.
+    /// </summary>
+    internal static string ServiceName(PlayerSnapshot player, string title)
+    {
+        var app = AppName(player.BusName);
+        if (!IsBrowser(player.BusName))
+        {
+            return app;
+        }
+
+        var url = Text(player.Metadata, "xesam:url");
+        return (url.Length > 0 ? MediaServices.FromHost(url) : null) ?? MediaServices.FromTitle(title) ?? app;
+    }
 
     /// <summary>Players that play web pages, whose own icon says nothing about what is playing.</summary>
     public static bool IsBrowser(string busName) =>

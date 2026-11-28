@@ -34,9 +34,12 @@ internal static class MediaIcon
     private static readonly Dictionary<string, (Pick Pick, byte[] Png)> Cache = [];
     private static readonly Queue<string> Order = new();
 
-    /// <summary>A browser with artwork shows the artwork; anything else with a running exe shows the exe's icon.</summary>
+    /// <summary>
+    /// A browser with artwork shows the artwork, and with none shows nothing (the phone then draws the service's logo or its
+    /// plain symbol, never the browser's own icon); anything else with a running exe shows the exe's icon.
+    /// </summary>
     internal static Pick Choose(bool isBrowser, bool hasThumbnail, bool hasExe) =>
-        isBrowser && hasThumbnail ? Pick.Thumbnail : hasExe ? Pick.AppIcon : Pick.None;
+        isBrowser ? (hasThumbnail ? Pick.Thumbnail : Pick.None) : hasExe ? Pick.AppIcon : Pick.None;
 
     internal static string Label(Pick pick, string appUserModelId) =>
         pick == Pick.Thumbnail ? ArtworkLabel : MediaSessions.AppName(appUserModelId);
@@ -86,7 +89,7 @@ internal static class MediaIcon
         var name = MediaSessions.Executable(state.Aumid);
         var browser = BrowserTitle.IsBrowser(name);
         var thumbnail = browser && state.Thumbnail is not null;
-        var exe = thumbnail ? null : ExePath(name);
+        var exe = browser ? null : ExePath(name);
         var pick = Choose(browser, thumbnail, exe is not null);
         try
         {
