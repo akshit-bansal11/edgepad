@@ -27,6 +27,7 @@ No wire-protocol break: the protocol stays at version 6. The one new id pair (th
 - **Shapes: "What it runs" is grouped** into Mouse, Media, System, Screens and Macros. Save and Redraw stay at the bottom right.
 - **Look: one card per section**, the pattern switch spans the width, and the preview sits beside the settings when sideways and above them when upright.
 - **What Edgepad uses: sections fold**, all closed at first, and TalkBack says whether each is open.
+- **Fewer grey explanation lines** (#106). The explanations moved to the website docs, whose search now forgives typos and suggests as you type (#113). Notes on permissions and on what leaves your phone stay in the app. "Show all paired devices" is now "Show all".
 
 ### Fixed
 
