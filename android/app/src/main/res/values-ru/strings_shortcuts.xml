@@ -9,7 +9,6 @@
   <string name="controls_presenter">Презентация</string>
   <string name="clip_history_title">Буфер обмена</string>
   <string name="clip_history_empty">Пока ничего не скопировано</string>
-  <string name="clip_history_empty_hint">Копии с ноутбука и с этого телефона появятся здесь, пока включён общий буфер обмена.</string>
   <string name="clip_history_from_laptop">С ноутбука</string>
   <string name="clip_history_from_phone">С этого телефона</string>
   <string name="clip_history_just_now">Только что</string>

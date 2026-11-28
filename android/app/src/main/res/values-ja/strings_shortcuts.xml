@@ -9,7 +9,6 @@
   <string name="controls_presenter">プレゼンター</string>
   <string name="clip_history_title">クリップボード</string>
   <string name="clip_history_empty">まだ何もコピーされていません</string>
-  <string name="clip_history_empty_hint">クリップボードを共有がオンの間、ノートPCとこのスマートフォンでのコピーがここに表示されます。</string>
   <string name="clip_history_from_laptop">ノートPCから</string>
   <string name="clip_history_from_phone">このスマートフォンから</string>
   <string name="clip_history_just_now">たった今</string>

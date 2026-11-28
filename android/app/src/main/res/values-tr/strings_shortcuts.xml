@@ -9,7 +9,6 @@
   <string name="controls_presenter">Sunucu</string>
   <string name="clip_history_title">Pano</string>
   <string name="clip_history_empty">Henüz bir şey kopyalanmadı</string>
-  <string name="clip_history_empty_hint">Panoyu paylaş açıkken dizüstünden ve bu telefondan kopyalananlar burada görünür.</string>
   <string name="clip_history_from_laptop">Dizüstünden</string>
   <string name="clip_history_from_phone">Bu telefondan</string>
   <string name="clip_history_just_now">Az önce</string>

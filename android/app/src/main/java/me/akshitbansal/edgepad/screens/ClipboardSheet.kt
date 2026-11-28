@@ -94,12 +94,6 @@ class ClipboardSheet(
                     setPadding(0, ui.dp(Space.S), 0, 0)
                 }
             addView(head)
-            val hint =
-                ui.secondary(ui.string(R.string.clip_history_empty_hint), Type.SMALL).apply {
-                    gravity = Gravity.CENTER
-                    setPadding(0, ui.dp(Space.XS), 0, 0)
-                }
-            addView(hint)
         }
 
     private fun card(

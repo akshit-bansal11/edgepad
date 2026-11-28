@@ -27,7 +27,6 @@ object KeyboardSettingsScreen {
                     ) { i -> settings.keyboardSize = sizes[i] },
                 )
             }
-            footnote(ui.string(R.string.keyboard_size_caption))
             card(Space.XL) {
                 add(
                     ui.segmentedField(
@@ -39,7 +38,6 @@ object KeyboardSettingsScreen {
                     ),
                 )
             }
-            footnote(ui.string(R.string.keyboard_function_keys_caption))
             card(Space.XL) {
                 // The keyboard shrinks the lot if any label would leave its key.
                 add(

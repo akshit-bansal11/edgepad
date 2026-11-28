@@ -18,7 +18,6 @@
   <string name="profile_custom">Personalizado</string>
   <string name="auto_profiles_title">Perfiles automáticos</string>
   <string name="auto_profiles_toggle">Cambiar diales según el tipo de app</string>
-  <string name="auto_profiles_caption">Si la app en primer plano no tiene perfil, los diales siguen su tipo: multimedia, editor de línea de tiempo o navegador. Tus perfiles tienen prioridad.</string>
   <string name="auto_kind_media">Multimedia</string>
   <string name="auto_kind_timeline">Línea de tiempo</string>
   <string name="auto_kind_browser">Navegador</string>

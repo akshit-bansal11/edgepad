@@ -128,17 +128,6 @@ object GamepadLayoutScreen {
                     },
                 )
                 addView(
-                    ui
-                        .secondary(
-                            ui.string(R.string.gamepad_layout_hint),
-                            Type.SMALL,
-                            ui.palette.dim,
-                        ).apply {
-                            setLineSpacing(0f, Type.LEADING)
-                            setPadding(0, ui.dp(Space.S), 0, ui.dp(Space.S))
-                        },
-                )
-                addView(
                     pair(
                         ui,
                         ui.button(ui.string(R.string.gamepad_add), Ui.Style.QUIET) {

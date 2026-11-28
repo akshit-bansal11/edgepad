@@ -3,5 +3,4 @@
   <string name="settings_display">Anzeige</string>
   <string name="accessibility_title">Bedienungshilfen</string>
   <string name="accessibility_sounds">Töne</string>
-  <string name="accessibility_sounds_caption">Ein leises Klicken bei Tipps und Tasten und ein Tick, wenn sich ein Rad dreht. Stumm, solange das Telefon auf lautlos oder Vibration steht.</string>
 </resources>

@@ -9,7 +9,6 @@
   <string name="controls_presenter">演示</string>
   <string name="clip_history_title">剪贴板</string>
   <string name="clip_history_empty">还没有复制任何内容</string>
-  <string name="clip_history_empty_hint">开启共享剪贴板后,笔记本和这部手机上的复制内容会显示在这里。</string>
   <string name="clip_history_from_laptop">来自笔记本</string>
   <string name="clip_history_from_phone">来自这部手机</string>
   <string name="clip_history_just_now">刚刚</string>

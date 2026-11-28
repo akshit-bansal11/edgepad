@@ -96,7 +96,6 @@ object DialFeelScreen {
                 },
                 {
                     add(frame, Space.L, ui.dp(PREVIEW_DP))
-                    footnote(ui.string(R.string.dial_preview_caption))
                     // Only the dials that are in a corner: a slider for a dial that is nowhere changes nothing.
                     if (placed.isNotEmpty()) {
                         // Off hides the list and nothing else: the speeds stored for each dial stay.
@@ -119,7 +118,6 @@ object DialFeelScreen {
                             )
                         }
                         add(each)
-                        footnote(ui.string(R.string.dial_feel_each_caption))
                     }
                 },
             )

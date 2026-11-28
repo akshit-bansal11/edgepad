@@ -3,5 +3,4 @@
   <string name="settings_display">Schermo</string>
   <string name="accessibility_title">Accessibilità</string>
   <string name="accessibility_sounds">Suoni</string>
-  <string name="accessibility_sounds_caption">Un clic leggero su tocchi e pulsanti e un tic quando una manopola gira. Silenzioso se il telefono è in modalità silenziosa o vibrazione.</string>
 </resources>

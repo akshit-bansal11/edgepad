@@ -3,5 +3,4 @@
   <string name="settings_display">Ekran</string>
   <string name="accessibility_title">Erişilebilirlik</string>
   <string name="accessibility_sounds">Sesler</string>
-  <string name="accessibility_sounds_caption">Dokunuşlarda ve düğmelerde hafif bir tık, bir kadran döndüğünde bir tik sesi. Telefon sessiz veya titreşim modundayken çalmaz.</string>
 </resources>

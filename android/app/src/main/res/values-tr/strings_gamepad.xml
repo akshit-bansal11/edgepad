@@ -6,7 +6,6 @@
   <string name="gamepad_preset_platformer">Platform</string>
   <string name="gamepad_preset_racing">Yarış</string>
   <string name="gamepad_preset_shooter">Nişancı</string>
-  <string name="gamepad_layout_hint">Taşımak için sürükleyin. Menüsü için bir kontrolü basılı tutun.</string>
   <string name="gamepad_layout_section">Düzenler</string>
   <string name="gamepad_description">Bilgisayar için oyun kumandası. Düğmelere ve tetiklere çift dokunulabilir; çubuklar ve yön tuşları dokunmayla çalışır.</string>
   <string name="gamepad_node_dpad">Yön tuşları</string>

@@ -9,7 +9,6 @@
   <string name="controls_presenter">Presentatore</string>
   <string name="clip_history_title">Appunti</string>
   <string name="clip_history_empty">Ancora nulla di copiato</string>
-  <string name="clip_history_empty_hint">Le copie dal portatile e da questo telefono compaiono qui finché Condividi appunti è attivo.</string>
   <string name="clip_history_from_laptop">Dal portatile</string>
   <string name="clip_history_from_phone">Da questo telefono</string>
   <string name="clip_history_just_now">Adesso</string>

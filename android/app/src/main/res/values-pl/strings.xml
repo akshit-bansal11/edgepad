@@ -21,10 +21,6 @@
   <string name="device_connect">Połącz</string>
   <string name="connect_via">Połącz: %2$s przez %1$s</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">Zapamiętane laptopy łączą się po otwarciu Edgepad. Rozłączenie wstrzymuje to do czasu, aż ponownie stukniesz laptop.</string>
-  <string name="devices_stay_note">Połączenie zostaje po wyjściu z aplikacji. Rozłącz je w powiadomieniu.</string>
-  <string name="devices_legend_off">Stuknij laptop, aby się połączyć.</string>
-  <string name="devices_multi_hint">Możesz połączyć kilka laptopów naraz. Aktywny to laptop, którym aktualnie sterujesz; aby go zmienić, stuknij „Ustaw jako aktywny”.</string>
   <string name="add_by_address">Dodaj według adresu</string>
   <string name="address_connect">Połącz</string>
   <string name="address_looking">Szukanie laptopa pod adresem %1$s…</string>
@@ -35,7 +31,6 @@
   <string name="local_network_needed">Edgepad potrzebuje uprawnienia „Urządzenia w pobliżu”, aby znajdować laptopy w Twojej sieci Wi-Fi i przez USB.</string>
   <string name="allow_local_network">Zezwól na urządzenia w pobliżu</string>
   <string name="open_controls">Otwórz sterowanie</string>
-  <string name="open_controls_hint">Połącz się z laptopem, aby otworzyć sterowanie.</string>
   <string name="open_bluetooth_settings">Ustawienia Bluetooth</string>
   <string name="bluetooth_tap_off">Bluetooth jest wyłączony. Włącz go, aby połączyć się z tym laptopem.</string>
   <string name="refresh">Odśwież listę</string>
@@ -49,12 +44,7 @@
   <string name="local_network_reason">Aby znaleźć laptopy w sieci Wi-Fi i przez USB, Edgepad prosi o uprawnienie „Urządzenia w pobliżu” i sprawdza adresy w Twojej sieci. „Dodaj według adresu” pomija to wyszukiwanie.</string>
   <string name="no_paired">Nie znaleziono laptopów. Otwórz Edgepad na laptopie i sparuj go w ustawieniach Bluetooth. Aby użyć Wi-Fi lub USB, włącz w menu Edgepad na laptopie „Połączenia Wi-Fi i USB”; dla USB włącz też tutaj tethering USB.</string>
   <string name="no_laptop_paired">Żadne urządzenie sparowane z tym telefonem nie zgłasza się jako komputer. Jeśli Twój laptop jest sparowany, pokaż wszystkie.</string>
-  <plurals name="show_all_paired">
-    <item quantity="one">Pokaż wszystkie sparowane urządzenia (jeszcze: %1$d)</item>
-    <item quantity="few">Pokaż wszystkie sparowane urządzenia (jeszcze: %1$d)</item>
-    <item quantity="many">Pokaż wszystkie sparowane urządzenia (jeszcze: %1$d)</item>
-    <item quantity="other">Pokaż wszystkie sparowane urządzenia (jeszcze: %1$d)</item>
-  </plurals>
+  <string name="show_all_paired">Pokaż wszystkie</string>
   <string name="show_laptops_only">Pokaż tylko komputery</string>
   <string name="allow_permission">Zezwól na urządzenia w pobliżu</string>
   <string name="open_app_settings">Otwórz uprawnienia Androida</string>
@@ -140,9 +130,7 @@
   <string name="forget_laptop_title">Zapomnieć: %1$s?</string>
   <string name="forget_laptop_body">Laptop zniknie z tej listy, a jego kod parowania zostanie usunięty. Parowanie Bluetooth w Androidzie zostaje; usuń je w ustawieniach Bluetooth.</string>
   <string name="reconnect_automatically">Łącz automatycznie</string>
-  <string name="reconnect_caption">Łączy zapamiętane laptopy po otwarciu Edgepad i próbuje ponownie, gdy połączenie się zerwie.</string>
   <string name="stay_connected">Utrzymuj połączenie w tle</string>
-  <string name="stay_connected_caption">Utrzymuje połączenie z laptopami, gdy Edgepad jest zminimalizowany; powiadomienie pozwala je rozłączyć. Po wyłączeniu laptopy rozłączają się wkrótce po wyjściu z aplikacji.</string>
   <string name="link_channel">Połączenie</string>
   <string name="link_notice">Połączono z: %1$s</string>
   <plurals name="link_notice_more">
@@ -166,7 +154,6 @@
   <string name="corner_bottom_left">Lewy dolny róg</string>
   <string name="corner_off">Wyłączono</string>
   <string name="corner_split">Podziel rogi</string>
-  <string name="corner_split_caption">Daje każdemu rogowi dwa suwaki, po jednym na każdej krawędzi. W sumie do ośmiu.</string>
   <string name="corner_edge_left">lewa krawędź</string>
   <string name="corner_edge_top">górna krawędź</string>
   <string name="corner_edge_right">prawa krawędź</string>
@@ -290,7 +277,6 @@
     <item quantity="other">Narysowano: %1$d</item>
   </plurals>
   <string name="shapes_none">Jeszcze nic</string>
-  <string name="shapes_footnote">Przytrzymaj dwa palce na touchpadzie bez ruchu, aż linia stanie się ciągła (przy włączonej reakcji haptycznej poczujesz też stuknięcie), a potem unieś jeden i rysuj drugim.</string>
   <string name="shapes_empty_title">Brak kształtów</string>
   <string name="shapes_empty_body">Narysuj tu kształt i wybierz, co ma uruchamiać. Na touchpadzie przytrzymaj dwa palce bez ruchu, aż linia stanie się ciągła, a potem unieś jeden i narysuj kształt drugim.</string>
   <string name="shapes_add">Narysuj kształt</string>
@@ -351,11 +337,8 @@
   <string name="color_hex">Kolor szesnastkowy</string>
   <string name="dial_feel_title">Działanie suwaków</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
-  <string name="dial_preview_caption">Podgląd. Ruch zgodny ze wskazówkami zegara zwiększa wartość.</string>
-  <string name="gestures_footnote">Stuknij gest, aby zmienić jego działanie. Gesty jednym i dwoma palcami są stałe: jeden palec przesuwa wskaźnik, stuknięcie klika, przytrzymanie palca bez ruchu, a potem przesunięcie przeciąga; dwa palce: przesuwanie przewija, szczypnięcie powiększa, stuknięcie to kliknięcie prawym przyciskiem.</string>
   <string name="dial_feel_each">Każdy suwak</string>
   <string name="dial_feel_shared">Wspólne</string>
-  <string name="dial_feel_each_caption">Na liście są tylko suwaki w rogach. Przełącz suwak z „Wspólne” na własne ustawienie, aby miał własną szybkość. „Wspólne” zależy od czułości przesuwania.</string>
   <string name="appearance_title">Wygląd</string>
   <string name="appearance_preview">Podgląd</string>
   <string name="background_preview_description">Podgląd tła powierzchni sterowania</string>
@@ -426,7 +409,6 @@
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Sterowanie</string>
   <string name="controls_edit">Edytuj</string>
-  <string name="controls_edit_hint">Dotknij kafelka, aby go ukryć lub pokazać. Przytrzymaj i przeciągnij, aby go przenieść.</string>
   <string name="controls_hidden">Ukryty</string>
   <string name="controls_all_hidden">Wszystkie kafelki są ukryte. Dotknij Edytuj, aby znów je pokazać.</string>
   <string name="controls_toggle_tile">Ukryj lub pokaż: %1$s</string>
@@ -517,10 +499,8 @@
   <string name="macros_close">Zamknij: %1$s</string>
   <string name="macros_settings">Ustawienia makr</string>
   <string name="macros_labels">Etykiety makr</string>
-  <string name="macros_labels_caption">Nazwy pod obrazkami. Makro bez obrazka zawsze pokazuje swoją nazwę.</string>
   <string name="macros_icons_title">Ikony</string>
   <string name="macros_icon_size">Rozmiar ikon</string>
-  <string name="macros_icon_size_caption">Jaką część każdego przycisku zajmuje obrazek. Obrazki nigdy nie są rozciągane ponad własne piksele, więc pozostają ostre. Na dużym przycisku mogą być małe, dopóki laptop nie wyśle większych.</string>
   <string name="macros_move_earlier">Przenieś wcześniej</string>
   <string name="macros_move_later">Przenieś później</string>
   <string name="macros_moved">Przeniesiono na pozycję %1$d z %2$d</string>
@@ -529,13 +509,9 @@
   <string name="macros_layout_auto">Automatyczny</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">Wiersze: %1$d, kolumny: %2$d</string>
-  <string name="macros_layout_caption">Pierwsza liczba to wiersze, druga to kolumny. „Automatyczny” wybiera układ z największymi przyciskami.</string>
   <string name="macros_per_page">Makra na ekranie</string>
-  <string name="macros_per_page_caption">Ile makr pokazuje jedna strona. Reszta jest na kolejnych stronach, do których przechodzisz, przesuwając palec w bok. Naciśnij i przytrzymaj makro, a potem przeciągnij je, aby zmienić jego miejsce na stronie. Przytrzymaj otwarte makro, aby pokazać krzyżyk, a potem dotknij krzyżyka, aby zamknąć aplikację.</string>
   <string name="macros_page_of">Strona %1$d z %2$d</string>
   <string name="macros_empty_title">Brak makr</string>
-  <string name="macros_empty_body">Dodaj je z menu „Makra…” Edgepad w obszarze powiadomień na laptopie. Pojawią się tutaj, gdy tylko laptop wyśle listę.</string>
-  <string name="macros_empty_body_mac">Dodaj je z menu „Makra…” Edgepad na pasku menu komputera Mac. Pojawią się tutaj, gdy tylko komputer wyśle listę.</string>
   <string name="macros_loading">Wczytywanie makr…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
@@ -546,7 +522,6 @@
   <string name="apps_loading">Szukanie aplikacji na laptopie: %1$s…</string>
   <string name="apps_none">Laptop %1$s nie udostępnił żadnych aplikacji.</string>
   <string name="apps_no_match">Żadna aplikacja nie pasuje do wyszukiwania.</string>
-  <string name="apps_windows_hint">Nie ma jej na liście? Dodaj aplikację do menu Start na laptopie, a potem odśwież.</string>
   <string name="apps_confirm_title">Dodać „%1$s” do laptopa „%2$s”?</string>
   <string name="apps_confirm_body">Powstanie makro, które otwiera tę aplikację na laptopie.</string>
   <string name="apps_confirm_action">Dodaj</string>
@@ -556,12 +531,6 @@
   <string name="apps_row_added">Dodano</string>
   <string name="apps_row_added_description">%1$s, już dodano</string>
   <string name="apps_row_full">Brak miejsca</string>
-  <plurals name="apps_full_note">
-    <item quantity="one">Limit makr na tym laptopie to %1$d i jest już wykorzystany. Usuń jedno, aby dodać kolejne.</item>
-    <item quantity="few">Limit makr na tym laptopie to %1$d i jest już wykorzystany. Usuń jedno, aby dodać kolejne.</item>
-    <item quantity="many">Limit makr na tym laptopie to %1$d i jest już wykorzystany. Usuń jedno, aby dodać kolejne.</item>
-    <item quantity="other">Limit makr na tym laptopie to %1$d i jest już wykorzystany. Usuń jedno, aby dodać kolejne.</item>
-  </plurals>
   <string name="apps_added">Dodano. Jest już wśród makr.</string>
   <string name="apps_full">Laptop nie pomieści więcej makr. Najpierw usuń jedno.</string>
   <string name="apps_duplicate">Ta aplikacja jest już makrem.</string>

@@ -9,7 +9,6 @@
   <string name="controls_presenter">Präsentation</string>
   <string name="clip_history_title">Zwischenablage</string>
   <string name="clip_history_empty">Noch nichts kopiert</string>
-  <string name="clip_history_empty_hint">Kopien vom Laptop und von diesem Smartphone erscheinen hier, solange „Zwischenablage teilen“ an ist.</string>
   <string name="clip_history_from_laptop">Vom Laptop</string>
   <string name="clip_history_from_phone">Von diesem Smartphone</string>
   <string name="clip_history_just_now">Gerade eben</string>

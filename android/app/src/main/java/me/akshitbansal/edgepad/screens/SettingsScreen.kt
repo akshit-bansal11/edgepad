@@ -104,8 +104,6 @@ object SettingsScreen {
                             },
                         )
                     }
-                    footnote(ui.string(R.string.reconnect_caption))
-                    footnote(ui.string(R.string.stay_connected_caption))
                     footnote(ui.string(R.string.clipboard_share_caption))
                     footnote(ui.string(R.string.notify_setting_hint))
                 },
@@ -185,11 +183,7 @@ object SettingsScreen {
                         ui.enable(toggle, developerEditable)
                         add(toggle)
                     }
-                    footnote(
-                        ui.string(
-                            if (developerEditable) R.string.developer_mode_hint else R.string.developer_mode_offline,
-                        ),
-                    )
+                    if (!developerEditable) footnote(ui.string(R.string.developer_mode_offline))
                 },
             )
         }

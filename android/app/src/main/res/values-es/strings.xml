@@ -21,10 +21,6 @@
   <string name="device_connect">Conectar</string>
   <string name="connect_via">Conectar %2$s por %1$s</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">Las laptops recordadas se conectan al abrir Edgepad. Si desconectas una, no vuelve a conectarse hasta que la toques de nuevo.</string>
-  <string name="devices_stay_note">Sigue conectada al salir. Desconéctala desde la notificación.</string>
-  <string name="devices_legend_off">Toca una laptop para conectarla.</string>
-  <string name="devices_multi_hint">Puedes conectar varias laptops a la vez. La laptop activa es la que manejan los controles; toca Activar para cambiar.</string>
   <string name="add_by_address">Añadir por dirección</string>
   <string name="address_connect">Conectar</string>
   <string name="address_looking">Buscando una laptop en %1$s…</string>
@@ -35,7 +31,6 @@
   <string name="local_network_needed">Edgepad necesita el permiso de Dispositivos cercanos para encontrar laptops en tu red Wi-Fi y por USB.</string>
   <string name="allow_local_network">Permitir Dispositivos cercanos</string>
   <string name="open_controls">Abrir los controles</string>
-  <string name="open_controls_hint">Conéctate a una laptop para abrir los controles.</string>
   <string name="open_bluetooth_settings">Configuración de Bluetooth</string>
   <string name="bluetooth_tap_off">El Bluetooth está desactivado. Actívalo para conectarte a esta laptop.</string>
   <string name="refresh">Actualizar la lista</string>
@@ -49,11 +44,7 @@
   <string name="local_network_reason">Para encontrar laptops en tu red Wi-Fi y por USB, Edgepad pide el permiso de Dispositivos cercanos y revisa las direcciones de tu red. «Añadir por dirección» evita esa búsqueda.</string>
   <string name="no_paired">No se encontró ninguna laptop. Abre Edgepad en tu laptop y vincúlala en la configuración de Bluetooth. Para usar Wi-Fi o USB, activa «Conexiones Wi-Fi y USB» en el menú de Edgepad de la laptop; con USB, activa también «Compartir conexión por USB» aquí.</string>
   <string name="no_laptop_paired">Ninguno de los dispositivos vinculados a este teléfono indica ser un equipo. Si tu laptop está vinculada, muestra todos.</string>
-  <plurals name="show_all_paired">
-    <item quantity="one">Mostrar todos los dispositivos vinculados (%1$d más)</item>
-    <item quantity="many">Mostrar todos los dispositivos vinculados (%1$d más)</item>
-    <item quantity="other">Mostrar todos los dispositivos vinculados (%1$d más)</item>
-  </plurals>
+  <string name="show_all_paired">Mostrar todo</string>
   <string name="show_laptops_only">Mostrar solo equipos</string>
   <string name="allow_permission">Permitir Dispositivos cercanos</string>
   <string name="open_app_settings">Abrir permisos de Android</string>
@@ -136,9 +127,7 @@
   <string name="forget_laptop_title">¿Olvidar %1$s?</string>
   <string name="forget_laptop_body">Se quita de esta lista y se borra su código de vinculación. La vinculación Bluetooth de Android se mantiene; elimínala en la configuración de Bluetooth.</string>
   <string name="reconnect_automatically">Reconectar automáticamente</string>
-  <string name="reconnect_caption">Conecta las laptops recordadas al abrir Edgepad y lo intenta de nuevo cuando se corta una conexión.</string>
   <string name="stay_connected">Mantener la conexión en segundo plano</string>
-  <string name="stay_connected_caption">Mantiene conectadas tus laptops mientras Edgepad está minimizado, con una notificación para desconectar. Si está desactivado, se desconectan poco después de salir de la app.</string>
   <string name="link_channel">Conexión</string>
   <string name="link_notice">Conectado a %1$s</string>
   <plurals name="link_notice_more">
@@ -161,7 +150,6 @@
   <string name="corner_bottom_left">Abajo a la izquierda</string>
   <string name="corner_off">Desactivada</string>
   <string name="corner_split">Esquinas divididas</string>
-  <string name="corner_split_caption">Da dos reglas a cada esquina, una en cada borde. Hasta ocho en total.</string>
   <string name="corner_edge_left">borde izquierdo</string>
   <string name="corner_edge_top">borde superior</string>
   <string name="corner_edge_right">borde derecho</string>
@@ -283,7 +271,6 @@
     <item quantity="other">%1$d dibujadas</item>
   </plurals>
   <string name="shapes_none">Aún no hay ninguna</string>
-  <string name="shapes_footnote">Mantén dos dedos quietos en el panel táctil hasta que la línea se vuelva continua (también sentirás una vibración leve si la respuesta háptica está activada) y luego levanta uno y dibuja con el otro.</string>
   <string name="shapes_empty_title">Aún no hay formas</string>
   <string name="shapes_empty_body">Dibuja una aquí y dale algo que ejecutar. En el panel táctil, mantén dos dedos quietos hasta que la línea se vuelva continua y luego levanta uno y dibújala con el otro.</string>
   <string name="shapes_add">Dibujar una forma</string>
@@ -344,11 +331,8 @@
   <string name="color_hex">Color hexadecimal</string>
   <string name="dial_feel_title">Tacto de las reglas</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
-  <string name="dial_preview_caption">Vista previa. En sentido horario sube.</string>
-  <string name="gestures_footnote">Toca un gesto para cambiar su acción. Los de uno y dos dedos son fijos: mover, tocar para hacer clic y mantener quieto un momento y mover para arrastrar; con dos dedos, arrastrar para desplazarse, pellizcar para hacer zoom y tocar para hacer clic derecho.</string>
   <string name="dial_feel_each">Cada regla</string>
   <string name="dial_feel_shared">Compartido</string>
-  <string name="dial_feel_each_caption">Solo aparecen las reglas que están en una esquina. Quita una de Compartido para darle su propia velocidad. Compartido sigue la sensibilidad al deslizar.</string>
   <string name="appearance_title">Aspecto</string>
   <string name="appearance_preview">Vista previa</string>
   <string name="background_preview_description">Vista previa del fondo de la superficie de control</string>
@@ -420,7 +404,6 @@
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">Controles</string>
   <string name="controls_edit">Editar</string>
-  <string name="controls_edit_hint">Toca un mosaico para ocultarlo o mostrarlo. Mantenlo pulsado y arrástralo para moverlo.</string>
   <string name="controls_hidden">Oculto</string>
   <string name="controls_all_hidden">Todos los mosaicos están ocultos. Toca Editar para volver a mostrarlos.</string>
   <string name="controls_toggle_tile">Ocultar o mostrar %1$s</string>
@@ -511,10 +494,8 @@
   <string name="macros_close">Cerrar %1$s</string>
   <string name="macros_settings">Configuración de macros</string>
   <string name="macros_labels">Nombres de macros</string>
-  <string name="macros_labels_caption">Los nombres bajo las imágenes. Una macro sin imagen siempre muestra su nombre.</string>
   <string name="macros_icons_title">Iconos</string>
   <string name="macros_icon_size">Tamaño del icono</string>
-  <string name="macros_icon_size_caption">Cuánto del botón ocupa la imagen. Las imágenes nunca se amplían más allá de sus píxeles, así que se ven nítidas. Pueden verse pequeñas en un botón grande hasta que la laptop envíe otras más grandes.</string>
   <string name="macros_move_earlier">Mover antes</string>
   <string name="macros_move_later">Mover después</string>
   <string name="macros_moved">Movida al lugar %1$d de %2$d</string>
@@ -523,13 +504,9 @@
   <string name="macros_layout_auto">Automática</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">Filas: %1$d, columnas: %2$d</string>
-  <string name="macros_layout_caption">El primer número son las filas y el segundo, las columnas. Automática elige la distribución que da los botones más grandes.</string>
   <string name="macros_per_page">Macros en pantalla</string>
-  <string name="macros_per_page_caption">Cuántas macros muestra cada página. El resto continúa en más páginas, a las que llegas deslizando el dedo hacia un lado. Mantén pulsada una macro y arrástrala para moverla dentro de su página. Mantén pulsada una macro abierta para que aparezca una cruz y toca la cruz para cerrar la app.</string>
   <string name="macros_page_of">Página %1$d de %2$d</string>
   <string name="macros_empty_title">Aún no hay macros</string>
-  <string name="macros_empty_body">Añádelas desde el menú «Macros…» de Edgepad, en el área de notificaciones de la laptop. Aparecen aquí en cuanto envía la lista.</string>
-  <string name="macros_empty_body_mac">Añádelas desde el menú «Macros…» de Edgepad, en la barra de menús del Mac. Aparecen aquí en cuanto envía la lista.</string>
   <string name="macros_loading">Cargando macros…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
@@ -540,7 +517,6 @@
   <string name="apps_loading">Buscando apps en %1$s…</string>
   <string name="apps_none">%1$s no incluyó ninguna app.</string>
   <string name="apps_no_match">Ninguna app coincide con la búsqueda.</string>
-  <string name="apps_windows_hint">¿No aparece? Añade la app al menú Inicio de la laptop y actualiza la lista.</string>
   <string name="apps_confirm_title">¿Añadir %1$s a %2$s?</string>
   <string name="apps_confirm_body">Se convierte en una macro que abre esta app en la laptop.</string>
   <string name="apps_confirm_action">Añadir</string>
@@ -550,11 +526,6 @@
   <string name="apps_row_added">Añadida</string>
   <string name="apps_row_added_description">%1$s, ya añadida</string>
   <string name="apps_row_full">Macros llenas</string>
-  <plurals name="apps_full_note">
-    <item quantity="one">Esta laptop admite hasta %1$d macro y ya tiene esa cantidad. Elimina una para añadir otra.</item>
-    <item quantity="many">Esta laptop admite hasta %1$d de macros y ya tiene esa cantidad. Elimina una para añadir otra.</item>
-    <item quantity="other">Esta laptop admite hasta %1$d macros y ya tiene esa cantidad. Elimina una para añadir otra.</item>
-  </plurals>
   <string name="apps_added">Añadida. Ya está entre las macros.</string>
   <string name="apps_full">La laptop no admite más macros. Elimina una antes.</string>
   <string name="apps_duplicate">Esa app ya es una macro.</string>

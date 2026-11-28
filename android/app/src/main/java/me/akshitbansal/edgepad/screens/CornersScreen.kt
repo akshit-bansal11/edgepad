@@ -113,7 +113,6 @@ object CornersScreen {
                     },
                 )
             }
-            footnote(ui.string(R.string.corner_split_caption))
             columns(
                 {
                     section(ui.string(R.string.corners_pick))

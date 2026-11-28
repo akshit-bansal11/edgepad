@@ -25,9 +25,6 @@ import me.akshitbansal.edgepad.protocol.UnavailableReason
 /** Which deck this is, to [Settings]: the order is kept per deck. It is the id the Controls screen used. */
 private const val DECK = "controls"
 
-/** The edit hint is shown during the first edit session only. */
-private const val EDIT_TIP = "controls_edit"
-
 /** The label's top size, in sp, and the gap under the picture, in dp. A smaller tile draws the label smaller. */
 private const val TILE_LABEL_SP = 15f
 private const val TILE_ICON_GAP_DP = 8f
@@ -269,7 +266,6 @@ class ControlsPopup(
         popupWidth = ControlsPlan.width(screenWidth)
         across = popupWidth - 2 * pad
         page = 0
-        if (editing) settings.setTipSeen(EDIT_TIP)
         editing = false
         hidden = settings.deckHidden(DECK)
         holder.orientation = LinearLayout.VERTICAL
@@ -405,10 +401,9 @@ class ControlsPopup(
         val label = ui.string(if (editing) R.string.editor_done else R.string.controls_edit)
         editButton.contentDescription = label
         editButton.tooltipText = label
-        // The one place a note is shown: how edit mode works while editing, or how to bring hidden tiles back.
+        // The one place a note is shown: how to bring hidden tiles back.
         val note =
             when {
-                editing && !settings.tipSeen(EDIT_TIP) -> R.string.controls_edit_hint
                 visible.isEmpty() -> R.string.controls_all_hidden
                 else -> null
             }
@@ -512,7 +507,6 @@ class ControlsPopup(
     }
 
     private fun setEditing(on: Boolean) {
-        if (!on) settings.setTipSeen(EDIT_TIP)
         editing = on
         drawShown()
     }

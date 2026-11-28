@@ -18,7 +18,6 @@
   <string name="profile_custom">Aangepast</string>
   <string name="auto_profiles_title">Automatische profielen</string>
   <string name="auto_profiles_toggle">Draaiknoppen wisselen op soort app</string>
-  <string name="auto_profiles_caption">Heeft de voorste app geen profiel, dan volgen de draaiknoppen het soort app: media, tijdlijneditor of browser. Je eigen profielen gaan voor.</string>
   <string name="auto_kind_media">Media</string>
   <string name="auto_kind_timeline">Tijdlijn</string>
   <string name="auto_kind_browser">Browser</string>

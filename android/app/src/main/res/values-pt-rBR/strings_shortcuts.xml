@@ -9,7 +9,6 @@
   <string name="controls_presenter">Apresentador</string>
   <string name="clip_history_title">Área de transferência</string>
   <string name="clip_history_empty">Nada copiado ainda</string>
-  <string name="clip_history_empty_hint">As cópias do notebook e deste celular aparecem aqui enquanto Compartilhar área de transferência estiver ativado.</string>
   <string name="clip_history_from_laptop">Do notebook</string>
   <string name="clip_history_from_phone">Deste celular</string>
   <string name="clip_history_just_now">Agora mesmo</string>

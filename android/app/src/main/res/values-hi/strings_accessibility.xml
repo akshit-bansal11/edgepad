@@ -3,5 +3,4 @@
   <string name="settings_display">डिस्प्ले</string>
   <string name="accessibility_title">सुलभता</string>
   <string name="accessibility_sounds">ध्वनियाँ</string>
-  <string name="accessibility_sounds_caption">टैप और बटन पर हल्की क्लिक, और डायल घूमने पर टिक। फ़ोन साइलेंट या वाइब्रेट पर हो तो आवाज़ नहीं आती।</string>
 </resources>

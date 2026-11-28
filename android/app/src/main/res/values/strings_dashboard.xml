@@ -3,9 +3,7 @@
   <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). Counts go through %1$d, except the Git page (plurals). -->
   <string name="controls_dash_off">Turn it on in the Edgepad menu on your laptop.</string>
   <string name="widgets_title">Widgets</string>
-  <string name="widgets_hint">Drawn behind the trackpad. Touches pass through.</string>
   <string name="developer_mode_title">Developer mode</string>
-  <string name="developer_mode_hint">Shows Claude Code, Codex and GitHub on this phone and the laptop. Turning it off keeps your connections.</string>
   <string name="developer_mode_offline">Connect to a laptop to change this. The laptop keeps it.</string>
   <string name="widgets_layout_title">Widget layout</string>
   <string name="widgets_layout_hint">Drag a widget to move it. Hold it to change its size.</string>

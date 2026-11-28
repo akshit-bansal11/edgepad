@@ -21,10 +21,6 @@
   <string name="device_connect">Verbinden</string>
   <string name="connect_via">%2$s verbinden via %1$s</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">Onthouden laptops worden verbonden zodra Edgepad opent. Als je de verbinding verbreekt, gebeurt dat pas weer nadat je op de laptop tikt.</string>
-  <string name="devices_stay_note">Blijft verbonden als je de app verlaat. Verbreek de verbinding via de melding.</string>
-  <string name="devices_legend_off">Tik op een laptop om te verbinden.</string>
-  <string name="devices_multi_hint">Verbind meerdere laptops tegelijk. De actieve laptop is degene die je met de bediening aanstuurt; tik op Actief maken om te wisselen.</string>
   <string name="add_by_address">Toevoegen via adres</string>
   <string name="address_connect">Verbinden</string>
   <string name="address_looking">Zoeken naar een laptop op %1$s…</string>
@@ -35,7 +31,6 @@
   <string name="local_network_needed">Edgepad heeft de toestemming Apparaten in de buurt nodig om laptops via je Wi-Fi en via USB te vinden.</string>
   <string name="allow_local_network">Apparaten in de buurt toestaan</string>
   <string name="open_controls">Bediening openen</string>
-  <string name="open_controls_hint">Maak verbinding met een laptop om de bediening te openen.</string>
   <string name="open_bluetooth_settings">Bluetooth-instellingen</string>
   <string name="bluetooth_tap_off">Bluetooth staat uit. Zet het aan om verbinding te maken met deze laptop.</string>
   <string name="refresh">Lijst vernieuwen</string>
@@ -49,10 +44,7 @@
   <string name="local_network_reason">Om laptops via je Wi-Fi en via USB te vinden, vraagt Edgepad om Apparaten in de buurt en controleert het de adressen op je netwerk. Met Toevoegen via adres sla je die zoektocht over.</string>
   <string name="no_paired">Geen laptops gevonden. Open Edgepad op je laptop en koppel hem in de Bluetooth-instellingen. Voor Wi-Fi of USB zet je Wi-Fi- en USB-verbindingen aan in het Edgepad-menu op de laptop; zet voor USB ook USB-tethering hier aan.</string>
   <string name="no_laptop_paired">Geen van de apparaten die aan deze telefoon zijn gekoppeld meldt zich als computer. Is je laptop gekoppeld, toon dan alle apparaten.</string>
-  <plurals name="show_all_paired">
-    <item quantity="one">Alle gekoppelde apparaten tonen (nog %1$d)</item>
-    <item quantity="other">Alle gekoppelde apparaten tonen (nog %1$d)</item>
-  </plurals>
+  <string name="show_all_paired">Alles tonen</string>
   <string name="show_laptops_only">Alleen computers tonen</string>
   <string name="allow_permission">Apparaten in de buurt toestaan</string>
   <string name="open_app_settings">Android-rechten openen</string>
@@ -132,9 +124,7 @@
   <string name="forget_laptop_title">%1$s vergeten?</string>
   <string name="forget_laptop_body">Hij verdwijnt uit deze lijst en de koppelcode wordt gewist. De Bluetooth-koppeling van Android blijft staan; verwijder die in de Bluetooth-instellingen.</string>
   <string name="reconnect_automatically">Automatisch opnieuw verbinden</string>
-  <string name="reconnect_caption">Verbindt onthouden laptops zodra Edgepad opent en probeert het opnieuw als een verbinding wegvalt.</string>
   <string name="stay_connected">Op de achtergrond verbonden blijven</string>
-  <string name="stay_connected_caption">Houdt je laptops verbonden terwijl Edgepad geminimaliseerd is, met een melding om de verbinding te verbreken. Staat dit uit, dan wordt de verbinding kort nadat je de app verlaat verbroken.</string>
   <string name="link_channel">Verbinding</string>
   <string name="link_notice">Verbonden met %1$s</string>
   <plurals name="link_notice_more">
@@ -156,7 +146,6 @@
   <string name="corner_bottom_left">Linksonder</string>
   <string name="corner_off">Uit</string>
   <string name="corner_split">Hoeken splitsen</string>
-  <string name="corner_split_caption">Geeft elke hoek twee regelaars, één op elke rand. In totaal maximaal acht.</string>
   <string name="corner_edge_left">linkerrand</string>
   <string name="corner_edge_top">bovenrand</string>
   <string name="corner_edge_right">rechterrand</string>
@@ -276,7 +265,6 @@
     <item quantity="other">%1$d getekend</item>
   </plurals>
   <string name="shapes_none">Nog geen</string>
-  <string name="shapes_footnote">Houd twee vingers stil op het touchpad tot de lijn doorgetrokken wordt (je voelt ook een tik als haptische feedback aanstaat) en til er dan één op en teken met de andere.</string>
   <string name="shapes_empty_title">Nog geen vormen</string>
   <string name="shapes_empty_body">Teken er hier een en geef hem iets om uit te voeren. Houd op het touchpad twee vingers stil tot de lijn doorgetrokken wordt en til er dan één op en teken de vorm met de andere.</string>
   <string name="shapes_add">Vorm tekenen</string>
@@ -337,11 +325,8 @@
   <string name="color_hex">Hex-kleur</string>
   <string name="dial_feel_title">Gevoel van regelaars</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
-  <string name="dial_preview_caption">Voorbeeld. Met de klok mee gaat het omhoog.</string>
-  <string name="gestures_footnote">Tik op een gebaar om de actie te wijzigen. Gebaren met één en twee vingers liggen vast: bewegen, tikken om te klikken, even stilhouden en dan bewegen om te slepen; met twee vingers slepen om te scrollen, knijpen om te zoomen, tikken voor rechtsklik.</string>
   <string name="dial_feel_each">Elke regelaar</string>
   <string name="dial_feel_shared">Gedeeld</string>
-  <string name="dial_feel_each_caption">Alleen de regelaars in een hoek staan in de lijst. Haal een regelaar uit Gedeeld om hem een eigen snelheid te geven. Gedeeld volgt de gevoeligheid van schuiven.</string>
   <string name="appearance_title">Uiterlijk</string>
   <string name="appearance_preview">Voorbeeld</string>
   <string name="background_preview_description">Voorbeeld van de achtergrond van het bedieningsvlak</string>
@@ -410,7 +395,6 @@
   <!-- Macros -->
   <string name="controls_title">Bediening</string>
   <string name="controls_edit">Bewerken</string>
-  <string name="controls_edit_hint">Tik op een tegel om hem te verbergen of te tonen. Houd hem ingedrukt en sleep om hem te verplaatsen.</string>
   <string name="controls_hidden">Verborgen</string>
   <string name="controls_all_hidden">Alle tegels zijn verborgen. Tik op Bewerken om ze weer te tonen.</string>
   <string name="controls_toggle_tile">%1$s verbergen of tonen</string>
@@ -501,10 +485,8 @@
   <string name="macros_close">%1$s sluiten</string>
   <string name="macros_settings">Macro-instellingen</string>
   <string name="macros_labels">Macronamen</string>
-  <string name="macros_labels_caption">Namen onder de plaatjes. Een macro zonder plaatje toont altijd zijn naam.</string>
   <string name="macros_icons_title">Pictogrammen</string>
   <string name="macros_icon_size">Pictogramgrootte</string>
-  <string name="macros_icon_size_caption">Hoeveel van elke knop het plaatje vult. Plaatjes worden nooit groter getrokken dan hun eigen pixels, zodat ze scherp blijven. Op een grote knop kunnen ze klein zijn tot de laptop grotere stuurt.</string>
   <string name="macros_move_earlier">Eerder zetten</string>
   <string name="macros_move_later">Later zetten</string>
   <string name="macros_moved">Verplaatst naar plek %1$d van %2$d</string>
@@ -513,13 +495,9 @@
   <string name="macros_layout_auto">Automatisch</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">Rijen: %1$d, kolommen: %2$d</string>
-  <string name="macros_layout_caption">Het eerste getal is het aantal rijen, het tweede het aantal kolommen. Automatisch kiest wat de knoppen het grootst maakt.</string>
   <string name="macros_per_page">Macro’s op het scherm</string>
-  <string name="macros_per_page_caption">Hoeveel macro’s één pagina toont. De rest staat op meer pagina’s, die je bereikt door zijwaarts te vegen. Houd een macro ingedrukt en sleep hem om hem binnen zijn pagina te verplaatsen. Houd een geopende macro ingedrukt om een kruisje te tonen en tik dan op het kruisje om de app te sluiten.</string>
   <string name="macros_page_of">Pagina %1$d van %2$d</string>
   <string name="macros_empty_title">Nog geen macro’s</string>
-  <string name="macros_empty_body">Voeg ze toe via het menu Macro’s… van Edgepad in het meldingsgebied op de laptop. Ze verschijnen hier zodra de lijst is verstuurd.</string>
-  <string name="macros_empty_body_mac">Voeg ze toe via het menu Macro’s… van Edgepad in de menubalk op de Mac. Ze verschijnen hier zodra de lijst is verstuurd.</string>
   <string name="macros_loading">Macro’s laden…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
@@ -530,7 +508,6 @@
   <string name="apps_loading">Zoeken naar apps op %1$s…</string>
   <string name="apps_none">%1$s gaf geen apps door.</string>
   <string name="apps_no_match">Geen app past bij die zoekopdracht.</string>
-  <string name="apps_windows_hint">Staat de app er niet bij? Voeg hem toe aan het startmenu op de laptop en vernieuw de lijst.</string>
   <string name="apps_confirm_title">%1$s toevoegen aan %2$s?</string>
   <string name="apps_confirm_body">Het wordt een macro die deze app op de laptop opent.</string>
   <string name="apps_confirm_action">Toevoegen</string>
@@ -540,10 +517,6 @@
   <string name="apps_row_added">Toegevoegd</string>
   <string name="apps_row_added_description">%1$s, al toegevoegd</string>
   <string name="apps_row_full">Macro’s vol</string>
-  <plurals name="apps_full_note">
-    <item quantity="one">Deze laptop heeft ruimte voor maximaal %1$d macro en die is bereikt. Verwijder er een om een andere toe te voegen.</item>
-    <item quantity="other">Deze laptop heeft ruimte voor maximaal %1$d macro’s en die is bereikt. Verwijder er een om een andere toe te voegen.</item>
-  </plurals>
   <string name="apps_added">Toegevoegd. Hij staat nu bij de macro’s.</string>
   <string name="apps_full">De laptop heeft geen ruimte voor meer macro’s. Verwijder er eerst een.</string>
   <string name="apps_duplicate">Die app is al een macro.</string>

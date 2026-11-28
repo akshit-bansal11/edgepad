@@ -63,7 +63,6 @@ object ShapesScreen {
                     )
                 }
             }
-            footnote(ui.string(R.string.shapes_footnote))
             add(ui.button(ui.string(R.string.shapes_add), Ui.Style.FILLED, onDraw), Space.XL)
         }
     }

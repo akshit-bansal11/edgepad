@@ -3,5 +3,4 @@
   <string name="settings_display">Wyświetlanie</string>
   <string name="accessibility_title">Dostępność</string>
   <string name="accessibility_sounds">Dźwięki</string>
-  <string name="accessibility_sounds_caption">Cichy klik przy dotknięciach i przyciskach oraz tyknięcie przy kręceniu pokrętłem. Bez dźwięku, gdy telefon jest w trybie cichym lub wibracji.</string>
 </resources>

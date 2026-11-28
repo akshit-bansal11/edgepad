@@ -3,5 +3,4 @@
   <string name="settings_display">Tela</string>
   <string name="accessibility_title">Acessibilidade</string>
   <string name="accessibility_sounds">Sons</string>
-  <string name="accessibility_sounds_caption">Um clique suave em toques e botões e um tique quando um seletor gira. Sem som quando o celular está no silencioso ou vibrando.</string>
 </resources>

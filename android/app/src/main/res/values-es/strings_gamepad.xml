@@ -6,7 +6,6 @@
   <string name="gamepad_preset_platformer">Plataformas</string>
   <string name="gamepad_preset_racing">Carreras</string>
   <string name="gamepad_preset_shooter">Disparos</string>
-  <string name="gamepad_layout_hint">Arrastra para mover. Mantén pulsado un control para ver su menú.</string>
   <string name="gamepad_layout_section">Diseños</string>
   <string name="gamepad_description">Gamepad para la laptop. Los botones y los gatillos admiten doble toque; los sticks y la cruceta requieren tocar.</string>
   <string name="gamepad_node_dpad">Cruceta</string>

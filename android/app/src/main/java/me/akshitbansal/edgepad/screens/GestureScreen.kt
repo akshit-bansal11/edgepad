@@ -109,7 +109,6 @@ object GestureScreen {
                 },
                 {
                     rest.forEach { add(it) }
-                    footnote(ui.string(R.string.gestures_footnote))
                 },
             )
         }

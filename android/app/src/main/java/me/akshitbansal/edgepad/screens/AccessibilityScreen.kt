@@ -35,7 +35,6 @@ object AccessibilityScreen {
                     },
                 )
             }
-            footnote(ui.string(R.string.accessibility_sounds_caption))
             with(GestureScreen) { airMouse(ui, settings) }
         }
 }

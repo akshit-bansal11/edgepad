@@ -18,7 +18,6 @@
   <string name="profile_custom">Personalizzato</string>
   <string name="auto_profiles_title">Profili automatici</string>
   <string name="auto_profiles_toggle">Cambia le manopole in base al tipo di app</string>
-  <string name="auto_profiles_caption">Se l\'app in primo piano non ha un profilo, le manopole seguono il suo tipo: media, editor di timeline o browser. I tuoi profili hanno la precedenza.</string>
   <string name="auto_kind_media">Media</string>
   <string name="auto_kind_timeline">Timeline</string>
   <string name="auto_kind_browser">Browser</string>

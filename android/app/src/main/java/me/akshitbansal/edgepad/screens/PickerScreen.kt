@@ -58,10 +58,8 @@ class PickerScreen(
 
     private var devices: List<Device> = emptyList()
     private var canOpen = false
-    private var autoConnect = true
     private var hidden = 0
     private var showingAll = false
-    private var staysConnected = false
     private var messageAction: (() -> Unit)? = null
     private var messageDismiss: (() -> Unit)? = null
     private var rtt = Double.NaN
@@ -77,9 +75,6 @@ class PickerScreen(
     private lateinit var updateVersion: TextView
     private lateinit var skeleton: View
     private lateinit var list: LinearLayout
-    private lateinit var legend: TextView
-    private lateinit var multiHint: TextView
-    private lateinit var stayNote: TextView
     private lateinit var sweepLine: TextView
     private lateinit var message: TextView
     private lateinit var messageButton: TextView
@@ -87,7 +82,6 @@ class PickerScreen(
     private lateinit var filter: TextView
     private lateinit var disconnectAll: TextView
     private lateinit var action: TextView
-    private lateinit var actionHint: TextView
 
     val view: View =
         ui.page(
@@ -120,9 +114,6 @@ class PickerScreen(
                             add(ui.skeletonRows(SKELETON_ROWS, ROW_DP, TILE_DP))
                         }.apply { visibility = View.GONE }
                     list = card {}
-                    legend = footnote("")
-                    multiHint = footnote(ui.string(R.string.devices_multi_hint))
-                    stayNote = footnote(ui.string(R.string.devices_stay_note))
                     sweepLine = footnote("")
                     val all = ui.button(ui.string(R.string.device_disconnect_all), Ui.Style.QUIET, onDisconnectAll)
                     disconnectAll = add(all, Space.S)
@@ -150,8 +141,6 @@ class PickerScreen(
                     }
                     val top = if (ui.landscape) 0f else Space.XL
                     action = add(ui.button(ui.string(R.string.open_controls), Ui.Style.FILLED, onOpenControls), top)
-                    // A greyed-out button says it cannot be pressed and not why; this says why.
-                    actionHint = footnote(ui.string(R.string.open_controls_hint))
                 },
             )
         }
@@ -163,23 +152,18 @@ class PickerScreen(
     /**
      * [devices] is what the list shows, and [canOpen] says the active laptop is connected. [hidden] counts the
      * paired devices the computer filter kept out of it, and [showingAll] says the filter is off; between them
-     * they decide what the filter button offers. [staysConnected] is the Stay connected setting, which changes what
-     * leaving the app does to the links.
+     * they decide what the filter button offers.
      */
     fun showDevices(
         devices: List<Device>,
         canOpen: Boolean,
-        autoConnect: Boolean,
         hidden: Int,
         showingAll: Boolean,
-        staysConnected: Boolean,
     ) {
         this.devices = devices
         this.canOpen = canOpen
-        this.autoConnect = autoConnect
         this.hidden = hidden
         this.showingAll = showingAll
-        this.staysConnected = staysConnected
         render()
     }
 
@@ -271,21 +255,15 @@ class PickerScreen(
         val any = devices.isNotEmpty()
         list.visibility = if (any) View.VISIBLE else View.GONE
         skeleton.visibility = if (scanning && !any) View.VISIBLE else View.GONE
-        legend.visibility = if (any) View.VISIBLE else View.GONE
-        val remembers = autoConnect && devices.any { it.row.saved?.autoConnect == true }
-        legend.text = ui.string(if (remembers) R.string.devices_legend else R.string.devices_legend_off)
         val connected = devices.count { device -> device.row.laptops.any { it.connected } }
-        multiHint.visibility = if (devices.size > 1) View.VISIBLE else View.GONE
-        stayNote.visibility = if (staysConnected && connected > 0) View.VISIBLE else View.GONE
         disconnectAll.visibility = if (connected > 1) View.VISIBLE else View.GONE
         filter.visibility = if (showingAll || hidden > 0) View.VISIBLE else View.GONE
         filter.text =
             if (showingAll) {
                 ui.string(R.string.show_laptops_only)
             } else {
-                ui.context.resources.getQuantityString(R.plurals.show_all_paired, hidden, hidden)
+                ui.string(R.string.show_all_paired)
             }
-        actionHint.visibility = if (canOpen) View.GONE else View.VISIBLE
         ui.enable(action, canOpen)
     }
 

@@ -18,7 +18,6 @@
   <string name="profile_custom">Angepasst</string>
   <string name="auto_profiles_title">Automatische Profile</string>
   <string name="auto_profiles_toggle">Regler nach App-Art wechseln</string>
-  <string name="auto_profiles_caption">Hat die vorderste App kein Profil, richten sich die Regler nach ihrer Art: Medien, Schnitt oder Browser. Eigene Profile haben Vorrang.</string>
   <string name="auto_kind_media">Medien</string>
   <string name="auto_kind_timeline">Schnitt</string>
   <string name="auto_kind_browser">Browser</string>

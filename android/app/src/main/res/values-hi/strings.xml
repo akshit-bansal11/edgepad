@@ -21,10 +21,6 @@
   <string name="device_connect">कनेक्ट करें</string>
   <string name="connect_via">%1$s से %2$s कनेक्ट करें</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">सेव किए हुए लैपटॉप Edgepad खुलते ही कनेक्ट हो जाते हैं। डिस्कनेक्ट करने पर ऐसा तब तक नहीं होगा, जब तक आप लैपटॉप पर दोबारा टैप न करें।</string>
-  <string name="devices_stay_note">ऐप से बाहर आने पर भी कनेक्शन बना रहता है। नोटिफ़िकेशन से डिस्कनेक्ट करें।</string>
-  <string name="devices_legend_off">कनेक्ट करने के लिए लैपटॉप पर टैप करें।</string>
-  <string name="devices_multi_hint">एक साथ कई लैपटॉप कनेक्ट करें। कंट्रोल जिस लैपटॉप को चला रहे हैं, वह सक्रिय लैपटॉप है; बदलने के लिए “सक्रिय करें” पर टैप करें।</string>
   <string name="add_by_address">पता डालकर जोड़ें</string>
   <string name="address_connect">कनेक्ट करें</string>
   <string name="address_looking">%1$s पर लैपटॉप ढूंढा जा रहा है…</string>
@@ -35,7 +31,6 @@
   <string name="local_network_needed">आपके वाई-फ़ाई और USB पर लैपटॉप ढूंढने के लिए Edgepad को “आस-पास के डिवाइस” की अनुमति चाहिए।</string>
   <string name="allow_local_network">“आस-पास के डिवाइस” की अनुमति दें</string>
   <string name="open_controls">कंट्रोल खोलें</string>
-  <string name="open_controls_hint">कंट्रोल खोलने के लिए पहले लैपटॉप से कनेक्ट करें।</string>
   <string name="open_bluetooth_settings">ब्लूटूथ सेटिंग्स</string>
   <string name="bluetooth_tap_off">ब्लूटूथ बंद है। इस लैपटॉप से जुड़ने के लिए इसे चालू करें।</string>
   <string name="refresh">सूची रीफ़्रेश करें</string>
@@ -49,10 +44,7 @@
   <string name="local_network_reason">आपके वाई-फ़ाई और USB पर लैपटॉप ढूंढने के लिए Edgepad “आस-पास के डिवाइस” की अनुमति मांगता है और आपके नेटवर्क के पते जांचता है। “पता डालकर जोड़ें” से इस खोज की ज़रूरत नहीं पड़ती।</string>
   <string name="no_paired">कोई लैपटॉप नहीं मिला। अपने लैपटॉप पर Edgepad खोलें और उसे ब्लूटूथ सेटिंग्स में पेयर करें। वाई-फ़ाई या USB के लिए लैपटॉप पर Edgepad के मेन्यू में “वाई-फ़ाई और USB कनेक्शन” चालू करें; USB के लिए यहां USB टेदरिंग भी चालू करें।</string>
   <string name="no_laptop_paired">इस फ़ोन से पेयर किए गए किसी भी डिवाइस ने खुद को कंप्यूटर नहीं बताया। अगर आपका लैपटॉप पेयर है, तो सभी डिवाइस दिखाएं।</string>
-  <plurals name="show_all_paired">
-    <item quantity="one">सभी पेयर किए डिवाइस दिखाएं (%1$d और)</item>
-    <item quantity="other">सभी पेयर किए डिवाइस दिखाएं (%1$d और)</item>
-  </plurals>
+  <string name="show_all_paired">सभी दिखाएँ</string>
   <string name="show_laptops_only">सिर्फ़ कंप्यूटर दिखाएं</string>
   <string name="allow_permission">“आस-पास के डिवाइस” की अनुमति दें</string>
   <string name="open_app_settings">Android की अनुमतियां खोलें</string>
@@ -131,9 +123,7 @@
   <string name="forget_laptop_title">%1$s को भूल जाएं?</string>
   <string name="forget_laptop_body">यह इस सूची से हट जाएगा और इसका पेयरिंग कोड मिट जाएगा। Android की ब्लूटूथ पेयरिंग बनी रहेगी; उसे ब्लूटूथ सेटिंग्स में हटाएं।</string>
   <string name="reconnect_automatically">अपने-आप दोबारा कनेक्ट करें</string>
-  <string name="reconnect_caption">Edgepad खुलने पर सेव किए हुए लैपटॉप कनेक्ट करता है, और कनेक्शन टूटने पर फिर कोशिश करता है।</string>
   <string name="stay_connected">बैकग्राउंड में कनेक्ट रखें</string>
-  <string name="stay_connected_caption">Edgepad छोटा करने पर भी आपके लैपटॉप कनेक्ट रहते हैं, और डिस्कनेक्ट करने के लिए एक नोटिफ़िकेशन दिखता है। बंद होने पर ऐप छोड़ने के थोड़ी देर बाद वे डिस्कनेक्ट हो जाते हैं।</string>
   <string name="link_channel">कनेक्शन</string>
   <string name="link_notice">%1$s से कनेक्टेड</string>
   <plurals name="link_notice_more">
@@ -155,7 +145,6 @@
   <string name="corner_bottom_left">नीचे बाएं</string>
   <string name="corner_off">बंद</string>
   <string name="corner_split">कोने बांटें</string>
-  <string name="corner_split_caption">हर कोने को दो डायल देता है, हर किनारे पर एक। कुल आठ तक।</string>
   <string name="corner_edge_left">बायां किनारा</string>
   <string name="corner_edge_top">ऊपरी किनारा</string>
   <string name="corner_edge_right">दायां किनारा</string>
@@ -275,7 +264,6 @@
     <item quantity="other">%1$d बनीं</item>
   </plurals>
   <string name="shapes_none">अभी कोई नहीं</string>
-  <string name="shapes_footnote">टचपैड पर दो उंगलियां तब तक स्थिर रखें जब तक रेखा ठोस न हो जाए (हैप्टिक फ़ीडबैक चालू हो तो हल्का झटका भी लगेगा), फिर एक उंगली उठाएं और दूसरी से बनाएं।</string>
   <string name="shapes_empty_title">अभी कोई आकृति नहीं</string>
   <string name="shapes_empty_body">यहां एक आकृति बनाएं और उसे कोई काम सौंपें। टचपैड पर दो उंगलियां तब तक स्थिर रखें जब तक रेखा ठोस न हो जाए, फिर एक उंगली उठाएं और दूसरी से उसे बनाएं।</string>
   <string name="shapes_add">आकृति बनाएं</string>
@@ -336,11 +324,8 @@
   <string name="color_hex">हेक्स रंग</string>
   <string name="dial_feel_title">डायल का एहसास</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
-  <string name="dial_preview_caption">प्रीव्यू। घड़ी की दिशा में घुमाने से बढ़ता है।</string>
-  <string name="gestures_footnote">किसी जेस्चर का काम बदलने के लिए उस पर टैप करें। एक और दो उंगलियों वाले जेस्चर तय हैं: एक उंगली से पॉइंटर हिलाएं, क्लिक के लिए टैप करें, ड्रैग के लिए उंगली को एक पल स्थिर रखकर हिलाएं; दो उंगलियों से स्क्रॉल के लिए खींचें, ज़ूम के लिए पिंच करें, राइट क्लिक के लिए टैप करें।</string>
   <string name="dial_feel_each">हर डायल</string>
   <string name="dial_feel_shared">साझा</string>
-  <string name="dial_feel_each_caption">सिर्फ़ कोनों में लगे डायल दिखते हैं। किसी की अपनी स्पीड रखने के लिए उसे “साझा” से हटाएं। “साझा” स्लाइड की संवेदनशीलता के हिसाब से चलता है।</string>
   <string name="appearance_title">रूप</string>
   <string name="appearance_preview">प्रीव्यू</string>
   <string name="background_preview_description">कंट्रोल स्क्रीन के बैकग्राउंड का प्रीव्यू</string>
@@ -410,7 +395,6 @@
   <!-- The Controls screen: a grid of what the phone can drive, and the Capture screen behind one of its tiles. -->
   <string name="controls_title">कंट्रोल</string>
   <string name="controls_edit">संपादित करें</string>
-  <string name="controls_edit_hint">किसी टाइल को छिपाने या दिखाने के लिए उस पर टैप करें। खिसकाने के लिए उसे दबाए रखें और खींचें।</string>
   <string name="controls_hidden">छिपी हुई</string>
   <string name="controls_all_hidden">सभी टाइलें छिपी हैं। उन्हें फिर से दिखाने के लिए संपादित करें पर टैप करें।</string>
   <string name="controls_toggle_tile">%1$s को छिपाएँ या दिखाएँ</string>
@@ -501,10 +485,8 @@
   <string name="macros_close">%1$s बंद करें</string>
   <string name="macros_settings">मैक्रो सेटिंग्स</string>
   <string name="macros_labels">मैक्रो के नाम</string>
-  <string name="macros_labels_caption">तस्वीरों के नीचे दिखने वाले नाम। जिस मैक्रो में तस्वीर नहीं है, उसका नाम हमेशा दिखता है।</string>
   <string name="macros_icons_title">आइकन</string>
   <string name="macros_icon_size">आइकन का साइज़</string>
-  <string name="macros_icon_size_caption">तस्वीर हर बटन का कितना हिस्सा भरे। तस्वीरें अपने पिक्सल से ज़्यादा नहीं खींची जातीं, इसलिए साफ़ रहती हैं। लैपटॉप बड़ी तस्वीरें भेजे, उससे पहले बड़े बटन पर वे छोटी दिख सकती हैं।</string>
   <string name="macros_move_earlier">पहले ले जाएं</string>
   <string name="macros_move_later">बाद में ले जाएं</string>
   <string name="macros_moved">%2$d में से जगह %1$d पर ले जाया गया</string>
@@ -513,13 +495,9 @@
   <string name="macros_layout_auto">ऑटो</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">पंक्तियां: %1$d, कॉलम: %2$d</string>
-  <string name="macros_layout_caption">पहली संख्या पंक्तियों की है, दूसरी कॉलम की। “ऑटो” वह चुनता है जिसमें बटन सबसे बड़े हों।</string>
   <string name="macros_per_page">स्क्रीन पर मैक्रो</string>
-  <string name="macros_per_page_caption">एक पेज पर कितने मैक्रो दिखें। बाकी अगले पेजों पर जारी रहते हैं, जहां उंगली को बगल में सरकाकर पहुंचा जा सकता है। किसी मैक्रो को उसके पेज में खिसकाने के लिए उसे दबाए रखें, फिर खींचें। खुले हुए मैक्रो को दबाए रखें तो क्रॉस दिखेगा, फिर ऐप बंद करने के लिए क्रॉस पर टैप करें।</string>
   <string name="macros_page_of">%2$d में से पेज %1$d</string>
   <string name="macros_empty_title">अभी कोई मैक्रो नहीं</string>
-  <string name="macros_empty_body">इन्हें लैपटॉप पर टास्कबार के कोने में Edgepad के “मैक्रो…” मेन्यू से जोड़ें। लैपटॉप सूची भेजते ही ये यहां दिखने लगते हैं।</string>
-  <string name="macros_empty_body_mac">इन्हें Mac के मेन्यू बार में Edgepad के “मैक्रो…” मेन्यू से जोड़ें। Mac सूची भेजते ही ये यहां दिखने लगते हैं।</string>
   <string name="macros_loading">मैक्रो लोड हो रहे हैं…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists. The laptop alone says what an entry launches. -->
@@ -530,7 +508,6 @@
   <string name="apps_loading">%1$s पर ऐप ढूंढे जा रहे हैं…</string>
   <string name="apps_none">%1$s ने कोई ऐप नहीं बताया।</string>
   <string name="apps_no_match">इस खोज से कोई ऐप नहीं मिला।</string>
-  <string name="apps_windows_hint">सूची में नहीं है? ऐप को लैपटॉप के Start मेन्यू में जोड़ें, फिर रीफ़्रेश करें।</string>
   <string name="apps_confirm_title">%1$s को %2$s में जोड़ें?</string>
   <string name="apps_confirm_body">यह एक मैक्रो बन जाएगा जो लैपटॉप पर यह ऐप खोलता है।</string>
   <string name="apps_confirm_action">जोड़ें</string>
@@ -540,10 +517,6 @@
   <string name="apps_row_added">जुड़ गया</string>
   <string name="apps_row_added_description">%1$s, पहले से जुड़ा है</string>
   <string name="apps_row_full">मैक्रो भरे हैं</string>
-  <plurals name="apps_full_note">
-    <item quantity="one">इस लैपटॉप में %1$d मैक्रो तक रह सकता है और उतने हो चुके हैं। नया जोड़ने के लिए कोई हटाएं।</item>
-    <item quantity="other">इस लैपटॉप में %1$d मैक्रो तक रह सकते हैं और उतने हो चुके हैं। नया जोड़ने के लिए कोई हटाएं।</item>
-  </plurals>
   <string name="apps_added">जुड़ गया। अब यह मैक्रो में है।</string>
   <string name="apps_full">लैपटॉप में और मैक्रो नहीं आ सकते। पहले कोई हटाएं।</string>
   <string name="apps_duplicate">वह ऐप पहले से मैक्रो है।</string>

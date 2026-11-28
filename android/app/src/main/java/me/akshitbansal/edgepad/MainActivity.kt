@@ -115,7 +115,6 @@ import me.akshitbansal.edgepad.protocol.AppAddStatus
 import me.akshitbansal.edgepad.protocol.BlobKind
 import me.akshitbansal.edgepad.protocol.CaptureTarget
 import me.akshitbansal.edgepad.protocol.ControlId
-import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.Feature
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
@@ -1639,7 +1638,6 @@ class MainActivity :
                         settings,
                         state.macros,
                         state.macrosHeard,
-                        state.os,
                         icon = state::macroIcon,
                         isOpen = state::isOpen,
                         labels = settings.macroLabels,
@@ -1680,7 +1678,6 @@ class MainActivity :
                         ui,
                         selected?.name.orEmpty(),
                         state.apps,
-                        windows = state.os == DeviceOs.WINDOWS,
                         macroNames = { state.macros },
                         macroCap = { state.macroCap },
                         // Only the token goes: the laptop looks up what it stands for in the list it made.
@@ -2659,10 +2656,8 @@ class MainActivity :
         picker.showDevices(
             rows.map { row -> PickerScreen.Device(row, row.laptops.any { it === selected }) },
             connected,
-            settings.reconnect,
             hidden = paired.size - laptops.size,
             showingAll = showAllDevices,
-            staysConnected = settings.stayConnected,
         )
         when (hint) {
             // First, because Wi-Fi and USB laptops cannot be found without it.

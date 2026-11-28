@@ -9,7 +9,6 @@
   <string name="controls_presenter">Presenter</string>
   <string name="clip_history_title">Clipboard</string>
   <string name="clip_history_empty">Nothing copied yet</string>
-  <string name="clip_history_empty_hint">Copies from the laptop and this phone show up here while Share clipboard is on.</string>
   <string name="clip_history_from_laptop">From laptop</string>
   <string name="clip_history_from_phone">From this phone</string>
   <string name="clip_history_just_now">Just now</string>

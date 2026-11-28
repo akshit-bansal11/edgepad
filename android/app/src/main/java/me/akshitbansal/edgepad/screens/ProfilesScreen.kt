@@ -211,7 +211,6 @@ object ProfilesScreen {
                 }
             }
             add(shownKinds)
-            footnote(ui.string(R.string.auto_profiles_caption))
         }
 
         fun addProfile(app: ForegroundApp) {

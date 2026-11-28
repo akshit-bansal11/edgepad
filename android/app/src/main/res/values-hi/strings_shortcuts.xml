@@ -9,7 +9,6 @@
   <string name="controls_presenter">प्रेज़ेंटर</string>
   <string name="clip_history_title">क्लिपबोर्ड</string>
   <string name="clip_history_empty">अभी कुछ कॉपी नहीं हुआ</string>
-  <string name="clip_history_empty_hint">क्लिपबोर्ड साझा करें चालू होने पर लैपटॉप और इस फ़ोन की कॉपी यहाँ दिखती हैं।</string>
   <string name="clip_history_from_laptop">लैपटॉप से</string>
   <string name="clip_history_from_phone">इस फ़ोन से</string>
   <string name="clip_history_just_now">अभी-अभी</string>

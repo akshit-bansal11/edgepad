@@ -3,9 +3,7 @@
   <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). Counts go through %1$d, except the Git page (plurals). -->
   <string name="controls_dash_off">Включите это в меню Edgepad на ноутбуке.</string>
   <string name="widgets_title">Виджеты</string>
-  <string name="widgets_hint">Рисуются под трекпадом. Касания проходят сквозь них.</string>
   <string name="developer_mode_title">Режим разработчика</string>
-  <string name="developer_mode_hint">Показывает Claude Code, Codex и GitHub на этом телефоне и ноутбуке. Отключение сохраняет ваши подключения.</string>
   <string name="developer_mode_offline">Подключитесь к ноутбуку, чтобы изменить это. Ноутбук запоминает настройку.</string>
   <string name="widgets_layout_title">Расположение виджетов</string>
   <string name="widgets_layout_hint">Перетащите виджет, чтобы переместить его. Удерживайте, чтобы изменить размер.</string>

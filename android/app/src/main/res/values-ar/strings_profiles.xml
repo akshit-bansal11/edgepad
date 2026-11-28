@@ -18,7 +18,6 @@
   <string name="profile_custom">مخصص</string>
   <string name="auto_profiles_title">الملفات التلقائية</string>
   <string name="auto_profiles_toggle">تبديل الأقراص حسب نوع التطبيق</string>
-  <string name="auto_profiles_caption">عندما لا يكون للتطبيق الأمامي ملف، تتبع الأقراص نوعه: وسائط أو محرر خط زمني أو متصفح. ملفاتك الخاصة لها الأولوية.</string>
   <string name="auto_kind_media">الوسائط</string>
   <string name="auto_kind_timeline">الخط الزمني</string>
   <string name="auto_kind_browser">المتصفح</string>

@@ -3,9 +3,7 @@
   <!-- Dashboard screens (Controls, Widgets, System, Weather, AI, GitHub, approvals). Counts go through %1$d, except the Git page (plurals). -->
   <string name="controls_dash_off">فعّلها من قائمة Edgepad على الحاسوب المحمول.</string>
   <string name="widgets_title">الأدوات</string>
-  <string name="widgets_hint">تُرسم خلف لوحة التتبع. اللمسات تمرّ عبرها.</string>
   <string name="developer_mode_title">وضع المطوّر</string>
-  <string name="developer_mode_hint">يعرض Claude Code وCodex وGitHub على هذا الهاتف والحاسوب المحمول. إيقافه يُبقي اتصالاتك.</string>
   <string name="developer_mode_offline">اتصل بحاسوب محمول لتغيير هذا. الحاسوب المحمول يحتفظ به.</string>
   <string name="widgets_layout_title">تخطيط الأدوات</string>
   <string name="widgets_layout_hint">اسحب أداة لنقلها. اضغط عليها مطوّلًا لتغيير حجمها.</string>

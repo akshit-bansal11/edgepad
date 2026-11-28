@@ -18,7 +18,6 @@
   <string name="profile_custom">Свой</string>
   <string name="auto_profiles_title">Автоматические профили</string>
   <string name="auto_profiles_toggle">Переключать диски по типу приложения</string>
-  <string name="auto_profiles_caption">Если у приложения на переднем плане нет профиля, диски следуют его типу: медиа, редактор таймлайна или браузер. Ваши профили главнее.</string>
   <string name="auto_kind_media">Медиа</string>
   <string name="auto_kind_timeline">Таймлайн</string>
   <string name="auto_kind_browser">Браузер</string>

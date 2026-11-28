@@ -18,7 +18,6 @@
   <string name="profile_custom">已自定义</string>
   <string name="auto_profiles_title">自动配置</string>
   <string name="auto_profiles_toggle">按应用类型切换转盘</string>
-  <string name="auto_profiles_caption">前台应用没有配置时，转盘会按其类型（媒体、时间线编辑器或浏览器）切换。你自己的配置优先。</string>
   <string name="auto_kind_media">媒体</string>
   <string name="auto_kind_timeline">时间线</string>
   <string name="auto_kind_browser">浏览器</string>

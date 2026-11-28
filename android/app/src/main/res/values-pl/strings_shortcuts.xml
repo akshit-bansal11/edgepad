@@ -9,7 +9,6 @@
   <string name="controls_presenter">Prezenter</string>
   <string name="clip_history_title">Schowek</string>
   <string name="clip_history_empty">Nic jeszcze nie skopiowano</string>
-  <string name="clip_history_empty_hint">Kopie z laptopa i z tego telefonu pojawią się tu, gdy Udostępnianie schowka jest włączone.</string>
   <string name="clip_history_from_laptop">Z laptopa</string>
   <string name="clip_history_from_phone">Z tego telefonu</string>
   <string name="clip_history_just_now">Przed chwilą</string>

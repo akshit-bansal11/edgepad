@@ -38,7 +38,6 @@ object WidgetsScreen {
                 }
             }
             card(Space.XL) { add(ui.link(ui.string(R.string.widgets_layout_title), null, routes.layout)) }
-            footnote(ui.string(R.string.widgets_hint))
             // Open-Meteo's licence (CC BY 4.0) asks for this credit wherever its data is shown.
             footnote(ui.string(R.string.wx_credit))
         }

@@ -3,5 +3,4 @@
   <string name="settings_display">Pantalla</string>
   <string name="accessibility_title">Accesibilidad</string>
   <string name="accessibility_sounds">Sonidos</string>
-  <string name="accessibility_sounds_caption">Un clic suave al tocar y en los botones, y un tic al girar un dial. Silencio si el teléfono está en silencio o vibración.</string>
 </resources>

@@ -21,10 +21,6 @@
   <string name="device_connect">Bağlan</string>
   <string name="connect_via">%2$s: %1$s ile bağlan</string>
   <string name="device_rtt">%1$.0f ms</string>
-  <string name="devices_legend">Kayıtlı bilgisayarlara Edgepad açılınca bağlanılır. Bağlantıyı kesmek, bilgisayara yeniden dokunana kadar bunu durdurur.</string>
-  <string name="devices_stay_note">Uygulamadan çıksanız da bağlı kalır. Bağlantıyı bildirimden kesin.</string>
-  <string name="devices_legend_off">Bağlanmak için bir bilgisayara dokunun.</string>
-  <string name="devices_multi_hint">Aynı anda birden çok bilgisayara bağlanabilirsiniz. Etkin olan, kontrollerin yönettiği bilgisayardır; değiştirmek için “Etkin yap” seçeneğine dokunun.</string>
   <string name="add_by_address">Adresle ekle</string>
   <string name="address_connect">Bağlan</string>
   <string name="address_looking">%1$s adresinde bilgisayar aranıyor…</string>
@@ -35,7 +31,6 @@
   <string name="local_network_needed">Edgepad’in Wi-Fi ağınızdaki ve USB üzerindeki bilgisayarları bulabilmesi için Yakındaki cihazlar iznine ihtiyacı var.</string>
   <string name="allow_local_network">Yakındaki cihazlara izin ver</string>
   <string name="open_controls">Kontrolleri aç</string>
-  <string name="open_controls_hint">Kontrolleri açmak için bir bilgisayara bağlanın.</string>
   <string name="open_bluetooth_settings">Bluetooth ayarları</string>
   <string name="bluetooth_tap_off">Bluetooth kapalı. Bu bilgisayara bağlanmak için açın.</string>
   <string name="refresh">Listeyi yenile</string>
@@ -49,10 +44,7 @@
   <string name="local_network_reason">Wi-Fi ağınızdaki ve USB üzerindeki bilgisayarları bulmak için Edgepad, Yakındaki cihazlar iznini ister ve ağınızdaki adresleri tarar. Adresle ekleme bu taramayı gerektirmez.</string>
   <string name="no_paired">Bilgisayar bulunamadı. Bilgisayarınızda Edgepad’i açıp Bluetooth ayarlarından eşleştirin. Wi-Fi veya USB için bilgisayarda Edgepad menüsünden Wi-Fi ve USB bağlantılarını açın; USB için ayrıca buradan USB ile internet paylaşımını açın.</string>
   <string name="no_laptop_paired">Bu telefonla eşleşmiş hiçbir cihaz kendini bilgisayar olarak tanıtmıyor. Bilgisayarınız eşleşmişse tüm cihazları gösterin.</string>
-  <plurals name="show_all_paired">
-    <item quantity="one">Eşleşmiş tüm cihazları göster (+%1$d)</item>
-    <item quantity="other">Eşleşmiş tüm cihazları göster (+%1$d)</item>
-  </plurals>
+  <string name="show_all_paired">Tümünü göster</string>
   <string name="show_laptops_only">Yalnızca bilgisayarları göster</string>
   <string name="allow_permission">Yakındaki cihazlara izin ver</string>
   <string name="open_app_settings">Android izinlerini aç</string>
@@ -129,9 +121,7 @@
   <string name="forget_laptop_title">%1$s unutulsun mu?</string>
   <string name="forget_laptop_body">Bilgisayar bu listeden kaldırılır ve eşleştirme kodu silinir. Android’in Bluetooth eşleşmesi kalır; Bluetooth ayarlarından kaldırabilirsiniz.</string>
   <string name="reconnect_automatically">Otomatik yeniden bağlan</string>
-  <string name="reconnect_caption">Edgepad açılınca kayıtlı bilgisayarlara bağlanır, bağlantı koparsa yeniden dener.</string>
   <string name="stay_connected">Arka planda bağlı kal</string>
-  <string name="stay_connected_caption">Edgepad küçültüldüğünde bilgisayarlarınızı bağlı tutar; bağlantıyı kesmek için bir bildirim gösterir. Kapalıyken uygulamadan çıkınca kısa süre sonra bağlantı kesilir.</string>
   <string name="link_channel">Bağlantı</string>
   <string name="link_notice">Bağlı: %1$s</string>
   <plurals name="link_notice_more">
@@ -153,7 +143,6 @@
   <string name="corner_bottom_left">Sol alt</string>
   <string name="corner_off">Kapalı</string>
   <string name="corner_split">Köşeleri böl</string>
-  <string name="corner_split_caption">Her köşeye iki kadran verir, her kenara bir tane. Toplamda sekize kadar.</string>
   <string name="corner_edge_left">sol kenar</string>
   <string name="corner_edge_top">üst kenar</string>
   <string name="corner_edge_right">sağ kenar</string>
@@ -273,7 +262,6 @@
     <item quantity="other">%1$d çizildi</item>
   </plurals>
   <string name="shapes_none">Henüz yok</string>
-  <string name="shapes_footnote">Dokunmatik yüzeyde iki parmağınızı çizgi kesintisiz hale gelene kadar sabit tutun (dokunsal geri bildirim açıksa bir tık da hissedersiniz), sonra birini kaldırıp diğeriyle çizin.</string>
   <string name="shapes_empty_title">Henüz şekil yok</string>
   <string name="shapes_empty_body">Buraya bir şekil çizin ve ona çalıştıracak bir şey verin. Dokunmatik yüzeyde çizgi kesintisiz hale gelene kadar iki parmağınızı sabit tutun, sonra birini kaldırıp diğeriyle çizin.</string>
   <string name="shapes_add">Şekil çiz</string>
@@ -333,11 +321,8 @@
   <string name="color_hex">Hex renk kodu</string>
   <string name="dial_feel_title">Kadran hissi</string>
   <string name="feel_summary">×%1$.1f · %2$d dp</string>
-  <string name="dial_preview_caption">Önizleme. Saat yönü artırır.</string>
-  <string name="gestures_footnote">Eylemini değiştirmek için bir harekete dokunun. Bir ve iki parmakla yapılanlar sabittir: işaretçiyi taşıma, tıklamak için dokunma, sürüklemek için bir an sabit tutup hareket ettirme; iki parmakla kaydırmak için sürükleme, yakınlaştırmak için sıkıştırma, sağ tık için dokunma.</string>
   <string name="dial_feel_each">Her kadran</string>
   <string name="dial_feel_shared">Ortak</string>
-  <string name="dial_feel_each_caption">Yalnızca bir köşedeki kadranlar listelenir. Bir kadrana kendi hızını vermek için Ortak’tan çıkarın. Ortak, sürükleme duyarlılığını izler.</string>
   <string name="appearance_title">Görünüm</string>
   <string name="appearance_preview">Önizleme</string>
   <string name="background_preview_description">Kumanda alanı arka planının önizlemesi</string>
@@ -405,7 +390,6 @@
   <!-- Macros -->
   <string name="controls_title">Kontroller</string>
   <string name="controls_edit">Düzenle</string>
-  <string name="controls_edit_hint">Gizlemek veya göstermek için bir kutucuğa dokunun. Taşımak için basılı tutup sürükleyin.</string>
   <string name="controls_hidden">Gizli</string>
   <string name="controls_all_hidden">Tüm kutucuklar gizli. Yeniden göstermek için Düzenle\'ye dokunun.</string>
   <string name="controls_toggle_tile">%1$s gizle veya göster</string>
@@ -496,10 +480,8 @@
   <string name="macros_close">Kapat: %1$s</string>
   <string name="macros_settings">Makro ayarları</string>
   <string name="macros_labels">Makro etiketleri</string>
-  <string name="macros_labels_caption">Resimlerin altındaki adlar. Resmi olmayan bir makro her zaman adını gösterir.</string>
   <string name="macros_icons_title">Simgeler</string>
   <string name="macros_icon_size">Simge boyutu</string>
-  <string name="macros_icon_size_caption">Resmin her düğmenin ne kadarını kapladığı. Resimler kendi piksellerinin ötesinde büyütülmez, bu yüzden keskin kalır. Bilgisayar daha büyük resimler gönderene kadar büyük bir düğmede küçük görünebilirler.</string>
   <string name="macros_move_earlier">Daha öne taşı</string>
   <string name="macros_move_later">Daha sona taşı</string>
   <string name="macros_moved">Konum %1$d / %2$d</string>
@@ -508,13 +490,9 @@
   <string name="macros_layout_auto">Otomatik</string>
   <string name="macros_layout_grid">%1$d × %2$d</string>
   <string name="macros_layout_grid_description">Satır: %1$d, sütun: %2$d</string>
-  <string name="macros_layout_caption">İlk sayı satır, ikincisi sütun sayısıdır. Otomatik, düğmeleri en büyük yapan düzeni seçer.</string>
   <string name="macros_per_page">Ekrandaki makrolar</string>
-  <string name="macros_per_page_caption">Bir sayfada kaç makro görüneceği. Kalanlar, parmağınızı yana kaydırarak ulaşılan sayfalarda devam eder. Bir makroyu basılı tutup sürükleyerek sayfası içinde taşıyabilirsiniz. Açık bir makroyu basılı tutarak çarpıyı gösterin, sonra uygulamayı kapatmak için çarpıya dokunun.</string>
   <string name="macros_page_of">Sayfa %1$d / %2$d</string>
   <string name="macros_empty_title">Henüz makro yok</string>
-  <string name="macros_empty_body">Bilgisayarın bildirim alanındaki Edgepad’in “Makrolar…” menüsünden ekleyin. Liste gönderilir gönderilmez burada görünürler.</string>
-  <string name="macros_empty_body_mac">Mac’in menü çubuğundaki Edgepad’in “Makrolar…” menüsünden ekleyin. Liste gönderilir gönderilmez burada görünürler.</string>
   <string name="macros_loading">Makrolar yükleniyor…</string>
 
   <!-- Adding a macro by picking from the apps the laptop lists -->
@@ -525,7 +503,6 @@
   <string name="apps_loading">%1$s üzerindeki uygulamalar aranıyor…</string>
   <string name="apps_none">%1$s hiç uygulama listelemedi.</string>
   <string name="apps_no_match">Hiçbir uygulama bu aramayla eşleşmiyor.</string>
-  <string name="apps_windows_hint">Listede yok mu? Uygulamayı bilgisayarda Başlat menüsüne ekleyin, sonra yenileyin.</string>
   <string name="apps_confirm_title">%2$s için %1$s eklensin mi?</string>
   <string name="apps_confirm_body">Bilgisayarda bu uygulamayı açan bir makro olur.</string>
   <string name="apps_confirm_action">Ekle</string>
@@ -535,10 +512,6 @@
   <string name="apps_row_added">Eklendi</string>
   <string name="apps_row_added_description">%1$s, zaten eklendi</string>
   <string name="apps_row_full">Makrolar dolu</string>
-  <plurals name="apps_full_note">
-    <item quantity="one">Bu bilgisayar en fazla %1$d makro tutar ve o kadar makro var. Yenisini eklemek için birini silin.</item>
-    <item quantity="other">Bu bilgisayar en fazla %1$d makro tutar ve o kadar makro var. Yenisini eklemek için birini silin.</item>
-  </plurals>
   <string name="apps_added">Eklendi. Artık makrolarda.</string>
   <string name="apps_full">Bilgisayar daha fazla makro tutamıyor. Önce birini kaldırın.</string>
   <string name="apps_duplicate">Bu uygulama zaten bir makro.</string>
