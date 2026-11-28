@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Edgepad.Platform;
+using Edgepad.Updates;
 using Tmds.DBus.Protocol;
 
 namespace Edgepad.Ui;
