@@ -14,7 +14,7 @@ No wire-protocol change: the protocol stays at version 6, and only the laptop ap
 - **Laptop: one update menu.** Install, Later and Skip this version sit in one submenu under the update row instead of three separate rows.
 - **Windows: no error at every shutdown.** Closing Edgepad no longer logs a disposed-token error, which also ran during an update's hand-over.
 
-## [5.2.0] - Unreleased
+## [5.2.0] - 2026-11-27
 
 No wire-protocol break: the protocol stays at version 6, and the new ids are additive, so a 5.2.0 half works with a 5.1.x half. A 5.1 phone loses nothing but the removed Sleep when this ends row.
 
