@@ -30,6 +30,9 @@ class Laptop(
     /** The records this one takes over from once it connects: the same laptop over another transport. */
     var replacing: List<String> = emptyList()
 
+    /** The record whose connecting this one let go for, until that one connects or fails; null when none. */
+    var handedTo: String? = null
+
     /** What the laptop's last PIN question allowed, for the PIN screen; a count, never a digit. */
     var pinAttemptsLeft = 0
 

@@ -684,6 +684,43 @@ class LaptopConnectionsTest {
     }
 
     @Test
+    fun anOldLinkThatLetGoDuringTheSwitchEndsQuietlyOnceTheNewOneIsUp() {
+        val old = up(1)
+        val attempt = switchTo2()
+        old.drop()
+        assertFalse(laptop(1).reconnecting)
+        assertFalse(laptop(1).failed)
+        attempt.accept()
+        assertSame(laptop(2), manager.selected)
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS * 5)
+        assertEquals(1, linksTo(1))
+        assertFalse(laptop(1).reconnecting)
+    }
+
+    @Test
+    fun anOldLinkThatDroppedDuringASwitchThatFailsReconnectsAndIsSelected() {
+        val old = up(1)
+        val attempt = switchTo2()
+        old.drop()
+        assertSame(laptop(2), manager.selected)
+        attempt.drop(LaptopLink.Cause.UNREACHABLE)
+        assertTrue(laptop(1).reconnecting)
+        assertSame(laptop(1), manager.selected)
+        scheduler.advance(LaptopConnections.RETRY_DELAY_MS)
+        assertEquals(2, linksTo(1))
+    }
+
+    @Test
+    fun aSwitchThatFailsWhileTheOldLinkIsUpLeavesItUntouched() {
+        val old = up(1)
+        switchTo2().drop(LaptopLink.Cause.UNREACHABLE)
+        assertNull(old.closedWith)
+        assertNull(laptop(1).handedTo)
+        assertFalse(laptop(1).reconnecting)
+        assertSame(laptop(1), manager.selected)
+    }
+
+    @Test
     fun aLaterDropOfTheNewRecordDoesNotEndTheOldOne() {
         up(1)
         val second = switchTo2().also { it.accept() }
