@@ -968,7 +968,7 @@ class MainActivity :
             ForegroundWatchPolicy.wanted(
                 connected = connected,
                 offered = Feature.FOREGROUND in state.features,
-                profilesOn = settings.profilesOn,
+                profilesOn = settings.profilesOn && !settings.splitCorners,
                 hasProfiles = Profiles(settings.profiles).all.isNotEmpty(),
                 onProfilesScreen = screen == Screen.PROFILES,
                 automatic = automaticProfiles(),
@@ -1045,7 +1045,7 @@ class MainActivity :
 
     /** Whether the dials may follow the kind of app in front: profiles on, automatic on, and the laptop names it. */
     private fun automaticProfiles(): Boolean =
-        settings.profilesOn && settings.autoProfiles && Feature.APP_KIND in state.features
+        settings.profilesOn && !settings.splitCorners && settings.autoProfiles && Feature.APP_KIND in state.features
 
     /** The profile that applies to the app in front, or null for the default dials; always null with eight dials. */
     private fun frontProfile(): Profile? =
@@ -1289,7 +1289,7 @@ class MainActivity :
         if (previous != Screen.PROFILES) pickingProfileApp = false
         // The bars on a page opened from a row of Settings say so; deeper pages keep their own labels.
         val fromSettings = childFrom == Screen.SETTINGS && next in settingsPages
-        ui.backOverride = if (fromSettings) getString(R.string.settings_title) else null
+        ui.backOverride = if (fromSettings) getString(R.string.settings_system) else null
         // Each screen's list keeps its scroll position, so a trip into a sub-page and back lands where it left.
         ui.pageKey = next.name
         statsPage = 0
@@ -1345,7 +1345,7 @@ class MainActivity :
                 }
 
                 Screen.USES -> {
-                    val from = if (settings.onboarded) R.string.settings_title else R.string.app_name
+                    val from = if (settings.onboarded) R.string.settings_system else R.string.app_name
                     DataUsesScreen.build(ui, getString(from)) { navigateBack() }
                 }
 
@@ -1495,10 +1495,11 @@ class MainActivity :
                         settings,
                         {
                             goTo(Screen.CORNERS)
+                            syncForegroundWatch()
                             if (settings.splitCorners && settings.profilesOn) {
                                 TipCard.notice(
                                     stage,
-                                    StencilIcon.Kind.SYSTEM,
+                                    StencilIcon.Kind.POWER,
                                     R.string.profiles_split_off,
                                     gravity = Gravity.BOTTOM or Gravity.END,
                                 )
