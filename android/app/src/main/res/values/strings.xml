@@ -303,6 +303,7 @@
   <string name="shape_target_lock_pad">Lock the pad</string>
 
   <string name="settings_surface">Surface</string>
+  <string name="settings_display">Display</string>
   <string name="settings_controls">Control colour</string>
   <string name="settings_surface_title">Surface settings</string>
   <string name="settings_system">System settings</string>
