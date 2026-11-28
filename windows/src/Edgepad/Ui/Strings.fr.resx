@@ -494,6 +494,9 @@ Les téléphones approuvés ont été oubliés, mais le code PIN n’a pas pu ê
   <data name="Menu_UpdateDownloading" xml:space="preserve">
     <value>Téléchargement de {0}… {1}%</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>Ouvrir la page de la version</value>
+  </data>
   <data name="Menu_UpdateLater" xml:space="preserve">
     <value>Plus tard</value>
   </data>

@@ -494,6 +494,9 @@ Wi-FiとUSBのペアリングの登録を解除できませんでした。ファ
   <data name="Menu_UpdateDownloading" xml:space="preserve">
     <value>{0} をダウンロード中… {1}%</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>リリースページを開く</value>
+  </data>
   <data name="Menu_UpdateLater" xml:space="preserve">
     <value>後で</value>
   </data>

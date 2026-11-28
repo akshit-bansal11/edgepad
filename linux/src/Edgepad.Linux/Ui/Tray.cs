@@ -59,6 +59,7 @@ internal sealed class Tray : IDisposable
     private readonly NativeMenuItem laterRow = new(LinuxStrings.Menu_UpdateLater) { IsVisible = false };
     private readonly NativeMenuItem skipRow = new(LinuxStrings.Menu_UpdateSkip) { IsVisible = false };
     private readonly NativeMenu updateMenu = new();
+    private bool installable;
     private readonly NativeMenuItem problemRow = new("") { IsEnabled = false, IsVisible = false };
     private readonly NativeMenuItem networkRow = Toggle(LinuxStrings.Menu_Network);
     private readonly NativeMenuItem clipboardRow = Toggle(LinuxStrings.Menu_ShareClipboard);
@@ -82,9 +83,10 @@ internal sealed class Tray : IDisposable
     {
         this.hooks = hooks;
 
-        // With an update key the row opens Install, Later and Skip; without one it has no submenu and opens the release page.
-        updateRow.Click += (_, _) => Safe(() => OpenWithDesktop(UpdateCheck.LatestUrl, LinuxStrings.What_ReleasePage), "Update available");
-        installRow.Click += (_, _) => Safe(hooks.InstallUpdate, "Install update");
+        // The update row opens Install (or, when this copy cannot install itself, the release page), Later and Skip.
+        installRow.Click += (_, _) => Safe(
+            installable ? hooks.InstallUpdate : () => OpenWithDesktop(UpdateCheck.LatestUrl, LinuxStrings.What_ReleasePage),
+            "Install update");
         laterRow.Click += (_, _) => Safe(hooks.LaterUpdate, "Later");
         skipRow.Click += (_, _) => Safe(hooks.SkipUpdate, "Skip this version");
         networkRow.Click += (_, _) => Safe(hooks.ToggleNetwork, "Wi-Fi and USB connections");
@@ -110,6 +112,8 @@ internal sealed class Tray : IDisposable
         updateMenu.Add(installRow);
         updateMenu.Add(laterRow);
         updateMenu.Add(skipRow);
+
+        updateRow.Menu = updateMenu;
 
         var integrationsGroup = Group(LinuxStrings.Menu_Group_Integrations, integrationsRow, developerRow, developerIntegrationsRow);
         integrationsGroup.IsVisible = LinuxDashboard.Shared is not null;
@@ -157,10 +161,10 @@ internal sealed class Tray : IDisposable
     public void SetUpdate(string version, bool canInstall)
     {
         updateRow.Header = Say.Format(LinuxStrings.Menu_UpdateVersion, version);
-        installRow.Header = Say.Format(LinuxStrings.Menu_UpdateInstall, version);
-        updateRow.Menu = canInstall ? updateMenu : null;
+        installable = canInstall;
+        installRow.Header = canInstall ? Say.Format(LinuxStrings.Menu_UpdateInstall, version) : LinuxStrings.Menu_UpdateOpenPage;
         updateRow.IsVisible = true;
-        installRow.IsVisible = canInstall;
+        installRow.IsVisible = true;
         laterRow.IsVisible = true;
         skipRow.IsVisible = true;
     }

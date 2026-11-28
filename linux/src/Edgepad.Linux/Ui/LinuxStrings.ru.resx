@@ -51,6 +51,9 @@
   <data name="Menu_UpdateDownloading" xml:space="preserve">
     <value>Загрузка {0}… {1}%</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>Открыть страницу релиза</value>
+  </data>
   <data name="Menu_UpdateLater" xml:space="preserve">
     <value>Позже</value>
   </data>

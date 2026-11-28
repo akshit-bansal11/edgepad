@@ -51,6 +51,9 @@
   <data name="Menu_UpdateDownloading" xml:space="preserve">
     <value>{0} 다운로드 중… {1}%</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>릴리스 페이지 열기</value>
+  </data>
   <data name="Menu_UpdateLater" xml:space="preserve">
     <value>나중에</value>
   </data>

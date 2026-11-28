@@ -51,6 +51,9 @@
   <data name="Menu_UpdateDownloading" xml:space="preserve">
     <value>正在下载 {0}… {1}%</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>打开发布页面</value>
+  </data>
   <data name="Menu_UpdateLater" xml:space="preserve">
     <value>稍后</value>
   </data>

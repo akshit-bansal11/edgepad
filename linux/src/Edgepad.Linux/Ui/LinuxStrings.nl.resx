@@ -51,6 +51,9 @@
   <data name="Menu_UpdateDownloading" xml:space="preserve">
     <value>{0} downloaden… {1}%</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>Open de releasepagina</value>
+  </data>
   <data name="Menu_UpdateLater" xml:space="preserve">
     <value>Later</value>
   </data>

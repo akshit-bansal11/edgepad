@@ -51,6 +51,9 @@
   <data name="Menu_UpdateDownloading" xml:space="preserve">
     <value>{0} डाउनलोड हो रहा है… {1}%</value>
   </data>
+  <data name="Menu_UpdateOpenPage" xml:space="preserve">
+    <value>रिलीज़ पेज खोलें</value>
+  </data>
   <data name="Menu_UpdateLater" xml:space="preserve">
     <value>बाद में</value>
   </data>

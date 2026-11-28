@@ -232,14 +232,6 @@ internal sealed class TrayContext : ApplicationContext
         clipHistoryRow.Click += (_, _) => ShowClipboardPanel(paste: false);
         checkUpdates.Click += (_, _) => SaveCheckUpdates(checkUpdates.Checked);
         documentationRow.Click += (_, _) => Open(DocumentationUrl, "the documentation");
-        update.Click += (_, _) =>
-        {
-            // With the install rows under it the row only opens them; with no update key it has none and opens the release page.
-            if (!UpdateKey.IsSet)
-            {
-                Open(UpdateCheck.LatestUrl, "the release page");
-            }
-        };
         installRow.Click += (_, _) => _ = InstallUpdateAsync();
         laterRow.Click += (_, _) =>
         {
@@ -557,13 +549,11 @@ internal sealed class TrayContext : ApplicationContext
         var text = version.ToString();
         update.Text = Strings.Menu_UpdateVersion.Fill(text);
         update.Available = true;
-        if (canInstall)
-        {
-            update.DropDown = updateMenu;
-        }
+        update.DropDown = updateMenu;
 
-        installRow.Text = Strings.Menu_UpdateInstall.Fill(text);
-        installRow.Available = canInstall;
+        // With no update key the first row opens the release page (InstallUpdateAsync does that for a NoKey decision).
+        installRow.Text = canInstall ? Strings.Menu_UpdateInstall.Fill(text) : Strings.Menu_UpdateOpenPage;
+        installRow.Available = true;
         laterRow.Available = true;
         skipRow.Available = true;
         if (!updateReady)
