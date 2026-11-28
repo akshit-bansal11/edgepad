@@ -33,7 +33,7 @@ class GalleryActivity : Activity() {
         setContentView(view)
         if (screen.startsWith("controls")) view.post { samples.showControls(view) }
         if (screen == "presenter-sheet") view.post { samples.showLaserSheet(view) }
-        if (screen == "settings-capture") view.post { samples.showCaptureSection(view) }
+        if (screen == "profiles-4") view.post { samples.tapText(view, "Chrome") }
         if (screen == "media-layout" ||
             screen == "widget-layout" ||
             screen == "gamepad-layout"
