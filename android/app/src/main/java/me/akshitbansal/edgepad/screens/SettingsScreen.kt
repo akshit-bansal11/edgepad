@@ -134,12 +134,12 @@ object SettingsScreen {
                             ),
                         )
                         languageRow()
+                        hairline()
+                        add(ui.link(ui.string(R.string.accessibility_title), null, routes.accessibility))
                     }
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
                         footnote(ui.string(R.string.language_follows_phone))
                     }
-
-                    card { add(ui.link(ui.string(R.string.accessibility_title), null, routes.accessibility)) }
 
                     section(ui.string(R.string.settings_help_about))
                     card {
