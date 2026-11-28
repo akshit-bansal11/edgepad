@@ -121,6 +121,7 @@ import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.protocol.ProtocolConstants
 import me.akshitbansal.edgepad.protocol.SignStatus
 import me.akshitbansal.edgepad.protocol.TextKind
+import me.akshitbansal.edgepad.screens.AccessibilityScreen
 import me.akshitbansal.edgepad.screens.AiScreen
 import me.akshitbansal.edgepad.screens.AnnotateScreen
 import me.akshitbansal.edgepad.screens.AppListScreen
@@ -159,7 +160,6 @@ import me.akshitbansal.edgepad.screens.PinScreen
 import me.akshitbansal.edgepad.screens.PowerBanner
 import me.akshitbansal.edgepad.screens.PowerScreen
 import me.akshitbansal.edgepad.screens.PresenterScreen
-import me.akshitbansal.edgepad.screens.PresenterSettingsScreen
 import me.akshitbansal.edgepad.screens.ProfilesScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
@@ -264,7 +264,7 @@ class MainActivity :
         GAMEPAD_SETTINGS,
         MACRO_SETTINGS,
         CONTROLS_SETTINGS,
-        PRESENTER_SETTINGS,
+        ACCESSIBILITY,
         CAPTURE_SETTINGS,
         CAPTURE,
         ANNOTATE,
@@ -1385,13 +1385,7 @@ class MainActivity :
                             stayConnected = ::syncService,
                             notify = ::notifyChanged,
                             developer = ::developerChanged,
-                            surface = { openFrom(Screen.SETTINGS, Screen.SURFACE_SETTINGS) },
-                            controls = { openFrom(Screen.SETTINGS, Screen.CONTROLS_SETTINGS) },
-                            keyboard = { openFrom(Screen.SETTINGS, Screen.KEYBOARD_SETTINGS) },
-                            gamepad = { openFrom(Screen.SETTINGS, Screen.GAMEPAD_SETTINGS) },
-                            macros = { openFrom(Screen.SETTINGS, Screen.MACRO_SETTINGS) },
-                            presenter = { openFrom(Screen.SETTINGS, Screen.PRESENTER_SETTINGS) },
-                            capture = { openFrom(Screen.SETTINGS, Screen.CAPTURE_SETTINGS) },
+                            accessibility = { openFrom(Screen.SETTINGS, Screen.ACCESSIBILITY) },
                             sideways = { on ->
                                 settings.landscape = on
                                 applyOrientation()
@@ -1521,7 +1515,13 @@ class MainActivity :
                 }
 
                 Screen.CAPTURE -> {
-                    CaptureScreen(ui, settings, state, send) { navigateBack() }.view
+                    CaptureScreen(
+                        ui,
+                        settings,
+                        state,
+                        send,
+                        onSettings = { openFrom(Screen.CAPTURE, Screen.CAPTURE_SETTINGS) },
+                    ) { navigateBack() }.view
                 }
 
                 Screen.ANNOTATE -> {
@@ -1617,8 +1617,8 @@ class MainActivity :
                     ControlsSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
-                Screen.PRESENTER_SETTINGS -> {
-                    PresenterSettingsScreen.build(ui, settings) { navigateBack() }
+                Screen.ACCESSIBILITY -> {
+                    AccessibilityScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.CAPTURE_SETTINGS -> {
@@ -1950,8 +1950,8 @@ class MainActivity :
                 goTo(childFrom ?: Screen.MACROS)
             }
 
-            // Opened from the Settings page's Screens rows only.
-            Screen.PRESENTER_SETTINGS, Screen.CAPTURE_SETTINGS -> {
+            // Accessibility opens from Settings, Capture's settings from the Capture screen's gear.
+            Screen.ACCESSIBILITY, Screen.CAPTURE_SETTINGS -> {
                 goTo(childFrom ?: Screen.SETTINGS)
             }
 
@@ -3599,16 +3599,7 @@ class MainActivity :
         val settingsOfControls = setOf(Screen.KEYBOARD_SETTINGS, Screen.GAMEPAD_SETTINGS, Screen.MACRO_SETTINGS)
 
         /** The pages a row of Settings opens; the pages they open in turn are not here. */
-        val settingsPages =
-            setOf(
-                Screen.SURFACE_SETTINGS,
-                Screen.CONTROLS_SETTINGS,
-                Screen.KEYBOARD_SETTINGS,
-                Screen.GAMEPAD_SETTINGS,
-                Screen.MACRO_SETTINGS,
-                Screen.PRESENTER_SETTINGS,
-                Screen.CAPTURE_SETTINGS,
-            )
+        val settingsPages = setOf(Screen.ACCESSIBILITY)
 
         /**
          * Where a trip out of Settings ends: arriving at any of these forgets which page it began from. The surface's

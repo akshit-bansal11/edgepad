@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">Display</string>
+  <string name="accessibility_title">Accessibility</string>
+  <string name="accessibility_sounds">Sounds</string>
+  <string name="accessibility_sounds_caption">A soft click on taps and buttons, and a tick as a dial turns. Silent while the phone is on silent or vibrate.</string>
+</resources>

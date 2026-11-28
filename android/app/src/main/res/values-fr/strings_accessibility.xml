@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">Affichage</string>
+  <string name="accessibility_title">Accessibilité</string>
+  <string name="accessibility_sounds">Sons</string>
+  <string name="accessibility_sounds_caption">Un clic discret sur les appuis et les boutons, et un tic quand un cadran tourne. Muet quand le téléphone est en silencieux ou en vibreur.</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">화면</string>
+  <string name="accessibility_title">접근성</string>
+  <string name="accessibility_sounds">소리</string>
+  <string name="accessibility_sounds_caption">탭과 버튼에 부드러운 클릭음, 다이얼을 돌리면 틱 소리가 납니다. 무음이나 진동 모드에서는 소리가 나지 않습니다.</string>
+</resources>

@@ -90,8 +90,6 @@ object DialFeelScreen {
                             },
                         )
                         hairline()
-                        add(ui.toggle(ui.string(R.string.haptic_ticks), settings.haptics) { settings.haptics = it })
-                        hairline()
                         add(ui.toggle(ui.string(R.string.snap_round), settings.snap) { settings.snap = it })
                     }
                 },

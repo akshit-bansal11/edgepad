@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">Weergave</string>
+  <string name="accessibility_title">Toegankelijkheid</string>
+  <string name="accessibility_sounds">Geluiden</string>
+  <string name="accessibility_sounds_caption">Een zachte klik bij tikken en knoppen en een tik als een draaiknop draait. Stil zolang de telefoon op stil of trillen staat.</string>
+</resources>

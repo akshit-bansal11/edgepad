@@ -18,7 +18,7 @@ object CaptureSettingsScreen {
         onToPhone: (Boolean) -> Unit,
         onBack: () -> Unit,
     ): View =
-        ui.page(ui.bar("", onBack, backLabel = ui.string(R.string.settings_title))) {
+        ui.page(ui.bar("", onBack, backLabel = ui.string(R.string.controls_capture))) {
             largeTitle(ui.string(R.string.settings_capture))
             card {
                 add(

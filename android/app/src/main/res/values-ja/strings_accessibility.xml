@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">表示</string>
+  <string name="accessibility_title">アクセシビリティ</string>
+  <string name="accessibility_sounds">サウンド</string>
+  <string name="accessibility_sounds_caption">タップやボタンで小さなクリック音、ダイヤルを回すとカチッという音が鳴ります。マナーモードやサイレントでは鳴りません。</string>
+</resources>

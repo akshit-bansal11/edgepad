@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">العرض</string>
+  <string name="accessibility_title">إمكانية الوصول</string>
+  <string name="accessibility_sounds">الأصوات</string>
+  <string name="accessibility_sounds_caption">نقرة خفيفة عند اللمس والأزرار، وتكة عند تدوير القرص. صامت عندما يكون الهاتف في وضع الصامت أو الاهتزاز.</string>
+</resources>

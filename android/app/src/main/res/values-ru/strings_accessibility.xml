@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">Экран</string>
+  <string name="accessibility_title">Специальные возможности</string>
+  <string name="accessibility_sounds">Звуки</string>
+  <string name="accessibility_sounds_caption">Тихий щелчок при касаниях и нажатии кнопок и тик при вращении диска. Без звука, пока телефон в беззвучном режиме или на вибрации.</string>
+</resources>

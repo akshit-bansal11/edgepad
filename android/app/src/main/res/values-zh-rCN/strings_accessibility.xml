@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="settings_display">显示</string>
+  <string name="accessibility_title">无障碍</string>
+  <string name="accessibility_sounds">声音</string>
+  <string name="accessibility_sounds_caption">轻点和按钮时发出轻柔的点击声,转动拨盘时发出滴答声。手机处于静音或振动模式时不发声。</string>
+</resources>

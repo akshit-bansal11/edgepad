@@ -7,7 +7,6 @@
   <string name="language_follows_phone">Edgepad использует язык телефона. Изменить его можно в настройках телефона.</string>
   <string name="settings_pen_colour">Цвет пера</string>
   <string name="settings_connection">Подключение</string>
-  <string name="settings_screens">Экраны</string>
   <string name="settings_help_about">Справка и о приложении</string>
   <string name="settings_advanced">Дополнительно</string>
   <string name="settings_laptops_none">Нет подключённых</string>
