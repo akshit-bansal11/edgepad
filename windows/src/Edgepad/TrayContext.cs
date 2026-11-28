@@ -605,7 +605,7 @@ internal sealed class TrayContext : ApplicationContext
         }
 
         installing = true;
-        using var deadline = new CancellationTokenSource(UpdateDownload.AssetTimeout);
+        using var deadline = new CancellationTokenSource();
         try
         {
             var decision = UpdatePolicy.Decide(version, Program.Version, null, UpdateKey.IsSet);
@@ -621,6 +621,8 @@ internal sealed class TrayContext : ApplicationContext
                 return;
             }
 
+            // Started after the major-version question, so time spent reading it never counts against the install.
+            deadline.CancelAfter(UpdateDownload.AssetTimeout);
             Log.Write($"Installing Edgepad {version}");
             SetInstallProgress(version, 0, busy: true);
 

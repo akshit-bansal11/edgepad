@@ -608,12 +608,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             progress: { [weak self] _ in
                 guard let self else { return }
                 self.updateParent?.title = self.downloadingTitle(version)
+            },
+            done: { [weak self] failure in
+                guard let failure else { return }
+                self?.notifier?.post(
+                    id: "update", title: tr("Note_NotUpdated", "Edgepad was not updated"), body: failure)
             }
-        ) { [weak self] failure in
-            guard let failure else { return }
-            self?.notifier?.post(
-                id: "update", title: tr("Note_NotUpdated", "Edgepad was not updated"), body: failure)
-        }
+        )
     }
 
     @objc private func openRelease() {
