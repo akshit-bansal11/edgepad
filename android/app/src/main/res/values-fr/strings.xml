@@ -304,6 +304,7 @@
   <string name="shape_target_lock_pad">Verrouiller le pavé</string>
 
   <string name="settings_surface">Écran principal</string>
+  <string name="settings_display">Affichage</string>
   <string name="settings_controls">Couleur des règles</string>
   <string name="settings_surface_title">Paramètres de l’écran principal</string>
   <string name="settings_system">Paramètres système</string>
