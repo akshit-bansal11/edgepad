@@ -84,9 +84,17 @@ internal sealed class Tray : IDisposable
         this.hooks = hooks;
 
         // The update row opens Install (or, when this copy cannot install itself, the release page), Later and Skip.
-        installRow.Click += (_, _) => Safe(
-            installable ? hooks.InstallUpdate : () => OpenWithDesktop(UpdateCheck.LatestUrl, LinuxStrings.What_ReleasePage),
-            "Install update");
+        installRow.Click += (_, _) =>
+        {
+            if (installable)
+            {
+                Safe(hooks.InstallUpdate, "Install update");
+            }
+            else
+            {
+                Safe(() => OpenWithDesktop(UpdateCheck.LatestUrl, LinuxStrings.What_ReleasePage), "Open the release page");
+            }
+        };
         laterRow.Click += (_, _) => Safe(hooks.LaterUpdate, "Later");
         skipRow.Click += (_, _) => Safe(hooks.SkipUpdate, "Skip this version");
         networkRow.Click += (_, _) => Safe(hooks.ToggleNetwork, "Wi-Fi and USB connections");
