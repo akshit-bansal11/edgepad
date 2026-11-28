@@ -6,11 +6,13 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import me.akshitbansal.edgepad.LaserSizes
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
+import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.gamepad.GamepadStore
 import me.akshitbansal.edgepad.link.BatteryHealth
 import me.akshitbansal.edgepad.link.ByteRatio
@@ -29,6 +31,7 @@ import me.akshitbansal.edgepad.protocol.BatteryKind
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.TextKind
 import me.akshitbansal.edgepad.screens.AiScreen
+import me.akshitbansal.edgepad.screens.ControlsPlan
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.DataUsesScreen
 import me.akshitbansal.edgepad.screens.DeviceChip
@@ -43,6 +46,7 @@ import me.akshitbansal.edgepad.screens.NetworkScreen
 import me.akshitbansal.edgepad.screens.PhoneScreen
 import me.akshitbansal.edgepad.screens.RingGauge
 import me.akshitbansal.edgepad.screens.SettingsScreen
+import me.akshitbansal.edgepad.screens.StencilIcon
 import me.akshitbansal.edgepad.screens.SystemScreen
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.screens.XferCardView
@@ -165,9 +169,18 @@ class GallerySamples(
                 blank()
             }
 
-            // The Controls popup opens over the surface it grows from (see showControls).
-            "surface", "controls" -> {
+            // The Controls popup opens over the surface it grows from (see showControls): 4 or 12 to a page.
+            "surface", "controls", "controls-4", "controls-12" -> {
+                // Set each time: preferences outlive a run, and a shot must not depend on the last.
+                val perPage = name.substringAfter("controls-", "").toIntOrNull()
+                settings.controlsPerPage = perPage ?: ControlsPlan.DEFAULT_PER_PAGE
+                settings.controlsIconPercent = ControlsPlan.DEFAULT_ICON_PERCENT
                 ControlSurface(context, settings, LaptopState(), {}, {}, {}, batteries = chargingLaptopAndPhone)
+            }
+
+            // The thirteen Controls icons, large, as the popup draws them on its own background.
+            "stencil-icons" -> {
+                stencils()
             }
 
             else -> {
@@ -336,6 +349,37 @@ class GallerySamples(
     /** An empty page in the app's background: the answer to an unknown name. */
     fun blank(): View = FrameLayout(context).apply { setBackgroundColor(ui.palette.background) }
 
+    /** Every [StencilIcon.Kind] large with its name, on the popup's own background, for the owner to approve. */
+    private fun stencils(): View {
+        val side = ui.dp(STENCIL_DP)
+        val pad = ui.dp(Space.M)
+        val perRow = if (ui.landscape) STENCIL_ROW_SIDEWAYS else STENCIL_ROW_UPRIGHT
+        return LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            setBackgroundColor(ui.palette.popover)
+            for (kinds in StencilIcon.Kind.entries.chunked(perRow)) {
+                addView(
+                    LinearLayout(context).apply {
+                        gravity = Gravity.CENTER
+                        for (kind in kinds) {
+                            addView(
+                                LinearLayout(context).apply {
+                                    orientation = LinearLayout.VERTICAL
+                                    gravity = Gravity.CENTER_HORIZONTAL
+                                    setPadding(pad, pad, pad, pad)
+                                    val picture = StencilIcon(kind, ui.palette.ink, ui.palette.accent)
+                                    addView(ImageView(context).apply { setImageDrawable(picture) }, side, side)
+                                    addView(ui.text(kind.name.lowercase(), Type.SMALL, ui.palette.dim))
+                                },
+                            )
+                        }
+                    },
+                )
+            }
+        }
+    }
+
     /** Opens the layout editor's options panel by tapping its options button inside [root]. */
     fun openOptions(root: View) {
         val found = ArrayList<View>()
@@ -364,6 +408,9 @@ class GallerySamples(
     }
 
     private companion object {
+        const val STENCIL_DP = 72f
+        const val STENCIL_ROW_SIDEWAYS = 7
+        const val STENCIL_ROW_UPRIGHT = 4
         const val SAMPLE_LAPTOP = "Akshit's M42"
         const val SAMPLE_RTT_MS = 6
         const val MS_PER_MIN = 60_000L
