@@ -296,6 +296,7 @@
   <string name="shape_target_lock_pad">पैड लॉक करें</string>
 
   <string name="settings_surface">कंट्रोल स्क्रीन</string>
+  <string name="settings_display">डिस्प्ले</string>
   <string name="settings_controls">कंट्रोल का रंग</string>
   <string name="settings_surface_title">कंट्रोल स्क्रीन सेटिंग्स</string>
   <string name="settings_system">सिस्टम सेटिंग्स</string>
