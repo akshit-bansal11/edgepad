@@ -34,6 +34,7 @@ import me.akshitbansal.edgepad.screens.AiScreen
 import me.akshitbansal.edgepad.screens.AppearanceScreen
 import me.akshitbansal.edgepad.screens.ControlsPlan
 import me.akshitbansal.edgepad.screens.ControlsPopup
+import me.akshitbansal.edgepad.screens.CornersScreen
 import me.akshitbansal.edgepad.screens.DataUsesScreen
 import me.akshitbansal.edgepad.screens.DeviceChip
 import me.akshitbansal.edgepad.screens.FnMode
@@ -137,6 +138,13 @@ class GallerySamples(
 
             "look" -> {
                 AppearanceScreen.build(ui, settings, {}, {})
+            }
+
+            // The Corners page with four dials and with eight: a phone outline marks where each row's dial sits.
+            "corners-4", "corners-8" -> {
+                settings.splitCorners = name == "corners-8"
+                if (settings.splitCorners) settings.seedSlotsOnce()
+                CornersScreen.build(ui, settings, {}) {}
             }
 
             "shape-pick" -> {

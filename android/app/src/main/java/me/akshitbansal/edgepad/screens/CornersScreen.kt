@@ -1,7 +1,6 @@
 package me.akshitbansal.edgepad.screens
 
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.LayerDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
@@ -24,10 +23,7 @@ import me.akshitbansal.edgepad.surface.Perimeter
  */
 object CornersScreen {
     private const val ICON_DP = 20f
-    private const val ICON_RADIUS_DP = 6f
-    private const val ICON_MARK_DP = 8f
-    private const val ICON_MARK_RADIUS_DP = 2f
-    private const val ICON_INSET_DP = 2f
+    private const val ICON_STROKE_DP = 1.5f
     private const val ICON_GAP_DP = 14f
 
     private val names =
@@ -49,28 +45,6 @@ object CornersScreen {
             R.string.corner_edge_bottom,
             R.string.corner_edge_bottom,
             R.string.corner_edge_left,
-        )
-
-    /** Where the small mark sits in each corner's icon, clockwise from the top left. */
-    private val gravities =
-        intArrayOf(
-            Gravity.TOP or Gravity.START,
-            Gravity.TOP or Gravity.END,
-            Gravity.BOTTOM or Gravity.END,
-            Gravity.BOTTOM or Gravity.START,
-        )
-
-    /** Where the mark sits for each slot: the middle of the edge it stands for. */
-    private val edgeGravities =
-        intArrayOf(
-            Gravity.START or Gravity.CENTER_VERTICAL,
-            Gravity.TOP or Gravity.CENTER_HORIZONTAL,
-            Gravity.TOP or Gravity.CENTER_HORIZONTAL,
-            Gravity.END or Gravity.CENTER_VERTICAL,
-            Gravity.END or Gravity.CENTER_VERTICAL,
-            Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
-            Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
-            Gravity.START or Gravity.CENTER_VERTICAL,
         )
 
     /** One corner's row, and the three parts of it that change when another corner is picked. */
@@ -133,6 +107,7 @@ object CornersScreen {
             card {
                 add(
                     ui.toggle(ui.string(R.string.corner_split), split) {
+                        if (it) settings.seedSlotsOnce()
                         settings.splitCorners = it
                         onChanged()
                     },
@@ -187,22 +162,22 @@ object CornersScreen {
         row.icon.background = icon(ui, split, corner, picked)
     }
 
-    /** A small rounded tile with a mark in the corner it stands for; decoration beside the corner's name. */
+    /**
+     * A tiny phone outline with the stretch of edge where this row's dial sits in the accent; decoration beside the
+     * corner's name. A plain corner's dial sits in the half it inherits when the corners are split.
+     */
     private fun icon(
         ui: Ui,
         split: Boolean,
         corner: Int,
         picked: Boolean,
-    ): Drawable {
-        val tile = ui.rounded(ui.palette.faint, ICON_RADIUS_DP)
-        val mark = ui.rounded(if (picked) ui.palette.accent else ui.palette.dim, ICON_MARK_RADIUS_DP)
-        return LayerDrawable(arrayOf(tile, mark)).apply {
-            val inset = ui.dp(ICON_INSET_DP)
-            setLayerSize(1, ui.dp(ICON_MARK_DP), ui.dp(ICON_MARK_DP))
-            setLayerGravity(1, if (split) edgeGravities[corner] else gravities[corner])
-            setLayerInset(1, inset, inset, inset, inset)
-        }
-    }
+    ): Drawable =
+        CornerMarker(
+            if (picked) ui.palette.ink else ui.palette.dim,
+            ui.palette.accent,
+            if (split) corner else CornerSlots.inheritedSlot(corner),
+            ICON_STROKE_DP * ui.context.resources.displayMetrics.density,
+        )
 
     /** The dial in row [index]: a corner's, or a slot's while the corners are split. */
     private fun held(
