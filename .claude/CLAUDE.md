@@ -47,3 +47,7 @@ Hand over a command; never route around a refusal.
 Pushing a version tag triggers `.github/workflows/release.yml`, which runs both gates, builds a signed APK and a compressed self-contained exe, and attaches them named for the version, `Edgepad-3.1.1.apk` and `Edgepad-3.1.1.exe`, so downloads can be told apart. Stable names, and the permanent `releases/latest/download/<file>` link they gave, were dropped on 2026-09-29 at the owner's request; nothing used the link. The wire protocol version moves only in a major release, and both halves of a release must then be installed together. It went to 4 in 3.0.0, for the gamepad's analog frame; before that it had been 3 since 0.6.0.
 
 **No latency number may be written down anywhere until the app's own RTT readout reports one from the real devices.** None has ever been measured.
+
+## UI copy
+
+Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.
