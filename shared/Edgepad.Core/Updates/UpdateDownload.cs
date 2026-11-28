@@ -18,7 +18,9 @@ internal static class UpdateDownload
     private const int BufferBytes = 81920;
     private const int Percent = 100;
     private static readonly TimeSpan SmallTimeout = TimeSpan.FromSeconds(30);
-    private static readonly TimeSpan AssetTimeout = TimeSpan.FromMinutes(20);
+
+    /// <summary>The longest a whole install may take, and the client's timeout for the asset.</summary>
+    public static readonly TimeSpan AssetTimeout = TimeSpan.FromMinutes(20);
 
     /// <summary>The body of <paramref name="uri"/>, at most <paramref name="maxBytes"/> long; null on any failure.</summary>
     public static async Task<byte[]?> GetBytesAsync(

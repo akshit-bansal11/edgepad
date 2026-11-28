@@ -48,6 +48,9 @@
   <data name="Menu_UpdateInstall" xml:space="preserve">
     <value>Instalar Edgepad {0}</value>
   </data>
+  <data name="Menu_UpdateDownloading" xml:space="preserve">
+    <value>Descargando {0}… {1}%</value>
+  </data>
   <data name="Menu_UpdateLater" xml:space="preserve">
     <value>Más tarde</value>
   </data>

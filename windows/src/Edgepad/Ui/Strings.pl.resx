@@ -491,6 +491,9 @@ Zaufane telefony zapomniano, ale nie udało się zresetować PIN: nie można by�
   <data name="Menu_UpdateInstall" xml:space="preserve">
     <value>Zainstaluj Edgepad {0}</value>
   </data>
+  <data name="Menu_UpdateDownloading" xml:space="preserve">
+    <value>Pobieranie {0}… {1}%</value>
+  </data>
   <data name="Menu_UpdateLater" xml:space="preserve">
     <value>Później</value>
   </data>

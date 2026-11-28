@@ -127,6 +127,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly MenuRow installRow = new(Strings.Menu_UpdateInstall, Icons.Download) { Available = false };
     private readonly MenuRow laterRow = new(Strings.Menu_UpdateLater, Icons.Download) { Available = false };
     private readonly MenuRow skipRow = new(Strings.Menu_UpdateSkip, Icons.Download) { Available = false };
+    private readonly TrayMenu updateMenu = new(withHeader: false);
     private readonly System.Windows.Forms.Timer updateTimer = new() { Interval = (int)UpdateCheck.Every.TotalMilliseconds };
     private readonly TrayMenu menu = new();
     private readonly NotifyIcon icon;
@@ -231,7 +232,14 @@ internal sealed class TrayContext : ApplicationContext
         clipHistoryRow.Click += (_, _) => ShowClipboardPanel(paste: false);
         checkUpdates.Click += (_, _) => SaveCheckUpdates(checkUpdates.Checked);
         documentationRow.Click += (_, _) => Open(DocumentationUrl, "the documentation");
-        update.Click += (_, _) => Open(UpdateCheck.LatestUrl, "the release page");
+        update.Click += (_, _) =>
+        {
+            // With the install rows under it the row only opens them; with no update key it has none and opens the release page.
+            if (!UpdateKey.IsSet)
+            {
+                Open(UpdateCheck.LatestUrl, "the release page");
+            }
+        };
         installRow.Click += (_, _) => _ = InstallUpdateAsync();
         laterRow.Click += (_, _) =>
         {
@@ -279,10 +287,12 @@ internal sealed class TrayContext : ApplicationContext
         // The header is the menu's own. Under it, in the order the plan fixes: the update, then whatever is wrong or
         // needs doing (rows that stay hidden while all is well), then the switches, the windows, the help, and Quit.
         menu.Items.Add(transfersRow);
+        updateMenu.Items.Add(installRow);
+        updateMenu.Items.Add(laterRow);
+        updateMenu.Items.Add(skipRow);
+        updateMenu.Opening += (_, _) => updateMenu.Restyle();
+
         menu.Items.Add(update);
-        menu.Items.Add(installRow);
-        menu.Items.Add(laterRow);
-        menu.Items.Add(skipRow);
         menu.Items.Add(bluetoothRow);
         menu.Items.Add(networkProblem);
         menu.Items.Add(firewallRow);
@@ -529,6 +539,12 @@ internal sealed class TrayContext : ApplicationContext
     /// <summary>Shows the rows for <paramref name="version"/> and the tray dot, and says so once per version. UI thread.</summary>
     private void ShowUpdate(Version version)
     {
+        // The rows say how the download goes; the daily check must not overwrite that.
+        if (installing)
+        {
+            return;
+        }
+
         var decision = UpdatePolicy.Decide(version, Program.Version, null, UpdateKey.IsSet);
         if (decision == UpdateDecision.NotNewer || !updateChoice.ShouldShow(version, DateTimeOffset.UtcNow))
         {
@@ -540,7 +556,12 @@ internal sealed class TrayContext : ApplicationContext
         var canInstall = decision != UpdateDecision.NoKey;
         var text = version.ToString();
         update.Text = Strings.Menu_UpdateVersion.Fill(text);
-        update.Available = !canInstall;
+        update.Available = true;
+        if (canInstall)
+        {
+            update.DropDown = updateMenu;
+        }
+
         installRow.Text = Strings.Menu_UpdateInstall.Fill(text);
         installRow.Available = canInstall;
         laterRow.Available = true;
@@ -584,6 +605,7 @@ internal sealed class TrayContext : ApplicationContext
         }
 
         installing = true;
+        using var deadline = new CancellationTokenSource(UpdateDownload.AssetTimeout);
         try
         {
             var decision = UpdatePolicy.Decide(version, Program.Version, null, UpdateKey.IsSet);
@@ -599,7 +621,12 @@ internal sealed class TrayContext : ApplicationContext
                 return;
             }
 
-            var outcome = await WindowsUpdater.InstallAsync(version, running, CancellationToken.None);
+            Log.Write($"Installing Edgepad {version}");
+            SetInstallProgress(version, 0, busy: true);
+
+            // Created here, on the UI thread, so each report is posted back to it.
+            var progress = new Progress<int>(percent => SetInstallProgress(version, percent, busy: true));
+            var outcome = await WindowsUpdater.InstallAsync(version, running, progress, deadline.Token);
             if (outcome == UpdateOutcome.Unverified)
             {
                 Balloon(Strings.Balloon_UpdateUnverified.Fill(version.ToString()), ToolTipIcon.Warning);
@@ -612,10 +639,38 @@ internal sealed class TrayContext : ApplicationContext
                     () => Open(UpdateCheck.LatestUrl, "the release page"));
             }
         }
+        catch (OperationCanceledException) when (deadline.IsCancellationRequested)
+        {
+            Log.Write($"Edgepad {version}: the install took longer than {UpdateDownload.AssetTimeout.TotalMinutes:0} minutes and was stopped");
+            InstallFailed(version);
+        }
+        catch (Exception e)
+        {
+            // Top-level boundary of a fire-and-forget task: an escaped exception here would be lost silently.
+            Log.Write($"Edgepad {version} could not be installed: {e}");
+            InstallFailed(version);
+        }
         finally
         {
             installing = false;
+            SetInstallProgress(version, 0, busy: false);
         }
+    }
+
+    private void InstallFailed(Version version) =>
+        Balloon(
+            Strings.Balloon_UpdateFailed.Fill(version.ToString()),
+            ToolTipIcon.Warning,
+            () => Open(UpdateCheck.LatestUrl, "the release page"));
+
+    /// <summary>While an install runs the update row names the download and its percent and the rows under it are off; after, they come back. UI thread.</summary>
+    private void SetInstallProgress(Version version, int percent, bool busy)
+    {
+        var text = version.ToString();
+        update.Text = busy ? Strings.Menu_UpdateDownloading.Fill(text, percent) : Strings.Menu_UpdateVersion.Fill(text);
+        installRow.Enabled = !busy;
+        laterRow.Enabled = !busy;
+        skipRow.Enabled = !busy;
     }
 
     private async Task StartServerAsync()

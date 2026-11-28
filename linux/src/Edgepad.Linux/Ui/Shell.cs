@@ -679,6 +679,11 @@ internal sealed class Shell : IDisposable
         offeredNeedsConfirm = decision is UpdateDecision.InstallNeedsMajorConfirm;
         Dispatcher.UIThread.Post(() =>
         {
+            if (installing)
+            {
+                return;
+            }
+
             tray?.SetUpdate(number, installable);
             fallback?.SetUpdate(number, installable);
         });
@@ -736,9 +741,16 @@ internal sealed class Shell : IDisposable
         }
 
         installing = true;
+        using var deadline = new CancellationTokenSource(UpdateDownload.AssetTimeout);
+        var number = target.ToString(3);
         try
         {
-            var outcome = await LinuxUpdater.InstallAsync(target, Path.Combine(Xdg.CacheFolder, "update"), Environment.ProcessPath, null, CancellationToken.None);
+            Log.Write($"Installing Edgepad {number}");
+            tray?.SetInstallProgress(number, 0, busy: true);
+
+            // Created here, on the UI thread, so each report is posted back to it.
+            var progress = new Progress<int>(percent => tray?.SetInstallProgress(number, percent, busy: true));
+            var outcome = await LinuxUpdater.InstallAsync(target, Path.Combine(Xdg.CacheFolder, "update"), Environment.ProcessPath, progress, deadline.Token);
             switch (outcome)
             {
                 case UpdateOutcome.Started:
@@ -755,9 +767,21 @@ internal sealed class Shell : IDisposable
                     break;
             }
         }
+        catch (OperationCanceledException) when (deadline.IsCancellationRequested)
+        {
+            Log.Write($"Edgepad {number}: the install took longer than {UpdateDownload.AssetTimeout.TotalMinutes:0} minutes and was stopped");
+            await Dialogs.Inform(null, LinuxStrings.Update_InstallFailed);
+        }
+        catch (Exception e)
+        {
+            // Top-level boundary of a fire-and-forget task: an escaped exception here would be lost silently.
+            Log.Write($"Edgepad {number} could not be installed: {e}");
+            await Dialogs.Inform(null, LinuxStrings.Update_InstallFailed);
+        }
         finally
         {
             installing = false;
+            tray?.SetInstallProgress(number, 0, busy: false);
         }
     }
 

@@ -7,6 +7,14 @@ namespace Edgepad.Tests;
 public sealed class SendPipeTests
 {
     [Fact]
+    public void DisposingTwiceDoesNotThrow()
+    {
+        var pipe = new SendPipe(static (_, _) => { });
+        pipe.Dispose();
+        pipe.Dispose();
+    }
+
+    [Fact]
     public void AnExistingFileIsAccepted()
     {
         var file = Path.GetTempFileName();

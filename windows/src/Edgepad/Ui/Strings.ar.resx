@@ -491,6 +491,9 @@
   <data name="Menu_UpdateInstall" xml:space="preserve">
     <value>تثبيت Edgepad {0}</value>
   </data>
+  <data name="Menu_UpdateDownloading" xml:space="preserve">
+    <value>جارٍ تنزيل {0}… {1}%</value>
+  </data>
   <data name="Menu_UpdateLater" xml:space="preserve">
     <value>لاحقًا</value>
   </data>
