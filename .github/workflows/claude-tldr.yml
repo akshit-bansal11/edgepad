@@ -94,7 +94,8 @@ jobs:
                **What's wrong or missing:** the concrete problems, errors or gaps, each with a file:line where
                there is one. "Nothing found" if nothing.
                **Plan:** issues only, and only when it is real and worth doing: the files to change, the steps in
-               order, the edge cases to handle and the tests to add, as a short numbered list.
+               order, the edge cases to handle and the tests to add, as a short numbered list. Nothing is built
+               from it: end the plan with "Add the claude-fix label to have Claude open a pull request for this."
                **Suggested action:** Implement / Fix / Merge / Request changes / Needs info / Close, and why in
                one line.
 
