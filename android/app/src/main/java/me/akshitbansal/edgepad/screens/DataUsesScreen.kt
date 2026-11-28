@@ -147,17 +147,26 @@ object DataUsesScreen {
                 addView(chevron, LinearLayout.LayoutParams(ui.dp(Space.XL), ui.dp(Space.XL)))
             }
         var open = false
+
         fun toggle() {
             open = !open
             val turned = if (header.layoutDirection == View.LAYOUT_DIRECTION_RTL) -TURN else TURN
-            chevron.animate().rotation(if (open) turned else 0f).setDuration(span).start()
+            chevron
+                .animate()
+                .rotation(if (open) turned else 0f)
+                .setDuration(span)
+                .start()
             header.stateDescription =
                 ui.string(if (open) R.string.annotate_menu_expanded else R.string.annotate_menu_collapsed)
             body.animate().cancel()
             if (open) {
                 body.alpha = if (still) 1f else 0f
                 body.visibility = View.VISIBLE
-                body.animate().alpha(1f).setDuration(span).start()
+                body
+                    .animate()
+                    .alpha(1f)
+                    .setDuration(span)
+                    .start()
             } else if (still) {
                 body.visibility = View.GONE
             } else {

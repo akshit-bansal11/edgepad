@@ -178,8 +178,8 @@ import me.akshitbansal.edgepad.screens.XferCard
 import me.akshitbansal.edgepad.screens.fillCutout
 import me.akshitbansal.edgepad.screens.hideBars
 import me.akshitbansal.edgepad.screens.onEdited
-import me.akshitbansal.edgepad.screens.openingDue
 import me.akshitbansal.edgepad.screens.openOver
+import me.akshitbansal.edgepad.screens.openingDue
 import me.akshitbansal.edgepad.screens.showOver
 import me.akshitbansal.edgepad.surface.AutoProfiles
 import me.akshitbansal.edgepad.surface.BackgroundImage

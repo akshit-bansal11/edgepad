@@ -82,7 +82,12 @@ object Sounds {
                 .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build()
-        val made = SoundPool.Builder().setMaxStreams(STREAMS).setAudioAttributes(attributes).build()
+        val made =
+            SoundPool
+                .Builder()
+                .setMaxStreams(STREAMS)
+                .setAudioAttributes(attributes)
+                .build()
         made.setOnLoadCompleteListener { _, _, status -> loaded = status == 0 }
         sample = made.load(context.applicationContext, R.raw.dial_tick, 1)
         pool = made

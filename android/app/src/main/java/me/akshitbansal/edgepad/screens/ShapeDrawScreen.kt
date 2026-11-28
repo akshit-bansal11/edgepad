@@ -17,8 +17,8 @@ import me.akshitbansal.edgepad.drawFitted
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.surface.GestureAction
 import me.akshitbansal.edgepad.surface.PadMode
-import me.akshitbansal.edgepad.surface.ShapeGroup
 import me.akshitbansal.edgepad.surface.Shape
+import me.akshitbansal.edgepad.surface.ShapeGroup
 import me.akshitbansal.edgepad.surface.ShapeTarget
 import me.akshitbansal.edgepad.surface.Shapes
 import me.akshitbansal.edgepad.surface.TrackpadRecognizer
@@ -160,7 +160,8 @@ object ShapeDrawScreen {
         shown.forEachIndexed { i, g ->
             if (i > 0) hairline()
             val pick = chosen?.takeIf { ShapeGroup.of(it) == g }
-            add(ui.link(ui.string(g.nameRes), pick?.let { ShapesScreen.targetName(ui, it, macros) }) { onOpen(g) })
+            val summary = pick?.let { ShapesScreen.targetName(ui, it, macros) }
+            add(ui.link(ui.string(g.nameRes), summary, onOpen = { onOpen(g) }))
         }
     }
 
@@ -214,11 +215,10 @@ object ShapeDrawScreen {
                     ui.button(ui.string(R.string.shapes_redraw), Ui.Style.OUTLINED, onRedraw),
                     LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT),
                 )
-                addView(
-                    save,
+                val gap =
                     LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                        .apply { marginStart = ui.dp(Space.S) },
-                )
+                gap.marginStart = ui.dp(Space.S)
+                addView(save, gap)
             }
         return row to arm
     }
