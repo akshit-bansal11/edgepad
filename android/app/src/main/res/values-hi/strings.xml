@@ -145,10 +145,10 @@
   <string name="corner_bottom_left">नीचे बाएं</string>
   <string name="corner_off">बंद</string>
   <string name="corner_split">कोने बांटें</string>
-  <string name="corner_edge_left">बायां किनारा</string>
-  <string name="corner_edge_top">ऊपरी किनारा</string>
-  <string name="corner_edge_right">दायां किनारा</string>
-  <string name="corner_edge_bottom">निचला किनारा</string>
+  <string name="corner_edge_left">बायां</string>
+  <string name="corner_edge_top">ऊपरी</string>
+  <string name="corner_edge_right">दायां</string>
+  <string name="corner_edge_bottom">निचला</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 डायल, बंटे हुए</string>
   <string name="media_layout_title">मीडिया लेआउट</string>

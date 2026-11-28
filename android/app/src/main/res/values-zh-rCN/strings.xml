@@ -142,10 +142,10 @@
   <string name="corner_bottom_left">左下</string>
   <string name="corner_off">关闭</string>
   <string name="corner_split">拆分边角</string>
-  <string name="corner_edge_left">左边缘</string>
-  <string name="corner_edge_top">上边缘</string>
-  <string name="corner_edge_right">右边缘</string>
-  <string name="corner_edge_bottom">下边缘</string>
+  <string name="corner_edge_left">左</string>
+  <string name="corner_edge_top">上</string>
+  <string name="corner_edge_right">右</string>
+  <string name="corner_edge_bottom">下</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 个标尺，已拆分</string>
   <string name="media_layout_title">媒体布局</string>

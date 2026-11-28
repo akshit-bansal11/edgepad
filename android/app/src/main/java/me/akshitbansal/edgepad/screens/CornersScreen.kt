@@ -131,7 +131,16 @@ object CornersScreen {
         onPick: () -> Unit,
     ): Row {
         val icon = View(ui.context).apply { importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }
-        val name = ui.text(titleOf(ui, split, corner), Type.BODY, ui.palette.ink)
+        // A slot's edge is its own line under the corner, so every row of eight is the same two lines whatever the
+        // language, rather than one name that wraps in some rows and not in others.
+        val title = if (split) ui.string(names[CornerSlots.corner(corner)]) else titleOf(ui, false, corner)
+        val name = ui.text(title, Type.BODY, ui.palette.ink)
+        val words =
+            LinearLayout(ui.context).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(name)
+                if (split) addView(ui.secondary(ui.string(edges[corner]), Type.SMALL, ui.palette.dim))
+            }
         val start =
             LinearLayout(ui.context).apply {
                 gravity = Gravity.CENTER_VERTICAL
@@ -139,7 +148,7 @@ object CornersScreen {
                     icon,
                     LinearLayout.LayoutParams(ui.dp(ICON_DP), ui.dp(ICON_DP)).apply { marginEnd = ui.dp(ICON_GAP_DP) },
                 )
-                addView(name)
+                addView(words)
             }
         val end = ui.secondary(value, Type.VALUE)
         val view = ui.row(start, end).apply { ui.tappable(this, onPick) }

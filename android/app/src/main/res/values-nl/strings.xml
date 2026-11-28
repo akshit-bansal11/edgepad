@@ -146,10 +146,10 @@
   <string name="corner_bottom_left">Linksonder</string>
   <string name="corner_off">Uit</string>
   <string name="corner_split">Hoeken splitsen</string>
-  <string name="corner_edge_left">linkerrand</string>
-  <string name="corner_edge_top">bovenrand</string>
-  <string name="corner_edge_right">rechterrand</string>
-  <string name="corner_edge_bottom">onderrand</string>
+  <string name="corner_edge_left">links</string>
+  <string name="corner_edge_top">boven</string>
+  <string name="corner_edge_right">rechts</string>
+  <string name="corner_edge_bottom">onder</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 regelaars, gesplitst</string>
   <string name="media_layout_title">Media-indeling</string>

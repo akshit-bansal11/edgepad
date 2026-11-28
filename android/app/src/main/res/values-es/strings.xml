@@ -150,10 +150,10 @@
   <string name="corner_bottom_left">Abajo a la izquierda</string>
   <string name="corner_off">Desactivada</string>
   <string name="corner_split">Esquinas divididas</string>
-  <string name="corner_edge_left">borde izquierdo</string>
-  <string name="corner_edge_top">borde superior</string>
-  <string name="corner_edge_right">borde derecho</string>
-  <string name="corner_edge_bottom">borde inferior</string>
+  <string name="corner_edge_left">izquierda</string>
+  <string name="corner_edge_top">arriba</string>
+  <string name="corner_edge_right">derecha</string>
+  <string name="corner_edge_bottom">abajo</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 reglas, divididas</string>
   <string name="media_layout_title">Diseño multimedia</string>

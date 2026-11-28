@@ -143,10 +143,10 @@
   <string name="corner_bottom_left">Sol alt</string>
   <string name="corner_off">Kapalı</string>
   <string name="corner_split">Köşeleri böl</string>
-  <string name="corner_edge_left">sol kenar</string>
-  <string name="corner_edge_top">üst kenar</string>
-  <string name="corner_edge_right">sağ kenar</string>
-  <string name="corner_edge_bottom">alt kenar</string>
+  <string name="corner_edge_left">sol</string>
+  <string name="corner_edge_top">üst</string>
+  <string name="corner_edge_right">sağ</string>
+  <string name="corner_edge_bottom">alt</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 kadran, bölünmüş</string>
   <string name="media_layout_title">Medya düzeni</string>

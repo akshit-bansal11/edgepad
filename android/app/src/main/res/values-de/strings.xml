@@ -145,10 +145,10 @@
   <string name="corner_bottom_left">Unten links</string>
   <string name="corner_off">Aus</string>
   <string name="corner_split">Ecken teilen</string>
-  <string name="corner_edge_left">linke Kante</string>
-  <string name="corner_edge_top">obere Kante</string>
-  <string name="corner_edge_right">rechte Kante</string>
-  <string name="corner_edge_bottom">untere Kante</string>
+  <string name="corner_edge_left">links</string>
+  <string name="corner_edge_top">oben</string>
+  <string name="corner_edge_right">rechts</string>
+  <string name="corner_edge_bottom">unten</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 Regler, geteilt</string>
   <string name="media_layout_title">Medienanordnung</string>

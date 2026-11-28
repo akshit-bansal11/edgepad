@@ -150,10 +150,10 @@
   <string name="corner_bottom_left">En bas à gauche</string>
   <string name="corner_off">Désactivé</string>
   <string name="corner_split">Coins doubles</string>
-  <string name="corner_edge_left">bord gauche</string>
-  <string name="corner_edge_top">bord supérieur</string>
-  <string name="corner_edge_right">bord droit</string>
-  <string name="corner_edge_bottom">bord inférieur</string>
+  <string name="corner_edge_left">gauche</string>
+  <string name="corner_edge_top">haut</string>
+  <string name="corner_edge_right">droite</string>
+  <string name="corner_edge_bottom">bas</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 règles, coins doubles</string>
   <string name="media_layout_title">Disposition du média</string>

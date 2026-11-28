@@ -136,10 +136,10 @@
   <string name="corner_bottom_left">왼쪽 아래</string>
   <string name="corner_off">끔</string>
   <string name="corner_split">모서리 나누기</string>
-  <string name="corner_edge_left">왼쪽 가장자리</string>
-  <string name="corner_edge_top">위쪽 가장자리</string>
-  <string name="corner_edge_right">오른쪽 가장자리</string>
-  <string name="corner_edge_bottom">아래쪽 가장자리</string>
+  <string name="corner_edge_left">왼쪽</string>
+  <string name="corner_edge_top">위쪽</string>
+  <string name="corner_edge_right">오른쪽</string>
+  <string name="corner_edge_bottom">아래쪽</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">다이얼 8개, 나눔</string>
   <string name="media_layout_title">미디어 레이아웃</string>

@@ -162,10 +162,10 @@
   <string name="corner_bottom_left">أسفل اليسار</string>
   <string name="corner_off">إيقاف</string>
   <string name="corner_split">تقسيم الزوايا</string>
-  <string name="corner_edge_left">الحافة اليسرى</string>
-  <string name="corner_edge_top">الحافة العلوية</string>
-  <string name="corner_edge_right">الحافة اليمنى</string>
-  <string name="corner_edge_bottom">الحافة السفلية</string>
+  <string name="corner_edge_left">اليسرى</string>
+  <string name="corner_edge_top">العلوية</string>
+  <string name="corner_edge_right">اليمنى</string>
+  <string name="corner_edge_bottom">السفلية</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 مقاييس، مقسّمة</string>
   <string name="media_layout_title">تخطيط الوسائط</string>

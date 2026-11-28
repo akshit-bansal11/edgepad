@@ -150,10 +150,10 @@
   <string name="corner_bottom_left">In basso a sinistra</string>
   <string name="corner_off">Disattivato</string>
   <string name="corner_split">Angoli divisi</string>
-  <string name="corner_edge_left">lato sinistro</string>
-  <string name="corner_edge_top">lato superiore</string>
-  <string name="corner_edge_right">lato destro</string>
-  <string name="corner_edge_bottom">lato inferiore</string>
+  <string name="corner_edge_left">sinistra</string>
+  <string name="corner_edge_top">alto</string>
+  <string name="corner_edge_right">destra</string>
+  <string name="corner_edge_bottom">basso</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 righelli, divisi</string>
   <string name="media_layout_title">Layout dei media</string>

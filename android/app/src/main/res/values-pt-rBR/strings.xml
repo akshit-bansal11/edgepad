@@ -150,10 +150,10 @@
   <string name="corner_bottom_left">Inferior esquerdo</string>
   <string name="corner_off">Desativado</string>
   <string name="corner_split">Cantos divididos</string>
-  <string name="corner_edge_left">borda esquerda</string>
-  <string name="corner_edge_top">borda superior</string>
-  <string name="corner_edge_right">borda direita</string>
-  <string name="corner_edge_bottom">borda inferior</string>
+  <string name="corner_edge_left">esquerda</string>
+  <string name="corner_edge_top">superior</string>
+  <string name="corner_edge_right">direita</string>
+  <string name="corner_edge_bottom">inferior</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 réguas, divididas</string>
   <string name="media_layout_title">Layout da mídia</string>

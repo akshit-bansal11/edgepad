@@ -154,10 +154,10 @@
   <string name="corner_bottom_left">Lewy dolny róg</string>
   <string name="corner_off">Wyłączono</string>
   <string name="corner_split">Podziel rogi</string>
-  <string name="corner_edge_left">lewa krawędź</string>
-  <string name="corner_edge_top">górna krawędź</string>
-  <string name="corner_edge_right">prawa krawędź</string>
-  <string name="corner_edge_bottom">dolna krawędź</string>
+  <string name="corner_edge_left">lewa</string>
+  <string name="corner_edge_top">górna</string>
+  <string name="corner_edge_right">prawa</string>
+  <string name="corner_edge_bottom">dolna</string>
   <string name="corner_slot">%1$s · %2$s</string>
   <string name="corners_summary_split">8 suwaków, podział</string>
   <string name="media_layout_title">Układ multimediów</string>
