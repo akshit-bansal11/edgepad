@@ -102,9 +102,6 @@
   <data name="App_PermissionSteps" xml:space="preserve">
     <value>Réglages Système › Confidentialité et sécurité › Contrôle de l’appareil et accès aux données › + › Edgepad</value>
   </data>
-  <data name="Menu_Installing" xml:space="preserve">
-    <value>Installation d’Edgepad {0}…</value>
-  </data>
   <data name="Menu_Downloading" xml:space="preserve">
     <value>Téléchargement de {0}… {1}%</value>
   </data>

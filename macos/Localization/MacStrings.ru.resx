@@ -102,9 +102,6 @@
   <data name="App_PermissionSteps" xml:space="preserve">
     <value>Системные настройки › Конфиденциальность и безопасность › Управление устройством и доступ к данным › + › Edgepad</value>
   </data>
-  <data name="Menu_Installing" xml:space="preserve">
-    <value>Установка Edgepad {0}…</value>
-  </data>
   <data name="Menu_Downloading" xml:space="preserve">
     <value>Загрузка {0}… {1}%</value>
   </data>

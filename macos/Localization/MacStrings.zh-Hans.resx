@@ -102,9 +102,6 @@
   <data name="App_PermissionSteps" xml:space="preserve">
     <value>系统设置 › 隐私与安全性 › 设备控制和数据访问 › + › Edgepad</value>
   </data>
-  <data name="Menu_Installing" xml:space="preserve">
-    <value>正在安装 Edgepad {0}…</value>
-  </data>
   <data name="Menu_Downloading" xml:space="preserve">
     <value>正在下载 {0}… {1}%</value>
   </data>

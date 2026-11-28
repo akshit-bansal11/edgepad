@@ -102,9 +102,6 @@
   <data name="App_PermissionSteps" xml:space="preserve">
     <value>सिस्टम सेटिंग › गोपनीयता और सुरक्षा › डिवाइस नियंत्रण और डेटा एक्सेस › + › Edgepad</value>
   </data>
-  <data name="Menu_Installing" xml:space="preserve">
-    <value>Edgepad {0} इंस्टॉल हो रहा है…</value>
-  </data>
   <data name="Menu_Downloading" xml:space="preserve">
     <value>{0} डाउनलोड हो रहा है… {1}%</value>
   </data>
