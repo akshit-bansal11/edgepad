@@ -440,9 +440,7 @@
   <string name="controls_power">电源</string>
   <string name="controls_settings_title">控制设置</string>
   <string name="controls_icon_size">图标大小</string>
-  <string name="controls_size_small">小</string>
-  <string name="controls_size_medium">中</string>
-  <string name="controls_size_large">大</string>
+  <string name="controls_icon_size_value">%1$d%%</string>
   <string name="controls_show_labels">显示标签</string>
   <string name="controls_per_page">每页控件数</string>
   <string name="controls_per_page_value">%1$d</string>

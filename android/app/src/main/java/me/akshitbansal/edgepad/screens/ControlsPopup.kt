@@ -3,6 +3,7 @@ package me.akshitbansal.edgepad.screens
 import android.animation.ValueAnimator
 import android.app.AlertDialog
 import android.content.res.ColorStateList
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -11,7 +12,6 @@ import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.Toast
 import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.R
@@ -28,81 +28,75 @@ private const val DECK = "controls"
 /** The edit hint is shown during the first edit session only. */
 private const val EDIT_TIP = "controls_edit"
 
-/**
- * One Medium tile, in dp: 128 by 112, a 40 dp picture 8 dp above a 15 sp label. [ControlsPlan.scale] gives the
- * other sizes, and the columns are as many as the popup's width holds.
- */
-private const val TILE_WIDTH_DP = 128f
-private const val TILE_HEIGHT_DP = 112f
-private const val TILE_ICON_DP = 40f
+/** The label's top size, in sp, and the gap under the picture, in dp. A smaller tile draws the label smaller. */
 private const val TILE_LABEL_SP = 15f
 private const val TILE_ICON_GAP_DP = 8f
 
-/** How large the popup's tiles are drawn; [zoom] scales the Medium size, which is the 5.1 one. */
-enum class ControlsIconSize(
-    val zoom: Float,
-) {
-    SMALL(0.8f),
-    MEDIUM(1f),
-    LARGE(1.2f),
-}
+/** A label is this share of the tile's shorter side, until it reaches [TILE_LABEL_SP]; a line is this tall. */
+private const val LABEL_SHARE = 0.14f
+private const val LINE_HEIGHT = 1.3f
 
 /** The popup's sizes worked out apart from the views, so a JVM test holds them. */
 object ControlsPlan {
     const val DEFAULT_PER_PAGE = 9
     val PER_PAGE = 2..12
 
+    /** How much of its tile a picture fills: 30 to 80 percent in steps of 5, 50 until the owner moves it. */
+    val ICON_PERCENT = 30..80
+    const val ICON_PERCENT_STEP = 5
+    const val DEFAULT_ICON_PERCENT = 50
+
     /** The popup takes about this much of the screen's width and at most this much of its height. */
     private const val WIDTH_PERCENT = 92
     private const val HEIGHT_PERCENT = 80
 
-    /** One tile's measures: the tile in dp, the label in sp. */
-    class Scale(
-        val tileWidth: Float,
-        val tileHeight: Float,
-        val icon: Float,
-        val labelSp: Float,
+    /** The grid for one page: [columns] across and [rows] down, every tile [tileWidth] by [tileHeight]. */
+    class Fit(
+        val columns: Int,
+        val rows: Int,
+        val tileWidth: Int,
+        val tileHeight: Int,
     )
 
-    fun scale(size: ControlsIconSize): Scale =
-        Scale(
-            TILE_WIDTH_DP * size.zoom,
-            TILE_HEIGHT_DP * size.zoom,
-            TILE_ICON_DP * size.zoom,
-            TILE_LABEL_SP * size.zoom,
-        )
+    /** The popup's width on a screen [screenWidth] wide. */
+    fun width(screenWidth: Int): Int = screenWidth * WIDTH_PERCENT / 100
 
     /** The tallest the popup may be on a screen [screenHeight] tall. */
     fun maxHeight(screenHeight: Int): Int = screenHeight * HEIGHT_PERCENT / 100
 
     /**
-     * The popup for [count] tiles of [tileWidth] by [tileHeight], [gap] apart, [perPage] to a page, inside [padSide],
-     * [padTop] and [padBottom], on a screen [screenWidth] by [screenHeight]. As many columns as the width holds; a
-     * page is planned for its own tiles, or for [perPage] of them when there is more than one page, so a tile keeps
-     * its size from page to page. [DeckLayout.FixedPlan.scrolls] when the rows do not fit the most the popup may be.
+     * The grid for [cells] tiles in [width] by [height] with [gap] between them. Every column count is tried and the
+     * one that leaves the tiles tallest wins, so 4 tiles are big and 12 small; a tile is never taller than wide. The
+     * rows always stand inside [height], so nothing scrolls, and the pager is given a page of exactly this size.
      */
-    fun plan(
-        count: Int,
-        perPage: Int,
-        screenWidth: Int,
-        screenHeight: Int,
+    fun fit(
+        cells: Int,
+        width: Int,
+        height: Int,
+        gap: Int,
+    ): Fit {
+        if (cells <= 0) return Fit(1, 0, width.coerceAtLeast(1), 0)
+        var best = Fit(1, cells, 1, 1)
+        for (columns in 1..cells) {
+            val rows = (cells + columns - 1) / columns
+            val tileWidth = ((width - (columns - 1) * gap) / columns).coerceAtLeast(1)
+            val room = ((height - (rows - 1) * gap) / rows).coerceAtLeast(1)
+            val tileHeight = minOf(room, tileWidth)
+            if (tileHeight > best.tileHeight) best = Fit(columns, rows, tileWidth, tileHeight)
+        }
+        return best
+    }
+
+    /**
+     * The side of a picture: [percent] of the tile's shorter side, but never more than [room] left in the tile's
+     * height once the label's gap and line are taken off, so a name stays under its picture inside the tile.
+     */
+    fun icon(
         tileWidth: Int,
         tileHeight: Int,
-        gap: Int,
-        padSide: Int,
-        padTop: Int,
-        padBottom: Int,
-    ): DeckLayout.FixedPlan {
-        val width = screenWidth * WIDTH_PERCENT / 100
-        val columns = ((width - 2 * padSide + gap) / (tileWidth + gap)).coerceAtLeast(1)
-        val cells = minOf(count, perPage)
-        val rows = if (cells <= 0) 0 else (cells + columns - 1) / columns
-        val tile = ((width - 2 * padSide - (columns - 1) * gap) / columns).coerceAtLeast(1)
-        val grid = if (rows == 0) 0 else rows * tileHeight + (rows - 1) * gap
-        val wanted = padTop + grid + padBottom
-        val room = maxHeight(screenHeight)
-        return DeckLayout.FixedPlan(columns, rows, width, minOf(wanted, room), grid, tile, wanted > room)
-    }
+        percent: Int,
+        room: Int,
+    ): Int = (minOf(tileWidth, tileHeight) * percent / 100).coerceAtMost(room).coerceAtLeast(1)
 }
 
 /** The header row, which is all of the popup's top: the heading at its start and the pencil at its end. */
@@ -191,11 +185,10 @@ class ControlsPopup(
     private var dialog: AlertDialog? = null
 
     /**
-     * The room the tiles have, in pixels, worked out by [fit] from [DeckLayout.fixedPlan]. Not left to a weight: the
-     * dialog sizes its content to fit, so a weighted grid got no height at all and no tile was drawn.
+     * The width the tiles have, in pixels, worked out by [fit] from [ControlsPlan]. Not left to a weight: the dialog
+     * sizes its content to fit, so a weighted grid got no height at all and no tile was drawn.
      */
     private var across = 0
-    private var down = 0
     private var popupWidth = 0
 
     /** The screen between the bars, and whether it is wider than tall. */
@@ -254,14 +247,6 @@ class ControlsPopup(
                 deck.touch(event) || super.dispatchTouchEvent(event)
         }
 
-    /** Holds the tiles; it only ever scrolls on a screen too short for the rows. */
-    private val scroll =
-        ScrollView(ui.context).apply {
-            isVerticalScrollBarEnabled = false
-            clipChildren = false
-            clipToPadding = false
-        }
-
     val isOpen: Boolean get() = dialog?.isShowing == true
 
     /** Opens the popup over [owner], centred on the screen, which closes it if it leaves the window. */
@@ -281,9 +266,8 @@ class ControlsPopup(
         screenWidth = owner.width - left - right
         screenHeight = owner.height - barTop - barBottom
         val pad = ui.dp(Space.L)
-        popupWidth = planFor(1).width
+        popupWidth = ControlsPlan.width(screenWidth)
         across = popupWidth - 2 * pad
-        down = 0
         page = 0
         if (editing) settings.setTipSeen(EDIT_TIP)
         editing = false
@@ -292,10 +276,8 @@ class ControlsPopup(
         deck = Deck(ui, holder)
         tileNote.setPadding(0, 0, 0, ui.dp(Space.S))
         // The views are reused from the last time the popup opened, so they are let go of before they are re-parented.
-        for (view in listOf(tileNote, scroll, gear, editButton, heading)) (view.parent as? ViewGroup)?.removeView(view)
-        scroll.removeAllViews()
+        for (view in listOf(tileNote, holder, gear, editButton, heading)) (view.parent as? ViewGroup)?.removeView(view)
         val match = ViewGroup.LayoutParams.MATCH_PARENT
-        scroll.addView(holder, ViewGroup.LayoutParams(match, ViewGroup.LayoutParams.WRAP_CONTENT))
         // One row: the heading at the start, the pencil at the end, with no padding above or beside the tiles' own.
         val header =
             LinearLayout(ui.context).apply {
@@ -312,7 +294,7 @@ class ControlsPopup(
                 clipToPadding = false
                 setPadding(pad, 0, pad, pad)
                 addView(tileNote)
-                addView(scroll, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(Space.TOUCH)))
+                addView(holder, LinearLayout.LayoutParams(match, ViewGroup.LayoutParams.WRAP_CONTENT))
             }
         val root =
             LinearLayout(ui.context).apply {
@@ -337,32 +319,15 @@ class ControlsPopup(
         holder.requestFocus()
     }
 
-    /** The popup for [count] tiles on this screen: [ControlsPlan] for the chosen size and the tiles to a page. */
-    private fun planFor(count: Int): DeckLayout.FixedPlan {
-        val cell = ControlsPlan.scale(settings.controlsIconSize)
-        return ControlsPlan.plan(
-            count,
-            settings.controlsPerPage,
-            screenWidth,
-            screenHeight,
-            ui.dp(cell.tileWidth),
-            ui.dp(cell.tileHeight),
-            ui.dp(Space.S),
-            ui.dp(Space.L),
-            ui.dp(HEADER_DP),
-            ui.dp(Space.L),
-        )
-    }
-
     /**
-     * Sizes the grid's box for [plan], less what the note takes, and sets [down] to the grid's own height. The box
-     * is shorter than the grid only on a screen too short for the rows, where it scrolls, and never under one touch
-     * target. Run before every draw of the tiles, since the note comes and goes.
+     * The grid for [cells] tiles in what the popup has left after its header, the note when there is one, the
+     * pager's dots ([dots] pixels) and its bottom padding. Run before every draw of the tiles, since the note
+     * comes and goes. The rows always fit, so the popup never scrolls.
      */
     private fun fit(
-        plan: DeckLayout.FixedPlan,
+        cells: Int,
         dots: Int,
-    ) {
+    ): ControlsPlan.Fit {
         val wide = View.MeasureSpec.makeMeasureSpec(across, View.MeasureSpec.EXACTLY)
         val free = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         val taken =
@@ -372,14 +337,8 @@ class ControlsPopup(
                 tileNote.measure(wide, free)
                 tileNote.measuredHeight
             }
-        down = plan.grid + dots
-        val room = ControlsPlan.maxHeight(screenHeight) - ui.dp(HEADER_DP) - ui.dp(Space.L) - taken
-        val params = scroll.layoutParams ?: return
-        val height = minOf(down, maxOf(room, ui.dp(Space.TOUCH)))
-        if (params.height != height) {
-            params.height = height
-            scroll.layoutParams = params
-        }
+        val room = ControlsPlan.maxHeight(screenHeight) - ui.dp(HEADER_DP) - ui.dp(Space.L) - taken - dots
+        return ControlsPlan.fit(cells, across, room, ui.dp(Space.S))
     }
 
     /** The laptop named its features after the popup opened: the tiles are drawn again from them. */
@@ -455,29 +414,22 @@ class ControlsPopup(
             }
         tileNote.visibility = if (note == null) View.GONE else View.VISIBLE
         if (note != null) tileNote.text = ui.string(note)
-        val plan = planFor(visible.size)
         val pages = DeckLayout.pages(visible.size, settings.controlsPerPage)
         val dots = if (pages.size > 1) ui.dp(Space.XL) else 0
-        fit(plan, dots)
-        if (visible.isEmpty() || down <= 0) {
+        val plan = fit(minOf(visible.size, settings.controlsPerPage), dots)
+        if (visible.isEmpty() || plan.rows == 0) {
             deck.clear()
             return
         }
-        val cell = ControlsPlan.scale(settings.controlsIconSize)
-        val fixed =
-            FixedCell(
-                plan.columns,
-                ui.dp(cell.tileHeight),
-                ui.dp(cell.icon),
-                cell.labelSp,
-                ui.dp(TILE_ICON_GAP_DP),
-            )
+        val gap = ui.dp(Space.S)
+        val grid = plan.rows * plan.tileHeight + (plan.rows - 1) * gap
         val labels = settings.controlsLabels
+        val fixed = fixedCell(plan, labels)
         val drawnTiles = visible.map { drawn(tiles[it]) }
         if (pages.size <= 1) {
             deck.render(
                 across,
-                down,
+                grid,
                 drawnTiles,
                 labels = labels,
                 onMove = ::moved,
@@ -490,10 +442,10 @@ class ControlsPopup(
         // A tile moves within its own page, as on the macro screen; its place is offset by where the page starts.
         deck.clear()
         page =
-            drawPager(ui, holder, across, pages, page, { page = it }, plan.grid) { pageHolder, range ->
+            drawPager(ui, holder, across, pages, page, { page = it }, grid) { pageHolder, range ->
                 pageHolder.deck.render(
                     across,
-                    plan.grid,
+                    grid,
                     drawnTiles.slice(range),
                     labels = labels,
                     onMove = { from, to -> moved(range.first + from, range.first + to) },
@@ -502,6 +454,25 @@ class ControlsPopup(
                     fixed = fixed,
                 )
             }
+    }
+
+    /**
+     * The tile's measures for [plan]: the label a share of the tile's shorter side, the picture the chosen percent of
+     * it, held to what the tile has left under the label's gap and line so a name stays under its picture.
+     */
+    private fun fixedCell(
+        plan: ControlsPlan.Fit,
+        labels: Boolean,
+    ): FixedCell {
+        val metrics = ui.context.resources.displayMetrics
+        val shorter = minOf(plan.tileWidth, plan.tileHeight)
+        val labelSp = (shorter / metrics.density * LABEL_SHARE).coerceIn(Type.MICRO, TILE_LABEL_SP)
+        val labelPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, labelSp, metrics)
+        val gap = ui.dp(TILE_ICON_GAP_DP)
+        val under = if (labels) gap + (labelPx * LINE_HEIGHT).toInt() else 0
+        val room = plan.tileHeight - under - 2 * ui.dp(Space.XS)
+        val icon = ControlsPlan.icon(plan.tileWidth, plan.tileHeight, settings.controlsIconPercent, room)
+        return FixedCell(plan.columns, plan.tileHeight, icon, labelSp, gap)
     }
 
     /** In edit mode a tile's state is whether it is hidden, not whether the laptop offers it. */

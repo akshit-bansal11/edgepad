@@ -1,29 +1,75 @@
 package me.akshitbansal.edgepad.screens
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ControlsPlanTest {
-    @Test
-    fun mediumIsTheSizeThePopupAlwaysHad() {
-        val medium = ControlsPlan.scale(ControlsIconSize.MEDIUM)
-        assertEquals(128f, medium.tileWidth, 0f)
-        assertEquals(112f, medium.tileHeight, 0f)
-        assertEquals(40f, medium.icon, 0f)
-        assertEquals(15f, medium.labelSp, 0f)
+    /** A phone upright and sideways, in dp, then the popup's own chrome around the grid. */
+    private val screens = listOf(360 to 780, 780 to 360, 320 to 480, 480 to 320)
+    private val gap = 8
+    private val padSide = 16
+    private val header = 48
+    private val padBottom = 16
+    private val dots = 24
+
+    private fun fit(
+        cells: Int,
+        screen: Pair<Int, Int>,
+    ): ControlsPlan.Fit {
+        val across = ControlsPlan.width(screen.first) - 2 * padSide
+        val room = ControlsPlan.maxHeight(screen.second) - header - padBottom - dots
+        return ControlsPlan.fit(cells, across, room, gap)
     }
 
     @Test
-    fun smallIsUnderMediumIsUnderLarge() {
-        val small = ControlsPlan.scale(ControlsIconSize.SMALL)
-        val medium = ControlsPlan.scale(ControlsIconSize.MEDIUM)
-        val large = ControlsPlan.scale(ControlsIconSize.LARGE)
-        assertTrue(small.tileWidth < medium.tileWidth && medium.tileWidth < large.tileWidth)
-        assertTrue(small.tileHeight < medium.tileHeight && medium.tileHeight < large.tileHeight)
-        assertTrue(small.icon < medium.icon && medium.icon < large.icon)
-        assertTrue(small.labelSp < medium.labelSp && medium.labelSp < large.labelSp)
+    fun everyCountFitsWithoutScrollingOnEveryScreen() {
+        for (screen in screens) {
+            val across = ControlsPlan.width(screen.first) - 2 * padSide
+            val room = ControlsPlan.maxHeight(screen.second) - header - padBottom - dots
+            for (cells in ControlsPlan.PER_PAGE) {
+                val plan = fit(cells, screen)
+                val height = plan.rows * plan.tileHeight + (plan.rows - 1) * gap
+                val width = plan.columns * plan.tileWidth + (plan.columns - 1) * gap
+                assertTrue("$cells on $screen is $height tall in $room", height <= room)
+                assertTrue("$cells on $screen is $width wide in $across", width <= across)
+                assertTrue(plan.columns * plan.rows >= cells)
+                assertTrue("an empty row at $cells on $screen", (plan.rows - 1) * plan.columns < cells)
+                assertTrue(plan.tileHeight <= plan.tileWidth)
+            }
+        }
+    }
+
+    @Test
+    fun fewerTilesAreBiggerOnes() {
+        for (screen in screens) {
+            assertTrue(fit(4, screen).tileHeight > fit(12, screen).tileHeight)
+            for (cells in ControlsPlan.PER_PAGE.first until ControlsPlan.PER_PAGE.last) {
+                assertTrue(fit(cells, screen).tileHeight >= fit(cells + 1, screen).tileHeight)
+            }
+        }
+    }
+
+    @Test
+    fun noTilesIsAnEmptyGrid() {
+        assertEquals(0, ControlsPlan.fit(0, 300, 300, gap).rows)
+    }
+
+    @Test
+    fun theIconIsTheChosenShareOfTheShorterSideUntilTheLabelNeedsTheRoom() {
+        assertEquals(50, ControlsPlan.icon(120, 100, 50, 90))
+        assertEquals(80, ControlsPlan.icon(100, 120, 80, 90))
+        assertEquals(60, ControlsPlan.icon(100, 100, 80, 60))
+        assertEquals(1, ControlsPlan.icon(100, 100, 30, 0))
+    }
+
+    @Test
+    fun theIconShareRunsThirtyToEightyInFives() {
+        assertEquals(30, ControlsPlan.ICON_PERCENT.first)
+        assertEquals(80, ControlsPlan.ICON_PERCENT.last)
+        val span = ControlsPlan.ICON_PERCENT.last - ControlsPlan.ICON_PERCENT.first
+        assertEquals(0, span % ControlsPlan.ICON_PERCENT_STEP)
+        assertTrue(ControlsPlan.DEFAULT_ICON_PERCENT in ControlsPlan.ICON_PERCENT)
     }
 
     @Test
@@ -39,17 +85,5 @@ class ControlsPlanTest {
         assertEquals(2, pages.size)
         assertEquals(0..8, pages[0])
         assertEquals(9..13, pages[1])
-    }
-
-    @Test
-    fun thePopupTakesAboutNineTenthsOfTheWidthAndAtMostFourFifthsOfTheHeight() {
-        val plan = ControlsPlan.plan(14, 9, 1000, 2000, 128, 112, 8, 16, 48, 16)
-        assertEquals(920, plan.width)
-        assertEquals(6, plan.columns)
-        assertEquals(2, plan.rows)
-        assertFalse(plan.scrolls)
-        val short = ControlsPlan.plan(14, 9, 1000, 300, 128, 112, 8, 16, 48, 16)
-        assertTrue(short.scrolls)
-        assertEquals(240, short.height)
     }
 }

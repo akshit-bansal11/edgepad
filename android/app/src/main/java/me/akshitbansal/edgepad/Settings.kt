@@ -3,7 +3,6 @@ package me.akshitbansal.edgepad
 import android.content.Context
 import android.content.SharedPreferences
 import me.akshitbansal.edgepad.link.migrateSaved
-import me.akshitbansal.edgepad.screens.ControlsIconSize
 import me.akshitbansal.edgepad.screens.ControlsPlan
 import me.akshitbansal.edgepad.screens.FnMode
 import me.akshitbansal.edgepad.screens.KeyboardSize
@@ -405,10 +404,28 @@ class Settings(
         prefs.edit().putString("deck.$deck.hidden", keys.joinToString("\n")).apply()
     }
 
-    /** How large the Controls popup's tiles are drawn. */
-    var controlsIconSize: ControlsIconSize
-        get() = enum(KEY_CONTROLS_ICON_SIZE, ControlsIconSize.MEDIUM)
-        set(value) = prefs.edit().putString(KEY_CONTROLS_ICON_SIZE, value.name).apply()
+    /**
+     * How much of a Controls tile its picture fills, in percent. Before the slider the size was Small, Medium or
+     * Large under [KEY_CONTROLS_ICON_SIZE]; a choice made then reads as 40, 50 or 65, until a new one is stored.
+     */
+    var controlsIconPercent: Int
+        get() = prefs.getInt(KEY_CONTROLS_ICON_PERCENT, legacyIconPercent()).coerceIn(ControlsPlan.ICON_PERCENT)
+        set(value) {
+            prefs
+                .edit()
+                .putInt(KEY_CONTROLS_ICON_PERCENT, value.coerceIn(ControlsPlan.ICON_PERCENT))
+                .remove(KEY_CONTROLS_ICON_SIZE)
+                .apply()
+        }
+
+    private fun legacyIconPercent(): Int =
+        when (prefs.getString(KEY_CONTROLS_ICON_SIZE, null)) {
+            "SMALL" -> LEGACY_SMALL_PERCENT
+
+            "LARGE" -> LEGACY_LARGE_PERCENT
+
+            else -> ControlsPlan.DEFAULT_ICON_PERCENT
+        }
 
     /** Whether the Controls popup's tiles carry their names. */
     var controlsLabels by flag("controlsLabels", true)
@@ -707,6 +724,9 @@ class Settings(
         private const val KEY_SCROLL_SPEED = "scrollSpeed"
         private const val KEY_MACROS_PER_PAGE = "macrosPerPage"
         private const val KEY_CONTROLS_ICON_SIZE = "controlsIconSize"
+        private const val KEY_CONTROLS_ICON_PERCENT = "controlsIconPercent"
+        private const val LEGACY_SMALL_PERCENT = 40
+        private const val LEGACY_LARGE_PERCENT = 65
         private const val KEY_CONTROLS_PER_PAGE = "controlsPerPage"
         private const val KEY_MACRO_ROWS = "macroRows"
         private const val KEY_MACRO_ICON_ZOOM = "macroIconZoom"

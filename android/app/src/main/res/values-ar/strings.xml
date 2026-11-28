@@ -476,9 +476,7 @@
   <string name="controls_power">الطاقة</string>
   <string name="controls_settings_title">إعدادات عناصر التحكم</string>
   <string name="controls_icon_size">حجم الأيقونات</string>
-  <string name="controls_size_small">صغير</string>
-  <string name="controls_size_medium">متوسط</string>
-  <string name="controls_size_large">كبير</string>
+  <string name="controls_icon_size_value">%1$d%%</string>
   <string name="controls_show_labels">إظهار التسميات</string>
   <string name="controls_per_page">عدد عناصر التحكم في الصفحة</string>
   <string name="controls_per_page_value">%1$d</string>

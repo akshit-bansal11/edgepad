@@ -427,9 +427,7 @@
   <string name="controls_power">전원</string>
   <string name="controls_settings_title">컨트롤 설정</string>
   <string name="controls_icon_size">아이콘 크기</string>
-  <string name="controls_size_small">작게</string>
-  <string name="controls_size_medium">보통</string>
-  <string name="controls_size_large">크게</string>
+  <string name="controls_icon_size_value">%1$d%%</string>
   <string name="controls_show_labels">라벨 표시</string>
   <string name="controls_per_page">페이지당 컨트롤 수</string>
   <string name="controls_per_page_value">%1$d</string>
