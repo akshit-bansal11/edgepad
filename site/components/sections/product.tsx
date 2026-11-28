@@ -194,7 +194,7 @@ export function ProductSections() {
             },
             {
               title: "Shapes",
-              body: "Press and hold on the trackpad until it ticks, then draw without lifting. The stroke is matched against the shapes drawn in Settings, and the one it matches runs a laptop action, a macro, or the pad’s own focus or lock.",
+              body: "Hold two fingers still on the trackpad until the line turns solid, then lift one and draw with the other. The stroke is matched against the shapes drawn in Settings, and the one it matches runs a laptop action, a macro, or the pad’s own focus or lock.",
             },
             {
               title: "Macro buttons",
@@ -698,11 +698,12 @@ sudo ./install.sh`}
           </TableBody>
         </Table>
 
-        <Note label="Two fingers are fixed">
-          Drag to scroll, pinch to zoom, tap to right-click. As of 2.0.0 these are no
-          longer assignable: they are what a hand already expects from a trackpad, and a
-          phone that answers them differently reads as broken rather than as configured.
-          Three and four fingers stay assignable.
+        <Note label="One and two fingers are fixed">
+          One finger: move, tap to click, hold still then move to drag. Two fingers: drag
+          to scroll, pinch to zoom, tap to right-click. As of 2.0.0 these are no longer
+          assignable: they are what a hand already expects from a trackpad, and a phone
+          that answers them differently reads as broken rather than as configured. Three
+          and four fingers stay assignable.
         </Note>
 
         <Sub>Default three- and four-finger gestures</Sub>
@@ -772,8 +773,10 @@ sudo ./install.sh`}
 
         <Sub>Shapes</Sub>
         <P>
-          Press one finger on the trackpad, hold it still until it ticks, then draw
-          without lifting. On lift the stroke is matched against the shapes drawn under{" "}
+          Hold two fingers still on the trackpad until the line turns solid (you also
+          feel a tick if haptic feedback is on), then lift one and draw with the
+          other. In Surface settings &gt; Shapes, draw one and give it something to run.
+          On lift the stroke is matched against the shapes drawn under{" "}
           <strong>Surface settings &gt; Shapes</strong>, and the one it matches runs: a
           laptop action, a macro slot, or the pad&apos;s own focus or lock. A stroke
           that matches nothing does nothing, which is the right answer — the alternative
@@ -784,6 +787,11 @@ sudo ./install.sh`}
           lands, so scroll, pinch and the three- and four-finger swipes are untouched. A
           phone with no shapes drawn behaves exactly as it did before there were any.
         </P>
+        <P>
+          A new shape that is too close to one you already have, or too small to tell
+          apart, is refused: draw a more distinct or a larger one. Deleting a shape
+          means drawing it no longer runs what it was bound to.
+        </P>
 
         <Sub>Macro buttons</Sub>
         <P>
@@ -792,7 +800,10 @@ sudo ./install.sh`}
           sixteen bytes with fourteen separators is 254 of the 255 bytes a <C>TEXT</C>{" "}
           frame carries — so a full grid always arrives labelled rather than trailing
           off into blank buttons. A macro saved in the Windows or Mac editor while the
-          phone is connected appears at once.
+          phone is connected appears at once. Until the laptop has sent its list the
+          screen is empty: add macros from Edgepad&apos;s Macros… menu in the tray on
+          the laptop (in the menu bar on a Mac), and they appear as soon as it sends
+          the list.
         </P>
         <P>
           The screen shows 2 to 10 macros at a time, set with{" "}
@@ -812,7 +823,12 @@ sudo ./install.sh`}
         </P>
         <P>
           The macro settings can list the laptop&apos;s apps to pick from, on Windows,
-          Linux and the Mac, so a macro can be added from the phone.
+          Linux and the Mac, so a macro can be added from the phone. Picking an app
+          makes a macro that opens it on the laptop. On Windows, an app that is not in
+          the list needs adding to the Start menu on the laptop first; then refresh the
+          list. An app that is already a macro shows as added, and a laptop that
+          already holds its full set of macros asks you to delete one before adding
+          another.
         </P>
 
         <Sub>Share clipboard</Sub>
@@ -871,18 +887,23 @@ sudo ./install.sh`}
           offer it, and no Capture tile when it cannot capture. Under the tiles, one row
           of chips holds Hide dials and media, Black out when idle, Air mouse and
           Floating dials. A Power tile holds Lock, Sleep, Hibernate, Restart and Shut
-          down. The Edit chip shows every tile; tap one to hide or show it, and drag to
-          move it. Back from the keyboard, the gamepad and Capture returns to Controls.
+          down. The Edit chip shows every tile; tap one to hide or show it, and hold and
+          drag it to move it. Back from the keyboard, the gamepad and Capture returns to
+          Controls.
         </P>
         <P>
           Annotate draws on the laptop&apos;s primary display, with the phone as an
-          absolute pen: a touch lands at the same place on the laptop. It has a pen, a
+          absolute pen: a touch lands at the same place on the laptop, and it works by
+          touch only. It has a pen, a
           highlighter, a line, an arrow, a rectangle and an ellipse in eight colours or
           any colour you pick, at the width and opacity you set, plus Undo and Clear.
           The Sign switch turns the same pad into a signature: nothing shows on the
           laptop, only the pen is offered, and Save signature copies a transparent PNG
           to the clipboard and saves it as <C>signature-yyyyMMdd-HHmmss.png</C> in an{" "}
-          <C>Edgepad</C> folder in Pictures, never over an earlier one. Annotate works
+          <C>Edgepad</C> folder in Pictures, never over an earlier one. Clear removes
+          every stroke from the laptop screen and cannot be undone. Switching to Sign
+          discards the drawing so far and the laptop starts a fresh page; switching
+          back discards a signature that was not saved. Annotate works
           on Windows, on the Mac and on Linux; on Linux it is best effort and in
           testing.
         </P>
@@ -1062,6 +1083,43 @@ sudo ./install.sh`}
           then it spoke only for the control surface and the two canvases that stand in
           for it, the media layout editor and the shape canvas; every other screen
           followed the phone.
+        </P>
+
+        <Sub>Devices and connection</Sub>
+        <P>
+          Remembered laptops connect when Edgepad opens. Disconnect stops that until you
+          tap the laptop again; with nothing remembered, tap a laptop to connect. You
+          can connect several laptops at once. The active one is the laptop the controls
+          are driving; tap <strong>Make active</strong> to switch. To open the controls,
+          connect to a laptop first.
+        </P>
+        <P>
+          <strong>Reconnect automatically</strong> connects remembered laptops when
+          Edgepad opens and tries again when a connection drops.{" "}
+          <strong>Stay connected in the background</strong> keeps your laptops connected
+          while Edgepad is minimized, with a notification to disconnect; the laptops
+          stay connected when you leave, and you disconnect from that notification. Off,
+          they disconnect shortly after you leave the app.
+        </P>
+        <P>
+          When a laptop stops answering, the phone says it is out of reach, every
+          control is paused and nothing you press is queued. It shows the retry attempt
+          it is on. After it gives up, check that the laptop is awake with Edgepad
+          running, or go to Devices.
+        </P>
+        <P>
+          When a Wi-Fi or USB pairing code is on the phone, type it in Edgepad on that
+          laptop; a window opens there, and if not, open Edgepad&apos;s menu on the
+          laptop. If the laptop said the code was wrong, tap{" "}
+          <strong>They don&apos;t match</strong>: another device may be answering in its
+          place.
+        </P>
+        <P>
+          Updating the phone app from Settings downloads the update and restarts
+          Edgepad, which disconnects your laptops; Android may ask you to confirm. For a
+          major release, update Edgepad on the laptop to the same release too. If
+          Android blocks the update, allow Edgepad to install updates in Android
+          settings, then try again.
         </P>
 
         <Sub>Where the laptop keeps things</Sub>
