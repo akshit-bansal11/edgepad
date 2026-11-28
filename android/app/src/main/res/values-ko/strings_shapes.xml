@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="shape_group_mouse">마우스</string>
+  <string name="shape_group_screens">화면</string>
+</resources>

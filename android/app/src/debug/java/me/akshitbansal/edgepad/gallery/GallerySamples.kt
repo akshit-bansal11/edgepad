@@ -31,6 +31,7 @@ import me.akshitbansal.edgepad.protocol.BatteryKind
 import me.akshitbansal.edgepad.protocol.DeviceOs
 import me.akshitbansal.edgepad.protocol.TextKind
 import me.akshitbansal.edgepad.screens.AiScreen
+import me.akshitbansal.edgepad.screens.AppearanceScreen
 import me.akshitbansal.edgepad.screens.ControlsPlan
 import me.akshitbansal.edgepad.screens.ControlsPopup
 import me.akshitbansal.edgepad.screens.DataUsesScreen
@@ -46,6 +47,7 @@ import me.akshitbansal.edgepad.screens.NetworkScreen
 import me.akshitbansal.edgepad.screens.PhoneScreen
 import me.akshitbansal.edgepad.screens.RingGauge
 import me.akshitbansal.edgepad.screens.SettingsScreen
+import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.StencilIcon
 import me.akshitbansal.edgepad.screens.SystemScreen
 import me.akshitbansal.edgepad.screens.Ui
@@ -131,6 +133,16 @@ class GallerySamples(
 
             "data-uses" -> {
                 DataUsesScreen.build(ui, ui.string(R.string.settings_title)) {}
+            }
+
+            "look" -> {
+                AppearanceScreen.build(ui, settings, {}, {})
+            }
+
+            "shape-pick" -> {
+                // A stroke already drawn, so the screen opens on the list of what it can run.
+                val stroke = floatArrayOf(-0.3f, -0.3f, 0f, 0.3f, 0.3f, -0.3f)
+                ShapeDrawScreen.build(ui, settings, emptyList(), {}, {}, stroke)
             }
 
             "keyboard" -> {
