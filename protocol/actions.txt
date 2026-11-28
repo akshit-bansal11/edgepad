@@ -85,6 +85,10 @@ ACTION 55 CAPTURE_CANCEL
 # that sent FEATURES "apps".
 ACTION 56 APPS_LIST
 ACTION 57 APPS_CANCEL
+# Adding an app profile from the phone: OPEN_APPS_LIST asks the laptop for the apps open on it, which it answers with one TEXT 41
+# OPEN_APPS (open apps first, then the apps already added as macros). One ask, one answer, nothing kept running. The phone shows
+# the list only for a laptop that sent FEATURES "openapps"; a laptop too old to know the id drops and counts it.
+ACTION 63 OPEN_APPS_LIST
 # The first of the 32 macro slots; slot n is MACRO_BASE + n. A laptop older than the macros feature drops an
 # unknown action id rather than erroring, which is why the block needs no new frame type and no version bump.
 ACTION 64 MACRO_BASE
@@ -278,6 +282,10 @@ TEXT 39 POWER_STATE
 # Laptop to phone: what kind of app is in front, as one APP_KIND_TOKEN, or empty for none. Sent on change, only while CONTROL 11 is 1.
 # Never a title. A laptop that cannot classify sends nothing.
 TEXT 40 FOREGROUND_KIND
+# Laptop to phone, the answer to ACTION 63: lines "<token><TAB><name>" joined by LF. The token is exactly what TEXT 21 reports for
+# that app, the name is cleaned as TEXT 21 cleans it. Open apps with a visible window first, then the macro apps; deduplicated by
+# token, at most 40 lines; a line without a tab or with a bad token is dropped. Empty means none.
+TEXT 41 OPEN_APPS
 
 # The bitmask a PAD_STATE frame's "buttons" field carries. These are XInput's own wButtons values, unchanged
 # and in decimal, because the laptop copies the field straight into an XINPUT_GAMEPAD rather than remapping
@@ -349,6 +357,8 @@ FEATURE restart RESTART
 FEATURE shutdown SHUT_DOWN
 # The laptop can classify the app in front, in TEXT 40, once CONTROL 11 is 1.
 FEATURE appkind APP_KIND
+# The laptop answers ACTION 63 with TEXT 41.
+FEATURE openapps OPEN_APPS
 
 # The whole vocabulary of TEXT kind 13's second field, as "<token on the wire> <the name both apps call it>". The phone
 # uses it only to word hints that differ by OS; an unknown token reads as no OS known.

@@ -102,6 +102,9 @@ internal enum ActionId : byte
     AppsList = 56,
     AppsCancel = 57,
 
+    /// <summary>Adding an app profile: asks this laptop for the apps open on it, answered by one <see cref="TextKind.OpenApps"/>. Only for a laptop that sent <see cref="Feature.OpenApps"/>.</summary>
+    OpenAppsList = 63,
+
     /// <summary>
     /// The macro grid is open and wants to know which macro apps are running: MacrosWatch starts this laptop's survey, which
     /// reports <see cref="TextKind.MacroOpen"/> on change only, and MacrosUnwatch stops it. Forgotten when the session ends.
@@ -312,6 +315,9 @@ internal enum TextKind : byte
     /// <see cref="ControlId.ForegroundWatch"/> is 1. Never a title. A laptop that cannot classify sends nothing.
     /// </summary>
     ForegroundKind = 40,
+
+    /// <summary>Laptop to phone, the answer to <see cref="ActionId.OpenAppsList"/>: lines "token TAB name", the token what <see cref="ForegroundApp"/> reports, at most 40.</summary>
+    OpenApps = 41,
 }
 
 /// <summary>
@@ -450,6 +456,9 @@ internal static class Feature
 
     /// <summary>This laptop can classify the app in front, in <see cref="TextKind.ForegroundKind"/>, once <see cref="ControlId.ForegroundWatch"/> is 1.</summary>
     public const string AppKind = "appkind";
+
+    /// <summary>This laptop answers <see cref="ActionId.OpenAppsList"/> with <see cref="TextKind.OpenApps"/>.</summary>
+    public const string OpenApps = "openapps";
 }
 
 /// <summary>The first field of a <see cref="TextKind.NetInfo"/>. Tokens, never prose. Mirrors docs/PROTOCOL.md.</summary>

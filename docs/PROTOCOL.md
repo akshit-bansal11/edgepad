@@ -139,6 +139,7 @@ The laptop deletes its copy only after a FILE_RESULT of 0 that arrives after its
 | CAPTURE_CANCEL | 55 | Escape, only while a capture overlay opened by REGION or RECORD may still be open (8 seconds); otherwise nothing. Sent when the phone leaves its capture screen |
 | APPS_LIST | 56 | sends the apps it could add as a macro, as BLOB kind 2 and then a kind 3 icon each; only for a laptop that named `apps` in TEXT 9 |
 | APPS_CANCEL | 57 | stops that list and its icons |
+| OPEN_APPS_LIST | 63 | asks for the apps open on it, answered by one TEXT 41; one ask, one answer, nothing kept running; only for a laptop that named `openapps` in TEXT 9 |
 | MACROS_WATCH | 58 | the macro grid is open: starts a once-a-second survey of which macro apps are running, reported as TEXT 16 on change only; forgotten when the session ends |
 | MACROS_UNWATCH | 59 | stops that survey |
 
@@ -291,6 +292,8 @@ SLEEP and HIBERNATE act at once. RESTART and SHUT_DOWN do not: the laptop starts
 ## App kind
 
 TEXT 40 FOREGROUND_KIND, laptop to phone, says what kind of app is in front: one of `media`, `timeline` or `browser`, or empty for none. A laptop names `appkind` in TEXT 9 when it can classify, and sends TEXT 40 on change only while CONTROL 11 is 1, as it does for TEXT 21. It is only ever a kind token, never a title or a name, and a laptop that cannot classify sends nothing. The phone uses it to offer controls that fit the app, and an unknown token reads as none.
+
+TEXT 41 OPEN_APPS, laptop to phone, answers ACTION 63 OPEN_APPS_LIST: lines `token<TAB>name` joined by LF. The token is exactly what TEXT 21 reports for that app (Windows: the lower-cased exe file name; Linux X11: the lower-cased WM_CLASS class; Mac: the bundle id) and the name is cleaned as TEXT 21 cleans it. Open apps with a visible window come first, then the apps already added as macros; deduplicated by token, at most 40 lines, a line without a tab or with a bad token dropped. Empty means none. A laptop names `openapps` in TEXT 9 when it answers. Linux on Wayland cannot read other windows, so it sends only the macro apps. The phone shows the list only for a laptop that named `openapps`, else it offers only the app in front. The wire protocol version stays 6.
 
 The laptop decides in this order: the table in `protocol/app-kinds.txt` (rows of kind, OS and the token that OS's reporter emits, matched case-insensitively), then a playing media session, which makes the app `media`, then a browser. A Mac follows Music and Spotify, and reads the front tab of Chrome, Safari and a few other browsers to name a streaming service for the phone's logo, but it never reports a browser as `media` here, so a browser in front is `browser`. The token each OS matches is the one it already reports in TEXT 21: on Windows the lower-cased exe file name with `.exe`, on Linux the lower-cased WM_CLASS class (X11 only), on a Mac the bundle id with its case kept. A token has only `A-Z a-z 0-9 . _ -`, so a Windows exe with a space in its name can never match and is not in the table.
 
