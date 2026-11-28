@@ -109,7 +109,7 @@ object DialFeelScreen {
                                 }
                             }
                         }
-                        card {
+                        card(Space.L) {
                             add(
                                 ui.toggle(ui.string(R.string.dial_feel_each), settings.eachDialSpeed) { on ->
                                     settings.eachDialSpeed = on
@@ -117,7 +117,7 @@ object DialFeelScreen {
                                 },
                             )
                         }
-                        add(each)
+                        add(each, Space.L)
                     }
                 },
             )
