@@ -1,27 +1,25 @@
 package me.akshitbansal.edgepad.link
 
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class TransportSwitchTest {
     @Test
-    fun aTapWithNothingWorkingSelects() {
-        assertTrue(selectsOnTap(tapped = true, connected = false, switchesConnected = false))
+    fun aSwitchThatSucceedsEndsTheOldLinkQuietly() {
+        assertEquals(CloseReaction.QUIET, closeReaction(ended = true, wasConnected = true, handoverPending = false))
+        assertEquals(CloseReaction.QUIET, closeReaction(ended = false, wasConnected = true, handoverPending = true))
     }
 
     @Test
-    fun aSwitchOfTransportSelectsEvenWhileConnected() {
-        assertTrue(selectsOnTap(tapped = true, connected = true, switchesConnected = true))
+    fun aSwitchThatFailsLeavesTheOldLinkAloneAndOnlyTheNewOneFails() {
+        assertEquals(CloseReaction.FAILED, closeReaction(ended = false, wasConnected = false, handoverPending = false))
     }
 
     @Test
-    fun anotherLaptopWaitsOnItsRow() {
-        assertFalse(selectsOnTap(tapped = true, connected = true, switchesConnected = false))
-    }
-
-    @Test
-    fun noTapNeverSelects() {
-        assertFalse(selectsOnTap(tapped = false, connected = false, switchesConnected = true))
+    fun aRealDropOfANormalLinkStillReconnects() {
+        assertEquals(
+            CloseReaction.RECONNECT,
+            closeReaction(ended = false, wasConnected = true, handoverPending = false),
+        )
     }
 }

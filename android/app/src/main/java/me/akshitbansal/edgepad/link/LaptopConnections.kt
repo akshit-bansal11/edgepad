@@ -368,6 +368,12 @@ class LaptopConnections(
         closure: LaptopLink.Closure,
     ) {
         stopPinger(laptop)
+        // The laptop may let go of the old link as the new one comes in: that is the switch, not a drop.
+        val successor = all.firstOrNull { it !== laptop && laptop.id in it.replacing && it.link != null }
+        val quiet =
+            closeReaction(closure.cause == LaptopLink.Cause.ENDED, link.wasConnected, successor != null) ==
+                CloseReaction.QUIET
+        if (successor != null && quiet && laptop === selected) change(successor)
         laptop.link = null
         // A switch that failed must not end the old record's link at some later connect.
         laptop.replacing = emptyList()
@@ -375,11 +381,11 @@ class LaptopConnections(
         laptop.state.forgetInputBlocked()
         laptop.state.forgetPower()
         clearAsking(laptop)
-        laptop.failed = closure.cause != LaptopLink.Cause.ENDED
+        laptop.failed = !quiet
         laptop.lastCause = closure.cause.takeIf { laptop.failed }
         when {
-            // A link ended on purpose starts the next one with a full set of attempts.
-            closure.cause == LaptopLink.Cause.ENDED -> {
+            // A link ended on purpose, or handed over to its replacement, restarts with a full set of attempts.
+            quiet -> {
                 laptop.attempts = 0
                 laptop.reconnecting = false
             }

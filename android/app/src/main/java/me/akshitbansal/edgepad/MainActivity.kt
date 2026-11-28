@@ -104,7 +104,6 @@ import me.akshitbansal.edgepad.link.pickerHint
 import me.akshitbansal.edgepad.link.probeAddress
 import me.akshitbansal.edgepad.link.promoted
 import me.akshitbansal.edgepad.link.rememberLaptop
-import me.akshitbansal.edgepad.link.selectsOnTap
 import me.akshitbansal.edgepad.link.snapUp
 import me.akshitbansal.edgepad.link.xfer.Transfers
 import me.akshitbansal.edgepad.link.xfer.XferPhase
@@ -3086,10 +3085,8 @@ class MainActivity :
         tapped: Boolean = false,
         switching: List<Laptop> = emptyList(),
     ) {
-        // A switch of transport on the same laptop selects the new record at once and ends the old link on purpose, so
-        // its close is no drop and the screen never says Reconnecting.
-        val old = switching.filter { it.connected }
-        val select = selectsOnTap(tapped, connected, old.isNotEmpty())
+        // A switch keeps the working link selected until the new one is up; the manager hands over then.
+        val select = tapped && !connected
         val replacing = switching.map { it.id }
         when (target) {
             is Target.Bluetooth -> {
@@ -3100,7 +3097,6 @@ class MainActivity :
                 manager.connect(target, target.name, via ?: Transport.WIFI, tapped, select, replacing)
             }
         }
-        old.forEach { manager.disconnect(it.id) }
     }
 
     /** [laptop] works, so it is remembered, under the key it was reached by; TEXT DEVICE brings its real name here. */

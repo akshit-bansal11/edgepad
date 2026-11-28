@@ -1,11 +1,20 @@
 package me.akshitbansal.edgepad.link
 
+/** What a closed link means for its record. */
+internal enum class CloseReaction { QUIET, RECONNECT, FAILED }
+
 /**
- * Whether a tap's connect takes the selection at once. With nothing working it does; so it does when the tap moves the
- * same laptop to another transport, whose old link is ended on the spot so that its close is never read as a drop.
+ * A link ended on purpose is quiet, and so is a working one that closes while another transport's record, which names
+ * it as the one it replaces, is still connecting: the laptop let go as the switch began. Any other working link that
+ * closes was dropped, and never-connected ones failed.
  */
-internal fun selectsOnTap(
-    tapped: Boolean,
-    connected: Boolean,
-    switchesConnected: Boolean,
-): Boolean = tapped && (!connected || switchesConnected)
+internal fun closeReaction(
+    ended: Boolean,
+    wasConnected: Boolean,
+    handoverPending: Boolean,
+): CloseReaction =
+    when {
+        ended || (wasConnected && handoverPending) -> CloseReaction.QUIET
+        wasConnected -> CloseReaction.RECONNECT
+        else -> CloseReaction.FAILED
+    }
