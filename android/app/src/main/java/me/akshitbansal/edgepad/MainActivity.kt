@@ -28,6 +28,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.EditText
@@ -656,14 +657,32 @@ class MainActivity :
             // Carried over, or the readout would stand blank after a rotation and then restart from one sample.
             picker.setRtt(selected?.rtt?.median() ?: Double.NaN)
         }
+        val opening = OpeningScreen.due(retained != null, settings.openingVersion, getString(R.string.app_version))
+        if (opening && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) holdSplash()
         goTo(
             when {
-                retained == null && settings.openingVersion != getString(R.string.app_version) -> Screen.OPENING
+                opening -> Screen.OPENING
                 !settings.onboarded -> Screen.ONBOARDING
                 retained != null -> retained.screen
                 else -> Screen.PAIRING
             },
         )
+    }
+
+    /** Keeps the Android 12 launch screen up for its whole pop (760 ms, themes.xml), only on the opening's open. */
+    private fun holdSplash() {
+        val decor = window.decorView
+        val until = SystemClock.uptimeMillis() + SPLASH_MS
+        decor.viewTreeObserver.addOnPreDrawListener(
+            object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    if (SystemClock.uptimeMillis() < until) return false
+                    decor.viewTreeObserver.removeOnPreDrawListener(this)
+                    return true
+                }
+            },
+        )
+        decor.postDelayed({ decor.invalidate() }, SPLASH_MS)
     }
 
     override fun onRetainNonConfigurationInstance(): Any =
@@ -3523,6 +3542,9 @@ class MainActivity :
 
     private companion object {
         const val GITHUB_URL = "https://github.com/akshit-bansal11/edgepad"
+
+        /** The launch screen's pop, android:windowSplashScreenAnimationDuration in themes.xml. */
+        const val SPLASH_MS = 760L
 
         /** Screens that show a secret (the PIN, a pairing code): FLAG_SECURE, and never carried. */
         val secure = setOf(Screen.PIN, Screen.PAIR_CODE)

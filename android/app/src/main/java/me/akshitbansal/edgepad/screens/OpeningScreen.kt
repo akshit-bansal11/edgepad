@@ -28,6 +28,13 @@ import me.akshitbansal.edgepad.Type
  * rest fades in at 800 ms, each over [Motion.REVEAL]; with the system's animations off everything is already there.
  */
 object OpeningScreen {
+    /** True on a fresh start (not a rotation) whose version has not had its opening yet. */
+    fun due(
+        rotated: Boolean,
+        shownVersion: String,
+        version: String,
+    ): Boolean = !rotated && shownVersion != version
+
     private const val LOGO_DP = 112f
     private const val GRID_DP = 22f
     private const val GRID_ALPHA = 14

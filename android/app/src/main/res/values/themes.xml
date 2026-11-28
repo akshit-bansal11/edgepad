@@ -11,7 +11,7 @@
     <item name="android:navigationBarColor">@color/panel</item>
     <!-- AND-B-37: every AlertDialog built from this theme's context picks the dialog theme below. -->
     <item name="android:alertDialogTheme">@style/Theme.Edgepad.Dialog</item>
-    <!-- The launch screen plays the logo pop (drawable{,-night}/splash_logo.xml); MainActivity holds the first draw that long. -->
+    <!-- The launch screen plays the logo pop (drawable{,-night}/splash_logo.xml); MainActivity holds the first draw that long, but only on the first open after an update (the opening screen). -->
     <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
     <item name="android:windowSplashScreenAnimationDuration">760</item>
     <item name="android:windowSplashScreenBackground">@color/ic_launcher_background</item>

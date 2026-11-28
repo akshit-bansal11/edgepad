@@ -17,9 +17,9 @@ import kotlin.math.sin
 
 /**
  * The Edgepad logo in its dark colours, drawn here so it can play its 0.75 s pop: the exact tile path (a vector), a
- * true quarter-circle arc and the ticks, each [LogoMotion] part springing out from the pivot. One animator, started
- * when the view joins a window and ended when it leaves; the system's animation scale zeroes it, which draws the
- * finished logo at once. Decorative.
+ * true quarter-circle arc and the ticks, each [LogoMotion] part springing out from the pivot. One animator, started on
+ * the first draw after the view joins a window (so a held launch screen is over first) and ended when it leaves; the
+ * system's animation scale zeroes it, which draws the finished logo at once. Decorative.
  */
 class LogoView(
     context: Context,
@@ -33,6 +33,7 @@ class LogoView(
     private val box = RectF()
     private var ms = LogoMotion.TOTAL_MS
     private var animator: ValueAnimator? = null
+    private var played = false
 
     init {
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -40,6 +41,7 @@ class LogoView(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        played = false
         animator =
             ValueAnimator.ofFloat(0f, LogoMotion.TOTAL_MS).apply {
                 duration = LogoMotion.TOTAL_MS.toLong()
@@ -48,7 +50,7 @@ class LogoView(
                     ms = it.animatedValue as Float
                     invalidate()
                 }
-                start()
+                ms = 0f
             }
     }
 
@@ -59,6 +61,10 @@ class LogoView(
     }
 
     override fun onDraw(canvas: Canvas) {
+        if (!played) {
+            played = true
+            animator?.start()
+        }
         val unit = min(width, height) / LogoMotion.CANVAS
         tile?.setBounds(0, 0, width, height)
         tile?.draw(canvas)
