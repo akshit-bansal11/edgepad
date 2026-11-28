@@ -32,6 +32,7 @@ import android.widget.TextView
 import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
+import me.akshitbansal.edgepad.Sounds
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
@@ -526,8 +527,11 @@ class Ui(
                     },
                 )
             }
+        // The platform's own click would play whenever the phone's touch sounds are on; the Sounds switch decides.
+        view.isSoundEffectsEnabled = false
         view.setOnClickListener {
             Carry.mark(view)
+            Sounds.click(view.context)
             onClick()
         }
     }

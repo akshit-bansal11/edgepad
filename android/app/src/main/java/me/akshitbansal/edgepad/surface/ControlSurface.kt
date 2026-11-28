@@ -28,6 +28,7 @@ import me.akshitbansal.edgepad.Motion
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
+import me.akshitbansal.edgepad.Sounds
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.drawFitted
@@ -249,7 +250,7 @@ class ControlSurface(
                 Dial.BASE_UNITS_PER_DP * settings.sensitivityOf(kind),
                 settings.snap,
                 send,
-                ::haptic,
+                ::dialStep,
                 slot,
                 devices,
             )
@@ -1803,6 +1804,12 @@ class ControlSurface(
 
     private fun haptic() {
         if (hapticsOn) performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+    }
+
+    /** A dial step: the haptic tick, and the sound tick when sounds are on. */
+    private fun dialStep() {
+        haptic()
+        Sounds.tick(context)
     }
 
     private fun dp(value: Float): Float = value * density

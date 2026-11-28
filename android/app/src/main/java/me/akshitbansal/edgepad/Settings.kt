@@ -137,6 +137,13 @@ class Settings(
 
     var haptics by flag("haptics", true)
 
+    /** A system click on taps and a tick on dial steps (the Accessibility page); [Sounds.on] mirrors it. */
+    var sounds by flag("sounds", false)
+
+    init {
+        Sounds.on = sounds
+    }
+
     /** Share the clipboard with the selected laptop, when it offers to. Each laptop's own switch must be on too. */
     var clipboardSync by flag("clipboardSync", false)
 

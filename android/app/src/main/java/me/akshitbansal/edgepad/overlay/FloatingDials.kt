@@ -10,6 +10,7 @@ import android.view.WindowManager
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
+import me.akshitbansal.edgepad.Sounds
 import me.akshitbansal.edgepad.link.LaptopState
 import me.akshitbansal.edgepad.protocol.Frame
 import me.akshitbansal.edgepad.surface.CornerSlots
@@ -178,13 +179,19 @@ class FloatingDials(
             Dial.BASE_UNITS_PER_DP * settings.sensitivityOf(spec.kind),
             settings.snap,
             send,
-            ::haptic,
+            ::dialStep,
             spec.slot,
             DeviceSwitch.None,
         )
 
     private fun haptic() {
         if (settings.haptics) windows.firstOrNull()?.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+    }
+
+    /** A dial step: the haptic tick, and the sound tick when sounds are on. */
+    private fun dialStep() {
+        haptic()
+        Sounds.tick(app)
     }
 
     private fun applyState() {
