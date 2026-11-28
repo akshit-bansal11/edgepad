@@ -12,7 +12,7 @@ object PresenterSettingsScreen {
         settings: Settings,
         onBack: () -> Unit,
     ): View =
-        ui.page(ui.bar("", onBack, backLabel = ui.string(R.string.settings_title))) {
+        ui.page(ui.bar("", onBack, backLabel = ui.string(R.string.presenter_title))) {
             largeTitle(ui.string(R.string.presenter_settings))
             section(ui.string(R.string.presenter_laser_title))
             card {

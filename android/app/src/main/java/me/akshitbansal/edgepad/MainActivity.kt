@@ -158,6 +158,7 @@ import me.akshitbansal.edgepad.screens.PinScreen
 import me.akshitbansal.edgepad.screens.PowerBanner
 import me.akshitbansal.edgepad.screens.PowerScreen
 import me.akshitbansal.edgepad.screens.PresenterScreen
+import me.akshitbansal.edgepad.screens.PresenterSettingsScreen
 import me.akshitbansal.edgepad.screens.ProfilesScreen
 import me.akshitbansal.edgepad.screens.ReconnectingScreen
 import me.akshitbansal.edgepad.screens.SettingsScreen
@@ -267,6 +268,7 @@ class MainActivity :
         CONTROLS_SETTINGS,
         ACCESSIBILITY,
         CAPTURE_SETTINGS,
+        PRESENTER_SETTINGS,
         CAPTURE,
         ANNOTATE,
         PRESENTER,
@@ -1575,6 +1577,7 @@ class MainActivity :
                         send,
                         onLaser = ::presenterLaser,
                         screenSize = { state.screenSize },
+                        onSettings = { goTo(Screen.PRESENTER_SETTINGS) },
                     ) { navigateBack() }
                         .also { presenter = it }
                         .view
@@ -1667,6 +1670,10 @@ class MainActivity :
                             if (connected) manager.send(target.frame())
                         },
                     ) { navigateBack() }
+                }
+
+                Screen.PRESENTER_SETTINGS -> {
+                    PresenterSettingsScreen.build(ui, settings) { navigateBack() }
                 }
 
                 Screen.MACRO_SETTINGS -> {
@@ -1983,6 +1990,10 @@ class MainActivity :
 
             Screen.MACRO_SETTINGS -> {
                 goTo(childFrom ?: Screen.MACROS)
+            }
+
+            Screen.PRESENTER_SETTINGS -> {
+                goTo(Screen.PRESENTER)
             }
 
             // Accessibility opens from Settings, Capture's settings from the Capture screen's gear.
