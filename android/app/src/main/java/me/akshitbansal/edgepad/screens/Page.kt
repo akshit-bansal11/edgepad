@@ -568,6 +568,20 @@ class Ui(
         options: List<CharSequence>,
         selected: Int,
         onSelect: (Int) -> Unit,
+    ): View = segmentedControl(options, selected, false, onSelect)
+
+    /** A [segmented] control that spans the whole width it is given, its options sharing it equally. */
+    fun segmentedFull(
+        options: List<CharSequence>,
+        selected: Int,
+        onSelect: (Int) -> Unit,
+    ): View = segmentedControl(options, selected, true, onSelect)
+
+    private fun segmentedControl(
+        options: List<CharSequence>,
+        selected: Int,
+        stretch: Boolean,
+        onSelect: (Int) -> Unit,
     ): View {
         val inset = dp(SEGMENT_INSET_DP)
         // Every option is the width of the widest, measured in the bold face it takes when chosen, rather than
@@ -602,10 +616,16 @@ class Ui(
                 options.forEach { label ->
                     addView(
                         text(label, Type.SMALL, palette.ink).apply { gravity = Gravity.CENTER },
-                        LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT),
+                        if (stretch) {
+                            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
+                        } else {
+                            LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT)
+                        },
                     )
                 }
             }
+        // One option's width: fixed when the control is its natural size, measured at layout when it stretches.
+        var cell = width
         val fill =
             View(context).apply {
                 background =
@@ -630,7 +650,7 @@ class Ui(
                 option.stateDescription = if (on) string(R.string.chosen) else null
             }
             // The thumb starts at the start edge, so it slides towards the left in Arabic.
-            val x = (current * width).toFloat() * if (rtl) -1 else 1
+            val x = (current * cell).toFloat() * if (rtl) -1 else 1
             // Slid only once the control has been seen somewhere. The first placement is the control
             // appearing, and a thumb sliding in from the left on every page open would read as the choice
             // having just changed when nothing has. Animations off in system settings means it never slides.
@@ -666,12 +686,26 @@ class Ui(
             addView(fill)
             addView(
                 labels,
-                FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, touch).apply {
-                    leftMargin = inset
-                    rightMargin = inset
-                },
+                FrameLayout
+                    .LayoutParams(
+                        if (stretch) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT,
+                        touch,
+                    ).apply {
+                        leftMargin = inset
+                        rightMargin = inset
+                    },
             )
             paint(animate = false)
+            if (stretch) {
+                addOnLayoutChangeListener { _, left, _, right, _, _, _, _, _ ->
+                    val share = (right - left - 2 * inset) / options.size
+                    if (share > 0 && share != cell) {
+                        cell = share
+                        fill.layoutParams = (fill.layoutParams as FrameLayout.LayoutParams).apply { this.width = share }
+                        paint(animate = false)
+                    }
+                }
+            }
         }
     }
 

@@ -3,12 +3,16 @@ package me.akshitbansal.edgepad.screens
 import android.content.Context
 import android.graphics.Canvas
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
+import android.widget.TextView
 import me.akshitbansal.edgepad.Palette
 import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Settings
 import me.akshitbansal.edgepad.Space
+import me.akshitbansal.edgepad.Type
 import me.akshitbansal.edgepad.surface.Backdrop
 import kotlin.math.roundToInt
 
@@ -23,7 +27,8 @@ import kotlin.math.roundToInt
 object AppearanceScreen {
     private const val PERCENT = 100
     private const val OPACITY_STEPS = 20
-    private const val PREVIEW_DP = 110f
+    private const val PREVIEW_DP = 160f
+    private const val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
     private val angleRange = StepRange(0f, Settings.MAX_ANGLE, 15f)
     private val sizeRange = StepRange(Settings.MIN_PATTERN_SIZE, Settings.MAX_PATTERN_SIZE, 4f)
 
@@ -62,36 +67,84 @@ object AppearanceScreen {
         val preview = Preview(ui.context, settings)
         val bar =
             ui.bar(ui.string(R.string.appearance_title), onBack, backLabel = ui.string(R.string.settings_surface_title))
-        return ui.page(bar) {
-            columns(
-                {
-                    section(ui.string(R.string.settings_controls))
-                    card { add(controlColor(ui, settings)) }
-                    section(ui.string(R.string.background))
-                    card { add(background(ui, settings, preview, onPickImage)) }
-                },
-                {
-                    section(ui.string(R.string.pattern))
-                    card { add(pattern(ui, settings, preview)) }
-                    section(ui.string(R.string.appearance_preview))
-                    add(previewCard(ui, preview))
-                },
-            )
+        val sections: Column.() -> Unit = {
+            add(panel(ui, ui.string(R.string.settings_controls), controlColor(ui, settings)), Space.M)
+            add(panel(ui, ui.string(R.string.background), background(ui, settings, preview, onPickImage)), Space.L)
+            add(panel(ui, ui.string(R.string.pattern), pattern(ui, settings, preview)), Space.L)
+        }
+        if (!ui.landscape) {
+            // Upright: the preview first, so every change below it can be seen without scrolling back up.
+            return ui.page(bar) {
+                add(previewPanel(ui, preview, false), Space.M)
+                sections()
+            }
+        }
+        // Sideways: the settings scroll on the left and the preview holds still, large, on the right.
+        val right =
+            FrameLayout(ui.context).apply {
+                ui.padToBars(this)
+                addView(
+                    previewPanel(ui, preview, true),
+                    FrameLayout.LayoutParams(MATCH, MATCH).apply {
+                        topMargin = ui.dp(Space.M)
+                        bottomMargin = ui.dp(Space.L)
+                        marginEnd = ui.dp(Space.PAGE)
+                    },
+                )
+            }
+        return LinearLayout(ui.context).apply {
+            setBackgroundColor(ui.palette.background)
+            addView(ui.page(bar, fill = sections), LinearLayout.LayoutParams(0, MATCH, 1f))
+            addView(right, LinearLayout.LayoutParams(0, MATCH, 1f))
         }
     }
 
-    /** The preview strip inset on a card of its own, rounded a step tighter than the card round it. */
-    private fun previewCard(
+    /** One section in one rounded container: its name over its controls, spaced by the card's own padding. */
+    private fun panel(
         ui: Ui,
-        preview: Preview,
+        title: String,
+        content: View,
     ): View =
         LinearLayout(ui.context).apply {
-            background = ui.rounded(ui.palette.card, Space.PANEL_RADIUS)
-            val pad = ui.dp(Space.S)
-            setPadding(pad, pad, pad, pad)
+            orientation = LinearLayout.VERTICAL
+            background = ui.rounded(ui.palette.card, Space.CARD_RADIUS)
+            setPadding(ui.dp(Space.CARD_PAD), 0, ui.dp(Space.CARD_PAD), 0)
+            addView(header(ui, title))
+            addView(content)
+        }
+
+    private fun header(
+        ui: Ui,
+        title: String,
+    ): TextView =
+        ui.text(title, Type.SMALL, ui.palette.dim, face = Type.bold).apply {
+            isAccessibilityHeading = true
+            setPadding(0, ui.dp(Space.M), 0, ui.dp(Space.XS))
+        }
+
+    /**
+     * The preview in a container of its own, its picture rounded a step tighter than the card round it. [tall]
+     * fills the height it is given, which is how the sideways page makes it large; upright it is a strip.
+     */
+    private fun previewPanel(
+        ui: Ui,
+        preview: Preview,
+        tall: Boolean,
+    ): View =
+        LinearLayout(ui.context).apply {
+            orientation = LinearLayout.VERTICAL
+            background = ui.rounded(ui.palette.card, Space.CARD_RADIUS)
+            setPadding(ui.dp(Space.CARD_PAD), 0, ui.dp(Space.CARD_PAD), ui.dp(Space.CARD_PAD))
             preview.background = ui.rounded(ui.palette.background, Space.TILE_RADIUS)
             preview.clipToOutline = true
-            addView(preview, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, ui.dp(PREVIEW_DP)))
+            addView(header(ui, ui.string(R.string.appearance_preview)))
+            val at =
+                if (tall) {
+                    LinearLayout.LayoutParams(MATCH, 0, 1f)
+                } else {
+                    LinearLayout.LayoutParams(MATCH, ui.dp(PREVIEW_DP))
+                }
+            addView(preview, at)
         }
 
     /** Auto follows the background; custom shows a picker whose colour every control shares. */
@@ -115,12 +168,12 @@ object AppearanceScreen {
                 }
             }
             val modes = listOf(ui.string(R.string.control_color_auto), ui.string(R.string.control_color_custom))
-            val mode =
-                ui.segmented(modes, if (settings.controlColor == null) 0 else 1) { i ->
+            addView(
+                pills(ui, modes, if (settings.controlColor == null) 0 else 1, full = true) { i ->
                     settings.controlColor = if (i == 0) null else ui.palette.ink
                     fill()
-                }
-            addView(ui.segmentedField(ui.string(R.string.control_color), mode))
+                },
+            )
             addView(details)
             fill()
         }
@@ -227,7 +280,7 @@ object AppearanceScreen {
             val names = patterns.map { ui.string(patternNames.getValue(it)) }
             val details = block(ui)
             addView(
-                pills(ui, names, patterns.indexOf(settings.pattern)) { i ->
+                pills(ui, names, patterns.indexOf(settings.pattern), full = true) { i ->
                     settings.pattern = patterns[i]
                     preview.update()
                     patternRows(ui, settings, preview, details)
@@ -285,18 +338,28 @@ object AppearanceScreen {
      * One segment per option, the chosen one on the raised thumb, scrolling sideways if they outgrow the card.
      * Until 3.2 this was a row of chips of its own, a second control for the job Settings' segmented control
      * already did; the segmented control moves its own thumb, so [onPick] only has the rows under it to redo.
+     * [full] spans the whole card instead, its options sharing the width, and then has no need to scroll.
      */
     private fun pills(
         ui: Ui,
         names: List<CharSequence>,
         chosen: Int,
+        full: Boolean = false,
         onPick: (Int) -> Unit,
-    ): View =
-        HorizontalScrollView(ui.context).apply {
+    ): View {
+        if (full) {
+            return FrameLayout(ui.context).apply {
+                setPadding(0, ui.dp(Space.S), 0, ui.dp(Space.S))
+                val at = FrameLayout.LayoutParams(MATCH, ViewGroup.LayoutParams.WRAP_CONTENT)
+                addView(ui.segmentedFull(names, chosen, onPick), at)
+            }
+        }
+        return HorizontalScrollView(ui.context).apply {
             isHorizontalScrollBarEnabled = false
             setPadding(0, ui.dp(Space.S), 0, ui.dp(Space.S))
             addView(ui.segmented(names, chosen, onPick))
         }
+    }
 
     /** An empty run of rows, filled and refilled by the block it sits in. */
     private fun block(ui: Ui): LinearLayout = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
