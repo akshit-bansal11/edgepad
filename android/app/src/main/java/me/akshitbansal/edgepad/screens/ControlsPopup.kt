@@ -100,8 +100,8 @@ object ControlsPlan {
 private const val HEADER_DP = 48f
 private const val HEADING_SP = 17f
 
-/** The pencil: a 48 dp touch target with a 16 dp glyph in its centre. */
-private const val PENCIL_DP = 16f
+/** The pencil: a 48 dp touch target with a 24 dp glyph in its centre, the gear's size. */
+private const val PENCIL_DP = 24f
 
 /** What a closing popup shrinks to, matching what [Carry.reveal] grows from. */
 private const val CLOSE_SCALE = 0.85f
@@ -214,7 +214,7 @@ class ControlsPopup(
 
     /**
      * The popup's only control, at the end of the header row. A pencil turns edit mode on; in edit mode it is a check
-     * in the accent. The touch target is 48 dp, the glyph 16 dp in its centre.
+     * in the accent. The touch target is 48 dp, the glyph 24 dp in its centre.
      */
     private val editButton =
         ImageView(ui.context).apply {
