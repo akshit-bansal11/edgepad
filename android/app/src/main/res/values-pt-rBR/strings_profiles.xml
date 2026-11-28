@@ -18,4 +18,6 @@
   <string name="auto_kind_media">Mídia</string>
   <string name="auto_kind_timeline">Linha do tempo</string>
   <string name="auto_kind_browser">Navegador</string>
+  <string name="profiles_needs_four">Os perfis de apps só funcionam com 4 réguas.</string>
+  <string name="profiles_split_off">Com 8 réguas, os perfis de apps são desativados.</string>
 </resources>

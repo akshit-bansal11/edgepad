@@ -18,4 +18,6 @@
   <string name="auto_kind_media">Media</string>
   <string name="auto_kind_timeline">Tijdlijn</string>
   <string name="auto_kind_browser">Browser</string>
+  <string name="profiles_needs_four">App-profielen werken alleen met 4 regelaars.</string>
+  <string name="profiles_split_off">Met 8 regelaars staan app-profielen uit.</string>
 </resources>

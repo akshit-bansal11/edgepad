@@ -18,4 +18,6 @@
   <string name="auto_kind_media">Multimedia</string>
   <string name="auto_kind_timeline">Oś czasu</string>
   <string name="auto_kind_browser">Przeglądarka</string>
+  <string name="profiles_needs_four">Profile aplikacji działają tylko przy 4 suwakach.</string>
+  <string name="profiles_split_off">Przy 8 suwakach profile aplikacji są wyłączone.</string>
 </resources>

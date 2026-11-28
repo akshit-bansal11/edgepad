@@ -18,4 +18,6 @@
   <string name="auto_kind_media">मीडिया</string>
   <string name="auto_kind_timeline">टाइमलाइन</string>
   <string name="auto_kind_browser">ब्राउज़र</string>
+  <string name="profiles_needs_four">ऐप प्रोफ़ाइल सिर्फ़ 4 डायल के साथ काम करती हैं।</string>
+  <string name="profiles_split_off">8 डायल होने पर ऐप प्रोफ़ाइल बंद हो जाती हैं।</string>
 </resources>

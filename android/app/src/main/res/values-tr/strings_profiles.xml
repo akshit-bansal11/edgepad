@@ -18,4 +18,6 @@
   <string name="auto_kind_media">Medya</string>
   <string name="auto_kind_timeline">Zaman çizelgesi</string>
   <string name="auto_kind_browser">Tarayıcı</string>
+  <string name="profiles_needs_four">Uygulama profilleri yalnızca 4 kadranla çalışır.</string>
+  <string name="profiles_split_off">8 kadranda uygulama profilleri kapanır.</string>
 </resources>

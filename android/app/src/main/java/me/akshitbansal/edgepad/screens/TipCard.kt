@@ -40,6 +40,24 @@ object TipCard {
     ): Boolean {
         if (settings.tipSeen(key)) return false
         settings.setTipSeen(key)
+        notice(host, icon, text, bottomDp, startDp, endDp)
+        return true
+    }
+
+    /**
+     * Shows [text] on [host] every time it is called: the tip card for a message the screen must give again, such as
+     * what a change just turned off. [gravity] puts it at the bottom centre, or at the bottom right with
+     * `Gravity.BOTTOM or Gravity.END`.
+     */
+    fun notice(
+        host: FrameLayout,
+        icon: StencilIcon.Kind,
+        text: Int,
+        bottomDp: Float = Space.L,
+        startDp: Float = Space.L,
+        endDp: Float = Space.L,
+        gravity: Int = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
+    ) {
         val ui = Ui(host.context)
         val p = ui.palette
         val card =
@@ -86,7 +104,7 @@ object TipCard {
         val room = host.resources.displayMetrics.widthPixels - ui.dp(startDp) - ui.dp(endDp)
         val at =
             FrameLayout
-                .LayoutParams(minOf(room, ui.dp(MAX_WIDTH_DP)), wrap, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL)
+                .LayoutParams(minOf(room, ui.dp(MAX_WIDTH_DP)), wrap, gravity)
                 .apply {
                     marginStart = ui.dp(startDp)
                     marginEnd = ui.dp(endDp)
@@ -99,6 +117,5 @@ object TipCard {
             .translationY(0f)
             .setDuration(Motion.REVEAL)
             .start()
-        return true
     }
 }

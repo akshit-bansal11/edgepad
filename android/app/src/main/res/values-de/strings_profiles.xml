@@ -18,4 +18,6 @@
   <string name="auto_kind_media">Medien</string>
   <string name="auto_kind_timeline">Schnitt</string>
   <string name="auto_kind_browser">Browser</string>
+  <string name="profiles_needs_four">App-Profile funktionieren nur mit 4 Reglern.</string>
+  <string name="profiles_split_off">Mit 8 Reglern sind App-Profile aus.</string>
 </resources>

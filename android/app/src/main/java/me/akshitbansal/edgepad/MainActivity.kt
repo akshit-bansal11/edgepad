@@ -167,9 +167,11 @@ import me.akshitbansal.edgepad.screens.ShapeDrawScreen
 import me.akshitbansal.edgepad.screens.ShapesScreen
 import me.akshitbansal.edgepad.screens.SharingScreen
 import me.akshitbansal.edgepad.screens.SheetRegistry
+import me.akshitbansal.edgepad.screens.StencilIcon
 import me.akshitbansal.edgepad.screens.SurfaceSettingsScreen
 import me.akshitbansal.edgepad.screens.SystemHub
 import me.akshitbansal.edgepad.screens.SystemScreen
+import me.akshitbansal.edgepad.screens.TipCard
 import me.akshitbansal.edgepad.screens.Ui
 import me.akshitbansal.edgepad.screens.WidgetsScreen
 import me.akshitbansal.edgepad.screens.XferCard
@@ -1044,15 +1046,19 @@ class MainActivity :
     private fun automaticProfiles(): Boolean =
         settings.profilesOn && settings.autoProfiles && Feature.APP_KIND in state.features
 
-    /** The profile that applies to the app in front, or null for the default dials. */
+    /** The profile that applies to the app in front, or null for the default dials; always null with eight dials. */
     private fun frontProfile(): Profile? =
-        AutoProfiles.resolve(
-            custom = state.foreground?.let { Profiles(settings.profiles).forApp(it.token) },
-            profilesOn = settings.profilesOn,
-            autoOn = automaticProfiles(),
-            kind = state.foregroundKind,
-            raw = settings.autoProfilesRaw,
-        )
+        if (settings.splitCorners) {
+            null
+        } else {
+            AutoProfiles.resolve(
+                custom = state.foreground?.let { Profiles(settings.profiles).forApp(it.token) },
+                profilesOn = settings.profilesOn,
+                autoOn = automaticProfiles(),
+                kind = state.foregroundKind,
+                raw = settings.autoProfilesRaw,
+            )
+        }
 
     /** The app in front changed: the surface is rebuilt only when that gives another profile than the one drawn. */
     private fun followForeground() {
@@ -1451,6 +1457,7 @@ class MainActivity :
                         },
                         current = state.foreground,
                         supported = Feature.FOREGROUND in state.features,
+                        split = settings.splitCorners,
                         autoOn = settings.autoProfiles,
                         setAutoOn = { auto ->
                             settings.autoProfiles = auto
@@ -1469,7 +1476,21 @@ class MainActivity :
                 }
 
                 Screen.CORNERS -> {
-                    CornersScreen.build(ui, settings, { goTo(Screen.CORNERS) }) { navigateBack() }
+                    CornersScreen.build(
+                        ui,
+                        settings,
+                        {
+                            goTo(Screen.CORNERS)
+                            if (settings.splitCorners && settings.profilesOn) {
+                                TipCard.notice(
+                                    stage,
+                                    StencilIcon.Kind.SYSTEM,
+                                    R.string.profiles_split_off,
+                                    gravity = Gravity.BOTTOM or Gravity.END,
+                                )
+                            }
+                        },
+                    ) { navigateBack() }
                 }
 
                 Screen.GESTURES -> {

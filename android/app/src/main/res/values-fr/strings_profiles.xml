@@ -18,4 +18,6 @@
   <string name="auto_kind_media">Média</string>
   <string name="auto_kind_timeline">Montage</string>
   <string name="auto_kind_browser">Navigateur</string>
+  <string name="profiles_needs_four">Les profils d’apps ne fonctionnent qu’avec 4 règles.</string>
+  <string name="profiles_split_off">Avec 8 règles, les profils d’apps sont désactivés.</string>
 </resources>

@@ -42,6 +42,7 @@ object ProfilesScreen {
         setRaw: (String) -> Unit,
         current: ForegroundApp?,
         supported: Boolean,
+        split: Boolean,
         autoOn: Boolean,
         setAutoOn: (Boolean) -> Unit,
         autoRaw: String,
@@ -144,7 +145,7 @@ object ProfilesScreen {
         }
 
         fun Column.automatic() {
-            val live = masterOn && supported
+            val live = masterOn && supported && !split
             val kindRows =
                 listOf(
                     AppKindToken.MEDIA to R.string.auto_kind_media,
@@ -269,8 +270,8 @@ object ProfilesScreen {
                             render()
                         }
                     }
-                addButton.isEnabled = !none
-                addButton.alpha = if (none) DISABLED_ALPHA else 1f
+                addButton.isEnabled = !none && !split
+                addButton.alpha = if (none || split) DISABLED_ALPHA else 1f
                 add(addButton, Space.XL)
             }
         }
@@ -280,15 +281,22 @@ object ProfilesScreen {
         ) {
             card {
                 val toggle =
-                    ui.toggle(ui.string(R.string.profiles_toggle), on && supported) {
+                    ui.toggle(ui.string(R.string.profiles_toggle), on && supported && !split) {
                         masterOn = it
                         setOn(it)
                         render()
                     }
-                toggle.isEnabled = supported
+                toggle.isEnabled = supported && !split
+                toggle.alpha = if (split) DISABLED_ALPHA else 1f
                 add(toggle)
             }
-            footnote(ui.string(if (supported) R.string.profiles_caption else R.string.profiles_unsupported))
+            val caption =
+                when {
+                    split -> R.string.profiles_needs_four
+                    supported -> R.string.profiles_caption
+                    else -> R.string.profiles_unsupported
+                }
+            footnote(ui.string(caption))
             section(ui.string(R.string.profiles_title))
             add(list)
         }
