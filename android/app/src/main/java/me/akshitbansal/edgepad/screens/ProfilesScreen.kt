@@ -268,7 +268,8 @@ object ProfilesScreen {
                             if (i > 0) hairline()
                             val opened = app.token == openProfile
                             val state = if (profile.isDefault) R.string.profile_default else R.string.profile_custom
-                            val end = ui.secondary(ui.string(state), Type.VALUE)
+                            val tint = if (opened) ui.palette.accent else ui.palette.dim
+                            val end = ui.secondary(ui.string(state), Type.VALUE, tint)
                             add(
                                 ui.field(shown(app), end).apply {
                                     minimumHeight = ui.dp(Space.TOUCH)
