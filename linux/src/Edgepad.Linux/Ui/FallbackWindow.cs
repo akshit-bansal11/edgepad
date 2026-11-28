@@ -29,6 +29,7 @@ internal sealed class FallbackWindow
     private readonly Button macros;
     private readonly Button security;
     private bool refreshing;
+    private bool installable;
 
     public FallbackWindow(TrayHooks hooks, string initialStatus)
     {
@@ -39,7 +40,17 @@ internal sealed class FallbackWindow
         update.IsVisible = false;
 
         install = look.Button(LinuxStrings.Common_Install, primary: true);
-        install.Click += (_, _) => hooks.InstallUpdate();
+        install.Click += (_, _) =>
+        {
+            if (installable)
+            {
+                hooks.InstallUpdate();
+            }
+            else
+            {
+                Tray.OpenWithDesktop(UpdateCheck.LatestUrl, LinuxStrings.What_ReleasePage);
+            }
+        };
         var later = look.Button(LinuxStrings.Menu_UpdateLater);
         later.Click += (_, _) => hooks.LaterUpdate();
         var skip = look.Button(LinuxStrings.Menu_UpdateSkip);
@@ -131,10 +142,20 @@ internal sealed class FallbackWindow
     public void SetUpdate(string version, bool canInstall)
     {
         update.Text = Say.Format(LinuxStrings.Menu_UpdateVersion, version);
-        install.Content = Say.Format(LinuxStrings.Menu_UpdateInstall, version);
+        installable = canInstall;
+        install.Content = canInstall ? Say.Format(LinuxStrings.Menu_UpdateInstall, version) : LinuxStrings.Menu_UpdateOpenPage;
         update.IsVisible = true;
-        install.IsVisible = canInstall;
+        install.IsVisible = true;
         updateButtons.IsVisible = true;
+    }
+
+    /// <summary>Install in progress: the text carries the percent and the buttons are dimmed so a second click is not offered.</summary>
+    public void SetInstallProgress(string version, int percent, bool busy)
+    {
+        update.Text = busy
+            ? Say.Format(LinuxStrings.Menu_UpdateDownloading, version, percent)
+            : Say.Format(LinuxStrings.Menu_UpdateVersion, version);
+        updateButtons.IsEnabled = !busy;
     }
 
     public void ClearUpdate()

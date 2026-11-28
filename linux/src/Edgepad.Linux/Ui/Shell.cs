@@ -747,9 +747,14 @@ internal sealed class Shell : IDisposable
         {
             Log.Write($"Installing Edgepad {number}");
             tray?.SetInstallProgress(number, 0, busy: true);
+            fallback?.SetInstallProgress(number, 0, busy: true);
 
             // Created here, on the UI thread, so each report is posted back to it.
-            var progress = new Progress<int>(percent => tray?.SetInstallProgress(number, percent, busy: true));
+            var progress = new Progress<int>(percent =>
+            {
+                tray?.SetInstallProgress(number, percent, busy: true);
+                fallback?.SetInstallProgress(number, percent, busy: true);
+            });
             var outcome = await LinuxUpdater.InstallAsync(target, Path.Combine(Xdg.CacheFolder, "update"), Environment.ProcessPath, progress, deadline.Token);
             switch (outcome)
             {
@@ -782,6 +787,7 @@ internal sealed class Shell : IDisposable
         {
             installing = false;
             tray?.SetInstallProgress(number, 0, busy: false);
+            fallback?.SetInstallProgress(number, 0, busy: false);
         }
     }
 
