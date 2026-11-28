@@ -29,6 +29,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsetsController
+import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -656,12 +657,47 @@ class MainActivity :
             // Carried over, or the readout would stand blank after a rotation and then restart from one sample.
             picker.setRtt(selected?.rtt?.median() ?: Double.NaN)
         }
-        goTo(
+        val first =
             when {
                 retained == null && settings.openingVersion != getString(R.string.app_version) -> Screen.OPENING
                 !settings.onboarded -> Screen.ONBOARDING
                 retained != null -> retained.screen
                 else -> Screen.PAIRING
+            }
+        if (first == Screen.OPENING) openAfterSplash() else goTo(first)
+    }
+
+    /**
+     * The first open of a version: the first draw waits out the splash's logo animation, and the opening screen is
+     * built only once the splash has gone, so its own logo starts after it. Every other open goes straight to
+     * [goTo].
+     */
+    private fun openAfterSplash() {
+        // Set now so the lifecycle sees the opening screen; the view itself comes after the splash.
+        screen = Screen.OPENING
+        val began = SystemClock.uptimeMillis()
+        var built = false
+        val build = {
+            if (!built) {
+                built = true
+                if (!isFinishing && !isDestroyed && screen == Screen.OPENING) goTo(Screen.OPENING)
+            }
+        }
+        splashScreen.setOnExitAnimationListener { splash ->
+            splash.remove()
+            build()
+        }
+        val drawn = window.decorView.viewTreeObserver
+        drawn.addOnPreDrawListener(
+            object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    if (SystemClock.uptimeMillis() - began < SPLASH_MS) return false
+                    val live = window.decorView.viewTreeObserver
+                    if (live.isAlive) live.removeOnPreDrawListener(this)
+                    // With no splash on screen the exit listener never runs; this builds the screen anyway.
+                    handler.postDelayed({ build() }, SPLASH_GONE_MS)
+                    return true
+                }
             },
         )
     }
@@ -3644,6 +3680,12 @@ class MainActivity :
         /** How often a linger that found a share still going looks again. */
         const val SHARE_RECHECK_MS = 5_000L
         const val TICK_MS = 1_000L
+
+        /** The splash's logo animation, `windowSplashScreenAnimationDuration` in themes.xml. */
+        const val SPLASH_MS = 760L
+
+        /** Where the splash never shows, the opening screen comes this long after the first draw. */
+        const val SPLASH_GONE_MS = 300L
 
         const val MILLIS_PER_SECOND = 1_000L
 
