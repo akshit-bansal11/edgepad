@@ -62,7 +62,7 @@ object TipCard {
         val p = ui.palette
         val card =
             LinearLayout(host.context).apply {
-                gravity = Gravity.CENTER_VERTICAL
+                this.gravity = Gravity.CENTER_VERTICAL
                 background = ui.rounded(p.popover, Space.CARD_RADIUS)
                 elevation = ui.dp(ELEVATION_DP).toFloat()
                 setPadding(ui.dp(Space.M), 0, 0, 0)
