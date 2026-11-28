@@ -86,7 +86,7 @@ object AppearanceScreen {
                 addView(
                     previewPanel(ui, preview, true),
                     FrameLayout.LayoutParams(MATCH, MATCH).apply {
-                        topMargin = ui.dp(Space.M)
+                        topMargin = ui.dp(Space.BAR + Space.M)
                         bottomMargin = ui.dp(Space.L)
                         marginEnd = ui.dp(Space.PAGE)
                     },
