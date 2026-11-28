@@ -674,16 +674,19 @@ internal sealed class Shell : IDisposable
 
         var number = latest.ToString(3);
         var installable = decision is UpdateDecision.Install or UpdateDecision.InstallNeedsMajorConfirm;
-        offered = latest;
-        offeredInstallable = installable;
-        offeredNeedsConfirm = decision is UpdateDecision.InstallNeedsMajorConfirm;
+        var needsConfirm = decision is UpdateDecision.InstallNeedsMajorConfirm;
         Dispatcher.UIThread.Post(() =>
         {
+            // While an install runs, what is offered stays the release being installed (as on Windows), so a
+            // failed install never leaves the menu naming one version while Install fetches another.
             if (installing)
             {
                 return;
             }
 
+            offered = latest;
+            offeredInstallable = installable;
+            offeredNeedsConfirm = needsConfirm;
             tray?.SetUpdate(number, installable);
             fallback?.SetUpdate(number, installable);
         });
