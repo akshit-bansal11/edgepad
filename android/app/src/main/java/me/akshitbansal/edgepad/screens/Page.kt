@@ -87,6 +87,10 @@ class Ui(
     /** Names the page back leads to on every bar built, in place of the one a page gives; null leaves them as given. */
     var backOverride: CharSequence? = null
 
+    /** Names the screen being built, so [page] keeps a scroll position per screen; null remembers nothing. */
+    var pageKey: String? = null
+    private val scrolled = HashMap<String, Int>()
+
     enum class Style {
         /** The one main action on a page: an accent fill. */
         FILLED,
@@ -150,6 +154,7 @@ class Ui(
                     ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
                 )
             }
+        remember(scroll)
         val root =
             LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
@@ -173,6 +178,32 @@ class Ui(
             insets
         }
         return root
+    }
+
+    /** Records [scroll]'s offset under [pageKey] and, once the page has laid out, puts it back where it was. */
+    private fun remember(scroll: ScrollView) {
+        val key = pageKey ?: return
+        scroll.setOnScrollChangeListener { _, _, y, _, _ -> scrolled[key] = y }
+        val saved = scrolled[key] ?: return
+        scroll.addOnLayoutChangeListener(
+            object : View.OnLayoutChangeListener {
+                override fun onLayoutChange(
+                    v: View,
+                    left: Int,
+                    top: Int,
+                    right: Int,
+                    bottom: Int,
+                    oldLeft: Int,
+                    oldTop: Int,
+                    oldRight: Int,
+                    oldBottom: Int,
+                ) {
+                    if (scroll.getChildAt(0).height == 0) return
+                    scroll.removeOnLayoutChangeListener(this)
+                    scroll.scrollTo(0, saved)
+                }
+            },
+        )
     }
 
     /** Keeps a full-screen view clear of the system bars and the display cutout, which edge-to-edge no longer does. */

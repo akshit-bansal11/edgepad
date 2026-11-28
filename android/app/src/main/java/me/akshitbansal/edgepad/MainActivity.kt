@@ -1272,6 +1272,8 @@ class MainActivity :
         // The bars on a page opened from a row of Settings say so; deeper pages keep their own labels.
         val fromSettings = childFrom == Screen.SETTINGS && next in settingsPages
         ui.backOverride = if (fromSettings) getString(R.string.settings_title) else null
+        // Each screen's list keeps its scroll position, so a trip into a sub-page and back lands where it left.
+        ui.pageKey = next.name
         statsPage = 0
         statsPhone = false
         syncDashWatch()
