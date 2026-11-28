@@ -48,6 +48,10 @@ public final class Dispatcher {
     /// feature, like `macroWatch`.
     public var foregroundWatch: ((Bool) -> Void)?
 
+    /// Answers OPEN_APPS_LIST with one TEXT OPEN_APPS and says whether it could. Set by the session once it lists the
+    /// feature, like `foregroundWatch`; without one, the action is dropped and counted.
+    public var openApps: (() -> Bool)?
+
     /// Sends captures to the phone when it asks for that. Set by the app per connection; without one,
     /// CAPTURE_TARGET and FILE_RESULT are dropped and counted.
     public var capture: CaptureToPhone?
@@ -288,6 +292,8 @@ public final class Dispatcher {
             return power?.run(action) ?? false
         case .appsList:
             return apps?.list() ?? false
+        case .openAppsList:
+            return openApps?() ?? false
         case .appsCancel:
             return apps?.cancel() ?? false
         case .macrosWatch, .macrosUnwatch:

@@ -300,6 +300,10 @@ public protocol ForegroundSource: AnyObject {
     /// Calls `onChange` with the encoded TEXT 21 payload ("" when nothing is known) for the app in front now and then
     /// on every change, never faster than every 200 ms. Cancelling the watch stops it and releases what it held.
     func watch(_ onChange: @escaping (String) -> Void) -> ForegroundWatch
+
+    /// The apps with a window on this Mac, the one in front first, then the apps at `macroTargets` that are installed, each as a
+    /// TEXT 21 payload ("token/name"). The list is built only when the phone asks; nothing runs between asks.
+    func openApps(macroTargets: [String]) -> [String]
 }
 
 /// A subscription to the app in front. Cancelling is idempotent, and a session cancels in `end()`.

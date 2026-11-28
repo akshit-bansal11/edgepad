@@ -301,6 +301,7 @@ public final class Session {
         dispatcher.padStatusReply = nil
         dispatcher.macroWatch = nil
         dispatcher.foregroundWatch = nil
+        dispatcher.openApps = nil
         foregroundWatch?.cancel()
         foregroundWatch = nil
         appKind?.stop()
@@ -631,6 +632,8 @@ public final class Session {
         if dispatcher.foreground?.available == true {
             features.append(Feature.foreground.rawValue)
             features.append(Feature.appKind.rawValue)
+            features.append(Feature.openApps.rawValue)
+            dispatcher.openApps = { [weak self] in self?.sendOpenApps() ?? false }
             dispatcher.foregroundWatch = { [weak self] on in self?.watchForeground(on) }
         }
         if dispatcher.clipboard?.isAllowed == true {
@@ -722,6 +725,14 @@ public final class Session {
             // The part before the slash is the token; "" when nothing is known.
             kind.setForeground(String(app.prefix { $0 != "/" }))
         }
+    }
+
+    /// OPEN_APPS_LIST: one answer, built now from what the source sees and the macros already added.
+    private func sendOpenApps() -> Bool {
+        guard !isEnded, let source = dispatcher.foreground else { return false }
+        let targets = (dispatcher.macros?.macros ?? []).map(\.target)
+        send(.text(kind: TextKind.openApps.rawValue, value: OpenApps.body(source.openApps(macroTargets: targets))))
+        return true
     }
 
     /// The bundle id of the player that is playing, or nil when nothing plays or the app is not one this Mac follows.
