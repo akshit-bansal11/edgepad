@@ -130,6 +130,7 @@ class LaptopState(
         mediaIcons.clear()
         foreground = null
         foregroundKind = null
+        openApps = null
         forgetDashboard()
     }
 
@@ -230,6 +231,15 @@ class LaptopState(
     /** TEXT 40: the kind of app in front, or null for none or a kind this build does not know. */
     var foregroundKind: AppKindToken? = null
         private set
+
+    /** TEXT 41: the apps open on the laptop, the answer to OPEN_APPS_LIST; null until one is heard this time. */
+    var openApps: List<ForegroundApp>? = null
+        private set
+
+    /** Forgets the list, so the next ask shows as loading. */
+    fun forgetOpenApps() {
+        openApps = null
+    }
 
     /** TEXT 22: how many macro slots the laptop keeps, 1 to [MACRO_SLOTS_MAX]; [MACRO_SLOTS] until it says. */
     var macroCap = MACRO_SLOTS
@@ -362,6 +372,7 @@ class LaptopState(
                     TextKind.NOW_PLAYING_FULL -> nowPlayingFull = frame.text
                     TextKind.FOREGROUND_APP -> foreground = ForegroundApp.parse(frame.text)
                     TextKind.FOREGROUND_KIND -> foregroundKind = AppKindToken.of(frame.text)
+                    TextKind.OPEN_APPS -> openApps = parseOpenApps(frame.text)
                     TextKind.STATS -> stats.push(DashWire.stats(frame.text) ?: return false)
                     TextKind.STATS_INFO -> statsInfo = DashWire.statsInfo(frame.text) ?: return false
                     TextKind.DISKS -> disks = DashWire.disks(frame.text)

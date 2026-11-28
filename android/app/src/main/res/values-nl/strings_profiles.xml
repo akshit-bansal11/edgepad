@@ -6,6 +6,10 @@
   <string name="profiles_caption">De laptop geeft aan deze telefoon door welke app vooraan staat, alleen zolang dit aan staat. Er wordt niets op de laptop bewaard.</string>
   <string name="profiles_empty">Nog geen profielen. Haal op de laptop een app naar voren en voeg die hier toe.</string>
   <string name="profiles_add_current">Voorste app toevoegen</string>
+  <string name="profiles_add_open">App toevoegen</string>
+  <string name="profiles_pick_loading">Open apps zoeken…</string>
+  <string name="profiles_pick_none">Geen apps meer om toe te voegen.</string>
+  <string name="profiles_pick_front">Vooraan</string>
   <string name="profiles_none_in_front">Nog geen app vooraan</string>
   <string name="profiles_unsupported">Deze laptop kan niet zeggen welke app vooraan staat.</string>
   <string name="profiles_delete">Profiel verwijderen</string>

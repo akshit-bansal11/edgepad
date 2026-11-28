@@ -6,6 +6,10 @@
   <string name="profiles_caption">يخبر الحاسوب هذا الهاتف بالتطبيق الأمامي، وفقط أثناء التشغيل. لا يُحفظ شيء على الحاسوب.</string>
   <string name="profiles_empty">لا توجد ملفات بعد. أحضر تطبيقًا إلى الواجهة على الحاسوب ثم أضفه هنا.</string>
   <string name="profiles_add_current">أضف التطبيق الأمامي</string>
+  <string name="profiles_add_open">إضافة تطبيق</string>
+  <string name="profiles_pick_loading">جارٍ البحث عن التطبيقات المفتوحة…</string>
+  <string name="profiles_pick_none">لا توجد تطبيقات أخرى لإضافتها.</string>
+  <string name="profiles_pick_front">في المقدمة</string>
   <string name="profiles_none_in_front">لا يوجد تطبيق أمامي بعد</string>
   <string name="profiles_unsupported">لا يستطيع هذا الحاسوب تحديد التطبيق الأمامي.</string>
   <string name="profiles_delete">احذف الملف</string>

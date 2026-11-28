@@ -6,6 +6,10 @@
   <string name="profiles_caption">Il portatile dice a questo telefono quale app è in primo piano, solo finché è attivo. Sul portatile non resta nulla.</string>
   <string name="profiles_empty">Ancora nessun profilo. Porta un’app in primo piano sul portatile, poi aggiungila qui.</string>
   <string name="profiles_add_current">Aggiungi l’app in primo piano</string>
+  <string name="profiles_add_open">Aggiungi un’app</string>
+  <string name="profiles_pick_loading">Ricerca delle app aperte…</string>
+  <string name="profiles_pick_none">Nessun’altra app da aggiungere.</string>
+  <string name="profiles_pick_front">In primo piano</string>
   <string name="profiles_none_in_front">Nessuna app in primo piano</string>
   <string name="profiles_unsupported">Questo portatile non può dire quale app è in primo piano.</string>
   <string name="profiles_delete">Elimina profilo</string>

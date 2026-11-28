@@ -6,6 +6,10 @@
   <string name="profiles_caption">L’ordinateur indique à ce téléphone quelle app est au premier plan, uniquement quand c’est activé. Rien n’est conservé sur l’ordinateur.</string>
   <string name="profiles_empty">Aucun profil pour l’instant. Passez une app au premier plan sur l’ordinateur, puis ajoutez-la ici.</string>
   <string name="profiles_add_current">Ajouter l’app au premier plan</string>
+  <string name="profiles_add_open">Ajouter une app</string>
+  <string name="profiles_pick_loading">Recherche des apps ouvertes…</string>
+  <string name="profiles_pick_none">Plus aucune app à ajouter.</string>
+  <string name="profiles_pick_front">Au premier plan</string>
   <string name="profiles_none_in_front">Aucune app au premier plan</string>
   <string name="profiles_unsupported">Cet ordinateur ne peut pas indiquer quelle app est au premier plan.</string>
   <string name="profiles_delete">Supprimer le profil</string>

@@ -41,6 +41,10 @@ object ProfilesScreen {
         raw: String,
         setRaw: (String) -> Unit,
         current: ForegroundApp?,
+        offered: Boolean,
+        openApps: List<ForegroundApp>?,
+        picking: Boolean,
+        setPicking: (Boolean) -> Unit,
         supported: Boolean,
         split: Boolean,
         autoOn: Boolean,
@@ -57,6 +61,7 @@ object ProfilesScreen {
         var openKind: AppKindToken? = null
         var openProfile: String? = null
         var openRow: String? = null
+        var picker = picking
         val list = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
         val kinds = listOf<DialKind?>(null) + DialKind.entries
         val actions = GestureAction.entries
@@ -209,6 +214,48 @@ object ProfilesScreen {
             footnote(ui.string(R.string.auto_profiles_caption))
         }
 
+        fun addProfile(app: ForegroundApp) {
+            if (profiles.forApp(app.token) == null) {
+                profiles = profiles.with(app.token, app.name, Profile())
+                setRaw(profiles.encode())
+            }
+            openProfile = app.token
+            openRow = null
+        }
+
+        fun Column.pickList() {
+            if (openApps == null) {
+                footnote(ui.string(R.string.profiles_pick_loading))
+                return
+            }
+            val rows =
+                (listOfNotNull(current) + openApps)
+                    .distinctBy { it.token }
+                    .filter { profiles.forApp(it.token) == null }
+            if (rows.isEmpty()) {
+                footnote(ui.string(R.string.profiles_pick_none))
+                return
+            }
+            card {
+                rows.forEachIndexed { i, app ->
+                    if (i > 0) hairline()
+                    val front = app.token == current?.token
+                    val end = if (front) ui.secondary(ui.string(R.string.profiles_pick_front), Type.VALUE) else null
+                    add(
+                        ui.field(shown(app), end).apply {
+                            minimumHeight = ui.dp(Space.TOUCH)
+                            ui.tappable(this) {
+                                addProfile(app)
+                                picker = false
+                                setPicking(false)
+                                render()
+                            }
+                        },
+                    )
+                }
+            }
+        }
+
         render = {
             list.removeAllViews()
             Column(ui, list).apply {
@@ -257,22 +304,28 @@ object ProfilesScreen {
                     }
                 }
                 val none = current == null
-                val label = if (none) R.string.profiles_none_in_front else R.string.profiles_add_current
+                val label =
+                    when {
+                        offered -> R.string.profiles_add_open
+                        none -> R.string.profiles_none_in_front
+                        else -> R.string.profiles_add_current
+                    }
+                val blocked = split || (none && !offered)
                 val addButton =
                     ui.button(ui.string(label), Ui.Style.OUTLINED) {
-                        if (current != null) {
-                            if (profiles.forApp(current.token) == null) {
-                                profiles = profiles.with(current.token, current.name, Profile())
-                                setRaw(profiles.encode())
-                            }
-                            openProfile = current.token
-                            openRow = null
+                        if (offered) {
+                            picker = !picker
+                            setPicking(picker)
+                            render()
+                        } else if (current != null) {
+                            addProfile(current)
                             render()
                         }
                     }
-                addButton.isEnabled = !none && !split
-                addButton.alpha = if (none || split) DISABLED_ALPHA else 1f
+                addButton.isEnabled = !blocked
+                addButton.alpha = if (blocked) DISABLED_ALPHA else 1f
                 add(addButton, Space.XL)
+                if (offered && picker && !split) pickList()
             }
         }
         render()

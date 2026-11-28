@@ -6,6 +6,10 @@
   <string name="profiles_caption">켜져 있는 동안에만 노트북이 맨 앞 앱을 이 휴대전화에 알려 줍니다. 노트북에는 아무것도 저장되지 않습니다.</string>
   <string name="profiles_empty">아직 프로필이 없습니다. 노트북에서 앱을 맨 앞으로 가져온 뒤 여기에 추가하세요.</string>
   <string name="profiles_add_current">맨 앞 앱 추가</string>
+  <string name="profiles_add_open">앱 추가</string>
+  <string name="profiles_pick_loading">열린 앱을 찾는 중…</string>
+  <string name="profiles_pick_none">더 추가할 앱이 없습니다.</string>
+  <string name="profiles_pick_front">맨 앞</string>
   <string name="profiles_none_in_front">맨 앞 앱이 아직 없습니다</string>
   <string name="profiles_unsupported">이 노트북은 맨 앞 앱을 알려 줄 수 없습니다.</string>
   <string name="profiles_delete">프로필 삭제</string>

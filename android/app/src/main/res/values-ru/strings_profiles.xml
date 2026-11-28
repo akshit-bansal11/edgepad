@@ -6,6 +6,10 @@
   <string name="profiles_caption">Ноутбук сообщает этому телефону, какое приложение на переднем плане, только пока это включено. На ноутбуке ничего не хранится.</string>
   <string name="profiles_empty">Профилей пока нет. Выведите приложение на передний план на ноутбуке и добавьте его здесь.</string>
   <string name="profiles_add_current">Добавить приложение на переднем плане</string>
+  <string name="profiles_add_open">Добавить приложение</string>
+  <string name="profiles_pick_loading">Ищем открытые приложения…</string>
+  <string name="profiles_pick_none">Больше нет приложений для добавления.</string>
+  <string name="profiles_pick_front">На переднем плане</string>
   <string name="profiles_none_in_front">Пока нет приложения на переднем плане</string>
   <string name="profiles_unsupported">Этот ноутбук не может сообщить, какое приложение на переднем плане.</string>
   <string name="profiles_delete">Удалить профиль</string>

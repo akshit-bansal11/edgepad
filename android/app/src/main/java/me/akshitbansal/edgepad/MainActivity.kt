@@ -397,6 +397,9 @@ class MainActivity :
     /** The app in front when the Profiles screen was last built, so a different one rebuilds it. */
     private var profilesBuiltFor: String? = null
 
+    /** Whether Profiles shows the laptop's open apps; kept so the rebuild when their list lands still shows it. */
+    private var pickingProfileApp = false
+
     /** The laptop's app list while it is the screen, so a new list or a finished icon can be handed to it. */
     private var appList: AppListScreen? = null
     private var lastSurfaceBack = 0L
@@ -1132,6 +1135,14 @@ class MainActivity :
         manager.send(ActionId.APPS_LIST.frame())
     }
 
+    /** The Profiles screen opened or closed its list of open apps; opening asks the laptop, which answers once. */
+    private fun pickProfileApp(open: Boolean) {
+        pickingProfileApp = open
+        if (!open || !connected || Feature.OPEN_APPS !in state.features) return
+        state.forgetOpenApps()
+        manager.send(ActionId.OPEN_APPS_LIST.frame())
+    }
+
     /** Tells the laptop to stop sending, once per list, and not at all when there is no link to tell. */
     private fun cancelApps() {
         if (!listingApps) return
@@ -1277,6 +1288,7 @@ class MainActivity :
         screen = next
         // The laptop reports the app in front while the Profiles screen is open, even before there is a profile.
         if ((previous == Screen.PROFILES) != (next == Screen.PROFILES)) syncForegroundWatch()
+        if (previous != Screen.PROFILES) pickingProfileApp = false
         // The bars on a page opened from a row of Settings say so; deeper pages keep their own labels.
         val fromSettings = childFrom == Screen.SETTINGS && next in settingsPages
         ui.backOverride = if (fromSettings) getString(R.string.settings_title) else null
@@ -1456,6 +1468,10 @@ class MainActivity :
                             syncForegroundWatch()
                         },
                         current = state.foreground,
+                        offered = Feature.OPEN_APPS in state.features,
+                        openApps = state.openApps,
+                        picking = pickingProfileApp,
+                        setPicking = ::pickProfileApp,
                         supported = Feature.FOREGROUND in state.features,
                         split = settings.splitCorners,
                         autoOn = settings.autoProfiles,
@@ -3258,6 +3274,8 @@ class MainActivity :
         val frontId = TextKind.FOREGROUND_APP.id
         val kindId = TextKind.FOREGROUND_KIND.id
         if (frame is Frame.Text && (frame.kind == frontId || frame.kind == kindId)) followForeground()
+        val openedId = TextKind.OPEN_APPS.id
+        if (screen == Screen.PROFILES && frame is Frame.Text && frame.kind == openedId) goTo(Screen.PROFILES)
         surface?.stateChanged()
         floating?.takeIf { it.isShown }?.stateChanged()
         // Capture is drawn from the features the laptop named, which it sends once after the handshake: one that

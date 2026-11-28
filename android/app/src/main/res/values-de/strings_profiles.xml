@@ -6,6 +6,10 @@
   <string name="profiles_caption">Der Laptop meldet diesem Handy die vorderste App, nur solange dies an ist. Auf dem Laptop wird nichts gespeichert.</string>
   <string name="profiles_empty">Noch keine Profile. Hole auf dem Laptop eine App nach vorn und füge sie hier hinzu.</string>
   <string name="profiles_add_current">Vorderste App hinzufügen</string>
+  <string name="profiles_add_open">App hinzufügen</string>
+  <string name="profiles_pick_loading">Suche nach geöffneten Apps…</string>
+  <string name="profiles_pick_none">Keine weiteren Apps zum Hinzufügen.</string>
+  <string name="profiles_pick_front">Im Vordergrund</string>
   <string name="profiles_none_in_front">Noch keine App im Vordergrund</string>
   <string name="profiles_unsupported">Dieser Laptop kann die vorderste App nicht melden.</string>
   <string name="profiles_delete">Profil löschen</string>

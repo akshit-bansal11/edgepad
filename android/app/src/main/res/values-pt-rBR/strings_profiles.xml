@@ -6,6 +6,10 @@
   <string name="profiles_caption">O notebook diz a este telefone qual app está na frente, só enquanto isto estiver ativado. Nada fica guardado no notebook.</string>
   <string name="profiles_empty">Ainda não há perfis. Traga um app para a frente no notebook e adicione aqui.</string>
   <string name="profiles_add_current">Adicionar o app da frente</string>
+  <string name="profiles_add_open">Adicionar um app</string>
+  <string name="profiles_pick_loading">Procurando apps abertos…</string>
+  <string name="profiles_pick_none">Não há mais apps para adicionar.</string>
+  <string name="profiles_pick_front">Na frente</string>
   <string name="profiles_none_in_front">Nenhum app na frente ainda</string>
   <string name="profiles_unsupported">Este notebook não consegue dizer qual app está na frente.</string>
   <string name="profiles_delete">Excluir perfil</string>
