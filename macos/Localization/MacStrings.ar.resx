@@ -28,7 +28,7 @@
     <value>يتيح Edgepad لهاتفك العثور على هذا الـ Mac والاتصال به عبر Wi-Fi عند تشغيل اتصالات Wi-Fi.</value>
   </data>
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
-    <value>يسأل Edgepad تطبيق الموسيقى أو Spotify عن الأغنية الحالية ويتنقل داخلها عند التمرير على الهاتف، ويضع هذا الـ Mac في وضع السكون أو يوقف تشغيله عند نهاية الوسائط إذا طلبت ذلك من الهاتف.</value>
+    <value>يسأل Edgepad تطبيق الموسيقى أو Spotify عن الأغنية الحالية ويتنقل داخلها عند التمرير على الهاتف، ويضع هذا الـ Mac في وضع السكون أو يوقف تشغيله عند نهاية الوسائط إذا طلبت ذلك من الهاتف. كما يسأل Chrome وSafari والمتصفحات المشابهة عن عنوان التبويب الأمامي واسمه ليعرض شعار الخدمة على الهاتف.</value>
   </data>
   <data name="Core_ConnectedOver" xml:space="preserve">
     <value>متصل بـ {0} · {1}</value>

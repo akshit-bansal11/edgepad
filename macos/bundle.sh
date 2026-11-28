@@ -152,7 +152,7 @@ cat > "$app/Contents/Info.plist" <<EOF
   <key>NSHighResolutionCapable</key>
   <true/>
   <key>NSAppleEventsUsageDescription</key>
-  <string>Edgepad asks Music or Spotify where the song is and moves it when you seek on the phone, and sleeps, restarts or shuts down this Mac when you ask the phone to.</string>
+  <string>Edgepad asks Music or Spotify where the song is and moves it when you seek on the phone, and sleeps, restarts or shuts down this Mac when you ask the phone to. It also asks Chrome, Safari and similar browsers for the front tab's title and address, to show the service's logo on the phone.</string>
   <key>NSBluetoothAlwaysUsageDescription</key>
   <string>Edgepad uses Bluetooth to listen for the phone you have paired with this Mac.</string>
   <key>NSDesktopFolderUsageDescription</key>

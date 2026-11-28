@@ -28,7 +28,7 @@
     <value>Edgepad permette al telefono di trovare questo Mac e collegarsi via Wi-Fi, quando attivi le connessioni Wi-Fi.</value>
   </data>
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
-    <value>Edgepad chiede a Musica o Spotify quale brano è in riproduzione e si sposta al suo interno quando scorri sul telefono; sospende o spegne questo Mac a fine contenuto se lo chiedi dal telefono.</value>
+    <value>Edgepad chiede a Musica o Spotify quale brano è in riproduzione e si sposta al suo interno quando scorri sul telefono; sospende o spegne questo Mac a fine contenuto se lo chiedi dal telefono. Chiede inoltre a Chrome, Safari e browser simili il titolo e l’indirizzo della scheda in primo piano, per mostrare sul telefono il logo del servizio.</value>
   </data>
   <data name="Core_ConnectedOver" xml:space="preserve">
     <value>Connesso a {0} · {1}</value>

@@ -28,7 +28,7 @@
     <value>Wi-Fi कनेक्शन चालू करने पर, Edgepad आपके फ़ोन को इस Mac को ढूँढने और Wi-Fi से जुड़ने देता है।</value>
   </data>
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
-    <value>Edgepad Music या Spotify से पूछता है कि कौन-सा गाना चल रहा है और फ़ोन पर आगे-पीछे करने पर उसे खिसकाता है; मीडिया खत्म होने पर फ़ोन से कहने पर यह इस Mac को स्लीप या बंद कर देता है।</value>
+    <value>Edgepad Music या Spotify से पूछता है कि कौन-सा गाना चल रहा है और फ़ोन पर आगे-पीछे करने पर उसे खिसकाता है; मीडिया खत्म होने पर फ़ोन से कहने पर यह इस Mac को स्लीप या बंद कर देता है। यह फ़ोन पर सेवा का लोगो दिखाने के लिए Chrome, Safari और ऐसे ही ब्राउज़रों से सामने वाले टैब का शीर्षक और पता भी पूछता है।</value>
   </data>
   <data name="Core_ConnectedOver" xml:space="preserve">
     <value>{0} से जुड़ा है · {1}</value>

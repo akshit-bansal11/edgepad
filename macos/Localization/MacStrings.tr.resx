@@ -28,7 +28,7 @@
     <value>Edgepad, Wi-Fi bağlantılarını açtığınızda telefonunuzun bu Mac’i bulup Wi-Fi ile bağlanmasını sağlar.</value>
   </data>
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
-    <value>Edgepad, Müzik veya Spotify’a hangi parçanın çaldığını sorar ve telefonda ileri geri sardığınızda parçada ilerler; medyanın sonunda telefondan isterseniz bu Mac’i uykuya alır veya kapatır.</value>
+    <value>Edgepad, Müzik veya Spotify’a hangi parçanın çaldığını sorar ve telefonda ileri geri sardığınızda parçada ilerler; medyanın sonunda telefondan isterseniz bu Mac’i uykuya alır veya kapatır. Ayrıca telefonda hizmetin logosunu göstermek için Chrome, Safari ve benzeri tarayıcılardan öndeki sekmenin başlığını ve adresini ister.</value>
   </data>
   <data name="Core_ConnectedOver" xml:space="preserve">
     <value>{0} cihazına bağlandı · {1}</value>

@@ -8,7 +8,7 @@ enum MediaIcon {
     static let side = 64
 
     static func png(forApp app: String) -> [UInt8]? {
-        guard let player = PlayerApp(rawValue: app),
+        guard let player = PlayerApp(sent: app),
             let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: player.bundleId)
         else { return nil }
         return WorkspaceMacroIcons.encode(NSWorkspace.shared.icon(forFile: url.path), side: side)

@@ -34,7 +34,7 @@
     <value>Edgepad lets your phone find this Mac and connect to it over Wi-Fi, when you turn Wi-Fi connections on.</value>
   </data>
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
-    <value>Edgepad asks Music or Spotify where the song is and moves it when you seek on the phone, and sleeps or shuts down this Mac when you ask the phone to at the end of the media.</value>
+    <value>Edgepad asks Music or Spotify where the song is and moves it when you seek on the phone, and sleeps or shuts down this Mac when you ask the phone to at the end of the media. It also asks Chrome, Safari and similar browsers for the front tab's title and address, to show the service's logo on the phone.</value>
   </data>
   <data name="Core_ConnectedOver" xml:space="preserve">
     <value>Connected to {0} · {1}</value>

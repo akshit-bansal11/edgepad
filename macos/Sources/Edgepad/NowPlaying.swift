@@ -5,9 +5,10 @@ import Foundation
 /// What Music and Spotify are playing, learned from the distributed notifications each posts on every change: no
 /// polling. One for the whole app and always listening, so a phone that connects mid-song is told at once; each
 /// connection holds a `MacMediaSource` that listens to it. AppleScript is asked only for the position of a player that
-/// does not put it in its notification (Music) and to seek, each on demand and never on the main thread. Browsers are
-/// not followed on the Mac. Everything here runs on the main thread, as `Session` requires, except the scripts, whose
-/// answers are handed back to it. HW-unverified: the notifications' keys are read from memory of their userInfo.
+/// does not put it in its notification (Music) and to seek, each on demand and never on the main thread. A browser
+/// in front is asked for its front tab every few seconds, only while it is in front and only when no player is
+/// playing, to name the service. Everything here runs on the main thread, as `Session` requires, except the scripts,
+/// whose answers are handed back to it. HW-unverified: the notifications' keys are read from memory of their userInfo.
 final class NowPlayingHub {
     private struct Entry {
         var report: PlayerReport
@@ -17,12 +18,18 @@ final class NowPlayingHub {
     }
 
     private static let scriptTimeout: TimeInterval = 5
+    private static let tabEvery: TimeInterval = 3
+    private static let tabBackOff: TimeInterval = 30
 
     private var entries: [PlayerApp: Entry] = [:]
     /// Most recently heard first.
     private var recent: [PlayerApp] = []
     private var listeners: [UUID: () -> Void] = [:]
     private var observers: [NSObjectProtocol] = []
+    /// The service in the front browser's tab, with the browser it came from; nil when none is known.
+    private var tab: (bundleId: String, service: String, title: String)?
+    private var tabNextAsk: TimeInterval = 0
+    private var tabAsking = false
     private let scripts = DispatchQueue(label: "me.akshitbansal.edgepad.nowplaying", qos: .utility)
 
     init() {
@@ -54,22 +61,58 @@ final class NowPlayingHub {
         let pick = recent.compactMap { entries[$0] }.filter {
             $0.report.active && NowPlayingHub.isRunning($0.report.app)
         }
-        guard let entry = pick.first(where: { $0.report.playing }) ?? pick.first else { return .none }
+        let playing = pick.first { $0.report.playing }
+        if playing == nil, let service = browserService(at: now) { return service }
+        guard let entry = playing ?? pick.first else { return .none }
         let report = entry.report
         return MediaInfo(
             title: report.title,
             artist: report.artist,
-            app: report.app.rawValue,
+            app: MediaServices.name(bundleId: report.app.bundleId) ?? report.app.rawValue,
             identity: NowPlayingHub.identity(report),
             playing: report.playing,
             positionSeconds: position(of: entry, at: now),
             durationSeconds: report.durationSeconds)
     }
 
+    /// A service card for the browser in front, from the last answer; asks for a fresh one when it is due. Playing is
+    /// not known to a browser's scripting, so a recognised service reads as playing.
+    private func browserService(at now: TimeInterval) -> MediaInfo? {
+        guard let bundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
+            BrowserTab.isScriptable(bundleId)
+        else {
+            tab = nil
+            return nil
+        }
+        if now >= tabNextAsk, !tabAsking { askTab(bundleId, at: now) }
+        guard let tab, tab.bundleId == bundleId else { return nil }
+        return MediaInfo(
+            title: tab.title, artist: "", app: tab.service, identity: "\(bundleId)|\(tab.service)|\(tab.title)",
+            playing: true, positionSeconds: 0, durationSeconds: 0)
+    }
+
+    private func askTab(_ bundleId: String, at now: TimeInterval) {
+        tabAsking = true
+        tabNextAsk = now + NowPlayingHub.tabEvery
+        scripts.async { [weak self] in
+            let read = BrowserTab.read(bundleId)
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.tabAsking = false
+                if read == nil { self.tabNextAsk = ProcessInfo.processInfo.systemUptime + NowPlayingHub.tabBackOff }
+                let service = read.flatMap { MediaServices.name(host: $0.host, title: $0.title) }
+                let next = service.flatMap { name in read.map { (bundleId: bundleId, service: name, title: $0.title) } }
+                let changed = next?.service != self.tab?.service || next?.title != self.tab?.title
+                self.tab = next
+                if changed { self.notify() }
+            }
+        }
+    }
+
     /// Seeks the player `read()` names to `percent` of its length. False with no timeline or nothing playing.
     func seek(percent: Int) -> Bool {
         let info = read()
-        guard info.durationSeconds > 0, let app = PlayerApp(rawValue: info.app), var entry = entries[app] else {
+        guard info.durationSeconds > 0, let app = PlayerApp(sent: info.app), var entry = entries[app] else {
             return false
         }
         let target = info.durationSeconds * Percent.clamp(percent) / 100

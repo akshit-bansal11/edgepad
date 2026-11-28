@@ -28,7 +28,7 @@
     <value>Wi-Fi 연결을 켜면 Edgepad가 휴대폰이 이 Mac을 찾아 Wi-Fi로 연결하게 해 줍니다.</value>
   </data>
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
-    <value>Edgepad는 음악 또는 Spotify에 재생 중인 곡을 물어보고, 휴대폰에서 탐색하면 곡 안에서 이동합니다. 미디어가 끝날 때 휴대폰에서 요청하면 이 Mac을 잠자기 또는 종료합니다.</value>
+    <value>Edgepad는 음악 또는 Spotify에 재생 중인 곡을 물어보고, 휴대폰에서 탐색하면 곡 안에서 이동합니다. 미디어가 끝날 때 휴대폰에서 요청하면 이 Mac을 잠자기 또는 종료합니다. 또한 휴대폰에 서비스 로고를 표시하기 위해 Chrome, Safari 등 브라우저에 맨 앞 탭의 제목과 주소를 물어봅니다.</value>
   </data>
   <data name="Core_ConnectedOver" xml:space="preserve">
     <value>{0}에 연결됨 · {1}</value>

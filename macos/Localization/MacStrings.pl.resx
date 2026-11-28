@@ -28,7 +28,7 @@
     <value>Edgepad pozwala telefonowi znaleźć tego Maka i połączyć się przez Wi-Fi, gdy włączysz połączenia Wi-Fi.</value>
   </data>
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
-    <value>Edgepad pyta Muzykę lub Spotify, jaki utwór gra, i przewija go, gdy przesuwasz na telefonie; na końcu odtwarzania usypia lub wyłącza tego Maka, gdy poprosisz o to z telefonu.</value>
+    <value>Edgepad pyta Muzykę lub Spotify, jaki utwór gra, i przewija go, gdy przesuwasz na telefonie; na końcu odtwarzania usypia lub wyłącza tego Maka, gdy poprosisz o to z telefonu. Pyta też Chrome, Safari i podobne przeglądarki o tytuł i adres aktywnej karty, aby pokazać na telefonie logo usługi.</value>
   </data>
   <data name="Core_ConnectedOver" xml:space="preserve">
     <value>Połączono z {0} · {1}</value>

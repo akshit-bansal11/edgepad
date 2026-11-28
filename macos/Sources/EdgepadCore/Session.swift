@@ -726,7 +726,7 @@ public final class Session {
 
     /// The bundle id of the player that is playing, or nil when nothing plays or the app is not one this Mac follows.
     private static func playingBundle(_ info: MediaInfo) -> String? {
-        info.playing ? PlayerApp(rawValue: info.app)?.bundleId : nil
+        info.playing ? PlayerApp(sent: info.app)?.bundleId : nil
     }
 
     /// The phone's macro grid opened or closed. Each opening hears the state afresh, whatever was last sent: at once

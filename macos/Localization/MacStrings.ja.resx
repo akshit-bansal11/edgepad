@@ -28,7 +28,7 @@
     <value>Wi-Fi 接続をオンにすると、Edgepad はスマートフォンがこの Mac を見つけて Wi-Fi で接続できるようにします。</value>
   </data>
   <data name="Info_NSAppleEventsUsageDescription" xml:space="preserve">
-    <value>Edgepad は「ミュージック」や Spotify に再生中の曲を尋ね、スマートフォンでシークすると曲内を移動します。メディアの終了時にスマートフォンから指示すると、この Mac をスリープまたはシャットダウンします。</value>
+    <value>Edgepad は「ミュージック」や Spotify に再生中の曲を尋ね、スマートフォンでシークすると曲内を移動します。メディアの終了時にスマートフォンから指示すると、この Mac をスリープまたはシャットダウンします。 また、スマートフォンにサービスのロゴを表示するため、Chrome や Safari などのブラウザに最前面のタブのタイトルとアドレスを尋ねます。</value>
   </data>
   <data name="Core_ConnectedOver" xml:space="preserve">
     <value>{0} に接続済み · {1}</value>
