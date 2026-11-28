@@ -5,13 +5,14 @@ import EdgepadCore
 /// exact `Edgepad-<v>-mac.zip`, then the download, and only a file that matches is unpacked. The old bundle is
 /// replaced only after the new one has the right identity and a valid code signature. With no signing key, or under
 /// App Translocation, or in a folder that cannot be written, nothing is installed and the release page is opened.
+@MainActor
 final class MacUpdater {
-    private static let bundleId = "me.akshitbansal.edgepad"
+    nonisolated private static let bundleId = "me.akshitbansal.edgepad"
 
     private(set) var installing = false
 
     /// True when this copy can replace itself where it sits.
-    static func canReplaceSelf() -> Bool {
+    nonisolated static func canReplaceSelf() -> Bool {
         let bundle = Bundle.main.bundleURL
         return !bundle.path.contains("AppTranslocation")
             && FileManager.default.isWritableFile(atPath: bundle.deletingLastPathComponent().path)
@@ -23,15 +24,20 @@ final class MacUpdater {
     /// Runs on the main actor's behalf; `progress` gets whole-percent changes and `done` gets nil on success (the
     /// new copy has been started and will end this one) or a short reason, both on the main queue. The whole job,
     /// download included, is stopped after `UpdateDownload.assetTimeout`.
-    func install(_ version: Version, progress: @escaping (Int) -> Void, done: @escaping (String?) -> Void) {
+    func install(
+        _ version: Version, progress: @escaping @MainActor (Int) -> Void, done: @escaping @MainActor (String?) -> Void
+    ) {
         guard !installing else { return }
         installing = true
         percent = 0
         Task.detached {
             let failure = await Self.runGuarded(version) { value in
+                // The main queue keeps reports in order; the closure runs on the main actor's thread.
                 DispatchQueue.main.async {
-                    self.percent = value
-                    progress(value)
+                    MainActor.assumeIsolated {
+                        self.percent = value
+                        progress(value)
+                    }
                 }
             }
             await MainActor.run {
@@ -42,7 +48,9 @@ final class MacUpdater {
     }
 
     /// `run` with nothing allowed to escape: a thrown error and the deadline are logged and become a reason.
-    private static func runGuarded(_ version: Version, progress: @escaping (Int) -> Void) async -> String? {
+    nonisolated private static func runGuarded(
+        _ version: Version, progress: @escaping @Sendable (Int) -> Void
+    ) async -> String? {
         Log.write("Installing Edgepad \(version)")
         let outcome = await UpdateDownload.withDeadline(UpdateDownload.assetTimeout) { () -> String? in
             do {
@@ -59,7 +67,9 @@ final class MacUpdater {
         return outcome
     }
 
-    private static func run(_ version: Version, progress: @escaping (Int) -> Void) async throws -> String? {
+    nonisolated private static func run(
+        _ version: Version, progress: @escaping @Sendable (Int) -> Void
+    ) async throws -> String? {
         guard UpdateKey.isSet, let sumsUrl = UpdateCheck.sumsUrl(version), let sigUrl = UpdateCheck.sigUrl(version),
             let assetUrl = UpdateCheck.assetUrl(version, UpdateCheck.macName(version))
         else {
@@ -120,7 +130,7 @@ final class MacUpdater {
         return nil
     }
 
-    private static func exec(_ tool: String, _ arguments: [String]) -> Bool {
+    nonisolated private static func exec(_ tool: String, _ arguments: [String]) -> Bool {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: tool)
         process.arguments = arguments
