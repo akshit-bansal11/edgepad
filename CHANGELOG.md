@@ -4,6 +4,10 @@ All notable changes to Edgepad. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [5.2.1] - 2026-11-28
+
+No wire-protocol change: the protocol stays at version 6, and only the laptop apps change. A 5.2.0 phone works with a 5.2.1 laptop.
+
 ### Fixed
 
 - **Laptop: updating from the tray works again.** Clicking Install could do nothing at all: the download showed no progress, had no time limit, and an unexpected error was dropped without a word. The update row now reads "Downloading … n%" while it works, gives up after 20 minutes, and says so when an update could not be installed. Windows, Linux and Mac.
