@@ -176,6 +176,7 @@ import me.akshitbansal.edgepad.screens.XferCard
 import me.akshitbansal.edgepad.screens.fillCutout
 import me.akshitbansal.edgepad.screens.hideBars
 import me.akshitbansal.edgepad.screens.onEdited
+import me.akshitbansal.edgepad.screens.openingDue
 import me.akshitbansal.edgepad.screens.openOver
 import me.akshitbansal.edgepad.screens.showOver
 import me.akshitbansal.edgepad.surface.AutoProfiles
@@ -658,8 +659,8 @@ class MainActivity :
             // Carried over, or the readout would stand blank after a rotation and then restart from one sample.
             picker.setRtt(selected?.rtt?.median() ?: Double.NaN)
         }
-        val opening = OpeningScreen.due(retained != null, settings.openingVersion, getString(R.string.app_version))
-        if (opening && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) holdSplash()
+        val opening = openingDue(retained != null, settings.openingVersion, getString(R.string.app_version))
+        if (opening) holdSplash()
         goTo(
             when {
                 opening -> Screen.OPENING

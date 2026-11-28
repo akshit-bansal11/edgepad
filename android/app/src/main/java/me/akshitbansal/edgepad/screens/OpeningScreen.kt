@@ -21,6 +21,13 @@ import me.akshitbansal.edgepad.R
 import me.akshitbansal.edgepad.Space
 import me.akshitbansal.edgepad.Type
 
+/** True on a fresh start (not a rotation) whose version has not had its opening yet. Outside the object: no Android. */
+fun openingDue(
+    rotated: Boolean,
+    shownVersion: String,
+    version: String,
+): Boolean = !rotated && shownVersion != version
+
 /**
  * The opening screen, shown on the first launch and once after each update: the logo playing its pop over the
  * trackpad's thin grid, the name, the version, a link to the project and a line saying a tap goes on. It never
@@ -28,13 +35,6 @@ import me.akshitbansal.edgepad.Type
  * rest fades in at 800 ms, each over [Motion.REVEAL]; with the system's animations off everything is already there.
  */
 object OpeningScreen {
-    /** True on a fresh start (not a rotation) whose version has not had its opening yet. */
-    fun due(
-        rotated: Boolean,
-        shownVersion: String,
-        version: String,
-    ): Boolean = !rotated && shownVersion != version
-
     private const val LOGO_DP = 112f
     private const val GRID_DP = 22f
     private const val GRID_ALPHA = 14

@@ -428,9 +428,7 @@ class Settings(
     private fun legacyIconPercent(): Int =
         when (prefs.getString(KEY_CONTROLS_ICON_SIZE, null)) {
             "SMALL" -> LEGACY_SMALL_PERCENT
-
             "LARGE" -> LEGACY_LARGE_PERCENT
-
             else -> ControlsPlan.DEFAULT_ICON_PERCENT
         }
 
